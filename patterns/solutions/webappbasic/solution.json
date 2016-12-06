@@ -1,0 +1,87 @@
+{
+    "Solution" : {
+        "Id" : "webappbasic",
+        "Name" : "webappbasic",
+        "Title" : "Docker based web application",
+        "Tiers" : [
+            {
+                "Id" : "elb",
+                "Components" : [
+                    {
+                        "Id" : "www",
+                        "Name" : "www",
+                        "Title" : "Load Balancer",
+                        "Slices" : ["www-elb"],
+                        "ELB" : {
+                            "PortMappings" : ["https"],
+                            "Logs" : true
+                        }
+                    }
+                ]
+            },
+            {
+                "Id" : "web",
+                "Components" : [
+                    {
+                        "Id" : "www",
+                        "Name" : "www",
+                        "Title" : "Web App",
+                        "Slices" : ["www","www-spt","www-task"],
+                        "Role" : "ECS",
+                        "ECS" : {
+                            "Services" : [
+                                {
+                                    "Id" : "www",
+                                    "Slices" : ["www"],
+                                    "Containers" : [
+                                        {
+                                            "Id" : "www",
+                                            "Ports" : [{"Id": "http", "ELB" : "www"}],
+                                            "Cpu" : 1000,
+                                            "Memory" : 2048
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Id" : "spt",
+                                    "Slices" : ["www-spt"],
+                                    "Containers" : [
+                                        {
+                                            "Id" : "cleanup",
+                                            "Version" : "1.0",
+                                            "Cpu" : 24,
+                                            "Memory" : 64
+                                        }
+                                    ]
+                                }
+                            ],
+                            "Tasks" : [
+                                {
+                                    "Id" : "wwwtask",
+                                    "Slices" : ["www-task"],
+                                    "Containers" : [
+                                        {
+                                            "Id" : "wwwtask",
+                                            "Cpu" : 1000,
+                                            "Memory" : 2048
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+			{
+				"Id" : "mgmt"
+			}
+        ]
+    },
+    "Processors" : {
+        "default" : {
+            "ECS" : {
+                "Processor" : "t2.medium"
+            }
+        }
+    }
+}

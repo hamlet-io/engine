@@ -1,0 +1,55 @@
+{
+    "Solution" : {
+        "Id" : "alm",
+        "Name" : "alm",
+        "Title" : "Standalone ALM server hosted on a directly exposed single server",
+        "Description" : "Role permits additional configuration via Puppet. Binary S3 bucket for build images",
+        "Tiers": [
+            {
+                "Id"  : "web",
+                "RouteTable" : "external",
+                "Components" : [
+                    {
+                        "Title" : "ALM Server",
+                        "Id" : "alm",
+                        "Name" : "alm",
+                        "Slices" : ["alm"],
+                        "Role" : "ALM",
+                        "EC2" : {
+                            "Ports" : [
+                                "https",
+                                "ssh"
+                            ],
+                            "LoadBalanced": false,
+                            "FixedIP": true
+                        }
+                    },
+                    {
+                        "Title" : "Binary images",
+                        "Id" : "binaries",
+                        "Name" : "binaries",
+                        "Slices" : ["alm-s3"],
+                        "S3" : {}
+                    }
+                ]
+            }
+        ]
+    },
+    "Segment" : {
+        "NAT" : {
+            "Enabled" : false
+        }
+    },
+    "Storage" : {
+        "default" : {
+            "EC2" : {
+                "Volumes" : [
+                    {
+                        "Device" : "/dev/sdp",
+                        "Size" : "100"
+                    }
+                ]
+            }
+        }
+    }
+}

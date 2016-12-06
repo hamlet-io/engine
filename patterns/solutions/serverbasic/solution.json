@@ -1,0 +1,56 @@
+{
+    "Solution" : {
+        "Id" : "serverbasic",
+        "Name" : "serverbasic",
+        "Title" : "Externally exposed server",
+        "Description" : "SSL/SSH Traffic permitted to a fixed IP address. Additional Storage provided",
+        "Tiers": [
+            {
+                "Id"  : "web",
+                "RouteTable" : "external",
+                "Components" : [
+                    {
+                        "Title" : "WWW Server",
+                        "Id" : "www",
+                        "Name" : "www",
+                        "Slices" : ["www"],
+                        "Role" : "WWW",
+                        "EC2" : {
+                            "Ports" : [
+                                "https",
+                                "ssh"
+                            ],
+                            "LoadBalanced": false,
+                            "FixedIP": true
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "Segment" : {
+        "SSHPerSegment" : true,
+        "NAT" : {
+            "Enabled" : false
+        }
+    },
+    "Processors" : {
+        "default" : {
+            "ECS" : {
+                "Processor" : "t2.small"
+            }
+        }
+    },
+    "Storage" : {
+        "default" : {
+            "EC2" : {
+                "Volumes" : [
+                    {
+                        "Device" : "/dev/sdp",
+                        "Size" : "100"
+                    }
+                ]
+            }
+        }
+    }
+}
