@@ -139,7 +139,7 @@
     },
     {
         "Name" : "REQUEST_REFERENCE",
-        "Value" : "${configurationReference}"
+        "Value" : "${requestReference}"
     },
     {
         "Name" : "CONFIGURATION_REFERENCE",

@@ -196,8 +196,12 @@ if [[ -n "${PRODUCT}" ]]; then
                 APPSETTINGS_LIST="${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/appsettings.json ${APPSETTINGS_LIST}"
             fi
     
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.ref" ]]; then
-                export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.ref")
+            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.json" ]]; then
+                export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.json")
+            else
+                if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.ref" ]]; then
+                    export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.ref")
+                fi
             fi
         else
             IS_APPLICATION_SLICE="false"
