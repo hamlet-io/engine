@@ -849,6 +849,7 @@
             },
             [#-- Ensure ELBs can write to the operations bucket for logs --]
             "s3XoperationsXpolicy" : {
+                "DependsOn" : [ "s3Xoperations" ],
                 "Type" : "AWS::S3::BucketPolicy",
                 "Properties" : {
                     "Bucket" : "${operationsBucket}",
