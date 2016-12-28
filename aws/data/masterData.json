@@ -18,6 +18,13 @@
             },
             "Accounts": {
                 "ELB": "582318560864"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-2f0f6448",
+                    "EC2": "ami-9f0c67f8",
+                    "ECS": "ami-08f7956f"
+                }
             }
         },
         "ap-northeast-2": {
@@ -38,6 +45,12 @@
             },
             "Accounts": {
                 "ELB": "600734575887"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-9da670f3",
+                    "EC2": "ami-94bb6dfa"
+                }
             }
         },
         "ap-south-1": {
@@ -57,7 +70,13 @@
                 }
             },
             "Accounts": {
-                "ELB": ""
+                "ELB": "718504428378"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-9bd8aff4",
+                    "EC2": "ami-9fc7b0f0"
+                }
             }
         },
         "ap-southeast-1": {
@@ -80,6 +99,13 @@
             },
             "Accounts": {
                 "ELB": "114774131450"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-71d57b12",
+                    "EC2": "ami-4dd6782e",
+                    "ECS": "ami-f4832f97"
+                }
             }
         },
         "ap-southeast-2": {
@@ -109,9 +135,62 @@
             },
             "AMIs": {
                 "Centos": {
-                    "NAT": "ami-53371f30",
-                    "EC2": "ami-dc361ebf",
-                    "ECS": "ami-22a49541"
+                    "NAT": "ami-16c8f375",
+                    "EC2": "ami-28cff44b",
+                    "ECS": "ami-774b7314"
+                }
+            }
+        },
+        "ca-central-1": {
+            "Locality": "Central",
+            "Zones": {
+                "a" : {
+                    "Title": "Zone A",
+                    "Name": "a",
+                    "Description": "Zone A",
+                    "AWSZone": "ca-central-1a"
+                },
+                "b" : {
+                    "Title": "Zone B",
+                    "Name": "b",
+                    "Description": "Zone B",
+                    "AWSZone": "ca-central-1b"
+                }
+            },
+            "Accounts": {
+                "ELB": "985666609251"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-fd209299",
+                    "EC2": "ami-eb20928f",
+                    "ECS": "ami-be45f7da"
+                }
+            }
+        },
+        "cn-north-1": {
+            "Locality": "Beijing",
+            "Zones": {
+                "a" : {
+                    "Title": "Zone A",
+                    "Name": "a",
+                    "Description": "Zone A",
+                    "AWSZone": "cn-north-1a"
+                },
+                "b" : {
+                    "Title": "Zone B",
+                    "Name": "b",
+                    "Description": "Zone B",
+                    "AWSZone": "cn-north-1b"
+                }
+            },
+            "Accounts": {
+                "ELB": "638102146993"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-0f944362",
+                    "EC2": "ami-29934444"
                 }
             }
         },
@@ -133,6 +212,13 @@
             },
             "Accounts": {
                 "ELB": "054676820928"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-ba18d8d5",
+                    "EC2": "ami-211ada4e",
+                    "ECS": "ami-e012d48f"
+                }
             }
         },
         "eu-west-1": {
@@ -159,6 +245,40 @@
             },
             "Accounts": {
                 "ELB": "156460612806"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-d51b3ba6",
+                    "EC2": "ami-c51e3eb6",
+                    "ECS": "ami-ba346ec9"
+                }
+            }
+        },
+        "eu-west-2": {
+            "Locality": "London",
+            "Zones": {
+                "a" : {
+                    "Title": "Zone A",
+                    "Name": "a",
+                    "Description": "Zone A",
+                    "AWSZone": "eu-west-2a"
+                },
+                "b" : {
+                    "Title": "Zone B",
+                    "Name": "b",
+                    "Description": "Zone B",
+                    "AWSZone": "eu-west-2b"
+                }
+            },
+            "Accounts": {
+                "ELB": "652711504416"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-a7e2e8c3",
+                    "EC2": "ami-bfe0eadb",
+                    "ECS": "ami-42c5cf26"
+                }
             }
         },
         "sa-east-1": {
@@ -185,22 +305,28 @@
             },
             "Accounts": {
                 "ELB": "507241528517"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-d94ed6b5",
+                    "EC2": "ami-bb40d8d7"
+                }
             }
         },
         "us-east-1": {
             "Locality": "North Virginia",
             "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "us-east-1a"
-                },
                 "b" : {
                     "Title": "Zone B",
                     "Name": "b",
                     "Description": "Zone B",
                     "AWSZone": "us-east-1b"
+                },
+                "c" : {
+                    "Title": "Zone C",
+                    "Name": "c",
+                    "Description": "Zone C",
+                    "AWSZone": "us-east-1c"
                 },
                 "d" : {
                     "Title": "Zone D",
@@ -217,6 +343,13 @@
             },
             "Accounts": {
                 "ELB": "127311923021"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-f8e7f2ef",
+                    "EC2": "ami-9be6f38c",
+                    "ECS": "ami-6df8fe7a"
+                }
             }
         },
         "us-east-2": {
@@ -242,17 +375,50 @@
                 }
             },
             "Accounts": {
-                "ELB": ""
+                "ELB": "033677994240"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-36c29853",
+                    "EC2": "ami-38cd975d",
+                    "ECS": "ami-c6b5efa3"
+                }
             }
         },
-        "us-west-1": {
-            "Locality": "North California",
+        "us-gov-west-1": {
+            "Locality": "US",
             "Zones": {
                 "a" : {
                     "Title": "Zone A",
                     "Name": "a",
                     "Description": "Zone A",
-                    "AWSZone": "us-west-1a"
+                    "AWSZone": "us-gov-west-1a"
+                },
+                "b" : {
+                    "Title": "Zone B",
+                    "Name": "b",
+                    "Description": "Zone B",
+                    "AWSZone": "us-gov-west-1b"
+                }
+            },
+            "Accounts": {
+                "ELB": "048591011584"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-66a01b07",
+                    "EC2": "ami-ffa61d9e"
+                }
+            }
+        },
+        "us-west-1": {
+            "Locality": "North California",
+            "Zones": {
+                "b" : {
+                    "Title": "Zone B",
+                    "Name": "b",
+                    "Description": "Zone B",
+                    "AWSZone": "us-west-1b"
                 },
                 "c" : {
                     "Title": "Zone C",
@@ -263,6 +429,13 @@
             },
             "Accounts": {
                 "ELB": "027434742980"
+            },
+            "AMIs": {
+                "Centos": {
+                    "NAT": "ami-653d6c05",
+                    "EC2": "ami-b73d6cd7",
+                    "ECS": "ami-1eda8d7e"
+                }
             }
         },
         "us-west-2": {
@@ -292,9 +465,9 @@
             },
             "AMIs": {
                 "Centos": {
-                    "NAT": "ami-a275b1c2",
-                    "EC2": "ami-7172b611",
-                    "ECS": "ami-1ccd1f7c"
+                    "NAT": "ami-1c2a9e7c",
+                    "EC2": "ami-1e299d7e",
+                    "ECS": "ami-a2ca61c2"
                 }
             }
         }
