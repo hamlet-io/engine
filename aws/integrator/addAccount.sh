@@ -5,7 +5,7 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
     
 function usage() {
     echo -e "\nAdd a new account for a tenant"
-    echo -e "\nUsage: $(basename $0) -l TITLE -n ACCOUNT -d DESCRIPTION -a AID -t TENANT -o DOMAIN -r AWS_REGION -s AWS_SES_REGION -c AWS_ID -f -u"
+    echo -e "\nUsage: $(basename $0) -l TITLE -n ACCOUNT -d DESCRIPTION -a AID -t TENANT -o DOMAIN -r AWS_REGION -c AWS_ID -f -u"
     echo -e "\nwhere\n"
     echo -e "(m) -a AID is the tenant account id"
     echo -e "(o) -c AWS_ID is the AWS account id"
@@ -16,7 +16,6 @@ function usage() {
     echo -e "(m) -n ACCOUNT is the human readable form (one word, lowercase and no spaces) of the account id"
     echo -e "(o) -o DOMAIN is the default DNS domain to be used for account products"
     echo -e "(o) -r AWS_REGION is the AWS region identifier for the region in which the account will be created"
-    echo -e "(o) -s AWS_SES_REGION is the default AWS region for use of the SES service"
     echo -e "(m) -t TENANT is the tenant name"
     echo -e "(o) -u if details should be updated"
     echo -e "\nDEFAULTS (creation only):\n"
@@ -31,7 +30,7 @@ function usage() {
 }
 
 # Parse options
-while getopts ":a:c:d:fhl:n:o:r:s:t:u" opt; do
+while getopts ":a:c:d:fhl:n:o:r:t:u" opt; do
     case $opt in
         a)
             AID="${OPTARG}"
@@ -59,9 +58,6 @@ while getopts ":a:c:d:fhl:n:o:r:s:t:u" opt; do
             ;;
         r)
             AWS_REGION="${OPTARG}"
-            ;;
-        s)
-            AWS_SES_REGION="${OPTARG}"
             ;;
         t)
             TENANT="${OPTARG}"
@@ -146,7 +142,6 @@ if [[ -n "${DESCRIPTION}" ]]; then FILTER="${FILTER} | .Account.Description=\$DE
 if [[ -n "${AWS_ID}" ]]; then FILTER="${FILTER} | .Account.AWSId=\$AWS_ID"; fi
 if [[ -n "${AWS_REGION}" ]]; then FILTER="${FILTER} | .Account.Region=\$AWS_REGION"; fi
 if [[ -n "${AWS_REGION}" ]]; then FILTER="${FILTER} | .Product.Region=\$AWS_REGION"; fi
-if [[ -n "${AWS_SES_REGION}" ]]; then FILTER="${FILTER} | .Product.SES.Region=\$AWS_SES_REGION"; fi
 if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Stem=\$DOMAIN"; fi
 if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Certificate.Id=\$CERTIFICATE_ID"; fi
 

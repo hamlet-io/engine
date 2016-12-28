@@ -5,7 +5,7 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 
 function usage() {
     echo -e "\nAdd a new tenant"
-    echo -e "\nUsage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_REGION -s AWS_SES_REGION -u"
+    echo -e "\nUsage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_REGION -u"
     echo -e "\nwhere\n"
     echo -e "(o) -d DESCRIPTION is the tenant description"
     echo -e "    -h shows this text"
@@ -13,7 +13,6 @@ function usage() {
     echo -e "(m) -n TENANT is the human readable form (one word, lowercase and no spaces) of the tenant id"
     echo -e "(o) -o DOMAIN is the default DNS domain to be used for tenant products and accounts"
     echo -e "(o) -r AWS_REGION is the default AWS region for the tenant"
-    echo -e "(o) -s AWS_SES_REGION is the default AWS region for use of the SES service"
     echo -e "(o) -t TID is the tenant id"
     echo -e "(o) -u if details should be updated"
     echo -e "\nDEFAULTS (creation only):\n"
@@ -30,7 +29,7 @@ function usage() {
 }
 
 # Parse options
-while getopts ":d:hl:n:o:r:s:t:u" opt; do
+while getopts ":d:hl:n:o:r:t:u" opt; do
     case $opt in
         d)
             DESCRIPTION="${OPTARG}"
@@ -49,9 +48,6 @@ while getopts ":d:hl:n:o:r:s:t:u" opt; do
             ;;
         r)
             AWS_REGION="${OPTARG}"
-            ;;
-        s)
-            AWS_SES_REGION="${OPTARG}"
             ;;
         t)
             TID="${OPTARG}"
@@ -110,7 +106,6 @@ if [[ -n "${DESCRIPTION}" ]]; then FILTER="${FILTER} | .Tenant.Description=\$DES
 if [[ -n "${VALIDATION_DOMAIN}" ]]; then FILTER="${FILTER} | .Tenant.Domain.Validation=\$VALIDATION_DOMAIN"; fi
 if [[ -n "${AWS_REGION}" ]]; then FILTER="${FILTER} | .Account.Region=\$AWS_REGION"; fi
 if [[ -n "${AWS_REGION}" ]]; then FILTER="${FILTER} | .Product.Region=\$AWS_REGION"; fi
-if [[ -n "${AWS_SES_REGION}" ]]; then FILTER="${FILTER} | .Product.SES.Region=\$AWS_SES_REGION"; fi
 if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Account.Domain.Stem=\$DOMAIN"; fi
 if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Stem=\$DOMAIN"; fi
 if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Account.Domain.Certificate.Id=\$TID"; fi
@@ -124,7 +119,6 @@ cat ${TENANT_PROFILE} | jq --indent 4 \
 --arg TITLE "${TITLE}" \
 --arg DESCRIPTION "${DESCRIPTION}" \
 --arg AWS_REGION "${AWS_REGION}" \
---arg AWS_SES_REGION "${AWS_SES_REGION}" \
 --arg DOMAIN "${DOMAIN}" \
 --arg VALIDATION_DOMAIN "${VALIDATION_DOMAIN}" \
 --arg IP_ADDRESS_BLOCKS "${IP_ADDRESS_BLOCKS}" \
