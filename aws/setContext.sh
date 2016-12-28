@@ -136,7 +136,7 @@ export REGION="${REGION:-$PRODUCT_REGION}"
 
 # Perform a few consistency checks
 if [[ -z "${REGION}" ]]; then
-    echo -e "\nThe region must be defined in the Account or Product blueprint section. Nothing to do."
+    echo -e "\nThe region must be defined in the Product blueprint section. Nothing to do."
     usage
 fi
 BLUEPRINT_ACCOUNT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Account.Name | select(.!=null)')

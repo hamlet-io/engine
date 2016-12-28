@@ -9,12 +9,13 @@ STACK_OPERATION_DEFAULT="update"
 STACK_WAIT_DEFAULT=30
 function usage() {
     echo -e "\nManage a CloudFormation stack"
-    echo -e "\nUsage: $(basename $0) -t TYPE -s SLICE -i -m -w STACK_WAIT -r REGION -d\n"
+    echo -e "\nUsage: $(basename $0) -t TYPE -s SLICE -i -m -w STACK_WAIT -r REGION -n STACK_NAME -d\n"
     echo -e "\nwhere\n"
     echo -e "(o) -d (STACK_OPERATION=delete) to delete the stack"
     echo -e "    -h shows this text"
     echo -e "(o) -i (STACK_MONITOR=false) initiates but does not monitor the stack operation"
     echo -e "(o) -m (STACK_INITIATE=false) monitors but does not initiate the stack operation"
+    echo -e "(o) -n STACK_NAME to override standard stack naming"
     echo -e "(o) -r REGION is the AWS region identifier for the region in which the stack should be managed"
     echo -e "(m) -s SLICE is the slice used to determine the stack template"
     echo -e "(m) -t TYPE is the stack type - \"account\", \"product\", \"segment\", \"solution\" or \"application\""
@@ -30,12 +31,13 @@ function usage() {
     echo -e "   if the product uses resources in multiple regions"  
     echo -e "3. \"segment\" is now used in preference to \"container\" to avoid confusion with docker"
     echo -e "4. If stack doesn't exist in AWS, the update operation will create the stack"
+    echo -e "5. Overriding the stack name is not recommended except where legacy naming has to be maintained" 
     echo -e ""
     exit
 }
 
 # Parse options
-while getopts ":dhimr:s:t:w:" opt; do
+while getopts ":dhimn:r:s:t:w:" opt; do
     case $opt in
         d)
             STACK_OPERATION=delete
@@ -48,6 +50,9 @@ while getopts ":dhimr:s:t:w:" opt; do
             ;;
         m)
             STACK_INITIATE=false
+            ;;
+        n)
+            STACK_NAME="${OPTARG}"
             ;;
         r)
             REGION="${OPTARG}"
@@ -95,7 +100,7 @@ RESULT=0
 if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
         delete)
-            aws --region ${REGION} cloudformation delete-stack --stack-name $STACKNAME 2>/dev/null
+            aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
 
             # For delete, we don't check result as stack may not exist
             ;;
@@ -105,14 +110,14 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
             cat $TEMPLATE | jq -c '.' > stripped_${TEMPLATE}
         
             # Check if stack needs to be created
-            aws --region ${REGION} cloudformation describe-stacks --stack-name $STACKNAME > $STACK 2>/dev/null
+            aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null
             RESULT=$?
             if [[ "$RESULT" -ne 0 ]]; then
                 STACK_OPERATION="create"
             fi
 
             # Initiate the required operation
-            aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name $STACKNAME --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
+            aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name $STACK_NAME --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
 
             # Check result of operation
             RESULT=$?
@@ -128,7 +133,7 @@ fi
 
 if [[ "${STACK_MONITOR}" = "true" ]]; then
     while true; do
-        aws --region ${REGION} cloudformation describe-stacks --stack-name $STACKNAME > $STACK 2>/dev/null
+        aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null
         if [[ ("${STACK_OPERATION}" == "delete") && ("$?" -eq 255) ]]; then
             # Assume stack doesn't exist
             RESULT=0
