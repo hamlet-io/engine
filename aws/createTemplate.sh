@@ -140,7 +140,6 @@ case $TYPE in
         if [[ "${SLICE}" =~ cmk ]]; then
             if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
                 SLICE_PREFIX=""
-                SLICE_SUFFIX=""
             fi
         fi
         ;;
@@ -148,6 +147,10 @@ case $TYPE in
     solution)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
         TYPE_PREFIX="soln-"
+        if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
+            TYPE_PREFIX="solution-"
+            SLICE_PREFIX=""
+        fi
         ;;
 
     segment)
@@ -173,7 +176,6 @@ case $TYPE in
         if [[ "${SLICE}" == "cmk" ]]; then
             if [[ -f "${CF_DIR}/${TYPE_PREFIX}key-${REGION_PREFIX}template.json" ]]; then
                 SLICE_PREFIX="key-"
-                SLICE_SUFFIX="-key"
             fi
         fi
         ;;

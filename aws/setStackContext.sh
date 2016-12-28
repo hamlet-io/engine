@@ -44,6 +44,7 @@ case $TYPE in
     account)
         CF_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf"
         PRODUCT_PREFIX="${ACCOUNT}"
+        REGION="${ACCOUNT_REGION}"
         REGION_PREFIX="${ACCOUNT_REGION}-"
         SEGMENT_SUFFIX=""
 
@@ -73,6 +74,12 @@ case $TYPE in
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
         TYPE_PREFIX="soln-"
         TYPE_SUFFIX="-soln"
+        if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
+            TYPE_PREFIX="solution-"
+            TYPE_SUFFIX="-solution"
+            SLICE_PREFIX=""
+            SLICE_SUFFIX=""
+        fi
         ;;
 
     segment)
@@ -121,7 +128,7 @@ case $TYPE in
         ;;
 esac
 
-STACKNAME="${PRODUCT_PREFIX}${SEGMENT_SUFFIX}${TYPE_SUFFIX}${SLICE_SUFFIX}"
+STACK_NAME="${STACK_NAME:-${PRODUCT_PREFIX}${SEGMENT_SUFFIX}${TYPE_SUFFIX}${SLICE_SUFFIX}}"
 TEMPLATE="${TYPE_PREFIX}${SLICE_PREFIX}${REGION_PREFIX}template.json"
 STACK="${TYPE_PREFIX}${SLICE_PREFIX}${REGION_PREFIX}stack.json"
 
