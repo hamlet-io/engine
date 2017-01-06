@@ -750,16 +750,9 @@
                                                     "AssociatePublicIpAddress" : ${(((tier.RouteTable) == "external") && !fixedIP)?string("true","false")},
                                                     "DeleteOnTermination" : true,
                                                     "DeviceIndex" : "0",
-                                                    "SubnetId" : "${getKey("subnetX"+tier.Id+"X"+zone.Id)}",
-                                                    "GroupSet" : [ 
-                                                        {"Ref" : "securityGroupX${tier.Id}X${component.Id}"} 
-                                                        [#if securityGroupNAT != "none"]
-                                                            , "${securityGroupNAT}"
-                                                        [/#if] 
-                                                    ] 
+                                                    "NetworkInterfaceId" : { "Ref" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0" } 
                                                 }
                                             ],
-                                            "SourceDestCheck" : true,
                                             "Tags" : [
                                                 { "Key" : "cot:request", "Value" : "${requestReference}" },
                                                 { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
@@ -791,17 +784,59 @@
                                                     ]
                                                 }
                                             }
+                                        },
+                                        "DependsOn" : [
+                                            "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0"
+                                            [#if ec2.LoadBalanced]
+                                                ,"elbXelbX${component.Id}"
+                                            [/#if]
+                                            [#if fixedIP]
+                                                ,"eipAssocX${tier.Id}X${component.Id}X${zone.Id}Xeth0"
+                                            [/#if]
+                                        ]
+                                    },
+                                    "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {                                    
+                                        "Type" : "AWS::EC2::NetworkInterface",
+                                        "Properties" : {
+                                            "Description" : "eth0",
+                                            "SubnetId" : "${getKey("subnetX"+tier.Id+"X"+zone.Id)}",
+                                            "SourceDestCheck" : true,
+                                            "GroupSet" : [ 
+                                                {"Ref" : "securityGroupX${tier.Id}X${component.Id}"} 
+                                                [#if securityGroupNAT != "none"]
+                                                    , "${securityGroupNAT}"
+                                                [/#if] 
+                                            ],
+                                            "Tags" : [
+                                                { "Key" : "cot:request", "Value" : "${requestReference}" },
+                                                { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
+                                                { "Key" : "cot:tenant", "Value" : "${tenantId}" },
+                                                { "Key" : "cot:account", "Value" : "${accountId}" },
+                                                { "Key" : "cot:product", "Value" : "${productId}" },
+                                                { "Key" : "cot:segment", "Value" : "${segmentId}" },
+                                                { "Key" : "cot:environment", "Value" : "${environmentId}" },
+                                                { "Key" : "cot:category", "Value" : "${categoryId}" },
+                                                { "Key" : "cot:tier", "Value" : "${tier.Id}" },
+                                                { "Key" : "cot:component", "Value" : "${component.Id}" },
+                                                { "Key" : "cot:zone", "Value" : "${zone.Id}" },
+                                                { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}-${zone.Name}-eth0" }
+                                            ],
                                         }
-                                        [#if ec2.LoadBalanced]
-                                            ,"DependsOn" : "elbXelbX${component.Id}"
-                                        [/#if]
-                                    }
+                                    ],
                                     [#if fixedIP]
-                                        ,"eipX${tier.Id}X${component.Id}X${zone.Id}": {
+                                        ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
+                                            "DependsOn" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
                                             "Type" : "AWS::EC2::EIP",
                                             "Properties" : {
-                                                "InstanceId" : { "Ref" : "ec2InstanceX${tier.Id}X${component.Id}X${zone.Id}" },
                                                 "Domain" : "vpc"
+                                            }
+                                        }
+                                        ,"eipAssocX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
+                                            "DependsOn" : "eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
+                                            "Type" : "AWS::EC2::EIPAssociation",
+                                            "Properties" : {
+                                                "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0", "AllocationId"] },
+                                                "NetworkInterfaceId" : { "Ref" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0" }
                                             }
                                         }
                                     [/#if]
