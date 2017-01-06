@@ -820,9 +820,9 @@
                                                 { "Key" : "cot:component", "Value" : "${component.Id}" },
                                                 { "Key" : "cot:zone", "Value" : "${zone.Id}" },
                                                 { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}-${zone.Name}-eth0" }
-                                            ],
+                                            ]
                                         }
-                                    ],
+                                    }
                                     [#if fixedIP]
                                         ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
                                             "DependsOn" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
