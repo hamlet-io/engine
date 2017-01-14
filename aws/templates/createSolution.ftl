@@ -1,7 +1,7 @@
 [#ftl]
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
-[#assign credentialsObject = credentials?eval]
+[#assign credentialsObject = (credentials?eval).Credentials]
 [#assign appSettingsObject = appsettings?eval]
 [#assign stackOutputsObject = stackOutputs?eval]
 
@@ -244,7 +244,7 @@
                                 [#assign bucketName = component.Name + segmentDomainQualifier + "." + segmentDomain]
                             [/#if]
                             [#-- Support presence of existing s3 buckets (naming has changed over time) --]
-                            [#assign bucketName = getKey("s3XsegmentX" + component.Id)!bucketName]
+                            [#assign bucketName = getKey("s3X" + tier.Id + "X" + component.Id)!bucketName]
                             "s3X${tier.Id}X${component.Id}" : {
                                 "Type" : "AWS::S3::Bucket",
                                 "Properties" : {
@@ -1386,7 +1386,7 @@
                                     [#if multiAZ]
                                         "MultiAZ": true,
                                     [#else]
-                                        "AvailabilityZone" : "${zone[0].AWSZone}",
+                                        "AvailabilityZone" : "${zones[0].AWSZone}",
                                     [/#if]
                                     "VPCSecurityGroups":[
                                         { "Ref" : "securityGroupX${tier.Id}X${component.Id}" }

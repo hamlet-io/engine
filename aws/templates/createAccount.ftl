@@ -1,7 +1,7 @@
 [#ftl]
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
-[#assign credentialsObject = credentials?eval]
+[#assign credentialsObject = (credentials?eval).Credentials]
 [#assign appSettingsObject = appsettings?eval]
 [#assign stackOutputsObject = stackOutputs?eval]
 

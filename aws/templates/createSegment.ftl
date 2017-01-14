@@ -1,7 +1,7 @@
 [#ftl]
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
-[#assign credentialsObject = credentials?eval]
+[#assign credentialsObject = (credentials?eval).Credentials]
 [#assign appSettingsObject = appsettings?eval]
 [#assign stackOutputsObject = stackOutputs?eval]
 
@@ -117,11 +117,30 @@
 [#assign sshPerSegment = segmentObject.SSHPerSegment]
 [#assign rotateKeys = (segmentObject.RotateKeys)!true]
 [#-- Current bucket naming --]
-[#assign operationsBucket = "operations" + segmentDomainQualifier + "." + segmentDomain]
-[#assign dataBucket = "data" + segmentDomainQualifier + "." + segmentDomain]
-[#-- Support presence of existing s3 buckets (naming has changed over time) --]
-[#assign operationsBucket = getKey("s3XsegmentXoperations")!getKey("s3XsegmentXlogs")!operationsBucket]
-[#assign dataBucket = getKey("s3XsegmentXdata")!getKey("s3XsegmentXbackups")!dataBucket]
+[#assign operationsBucketSegment = "segment"]
+[#assign operationsBucketType = "operations"]
+[#assign operationsBucket = operationsBucketType + segmentDomainQualifier + "." + segmentDomain]
+[#assign dataBucketSegment = "segment"]
+[#assign dataBucketType = "data"]
+[#assign dataBucket = dataBucketType + segmentDomainQualifier + "." + segmentDomain]
+[#-- Support legacy bucket naming --]
+[#if getKey("s3XsegmentXlogs")??]
+    [#assign operationsBucketType = "logs"]
+[/#if]
+[#if getKey("s3XcontainerXlogs")??]
+    [#assign operationsBucketSegment = "container"]
+    [#assign operationsBucketType = "logs"]
+[/#if]
+[#if getKey("s3XsegmentXbackups")??]
+    [#assign dataBucketType = "backups"]
+[/#if]
+[#if getKey("s3XcontainerXbackups")??]
+    [#assign dataBucketSegment = "container"]
+    [#assign dataBucketType = "backups"]
+[/#if]
+[#-- Support presence of existing s3 buckets --]
+[#assign operationsBucket = getKey("s3X" + operationsBucketSegment + "X" + operationsBucketType)!operationsBucket]
+[#assign dataBucket = getKey("s3X" + dataBucketSegment + "X" + dataBucketType)!dataBucket]
 
 [#assign operationsExpiration = (segmentObject.Operations.Expiration)!(environmentObject.Operations.Expiration)]
 [#assign dataExpiration = (segmentObject.Data.Expiration)!(environmentObject.Data.Expiration)]
@@ -822,7 +841,7 @@
         [#if slice?contains("s3")]
             [#-- Create operations bucket --]
             [#if sliceCount > 0],[/#if]
-            "s3Xoperations" : {
+            "s3X${operationsBucketType}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {
                     "BucketName" : "${operationsBucket}",
@@ -848,8 +867,8 @@
                 }
             },
             [#-- Ensure ELBs can write to the operations bucket for logs --]
-            "s3XoperationsXpolicy" : {
-                "DependsOn" : [ "s3Xoperations" ],
+            "s3X${operationsBucketType}Xpolicy" : {
+                "DependsOn" : [ "s3X${operationsBucketType}" ],
                 "Type" : "AWS::S3::BucketPolicy",
                 "Properties" : {
                     "Bucket" : "${operationsBucket}",
@@ -868,7 +887,7 @@
                 }
             },
             [#-- Create data bucket --]
-            "s3Xdata" : {
+            "s3X${dataBucketType}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {
                     "BucketName" : "${dataBucket}",
@@ -980,11 +999,19 @@
         
         [#if slice?contains("s3")]
             [#if sliceCount > 0],[/#if]
+            [#-- Current naming --]
             "s3XsegmentXoperations" : {
-                "Value" : { "Ref" : "s3Xoperations" }
+                "Value" : { "Ref" : "s3X${operationsBucketType}" }
             },
             "s3XsegmentXdata" : {
-                "Value" : { "Ref" : "s3Xdata" }
+                "Value" : { "Ref" : "s3X${dataBucketType}" }
+            },
+            [#-- Legacy naming --]
+            "s3X${operationsBucketSegment}X${operationsBucketType}" : {
+                "Value" : { "Ref" : "s3X${operationsBucketType}" }
+            },
+            "s3X${dataBucketSegment}X${dataBucketType}" : {
+                "Value" : { "Ref" : "s3X${dataBucketType}" }
             }
             [#assign sliceCount += 1]
         [/#if]
