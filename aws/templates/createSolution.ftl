@@ -824,7 +824,11 @@
                                         }
                                     }
                                     [#if fixedIP]
-                                        ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
+                                        [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}")??]
+                                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}": {
+                                        [#else]
+                                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
+                                        [/#if]
                                             "DependsOn" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
                                             "Type" : "AWS::EC2::EIP",
                                             "Properties" : {
@@ -835,7 +839,11 @@
                                             "DependsOn" : "eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
                                             "Type" : "AWS::EC2::EIPAssociation",
                                             "Properties" : {
-                                                "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0", "AllocationId"] },
+                                                [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}")??]
+                                                    "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0", "AllocationId"] },
+                                                [#else]
+                                                    "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}", "AllocationId"] },
+                                                [/#if]
                                                 "NetworkInterfaceId" : { "Ref" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0" }
                                             }
                                         }
