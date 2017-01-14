@@ -630,13 +630,11 @@
                                         { "Ref" : "roleX${tier.Id}X${component.Id}" } 
                                     ]
                                 }
-                            },
+                            }
             
-                            [#assign ec2Count = 0]
                             [#list zones as zone]
                                 [#if multiAZ || (zones[0].Id = zone.Id)]
-                                    [#if ec2Count > 0],[/#if]
-                                    "ec2InstanceX${tier.Id}X${component.Id}X${zone.Id}": {
+                                    ,"ec2InstanceX${tier.Id}X${component.Id}X${zone.Id}": {
                                         "Type": "AWS::EC2::Instance",
                                         "Metadata": {
                                             "AWS::CloudFormation::Init": {
@@ -824,7 +822,7 @@
                                         }
                                     }
                                     [#if fixedIP]
-                                        [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}")??]
+                                        [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
                                             ,"eipX${tier.Id}X${component.Id}X${zone.Id}": {
                                         [#else]
                                             ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
@@ -839,16 +837,15 @@
                                             "DependsOn" : "eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
                                             "Type" : "AWS::EC2::EIPAssociation",
                                             "Properties" : {
-                                                [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}")??]
-                                                    "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0", "AllocationId"] },
-                                                [#else]
+                                                [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
                                                     "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}", "AllocationId"] },
+                                                [#else]
+                                                    "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0", "AllocationId"] },
                                                 [/#if]
                                                 "NetworkInterfaceId" : { "Ref" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0" }
                                             }
                                         }
                                     [/#if]
-                                    [#assign ec2Count += 1]
                                 [/#if]
                             [/#list]
                             [#assign count += 1]
@@ -1647,6 +1644,27 @@
                             "roleX${tier.Id}X${component.Id}Xarn" : {
                                 "Value" : { "Fn::GetAtt" : ["roleX${tier.Id}X${component.Id}", "Arn"] }
                             }
+                            [#if ec2.FixedIP?? && ec2.FixedIP]
+                                [#list zones as zone]
+                                    [#if multiAZ || (zones[0].Id = zone.Id)]
+                                        [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
+                                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xip": {
+                                                "Value" : { "Ref" : "eipX${tier.Id}X${component.Id}X${zone.Id}" }
+                                            }
+                                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xid": {
+                                                "Value" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}", "AllocationId"] }
+                                            }
+                                        [#else]
+                                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0Xip": {
+                                                "Value" : { "Ref" : "eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0" }
+                                            }
+                                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0Xid": {
+                                                "Value" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0", "AllocationId"] }
+                                            }
+                                        [/#if]
+                                    [/#if]
+                                [/#list]
+                            [/#if]
                             [#assign count += 1]
                         [/#if]
                         
