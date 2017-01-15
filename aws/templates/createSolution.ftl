@@ -745,8 +745,6 @@
                                             "Monitoring" : false,
                                             "NetworkInterfaces" : [
                                                 {
-                                                    "AssociatePublicIpAddress" : ${(((tier.RouteTable) == "external") && !fixedIP)?string("true","false")},
-                                                    "DeleteOnTermination" : true,
                                                     "DeviceIndex" : "0",
                                                     "NetworkInterfaceId" : { "Ref" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0" } 
                                                 }
@@ -834,7 +832,11 @@
                                             }
                                         }
                                         ,"eipAssocX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
-                                            "DependsOn" : "eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
+                                            [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
+                                                "DependsOn" : "eipX${tier.Id}X${component.Id}X${zone.Id}",
+                                            [#else]
+                                                "DependsOn" : "eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
+                                            [/#if]
                                             "Type" : "AWS::EC2::EIPAssociation",
                                             "Properties" : {
                                                 [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
