@@ -499,18 +499,36 @@
             "Title": "Development Environment",
             "Name": "development",
             "Description": "Potentially holds individual dev servers for multiple devs",
-            "Category": "dev"
+            "Category": "dev",
+            "Operations": {
+                "Expiration": 14
+            },
+            "Data": {
+                "Expiration": 14
+            }
         },
         "alpha": {
             "Title": "Alpha Environment",
             "Description": "Prototyping environment according to DTO classification",
-            "Category": "test"
+            "Category": "test",
+            "Operations": {
+                "Expiration": 14
+            },
+            "Data": {
+                "Expiration": 14
+            }
         },
         "beta": {
             "Title": "Beta Environment",
             "Description": "Preproduction environment according to DTO classification",
             "Category": "stg",
-            "MultiAZ": true
+            "MultiAZ": true,
+            "Operations": {
+                "Expiration": 30
+            },
+            "Data": {
+                "Expiration": 90
+            }
         },
         "int": {
             "Title": "Integration Environment",
@@ -528,40 +546,76 @@
             "Title": "Automated Acceptance Environment",
             "Name": "automatedacceptance",
             "Description": "Execution of automated tests",
-            "Category": "test"
+            "Category": "test",
+            "Operations": {
+                "Expiration": 30
+            },
+            "Data": {
+                "Expiration": 90
+            }
         },
         "uat": {
             "Title": "User Acceptance Environment",
             "Name": "useracceptance",
             "Description": "Manual customer testing",
-            "Category": "test"
+            "Category": "test",
+            "Operations": {
+                "Expiration": 30
+            },
+            "Data": {
+                "Expiration": 90
+            }
         },
         "preprod": {
             "Title": "Preproduction Environment",
             "Name": "preproduction",
             "Description": "Deployment, performance, volume testing",
             "Category": "stg",
-            "MultiAZ": true
+            "MultiAZ": true,
+            "Operations": {
+                "Expiration": 30
+            },
+            "Data": {
+                "Expiration": 90
+            }
         },
         "stg": {
             "Title": "Staging Environment",
             "Name": "staging",
             "Description": "Deployment, performance, volume testing. Staging is used both as a specific environment and as a category of environments.",
             "Category": "stg",
-            "MultiAZ": true
+            "MultiAZ": true,
+            "Operations": {
+                "Expiration": 30
+            },
+            "Data": {
+                "Expiration": 90
+            }
         },
         "prod": {
             "Title": "Production Environment",
             "Name": "production",
             "Description": "Kind of obvious...",
             "Category": "prod",
-            "MultiAZ": true
+            "MultiAZ": true,
+            "Operations": {
+                "Expiration": 180
+            },
+            "Data": {
+                "Expiration": 365
+            }
         },
         "trn": {
             "Title": "Training Environment",
             "Name": "training",
             "Description": "",
-            "Category": "prod"
+            "Category": "prod",
+            "Operations": {
+                "Expiration": 30
+            },
+            "Data": {
+                "Expiration": 90
+            }
         }
     },
     "Categories": {
