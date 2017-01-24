@@ -16,7 +16,7 @@ function usage() {
     echo -e "(m) -i COMPONENT is the name of the database component in the solution"
     echo -e "(o) -m (MONITOR ONLY) monitors but does not initiate the snapshot creation process"
     echo -e "(o) -r RETAIN is the count of snapshots to retain"
-    echo -e "(o) -s SUFFIX is appended to the snapshot identifier"
+    echo -e "(o) -s SUFFIX to be postpended to the snapshot identifier"
     echo -e "(o) -t TIER is the name of the database tier in the solution"
     echo -e "\nDEFAULTS:\n"
     echo -e "DELAY     = ${DELAY_DEFAULT} seconds"
