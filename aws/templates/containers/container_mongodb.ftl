@@ -21,7 +21,7 @@
             [#if volumeCount > 0],[/#if]
             {
                 "Host": {
-                    "SourcePath": "/product/mongodb/db"
+                    "SourcePath": "/codeontap/mongodb/db"
                 },
                 "Name": "mongodb"
             }
