@@ -3,7 +3,10 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
-CERTIFICATE_OPERATION_DEFAULT="upload"
+CERTIFICATE_OPERATION_LIST="list"
+CERTIFICATE_OPERATION_DELETE="delete"
+CERTIFICATE_OPERATION_UPLOAD="upload"
+CERTIFICATE_OPERATION_DEFAULT="${CERTIFICATE_OPERATION_UPLOAD}"
 
 function usage() {
     echo -e "\nUpdate SSL certificate details in AWS" 
@@ -18,8 +21,8 @@ function usage() {
     echo -e "(o) -q minimal output (quiet)"
     echo -e "(c) -r REGION is the AWS region identifier for the region where the certificate should be updated, required for upload operation"
     echo -e "(c) -v CERTIFICATE_PRIVATE is the path to the private certificate file, required for upload operation"
-    echo -e "(o) -l (CERTIFICATE_OPERATION=list) to list the certificates"
-    echo -e "(o) -d (CERTIFICATE_OPERATION=delete) to delete the certificate"
+    echo -e "(o) -l (CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION_LIST}) to list the certificates"
+    echo -e "(o) -d (CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION_DELETE}) to delete the certificate"
     echo -e "\nDEFAULTS:\n"
     echo -e "CERTIFICATE_OPERATION = ${CERTIFICATE_OPERATION_DEFAULT}"
     echo -e "\nNOTES:\n"
@@ -36,10 +39,10 @@ while getopts ":c:hi:p:qr:v:dl" opt; do
             CERTIFICATE_CHAIN="${OPTARG}"
             ;;
         d)
-            CERTIFICATE_OPERATION=delete
+            CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION_DELETE}
             ;;
         l)
-            CERTIFICATE_OPERATION=list
+            CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION_LIST}
             ;;
         h)
             usage
@@ -76,15 +79,15 @@ CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION:-${CERTIFICATE_OPERATION_DEFAULT}}
 
 # Ensure mandatory arguments have been provided
 case ${CERTIFICATE_OPERATION} in
-	list)
+	${CERTIFICATE_OPERATION_LIST})
 		;;
-	delete)
+	${CERTIFICATE_OPERATION_DELETE})
 		if [[ (-z "${CERTIFICATE_ID}") ]]; then
 		  echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
 		  usage
 		fi
 		;;
-	upload)
+	${CERTIFICATE_OPERATION_UPLOAD})
 		if [[ (-z "${CERTIFICATE_ID}") ||
 			  (-z "${CERTIFICATE_PUBLIC}") ||
 			  (-z "${CERTIFICATE_PRIVATE}") ||
@@ -104,13 +107,13 @@ esac
 . ${GENERATION_DIR}/setContext.sh
 
 case ${CERTIFICATE_OPERATION} in
-	list)
+	${CERTIFICATE_OPERATION_LIST})
 		aws --region ${REGION} iam list-server-certificates > temp_ssl_list.out 2>&1
 		RESULT=$?
 		if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_ssl_list.out; fi
         # For list - ?
 		;;
-	delete)
+	${CERTIFICATE_OPERATION_DELETE})
 		aws --region ${REGION} iam delete-server-certificate --server-certificate-name ${CERTIFICATE_ID}-ssl > temp_ssl_delete.out 2>&1
 		RESULT=$?
 		if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_ssl_delete.out; fi
@@ -119,7 +122,7 @@ case ${CERTIFICATE_OPERATION} in
 		if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_cloudfront_delete.out; fi
 		# For delete - ?
 		;;
-	upload)
+	${CERTIFICATE_OPERATION_UPLOAD})
 		# Copy files locally to keep aws call simple
 		LOCAL_CERTIFICATE_PUBLIC="temp_$(basename ${CERTIFICATE_PUBLIC})"
 		LOCAL_CERTIFICATE_PRIVATE="temp_$(basename ${CERTIFICATE_PRIVATE})"
