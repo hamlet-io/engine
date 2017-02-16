@@ -79,104 +79,104 @@ CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION:-${CERTIFICATE_OPERATION_DEFAULT}}
 
 # Ensure mandatory arguments have been provided
 case ${CERTIFICATE_OPERATION} in
-	${CERTIFICATE_OPERATION_LIST})
-		;;
-	${CERTIFICATE_OPERATION_DELETE})
-		if [[ (-z "${CERTIFICATE_ID}") ]]; then
-		  echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
-		  usage
-		fi
-		;;
-	${CERTIFICATE_OPERATION_UPLOAD})
-		if [[ (-z "${CERTIFICATE_ID}") ||
-			  (-z "${CERTIFICATE_PUBLIC}") ||
-			  (-z "${CERTIFICATE_PRIVATE}") ||
-			  (-z "${CERTIFICATE_CHAIN}") ||
-			  (-z "${REGION}") ]]; then
-		  echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
-		  usage
-		fi
-		;;
-	*)
-		echo -e "\n\"${CERTIFICATE_OPERATION}\" is not one of the known certificate operations."
-		usage
-		;;
+    ${CERTIFICATE_OPERATION_LIST})
+        ;;
+    ${CERTIFICATE_OPERATION_DELETE})
+        if [[ (-z "${CERTIFICATE_ID}") ]]; then
+          echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
+          usage
+        fi
+        ;;
+    ${CERTIFICATE_OPERATION_UPLOAD})
+        if [[ (-z "${CERTIFICATE_ID}") ||
+              (-z "${CERTIFICATE_PUBLIC}") ||
+              (-z "${CERTIFICATE_PRIVATE}") ||
+              (-z "${CERTIFICATE_CHAIN}") ||
+              (-z "${REGION}") ]]; then
+          echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
+          usage
+        fi
+        ;;
+    *)
+        echo -e "\n\"${CERTIFICATE_OPERATION}\" is not one of the known certificate operations."
+        usage
+        ;;
 esac
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
 case ${CERTIFICATE_OPERATION} in
-	${CERTIFICATE_OPERATION_LIST})
-		aws --region ${REGION} iam list-server-certificates > temp_ssl_list.out 2>&1
-		RESULT=$?
-		if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_ssl_list.out; fi
+    ${CERTIFICATE_OPERATION_LIST})
+        aws --region ${REGION} iam list-server-certificates > temp_ssl_list.out 2>&1
+        RESULT=$?
+        if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_ssl_list.out; fi
         # For list - ?
-		;;
-	${CERTIFICATE_OPERATION_DELETE})
-		aws --region ${REGION} iam delete-server-certificate --server-certificate-name ${CERTIFICATE_ID}-ssl > temp_ssl_delete.out 2>&1
-		RESULT=$?
-		if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_ssl_delete.out; fi
-		aws --region ${REGION} iam delete-server-certificate --server-certificate-name ${CERTIFICATE_ID}-cloudfront > temp_cloudfront_delete.out 2>&1
-		RESULT=$?
-		if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_cloudfront_delete.out; fi
-		# For delete - ?
-		;;
-	${CERTIFICATE_OPERATION_UPLOAD})
-		# Copy files locally to keep aws call simple
-		LOCAL_CERTIFICATE_PUBLIC="temp_$(basename ${CERTIFICATE_PUBLIC})"
-		LOCAL_CERTIFICATE_PRIVATE="temp_$(basename ${CERTIFICATE_PRIVATE})"
-		LOCAL_CERTIFICATE_CHAIN="temp_$(basename ${CERTIFICATE_CHAIN})"
-		cp "${CERTIFICATE_PUBLIC}"  "${LOCAL_CERTIFICATE_PUBLIC}"
-		cp "${CERTIFICATE_PRIVATE}" "${LOCAL_CERTIFICATE_PRIVATE}"
-		cp "${CERTIFICATE_CHAIN}"   "${LOCAL_CERTIFICATE_CHAIN}"
+        ;;
+    ${CERTIFICATE_OPERATION_DELETE})
+        aws --region ${REGION} iam delete-server-certificate --server-certificate-name ${CERTIFICATE_ID}-ssl > temp_ssl_delete.out 2>&1
+        RESULT=$?
+        if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_ssl_delete.out; fi
+        aws --region ${REGION} iam delete-server-certificate --server-certificate-name ${CERTIFICATE_ID}-cloudfront > temp_cloudfront_delete.out 2>&1
+        RESULT=$?
+        if [[ ("${QUIET}" != "true")  || ( "${RESULT}" -ne 0 ) ]]; then cat temp_cloudfront_delete.out; fi
+        # For delete - ?
+        ;;
+    ${CERTIFICATE_OPERATION_UPLOAD})
+        # Copy files locally to keep aws call simple
+        LOCAL_CERTIFICATE_PUBLIC="temp_$(basename ${CERTIFICATE_PUBLIC})"
+        LOCAL_CERTIFICATE_PRIVATE="temp_$(basename ${CERTIFICATE_PRIVATE})"
+        LOCAL_CERTIFICATE_CHAIN="temp_$(basename ${CERTIFICATE_CHAIN})"
+        cp "${CERTIFICATE_PUBLIC}"  "${LOCAL_CERTIFICATE_PUBLIC}"
+        cp "${CERTIFICATE_PRIVATE}" "${LOCAL_CERTIFICATE_PRIVATE}"
+        cp "${CERTIFICATE_CHAIN}"   "${LOCAL_CERTIFICATE_CHAIN}"
 
 
-		aws --region ${REGION} iam get-server-certificate --server-certificate-name ${CERTIFICATE_ID}-ssl > temp_ssl_check.out 2>&1
-		RESULT=$?
-		if [[ "${QUIET}" != "true" ]]; then cat temp_ssl_check.out; fi
-		if [[ "${RESULT}" -ne 0 ]]; then
-			if [[ "${MINGW64}" == "true" ]]; then
-				MSYS_NO_PATHCONV=1 aws --region ${REGION} iam upload-server-certificate \
-												  --server-certificate-name ${CERTIFICATE_ID}-ssl \
-												  --path "/ssl/${CERTIFICATE_ID}/" \
-												  --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
-												  --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
-												  --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
-			else
-				aws --region ${REGION} iam upload-server-certificate \
-												  --server-certificate-name ${CERTIFICATE_ID}-ssl \
-												  --path "/ssl/${CERTIFICATE_ID}/" \
-												  --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
-												  --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
-												  --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
-			fi
-			RESULT=$?
-			if [[ "${RESULT}" -ne 0 ]]; then exit; fi
-		fi
+        aws --region ${REGION} iam get-server-certificate --server-certificate-name ${CERTIFICATE_ID}-ssl > temp_ssl_check.out 2>&1
+        RESULT=$?
+        if [[ "${QUIET}" != "true" ]]; then cat temp_ssl_check.out; fi
+        if [[ "${RESULT}" -ne 0 ]]; then
+            if [[ "${MINGW64}" == "true" ]]; then
+                MSYS_NO_PATHCONV=1 aws --region ${REGION} iam upload-server-certificate \
+                                                  --server-certificate-name ${CERTIFICATE_ID}-ssl \
+                                                  --path "/ssl/${CERTIFICATE_ID}/" \
+                                                  --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
+                                                  --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
+                                                  --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
+            else
+                aws --region ${REGION} iam upload-server-certificate \
+                                                  --server-certificate-name ${CERTIFICATE_ID}-ssl \
+                                                  --path "/ssl/${CERTIFICATE_ID}/" \
+                                                  --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
+                                                  --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
+                                                  --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
+            fi
+            RESULT=$?
+            if [[ "${RESULT}" -ne 0 ]]; then exit; fi
+        fi
 
-		aws --region ${REGION} iam get-server-certificate --server-certificate-name ${CERTIFICATE_ID}-cloudfront > temp_cloudfront_check.out 2>&1
-		RESULT=$?
-		if [[ "${QUIET}" != "true" ]]; then cat temp_cloudfront_check.out; fi
-		if [[ "${RESULT}" -ne 0 ]]; then
-			if [[ "${MINGW64}" == "true" ]]; then
-				MSYS_NO_PATHCONV=1  aws --region ${REGION} iam upload-server-certificate \
-												   --server-certificate-name ${CERTIFICATE_ID}-cloudfront \
-												   --path "/cloudfront/${CERTIFICATE_ID}/" \
-												   --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
-												   --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
-												   --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
-			else
-				aws --region ${REGION} iam upload-server-certificate 
-												   --server-certificate-name ${CERTIFICATE_ID}-cloudfront \
-												   --path "/cloudfront/${CERTIFICATE_ID}/" \
-												   --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
-												   --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
-												   --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
-			fi
-			RESULT=$?
-		fi
-		;;
+        aws --region ${REGION} iam get-server-certificate --server-certificate-name ${CERTIFICATE_ID}-cloudfront > temp_cloudfront_check.out 2>&1
+        RESULT=$?
+        if [[ "${QUIET}" != "true" ]]; then cat temp_cloudfront_check.out; fi
+        if [[ "${RESULT}" -ne 0 ]]; then
+            if [[ "${MINGW64}" == "true" ]]; then
+                MSYS_NO_PATHCONV=1  aws --region ${REGION} iam upload-server-certificate \
+                                                   --server-certificate-name ${CERTIFICATE_ID}-cloudfront \
+                                                   --path "/cloudfront/${CERTIFICATE_ID}/" \
+                                                   --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
+                                                   --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
+                                                   --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
+            else
+                aws --region ${REGION} iam upload-server-certificate 
+                                                   --server-certificate-name ${CERTIFICATE_ID}-cloudfront \
+                                                   --path "/cloudfront/${CERTIFICATE_ID}/" \
+                                                   --certificate-body file://${LOCAL_CERTIFICATE_PUBLIC} \
+                                                   --private-key file://${LOCAL_CERTIFICATE_PRIVATE} \
+                                                   --certificate-chain file://${LOCAL_CERTIFICATE_CHAIN}
+            fi
+            RESULT=$?
+        fi
+        ;;
 esac
 
 
