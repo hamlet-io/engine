@@ -114,7 +114,12 @@ esac
 
 # Set up the type specific template information
 TEMPLATE_DIR="${GENERATION_DIR}/templates"
-TEMPLATE="create${TYPE^}.ftl"
+TEMPLATE="create${TYPE^}Template.ftl"
+if [[ -f "${TEMPLATE_DIR}/${TEMPLATE}" ]]; then
+    COMPOSITE_VAR="COMPOSITE_${TYPE^^}"
+else
+    TEMPLATE="create${TYPE^}.ftl"
+fi
 
 # Determine the template name
 TYPE_PREFIX="$TYPE-"
@@ -204,10 +209,14 @@ TEMP_OUTPUT="${CF_DIR}/temp_${TYPE_PREFIX}${SLICE_PREFIX}${REGION_PREFIX}templat
 if [[ ! -d ${CF_DIR} ]]; then mkdir -p ${CF_DIR}; fi
 
 ARGS=()
-if [[ -n "${SLICE}"                   ]]; then ARGS+=("-v" "slice=${SLICE}"); fi
-if [[ -n "${BUILD_REFERENCE}"         ]]; then ARGS+=("-v" "buildReference=${BUILD_REFERENCE}"); fi
-# Removal of /c/ is specifically for MINGW. It shouldn't affect other platforms as it won't be found
-if [[ "${TYPE}" == "application"      ]]; then ARGS+=("-r" "containerList=${COMPOSITE_CONTAINERS#/c/}"); fi
+if [[ -n "${SLICE}"              ]]; then ARGS+=("-v" "slice=${SLICE}"); fi
+if [[ -n "${BUILD_REFERENCE}"    ]]; then ARGS+=("-v" "buildReference=${BUILD_REFERENCE}"); fi
+
+# Removal of drive letter (/?/) is specifically for MINGW
+# It shouldn't affect other platforms as it won't be matched
+if [[ -n "${!COMPOSITE_VAR}"     ]]; then ARGS+=("-r" "${TYPE}List=${!COMPOSITE_VAR#/?/}"); fi
+if [[ -n "${COMPOSITE_POLICY}"   ]]; then ARGS+=("-r" "policyList=${COMPOSITE_POLICY#/?/}"); fi
+if [[ "${TYPE}" == "application" ]]; then ARGS+=("-r" "containerList=${COMPOSITE_CONTAINER#/?/}"); fi
 ARGS+=("-v" "region=${REGION}")
 ARGS+=("-v" "productRegion=${PRODUCT_REGION}")
 ARGS+=("-v" "accountRegion=${ACCOUNT_REGION}")

@@ -12,10 +12,25 @@ if [[ -n "${GENERATION_CONTEXT_DEFINED}" ]]; then return 0; fi
 export GENERATION_CONTEXT_DEFINED="true"
 GENERATION_CONTEXT_DEFINED_LOCAL="true"
 
-# Generate the list of files constituting the blueprint
+# If no files match a glob, return nothing
+# Many of the file existence for loops in this script rely on this setting
+shopt -s nullglob
+
+# Generate the list of files constituting the composites based on the contents
+# of the account and product trees
+# The blueprint is handled specially as its logic is different to the others
 pushd "$(pwd)" >/dev/null
-BLUEPRINT_LIST=
-CONTAINERS_ARRAY=("${GENERATION_DIR}/templates/containers/switch_start.ftl")
+COMPOSITES=("ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" "POLICY" "CONTAINER")
+BLUEPRINT_ARRAY=()
+for COMPOSITE in "${COMPOSITES[@]}"; do
+    # define the array holding the list of composite fragment filenames
+    declare -a "${COMPOSITE}_ARRAY"
+
+    # Check for composite start fragment
+    for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/*start.ftl; do
+        eval "${COMPOSITE}_ARRAY+=(\"${FRAGMENT}\")"
+    done
+done
 
 if [[ (-f "segment.json") || (-f "container.json") ]]; then
     # segment directory
@@ -24,31 +39,38 @@ if [[ (-f "segment.json") || (-f "container.json") ]]; then
     export SEGMENT="$(basename $(pwd))"
 
     if [[ -f "segment.json" ]]; then
-        BLUEPRINT_LIST="${SEGMENT_DIR}/segment.json ${BLUEPRINT_LIST}"
+        BLUEPRINT_ARRAY=("${SEGMENT_DIR}/segment.json" "${BLUEPRINT_ARRAY[@]}")
     fi
     if [[ -f "container.json" ]]; then
-        BLUEPRINT_LIST="${SEGMENT_DIR}/container.json ${BLUEPRINT_LIST}"
+        BLUEPRINT_ARRAY=("${SEGMENT_DIR}/container.json" "${BLUEPRINT_ARRAY[@]}")
     fi
     if [[ -f "solution.json" ]]; then
-        BLUEPRINT_LIST="${SEGMENT_DIR}/solution.json ${BLUEPRINT_LIST}"
+        BLUEPRINT_ARRAY=("${SEGMENT_DIR}/solution.json" "${BLUEPRINT_ARRAY[@]}")
     fi
-    
-    for CONTAINER in $(ls container_*.ftl 2> /dev/null); do
-        CONTAINERS_ARRAY+=("${SEGMENT_DIR}/${CONTAINER}")
+
+    # Segment based composite fragments
+    for COMPOSITE in "${COMPOSITES[@]}"; do
+        for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
+            eval "${COMPOSITE}_ARRAY+=(\"${SEGMENT_DIR}/${FRAGMENT}\")"
+        done
     done
-    
+
     cd ..    
 
-    # solutions directory - only add files if present in segment directory
+    # solutions directory
+    # only add files if not already present
     export SOLUTIONS_DIR="$(pwd)"
-    if [[ (-f "solution.json") && (!("${BLUEPRINT_LIST}" =~ solution.json)) ]]; then
-        BLUEPRINT_LIST="${SOLUTIONS_DIR}/solution.json ${BLUEPRINT_LIST}"
+    if [[ (-f "solution.json") && (!("${BLUEPRINT_ARRAY}" =~ solution.json)) ]]; then
+        BLUEPRINT_ARRAY=("${SOLUTIONS_DIR}/solution.json" "${BLUEPRINT_ARRAY[@]}")
     fi
     
-    for CONTAINER in $(ls container_*.ftl 2> /dev/null); do
-        if [[ !("${CONTAINERS_ARRAY[*]}" =~ $(basename ${CONTAINER})) ]]; then 
-            CONTAINERS_ARRAY+=("${SOLUTIONS_DIR}/${CONTAINER}")
-        fi
+    for COMPOSITE in "${COMPOSITES[@]}"; do
+        for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
+            eval "[[ x\"\${${COMPOSITE}_ARRAY[*]}\" =~ x${FRAGMENT} ]]"
+            if [[ $? -ne 0 ]]; then
+                eval "${COMPOSITE}_ARRAY+=(\"${SOLUTIONS_DIR}/${FRAGMENT}\")"
+            fi
+        done
     done
 
     cd ..
@@ -74,7 +96,7 @@ if [[ -f "product.json" ]]; then
     export PRODUCT_DIR="$(pwd)"
     export PRODUCT="$(basename $(pwd))"
 
-    BLUEPRINT_LIST="${PRODUCT_DIR}/product.json ${BLUEPRINT_LIST}"
+    BLUEPRINT_ARRAY=("${PRODUCT_DIR}/product.json" "${BLUEPRINT_ARRAY[@]}")
     export GENERATION_DATA_DIR="$(cd ../..;pwd)"
 fi
 
@@ -108,18 +130,18 @@ export ACCOUNT_APPSETTINGS_DIR="${ACCOUNT_DIR}/appsettings"
 export ACCOUNT_CREDENTIALS="${ACCOUNT_CREDENTIALS_DIR}/credentials.json"
     
 if [[ -f "${ACCOUNT_DIR}/account.json" ]]; then
-    BLUEPRINT_LIST="${ACCOUNT_DIR}/account.json ${BLUEPRINT_LIST}"
+    BLUEPRINT_ARRAY=("${ACCOUNT_DIR}/account.json" "${BLUEPRINT_ARRAY[@]}")
 fi
 
 if [[ -f "${TENANT_DIR}/tenant.json" ]]; then
-    BLUEPRINT_LIST="${TENANT_DIR}/tenant.json ${BLUEPRINT_LIST}"
+    BLUEPRINT_ARRAY=("${TENANT_DIR}/tenant.json" "${BLUEPRINT_ARRAY[@]}")
 fi
 
 # Build the composite solution ( aka blueprint)
 export COMPOSITE_BLUEPRINT="${CONFIG_DIR}/composite_blueprint.json"
-if [[ -n "${BLUEPRINT_LIST}" ]]; then
+if [[ "${#BLUEPRINT_ARRAY[@]}" -gt 0 ]]; then
     GENERATION_MASTER_DATA_DIR="${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"
-    ${GENERATION_DIR}/manageJSON.sh -d -o ${COMPOSITE_BLUEPRINT} "${GENERATION_MASTER_DATA_DIR}/masterData.json" ${BLUEPRINT_LIST}
+    ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${GENERATION_MASTER_DATA_DIR}/masterData.json" "${BLUEPRINT_ARRAY[@]}"
 else
     echo "{}" > ${COMPOSITE_BLUEPRINT}
 fi
@@ -140,9 +162,9 @@ if [[ -z "${REGION}" ]]; then
     echo -e "\nThe region must be defined in the Product blueprint section. Nothing to do."
     usage
 fi
-BLUEPRINT_ACCOUNT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Account.Name | select(.!=null)')
-BLUEPRINT_PRODUCT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Product.Name | select(.!=null)')
-BLUEPRINT_SEGMENT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Segment.Name | select(.!=null)')
+BLUEPRINT_ACCOUNT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Account.Name | select(.!=null)' < "${COMPOSITE_BLUEPRINT}")
+BLUEPRINT_PRODUCT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Product.Name | select(.!=null)' < "${COMPOSITE_BLUEPRINT}")
+BLUEPRINT_SEGMENT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Segment.Name | select(.!=null)' < "${COMPOSITE_BLUEPRINT}")
 if [[ (-n "${ACCOUNT}") &&
         ("${BLUEPRINT_ACCOUNT}" != "Account") &&
         ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]]; then
@@ -162,19 +184,34 @@ if [[ (-n "${SEGMENT}") &&
     usage
 fi
 
-# Build the composite containers list
-export COMPOSITE_CONTAINERS="${CONFIG_DIR}/composite_containers.json"
-for CONTAINER in $(find ${GENERATION_DIR}/templates/containers/container_*.ftl -maxdepth 1 2> /dev/null); do
-    if [[ !("${CONTAINERS_ARRAY[*]}" =~ $(basename ${CONTAINER})) ]]; then 
-        CONTAINERS_ARRAY+=("${CONTAINER}")
+# Add default composite fragments including end fragment
+for COMPOSITE in "${COMPOSITES[@]}"; do
+    for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/${COMPOSITE,,}_*.ftl; do
+        eval "[[ \"x\${${COMPOSITE}_ARRAY[*]}\" =~ x\$(basename ${FRAGMENT}) ]]"
+        if [[ $? -ne 0 ]]; then
+            eval "${COMPOSITE}_ARRAY+=(\"${FRAGMENT}\")"
+        fi
+    done
+    for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/*end.ftl; do
+        eval "${COMPOSITE}_ARRAY+=(\"${FRAGMENT}\")"
+    done
+done
+
+# create the composites if one or more fragments have been found
+# note that the composite will be created even if only a start and/or end
+# fragment has been found
+for COMPOSITE in "${COMPOSITES[@]}"; do
+    eval "FRAGMENT_COUNT=\"\${#${COMPOSITE}_ARRAY[@]}\""
+    if [[ "${FRAGMENT_COUNT}" -gt 0 ]]; then
+        [[ -n "${GENERATION_DEBUG}" ]] && eval "echo ${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}"
+        eval "export COMPOSITE_${COMPOSITE}=\${CONFIG_DIR}/composite_${COMPOSITE,,}.json"
+        eval "cat \"\${${COMPOSITE}_ARRAY[@]}\" > \${COMPOSITE_${COMPOSITE}}"
     fi
 done
-CONTAINERS_ARRAY+=("${GENERATION_DIR}/templates/containers/switch_end.ftl")
-cat "${CONTAINERS_ARRAY[@]}" > ${COMPOSITE_CONTAINERS}
 
 # Product specific context if the product is known
-APPSETTINGS_LIST=
-CREDENTIALS_LIST=
+APPSETTINGS_ARRAY=()
+CREDENTIALS_ARRAY=()
 if [[ -n "${PRODUCT}" ]]; then
     export SOLUTIONS_DIR="${CONFIG_DIR}/${PRODUCT}/solutions"
     export APPSETTINGS_DIR="${CONFIG_DIR}/${PRODUCT}/appsettings"
@@ -194,7 +231,7 @@ if [[ -n "${PRODUCT}" ]]; then
             fi
             
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/appsettings.json" ]]; then
-                APPSETTINGS_LIST="${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/appsettings.json ${APPSETTINGS_LIST}"
+                APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
             fi
     
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.json" ]]; then
@@ -212,66 +249,68 @@ if [[ -n "${PRODUCT}" ]]; then
     # segment level appsettings/credentials
     if [[ (-n "${SEGMENT}") ]]; then
         if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/appsettings.json" ]]; then
-            APPSETTINGS_LIST="${APPSETTINGS_DIR}/${SEGMENT}/appsettings.json ${APPSETTINGS_LIST}"
+            APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
         fi
 
         if [[ -f "${CREDENTIALS_DIR}/${SEGMENT}/credentials.json" ]]; then
-            CREDENTIALS_LIST="${CREDENTIALS_DIR}/${SEGMENT}/credentials.json ${CREDENTIALS_LIST}"
+        CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/${SEGMENT}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
         fi
     fi
     
     # product level appsettings
     if [[ -f "${APPSETTINGS_DIR}/appsettings.json" ]]; then
-        APPSETTINGS_LIST="${APPSETTINGS_DIR}/appsettings.json ${APPSETTINGS_LIST}"
+        APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
     fi
 
     # product level credentials
     if [[ -f "${CREDENTIALS_DIR}/credentials.json" ]]; then
-        CREDENTIALS_LIST="${CREDENTIALS_DIR}/credentials.json ${CREDENTIALS_LIST}"
+        CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
     fi
 
     # account level appsettings
     if [[ -f "${ACCOUNT_APPSETTINGS_DIR}/appsettings.json" ]]; then
-        APPSETTINGS_LIST="${ACCOUNT_APPSETTINGS_DIR}/appsettings.json ${APPSETTINGS_LIST}"
+        APPSETTINGS_ARRAY=("${ACCOUNT_APPSETTINGS_DIR}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
     fi
 fi
 
 # Build the composite appsettings
+[[ -n "${GENERATION_DEBUG}" ]] && echo appsettings=${APPSETTINGS_ARRAY[*]}
 export COMPOSITE_APPSETTINGS="${CONFIG_DIR}/composite_appsettings.json"
-if [[ -n "${APPSETTINGS_LIST}" ]]; then
-    ${GENERATION_DIR}/manageJSON.sh -c -o ${COMPOSITE_APPSETTINGS} -c ${APPSETTINGS_LIST}
+if [[ "${#APPSETTINGS_ARRAY[@]}" -gt 0 ]]; then
+    ${GENERATION_DIR}/manageJSON.sh -c -o ${COMPOSITE_APPSETTINGS} "${APPSETTINGS_ARRAY[@]}"
 else
     echo "{}" > ${COMPOSITE_APPSETTINGS}
 fi    
 
 # Check for account level credentials
 if [[ -f "${ACCOUNT_CREDENTIALS_DIR}/credentials.json" ]]; then
-    CREDENTIALS_LIST="${ACCOUNT_CREDENTIALS_DIR}/credentials.json ${CREDENTIALS_LIST}"
+    CREDENTIALS_ARRAY=("${ACCOUNT_CREDENTIALS_DIR}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
 fi
 
 # Build the composite credentials
+[[ -n "${GENERATION_DEBUG}" ]] && echo credentials=${CREDENTIALS_ARRAY[*]}
 export COMPOSITE_CREDENTIALS="${INFRASTRUCTURE_DIR}/composite_credentials.json"
-if [[ -n "${CREDENTIALS_LIST}" ]]; then
-    ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} ${CREDENTIALS_LIST}
+if [[ "${#CREDENTIALS_ARRAY[@]}" -gt 0 ]]; then
+    ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
 else
     echo "{}" > ${COMPOSITE_CREDENTIALS}
 fi    
 
 # Create the composite stack outputs
-STACK_LIST=()
+STACK_ARRAY=()
 if [[ (-n "${ACCOUNT}") && (-d "${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf") ]]; then
-    STACK_LIST+=($(find "${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf" -name acc*-stack.json))
+    STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf/acc*-stack.json)
 fi
 if [[ (-n "${PRODUCT}") && (-n "${REGION}") && (-d "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf") ]]; then
-    STACK_LIST+=($(find "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf" -name product-${REGION}-stack.json))
+    STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf/product-${REGION}-stack.json)
 fi
 if [[ (-n "${SEGMENT}") && (-n "${REGION}") && (-d "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf") ]]; then
-    STACK_LIST+=($(find "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf" -name *-${REGION}-stack.json))
+    STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf/*-${REGION}-stack.json)
 fi
 
 export COMPOSITE_STACK_OUTPUTS="${INFRASTRUCTURE_DIR}/composite_stack_outputs.json"
-if [[ "${#STACK_LIST[@]}" -gt 0 ]]; then
-    ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) | .[]]" -o ${COMPOSITE_STACK_OUTPUTS} "${STACK_LIST[@]}"
+if [[ "${#STACK_ARRAY[@]}" -gt 0 ]]; then
+    ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) | .[]]" -o ${COMPOSITE_STACK_OUTPUTS} "${STACK_ARRAY[@]}"
 else
     echo "[]" > ${COMPOSITE_STACK_OUTPUTS}
 fi
