@@ -646,6 +646,12 @@
             "RouteTable": "internal",
             "NetworkACL": "open"
         },
+        "api": {
+            "Title": "API Tier",
+            "Description": "Supports externally exposed APIs",
+            "RouteTable": "internal",
+            "NetworkACL": "open"
+        },
         "msg": {
             "Title": "Messaging Tier",
             "Name": "messaging",
@@ -1032,7 +1038,7 @@
         "SSHPerSegment" : true,
         "RotateKey" : true,
         "Tiers" : {
-            "Order" : ["web", "msg", "app", "db", "dir", "ana", "spare", "spare",
+            "Order" : ["web", "msg", "app", "db", "dir", "ana", "api", "spare",
             "elb", "ilb", "spare", "spare", "spare", "spare", "spare", "mgmt"]
         },
         "Zones" : {
