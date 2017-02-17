@@ -102,7 +102,7 @@
                                         [#list service.Containers?values as container]
                                             [#if container?is_hash]
                                                 [#-- Supplemental definitions for the container --]
-                                                [#include containerList]
+                                                [#include "/"+containerList]
 
                                                 [#-- Security Group ingress for the container ports --]
                                                 [#if container.Ports??]
@@ -201,7 +201,7 @@
                                         [#assign containerListMode = "supplemental"]
                                         [#list task.Containers?values as container]
                                             [#if container?is_hash]
-                                                [#include containerList]
+                                                [#include "/"+containerList]
                                             [/#if]
                                         [/#list]
                                         [#assign count += 1]
@@ -215,7 +215,6 @@
                                 [#list ecs.Services?values as service]
                                     [#assign serviceDependencies = []]
                                     [#if service?is_hash && (service.Slices!component.Slices)?seq_contains(slice)]
-                                        [#if count > 0],[/#if]
                                             "ecsServiceX${tier.Id}X${component.Id}X${service.Id}" : {
                                                 "Value" : { "Ref" : "ecsServiceX${tier.Id}X${component.Id}X${service.Id}" }
                                             },
