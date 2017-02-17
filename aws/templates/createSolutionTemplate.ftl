@@ -7,7 +7,6 @@
 [#assign certificateId = getKey("domainXsegmentXcertificate")]
 
 [#-- Solution --]
-[#assign solnMultiAZ = solutionObject.MultiAZ!environmentObject.MultiAZ!false]
 [#assign vpc = getKey("vpcXsegmentXvpc")]
 [#assign securityGroupNAT = getKey("securityGroupXmgmtXnat")!"none"]
 

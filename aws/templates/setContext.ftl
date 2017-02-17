@@ -81,6 +81,9 @@
 [#assign operationsExpiration = (segmentObject.Operations.Expiration)!(environmentObject.Operations.Expiration)]
 [#assign dataExpiration = (segmentObject.Data.Expiration)!(environmentObject.Data.Expiration)]
 
+[#-- Solution common --]
+[#assign solnMultiAZ = solutionObject.MultiAZ!environmentObject.MultiAZ!false]
+
 [#-- Required tiers --]
 [#function isTier tierId]
     [#return (blueprintObject.Tiers[tierId])??]
