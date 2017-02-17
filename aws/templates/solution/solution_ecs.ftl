@@ -11,7 +11,6 @@
     [#if count > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
-            [#break]
                             "ecsX${tier.Id}X${component.Id}" : {
                                 "Type" : "AWS::ECS::Cluster"
                             },
@@ -307,6 +306,7 @@
                                     }
                                 }
                             }
+            [#break]
 
         [#case "outputs"]
                             "ecsX${tier.Id}X${component.Id}" : {
