@@ -7,7 +7,6 @@
 [#assign certificateId = getKey("domainXsegmentXcertificate")]
 
 [#-- Solution --]
-[#assign sshPerSegment = segmentObject.SSHPerSegment]
 [#assign solnMultiAZ = solutionObject.MultiAZ!environmentObject.MultiAZ!false]
 [#assign vpc = getKey("vpcXsegmentXvpc")]
 [#assign securityGroupNAT = getKey("securityGroupXmgmtXnat")!"none"]
@@ -77,13 +76,14 @@
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl"],
+    [#assign compositeList=solutionList]
     "Resources" : {
         [#assign solutionListMode="definition"]
-        [#include "solution/componentList.ftl"]
+        [#include "componentList.ftl"]
     },
     
     "Outputs" : {
         [#assign solutionListMode="outputs"]
-        [#include "solution/componentList.ftl"]
+        [#include "componentList.ftl"]
     }
 }
