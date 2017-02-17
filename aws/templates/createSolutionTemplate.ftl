@@ -199,7 +199,6 @@
     [#include "templateMetadata.ftl"],
     "Resources" : {
         [#assign solutionListMode="definition"]
-[#--  TODO: fix include  [#include "solution/componetList.ftl"]  --]
         [#assign count = 0]
         [#list tiers as tier]
             [#if tier.Components??]
@@ -215,8 +214,6 @@
                 [/#list]
             [/#if]
         [/#list]
-[/#list]
-
     },
     
     "Outputs" : {
