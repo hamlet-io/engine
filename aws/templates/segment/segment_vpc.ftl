@@ -1,6 +1,6 @@
 [#-- Define VPC --]
 [#if slice?contains("vpc")]
-    [#if sliceCount > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch segmentListMode]
         [#case "definition"]
             "vpc" : {
@@ -556,6 +556,6 @@
             [#break]
 
     [/#switch]
-    [#assign sliceCount += 1]
+    [#assign resourceCount += 1]
 [/#if]
 

@@ -1,6 +1,6 @@
 [#-- Standard set of buckets for a segment --]
 [#if slice?contains("s3")]
-    [#if sliceCount > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch segmentListMode]
         [#case "definition"]
             [#-- Create operations bucket --]
@@ -95,6 +95,6 @@
             [#break]
 
     [/#switch]
-    [#assign sliceCount += 1]
+    [#assign resourceCount += 1]
 [/#if]
 

@@ -1,7 +1,7 @@
 [#-- EIPs --]
 [#if slice?contains("eip")]
     [#if jumpServer]
-        [#if sliceCount > 0],[/#if]
+        [#if resourceCount > 0],[/#if]
         [#assign tier = getTier("mgmt")]
         [#assign eipCount = 0]
         [#list zones as zone]
@@ -30,7 +30,7 @@
                 [#assign eipCount += 1]
             [/#if]
         [/#list]
-        [#assign sliceCount += 1]
+        [#assign resourceCount += 1]
     [/#if]
 [/#if]
 
