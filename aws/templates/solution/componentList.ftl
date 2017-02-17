@@ -10,7 +10,7 @@
                 [#else]
                     [#assign multiAZ =  solnMultiAZ]
                 [/#if]
-                [#include solutionList]
+                [#include "/"+solutionList]
             [/#if]
         [/#list]
     [/#if]

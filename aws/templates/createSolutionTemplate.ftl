@@ -199,41 +199,11 @@
     [#include "templateMetadata.ftl"],
     "Resources" : {
         [#assign solutionListMode="definition"]
-        [#assign count = 0]
-        [#list tiers as tier]
-            [#if tier.Components??]
-                [#list tier.Components?values as component]
-                    [#if component?is_hash && component.Slices?seq_contains(slice)]
-                        [#if component.MultiAZ??]
-                            [#assign multiAZ =  component.MultiAZ]
-                        [#else]
-                            [#assign multiAZ =  solnMultiAZ]
-                        [/#if]
-                        [#include solutionList]
-                    [/#if]
-                [/#list]
-            [/#if]
-        [/#list]
+        [#include "solution/componentList.ftl"]
     },
     
     "Outputs" : {
         [#assign solutionListMode="outputs"]
-[#--        [#include "solution/componetList.ftl"]  --]
-        [#assign count = 0]
-        [#list tiers as tier]
-            [#if tier.Components??]
-                [#list tier.Components?values as component]
-                    [#if component?is_hash && component.Slices?seq_contains(slice)]
-                        [#if component.MultiAZ??]
-                            [#assign multiAZ =  component.MultiAZ]
-                        [#else]
-                            [#assign multiAZ =  solnMultiAZ]
-                        [/#if]
-                        [#include solutionList]
-                    [/#if]
-                [/#list]
-            [/#if]
-        [/#list]
-
+        [#include "solution/componentList.ftl"]
     }
 }
