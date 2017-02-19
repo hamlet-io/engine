@@ -705,6 +705,13 @@
             "Description": "Supports vpn based host access and internet access for internal hosts",
             "RouteTable": "external",
             "NetworkACL": "open"
+        },
+        "shared": {
+            "Title": "Shared Tier",
+            "Name": "shared",
+            "Description": "Shared Tier",
+            "RouteTable": "external",
+            "NetworkACL": "open"
         }
     },
     "RouteTables": {
@@ -1039,7 +1046,7 @@
         "RotateKey" : true,
         "Tiers" : {
             "Order" : ["web", "msg", "app", "db", "dir", "ana", "api", "spare",
-            "elb", "ilb", "spare", "spare", "spare", "spare", "spare", "mgmt"]
+            "elb", "ilb", "spare", "spare", "spare", "spare", "spare", "mgmt", "shared"]
         },
         "Zones" : {
             "Order" : ["a", "b", "spare", "spare"]
