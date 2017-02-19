@@ -622,6 +622,9 @@
         "alm": {
             "Title": "Application Lifecycle Management Environments"
         },
+        "account": {
+            "Title": "Account Resources"
+        },
         "dev": {
             "Title": "Development Environments",
             "Name": "development"
