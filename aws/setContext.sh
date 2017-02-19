@@ -302,7 +302,7 @@ if [[ (-n "${ACCOUNT}") && (-d "${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf") ]]; th
     STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf/acc*-stack.json)
 fi
 if [[ (-n "${PRODUCT}") && (-n "${REGION}") && (-d "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf") ]]; then
-    STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf/product-${REGION}-stack.json)
+    STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf/product*-${REGION}-stack.json)
 fi
 if [[ (-n "${SEGMENT}") && (-n "${REGION}") && (-d "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf") ]]; then
     STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf/*-${REGION}-stack.json)
