@@ -126,6 +126,20 @@
     [/#list]
 [/#function]
 
+[#function getTier tierId]
+    [#return blueprintObject.Tiers[tierId]]
+[/#function]
+
+[#-- Locate the object for a component within tier --]
+[#function getComponent tierId componentId]
+    [#assign tier = getTier(tierId)]
+    [#list tier.Components?values as component]
+        [#if componentId == component.Id]
+            [#return component]
+        [/#if]
+    [/#list]
+[/#function]
+
 [#-- Calculate the closest power of 2 --]
 [#function getPowerOf2 value]
     [#assign exponent = -1]
@@ -142,10 +156,6 @@
 [#-- Required tiers --]
 [#function isTier tierId]
     [#return (blueprintObject.Tiers[tierId])??]
-[/#function]
-
-[#function getTier tierId]
-    [#return blueprintObject.Tiers[tierId]]
 [/#function]
 
 [#assign tiers = []]
