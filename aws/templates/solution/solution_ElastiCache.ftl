@@ -3,7 +3,7 @@
     [@securityGroup /]
     [#assign cache = component.ElastiCache]
     [#assign engine = cache.Engine]
-    [#if count > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#switch engine]
@@ -125,5 +125,5 @@
             [#break]
 
     [/#switch]
-    [#assign count += 1]
+    [#assign resourceCount += 1]
 [/#if]

@@ -1,5 +1,5 @@
 [#ftl]
-[#assign count = 0]
+[#assign resourceCount = 0]
 [#list tiers as tier]
     [#if tier.Components??]
         [#list tier.Components?values as component]

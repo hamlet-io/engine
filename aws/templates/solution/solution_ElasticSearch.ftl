@@ -1,7 +1,7 @@
 [#-- ElasticSearch --]
 [#if component.ElasticSearch??]
     [#assign es = component.ElasticSearch]
-    [#if count > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
@@ -147,5 +147,5 @@
             [#break]
 
     [/#switch]
-    [#assign count += 1]
+    [#assign resourceCount += 1]
 [/#if]

@@ -3,7 +3,7 @@
     [@securityGroup /]
     [#assign ec2 = component.EC2]
     [#assign fixedIP = ec2.FixedIP?? && ec2.FixedIP]
-    [#if count > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#list ec2.Ports as port]
@@ -334,5 +334,5 @@
             [#break]
 
     [/#switch]
-    [#assign count += 1]
+    [#assign resourceCount += 1]
 [/#if]

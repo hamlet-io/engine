@@ -9,7 +9,7 @@
     [/#if]
     [#assign storageProfile = getStorage(tier, component, "ECS")]
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
-    [#if count > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             "ecsX${tier.Id}X${component.Id}" : {
@@ -338,5 +338,5 @@
             [#break]
 
     [/#switch]
-    [#assign count += 1]
+    [#assign resourceCount += 1]
 [/#if]

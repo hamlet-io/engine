@@ -1,7 +1,7 @@
 [#-- SQS --]
 [#if component.SQS??]
     [#assign sqs = component.SQS]
-    [#if count > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             "sqsX${tier.Id}X${component.Id}":{
@@ -34,5 +34,5 @@
             [#break]
 
     [/#switch]
-    [#assign count += 1]
+    [#assign resourceCount += 1]
 [/#if]

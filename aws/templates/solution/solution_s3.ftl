@@ -1,7 +1,7 @@
 [#-- S3 --]
 [#if component.S3??]
     [#assign s3 = component.S3]
-    [#if count > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#-- Current bucket naming --]
@@ -126,5 +126,5 @@
             [#break]
 
     [/#switch]
-    [#assign count += 1]
+    [#assign resourceCount += 1]
 [/#if]

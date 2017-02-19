@@ -2,7 +2,7 @@
 [#if component.ALB??]
     [@securityGroup /]
     [#assign alb = component.ALB]
-    [#if count > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#list alb.PortMappings as mapping]
@@ -100,5 +100,5 @@
             }
             [#break]
     [/#switch]
-    [#assign count += 1]
+    [#assign resourceCount += 1]
 [/#if]

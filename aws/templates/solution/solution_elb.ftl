@@ -2,7 +2,7 @@
 [#if component.ELB??]
     [@securityGroup /]
     [#assign elb = component.ELB]
-    [#if count > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#list elb.PortMappings as mapping]
@@ -108,5 +108,5 @@
             [#break]
 
     [/#switch]
-    [#assign count += 1]
+    [#assign resourceCount += 1]
 [/#if]
