@@ -1,5 +1,6 @@
 [#-- RDS --]
 [#if component.RDS??]
+    [@securityGroup /]
     [#assign db = component.RDS]
     [#assign engine = db.Engine]
     [#if count > 0],[/#if]

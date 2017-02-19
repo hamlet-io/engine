@@ -1,5 +1,6 @@
 [#-- EC2 --]
 [#if component.EC2??]
+    [@securityGroup /]
     [#assign ec2 = component.EC2]
     [#assign fixedIP = ec2.FixedIP?? && ec2.FixedIP]
     [#if count > 0],[/#if]

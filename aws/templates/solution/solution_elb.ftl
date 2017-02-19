@@ -1,5 +1,6 @@
 [#-- ELB --]
 [#if component.ELB??]
+    [@securityGroup /]
     [#assign elb = component.ELB]
     [#if count > 0],[/#if]
     [#switch solutionListMode]

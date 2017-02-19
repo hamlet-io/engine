@@ -1,5 +1,6 @@
 [#-- ALB --]
 [#if component.ALB??]
+    [@securityGroup /]
     [#assign alb = component.ALB]
     [#if count > 0],[/#if]
     [#switch solutionListMode]
