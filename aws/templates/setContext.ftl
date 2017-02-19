@@ -58,12 +58,6 @@
     [/#if]
 [/#if]
 
-[#-- Solution --]
-[#if blueprintObject.Solution??]
-    [#assign solutionObject = blueprintObject.Solution]
-    [#assign solnMultiAZ = solutionObject.MultiAZ!environmentObject.MultiAZ!false]
-[/#if]
-
 [#-- Segment --]
 [#if blueprintObject.Segment??]
     [#assign segmentObject = blueprintObject.Segment]
@@ -115,6 +109,12 @@
         [#assign categoryId = segmentObject.Category!environmentObject.Category]
         [#assign categoryObject = categories[categoryId]]
     [/#if]
+[/#if]
+
+[#-- Solution --]
+[#if blueprintObject.Solution??]
+    [#assign solutionObject = blueprintObject.Solution]
+    [#assign solnMultiAZ = solutionObject.MultiAZ!(environmentObject.MultiAZ)!false]
 [/#if]
 
 [#-- Get stack output --]
