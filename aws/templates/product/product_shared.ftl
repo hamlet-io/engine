@@ -6,7 +6,7 @@
                     [#if component?is_hash]
                         [#if component.S3??]
                             [#assign s3 = component.S3]
-                            [#if sliceCount > 0],[/#if]
+                            [#if resourceCount > 0],[/#if]
                             [#-- Current bucket naming --]
                             [#if s3.Name != "S3"]
                                 [#assign bucketName = s3.Name + productDomainQualifier + "." + productDomain]
@@ -42,7 +42,7 @@
                                     [/#if]
                                 }
                             }
-                            [#assign sliceCount += 1]
+                            [#assign resourceCount += 1]
                         [/#if]
                     [/#if]
                 [/#list]
@@ -51,7 +51,7 @@
 
         [#case "outputs"]
             [#if (regionId == productRegionId)]
-                [#if sliceCount > 0],[/#if]
+                [#if resourceCount > 0],[/#if]
                 "domainXproductXdomain" : {
                     "Value" : "${productDomain}"
                 }
@@ -73,7 +73,7 @@
                         [/#if]
                     [/#list]
                 [/#if]
-                [#assign sliceCount += 1]
+                [#assign resourceCount += 1]
             [/#if]
             [#break]
 

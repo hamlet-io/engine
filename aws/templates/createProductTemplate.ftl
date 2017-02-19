@@ -22,8 +22,6 @@
 [/#switch]
 [#assign productDomainCertificateId = productDomainCertificateId?replace("-","X")]
 
-
-
 [#-- Product --]
 [#assign rotateKeys = (productObject.RotateKeys)!true]
 
@@ -31,13 +29,13 @@
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl"],
     "Resources" : {
-        [#assign sliceCount = 0]
+        [#assign resourceCount = 0]
         [#assign productListMode="definition"]
         [#include productList]
     },
 
     "Outputs" : {
-        [#assign sliceCount = 0]
+        [#assign resourceCount = 0]
         [#assign productListMode="outputs"]
         [#include productList]
     }
