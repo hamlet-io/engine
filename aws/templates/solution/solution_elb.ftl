@@ -1,6 +1,6 @@
 [#-- ELB --]
 [#if component.ELB??]
-    [@securityGroup /]
+    [@securityGroup tier=tier component=component /]
     [#assign elb = component.ELB]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]

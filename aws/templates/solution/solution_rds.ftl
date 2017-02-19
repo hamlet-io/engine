@@ -1,6 +1,6 @@
 [#-- RDS --]
 [#if component.RDS??]
-    [@securityGroup /]
+    [@securityGroup tier=tier component=component /]
     [#assign db = component.RDS]
     [#assign engine = db.Engine]
     [#if resourceCount > 0],[/#if]

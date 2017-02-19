@@ -1,5 +1,5 @@
 [#ftl]
-[#include "setContext.ftl"]
+[#include "setContext.ftl" ]
 
 [#-- Domains --]
 [#assign productDomainStem = productObject.Domain.Stem]
@@ -32,6 +32,18 @@
 [/#switch]
 [#assign segmentDomainCertificateId = segmentDomainCertificateId?replace("-","X")]
 
+[#-- Bucket names - may already exist --]
+[#if operationsBucket == "unknown"]
+    [#assign operationsBucket = operationsBucketType + segmentDomainQualifier + "." + segmentDomain]
+[/#if]
+[#if dataBucket == "unknown"]
+    [#assign dataBucket = dataBucketType + segmentDomainQualifier + "." + segmentDomain]
+[/#if]
+
+
+[#assign operationsExpiration = (segmentObject.Operations.Expiration)!(environmentObject.Operations.Expiration)]
+[#assign dataExpiration = (segmentObject.Data.Expiration)!(environmentObject.Data.Expiration)]
+
 [#-- Segment --]
 [#assign baseAddress = segmentObject.CIDR.Address?split(".")]
 [#assign addressOffset = baseAddress[2]?number*256 + baseAddress[3]?number]
@@ -42,56 +54,9 @@
 [#assign dnsHostnames = segmentObject.DNSHostnames]
 [#assign rotateKeys = (segmentObject.RotateKeys)!true]
 
-[#-- Current bucket naming --]
-[#assign operationsBucketSegment = "segment"]
-[#assign operationsBucketType = "operations"]
-[#assign operationsBucket = operationsBucketType + segmentDomainQualifier + "." + segmentDomain]
-[#assign dataBucketSegment = "segment"]
-[#assign dataBucketType = "data"]
-[#assign dataBucket = dataBucketType + segmentDomainQualifier + "." + segmentDomain]
-[#-- Support legacy bucket naming --]
-[#if getKey("s3XsegmentXlogs")??]
-    [#assign operationsBucketType = "logs"]
-[/#if]
-[#if getKey("s3XcontainerXlogs")??]
-    [#assign operationsBucketSegment = "container"]
-    [#assign operationsBucketType = "logs"]
-[/#if]
-[#if getKey("s3XsegmentXbackups")??]
-    [#assign dataBucketType = "backups"]
-[/#if]
-[#if getKey("s3XcontainerXbackups")??]
-    [#assign dataBucketSegment = "container"]
-    [#assign dataBucketType = "backups"]
-[/#if]
-[#-- Support presence of existing s3 buckets --]
-[#assign operationsBucket = getKey("s3X" + operationsBucketSegment + "X" + operationsBucketType)!operationsBucket]
-[#assign dataBucket = getKey("s3X" + dataBucketSegment + "X" + dataBucketType)!dataBucket]
-
-[#-- Get processor settings --]
-[#function getProcessor tier component type]
-    [#assign tc = tier.Id + "-" + component.Id]
-    [#assign defaultProfile = "default"]
-    [#if (component[type].Processor)??]
-        [#return component[type].Processor]
-    [/#if]
-    [#if (processors[solutionObject.CapacityProfile][tc])??]
-        [#return processors[solutionObject.CapacityProfile][tc]]
-    [/#if]
-    [#if (processors[solutionObject.CapacityProfile][type])??]
-        [#return processors[solutionObject.CapacityProfile][type]]
-    [/#if]
-    [#if (processors[defaultProfile][tc])??]
-        [#return processors[defaultProfile][tc]]
-    [/#if]
-    [#if (processors[defaultProfile][type])??]
-        [#return processors[defaultProfile][type]]
-    [/#if]
-[/#function]
-
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
-    [#include "templateMetadata.ftl"],
+    [#include "templateMetadata.ftl" ],
     "Resources" : {
         [#assign resourceCount = 0]
         [#assign segmentListMode="definition"]
@@ -104,9 +69,5 @@
         [#include segmentList]
     }
 }
-
-
-
-
 
 

@@ -1,14 +1,8 @@
 [#ftl]
 [#include "setContext.ftl"]
 
-[#-- Domains --]
-[#assign segmentDomain = getKey("domainXsegmentXdomain")]
-[#assign segmentDomainQualifier = getKey("domainXsegmentXqualifier")]
-
 [#-- Application --]
 [#assign docker = appSettingsObject.Docker]
-[#assign solnMultiAZ = solutionObject.MultiAZ!environmentObject.MultiAZ!false]
-[#assign vpc = getKey("vpcXsegmentXvpc")]
 
 [#if buildReference??]
     [#if buildReference?starts_with("{")]

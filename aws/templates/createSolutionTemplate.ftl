@@ -1,15 +1,6 @@
 [#ftl]
 [#include "setContext.ftl"]
 
-[#-- Domains --]
-[#assign segmentDomain = getKey("domainXsegmentXdomain")]
-[#assign segmentDomainQualifier = getKey("domainXsegmentXqualifier")]
-[#assign certificateId = getKey("domainXsegmentXcertificate")]
-
-[#-- Solution --]
-[#assign vpc = getKey("vpcXsegmentXvpc")]
-[#assign securityGroupNAT = getKey("securityGroupXmgmtXnat")!"none"]
-
 [#macro createBlockDevices storageProfile]
     [#if (storageProfile.Volumes)?? ]
         "BlockDeviceMappings" : [

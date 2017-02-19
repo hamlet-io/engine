@@ -1,6 +1,6 @@
 [#-- ALB --]
 [#if component.ALB??]
-    [@securityGroup /]
+    [@securityGroup tier=tier component=component /]
     [#assign alb = component.ALB]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]

@@ -1,5 +1,5 @@
 [#ftl]
-[#macro securityGroup]
+[#macro securityGroup tier component]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
