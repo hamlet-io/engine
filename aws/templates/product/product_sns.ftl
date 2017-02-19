@@ -1,6 +1,6 @@
 [#-- SNS for product --]
 [#if slice?contains("sns")]
-    [#if sliceCount > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch productListMode]
         [#case "definition"]
             "snsXalerts" : {
@@ -26,6 +26,6 @@
 
 
     [/#switch]
-    [#assign sliceCount += 1]
+    [#assign resourceCount += 1]
 [/#if]
 

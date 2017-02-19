@@ -1,6 +1,6 @@
 [#-- KMS CMK --]
 [#if slice?contains("cmk")]
-    [#if sliceCount > 0],[/#if]
+    [#if resourceCount > 0],[/#if]
     [#switch productListMode]
         [#case "definition"]
 [#-- Key for product --]
@@ -49,6 +49,6 @@
             [#break]
 
     [/#switch]
-    [#assign sliceCount += 1]
+    [#assign resourceCount += 1]
 [/#if]
 
