@@ -204,7 +204,7 @@ for COMPOSITE in "${COMPOSITES[@]}"; do
     eval "FRAGMENT_COUNT=\"\${#${COMPOSITE}_ARRAY[@]}\""
     if [[ "${FRAGMENT_COUNT}" -gt 0 ]]; then
         [[ -n "${GENERATION_DEBUG}" ]] && eval "echo ${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}"
-        eval "export COMPOSITE_${COMPOSITE}=\${CONFIG_DIR}/composite_${COMPOSITE,,}.json"
+        eval "export COMPOSITE_${COMPOSITE}=\${CONFIG_DIR}/composite_${COMPOSITE,,}.ftl"
         eval "cat \"\${${COMPOSITE}_ARRAY[@]}\" > \${COMPOSITE_${COMPOSITE}}"
     fi
 done
