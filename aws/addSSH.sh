@@ -62,7 +62,8 @@ if [[ -z "${KEYID}" ]]; then
 fi
 
 # Create an SSH certificate at the product level
-. ${GENERATION_DIR}/createSSHCertificate.sh ${CREDENTIALS_DIR}
+mkdir -p "${CREDENTIALS_DIR}"
+. ${GENERATION_DIR}/createSSHCertificate.sh "${CREDENTIALS_DIR}"
 
 # Check that the SSH certificate has been defined in AWS
 ${GENERATION_DIR}/manageSSHCertificate.sh -i ${SSH_ID} -p ${CREDENTIALS_DIR}/aws-ssh-crt.pem -r ${REGION}
