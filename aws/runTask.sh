@@ -3,6 +3,7 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
 DELAY_DEFAULT=30
 TIER_DEFAULT="web"
 COMPONENT_DEFAULT="www"

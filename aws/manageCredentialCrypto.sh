@@ -5,6 +5,7 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 
+# Defaults
 CREDENTIAL_TYPE_DEFAULT="Login"
 
 function usage() {

@@ -3,6 +3,8 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
     
+# Defaults
+
 function usage() {
     cat <<-EOF
 		Populate the account tree for an account
