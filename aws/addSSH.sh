@@ -4,14 +4,15 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 function usage() {
-    echo -e "\nAdd SSH certificate to product/segment"
-    echo -e "\nUsage: $(basename $0) "
-    echo -e "\nwhere\n"
-    echo -e "    -h shows this text"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "\nNOTES:\n"
-    echo -e "1. Current directory must be for product or segment"
-    echo -e ""
+    cat <<-EOF
+		Add SSH certificate to product/segment
+		Usage: $(basename $0)
+		where
+		    -h shows this text
+		DEFAULTS:
+		NOTES:
+		1. Current directory must be for product or segment
+	EOF
     exit
 }
 

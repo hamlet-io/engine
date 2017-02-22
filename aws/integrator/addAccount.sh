@@ -4,28 +4,29 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
     
 function usage() {
-    echo -e "\nAdd a new account for a tenant"
-    echo -e "\nUsage: $(basename $0) -l TITLE -n ACCOUNT -d DESCRIPTION -a AID -t TENANT -o DOMAIN -r AWS_REGION -c AWS_ID -f -u"
-    echo -e "\nwhere\n"
-    echo -e "(m) -a AID is the tenant account id"
-    echo -e "(o) -c AWS_ID is the AWS account id"
-    echo -e "(o) -d DESCRIPTION is the account description"
-    echo -e "(o) -f if an existing shelf account should be used as the basis for the new account"
-    echo -e "    -h shows this text"
-    echo -e "(o) -l TITLE is the account title"
-    echo -e "(m) -n ACCOUNT is the human readable form (one word, lowercase and no spaces) of the account id"
-    echo -e "(o) -o DOMAIN is the default DNS domain to be used for account products"
-    echo -e "(o) -r AWS_REGION is the AWS region identifier for the region in which the account will be created"
-    echo -e "(m) -t TENANT is the tenant name"
-    echo -e "(o) -u if details should be updated"
-    echo -e "\nDEFAULTS (creation only):\n"
-    echo -e "AID=ACCOUNT"
-    echo -e "\nNOTES:\n"
-    echo -e "1. The script must be run from the root of the integrator tree"
-    echo -e "2. A sub-directory is created for the account under the tenant"
-    echo -e "3. The account information is saved in the account profile"
-    echo -e "4. To update the details, the update option must be explicitly set"
-    echo -e ""
+    cat <<-EOF
+		Add a new account for a tenant
+		Usage: $(basename $0) -l TITLE -n ACCOUNT -d DESCRIPTION -a AID -t TENANT -o DOMAIN -r AWS_REGION -c AWS_ID -f -u
+		where
+		(m) -a AID is the tenant account id
+		(o) -c AWS_ID is the AWS account id
+		(o) -d DESCRIPTION is the account description
+		(o) -f if an existing shelf account should be used as the basis for the new account
+		    -h shows this text
+		(o) -l TITLE is the account title
+		(m) -n ACCOUNT is the human readable form (one word, lowercase and no spaces) of the account id
+		(o) -o DOMAIN is the default DNS domain to be used for account products
+		(o) -r AWS_REGION is the AWS region identifier for the region in which the account will be created
+		(m) -t TENANT is the tenant name
+		(o) -u if details should be updated
+		DEFAULTS (creation only):
+		AID=ACCOUNT
+		NOTES:
+		1. The script must be run from the root of the integrator tree
+		2. A sub-directory is created for the account under the tenant
+		3. The account information is saved in the account profile
+		4. To update the details, the update option must be explicitly set
+	EOF
     exit
 }
 

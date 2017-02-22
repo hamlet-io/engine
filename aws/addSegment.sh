@@ -4,29 +4,30 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 function usage() {
-    echo -e "\nAdd a new segment"
-    echo -e "\nUsage: $(basename $0) -l TITLE -n SEGMENT -d DESCRIPTION -s SID -e EID -o DOMAIN -r AWS_REGION -u"
-    echo -e "\nwhere\n"
-    echo -e "(o) -d DESCRIPTION is the segment description"
-    echo -e "(o) -e EID is the ID of the environment of which this segment is part"
-    echo -e "    -h shows this text"
-    echo -e "(o) -l TITLE is the segment title"
-    echo -e "(m) -n SEGMENT is the human readable form (one word, lowercase and no spaces) of the segment id"
-    echo -e "(o) -o DOMAIN is the default DNS domain to be used for the segment"
-    echo -e "(o) -r AWS_REGION is the default AWS region for the segment"
-    echo -e "(o) -s SID is the segment id"
-    echo -e "(o) -u if details should be updated"
-    echo -e "\nDEFAULTS (creation only):\n"
-    echo -e "EID=SID"
-    echo -e "SID=EID"
-    echo -e "TITLE from environment master data for EID"
-    echo -e "\nNOTES:\n"
-    echo -e "1. Subdirectories are created in the config and infrastructure subtrees"
-    echo -e "2. The segment information is saved in the segment profile"
-    echo -e "3. To update the details, the update option must be explicitly set"
-    echo -e "4. The environment must exist in the masterData"
-    echo -e "5. EID or SID are required if creating a segment"
-    echo -e ""
+    cat <<-EOF
+		Add a new segment
+		Usage: $(basename $0) -l TITLE -n SEGMENT -d DESCRIPTION -s SID -e EID -o DOMAIN -r AWS_REGION -u
+		where
+		(o) -d DESCRIPTION is the segment description
+		(o) -e EID is the ID of the environment of which this segment is part
+		    -h shows this text
+		(o) -l TITLE is the segment title
+		(m) -n SEGMENT is the human readable form (one word, lowercase and no spaces) of the segment id
+		(o) -o DOMAIN is the default DNS domain to be used for the segment
+		(o) -r AWS_REGION is the default AWS region for the segment
+		(o) -s SID is the segment id
+		(o) -u if details should be updated
+		DEFAULTS (creation only):
+		EID=SID
+		SID=EID
+		TITLE from environment master data for EID
+		NOTES:
+		1. Subdirectories are created in the config and infrastructure subtrees
+		2. The segment information is saved in the segment profile
+		3. To update the details, the update option must be explicitly set
+		4. The environment must exist in the masterData
+		5. EID or SID are required if creating a segment
+	EOF
     exit
 }
 

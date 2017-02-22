@@ -4,20 +4,21 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
     
 function usage() {
-    echo -e "\nPopulate the account tree for an account"
-    echo -e "\nUsage: $(basename $0) -t TENANT -a ACCOUNT -u"
-    echo -e "\nwhere\n"
-    echo -e "(m) -a ACCOUNT is the tenant account name"
-    echo -e "    -h shows this text"
-    echo -e "(m) -t TENANT is the tenant name"
-    echo -e "(o) -u if details should be updated"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "\nNOTES:\n"
-    echo -e "1. The script must be run from the root of the integrator tree"
-    echo -e "2. The account tree is expected to be present at the same level"
-    echo -e "   as the integrator tree"
-    echo -e "2. To update the details, the update option must be explicitly set"
-    echo -e ""
+    cat <<-EOF
+		Populate the account tree for an account
+		Usage: $(basename $0) -t TENANT -a ACCOUNT -u
+		where
+		(m) -a ACCOUNT is the tenant account name
+		    -h shows this text
+		(m) -t TENANT is the tenant name
+		(o) -u if details should be updated
+		DEFAULTS:
+		NOTES:
+		1. The script must be run from the root of the integrator tree
+		2. The account tree is expected to be present at the same level
+		   as the integrator tree
+		3. To update the details, the update option must be explicitly set
+	EOF
     exit
 }
 

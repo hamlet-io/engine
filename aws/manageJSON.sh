@@ -4,25 +4,27 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 JSON_FORMAT_DEFAULT="--indent 4"
+
 function usage() {
-  echo -e "\nManage JSON files" 
-  echo -e "\nUsage: $(basename $0) -f JSON_FILTER -o JSON_OUTPUT -c -d JSON_LIST\n"
-  echo -e "\nwhere\n"
-  echo -e "(o) -c compact rather than pretty output formatting"
-  echo -e "(o) -d to default missing attributes"
-  echo -e "(o) -f JSON_FILTER is the filter to use"
-  echo -e "(m) -o JSON_OUTPUT is the desired output file"
-  echo -e "\nDEFAULTS:\n"
-  echo -e "JSON_FILTER = merge files"
-  echo -e "JSON_FORMAT=\"${JSON_FORMAT_DEFAULT}\""
-  echo -e "\nNOTES:\n"
-  echo -e "1. parameters can be provided in an environment variables of the same name"
-  echo -e "2. Any positional arguments will be appended to the existing value"
-  echo -e "   (if any) of JSON_LIST"
-  echo -e "3. If defaulting is turned on, Name attributes will be found where an Id"
-  echo -e "   attribute exists and no Name attribute exists"
-  echo -e ""
-  exit
+    cat <<-EOF
+		Manage JSON files
+		Usage: $(basename $0) -f JSON_FILTER -o JSON_OUTPUT -c -d JSON_LIST
+		where
+		(o) -c compact rather than pretty output formatting
+		(o) -d to default missing attributes
+		(o) -f JSON_FILTER is the filter to use
+		(m) -o JSON_OUTPUT is the desired output file
+		DEFAULTS:
+		JSON_FILTER = merge files
+		JSON_FORMAT="${JSON_FORMAT_DEFAULT}"
+		NOTES:
+		1. parameters can be provided in an environment variables of the same name
+		2. Any positional arguments will be appended to the existing value
+		   (if any) of JSON_LIST
+		3. If defaulting is turned on, Name attributes will be found where an Id
+		   attribute exists and no Name attribute exists
+	EOF
+    exit
 }
 
 # Parse options

@@ -4,16 +4,17 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 function usage() {
-    echo -e "\nSynchronise the contents of the code and credentials buckets to the local values" 
-    echo -e "\nUsage: $(basename $0) -q -x -y"
-    echo -e "\nwhere\n"
-    echo -e "    -h shows this text"
-    echo -e "(o) -q for no check (quick) - don't check bucket access before attempting to synchronise"
-    echo -e "(o) -x for no delete - by default files in the buckets that are absent locally are deleted"
-    echo -e "(o) -y for a dryrun - show what will happen without actually transferring any files"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "\nNOTES:\n"
-    echo -e ""
+    cat <<-EOF
+		Synchronise the contents of the code and credentials buckets to the local values
+		Usage: $(basename $0) -q -x -y
+		where
+		    -h shows this text
+		(o) -q for no check (quick) - don't check bucket access before attempting to synchronise
+		(o) -x for no delete - by default files in the buckets that are absent locally are deleted
+		(o) -y for a dryrun - show what will happen without actually transferring any files
+		DEFAULTS:
+		NOTES:
+	EOF
     exit
 }
 

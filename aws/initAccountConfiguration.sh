@@ -13,37 +13,38 @@ SESREGION_DEFAULT="us-west-2"
 SESREGION_DEFAULT_NAME="Oregon"
 
 function usage() {
-  echo -e "\nInitialise the tenant/account/ALM level configuration information"
-  echo -e "\nUsage: $(basename $0) -t TITLE -n NAME -o TID -i OAINDEX -d DESCRIPTION -m OANAME -r REGION -e SESREGION -y ALMTYPE -s ALMSIZE"
-  echo -e "\nwhere\n"
-  echo -e "(o) -d DESCRIPTION is general information about the tenant"
-  echo -e "(o) -e SESREGION is the AWS region identifier for the region via which emails will be sent"
-  echo -e "    -h shows this text"
-  echo -e "(o) -i OAINDEX is the 2 digit tenant account e.g. \"01\", \"02\""
-  echo -e "(o) -m OANAME is short form (one word and no spaces) of the account title. The account title is the concatenation of TITLE, OANAME and \"Account\""
-  echo -e "(m) -n NAME is the short form (one word, lowercase and no spaces) of the tenant title e.g. \"environment\""
-  echo -e "(m) -o TID is the tenant id e.g. \"env\""
-  echo -e "(o) -r REGION is the AWS region identifier for the region in which the account will be created"
-  echo -e "(o) -s ALMSIZE is the sizing required for the ALM"
-  echo -e "       - micro"
-  echo -e "       - small"
-  echo -e "       - medium"
-  echo -e "(m) -t TITLE is the tenant title e.g. \"Department of Environment\""
-  echo -e "(o) -y ALMTYPE is the arrangement required for the ALM"
-  echo -e "       - nat      - if you want a NAT based ALM segment"
-  echo -e "       - external - if you want an externally exposed ALM server"
-  echo -e "\nDEFAULTS:\n"
-  echo -e "OAINDEX   = \"${OAINDEX_DEFAULT}\""
-  echo -e "OANAME    = \"${OANAME_DEFAULT}\""
-  echo -e "REGION    = \"${REGION_DEFAULT}\" (${REGION_DEFAULT_NAME})"
-  echo -e "SESREGION = \"${SESREGION_DEFAULT}\" (${SESREGION_DEFAULT_NAME})"
-  echo -e "ALMSIZE   = \"${ALMSIZE_DEFAULT}\""
-  echo -e "ALMTYPE   = \"${ALMTYPE_DEFAULT}\""
-  echo -e "\nNOTES:\n"
-  echo -e "1) The tenant account id (AID) is formed by concatenating the TID and the OAINDEX"
-  echo -e "2) The AID needs to match the root of the directory structure"
-  echo -e ""
-  exit 1
+    cat <<-EOF
+		Initialise the tenant/account/ALM level configuration information
+		Usage: $(basename $0) -t TITLE -n NAME -o TID -i OAINDEX -d DESCRIPTION -m OANAME -r REGION -e SESREGION -y ALMTYPE -s ALMSIZE
+		where
+		(o) -d DESCRIPTION is general information about the tenant
+		(o) -e SESREGION is the AWS region identifier for the region via which emails will be sent
+		    -h shows this text
+		(o) -i OAINDEX is the 2 digit tenant account e.g. "01", "02"
+		(o) -m OANAME is short form (one word and no spaces) of the account title. The account title is the concatenation of TITLE, OANAME and "Account"
+		(m) -n NAME is the short form (one word, lowercase and no spaces) of the tenant title e.g. "environment"
+		(m) -o TID is the tenant id e.g. "env"
+		(o) -r REGION is the AWS region identifier for the region in which the account will be created
+		(o) -s ALMSIZE is the sizing required for the ALM
+		       - micro
+		       - small
+		       - medium
+		(m) -t TITLE is the tenant title e.g. "Department of Environment"
+		(o) -y ALMTYPE is the arrangement required for the ALM
+		       - nat      - if you want a NAT based ALM segment
+		       - external - if you want an externally exposed ALM server
+		DEFAULTS:
+		OAINDEX   = "${OAINDEX_DEFAULT}"
+		OANAME    = "${OANAME_DEFAULT}"
+		REGION    = "${REGION_DEFAULT}" (${REGION_DEFAULT_NAME})
+		SESREGION = "${SESREGION_DEFAULT}" (${SESREGION_DEFAULT_NAME})
+		ALMSIZE   = "${ALMSIZE_DEFAULT}"
+		ALMTYPE   = "${ALMTYPE_DEFAULT}"
+		NOTES:
+		1) The tenant account id (AID) is formed by concatenating the TID and the OAINDEX
+		2) The AID needs to match the root of the directory structure
+	EOF
+    exit
 }
 
 ALMSIZE="${ALMSIZE_DEFAULT}"
