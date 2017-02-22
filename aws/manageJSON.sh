@@ -3,6 +3,7 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
 JSON_FORMAT_DEFAULT="--indent 4"
 
 function usage() {

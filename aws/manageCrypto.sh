@@ -5,6 +5,7 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 
 BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 
+# Defaults
 CRYPTO_OPERATION_DEFAULT="decrypt"
 CRYPTO_FILENAME_DEFAULT="credentials.json"
 

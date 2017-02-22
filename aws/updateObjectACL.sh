@@ -3,6 +3,7 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
 ACL_DEFAULT="private"
 PREFIX_DEFAULT="/"
 DISPLAY_ACLS_DEFAULT="false"

@@ -3,6 +3,7 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
 CREDENTIAL_NAME_DEFAULT="root+aws"
 CREDENTIAL_TYPE_DEFAULT="Login"
 

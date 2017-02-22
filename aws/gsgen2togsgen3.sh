@@ -2,6 +2,8 @@
 
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
+
 function usage() {
     cat <<-EOF
 		Convert config/infrastructure trees used for gsgen2 to the format required for gsgen3

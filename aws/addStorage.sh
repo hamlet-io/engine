@@ -3,6 +3,7 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
 STORAGE_PROFILE_DEFAULT="default"
 STORAGE_DEVICE_DEFAULT="sdp"
 STORAGE_SIZE_DEFAULT="100"
