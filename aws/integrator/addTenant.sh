@@ -4,27 +4,28 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 function usage() {
-    echo -e "\nAdd a new tenant"
-    echo -e "\nUsage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_REGION -u"
-    echo -e "\nwhere\n"
-    echo -e "(o) -d DESCRIPTION is the tenant description"
-    echo -e "    -h shows this text"
-    echo -e "(o) -l TITLE is the tenant title"
-    echo -e "(m) -n TENANT is the human readable form (one word, lowercase and no spaces) of the tenant id"
-    echo -e "(o) -o DOMAIN is the default DNS domain to be used for tenant products and accounts"
-    echo -e "(o) -r AWS_REGION is the default AWS region for the tenant"
-    echo -e "(o) -t TID is the tenant id"
-    echo -e "(o) -u if details should be updated"
-    echo -e "\nDEFAULTS (creation only):\n"
-    echo -e "TID=TENANT"
-    echo -e "\nNOTES:\n"
-    echo -e "1. The script must be run from the root of the integrator tree"
-    echo -e "2. A sub-directory is created for the tenant"
-    echo -e "3. The tenant information is saved in the tenant profile"
-    echo -e "4. The integrator profile forms the basis for the tenant profile" 
-    echo -e "5. To update the details, the update option must be explicitly set"
-    echo -e "6. The domain will default on tenant creation to {TENANT}.{integrator domain}"
-    echo -e ""
+    cat <<-EOF
+		Add a new tenant
+		Usage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_REGION -u
+		where
+		(o) -d DESCRIPTION is the tenant description
+		    -h shows this text
+		(o) -l TITLE is the tenant title
+		(m) -n TENANT is the human readable form (one word, lowercase and no spaces) of the tenant id
+		(o) -o DOMAIN is the default DNS domain to be used for tenant products and accounts
+		(o) -r AWS_REGION is the default AWS region for the tenant
+		(o) -t TID is the tenant id
+		(o) -u if details should be updated
+		DEFAULTS (creation only):
+		TID=TENANT
+		NOTES:
+		1. The script must be run from the root of the integrator tree
+		2. A sub-directory is created for the tenant
+		3. The tenant information is saved in the tenant profile
+		4. The integrator profile forms the basis for the tenant profile
+		5. To update the details, the update option must be explicitly set
+		6. The domain will default on tenant creation to {TENANT}.{integrator domain}
+	EOF
     exit
 }
 

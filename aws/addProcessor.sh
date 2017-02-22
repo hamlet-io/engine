@@ -5,21 +5,23 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 
 PROCESSOR_PROFILE_DEFAULT="default"
 COMPONENT_TYPE_VALUES=("ECS" "EC2")
+
 function usage() {
-    echo -e "\nAdd a processor"
-    echo -e "\nUsage: $(basename $0) -i PROCESSOR_INSTANCE -p PROCESSOR_PROFILE -t COMPONENT_TYPE"
-    echo -e "\nwhere\n"
-    echo -e "    -h shows this text"
-    echo -e "(m) -i PROCESSOR_INSTANCE is the processor instance type"
-    echo -e "(m) -p PROCESSOR_PROFILE is the processor profile"
-    echo -e "(m) -t COMPONENT_TYPE is the component type"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "PROCESSOR_PROFILE=${PROCESSOR_PROFILE_DEFAULT}"
-    echo -e "COMPONENT_TYPE=${COMPONENT_TYPE_VALUES[0]}"
-    echo -e "\nNOTES:\n"
-    echo -e "1. The profile to be updated is determined by the current directory location"
-    echo -e "2. COMPONENT_TYPE is one of" "${COMPONENT_TYPE_VALUES[@]}"
-    echo -e ""
+    cat <<-EOF
+		Add a processor
+		Usage: $(basename $0) -i PROCESSOR_INSTANCE -p PROCESSOR_PROFILE -t COMPONENT_TYPE
+		where
+		    -h shows this text
+		(m) -i PROCESSOR_INSTANCE is the processor instance type
+		(m) -p PROCESSOR_PROFILE is the processor profile
+		(m) -t COMPONENT_TYPE is the component type
+		DEFAULTS:
+		PROCESSOR_PROFILE=${PROCESSOR_PROFILE_DEFAULT}
+		COMPONENT_TYPE=${COMPONENT_TYPE_VALUES[0]}
+		NOTES:
+		1. The profile to be updated is determined by the current directory location
+		2. COMPONENT_TYPE is one of" "${COMPONENT_TYPE_VALUES[@]}
+	EOF
     exit
 }
 

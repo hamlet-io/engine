@@ -6,22 +6,24 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 ACL_DEFAULT="private"
 PREFIX_DEFAULT="/"
 DISPLAY_ACLS_DEFAULT="false"
+
 function usage() {
-    echo -e "\nUpdate the ACL associated with all objects in a bucket" 
-    echo -e "\nUsage: $(basename $0) -b BUCKET -p PREFIX -a ACL -d\n"
-    echo -e "\nwhere\n"
-    echo -e "(o) -a ACL is the canned ACL to apply to all objects in the bucket"
-    echo -e "(m) -b BUCKET is the bucket to be updated"
-    echo -e "    -d displays the ACLs but does not update them"
-    echo -e "    -h shows this text"
-    echo -e "(o) -p PREFIX is the key prefix for objects to be updated"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "ACL    = \"${ACL_DEFAULT}\""
-    echo -e "PREFIX = \"${PREFIX_DEFAULT}\""
-    echo -e "DISPLAY_ACLS = \"${DISPLAY_ACLS_DEFAULT}\""
-    echo -e "\nNOTES:\n"
-    echo -e "1. PREFIX must start and end with a /"
-    echo -e ""
+    cat <<-EOF
+		Update the ACL associated with all objects in a bucket
+		Usage: $(basename $0) -b BUCKET -p PREFIX -a ACL -d
+		where
+		(o) -a ACL is the canned ACL to apply to all objects in the bucket
+		(m) -b BUCKET is the bucket to be updated
+		    -d displays the ACLs but does not update them
+		    -h shows this text
+		(o) -p PREFIX is the key prefix for objects to be updated
+		DEFAULTS:
+		ACL    = "${ACL_DEFAULT}"
+		PREFIX = "${PREFIX_DEFAULT}"
+		DISPLAY_ACLS = "${DISPLAY_ACLS_DEFAULT}"
+		NOTES:
+		1. PREFIX must start and end with a /
+	EOF
     exit
 }
 

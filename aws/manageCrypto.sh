@@ -7,53 +7,55 @@ BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 
 CRYPTO_OPERATION_DEFAULT="decrypt"
 CRYPTO_FILENAME_DEFAULT="credentials.json"
+
 function usage() {
-  echo -e "\nManage cryptographic operations using KMS" 
-  echo -e "\nUsage: $(basename $0) -e -d -n -f CRYPTO_FILE -p JSON_PATH -t CRYPTO_TEXT -a ALIAS -k KEYID -b -u -v -q\n"
-  echo -e "\nwhere\n"
-  echo -e "(o) -a ALIAS for the master key to be used"
-  echo -e "(o) -b force base64 decode of the input before processing"
-  echo -e "(o) -d decrypt operation"
-  echo -e "(o) -e encrypt operation"
-  echo -e "(o) -f CRYPTO_FILE specifies a file which contains the plaintext or ciphertext to be processed"
-  echo -e "    -h shows this text"
-  echo -e "(o) -k KEYID for the master key to be used"
-  echo -e "(o) -n no alteration to CRYPTO_TEXT (pass through as is)"
-  echo -e "(o) -p JSON_PATH is the path to the attribute within CRYPTO_FILE to be processed"
-  echo -e "(o) -q don't display result (quiet)"
-  echo -e "(o) -t CRYPTO_TEXT is the plaintext or ciphertext to be processed"
-  echo -e "    -u update the attribute at JSON_PATH (if provided), or replace CRYPTO_FILE with operation result"
-  echo -e "    -v result is base64 decoded (visible)"
-  echo -e "\nDEFAULTS:\n"
-  echo -e "OPERATION = ${CRYPTO_OPERATION_DEFAULT}"
-  echo -e "FILENAME = ${CRYPTO_FILENAME_DEFAULT}"
-  echo -e "\nNOTES:\n"
-  echo -e "1. If a file is required but not provided, the default filename"
-  echo -e "     will be expected in the equivalent directory of the infrastructure tree"
-  echo -e "2. If JSON_PATH is provided,"
-  echo -e "   - a CRYPTO_FILE is required"
-  echo -e "   - the targetted file must be JSON format"
-  echo -e "   - encrypt requires CRYPTO_TEXT to be provided, or for the attribute to"
-  echo -e "     to present" 
-  echo -e "   - attribute is updated with the operation result if update flag is set"
-  echo -e "3. If JSON_PATH is NOT provided,"
-  echo -e "   - one of CRYPTO_FILE or CRYPTO_TEXT must be provided"
-  echo -e "   - CRYPTO_TEXT takes precedence over CRYPTO_FILE"
-  echo -e "4. If a file at CRYPTO_FILE can't be located based on current directory, it will be"
-  echo -e "   treated as a relative directory using the default filename"
-  echo -e "5. Don't include \"alias/\" in any provided alias"
-  echo -e "6. If encrypting, the key is located as follows,"
-  echo -e "   - use KEYID if provided"
-  echo -e "   - use ALIAS if provided"
-  echo -e "   - if in segment directory, use segment keyid if available"
-  echo -e "   - if in product directory, use product keyid if available"
-  echo -e "   - if in account directory, use account keyid if available"
-  echo -e "   - otherwise error"
-  echo -e "7. The result is sent to stdout and is base64 encoded unless the"
-  echo -e "   visibility flag is set"
-  echo -e "8. Decrypted files will have a \".decrypted\" extension added so they can be ignored by git"
-  echo -e ""
-  exit
+    cat <<-EOF
+		Manage cryptographic operations using KMS
+		Usage: $(basename $0) -e -d -n -f CRYPTO_FILE -p JSON_PATH -t CRYPTO_TEXT -a ALIAS -k KEYID -b -u -v -q
+		where
+		(o) -a ALIAS for the master key to be used
+		(o) -b force base64 decode of the input before processing
+		(o) -d decrypt operation
+		(o) -e encrypt operation
+		(o) -f CRYPTO_FILE specifies a file which contains the plaintext or ciphertext to be processed
+		    -h shows this text
+		(o) -k KEYID for the master key to be used
+		(o) -n no alteration to CRYPTO_TEXT (pass through as is)
+		(o) -p JSON_PATH is the path to the attribute within CRYPTO_FILE to be processed
+		(o) -q don't display result (quiet)
+		(o) -t CRYPTO_TEXT is the plaintext or ciphertext to be processed
+		    -u update the attribute at JSON_PATH (if provided), or replace CRYPTO_FILE with operation result
+		    -v result is base64 decoded (visible)
+		DEFAULTS:
+		OPERATION = ${CRYPTO_OPERATION_DEFAULT}
+		FILENAME = ${CRYPTO_FILENAME_DEFAULT}
+		NOTES:\n
+		1. If a file is required but not provided, the default filename
+		     will be expected in the equivalent directory of the infrastructure tree
+		2. If JSON_PATH is provided,
+		   - a CRYPTO_FILE is required
+		   - the targetted file must be JSON format
+		   - encrypt requires CRYPTO_TEXT to be provided, or for the attribute to
+		     to present
+		   - attribute is updated with the operation result if update flag is set
+		3. If JSON_PATH is NOT provided,
+		   - one of CRYPTO_FILE or CRYPTO_TEXT must be provided
+		   - CRYPTO_TEXT takes precedence over CRYPTO_FILE
+		4. If a file at CRYPTO_FILE can't be located based on current directory, it will be
+		   treated as a relative directory using the default filename
+		5. Don't include "alias/" in any provided alias
+		6. If encrypting, the key is located as follows,
+		   - use KEYID if provided
+		   - use ALIAS if provided
+		   - if in segment directory, use segment keyid if available
+		   - if in product directory, use product keyid if available
+		   - if in account directory, use account keyid if available
+		   - otherwise error
+		7. The result is sent to stdout and is base64 encoded unless the
+		   visibility flag is set
+		8. Decrypted files will have a ".decrypted" extension added so they can be ignored by git
+	EOF
+    exit
 }
 
 # Parse options

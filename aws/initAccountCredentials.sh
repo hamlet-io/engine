@@ -6,19 +6,20 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 AINDEX_DEFAULT="01"
 
 function usage() {
-  echo -e "\nInitialise the account/ALM level credentials information" 
-  echo -e "\nUsage: $(basename $0) -o TID -i AINDEX"
-  echo -e "\nwhere\n"
-  echo -e "    -h shows this text"
-  echo -e "(o) -i AINDEX is the 2 digit tenant account index e.g. \"01\", \"02\""
-  echo -e "(m) -o TID is the tenant id e.g. \"env\""
-  echo -e "\nDEFAULTS:\n"
-  echo -e "AINDEX =\"${AINDEX_DEFAULT}\""
-  echo -e "\nNOTES:\n"
-  echo -e "1) The tenant account id (AID) is formed by concatenating the TID and the AINDEX"
-  echo -e "2) The AID needs to match the root of the directory structure"
-  echo -e ""
-  exit 1
+    cat <<-EOF
+		Initialise the account/ALM level credentials information
+		Usage: $(basename $0) -o TID -i AINDEX
+		where
+		    -h shows this text
+		(o) -i AINDEX is the 2 digit tenant account index e.g. "01", "02"
+		(m) -o TID is the tenant id e.g. "env"
+		DEFAULTS:
+		AINDEX ="${AINDEX_DEFAULT}"
+		NOTES:
+		1) The tenant account id (AID) is formed by concatenating the TID and the AINDEX
+		2) The AID needs to match the root of the directory structure
+	EOF
+    exit
 }
 
 AINDEX="${AINDEX_DEFAULT}"

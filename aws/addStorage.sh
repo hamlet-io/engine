@@ -7,24 +7,26 @@ STORAGE_PROFILE_DEFAULT="default"
 STORAGE_DEVICE_DEFAULT="sdp"
 STORAGE_SIZE_DEFAULT="100"
 COMPONENT_TYPE_VALUES=("ECS" "EC2")
+
 function usage() {
-    echo -e "\nAdd a processor"
-    echo -e "\nUsage: $(basename $0) -d STORAGE_DEVICE -p STORAGE_PROFILE -s STORAGE_SIZE -t COMPONENT_TYPE"
-    echo -e "\nwhere\n"
-    echo -e "(m) -d STORAGE_DEVICE is the storage device"
-    echo -e "    -h shows this text"
-    echo -e "(m) -p STORAGE_PROFILE is the storage profile"
-    echo -e "(m) -s STORAGE_SIZE is the storage size in Gb"
-    echo -e "(m) -t COMPONENT_TYPE is the component type"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "STORAGE_PROFILE=${STORAGE_PROFILE_DEFAULT}"
-    echo -e "COMPONENT_TYPE=${COMPONENT_TYPE_VALUES[0]}"
-    echo -e "STORAGE_DEVICE=${STORAGE_DEVICE_DEFAULT}"
-    echo -e "STORAGE_SIZE=${STORAGE_SIZE_DEFAULT}"
-    echo -e "\nNOTES:\n"
-    echo -e "1. The profile to be updated is determined by the current directory location"
-    echo -e "2. COMPONENT_TYPE is one of" "${COMPONENT_TYPE_VALUES[@]}"
-    echo -e ""
+    cat <<-EOF
+		Add a processor
+		Usage: $(basename $0) -d STORAGE_DEVICE -p STORAGE_PROFILE -s STORAGE_SIZE -t COMPONENT_TYPE
+		where
+		(m) -d STORAGE_DEVICE is the storage device
+		    -h shows this text
+		(m) -p STORAGE_PROFILE is the storage profile
+		(m) -s STORAGE_SIZE is the storage size in Gb
+		(m) -t COMPONENT_TYPE is the component type
+		DEFAULTS:
+		STORAGE_PROFILE=${STORAGE_PROFILE_DEFAULT}
+		COMPONENT_TYPE=${COMPONENT_TYPE_VALUES[0]}
+		STORAGE_DEVICE=${STORAGE_DEVICE_DEFAULT}
+		STORAGE_SIZE=${STORAGE_SIZE_DEFAULT}
+		NOTES:
+		1. The profile to be updated is determined by the current directory location
+		2. COMPONENT_TYPE is one of: ${COMPONENT_TYPE_VALUES[@]}
+	EOF
     exit
 }
 

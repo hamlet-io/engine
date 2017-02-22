@@ -4,24 +4,25 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 function usage() {
-    echo -e "\nAdd a new product"
-    echo -e "\nUsage: $(basename $0) -l TITLE -n PRODUCT -d DESCRIPTION -p PID -o DOMAIN -r AWS_REGION  -u"
-    echo -e "\nwhere\n"
-    echo -e "(o) -d DESCRIPTION is the product description"
-    echo -e "    -h shows this text"
-    echo -e "(o) -l TITLE is the product title"
-    echo -e "(m) -n PRODUCT is the human readable form (one word, lowercase and no spaces) of the product id"
-    echo -e "(o) -o DOMAIN is the default DNS domain to be used for the product"
-    echo -e "(o) -p PID is the product id"
-    echo -e "(o) -r AWS_REGION is the default AWS region for the product"
-    echo -e "(o) -u if details should be updated"
-    echo -e "\nDEFAULTS (creation only):\n"
-    echo -e "PID=PRODUCT"
-    echo -e "\nNOTES:\n"
-    echo -e "1. Subdirectories are created in the config and infrastructure subtrees"
-    echo -e "2. The product information is saved in the product profile"
-    echo -e "3. To update the details, the update option must be explicitly set"
-    echo -e ""
+    cat <<-EOF
+		Add a product
+		Usage: $(basename $0) -l TITLE -n PRODUCT -d DESCRIPTION -p PID -o DOMAIN -r AWS_REGION  -u
+		where
+		(o) -d DESCRIPTION is the product description
+		    -h shows this text
+		(o) -l TITLE is the product title
+		(m) -n PRODUCT is the human readable form (one word, lowercase and no spaces) of the product id
+		(o) -o DOMAIN is the default DNS domain to be used for the product
+		(o) -p PID is the product id
+		(o) -r AWS_REGION is the default AWS region for the product
+		(o) -u if details should be updated
+		DEFAULTS (creation only):
+		PID=PRODUCT
+		NOTES:
+		1. Subdirectories are created in the config and infrastructure subtrees
+		2. The product information is saved in the product profile
+		3. To update the details, the update option must be explicitly set
+	EOF
     exit
 }
 
@@ -57,7 +58,7 @@ while getopts ":d:hl:n:o:p:r:u" opt; do
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG}" requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument"
             usage
             ;;
     esac

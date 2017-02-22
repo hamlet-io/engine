@@ -5,31 +5,33 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 
 CONFIGURATION_REFERENCE_DEFAULT="unassigned"
 REQUEST_REFERENCE_DEFAULT="unassigned"
+
 function usage() {
-    echo -e "\nCreate a CloudFormation (CF) template" 
-    echo -e "\nUsage: $(basename $0) -t TYPE -s SLICE -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION"
-    echo -e "\nwhere\n"
-    echo -e "(m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template"
-    echo -e "    -h shows this text"
-    echo -e "(m) -q REQUEST_REFERENCE is an opaque value to link this template to a triggering request management system"
-    echo -e "(o) -r REGION is the AWS region identifier"
-    echo -e "(m) -s SLICE is the slice to be included in the template"
-    echo -e "(m) -t TYPE is the template type - \"account\", \"product\", \"segment\", \"solution\" or \"application\""
-    echo -e "\nDEFAULTS:\n"
-    echo -e "CONFIGURATION_REFERENCE = \"${CONFIGURATION_REFERENCE_DEFAULT}\""
-    echo -e "REQUEST_REFERENCE = \"${REQUEST_REFERENCE_DEFAULT}\""
-    echo -e "\nNOTES:\n"
-    echo -e "1. You must be in the directory specific to the type"
-    echo -e "2. REGION is only relevant for the \"product\" type"
-    echo -e "3. SLICE may be one of \"s3\" or \"cert\" for the \"account\" type"
-    echo -e "4. SLICE may be one of \"cmk\", \"cert\", \"sns\" or \"shared\" for the \"product\" type"
-    echo -e "5. SLICE may be one of \"eip\", \"s3\", \"cmk\", \"cert\", \"vpc\" or \"dns\" for the \"segment\" type"
-    echo -e "6. Stack for SLICE of \"eip\" or \"s3\" must be created before stack for \"vpc\" for the \"segment\" type"
-    echo -e "7. Stack for SLICE of \"vpc\" must be created before stack for \"dns\" for the \"segment\" type "
-    echo -e "8. To support legacy configurations, the SLICE combinations \"eipvpc\" and"
-    echo -e "   \"eips3vpc\" are also supported but for new products, individual "
-    echo -e "   templates for each slice should be created"
-    echo -e ""
+    cat <<-EOF
+		Create a CloudFormation (CF) template 
+		Usage: $(basename $0) -t TYPE -s SLICE -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
+		where
+		(m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
+		    -h shows this text
+		(m) -q REQUEST_REFERENCE is an opaque value to link this template to a triggering request management system
+		(o) -r REGION is the AWS region identifier
+		(m) -s SLICE is the slice to be included in the template
+		(m) -t TYPE is the template type - "account", "product", "segment", "solution" or "application"
+		DEFAULTS:
+		CONFIGURATION_REFERENCE = "${CONFIGURATION_REFERENCE_DEFAULT}"
+		REQUEST_REFERENCE = "${REQUEST_REFERENCE_DEFAULT}"
+		NOTES:
+		1. You must be in the directory specific to the type
+		2. REGION is only relevant for the "product" type
+		3. SLICE may be one of "s3" or "cert" for the "account" type
+		4. SLICE may be one of "cmk", "cert", "sns" or "shared" for the "product" type
+		5. SLICE may be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" type
+		6. Stack for SLICE of "eip" or "s3" must be created before stack for "vpc" for the "segment" type
+		7. Stack for SLICE of "vpc" must be created before stack for "dns" for the "segment" type
+		8. To support legacy configurations, the SLICE combinations "eipvpc" and
+		   "eips3vpc" are also supported but for new products, individual
+		   templates for each slice should be created
+	EOF
     exit
 }
 
