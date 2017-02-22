@@ -4,20 +4,21 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 function usage() {
-    echo -e "\nAdd the application settings for a segment"
-    echo -e "\nUsage: $(basename $0) -s SEGMENT -u"
-    echo -e "\nwhere\n"
-    echo -e "    -h shows this text"
-    echo -e "(o) -s SEGMENT if details should be copied from an existing segment"
-    echo -e "(o) -u if details should be updated"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "\nNOTES:\n"
-    echo -e "1. If no existing segment is provided, application settings are "
-    echo -e "   located via the solution pattern. Nothing is done if no "
-    echo -e "   solution pattern can be found"
-    echo -e "3. The script must be run in the segment directory"
-    echo -e ""
-    exit
+    cat <<-ENDOFMESSAGE
+Add the application settings for a segment
+Usage: $(basename $0) -s SEGMENT -u
+where
+    -h shows this text
+(o) -s SEGMENT if details should be copied from an existing segment
+(o) -u if details should be updated
+DEFAULTS:
+NOTES:
+1. If no existing segment is provided, application settings are 
+   located via the solution pattern. Nothing is done if no 
+   solution pattern can be found
+3. The script must be run in the segment directory
+
+ENDOFMESSAGE
 }
 
 # Parse options
@@ -33,11 +34,11 @@ while getopts ":hs:u" opt; do
             UPDATE_APPSETTINGS="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            cat <<< "Invalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            cat <<< "Option -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -48,7 +49,7 @@ done
 
 # Ensure we are in the segment directory
 if [[ ! ("segment" =~ "${LOCATION}") ]]; then
-    echo -e "\nWe don't appear to be in the segment directory. Are we in the right place?"
+    cat <<< "We don't appear to be in the segment directory. Are we in the right place?" >&2
     usage
 fi
 
@@ -57,7 +58,7 @@ SEGMENT_APPSETTINGS_DIR="${APPSETTINGS_DIR}/${SEGMENT}"
 SLICES=$(find ${SEGMENT_APPSETTINGS_DIR}/* -type d 2> /dev/null)
 if [[ -n ${SLICES} ]]; then
     if [[ "${UPDATE_APPSETTINGS}" != "true" ]]; then
-        echo -e "\nSegment application settings already exist. Maybe try using update option?"
+        cat <<< "Segment application settings already exist. Maybe try using update option?" >&2
         usage
     fi
 fi
@@ -69,14 +70,14 @@ else
     SOLUTION_NAME=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Solution.Pattern | select(.!=null)")
     
     if [[ -z "${SOLUTION_NAME}" ]]; then
-        echo -e "\nNo solution pattern configured yet. Maybe try adding the solution first?"
+        cat <<< "No solution pattern configured yet. Maybe try adding the solution first?" >&2
         usage
     fi
     
     # Check if a corresponding solution pattern exists
     PATTERN_DIR="${GENERATION_PATTERNS_DIR}/solutions/${SOLUTION_NAME}"
     if [[ ! -d ${PATTERN_DIR} ]]; then
-        echo -e "\nNo pattern found matching the solution name \"${SOLUTION_NAME}\". Nothing to do"
+        cat <<< "No pattern found matching the solution name \"${SOLUTION_NAME}\". Nothing to do"
         RESULT=0
         exit
     fi
@@ -84,7 +85,7 @@ else
 fi
 
 if [[ ! -d ${COPY_DIR} ]]; then
-    echo -e "\nNo application settings found in ${COPY_DIR}. Nothing to do"
+    cat <<< "No application settings found in ${COPY_DIR}. Nothing to do"
     RESULT=0
     exit
 fi
