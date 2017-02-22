@@ -5,20 +5,20 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 
 function usage() {
     cat <<-ENDOFMESSAGE
-Add the application settings for a segment
-Usage: $(basename $0) -s SEGMENT -u
-where
-    -h shows this text
-(o) -s SEGMENT if details should be copied from an existing segment
-(o) -u if details should be updated
-DEFAULTS:
-NOTES:
-1. If no existing segment is provided, application settings are 
-   located via the solution pattern. Nothing is done if no 
-   solution pattern can be found
-3. The script must be run in the segment directory
-
-ENDOFMESSAGE
+		Add the application settings for a segment
+		Usage: $(basename $0) -s SEGMENT -u
+		where
+		    -h shows this text
+		(o) -s SEGMENT if details should be copied from an existing segment
+		(o) -u if details should be updated
+		DEFAULTS:
+		NOTES:
+		1. If no existing segment is provided, application settings are 
+		   located via the solution pattern. Nothing is done if no 
+		   solution pattern can be found
+		3. The script must be run in the segment directory
+	ENDOFMESSAGE
+    exit
 }
 
 # Parse options
