@@ -63,11 +63,11 @@ while getopts ":d:ho:r:t:v:" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -77,7 +77,7 @@ if [[ -z "${TEMPLATE}" ||
       -z "${TEMPLATEDIR}" ||
       -z "${OUTPUT}" ]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 
 if [[ "${#VARIABLES[@]}" -gt 0 ]]; then

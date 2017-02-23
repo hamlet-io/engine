@@ -81,11 +81,11 @@ while getopts ":a:c:d:fhl:n:o:r:t:u" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -94,21 +94,21 @@ done
 if [[ (-z "${TENANT}") ||
       (-z "${ACCOUNT}") ]]; then
   echo -e "\nInsufficient arguments" >&2
-  usage
+  exit
 fi
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
 if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
     echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
-    usage
+    exit
 fi
 
 # Ensure the tenant already exists
 TENANT_DIR="$(pwd)/tenants/${TENANT}"
 if [[ ! -d "${TENANT_DIR}" ]]; then
     echo -e "\nThe tenant needs to be added before the account" >&2
-    usage
+    exit
 fi
 
 # Create the directory for the account, potentially using a shelf account
@@ -139,7 +139,7 @@ if [[ -f ${ACCOUNT_PROFILE} ]]; then
     if [[ ("${UPDATE_ACCOUNT}" != "true") &&
           (-z "${LAST_SHELF_ACCOUNT}") ]]; then
         echo -e "\nAccount profile already exists. Maybe try using update option?" >&2
-        usage
+        exit
     fi
 else
     echo "{\"Account\":{}}" > ${ACCOUNT_PROFILE}

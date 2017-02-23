@@ -68,11 +68,11 @@ while getopts ":d:hl:n:o:p:r:u" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -80,7 +80,7 @@ done
 # Ensure mandatory arguments have been provided
 if [[ (-z "${PRODUCT}") ]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 
 # Set up the context
@@ -89,7 +89,7 @@ fi
 # Ensure we are in the root of the account tree
 if [[ "${LOCATION}" != "root" ]]; then
     echo -e "\nWe don't appear to be in the root of the account tree. Are we in the right place?" >&2
-    usage
+    exit
 fi
 
 # Create the directories for the product
@@ -110,7 +110,7 @@ PRODUCT_PROFILE=${PRODUCT_DIR}/product.json
 if [[ -f ${PRODUCT_PROFILE} ]]; then
     if [[ "${UPDATE_PRODUCT}" != "true" ]]; then
         echo -e "\nProduct profile already exists. Maybe try using update option?" >&2
-        usage
+        exit
     fi
 else
     echo "{\"Product\":{}}" > ${PRODUCT_PROFILE}

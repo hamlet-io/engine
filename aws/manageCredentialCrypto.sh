@@ -67,11 +67,11 @@ while getopts ":e:f:hi:n:s:vy:" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -81,7 +81,7 @@ CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 # Ensure mandatory arguments have been provided
 if [[ (-z "${CREDENTIAL_NAME}") || (-z "${CREDENTIAL_TYPE}") ]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 
 # Define JSON paths

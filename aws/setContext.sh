@@ -113,7 +113,7 @@ fi
 
 if [[ -z "${GENERATION_DATA_DIR}" ]]; then
     echo -e "\nCan't locate the root of the directory tree. Are we in the right place?" >&2
-    usage
+    exit
 fi
 
 # root directory
@@ -160,7 +160,7 @@ export REGION="${REGION:-$PRODUCT_REGION}"
 # Perform a few consistency checks
 if [[ -z "${REGION}" ]]; then
     echo -e "\nThe region must be defined in the Product blueprint section. Nothing to do." >&2
-    usage
+    exit
 fi
 BLUEPRINT_ACCOUNT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Account.Name | select(.!=null)' < "${COMPOSITE_BLUEPRINT}")
 BLUEPRINT_PRODUCT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Product.Name | select(.!=null)' < "${COMPOSITE_BLUEPRINT}")
@@ -169,19 +169,19 @@ if [[ (-n "${ACCOUNT}") &&
         ("${BLUEPRINT_ACCOUNT}" != "Account") &&
         ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]]; then
     echo -e "\nBlueprint account of ${BLUEPRINT_ACCOUNT} doesn't match expected value of ${ACCOUNT}" >&2
-    usage
+    exit
 fi
 if [[ (-n "${PRODUCT}") &&
         ("${BLUEPRINT_PRODUCT}" != "Product") &&
         ("${PRODUCT}" != "${BLUEPRINT_PRODUCT}") ]]; then
     echo -e "\nBlueprint product of ${BLUEPRINT_PRODUCT} doesn't match expected value of ${PRODUCT}" >&2
-    usage
+    exit
 fi
 if [[ (-n "${SEGMENT}") &&
         ("${BLUEPRINT_SEGMENT}" != "Segment") &&
         ("${SEGMENT}" != "${BLUEPRINT_SEGMENT}") ]]; then
     echo -e "\nBlueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}" >&2
-    usage
+    exit
 fi
 
 # Add default composite fragments including end fragment

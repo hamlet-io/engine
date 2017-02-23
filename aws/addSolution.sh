@@ -44,11 +44,11 @@ while getopts "hs:u" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -56,14 +56,14 @@ done
 # Ensure mandatory arguments have been provided
 if [[ (-z "${SOLUTION_NAME}") ]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 
 # Ensure solution exists
 PATTERN_DIR="${GENERATION_PATTERNS_DIR}/solutions/${SOLUTION_NAME}"
 if [[ ! -d "${PATTERN_DIR}" ]]; then
     echo -e "\nSolution pattern is not known" >&2
-    usage
+    exit
 fi
 
 # Set up the context
@@ -77,7 +77,7 @@ elif [[ ("segment" =~ "${LOCATION}") ]]; then
     TARGET_DIR="."
 else
     echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
-    usage
+    exit
 fi
 
 # Check whether the solution profile is already in place
@@ -85,7 +85,7 @@ SOLUTION_FILE="${TARGET_DIR}/solution.json"
 if [[ -f "${SOLUTION_FILE}" ]]; then
     if [[ "${UPDATE_SOLUTION}" != "true" ]]; then
         echo -e "\nSolution profile already exists. Maybe try using update option?" >&2
-        usage
+        exit
     fi
 fi
 

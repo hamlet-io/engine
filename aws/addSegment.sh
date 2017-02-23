@@ -76,11 +76,11 @@ while getopts ":d:e:hl:n:o:r:s:u" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -88,7 +88,7 @@ done
 # Ensure mandatory arguments have been provided
 if [[ (-z "${SEGMENT}") ]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 
 # Set up the context
@@ -97,7 +97,7 @@ fi
 # Ensure we are in the root of the product tree
 if [[ ! ("product" =~ ${LOCATION}) ]]; then
     echo -e "\nWe don't appear to be in the product directory. Are we in the right place?" >&2
-    usage
+    exit
 fi
 
 # Create the directories for the segment
@@ -116,12 +116,12 @@ SEGMENT_PROFILE=${SEGMENT_SOLUTIONS_DIR}/segment.json
 if [[ -f ${SEGMENT_PROFILE} ]]; then
     if [[ "${UPDATE_SEGMENT}" != "true" ]]; then
         echo -e "\nSegment profile already exists. Maybe try using update option?" >&2
-        usage
+        exit
     fi
 else
     if [[ (-z "${EID}") && (-z "${SID}") ]]; then
         echo -e "\nOne of EID and SID required for segment creation" >&2
-        usage
+        exit
     fi
     echo "{\"Segment\":{}}" > ${SEGMENT_PROFILE}
     EID=${EID:-${SID}}
@@ -129,7 +129,7 @@ else
     ENVIRONMENT_TITLE=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Environments[\"${EID}\"].Title | select(.!=null)")
     if [[ -z "${ENVIRONMENT_TITLE}" ]]; then 
         echo -e "\nEnvironment not defined in masterData.json. Was SID or EID provided?" >&2
-        usage
+        exit
     fi
     TITLE=${TITLE:-$ENVIRONMENT_TITLE}
 fi

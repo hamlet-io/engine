@@ -71,11 +71,11 @@ while getopts ":c:hq:r:s:t:" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -90,22 +90,22 @@ if [[ (-z "${TYPE}") ||
         (-z "${REQUEST_REFERENCE}") ||
         (-z "${CONFIGURATION_REFERENCE}")]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 if [[ ("${TYPE}" == "account") && 
       (!("${SLICE}" =~ s3|cert)) ]]; then
     echo -e "\nUnknown slice ${SLICE} for the account type" >&2
-    usage
+    exit
 fi
 if [[ ("${TYPE}" == "product") && 
       (!("${SLICE}" =~ s3|sns|cmk|cert)) ]]; then
     echo -e "\nUnknown slice ${SLICE} for the product type" >&2
-    usage
+    exit
 fi
 if [[ ("${TYPE}" == "segment") && 
       (!("${SLICE}" =~ eip|s3|cmk|cert|vpc|dns|eipvpc|eips3vpc)) ]]; then
     echo -e "\nUnknown slice ${SLICE} for the segment type" >&2
-    usage
+    exit
 fi
 
 # Set up the context
@@ -116,13 +116,13 @@ case $TYPE in
     account|product)
         if [[ ! ("${TYPE}" =~ ${LOCATION}) ]]; then
             echo "Current directory doesn't match requested type \"${TYPE}\". Are we in the right place?" >&2
-            usage
+            exit
         fi
         ;;
     solution|segment|application)
         if [[ ! ("segment" =~ ${LOCATION}) ]]; then
             echo "Current directory doesn't match requested type \"${TYPE}\". Are we in the right place?" >&2
-            usage
+            exit
         fi
         ;;
 esac
@@ -206,13 +206,13 @@ case $TYPE in
         
         if [[ "${IS_APPLICATION_SLICE}" != "true" ]]; then
             echo -e "\n\"$SLICE\" is not defined as an application slice in the blueprint" >&2
-            usage
+            exit
         fi
         ;;
 
     *)
         echo -e "\n\"$TYPE\" is not one of the known stack types (account, product, segment, solution, application). Nothing to do." >&2
-        usage
+        exit
         ;;
 esac
 

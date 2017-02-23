@@ -54,11 +54,11 @@ while getopts ":hi:p:t:" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -71,7 +71,7 @@ if [[ (-z "${PROCESSOR_PROFILE}") ||
       (-z "${COMPONENT_TYPE}") ||
       (-z "${PROCESSOR_INSTANCE}") ]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 
 # Set up the context
@@ -85,14 +85,14 @@ else
         TARGET_FILE="./segment.json"
     else
         echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
-        usage
+        exit
     fi
 fi
 
 # Check whether the target exists
 if [[ ! -f "${TARGET_FILE}" ]]; then
     echo -e "\nSolution or segment profile not found. Maybe try adding solution/segment first?" >&2
-    usage
+    exit
 fi
 
 # Update the target file

@@ -50,11 +50,11 @@ while getopts ":hqxy" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -64,7 +64,7 @@ done
 
 if [[ ! ("root" =~ ${LOCATION}) ]]; then
     echo -e "\nNeed to be in the root directory. Nothing to do." >&2
-    usage
+    exit
 fi
 
 # Locate the bucket names
@@ -75,7 +75,7 @@ if [[ (-z "${CODE_BUCKET}") ||
         (-z "${CREDENTIALS_BUCKET}") ||
         (-z "${ACCOUNT_REGION}") ]]; then
     echo -e "\nBuckets don't appear to have been created. Maybe create the Account stack first?" >&2
-    usage
+    exit
 fi
 pushd ${ACCOUNT_DIR}  > /dev/null 2>&1
 
@@ -85,7 +85,7 @@ if [[ "${CHECK}" == "true" ]]; then
     RESULT=$?
     if [[ "$RESULT" -ne 0 ]]; then
         echo -e "\nCan't access the code bucket. Does the service role for the server include access to the \"${ACCOUNT}\" code bucket? If windows, is a profile matching the account been set up? Nothing to do." >&2
-        usage
+        exit
     fi
 fi
 
@@ -95,11 +95,11 @@ if [[ -d ${GENERATION_STARTUP_DIR} ]]; then
     RESULT=$?
     if [[ "$RESULT" -ne 0 ]]; then
         echo -e "\nCan't update the code bucket" >&2
-        usage
+        exit
     fi
 else
     echo -e "\nStartup directory not found" >&2
-    usage    
+    exit
 fi
 
 # Confirm access to the credentials bucket
@@ -108,7 +108,7 @@ if [[ "${CHECK}" == "true" ]]; then
     RESULT=$?
     if [[ "$RESULT" -ne 0 ]]; then
         echo -e "\nCan't access the credentials bucket. Does the service role for the server include access to the \"${ACCOUNT}\" credentials bucket? If windows, is a profile matching the account been set up? Nothing to do." >&2
-        usage
+        exit
     fi
 fi
 
@@ -118,7 +118,7 @@ if [[ -d ${ACCOUNT_CREDENTIALS_DIR}/alm/docker ]]; then
     RESULT=$?
     if [[ "$RESULT" -ne 0 ]]; then
         echo -e "\nCan't update the code bucket" >&2
-        usage
+        exit
     fi
 else
     echo -e "\nDocker directory not found - ignoring docker credentials"

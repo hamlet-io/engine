@@ -45,11 +45,11 @@ while getopts ":hs:u" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -60,7 +60,7 @@ done
 # Ensure we are in the segment directory
 if [[ ! ("segment" =~ "${LOCATION}") ]]; then
     echo -e "\nWe don't appear to be in the segment directory. Are we in the right place?" >&2
-    usage
+    exit
 fi
 
 # Check whether the application settings already exist
@@ -69,7 +69,7 @@ SLICES=$(find ${SEGMENT_APPSETTINGS_DIR}/* -type d 2> /dev/null)
 if [[ -n ${SLICES} ]]; then
     if [[ "${UPDATE_APPSETTINGS}" != "true" ]]; then
         echo -e "\nSegment application settings already exist. Maybe try using update option?" >&2
-        usage
+        exit
     fi
 fi
 
@@ -81,7 +81,7 @@ else
     
     if [[ -z "${SOLUTION_NAME}" ]]; then
         echo -e "\nNo solution pattern configured yet. Maybe try adding the solution first?" >&2
-        usage
+        exit
     fi
     
     # Check if a corresponding solution pattern exists

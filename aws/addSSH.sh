@@ -36,11 +36,11 @@ while getopts ":hn:" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -61,17 +61,17 @@ elif [[ "segment" =~ ${LOCATION} ]]; then
     SSHPERSEGMENT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Segment.SSHPerSegment | select (.!=null)')
     if [[ "${SSHPERSEGMENT}" != "true" ]]; then
         echo -e "\nAn SSH key is not required for this segment. Check the SSHPerSegment setting if unsure" >&2
-        usage
+        exit
     fi
 else
     echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
-    usage
+    exit
 fi
 
 # Ensure we've create a cmk to encrypt the SSH private key
 if [[ -z "${KEYID}" ]]; then
     echo -e "\nNo cmk defined to encrypt the SSH private key. Create the cmk slice before running this script again" >&2
-    usage
+    exit
 fi
 
 # Create an SSH certificate at the product level

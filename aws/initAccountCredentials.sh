@@ -49,11 +49,11 @@ while getopts ":hi:o:" opt; do
       ;;
     \?)
       echo -e "\nInvalid option: -${OPTARG}" >&2
-      usage
+      exit
       ;;
     :)
       echo -e "\nOption -${OPTARG} requires an argument" >&2
-      usage
+      exit
       ;;
    esac
 done
@@ -62,7 +62,7 @@ done
 if [[ "${TID}"  == "" ||
       "${AINDEX}" == "" ]]; then
   echo -e "\nInsufficient arguments" >&2
-  usage
+  exit
 fi
 
 AID="${TID}${AINDEX}"
@@ -79,12 +79,12 @@ DOCKER_DIR="${ALM_DIR}/docker"
 
 if [[ "${AID}" != "${ROOT}" ]]; then
     echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
-    usage
+    exit
 fi
 
 if [[ -e ${PRODUCT_DIR} ]]; then
     echo -e "\nLooks like this script has already been run. Don't want to overwrite passwords. Nothing to do." >&2
-    usage
+    exit
 fi
 
 # Generate initial passwords
