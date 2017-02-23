@@ -146,7 +146,7 @@ mkdir -p ${CREDENTIALS_DIR}
 cd ${CREDENTIALS_DIR}
 
 if [[ ! -f credentials.json ]]; then
-    echo "{\"Credentials\" : {}}" | jq --indent 4 '.' > credentials.json
+    jq --indent 4 '.' <<< "{\"Credentials\" : {}}" > credentials.json
 fi
 
 # All good

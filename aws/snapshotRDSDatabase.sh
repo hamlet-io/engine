@@ -127,7 +127,7 @@ if [[ ("${RETAIN}" != "") || ("${AGE}" != "") ]]; then
         for SNAPSHOT in $(echo $BASELIST); do
             DATEPLUSSUFFIX=${SNAPSHOT#"$DB_INSTANCE_IDENTIFIER-"}
             SUFFIX=${DATEPLUSSUFFIX#????-??-??-??-??-??}
-            SNAPSHOTDATE=$(echo ${DATEPLUSSUFFIX%"$SUFFIX"} | tr -d "-")
+            SNAPSHOTDATE=$(tr -d "-" <<< ${DATEPLUSSUFFIX%"$SUFFIX"})
             if [[ $LASTDATE > $SNAPSHOTDATE ]]; then
                 LIST="${LIST} ${SNAPSHOT}"
             fi

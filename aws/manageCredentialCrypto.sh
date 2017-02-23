@@ -134,7 +134,7 @@ for ATTRIBUTE in ID SECRET EMAIL; do
     RAW_VALUE=$(${GENERATION_DIR}/manageCrypto.sh -n -p "${!VAR_PATH}")
     RESULT=$?
     if [[ "${RESULT}" -eq 0 ]]; then
-        ENCRYPTED=$(echo "${RAW_VALUE}" | grep -q "${BASE64_REGEX}")
+        ENCRYPTED=$(grep -q "${BASE64_REGEX}" <<< "${RAW_VALUE}")
         if [[ ($? -eq 0) && (-n "${CRYPTO_VISIBLE}" ) ]]; then
             VALUE=$(${GENERATION_DIR}/manageCrypto.sh -d -b -v -p "${!VAR_PATH}" 2> /dev/null)
             RESULT=$?

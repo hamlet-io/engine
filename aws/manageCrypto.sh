@@ -244,7 +244,7 @@ RESULT=$?
 if [[ "${RESULT}" -eq 0 ]]; then
     # Decode if required
     if [[ "${CRYPTO_VISIBLE}" == "true" ]]; then
-        CRYPTO_TEXT=$(echo -n "${CRYPTO_TEXT}" | dos2unix | base64 -d)
+        CRYPTO_TEXT=$(dos2unix <<< "${CRYPTO_TEXT}" | base64 -d)
     fi
 
     # Update if required

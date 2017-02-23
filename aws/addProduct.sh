@@ -149,7 +149,7 @@ fi
 
 # Provide an empty credentials profile for the product
 if [[ ! -f ${CREDENTIALS_DIR}/credentials.json ]]; then
-    echo "{\"Credentials\" : {}}" | jq --indent 4 '.' > ${CREDENTIALS_DIR}/credentials.json
+    jq --indent 4 '.' <<< "{\"Credentials\" : {}}" > ${CREDENTIALS_DIR}/credentials.json
 fi
 
 # Ignore local files

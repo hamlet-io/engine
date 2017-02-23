@@ -181,7 +181,7 @@ fi
 
 # Provide an empty credentials profile for the account
 if [[ ! -f ${ACCOUNT_DIR}/credentials.json ]]; then
-    echo "{\"Credentials\" : {}}" | jq --indent 4 '.' > ${ACCOUNT_DIR}/credentials.json
+    jq --indent 4 '.' <<< "{\"Credentials\" : {}}" > ${ACCOUNT_DIR}/credentials.json
 fi
 
 # All good
