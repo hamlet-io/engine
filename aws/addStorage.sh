@@ -10,24 +10,35 @@ STORAGE_SIZE_DEFAULT="100"
 COMPONENT_TYPE_VALUES=("ECS" "EC2")
 
 function usage() {
-    cat <<-EOF
-		Add a processor
-		Usage: $(basename $0) -d STORAGE_DEVICE -p STORAGE_PROFILE -s STORAGE_SIZE -t COMPONENT_TYPE
-		where
-		(m) -d STORAGE_DEVICE is the storage device
-		    -h shows this text
-		(m) -p STORAGE_PROFILE is the storage profile
-		(m) -s STORAGE_SIZE is the storage size in Gb
-		(m) -t COMPONENT_TYPE is the component type
-		DEFAULTS:
-		STORAGE_PROFILE=${STORAGE_PROFILE_DEFAULT}
-		COMPONENT_TYPE=${COMPONENT_TYPE_VALUES[0]}
-		STORAGE_DEVICE=${STORAGE_DEVICE_DEFAULT}
-		STORAGE_SIZE=${STORAGE_SIZE_DEFAULT}
-		NOTES:
-		1. The profile to be updated is determined by the current directory location
-		2. COMPONENT_TYPE is one of: ${COMPONENT_TYPE_VALUES[@]}
-	EOF
+    cat <<EOF
+
+Add a processor
+
+Usage: $(basename $0) -d STORAGE_DEVICE -p STORAGE_PROFILE -s STORAGE_SIZE -t COMPONENT_TYPE
+
+where
+
+(m) -d STORAGE_DEVICE is the storage device
+    -h shows this text
+(m) -p STORAGE_PROFILE is the storage profile
+(m) -s STORAGE_SIZE is the storage size in Gb
+(m) -t COMPONENT_TYPE is the component type
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+STORAGE_PROFILE=${STORAGE_PROFILE_DEFAULT}
+COMPONENT_TYPE=${COMPONENT_TYPE_VALUES[0]}
+STORAGE_DEVICE=${STORAGE_DEVICE_DEFAULT}
+STORAGE_SIZE=${STORAGE_SIZE_DEFAULT}
+
+NOTES:
+
+1. The profile to be updated is determined by the current directory location
+2. COMPONENT_TYPE is one of: ${COMPONENT_TYPE_VALUES[@]}
+
+EOF
     exit
 }
 

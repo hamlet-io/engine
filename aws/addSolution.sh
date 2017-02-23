@@ -6,17 +6,27 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 # Defaults
 
 function usage() {
-    cat <<-EOF
-		Add a solution pattern to a product
-		Usage: $(basename $0) -s SOLUTION_NAME  -u
-		where
-		    -h shows this text
-		(m) -s SOLUTION_NAME is the name of the solution pattern
-		(o) -u if solution should be updated
-		DEFAULTS:
-		NOTES:
-		1. Script will copy solution to product/segment depending on current location
-	EOF
+    cat <<EOF
+
+Add a solution pattern to a product
+
+Usage: $(basename $0) -s SOLUTION_NAME  -u
+
+where
+
+    -h shows this text
+(m) -s SOLUTION_NAME is the name of the solution pattern
+(o) -u if solution should be updated
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+1. Script will copy solution to product/segment depending on current location
+
+EOF
     exit
 }
 

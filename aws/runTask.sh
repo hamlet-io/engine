@@ -9,25 +9,36 @@ TIER_DEFAULT="web"
 COMPONENT_DEFAULT="www"
 
 function usage() {
-    cat <<-EOF
-		Run an ECS task
-		Usage: $(basename $0) -t TIER -i COMPONENT -w TASK -e ENV -v VALUE -d DELAY
-		where
-		(o) -d DELAY is the interval between checking the progress of the task
-		(o) -e ENV is the name of an environment variable to define for the task
-		    -h shows this text
-		(o) -i COMPONENT is the name of the component in the solution where the task is defined
-		(o) -t TIER is the name of the tier in the solution where the task is defined
-		(o) -v VALUE is the value for the last environment value defined (via -e) for the task
-		(m) -w TASK is the name of the task to be run
-		DEFAULTS:
-		DELAY     = ${DELAY_DEFAULT} seconds
-		TIER      = ${TIER_DEFAULT}
-		COMPONENT = ${COMPONENT_DEFAULT}
-		NOTES:
-		1. The ECS cluster is found using the provided tier and component combined with the product and segment
-		2. ENV and VALUE should always appear in pairs
-	EOF
+    cat <<EOF
+
+Run an ECS task
+
+Usage: $(basename $0) -t TIER -i COMPONENT -w TASK -e ENV -v VALUE -d DELAY
+
+where
+
+(o) -d DELAY is the interval between checking the progress of the task
+(o) -e ENV is the name of an environment variable to define for the task
+    -h shows this text
+(o) -i COMPONENT is the name of the component in the solution where the task is defined
+(o) -t TIER is the name of the tier in the solution where the task is defined
+(o) -v VALUE is the value for the last environment value defined (via -e) for the task
+(m) -w TASK is the name of the task to be run
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+DELAY     = ${DELAY_DEFAULT} seconds
+TIER      = ${TIER_DEFAULT}
+COMPONENT = ${COMPONENT_DEFAULT}
+
+NOTES:
+
+1. The ECS cluster is found using the provided tier and component combined with the product and segment
+2. ENV and VALUE should always appear in pairs
+
+EOF
     exit
 }
 

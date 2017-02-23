@@ -6,22 +6,34 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 # Defaults
 
 function usage() {
-    echo -e "\nGenerate a document using the Freemarker template engine" 
-    echo -e "\nUsage: $(basename $0) -t TEMPLATE -d TEMPLATEDIR -o OUTPUT (-v VARIABLE=VALUE)*"
-    echo -e "\nwhere\n"
-    echo -e "(m) -d TEMPLATEDIR is the directory containing the template"
-    echo -e "    -h shows this text"
-    echo -e "(m) -o OUTPUT is the path of the resulting document"
-    echo -e "(o) -r VARIABLE=VALUE (o) defines a variable and corresponding value to be made available in the template"
-    echo -e "(m) -t TEMPLATE is the filename of the Freemarker template to use"
-    echo -e "(o) -v VARIABLE=VALUE (o) defines a variable and corresponding value to be made available in the template"
-    echo -e "\nNOTES:\n"
-    echo -e "1. If the value of a variable defines a path to an existing file, the contents of the file are provided to the engine"
-    echo -e "2. Values that do not correspond to existing files are provided as is to the engine"
-    echo -e "3. Values containing spaces need to be quoted to ensure they are passed in as a single argument"
-    echo -e "4. -r and -v are equivalent except that -r will not check if the provided "
-    echo -e "   is a valid filename"
-    echo -e ""
+    cat <<EOF
+
+Generate a document using the Freemarker template engine
+
+Usage: $(basename $0) -t TEMPLATE -d TEMPLATEDIR -o OUTPUT (-v VARIABLE=VALUE)*
+
+where
+
+(m) -d TEMPLATEDIR is the directory containing the template
+    -h shows this text
+(m) -o OUTPUT is the path of the resulting document
+(o) -r VARIABLE=VALUE (o) defines a variable and corresponding value to be made available in the template
+(m) -t TEMPLATE is the filename of the Freemarker template to use
+(o) -v VARIABLE=VALUE (o) defines a variable and corresponding value to be made available in the template
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+1. If the value of a variable defines a path to an existing file, the contents of the file are provided to the engine
+2. Values that do not correspond to existing files are provided as is to the engine
+3. Values containing spaces need to be quoted to ensure they are passed in as a single argument
+4. -r and -v are equivalent except that -r will not check if the provided
+   is a valid filename
+
+EOF
     exit
 }
 

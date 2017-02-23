@@ -6,25 +6,36 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 # Defaults
 
 function usage() {
-    cat <<-EOF
-		Add a product
-		Usage: $(basename $0) -l TITLE -n PRODUCT -d DESCRIPTION -p PID -o DOMAIN -r AWS_REGION  -u
-		where
-		(o) -d DESCRIPTION is the product description
-		    -h shows this text
-		(o) -l TITLE is the product title
-		(m) -n PRODUCT is the human readable form (one word, lowercase and no spaces) of the product id
-		(o) -o DOMAIN is the default DNS domain to be used for the product
-		(o) -p PID is the product id
-		(o) -r AWS_REGION is the default AWS region for the product
-		(o) -u if details should be updated
-		DEFAULTS (creation only):
-		PID=PRODUCT
-		NOTES:
-		1. Subdirectories are created in the config and infrastructure subtrees
-		2. The product information is saved in the product profile
-		3. To update the details, the update option must be explicitly set
-	EOF
+    cat <<EOF
+
+Add a product
+
+Usage: $(basename $0) -l TITLE -n PRODUCT -d DESCRIPTION -p PID -o DOMAIN -r AWS_REGION  -u
+
+where
+
+(o) -d DESCRIPTION is the product description
+    -h shows this text
+(o) -l TITLE is the product title
+(m) -n PRODUCT is the human readable form (one word, lowercase and no spaces) of the product id
+(o) -o DOMAIN is the default DNS domain to be used for the product
+(o) -p PID is the product id
+(o) -r AWS_REGION is the default AWS region for the product
+(o) -u if details should be updated
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS (creation only):
+
+PID=PRODUCT
+
+NOTES:
+
+1. Subdirectories are created in the config and infrastructure subtrees
+2. The product information is saved in the product profile
+3. To update the details, the update option must be explicitly set
+
+EOF
     exit
 }
 

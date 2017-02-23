@@ -6,28 +6,39 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 # Defaults
 
 function usage() {
-    cat <<-EOF
-		Add a new tenant
-		Usage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_REGION -u
-		where
-		(o) -d DESCRIPTION is the tenant description
-		    -h shows this text
-		(o) -l TITLE is the tenant title
-		(m) -n TENANT is the human readable form (one word, lowercase and no spaces) of the tenant id
-		(o) -o DOMAIN is the default DNS domain to be used for tenant products and accounts
-		(o) -r AWS_REGION is the default AWS region for the tenant
-		(o) -t TID is the tenant id
-		(o) -u if details should be updated
-		DEFAULTS (creation only):
-		TID=TENANT
-		NOTES:
-		1. The script must be run from the root of the integrator tree
-		2. A sub-directory is created for the tenant
-		3. The tenant information is saved in the tenant profile
-		4. The integrator profile forms the basis for the tenant profile
-		5. To update the details, the update option must be explicitly set
-		6. The domain will default on tenant creation to {TENANT}.{integrator domain}
-	EOF
+    cat <<EOF
+
+Add a new tenant
+
+Usage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_REGION -u
+
+where
+
+(o) -d DESCRIPTION is the tenant description
+    -h shows this text
+(o) -l TITLE is the tenant title
+(m) -n TENANT is the human readable form (one word, lowercase and no spaces) of the tenant id
+(o) -o DOMAIN is the default DNS domain to be used for tenant products and accounts
+(o) -r AWS_REGION is the default AWS region for the tenant
+(o) -t TID is the tenant id
+(o) -u if details should be updated
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS (creation only):
+
+TID=TENANT
+
+NOTES:
+
+1. The script must be run from the root of the integrator tree
+2. A sub-directory is created for the tenant
+3. The tenant information is saved in the tenant profile
+4. The integrator profile forms the basis for the tenant profile
+5. To update the details, the update option must be explicitly set
+6. The domain will default on tenant creation to {TENANT}.{integrator domain}
+
+EOF
     exit
 }
 

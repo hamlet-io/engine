@@ -8,26 +8,37 @@ DELAY_DEFAULT=30
 TIER_DEFAULT="database"
 
 function usage() {
-    cat <<-EOF
-		Snapshot an RDS Database
-		Usage: $(basename $0) -t TIER -i COMPONENT -s SUFFIX -c -m -d DELAY -r RETAIN -a AGE
-		where
-		(o) -a AGE is the maximum age in days of snapshots to retain
-		(o) -c (CREATE ONLY) initiates but does not monitor the snapshot creation process
-		(o) -d DELAY is the interval between checking the progress of snapshot creation
-		    -h shows this text
-		(m) -i COMPONENT is the name of the database component in the solution
-		(o) -m (MONITOR ONLY) monitors but does not initiate the snapshot creation process
-		(o) -r RETAIN is the count of snapshots to retain
-		(o) -s SUFFIX to be postpended to the snapshot identifier
-		(o) -t TIER is the name of the database tier in the solution
-		DEFAULTS:
-		DELAY     = ${DELAY_DEFAULT} seconds
-		TIER      = ${TIER_DEFAULT}
-		NOTES:
-		1. Snapshot identifer takes the form {product}-{environment}-{tier}-{component}-datetime-{suffix}
-		2. RETAIN and AGE may be used together. If both are present, RETAIN is applied first
-	EOF
+    cat <<EOF
+
+Snapshot an RDS Database
+
+Usage: $(basename $0) -t TIER -i COMPONENT -s SUFFIX -c -m -d DELAY -r RETAIN -a AGE
+
+where
+
+(o) -a AGE is the maximum age in days of snapshots to retain
+(o) -c (CREATE ONLY) initiates but does not monitor the snapshot creation process
+(o) -d DELAY is the interval between checking the progress of snapshot creation
+    -h shows this text
+(m) -i COMPONENT is the name of the database component in the solution
+(o) -m (MONITOR ONLY) monitors but does not initiate the snapshot creation process
+(o) -r RETAIN is the count of snapshots to retain
+(o) -s SUFFIX to be postpended to the snapshot identifier
+(o) -t TIER is the name of the database tier in the solution
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+DELAY     = ${DELAY_DEFAULT} seconds
+TIER      = ${TIER_DEFAULT}
+
+NOTES:
+
+1. Snapshot identifer takes the form {product}-{environment}-{tier}-{component}-datetime-{suffix}
+2. RETAIN and AGE may be used together. If both are present, RETAIN is applied first
+
+EOF
     exit
 }
 

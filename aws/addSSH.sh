@@ -6,15 +6,25 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 # Defaults
 
 function usage() {
-    cat <<-EOF
-		Add SSH certificate to product/segment
-		Usage: $(basename $0)
-		where
-		    -h shows this text
-		DEFAULTS:
-		NOTES:
-		1. Current directory must be for product or segment
-	EOF
+    cat <<EOF
+
+Add SSH certificate to product/segment
+
+Usage: $(basename $0)
+
+where
+
+    -h shows this text
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+1. Current directory must be for product or segment
+
+EOF
     exit
 }
 

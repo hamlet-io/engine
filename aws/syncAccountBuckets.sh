@@ -6,17 +6,26 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 # Defaults
 
 function usage() {
-    cat <<-EOF
-		Synchronise the contents of the code and credentials buckets to the local values
-		Usage: $(basename $0) -q -x -y
-		where
-		    -h shows this text
-		(o) -q for no check (quick) - don't check bucket access before attempting to synchronise
-		(o) -x for no delete - by default files in the buckets that are absent locally are deleted
-		(o) -y for a dryrun - show what will happen without actually transferring any files
-		DEFAULTS:
-		NOTES:
-	EOF
+    cat <<EOF
+
+Synchronise the contents of the code and credentials buckets to the local values
+
+Usage: $(basename $0) -q -x -y
+
+where
+
+    -h shows this text
+(o) -q for no check (quick) - don't check bucket access before attempting to synchronise
+(o) -x for no delete - by default files in the buckets that are absent locally are deleted
+(o) -y for a dryrun - show what will happen without actually transferring any files
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+EOF
     exit
 }
 
