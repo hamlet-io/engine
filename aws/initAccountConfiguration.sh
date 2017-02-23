@@ -103,11 +103,11 @@ while getopts ":d:e:hi:m:n:o:r:s:t:y:" opt; do
       ;;
     \?)
       echo -e "\nInvalid option: -${OPTARG}" >&2
-      usage
+      exit
       ;;
     :)
       echo -e "\nOption -${OPTARG} requires an argument" >&2
-      usage
+      exit
       ;;
    esac
 done
@@ -118,7 +118,7 @@ if [[ "${TITLE}"  == "" ||
       "${TID}"  == "" ||
       "${OAINDEX}" == "" ]]; then
   echo -e "\nInsufficient arguments" >&2
-  usage
+  exit
 fi
 
 AID="${TID}${OAINDEX}"
@@ -134,7 +134,7 @@ ALM_DIR="${PRODUCT_DIR}/alm"
 
 if [[ "${AID}" != "${ROOT}" ]]; then
     echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
-    usage
+    exit
 fi
 
 # Generate the tenant profile

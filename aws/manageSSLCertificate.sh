@@ -78,11 +78,11 @@ while getopts ":c:hi:p:qr:v:dl" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -98,7 +98,7 @@ case ${CERTIFICATE_OPERATION} in
     ${CERTIFICATE_OPERATION_DELETE})
         if [[ (-z "${CERTIFICATE_ID}") ]]; then
           echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation" >&2
-          usage
+          exit
         fi
         ;;
     ${CERTIFICATE_OPERATION_UPLOAD})
@@ -108,12 +108,12 @@ case ${CERTIFICATE_OPERATION} in
               (-z "${CERTIFICATE_CHAIN}") ||
               (-z "${REGION}") ]]; then
           echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation" >&2
-          usage
+          exit
         fi
         ;;
     *)
         echo -e "\n\"${CERTIFICATE_OPERATION}\" is not one of the known certificate operations." >&2
-        usage
+        exit
         ;;
 esac
 

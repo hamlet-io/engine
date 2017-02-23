@@ -114,11 +114,11 @@ while getopts ":a:bdef:hk:np:qt:uv" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -170,7 +170,7 @@ done
 if [[ (-n "${JSON_PATH}") ]]; then
     if [[ -z "${TARGET_FILE}" ]]; then
         echo -e "\nCan't locate target file" >&2
-        usage
+        exit
     fi
     # Default cipherdata to that in the element
     JSON_TEXT=$(cat "${TARGET_FILE}" | jq -r "${JSON_PATH} | select (.!=null)" )
@@ -178,17 +178,17 @@ if [[ (-n "${JSON_PATH}") ]]; then
 
     if [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]]; then
         echo -e "\nNothing to encrypt" >&2
-        usage
+        exit
     fi
 else    
     if [[ -z "${CRYPTO_TEXT}" ]]; then
         if [[ -z "${CRYPTO_FILE}" ]]; then
             echo -e "\nInsufficient arguments" >&2
-            usage
+            exit
         else
             if [[ -z "${TARGET_FILE}" ]]; then
                 echo -e "\nCan't locate file based on provided path" >&2
-                usage
+                exit
             fi
         fi
         # Default cipherdata to the file contents
@@ -199,7 +199,7 @@ fi
     
 if [[ ("${CRYPTO_OPERATION}" == "encrypt") && (-z "${KEYID}") ]]; then
     echo -e "\nNo key material available" >&2
-    usage
+    exit
 fi
 
 # Prepare ciphertext for processing
@@ -214,7 +214,7 @@ if [[ -n "${CRYPTO_DECODE}" ]]; then
         dos2unix < ./ciphertext.src | base64 -d  > ./ciphertext.bin
     else
         echo -e "\nInput doesn't appear to be base64 encoded" >&2
-        usage
+        exit
     fi
 else
     mv ./ciphertext.src ./ciphertext.bin

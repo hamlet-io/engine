@@ -44,11 +44,11 @@ while getopts ":a:hl:p:r:s:t:" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -57,7 +57,7 @@ done
 if [[ "${AID}" == "" ||
       "${PID}"  == "" ]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 
 AID_DIR="$(basename $(cd ..;pwd))"
@@ -65,7 +65,7 @@ CURRENT_DIR="$(basename $(pwd))"
 
 if [[ "${AID}" != "${AID_DIR}" ]]; then
     echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
-    usage
+    exit
 fi
 
 # If in a repo, save the results of the rearrangement

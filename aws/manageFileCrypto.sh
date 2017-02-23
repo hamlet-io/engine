@@ -52,11 +52,11 @@ while getopts ":def:hu" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done

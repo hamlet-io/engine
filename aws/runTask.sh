@@ -75,11 +75,11 @@ while getopts ":d:e:hi:t:v:w:" opt; do
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
-            usage
+            exit
             ;;
         :)
             echo -e "\nOption -${OPTARG} requires an argument" >&2
-            usage
+            exit
             ;;
     esac
 done
@@ -92,7 +92,7 @@ ENV_STRUCTURE="${ENV_STRUCTURE}]"
 # Ensure mandatory arguments have been provided
 if [[ "${TASK}"  == "" ]]; then
     echo -e "\nInsufficient arguments" >&2
-    usage
+    exit
 fi
 
 # Set up the context
@@ -101,7 +101,7 @@ fi
 # Ensure we are in the right place
 if [[ "${LOCATION}" != "segment" ]]; then
     echo -e "\nWe don't appear to be in the right directory. Nothing to do" >&2
-    usage
+    exit
 fi
 
 # Extract key identifiers
@@ -113,14 +113,14 @@ KID=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Tiers[] | objects | select(.Name==\"$
 CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
 if [[ -z "${CLUSTER_ARN}" ]]; then
     echo -e "\nUnable to locate ECS cluster" >&2
-    usage
+    exit
 fi
 
 # Find the task definition
 TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
 if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
     echo -e "\nUnable to locate task definition" >&2
-    usage
+    exit
 fi
 
 aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${TIER}-${COMPONENT}-${TASK}\",${ENV_STRUCTURE}}]}" > STATUS.txt

@@ -51,11 +51,11 @@ while getopts ":a:ht:u" opt; do
        ;;
     \?)
       echo -e "\nInvalid option: -${OPTARG}" >&2
-      usage
+      exit
       ;;
     :)
       echo -e "\nOption -${OPTARG} requires an argument" >&2
-      usage
+      exit
       ;;
    esac
 done
@@ -64,14 +64,14 @@ done
 if [[ (-z "${TENANT}") ||
       (-z "${ACCOUNT}") ]]; then
   echo -e "\nInsufficient arguments" >&2
-  usage
+  exit
 fi
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
 if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
     echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
-    usage
+    exit
 fi
 
 # Ensure the tenant/account already exists
@@ -79,14 +79,14 @@ TENANT_DIR="$(pwd)/tenants/${TENANT}"
 TENANT_ACCOUNT_DIR="${TENANT_DIR}/accounts/${ACCOUNT}"
 if [[ ! -d "${TENANT_ACCOUNT_DIR}" ]]; then
     echo -e "\nThe account doesn't appear to exist in the integrator tree. Nothing to do." >&2
-    usage
+    exit
 fi
 
 # Ensure the account tree exists
 ACCOUNT_DIR="$(cd ../${ACCOUNT} && pwd)"
 if [[ ! -d "${ACCOUNT_DIR}" ]]; then
     echo -e "\nThe account tree doesn't appear to exist at the same level as the integrator tree. Nothing to do." >&2
-    usage
+    exit
 fi
 
 # Check whether the tree is already in place
@@ -95,7 +95,7 @@ INFRASTRUCTURE_DIR="${ACCOUNT_DIR}/infrastructure/${ACCOUNT}"
 if [[ (-e "${CONFIG_DIR}/account.json") ]]; then
     if [[ ("${UPDATE_TREE}" != "true") ]]; then
         echo -e "\nAccount tree already exists. Maybe try using the update option?" >&2
-        usage
+        exit
     fi
 fi
 
