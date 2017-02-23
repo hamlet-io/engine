@@ -221,6 +221,7 @@ if [[ -n "${PRODUCT}" ]]; then
     if [[ (-n "${SLICE}") ]]; then
         
         # Confirm it is an application slice"
+        # TODO: should we use HERESTRING here?
         APPLICATION_SLICE_LIST=$(echo $(cat ${COMPOSITE_BLUEPRINT} | jq -r -f ${GENERATION_DIR}/listApplicationSlices.jq | dos2unix))
         if [[ -n "$(echo ${APPLICATION_SLICE_LIST} | grep -i ${SLICE})" ]]; then
             IS_APPLICATION_SLICE="true"
