@@ -1,5 +1,5 @@
 [#-- Define VPC --]
-[#if slice?contains("vpc")]
+[#if deploymentUnit?contains("vpc")]
     [#if resourceCount > 0],[/#if]
     [#switch segmentListMode]
         [#case "definition"]
@@ -438,11 +438,11 @@
                                                 "command" : "/opt/codeontap/bootstrap/nat.sh",
                                                 "ignoreErrors" : "false"
                                             }
-                                            [#if slice?contains("eip")]
+                                            [#if deploymentUnit?contains("eip")]
                                                 ,"02ExecuteAllocateEIPScript" : {
                                                     "command" : "/opt/codeontap/bootstrap/eip.sh",
                                                     "env" : { 
-                                                        [#-- Legacy code to support definition of eip and vpc in one template (slice = "eipvpc" or "eips3vpc" depending on how S3 to be defined)  --]
+                                                        [#-- Legacy code to support definition of eip and vpc in one template (deploymentUnit = "eipvpc" or "eips3vpc" depending on how S3 to be defined)  --]
                                                         "EIP_ALLOCID" : { "Fn::GetAtt" : ["eipX${tier.Id}XnatX${zone.Id}", "AllocationId"] }
                                                     },
                                                     "ignoreErrors" : "false"

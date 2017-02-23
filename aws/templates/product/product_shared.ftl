@@ -1,4 +1,4 @@
-[#if slice?contains("shared")]
+[#if deploymentUnit?contains("shared")]
     [#switch productListMode]
         [#case "definition"]
             [#if (regionId == productRegionId) && (blueprintObject.Tiers["shared"].Components)??]

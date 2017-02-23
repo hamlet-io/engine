@@ -1,5 +1,5 @@
 [#-- Certificate --]
-[#if slice?contains("cert")]
+[#if deploymentUnit?contains("cert")]
     [#if resourceCount > 0],[/#if]
     [#switch productListMode]
         [#case "definition"]

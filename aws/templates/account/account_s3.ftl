@@ -1,5 +1,5 @@
 [#-- Standard set of buckets for an account --]
-[#if slice?contains("s3")]
+[#if deploymentUnit?contains("s3")]
     [#assign buckets = ["credentials", "code", "registry"]]
     [#if resourceCount > 0],[/#if]
     [#assign bucketCount = 0]
