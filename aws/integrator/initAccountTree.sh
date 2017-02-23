@@ -40,11 +40,11 @@ while getopts ":a:ht:u" opt; do
       UPDATE_TREE="true"
        ;;
     \?)
-      echo -e "\nInvalid option: -${OPTARG}"
+      echo -e "\nInvalid option: -${OPTARG}" >&2
       usage
       ;;
     :)
-      echo -e "\nOption -${OPTARG} requires an argument"
+      echo -e "\nOption -${OPTARG} requires an argument" >&2
       usage
       ;;
    esac
@@ -53,14 +53,14 @@ done
 # Ensure mandatory arguments have been provided
 if [[ (-z "${TENANT}") ||
       (-z "${ACCOUNT}") ]]; then
-  echo -e "\nInsufficient arguments"
+  echo -e "\nInsufficient arguments" >&2
   usage
 fi
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
 if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?"
+    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
     usage
 fi
 
@@ -68,14 +68,14 @@ fi
 TENANT_DIR="$(pwd)/tenants/${TENANT}"
 TENANT_ACCOUNT_DIR="${TENANT_DIR}/accounts/${ACCOUNT}"
 if [[ ! -d "${TENANT_ACCOUNT_DIR}" ]]; then
-    echo -e "\nThe account doesn't appear to exist in the integrator tree. Nothing to do."
+    echo -e "\nThe account doesn't appear to exist in the integrator tree. Nothing to do." >&2
     usage
 fi
 
 # Ensure the account tree exists
 ACCOUNT_DIR="$(cd ../${ACCOUNT} && pwd)"
 if [[ ! -d "${ACCOUNT_DIR}" ]]; then
-    echo -e "\nThe account tree doesn't appear to exist at the same level as the integrator tree. Nothing to do."
+    echo -e "\nThe account tree doesn't appear to exist at the same level as the integrator tree. Nothing to do." >&2
     usage
 fi
 
@@ -84,7 +84,7 @@ CONFIG_DIR="${ACCOUNT_DIR}/config/${ACCOUNT}"
 INFRASTRUCTURE_DIR="${ACCOUNT_DIR}/infrastructure/${ACCOUNT}"
 if [[ (-e "${CONFIG_DIR}/account.json") ]]; then
     if [[ ("${UPDATE_TREE}" != "true") ]]; then
-        echo -e "\nAccount tree already exists. Maybe try using the update option?"
+        echo -e "\nAccount tree already exists. Maybe try using the update option?" >&2
         usage
     fi
 fi
@@ -122,7 +122,7 @@ RESULT=$?
 if [[ ${RESULT} -eq 0 ]]; then
     mv temp_appsettings.json appsettings.json
 else
-    echo -e "\nError creating account appsettings" 
+    echo -e "\nError creating account appsettings" >&2
     exit
 fi
 

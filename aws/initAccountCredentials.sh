@@ -37,11 +37,11 @@ while getopts ":hi:o:" opt; do
       TID="${OPTARG}"
       ;;
     \?)
-      echo -e "\nInvalid option: -${OPTARG}"
+      echo -e "\nInvalid option: -${OPTARG}" >&2
       usage
       ;;
     :)
-      echo -e "\nOption -${OPTARG} requires an argument"
+      echo -e "\nOption -${OPTARG} requires an argument" >&2
       usage
       ;;
    esac
@@ -50,7 +50,7 @@ done
 # Ensure mandatory arguments have been provided
 if [[ "${TID}"  == "" ||
       "${AINDEX}" == "" ]]; then
-  echo -e "\nInsufficient arguments"
+  echo -e "\nInsufficient arguments" >&2
   usage
 fi
 
@@ -67,12 +67,12 @@ ALM_DIR="${PRODUCT_DIR}/alm"
 DOCKER_DIR="${ALM_DIR}/docker"
 
 if [[ "${AID}" != "${ROOT}" ]]; then
-    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do."
+    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
     usage
 fi
 
 if [[ -e ${PRODUCT_DIR} ]]; then
-    echo -e "\nLooks like this script has already been run. Don't want to overwrite passwords. Nothing to do."
+    echo -e "\nLooks like this script has already been run. Don't want to overwrite passwords. Nothing to do." >&2
     usage
 fi
 

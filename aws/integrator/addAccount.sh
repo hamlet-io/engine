@@ -69,11 +69,11 @@ while getopts ":a:c:d:fhl:n:o:r:t:u" opt; do
             UPDATE_ACCOUNT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -82,21 +82,21 @@ done
 # Ensure mandatory arguments have been provided
 if [[ (-z "${TENANT}") ||
       (-z "${ACCOUNT}") ]]; then
-  echo -e "\nInsufficient arguments"
+  echo -e "\nInsufficient arguments" >&2
   usage
 fi
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
 if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?"
+    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
     usage
 fi
 
 # Ensure the tenant already exists
 TENANT_DIR="$(pwd)/tenants/${TENANT}"
 if [[ ! -d "${TENANT_DIR}" ]]; then
-    echo -e "\nThe tenant needs to be added before the account"
+    echo -e "\nThe tenant needs to be added before the account" >&2
     usage
 fi
 
@@ -127,7 +127,7 @@ ACCOUNT_PROFILE=${ACCOUNT_DIR}/account.json
 if [[ -f ${ACCOUNT_PROFILE} ]]; then
     if [[ ("${UPDATE_ACCOUNT}" != "true") &&
           (-z "${LAST_SHELF_ACCOUNT}") ]]; then
-        echo -e "\nAccount profile already exists. Maybe try using update option?"
+        echo -e "\nAccount profile already exists. Maybe try using update option?" >&2
         usage
     fi
 else
@@ -164,7 +164,7 @@ RESULT=$?
 if [[ ${RESULT} -eq 0 ]]; then
     mv ${ACCOUNT_DIR}/temp_account.json ${ACCOUNT_DIR}/account.json
 else
-    echo -e "\nError creating account profile" 
+    echo -e "\nError creating account profile" >&2
     exit
 fi
 

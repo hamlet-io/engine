@@ -59,11 +59,11 @@ while getopts ":d:hl:n:o:r:t:u" opt; do
             UPDATE_TENANT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -71,14 +71,14 @@ done
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${TENANT}") ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
 if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?"
+    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
     usage
 fi
 
@@ -90,7 +90,7 @@ mkdir -p ${TENANT_DIR}
 TENANT_PROFILE=${TENANT_DIR}/tenant.json
 if [[ -f ${TENANT_PROFILE} ]]; then
     if [[ "${UPDATE_TENANT}" != "true" ]]; then
-        echo -e "\nTenant profile already exists. Maybe try using update option?"
+        echo -e "\nTenant profile already exists. Maybe try using update option?" >&2
         usage
     fi
 else
@@ -131,7 +131,7 @@ RESULT=$?
 if [[ ${RESULT} -eq 0 ]]; then
     mv ${TENANT_DIR}/temp_tenant.json ${TENANT_DIR}/tenant.json
 else
-    echo -e "\nError creating tenant profile" 
+    echo -e "\nError creating tenant profile" >&2
     exit
 fi
 

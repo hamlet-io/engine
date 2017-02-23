@@ -56,11 +56,11 @@ while getopts ":e:f:hi:n:s:vy:" opt; do
             CREDENTIAL_TYPE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -70,7 +70,7 @@ CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${CREDENTIAL_NAME}") || (-z "${CREDENTIAL_TYPE}") ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
@@ -110,7 +110,7 @@ for ATTRIBUTE in ID SECRET EMAIL; do
         ${GENERATION_DIR}/manageCrypto.sh ${!VAR_ENCRYPT} -t "${!VAR_NAME}" -p "${!VAR_PATH}" -u -q
         RESULT=$?
         if [[ "${RESULT}" -ne 0 ]]; then
-            echo -e "\nFailed to update credential ${ATTRIBUTE}"
+            echo -e "\nFailed to update credential ${ATTRIBUTE}" >&2
             exit
         fi
     fi

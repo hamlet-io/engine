@@ -25,11 +25,11 @@ while getopts ":hn:" opt; do
             usage
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -50,17 +50,17 @@ elif [[ "segment" =~ ${LOCATION} ]]; then
     KEYID=$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r '.[] | select(.OutputKey=="cmkXsegmentXcmk") | .OutputValue | select (.!=null)')
     SSHPERSEGMENT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Segment.SSHPerSegment | select (.!=null)')
     if [[ "${SSHPERSEGMENT}" != "true" ]]; then
-        echo -e "\nAn SSH key is not required for this segment. Check the SSHPerSegment setting if unsure"
+        echo -e "\nAn SSH key is not required for this segment. Check the SSHPerSegment setting if unsure" >&2
         usage
     fi
 else
-    echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?"
+    echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
     usage
 fi
 
 # Ensure we've create a cmk to encrypt the SSH private key
 if [[ -z "${KEYID}" ]]; then
-    echo -e "\nNo cmk defined to encrypt the SSH private key. Create the cmk slice before running this script again"
+    echo -e "\nNo cmk defined to encrypt the SSH private key. Create the cmk slice before running this script again" >&2
     usage
 fi
 

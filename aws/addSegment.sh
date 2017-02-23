@@ -64,11 +64,11 @@ while getopts ":d:e:hl:n:o:r:s:u" opt; do
             UPDATE_SEGMENT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -76,7 +76,7 @@ done
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${SEGMENT}") ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
@@ -85,7 +85,7 @@ fi
 
 # Ensure we are in the root of the product tree
 if [[ ! ("product" =~ ${LOCATION}) ]]; then
-    echo -e "\nWe don't appear to be in the product directory. Are we in the right place?"
+    echo -e "\nWe don't appear to be in the product directory. Are we in the right place?" >&2
     usage
 fi
 
@@ -104,12 +104,12 @@ mkdir -p ${SEGMENT_CREDENTIALS_DIR}
 SEGMENT_PROFILE=${SEGMENT_SOLUTIONS_DIR}/segment.json
 if [[ -f ${SEGMENT_PROFILE} ]]; then
     if [[ "${UPDATE_SEGMENT}" != "true" ]]; then
-        echo -e "\nSegment profile already exists. Maybe try using update option?"
+        echo -e "\nSegment profile already exists. Maybe try using update option?" >&2
         usage
     fi
 else
     if [[ (-z "${EID}") && (-z "${SID}") ]]; then
-        echo -e "\nOne of EID and SID required for segment creation"
+        echo -e "\nOne of EID and SID required for segment creation" >&2
         usage
     fi
     echo "{\"Segment\":{}}" > ${SEGMENT_PROFILE}
@@ -117,7 +117,7 @@ else
     SID=${SID:-${EID}}
     ENVIRONMENT_TITLE=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Environments[\"${EID}\"].Title | select(.!=null)")
     if [[ -z "${ENVIRONMENT_TITLE}" ]]; then 
-        echo -e "\nEnvironment not defined in masterData.json. Was SID or EID provided?"
+        echo -e "\nEnvironment not defined in masterData.json. Was SID or EID provided?" >&2
         usage
     fi
     TITLE=${TITLE:-$ENVIRONMENT_TITLE}
@@ -151,7 +151,7 @@ RESULT=$?
 if [[ ${RESULT} -eq 0 ]]; then
     mv ${SEGMENT_SOLUTIONS_DIR}/temp_segment.json ${SEGMENT_SOLUTIONS_DIR}/segment.json
 else
-    echo -e "\nError creating segment profile" 
+    echo -e "\nError creating segment profile" >&2
     exit
 fi
 

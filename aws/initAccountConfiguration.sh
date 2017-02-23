@@ -91,11 +91,11 @@ while getopts ":d:e:hi:m:n:o:r:s:t:y:" opt; do
       ALMTYPE="${OPTARG}"
       ;;
     \?)
-      echo -e "\nInvalid option: -${OPTARG}"
+      echo -e "\nInvalid option: -${OPTARG}" >&2
       usage
       ;;
     :)
-      echo -e "\nOption -${OPTARG} requires an argument"
+      echo -e "\nOption -${OPTARG} requires an argument" >&2
       usage
       ;;
    esac
@@ -106,7 +106,7 @@ if [[ "${TITLE}"  == "" ||
       "${NAME}"  == "" ||
       "${TID}"  == "" ||
       "${OAINDEX}" == "" ]]; then
-  echo -e "\nInsufficient arguments"
+  echo -e "\nInsufficient arguments" >&2
   usage
 fi
 
@@ -122,7 +122,7 @@ PRODUCT_DIR="${SOLUTIONS_DIR}/${AID}"
 ALM_DIR="${PRODUCT_DIR}/alm"
 
 if [[ "${AID}" != "${ROOT}" ]]; then
-    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do."
+    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
     usage
 fi
 

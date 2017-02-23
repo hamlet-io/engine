@@ -47,11 +47,11 @@ while getopts ":cdf:ho:" opt; do
       JSON_OUTPUT="${OPTARG}"
       ;;
     \?)
-      echo -e "\nInvalid option: -${OPTARG}"
+      echo -e "\nInvalid option: -${OPTARG}" >&2
       usage
       ;;
     :)
-      echo -e "\nOption -${OPTARG} requires an argument"
+      echo -e "\nOption -${OPTARG} requires an argument" >&2
       usage
       ;;
    esac
@@ -67,7 +67,7 @@ JSON_ARRAY+=("$@")
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${JSON_OUTPUT}") || ("${#JSON_ARRAY[@]}" -eq 0) ]]; then
-  echo -e "\nInsufficient arguments"
+  echo -e "\nInsufficient arguments" >&2
   usage
 fi
 

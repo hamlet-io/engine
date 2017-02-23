@@ -40,11 +40,11 @@ while getopts ":hi:p:qr:" opt; do
             REGION="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -54,7 +54,7 @@ done
 if [[ (-z "${CERTIFICATE_ID}") ||
       (-z "${CERTIFICATE_PUBLIC}") ||
       (-z "${REGION}") ]]; then
-  echo -e "\nInsufficient arguments"
+  echo -e "\nInsufficient arguments" >&2
   usage
 fi
 
