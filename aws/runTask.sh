@@ -63,11 +63,11 @@ while getopts ":d:e:hi:t:v:w:" opt; do
             TASK="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -80,7 +80,7 @@ ENV_STRUCTURE="${ENV_STRUCTURE}]"
 
 # Ensure mandatory arguments have been provided
 if [[ "${TASK}"  == "" ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
@@ -89,7 +89,7 @@ fi
 
 # Ensure we are in the right place
 if [[ "${LOCATION}" != "segment" ]]; then
-    echo -e "\nWe don't appear to be in the right directory. Nothing to do"
+    echo -e "\nWe don't appear to be in the right directory. Nothing to do" >&2
     usage
 fi
 
@@ -101,14 +101,14 @@ KID=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Tiers[] | objects | select(.Name==\"$
 # Find the cluster
 CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
 if [[ -z "${CLUSTER_ARN}" ]]; then
-    echo -e "\nUnable to locate ECS cluster"
+    echo -e "\nUnable to locate ECS cluster" >&2
     usage
 fi
 
 # Find the task definition
 TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
 if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
-    echo -e "\nUnable to locate task definition"
+    echo -e "\nUnable to locate task definition" >&2
     usage
 fi
 

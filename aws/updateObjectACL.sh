@@ -47,11 +47,11 @@ while getopts ":a:b:dhp:" opt; do
             PREFIX="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -64,7 +64,7 @@ DISPLAY_ACLS="${DISPLAY_ACLS:-${DISPLAY_ACLS_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
 if [[ "${BUCKET}"  == "" ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 

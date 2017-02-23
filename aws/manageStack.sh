@@ -70,11 +70,11 @@ while getopts ":dhimn:r:s:t:w:" opt; do
             STACK_WAIT="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -93,7 +93,7 @@ STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
 pushd ${CF_DIR} > /dev/null 2>&1
 
 if [[ ! -f "$TEMPLATE" ]]; then
-    echo -e "\n\"${TEMPLATE}\" not found. Are we in the correct place in the directory tree?"
+    echo -e "\n\"${TEMPLATE}\" not found. Are we in the correct place in the directory tree?" >&2
     usage
 fi
 
@@ -128,7 +128,7 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
             ;;
 
         *)
-            echo -e "\n\"${STACK_OPERATION}\" is not one of the known stack operations."
+            echo -e "\n\"${STACK_OPERATION}\" is not one of the known stack operations." >&2
             usage
             ;;
     esac

@@ -33,11 +33,11 @@ while getopts "hs:u" opt; do
             UPDATE_SOLUTION="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -45,14 +45,14 @@ done
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${SOLUTION_NAME}") ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
 # Ensure solution exists
 PATTERN_DIR="${GENERATION_PATTERNS_DIR}/solutions/${SOLUTION_NAME}"
 if [[ ! -d "${PATTERN_DIR}" ]]; then
-    echo -e "\nSolution pattern is not known"
+    echo -e "\nSolution pattern is not known" >&2
     usage
 fi
 
@@ -66,7 +66,7 @@ if [[ ("product" =~ "${LOCATION}") ]]; then
 elif [[ ("segment" =~ "${LOCATION}") ]]; then
     TARGET_DIR="."
 else
-    echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?"
+    echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
     usage
 fi
 
@@ -74,7 +74,7 @@ fi
 SOLUTION_FILE="${TARGET_DIR}/solution.json"
 if [[ -f "${SOLUTION_FILE}" ]]; then
     if [[ "${UPDATE_SOLUTION}" != "true" ]]; then
-        echo -e "\nSolution profile already exists. Maybe try using update option?"
+        echo -e "\nSolution profile already exists. Maybe try using update option?" >&2
         usage
     fi
 fi
@@ -90,7 +90,7 @@ if [[ -f "${SOLUTION_FILE}" ]]; then
     if [[ "${RESULT}" -eq 0 ]]; then
         mv "${SOLUTION_TEMP_FILE}" "${SOLUTION_FILE}"
     else
-        echo -e "\nUnable to add pattern reference to solution"
+        echo -e "\nUnable to add pattern reference to solution" >&2
         exit
     fi
 fi

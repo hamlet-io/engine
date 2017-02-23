@@ -42,11 +42,11 @@ while getopts ":hi:p:t:" opt; do
             COMPONENT_TYPE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -59,7 +59,7 @@ COMPONENT_TYPE="${COMPONENT_TYPE:-${COMPONENT_TYPE_VALUES[0]}}"
 if [[ (-z "${PROCESSOR_PROFILE}") ||
       (-z "${COMPONENT_TYPE}") ||
       (-z "${PROCESSOR_INSTANCE}") ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
@@ -73,14 +73,14 @@ else
     if [[ ("segment" =~ "${LOCATION}") ]]; then
         TARGET_FILE="./segment.json"
     else
-        echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?"
+        echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
         usage
     fi
 fi
 
 # Check whether the target exists
 if [[ ! -f "${TARGET_FILE}" ]]; then
-    echo -e "\nSolution or segment profile not found. Maybe try adding solution/segment first?"
+    echo -e "\nSolution or segment profile not found. Maybe try adding solution/segment first?" >&2
     usage
 fi
 

@@ -66,11 +66,11 @@ while getopts ":a:cd:hi:mr:s:t:" opt; do
             TIER="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -78,7 +78,7 @@ done
 
 # Ensure mandatory arguments have been provided
 if [[ "${COMPONENT}"  == "" ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
@@ -87,7 +87,7 @@ fi
 
 # Ensure we are in the right place
 if [[ "${LOCATION}" != "segment" ]]; then
-    echo -e "\nWe don't appear to be in the right directory. Nothing to do"
+    echo -e "\nWe don't appear to be in the right directory. Nothing to do" >&2
     usage
 fi
 

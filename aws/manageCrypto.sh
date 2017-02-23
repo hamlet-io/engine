@@ -102,11 +102,11 @@ while getopts ":a:bdef:hk:np:qt:uv" opt; do
             CRYPTO_VISIBLE="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -158,7 +158,7 @@ done
 # Ensure mandatory arguments have been provided
 if [[ (-n "${JSON_PATH}") ]]; then
     if [[ -z "${TARGET_FILE}" ]]; then
-        echo -e "\nCan't locate target file"
+        echo -e "\nCan't locate target file" >&2
         usage
     fi
     # Default cipherdata to that in the element
@@ -166,17 +166,17 @@ if [[ (-n "${JSON_PATH}") ]]; then
     CRYPTO_TEXT="${CRYPTO_TEXT:-$JSON_TEXT}"
 
     if [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]]; then
-        echo -e "\nNothing to encrypt"
+        echo -e "\nNothing to encrypt" >&2
         usage
     fi
 else    
     if [[ -z "${CRYPTO_TEXT}" ]]; then
         if [[ -z "${CRYPTO_FILE}" ]]; then
-            echo -e "\nInsufficient arguments"
+            echo -e "\nInsufficient arguments" >&2
             usage
         else
             if [[ -z "${TARGET_FILE}" ]]; then
-                echo -e "\nCan't locate file based on provided path"
+                echo -e "\nCan't locate file based on provided path" >&2
                 usage
             fi
         fi
@@ -187,7 +187,7 @@ else
 fi
     
 if [[ ("${CRYPTO_OPERATION}" == "encrypt") && (-z "${KEYID}") ]]; then
-    echo -e "\nNo key material available"
+    echo -e "\nNo key material available" >&2
     usage
 fi
 
@@ -202,7 +202,7 @@ if [[ -n "${CRYPTO_DECODE}" ]]; then
     if [[ "${RESULT}" -eq 0 ]]; then
         dos2unix < ./ciphertext.src | base64 -d  > ./ciphertext.bin
     else
-        echo -e "\nInput doesn't appear to be base64 encoded"
+        echo -e "\nInput doesn't appear to be base64 encoded" >&2
         usage
     fi
 else

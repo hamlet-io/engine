@@ -40,11 +40,11 @@ while getopts ":hqxy" opt; do
             DRYRUN="--dryrun"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -54,7 +54,7 @@ done
 . ${GENERATION_DIR}/setContext.sh
 
 if [[ ! ("root" =~ ${LOCATION}) ]]; then
-    echo -e "\nNeed to be in the root directory. Nothing to do."
+    echo -e "\nNeed to be in the root directory. Nothing to do." >&2
     usage
 fi
 
@@ -65,7 +65,7 @@ CREDENTIALS_BUCKET=$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r ".[] | select(.Outpu
 if [[ (-z "${CODE_BUCKET}") ||
         (-z "${CREDENTIALS_BUCKET}") ||
         (-z "${ACCOUNT_REGION}") ]]; then
-    echo -e "\nBuckets don't appear to have been created. Maybe create the Account stack first?"
+    echo -e "\nBuckets don't appear to have been created. Maybe create the Account stack first?" >&2
     usage
 fi
 pushd ${ACCOUNT_DIR}  > /dev/null 2>&1
@@ -75,7 +75,7 @@ if [[ "${CHECK}" == "true" ]]; then
     aws --region ${ACCOUNT_REGION} s3 ls s3://${CODE_BUCKET}/ > temp_code_access.txt
     RESULT=$?
     if [[ "$RESULT" -ne 0 ]]; then
-        echo -e "\nCan't access the code bucket. Does the service role for the server include access to the \"${ACCOUNT}\" code bucket? If windows, is a profile matching the account been set up? Nothing to do."
+        echo -e "\nCan't access the code bucket. Does the service role for the server include access to the \"${ACCOUNT}\" code bucket? If windows, is a profile matching the account been set up? Nothing to do." >&2
         usage
     fi
 fi
@@ -85,11 +85,11 @@ if [[ -d ${GENERATION_STARTUP_DIR} ]]; then
     aws --region ${ACCOUNT_REGION} s3 sync ${DRYRUN} ${DELETE} --exclude=".git*" bootstrap/ s3://${CODE_BUCKET}/bootstrap/
     RESULT=$?
     if [[ "$RESULT" -ne 0 ]]; then
-        echo -e "\nCan't update the code bucket"
+        echo -e "\nCan't update the code bucket" >&2
         usage
     fi
 else
-    echo -e "\nStartup directory not found"
+    echo -e "\nStartup directory not found" >&2
     usage    
 fi
 
@@ -98,7 +98,7 @@ if [[ "${CHECK}" == "true" ]]; then
     aws --region ${ACCOUNT_REGION} s3 ls s3://${CREDENTIALS_BUCKET}/ > temp_credential_access.txt
     RESULT=$?
     if [[ "$RESULT" -ne 0 ]]; then
-        echo -e "\nCan't access the credentials bucket. Does the service role for the server include access to the \"${ACCOUNT}\" credentials bucket? If windows, is a profile matching the account been set up? Nothing to do."
+        echo -e "\nCan't access the credentials bucket. Does the service role for the server include access to the \"${ACCOUNT}\" credentials bucket? If windows, is a profile matching the account been set up? Nothing to do." >&2
         usage
     fi
 fi
@@ -108,7 +108,7 @@ if [[ -d ${ACCOUNT_CREDENTIALS_DIR}/alm/docker ]]; then
     aws --region ${ACCOUNT_REGION} s3 sync ${DRYRUN} ${DELETE} . s3://${CREDENTIALS_BUCKET}/${ACCOUNT}/alm/docker/
     RESULT=$?
     if [[ "$RESULT" -ne 0 ]]; then
-        echo -e "\nCan't update the code bucket"
+        echo -e "\nCan't update the code bucket" >&2
         usage
     fi
 else

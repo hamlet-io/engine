@@ -61,11 +61,11 @@ while getopts ":a:e:hi:n:s:t:y:" opt; do
             export CREDENTIAL_TYPE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
+            echo -e "\nInvalid option: -${OPTARG}" >&2
             usage
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
             usage
             ;;
     esac
@@ -83,14 +83,14 @@ export CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${TENANT}") || (-z "${CREDENTIAL_NAME}") || (-z "${CREDENTIAL_TYPE}") ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
 if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?"
+    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
     usage
 fi
 

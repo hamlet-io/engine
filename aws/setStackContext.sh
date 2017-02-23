@@ -9,7 +9,7 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 # Ensure mandatory arguments have been provided
 if [[ (-z "${TYPE}") || \
         ((-z "${SLICE}") && (! ("${TYPE}" =~ product ))) ]]; then
-    echo -e "\nInsufficient arguments"
+    echo -e "\nInsufficient arguments" >&2
     usage
 fi
 
@@ -19,13 +19,13 @@ fi
 case $TYPE in
     account|product)
         if [[ ! ("${TYPE}" =~ ${LOCATION} ) ]]; then
-            echo -e "\nCurrent directory doesn't match requested type \"${TYPE}\". Are we in the right place?"
+            echo -e "\nCurrent directory doesn't match requested type \"${TYPE}\". Are we in the right place?" >&2
             usage
         fi
         ;;
     solution|segment|application)
         if [[ ! ("segment" =~ ${LOCATION} ) ]]; then
-            echo -e "\nCurrent directory doesn't match requested type \"${TYPE}\". Are we in the right place?"
+            echo -e "\nCurrent directory doesn't match requested type \"${TYPE}\". Are we in the right place?" >&2
             usage
         fi
         ;;
@@ -123,7 +123,7 @@ case $TYPE in
         ;;
 
     *)
-        echo -e "\n\"$TYPE\" is not one of the known stack types (account, product, segment, solution, application). Nothing to do."
+        echo -e "\n\"$TYPE\" is not one of the known stack types (account, product, segment, solution, application). Nothing to do." >&2
         usage
         ;;
 esac
