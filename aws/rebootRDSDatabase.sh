@@ -8,21 +8,31 @@ DELAY_DEFAULT=30
 TIER_DEFAULT="database"
 
 function usage() {
-    cat <<-EOF
-		Reboot an RDS Database
-		Usage: $(basename $0) -t TIER -i COMPONENT -f -d DELAY
-		where
-		(o) -d DELAY is the interval between checking the progress of reboot
-		(o) -f force reboot via failover
-		    -h shows this text
-		(m) -i COMPONENT is the name of the database component in the solution
-		(o) -r (REBOOT ONLY) initiates but does not monitor the reboot process
-		(o) -t TIER is the name of the database tier in the solution
-		DEFAULTS:
-		DELAY     = ${DELAY_DEFAULT} seconds
-		TIER      = ${TIER_DEFAULT}
-		NOTES:
-	EOF
+    cat <<EOF
+
+Reboot an RDS Database
+
+Usage: $(basename $0) -t TIER -i COMPONENT -f -d DELAY
+
+where
+
+(o) -d DELAY is the interval between checking the progress of reboot
+(o) -f force reboot via failover
+    -h shows this text
+(m) -i COMPONENT is the name of the database component in the solution
+(o) -r (REBOOT ONLY) initiates but does not monitor the reboot process
+(o) -t TIER is the name of the database tier in the solution
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+DELAY     = ${DELAY_DEFAULT} seconds
+TIER      = ${TIER_DEFAULT}
+
+NOTES:
+
+EOF
     exit
 }
 

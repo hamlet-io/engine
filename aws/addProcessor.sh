@@ -8,21 +8,32 @@ PROCESSOR_PROFILE_DEFAULT="default"
 COMPONENT_TYPE_VALUES=("ECS" "EC2")
 
 function usage() {
-    cat <<-EOF
-		Add a processor
-		Usage: $(basename $0) -i PROCESSOR_INSTANCE -p PROCESSOR_PROFILE -t COMPONENT_TYPE
-		where
-		    -h shows this text
-		(m) -i PROCESSOR_INSTANCE is the processor instance type
-		(m) -p PROCESSOR_PROFILE is the processor profile
-		(m) -t COMPONENT_TYPE is the component type
-		DEFAULTS:
-		PROCESSOR_PROFILE=${PROCESSOR_PROFILE_DEFAULT}
-		COMPONENT_TYPE=${COMPONENT_TYPE_VALUES[0]}
-		NOTES:
-		1. The profile to be updated is determined by the current directory location
-		2. COMPONENT_TYPE is one of" "${COMPONENT_TYPE_VALUES[@]}
-	EOF
+    cat <<EOF
+
+Add a processor
+
+Usage: $(basename $0) -i PROCESSOR_INSTANCE -p PROCESSOR_PROFILE -t COMPONENT_TYPE
+
+where
+
+    -h shows this text
+(m) -i PROCESSOR_INSTANCE is the processor instance type
+(m) -p PROCESSOR_PROFILE is the processor profile
+(m) -t COMPONENT_TYPE is the component type
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+PROCESSOR_PROFILE=${PROCESSOR_PROFILE_DEFAULT}
+COMPONENT_TYPE=${COMPONENT_TYPE_VALUES[0]}
+
+NOTES:
+
+1. The profile to be updated is determined by the current directory location
+2. COMPONENT_TYPE is one of" "${COMPONENT_TYPE_VALUES[@]}
+
+EOF
     exit
 }
 

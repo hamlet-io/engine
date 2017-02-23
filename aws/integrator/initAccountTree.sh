@@ -6,21 +6,31 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 # Defaults
 
 function usage() {
-    cat <<-EOF
-		Populate the account tree for an account
-		Usage: $(basename $0) -t TENANT -a ACCOUNT -u
-		where
-		(m) -a ACCOUNT is the tenant account name
-		    -h shows this text
-		(m) -t TENANT is the tenant name
-		(o) -u if details should be updated
-		DEFAULTS:
-		NOTES:
-		1. The script must be run from the root of the integrator tree
-		2. The account tree is expected to be present at the same level
-		   as the integrator tree
-		3. To update the details, the update option must be explicitly set
-	EOF
+    cat <<EOF
+
+Populate the account tree for an account
+
+Usage: $(basename $0) -t TENANT -a ACCOUNT -u
+
+where
+
+(m) -a ACCOUNT is the tenant account name
+    -h shows this text
+(m) -t TENANT is the tenant name
+(o) -u if details should be updated
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+1. The script must be run from the root of the integrator tree
+2. The account tree is expected to be present at the same level
+   as the integrator tree
+3. To update the details, the update option must be explicitly set
+
+EOF
     exit
 }
 

@@ -4,20 +4,30 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 function usage() {
-    cat <<-EOF
-		Add the application settings for a segment
-		Usage: $(basename $0) -s SEGMENT -u
-		where
-		    -h shows this text
-		(o) -s SEGMENT if details should be copied from an existing segment
-		(o) -u if details should be updated
-		DEFAULTS:
-		NOTES:
-		1. If no existing segment is provided, application settings are 
-		   located via the solution pattern. Nothing is done if no 
-		   solution pattern can be found
-		3. The script must be run in the segment directory
-	EOF
+    cat <<EOF
+
+Add the application settings for a segment
+
+Usage: $(basename $0) -s SEGMENT -u
+
+where
+
+    -h shows this text
+(o) -s SEGMENT if details should be copied from an existing segment
+(o) -u if details should be updated
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+1. If no existing segment is provided, application settings are 
+   located via the solution pattern. Nothing is done if no 
+   solution pattern can be found
+2. The script must be run in the segment directory
+
+EOF
     exit
 }
 

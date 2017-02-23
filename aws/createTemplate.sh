@@ -8,31 +8,43 @@ CONFIGURATION_REFERENCE_DEFAULT="unassigned"
 REQUEST_REFERENCE_DEFAULT="unassigned"
 
 function usage() {
-    cat <<-EOF
-		Create a CloudFormation (CF) template 
-		Usage: $(basename $0) -t TYPE -s SLICE -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
-		where
-		(m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
-		    -h shows this text
-		(m) -q REQUEST_REFERENCE is an opaque value to link this template to a triggering request management system
-		(o) -r REGION is the AWS region identifier
-		(m) -s SLICE is the slice to be included in the template
-		(m) -t TYPE is the template type - "account", "product", "segment", "solution" or "application"
-		DEFAULTS:
-		CONFIGURATION_REFERENCE = "${CONFIGURATION_REFERENCE_DEFAULT}"
-		REQUEST_REFERENCE = "${REQUEST_REFERENCE_DEFAULT}"
-		NOTES:
-		1. You must be in the directory specific to the type
-		2. REGION is only relevant for the "product" type
-		3. SLICE may be one of "s3" or "cert" for the "account" type
-		4. SLICE may be one of "cmk", "cert", "sns" or "shared" for the "product" type
-		5. SLICE may be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" type
-		6. Stack for SLICE of "eip" or "s3" must be created before stack for "vpc" for the "segment" type
-		7. Stack for SLICE of "vpc" must be created before stack for "dns" for the "segment" type
-		8. To support legacy configurations, the SLICE combinations "eipvpc" and
-		   "eips3vpc" are also supported but for new products, individual
-		   templates for each slice should be created
-	EOF
+    cat <<EOF
+
+Create a CloudFormation (CF) template
+
+Usage: $(basename $0) -t TYPE -u DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
+
+where
+
+(m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
+    -h                         shows this text
+(m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
+(o) -r REGION                  is the AWS region identifier
+(d) -s DEPLOYMENT_UNIT         is the deployment unit to be included in the template
+(m) -t TYPE                    is the template type - "account", "product", "segment", "solution" or "application"
+(m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+CONFIGURATION_REFERENCE = "${CONFIGURATION_REFERENCE_DEFAULT}"
+REQUEST_REFERENCE       = "${REQUEST_REFERENCE_DEFAULT}"
+
+NOTES:
+
+1. You must be in the directory specific to the type
+2. REGION is only relevant for the "product" type
+3. DEPLOYMENT_UNIT may be one of "s3" or "cert" for the "account" type
+4. DEPLOYMENT_UNIT may be one of "cmk", "cert", "sns" or "shared" for the "product" type
+5. DEPLOYMENT_UNIT may be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" type
+6. Stack for DEPLOYMENT_UNIT of "eip" or "s3" must be created before stack for "vpc" for the "segment" type
+7. Stack for DEPLOYMENT_UNIT of "vpc" must be created before stack for "dns" for the "segment" type
+8. To support legacy configurations, the DEPLOYMENT_UNIT combinations "eipvpc" and "eips3vpc" 
+   are also supported but for new products, individual templates for each deployment unit 
+   should be created
+
+EOF
     exit
 }
 

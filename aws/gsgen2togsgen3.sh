@@ -5,17 +5,28 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 # Defaults
 
 function usage() {
-    cat <<-EOF
-		Convert config/infrastructure trees used for gsgen2 to the format required for gsgen3
-		Usage: $(basename $0) -a AID -p PID
-		where
-		(m) -a AID is the tenant account id e.g. "env01"
-		    -h shows this text
-		(m) -p PID is the product id for the product e.g. "eticket"
-		NOTES:
-		1. GSGEN3 expects product directories to be the immediate children of the config and infrastructure directories
-		2. It is assumed we are in the config or infrastructure directory under the AID directory when the script is run
-	EOF
+    cat <<EOF
+
+Convert config/infrastructure trees used for gsgen2 to the format required for gsgen3
+
+Usage: $(basename $0) -a AID -p PID
+
+where
+
+(m) -a AID is the tenant account id e.g. "env01"
+    -h shows this text
+(m) -p PID is the product id for the product e.g. "eticket"
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+1. GSGEN3 expects product directories to be the immediate children of the config and infrastructure directories
+2. It is assumed we are in the config or infrastructure directory under the AID directory when the script is run
+
+EOF
     exit
 }
 

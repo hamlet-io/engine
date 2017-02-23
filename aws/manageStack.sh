@@ -10,32 +10,43 @@ STACK_OPERATION_DEFAULT="update"
 STACK_WAIT_DEFAULT=30
 
 function usage() {
-    cat <<-EOF
-		Manage a CloudFormation stack
-		Usage: $(basename $0) -t TYPE -s SLICE -i -m -w STACK_WAIT -r REGION -n STACK_NAME -d
-		where
-		(o) -d (STACK_OPERATION=delete) to delete the stack
-		    -h shows this text
-		(o) -i (STACK_MONITOR=false) initiates but does not monitor the stack operation
-		(o) -m (STACK_INITIATE=false) monitors but does not initiate the stack operation
-		(o) -n STACK_NAME to override standard stack naming
-		(o) -r REGION is the AWS region identifier for the region in which the stack should be managed
-		(m) -s SLICE is the slice used to determine the stack template
-		(m) -t TYPE is the stack type - "account", "product", "segment", "solution" or "application"
-		(o) -w STACK_WAIT is the interval between checking the progress of the stack operation
-		DEFAULTS:
-		STACK_INITIATE = ${STACK_INITIATE_DEFAULT}
-		STACK_MONITOR = ${STACK_MONITOR_DEFAULT}
-		STACK_OPERATION = ${STACK_OPERATION_DEFAULT}
-		STACK_WAIT = ${STACK_WAIT_DEFAULT} seconds
-		NOTES:
-		1. You must be in the correct directory corresponding to the requested stack type
-		2. REGION is only relevant for the "product" type, where multiple product stacks are necessary
-		   if the product uses resources in multiple regions
-		3. "segment" is now used in preference to "container" to avoid confusion with docker
-		4. If stack doesn't exist in AWS, the update operation will create the stack
-		5. Overriding the stack name is not recommended except where legacy naming has to be maintained
-	EOF
+    cat <<EOF
+
+Manage a CloudFormation stack
+
+Usage: $(basename $0) -t TYPE -s SLICE -i -m -w STACK_WAIT -r REGION -n STACK_NAME -d
+
+where
+
+(o) -d (STACK_OPERATION=delete) to delete the stack
+    -h shows this text
+(o) -i (STACK_MONITOR=false) initiates but does not monitor the stack operation
+(o) -m (STACK_INITIATE=false) monitors but does not initiate the stack operation
+(o) -n STACK_NAME to override standard stack naming
+(o) -r REGION is the AWS region identifier for the region in which the stack should be managed
+(m) -s SLICE is the slice used to determine the stack template
+(m) -t TYPE is the stack type - "account", "product", "segment", "solution" or "application"
+(o) -w STACK_WAIT is the interval between checking the progress of the stack operation
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+STACK_INITIATE = ${STACK_INITIATE_DEFAULT}
+STACK_MONITOR = ${STACK_MONITOR_DEFAULT}
+STACK_OPERATION = ${STACK_OPERATION_DEFAULT}
+STACK_WAIT = ${STACK_WAIT_DEFAULT} seconds
+
+NOTES:
+
+1. You must be in the correct directory corresponding to the requested stack type
+2. REGION is only relevant for the "product" type, where multiple product stacks are necessary
+   if the product uses resources in multiple regions
+3. "segment" is now used in preference to "container" to avoid confusion with docker
+4. If stack doesn't exist in AWS, the update operation will create the stack
+5. Overriding the stack name is not recommended except where legacy naming has to be maintained
+
+EOF
     exit
 }
 
