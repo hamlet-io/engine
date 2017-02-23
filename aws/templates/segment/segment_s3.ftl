@@ -1,5 +1,5 @@
 [#-- Standard set of buckets for a segment --]
-[#if slice?contains("s3")]
+[#if deploymentUnit?contains("s3")]
     [#if resourceCount > 0],[/#if]
     [#switch segmentListMode]
         [#case "definition"]

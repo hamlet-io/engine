@@ -217,32 +217,35 @@ if [[ -n "${PRODUCT}" ]]; then
     export APPSETTINGS_DIR="${CONFIG_DIR}/${PRODUCT}/appsettings"
     export CREDENTIALS_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials"
     
-    # slice level appsettings
-    if [[ (-n "${SLICE}") ]]; then
+    # deployment unit level appsettings
+    if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
         
-        # Confirm it is an application slice"
-        APPLICATION_SLICE_LIST=$(echo $(cat ${COMPOSITE_BLUEPRINT} | jq -r -f ${GENERATION_DIR}/listApplicationSlices.jq | dos2unix))
-        if [[ -n "$(echo ${APPLICATION_SLICE_LIST} | grep -i ${SLICE})" ]]; then
-            IS_APPLICATION_SLICE="true"
+        # Confirm it is an application deployment unit
+        APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(cat ${COMPOSITE_BLUEPRINT} | jq -r -f ${GENERATION_DIR}/listApplicationDeploymentUnits.jq | dos2unix))
+        if [[ -n "$(echo ${APPLICATION_DEPLOYMENT_UNIT_LIST} | grep -i ${DEPLOYMENT_UNIT})" ]]; then
+            IS_APPLICATION_DEPLOYMENT_UNIT="true"
         
-            EFFECTIVE_SLICE="$SLICE"   
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${SLICE}/slice.ref" ]]; then
-                EFFECTIVE_SLICE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${SLICE}/slice.ref")
+            EFFECTIVE_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
+            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref" ]]; then
+                EFFECTIVE_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
+            fi
+            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref" ]]; then
+                EFFECTIVE_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref")
             fi
             
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/appsettings.json" ]]; then
-                APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
+            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/appsettings.json" ]]; then
+                APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
             fi
     
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.json" ]]; then
-                export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.json")
+            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.json" ]]; then
+                export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.json")
             else
-                if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.ref" ]]; then
-                    export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_SLICE}/build.ref")
+                if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.ref" ]]; then
+                    export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.ref")
                 fi
             fi
         else
-            IS_APPLICATION_SLICE="false"
+            IS_APPLICATION_DEPLOYMENT_UNIT="false"
         fi
     fi
     

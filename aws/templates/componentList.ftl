@@ -3,7 +3,7 @@
 [#list tiers as tier]
     [#if tier.Components??]
         [#list tier.Components?values as component]
-            [#if component?is_hash && component.Slices?seq_contains(slice)]
+            [#if component?is_hash && component.DeploymentUnits?seq_contains(deploymentUnit)]
                 [#if component.MultiAZ??]
                     [#assign multiAZ = component.MultiAZ]
                 [#else]

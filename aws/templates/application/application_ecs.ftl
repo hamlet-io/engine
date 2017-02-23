@@ -8,7 +8,7 @@
             [#if ecs.Services??]
                 [#list ecs.Services?values as service]
                     [#assign serviceDependencies = []]
-                    [#if service?is_hash && (service.Slices!component.Slices)?seq_contains(slice)]
+                    [#if service?is_hash && (service.DeploymentUnits!component.DeploymentUnits)?seq_contains(deploymentUnit)]
                         [#if resourceCount > 0],[/#if]
                         [@createTask tier=tier component=component task=service /],
                         "ecsServiceX${tier.Id}X${component.Id}X${service.Id}" : {
@@ -195,7 +195,7 @@
             [/#if]
             [#if ecs.Tasks??]
                 [#list ecs.Tasks?values as task]
-                    [#if task?is_hash && (task.Slices!component.Slices)?seq_contains(slice)]
+                    [#if task?is_hash && (task.DeploymentUnits!component.DeploymentUnits)?seq_contains(deploymentUnit)]
                         [#if resourceCount > 0],[/#if]
                         [@createTask tier=tier component=component task=task /]
                         [#assign containerListMode = "supplemental"]
@@ -214,7 +214,7 @@
             [#if ecs.Services??]
                 [#list ecs.Services?values as service]
                     [#assign serviceDependencies = []]
-                    [#if service?is_hash && (service.Slices!component.Slices)?seq_contains(slice)]
+                    [#if service?is_hash && (service.DeploymentUnits!component.DeploymentUnits)?seq_contains(deploymentUnit)]
                             [#if resourceCount > 0],[/#if]
                             "ecsServiceX${tier.Id}X${component.Id}X${service.Id}" : {
                                 "Value" : { "Ref" : "ecsServiceX${tier.Id}X${component.Id}X${service.Id}" }
@@ -252,7 +252,7 @@
             [/#if]
             [#if ecs.Tasks??]
                 [#list ecs.Tasks?values as task]
-                    [#if task?is_hash && (task.Slices!component.Slices)?seq_contains(slice)]
+                    [#if task?is_hash && (task.DeploymentUnits!component.DeploymentUnits)?seq_contains(deploymentUnit)]
                         [#if resourceCount > 0],[/#if]
                             "ecsTaskX${tier.Id}X${component.Id}X${task.Id}" : {
                                 "Value" : { "Ref" : "ecsTaskX${tier.Id}X${component.Id}X${task.Id}" }

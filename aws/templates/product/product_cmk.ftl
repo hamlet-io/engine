@@ -1,9 +1,8 @@
 [#-- KMS CMK --]
-[#if slice?contains("cmk")]
+[#if deploymentUnit?contains("cmk")]
     [#if resourceCount > 0],[/#if]
     [#switch productListMode]
         [#case "definition"]
-[#-- Key for product --]
             "cmk" : {
                 "Type" : "AWS::KMS::Key",
                 "Properties" : {

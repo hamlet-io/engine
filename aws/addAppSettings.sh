@@ -54,8 +54,8 @@ fi
 
 # Check whether the application settings already exist
 SEGMENT_APPSETTINGS_DIR="${APPSETTINGS_DIR}/${SEGMENT}"
-SLICES=$(find ${SEGMENT_APPSETTINGS_DIR}/* -type d 2> /dev/null)
-if [[ -n ${SLICES} ]]; then
+DEPLOYMENT_UNITS=$(find ${SEGMENT_APPSETTINGS_DIR}/* -type d 2> /dev/null)
+if [[ -n "${DEPLOYMENT_UNITS}" ]]; then
     if [[ "${UPDATE_APPSETTINGS}" != "true" ]]; then
         echo -e "\nSegment application settings already exist. Maybe try using update option?"
         usage
