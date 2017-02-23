@@ -1,5 +1,5 @@
 [#-- Private DNS zone --]
-[#if slice?contains("dns")]
+[#if deploymentUnit?contains("dns")]
     [#if resourceCount > 0],[/#if]
     [#switch segmentListMode]
         [#case "definition"]

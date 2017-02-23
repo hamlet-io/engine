@@ -8,7 +8,7 @@ if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${TYPE}") || \
-        ((-z "${SLICE}") && (! ("${TYPE}" =~ product ))) ]]; then
+        ((-z "${DEPLOYMENT_UNIT}") && (! ("${TYPE}" =~ product ))) ]]; then
     echo -e "\nInsufficient arguments" >&2
     exit
 fi
@@ -35,11 +35,11 @@ esac
 # Determine the details of the template to be created
 PRODUCT_PREFIX="${PRODUCT}"
 TYPE_PREFIX="${TYPE}-"
-SLICE_PREFIX="${SLICE}-"
+DEPLOYMENT_UNIT_PREFIX="${DEPLOYMENT_UNIT}-"
 REGION_PREFIX="${REGION}-"
 SEGMENT_SUFFIX="-${SEGMENT}"
 TYPE_SUFFIX="-${TYPE}"
-SLICE_SUFFIX="-${SLICE}"
+DEPLOYMENT_UNIT_SUFFIX="-${DEPLOYMENT_UNIT}"
 case $TYPE in
     account)
         CF_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf"
@@ -48,11 +48,11 @@ case $TYPE in
         REGION_PREFIX="${ACCOUNT_REGION}-"
         SEGMENT_SUFFIX=""
 
-        # LEGACY: Support stacks created before slices added to account
-        if [[ "${SLICE}" =~ s3 ]]; then
+        # LEGACY: Support stacks created before deployment units added to account
+        if [[ "${DEPLOYMENT_UNIT}" =~ s3 ]]; then
             if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
-                SLICE_PREFIX=""
-                SLICE_SUFFIX=""
+                DEPLOYMENT_UNIT_PREFIX=""
+                DEPLOYMENT_UNIT_SUFFIX=""
             fi
         fi
         ;;
@@ -61,11 +61,11 @@ case $TYPE in
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf"
         SEGMENT_SUFFIX=""
 
-        # LEGACY: Support stacks created before slices added to product
-        if [[ "${SLICE}" =~ cmk ]]; then
+        # LEGACY: Support stacks created before deployment units added to product
+        if [[ "${DEPLOYMENT_UNIT}" =~ cmk ]]; then
             if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
-                SLICE_PREFIX=""
-                SLICE_SUFFIX=""
+                DEPLOYMENT_UNIT_PREFIX=""
+                DEPLOYMENT_UNIT_SUFFIX=""
             fi
         fi
         ;;
@@ -77,8 +77,8 @@ case $TYPE in
         if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
             TYPE_PREFIX="solution-"
             TYPE_SUFFIX="-solution"
-            SLICE_PREFIX=""
-            SLICE_SUFFIX=""
+            DEPLOYMENT_UNIT_PREFIX=""
+            DEPLOYMENT_UNIT_SUFFIX=""
         fi
         ;;
 
@@ -88,30 +88,30 @@ case $TYPE in
         TYPE_SUFFIX="-seg"
 
         # LEGACY: Support old formats for existing stacks so they can be updated 
-        if [[ !("${SLICE}" =~ cmk|cert|dns ) ]]; then
-            if [[ -f "${CF_DIR}/cont-${SLICE_PREFIX}${REGION_PREFIX}template.json" ]]; then
+        if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
+            if [[ -f "${CF_DIR}/cont-${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json" ]]; then
                 TYPE_PREFIX="cont-"
                 TYPE_SUFFIX="-cont"
             fi
             if [[ -f "${CF_DIR}/container-${REGION}-template.json" ]]; then
                 TYPE_PREFIX="container-"
                 TYPE_SUFFIX="-container"
-                SLICE_PREFIX=""
-                SLICE_SUFFIX=""
+                DEPLOYMENT_UNIT_PREFIX=""
+                DEPLOYMENT_UNIT_SUFFIX=""
             fi
             if [[ -f "${CF_DIR}/${SEGMENT}-container-template.json" ]]; then
                 TYPE_PREFIX="${SEGMENT}-container-"
                 TYPE_SUFFIX="-container"
-                SLICE_PREFIX=""
-                SLICE_SUFFIX=""
+                DEPLOYMENT_UNIT_PREFIX=""
+                DEPLOYMENT_UNIT_SUFFIX=""
                 REGION_PREFIX=""
             fi
         fi
         # "cmk" now used instead of "key"
-        if [[ "${SLICE}" == "cmk" ]]; then
+        if [[ "${DEPLOYMENT_UNIT}" == "cmk" ]]; then
             if [[ -f "${CF_DIR}/${TYPE_PREFIX}key-${REGION_PREFIX}template.json" ]]; then
-                SLICE_PREFIX="key-"
-                SLICE_SUFFIX="-key"
+                DEPLOYMENT_UNIT_PREFIX="key-"
+                DEPLOYMENT_UNIT_SUFFIX="-key"
             fi
         fi
         ;;
@@ -125,10 +125,11 @@ case $TYPE in
     *)
         echo -e "\n\"$TYPE\" is not one of the known stack types (account, product, segment, solution, application). Nothing to do." >&2
         exit
+        exit
         ;;
 esac
 
-STACK_NAME="${STACK_NAME:-${PRODUCT_PREFIX}${SEGMENT_SUFFIX}${TYPE_SUFFIX}${SLICE_SUFFIX}}"
-TEMPLATE="${TYPE_PREFIX}${SLICE_PREFIX}${REGION_PREFIX}template.json"
-STACK="${TYPE_PREFIX}${SLICE_PREFIX}${REGION_PREFIX}stack.json"
+STACK_NAME="${STACK_NAME:-${PRODUCT_PREFIX}${SEGMENT_SUFFIX}${TYPE_SUFFIX}${DEPLOYMENT_UNIT_SUFFIX}}"
+TEMPLATE="${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json"
+STACK="${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json"
 

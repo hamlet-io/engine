@@ -1,5 +1,5 @@
 [#-- KMS CMK --]
-[#if slice?contains("cmk")]
+[#if deploymentUnit?contains("cmk")]
     [#if resourceCount > 0],[/#if]
     [#switch segmentListMode]
         [#case "definition"]

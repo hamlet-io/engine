@@ -1,5 +1,5 @@
 [#-- EIPs --]
-[#if slice?contains("eip")]
+[#if deploymentUnit?contains("eip")]
     [#if jumpServer]
         [#if resourceCount > 0],[/#if]
         [#assign tier = getTier("mgmt")]

@@ -49,7 +49,7 @@ EOF
 }
 
 # Parse options
-while getopts ":c:hq:r:s:t:" opt; do
+while getopts ":c:hq:r:s:t:u:" opt; do
     case $opt in
         c)
             CONFIGURATION_REFERENCE="${OPTARG}"
@@ -64,10 +64,13 @@ while getopts ":c:hq:r:s:t:" opt; do
             REGION="${OPTARG}"
             ;;
         s)
-            SLICE="${OPTARG}"
+            DEPLOYMENT_UNIT="${OPTARG}"
             ;;
         t)
             TYPE="${OPTARG}"
+            ;;
+        u)
+            DEPLOYMENT_UNIT="${OPTARG}"
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
@@ -86,25 +89,25 @@ REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${TYPE}") ||
-        (-z "${SLICE}") ||
+        (-z "${DEPLOYMENT_UNIT}") ||
         (-z "${REQUEST_REFERENCE}") ||
         (-z "${CONFIGURATION_REFERENCE}")]]; then
     echo -e "\nInsufficient arguments" >&2
     exit
 fi
 if [[ ("${TYPE}" == "account") && 
-      (!("${SLICE}" =~ s3|cert)) ]]; then
-    echo -e "\nUnknown slice ${SLICE} for the account type" >&2
+      (!("${DEPLOYMENT_UNIT}" =~ s3|cert)) ]]; then
+    echo -e "\nUnknown deployment unit ${DEPLOYMENT_UNIT} for the account type" >&2
     exit
 fi
 if [[ ("${TYPE}" == "product") && 
-      (!("${SLICE}" =~ s3|sns|cmk|cert)) ]]; then
-    echo -e "\nUnknown slice ${SLICE} for the product type" >&2
+      (!("${DEPLOYMENT_UNIT}" =~ s3|sns|cmk|cert)) ]]; then
+    echo -e "\nUnknown deployment unit ${DEPLOYMENT_UNIT} for the product type" >&2
     exit
 fi
 if [[ ("${TYPE}" == "segment") && 
-      (!("${SLICE}" =~ eip|s3|cmk|cert|vpc|dns|eipvpc|eips3vpc)) ]]; then
-    echo -e "\nUnknown slice ${SLICE} for the segment type" >&2
+      (!("${DEPLOYMENT_UNIT}" =~ eip|s3|cmk|cert|vpc|dns|eipvpc|eips3vpc)) ]]; then
+    echo -e "\nUnknown deployment unit ${DEPLOYMENT_UNIT} for the segment type" >&2
     exit
 fi
 
@@ -130,25 +133,21 @@ esac
 # Set up the type specific template information
 TEMPLATE_DIR="${GENERATION_DIR}/templates"
 TEMPLATE="create${TYPE^}Template.ftl"
-if [[ -f "${TEMPLATE_DIR}/${TEMPLATE}" ]]; then
-    COMPOSITE_VAR="COMPOSITE_${TYPE^^}"
-else
-    TEMPLATE="create${TYPE^}.ftl"
-fi
+COMPOSITE_VAR="COMPOSITE_${TYPE^^}"
 
 # Determine the template name
 TYPE_PREFIX="$TYPE-"
-SLICE_PREFIX="${SLICE}-"
+DEPLOYMENT_UNIT_PREFIX="${DEPLOYMENT_UNIT}-"
 REGION_PREFIX="${REGION}-"
 case $TYPE in
     account)
         CF_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf"
         REGION_PREFIX="${ACCOUNT_REGION}-"
 
-        # LEGACY: Support stacks created before slices added to account
-        if [[ "${SLICE}" =~ s3 ]]; then
+        # LEGACY: Support stacks created before deployment units added to account
+        if [[ "${DEPLOYMENT_UNIT}" =~ s3 ]]; then
             if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
-                SLICE_PREFIX=""
+                DEPLOYMENT_UNIT_PREFIX=""
             fi
         fi
         ;;
@@ -156,10 +155,10 @@ case $TYPE in
     product)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf"
 
-        # LEGACY: Support stacks created before slices added to product
-        if [[ "${SLICE}" =~ cmk ]]; then
+        # LEGACY: Support stacks created before deployment units added to product
+        if [[ "${DEPLOYMENT_UNIT}" =~ cmk ]]; then
             if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
-                SLICE_PREFIX=""
+                DEPLOYMENT_UNIT_PREFIX=""
             fi
         fi
         ;;
@@ -169,7 +168,7 @@ case $TYPE in
         TYPE_PREFIX="soln-"
         if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
             TYPE_PREFIX="solution-"
-            SLICE_PREFIX=""
+            DEPLOYMENT_UNIT_PREFIX=""
         fi
         ;;
 
@@ -178,24 +177,24 @@ case $TYPE in
         TYPE_PREFIX="seg-"
 
         # LEGACY: Support old formats for existing stacks so they can be updated 
-        if [[ !("${SLICE}" =~ cmk|cert|dns ) ]]; then
-            if [[ -f "${CF_DIR}/cont-${SLICE_PREFIX}${REGION_PREFIX}template.json" ]]; then
+        if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
+            if [[ -f "${CF_DIR}/cont-${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json" ]]; then
                 TYPE_PREFIX="cont-"
             fi
             if [[ -f "${CF_DIR}/container-${REGION}-template.json" ]]; then
                 TYPE_PREFIX="container-"
-                SLICE_PREFIX=""
+                DEPLOYMENT_UNIT_PREFIX=""
             fi
             if [[ -f "${CF_DIR}/${SEGMENT}-container-template.json" ]]; then
                 TYPE_PREFIX="${SEGMENT}-container-"
-                SLICE_PREFIX=""
+                DEPLOYMENT_UNIT_PREFIX=""
                 REGION_PREFIX=""
             fi
         fi
         # "cmk" now used instead of "key"
-        if [[ "${SLICE}" == "cmk" ]]; then
+        if [[ "${DEPLOYMENT_UNIT}" == "cmk" ]]; then
             if [[ -f "${CF_DIR}/${TYPE_PREFIX}key-${REGION_PREFIX}template.json" ]]; then
-                SLICE_PREFIX="key-"
+                DEPLOYMENT_UNIT_PREFIX="key-"
             fi
         fi
         ;;
@@ -204,28 +203,28 @@ case $TYPE in
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
         TYPE_PREFIX="app-"
         
-        if [[ "${IS_APPLICATION_SLICE}" != "true" ]]; then
-            echo -e "\n\"$SLICE\" is not defined as an application slice in the blueprint" >&2
+        if [[ "${IS_APPLICATION_DEPLOYMENT_UNIT}" != "true" ]]; then
+            echo -e "\n\"${DEPLOYMENT_UNIT}\" is not defined as an application deployment unit in the blueprint" >&2
             exit
         fi
         ;;
 
     *)
-        echo -e "\n\"$TYPE\" is not one of the known stack types (account, product, segment, solution, application). Nothing to do." >&2
+        echo -e "\n\"${TYPE}\" is not one of the known stack types (account, product, segment, solution, application). Nothing to do." >&2
         exit
         ;;
 esac
 
 # Generate the template filename
-OUTPUT="${CF_DIR}/${TYPE_PREFIX}${SLICE_PREFIX}${REGION_PREFIX}template.json"
-TEMP_OUTPUT="${CF_DIR}/temp_${TYPE_PREFIX}${SLICE_PREFIX}${REGION_PREFIX}template.json"
+OUTPUT="${CF_DIR}/${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json"
+TEMP_OUTPUT="${CF_DIR}/temp_${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json"
 
 # Ensure the aws tree for the templates exists
 if [[ ! -d ${CF_DIR} ]]; then mkdir -p ${CF_DIR}; fi
 
 ARGS=()
-if [[ -n "${SLICE}"              ]]; then ARGS+=("-v" "slice=${SLICE}"); fi
-if [[ -n "${BUILD_REFERENCE}"    ]]; then ARGS+=("-v" "buildReference=${BUILD_REFERENCE}"); fi
+if [[ -n "${DEPLOYMENT_UNIT}" ]]; then ARGS+=("-v" "deploymentUnit=${DEPLOYMENT_UNIT}"); fi
+if [[ -n "${BUILD_REFERENCE}" ]]; then ARGS+=("-v" "buildReference=${BUILD_REFERENCE}"); fi
 
 # Removal of drive letter (/?/) is specifically for MINGW
 # It shouldn't affect other platforms as it won't be matched

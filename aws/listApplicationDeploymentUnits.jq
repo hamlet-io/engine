@@ -1,9 +1,9 @@
-# Locate an application slice
+# Locate an application deployment unit
 def walk:
   . as $in
   | if type == "object" then
       reduce keys[] as $key
-        ( []; if ($key == "Slices") then
+        ( []; if ($key == "DeploymentUnits") then
                 if ($in["Containers"]) then
                   . + $in[$key]
                 else

@@ -1,5 +1,5 @@
 [#-- SNS for product --]
-[#if slice?contains("sns")]
+[#if deploymentUnit?contains("sns")]
     [#if resourceCount > 0],[/#if]
     [#switch productListMode]
         [#case "definition"]
