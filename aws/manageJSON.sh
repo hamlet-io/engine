@@ -42,31 +42,31 @@ EOF
 
 # Parse options
 while getopts ":cdf:ho:" opt; do
-  case $opt in
-    c)
-      JSON_FORMAT="-c"
-      ;;
-    d)
-      JSON_ADD_DEFAULTS="true"
-      ;;
-    f)
-      JSON_FILTER="${OPTARG}"
-      ;;
-    h)
-      usage
-      ;;
-    o)
-      JSON_OUTPUT="${OPTARG}"
-      ;;
-    \?)
-      echo -e "\nInvalid option: -${OPTARG}" >&2
-      exit
-      ;;
-    :)
-      echo -e "\nOption -${OPTARG} requires an argument" >&2
-      exit
-      ;;
-   esac
+    case $opt in
+        c)
+            JSON_FORMAT="-c"
+            ;;
+        d)
+            JSON_ADD_DEFAULTS="true"
+            ;;
+        f)
+            JSON_FILTER="${OPTARG}"
+            ;;
+        h)
+            usage
+            ;;
+        o)
+            JSON_OUTPUT="${OPTARG}"
+            ;;
+        \?)
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
+            ;;
+        :)
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
+            ;;
+    esac
 done
 
 # Set defaults
@@ -79,8 +79,8 @@ JSON_ARRAY+=("$@")
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${JSON_OUTPUT}") || ("${#JSON_ARRAY[@]}" -eq 0) ]]; then
-  echo -e "\nInsufficient arguments" >&2
-  exit
+    echo -e "\nInsufficient arguments" >&2
+    exit
 fi
 
 # Temporary hack to get around segmentation fault
