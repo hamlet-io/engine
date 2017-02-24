@@ -14,12 +14,12 @@ Usage: $(basename $0) -t TEMPLATE -d TEMPLATEDIR -o OUTPUT (-v VARIABLE=VALUE)*
 
 where
 
-(m) -d TEMPLATEDIR          is the directory containing the template
-    -h                      shows this text
-(m) -o OUTPUT               is the path of the resulting document
-(o) -r VARIABLE=VALUE (o)   defines a variable and corresponding value to be made available in the template
-(m) -t TEMPLATE             is the filename of the Freemarker template to use
-(o) -v VARIABLE=VALUE (o)   defines a variable and corresponding value to be made available in the template
+(m) -d TEMPLATEDIR    is the directory containing the template
+    -h                shows this text
+(m) -o OUTPUT         is the path of the resulting document
+(o) -r VARIABLE=VALUE defines a variable and corresponding value to be made available in the template
+(m) -t TEMPLATE       is the filename of the Freemarker template to use
+(o) -v VARIABLE=VALUE defines a variable and corresponding value to be made available in the template
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -30,7 +30,7 @@ NOTES:
 1. If the value of a variable defines a path to an existing file, the contents of the file are provided to the engine
 2. Values that do not correspond to existing files are provided as is to the engine
 3. Values containing spaces need to be quoted to ensure they are passed in as a single argument
-4. -r and -v are equivalent except that -r will not check if the provided
+4. -r and -v are equivalent except that -r will not check if the provided value
    is a valid filename
 
 EOF
