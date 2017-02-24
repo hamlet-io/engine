@@ -9,7 +9,7 @@
                 [#else]
                     [#assign multiAZ = solnMultiAZ]
                 [/#if]
-            [#include compositeList]
+                [#include compositeList]
             [/#if]
         [/#list]
     [/#if]
