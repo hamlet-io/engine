@@ -3,28 +3,42 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
 DELAY_DEFAULT=30
 TIER_DEFAULT="database"
+
 function usage() {
-    echo -e "\nSnapshot an RDS Database" 
-    echo -e "\nUsage: $(basename $0) -t TIER -i COMPONENT -s SUFFIX -c -m -d DELAY -r RETAIN -a AGE\n"
-    echo -e "\nwhere\n"
-    echo -e "(o) -a AGE is the maximum age in days of snapshots to retain"
-    echo -e "(o) -c (CREATE ONLY) initiates but does not monitor the snapshot creation process"
-    echo -e "(o) -d DELAY is the interval between checking the progress of snapshot creation"
-    echo -e "    -h shows this text"
-    echo -e "(m) -i COMPONENT is the name of the database component in the solution"
-    echo -e "(o) -m (MONITOR ONLY) monitors but does not initiate the snapshot creation process"
-    echo -e "(o) -r RETAIN is the count of snapshots to retain"
-    echo -e "(o) -s SUFFIX to be postpended to the snapshot identifier"
-    echo -e "(o) -t TIER is the name of the database tier in the solution"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "DELAY     = ${DELAY_DEFAULT} seconds"
-    echo -e "TIER      = ${TIER_DEFAULT}"
-    echo -e "\nNOTES:\n"
-    echo -e "1. Snapshot identifer takes the form {product}-{environment}-{tier}-{component}-datetime-{suffix}"
-    echo -e "2. RETAIN and AGE may be used together. If both are present, RETAIN is applied first"
-    echo -e ""
+    cat <<EOF
+
+Snapshot an RDS Database
+
+Usage: $(basename $0) -t TIER -i COMPONENT -s SUFFIX -c -m -d DELAY -r RETAIN -a AGE
+
+where
+
+(o) -a AGE              is the maximum age in days of snapshots to retain
+(o) -c (CREATE ONLY)    initiates but does not monitor the snapshot creation process
+(o) -d DELAY            is the interval between checking the progress of snapshot creation
+    -h                  shows this text
+(m) -i COMPONENT        is the name of the database component in the solution
+(o) -m (MONITOR ONLY)   monitors but does not initiate the snapshot creation process
+(o) -r RETAIN           is the count of snapshots to retain
+(o) -s SUFFIX           to be postpended to the snapshot identifier
+(o) -t TIER             is the name of the database tier in the solution
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+DELAY     = ${DELAY_DEFAULT} seconds
+TIER      = ${TIER_DEFAULT}
+
+NOTES:
+
+1. Snapshot identifer takes the form {product}-{environment}-{tier}-{component}-datetime-{suffix}
+2. RETAIN and AGE may be used together. If both are present, RETAIN is applied first
+
+EOF
     exit
 }
 
@@ -63,20 +77,20 @@ while getopts ":a:cd:hi:mr:s:t:" opt; do
             TIER="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
 if [[ "${COMPONENT}"  == "" ]]; then
-    echo -e "\nInsufficient arguments"
-    usage
+    echo -e "\nInsufficient arguments" >&2
+    exit
 fi
 
 # Set up the context
@@ -84,8 +98,8 @@ fi
 
 # Ensure we are in the right place
 if [[ "${LOCATION}" != "segment" ]]; then
-    echo -e "\nWe don't appear to be in the right directory. Nothing to do"
-    usage
+    echo -e "\nWe don't appear to be in the right directory. Nothing to do" >&2
+    exit
 fi
 
 DB_INSTANCE_IDENTIFIER="${PID}-${SEGMENT}-${TIER}-${COMPONENT}"
@@ -113,7 +127,7 @@ if [[ ("${RETAIN}" != "") || ("${AGE}" != "") ]]; then
         for SNAPSHOT in $(echo $BASELIST); do
             DATEPLUSSUFFIX=${SNAPSHOT#"$DB_INSTANCE_IDENTIFIER-"}
             SUFFIX=${DATEPLUSSUFFIX#????-??-??-??-??-??}
-            SNAPSHOTDATE=$(echo ${DATEPLUSSUFFIX%"$SUFFIX"} | tr -d "-")
+            SNAPSHOTDATE=$(tr -d "-" <<< ${DATEPLUSSUFFIX%"$SUFFIX"})
             if [[ $LASTDATE > $SNAPSHOTDATE ]]; then
                 LIST="${LIST} ${SNAPSHOT}"
             fi

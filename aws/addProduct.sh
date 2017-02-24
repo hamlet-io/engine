@@ -3,25 +3,39 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
+
 function usage() {
-    echo -e "\nAdd a new product"
-    echo -e "\nUsage: $(basename $0) -l TITLE -n PRODUCT -d DESCRIPTION -p PID -o DOMAIN -r AWS_REGION  -u"
-    echo -e "\nwhere\n"
-    echo -e "(o) -d DESCRIPTION is the product description"
-    echo -e "    -h shows this text"
-    echo -e "(o) -l TITLE is the product title"
-    echo -e "(m) -n PRODUCT is the human readable form (one word, lowercase and no spaces) of the product id"
-    echo -e "(o) -o DOMAIN is the default DNS domain to be used for the product"
-    echo -e "(o) -p PID is the product id"
-    echo -e "(o) -r AWS_REGION is the default AWS region for the product"
-    echo -e "(o) -u if details should be updated"
-    echo -e "\nDEFAULTS (creation only):\n"
-    echo -e "PID=PRODUCT"
-    echo -e "\nNOTES:\n"
-    echo -e "1. Subdirectories are created in the config and infrastructure subtrees"
-    echo -e "2. The product information is saved in the product profile"
-    echo -e "3. To update the details, the update option must be explicitly set"
-    echo -e ""
+    cat <<EOF
+
+Add a product
+
+Usage: $(basename $0) -l TITLE -n PRODUCT -d DESCRIPTION -p PID -o DOMAIN -r AWS_REGION  -u
+
+where
+
+(o) -d DESCRIPTION  is the product description
+    -h              shows this text
+(o) -l TITLE        is the product title
+(m) -n PRODUCT      is the human readable form (one word, lowercase and no spaces) of the product id
+(o) -o DOMAIN       is the default DNS domain to be used for the product
+(o) -p PID          is the product id
+(o) -r AWS_REGION   is the default AWS region for the product
+(o) -u              if details should be updated
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS (creation only):
+
+PID=PRODUCT
+
+NOTES:
+
+1. Subdirectories are created in the config and infrastructure subtrees
+2. The product information is saved in the product profile
+3. To update the details, the update option must be explicitly set
+
+EOF
     exit
 }
 
@@ -53,20 +67,20 @@ while getopts ":d:hl:n:o:p:r:u" opt; do
             UPDATE_PRODUCT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG}" requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${PRODUCT}") ]]; then
-    echo -e "\nInsufficient arguments"
-    usage
+    echo -e "\nInsufficient arguments" >&2
+    exit
 fi
 
 # Set up the context
@@ -74,8 +88,8 @@ fi
 
 # Ensure we are in the root of the account tree
 if [[ "${LOCATION}" != "root" ]]; then
-    echo -e "\nWe don't appear to be in the root of the account tree. Are we in the right place?"
-    usage
+    echo -e "\nWe don't appear to be in the root of the account tree. Are we in the right place?" >&2
+    exit
 fi
 
 # Create the directories for the product
@@ -95,8 +109,8 @@ mkdir -p ${CREDENTIALS_DIR}
 PRODUCT_PROFILE=${PRODUCT_DIR}/product.json
 if [[ -f ${PRODUCT_PROFILE} ]]; then
     if [[ "${UPDATE_PRODUCT}" != "true" ]]; then
-        echo -e "\nProduct profile already exists. Maybe try using update option?"
-        usage
+        echo -e "\nProduct profile already exists. Maybe try using update option?" >&2
+        exit
     fi
 else
     echo "{\"Product\":{}}" > ${PRODUCT_PROFILE}
@@ -115,7 +129,7 @@ if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Stem=\$DOMAIN"
 if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Certificate.Id=\$CERTIFICATE_ID"; fi
 
 # Generate the product profile
-cat ${PRODUCT_PROFILE} | jq --indent 4 \
+jq --indent 4 \
 --arg PID "${PID}" \
 --arg PRODUCT "${PRODUCT}" \
 --arg TITLE "${TITLE}" \
@@ -123,19 +137,19 @@ cat ${PRODUCT_PROFILE} | jq --indent 4 \
 --arg AWS_REGION "${AWS_REGION}" \
 --arg DOMAIN "${DOMAIN}" \
 --arg CERTIFICATE_ID "${CERTIFICATE_ID}" \
-"${FILTER}" > ${PRODUCT_DIR}/temp_product.json
+"${FILTER}" < ${PRODUCT_PROFILE} > ${PRODUCT_DIR}/temp_product.json
 RESULT=$?
 
 if [[ ${RESULT} -eq 0 ]]; then
     mv ${PRODUCT_DIR}/temp_product.json ${PRODUCT_DIR}/product.json
 else
-    echo -e "\nError creating product profile" 
+    echo -e "\nError creating product profile" >&2
     exit
 fi
 
 # Provide an empty credentials profile for the product
 if [[ ! -f ${CREDENTIALS_DIR}/credentials.json ]]; then
-    echo "{\"Credentials\" : {}}" | jq --indent 4 '.' > ${CREDENTIALS_DIR}/credentials.json
+    jq --indent 4 '.' <<< "{\"Credentials\" : {}}" > ${CREDENTIALS_DIR}/credentials.json
 fi
 
 # Ignore local files

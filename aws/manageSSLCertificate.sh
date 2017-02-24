@@ -6,29 +6,43 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 CERTIFICATE_OPERATION_LIST="list"
 CERTIFICATE_OPERATION_DELETE="delete"
 CERTIFICATE_OPERATION_UPLOAD="upload"
+
+# Defaults
 CERTIFICATE_OPERATION_DEFAULT="${CERTIFICATE_OPERATION_UPLOAD}"
 
 function usage() {
-    echo -e "\nUpdate SSL certificate details in AWS" 
-    echo -e "\nUsage: $(basename $0) -i CERTIFICATE_ID -p CERTIFICATE_PUBLIC -v CERTIFICATE_PRIVATE -c CERTIFICATE_CHAIN -r REGION -q"
-    echo -e "\nor $(basename $0) -i CERTIFICATE_ID -d"
-    echo -e "\nor $(basename $0) -l"
-    echo -e "\nwhere\n"
-    echo -e "(c) -c CERTIFICATE_CHAIN is the path to the file containing intermediate certificates, required for upload operation"
-    echo -e "    -h shows this text"
-    echo -e "(c) -i CERTIFICATE_ID is the id of the certificate, required for delete and upload operations"
-    echo -e "(c) -p CERTIFICATE_PUBLIC is the path to the public certificate file, required for upload operation"
-    echo -e "(o) -q minimal output (quiet)"
-    echo -e "(c) -r REGION is the AWS region identifier for the region where the certificate should be updated, required for upload operation"
-    echo -e "(c) -v CERTIFICATE_PRIVATE is the path to the private certificate file, required for upload operation"
-    echo -e "(o) -l (CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION_LIST}) to list the certificates"
-    echo -e "(o) -d (CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION_DELETE}) to delete the certificate"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "CERTIFICATE_OPERATION = ${CERTIFICATE_OPERATION_DEFAULT}"
-    echo -e "\nNOTES:\n"
-    echo -e "1. The Id is used as the name of the certificate within AWS"
-    echo -e "2. The certificate will be loaded for both ELB (/ssl/) and CloudFront (/cloudfront/)"
-    echo -e ""
+    cat <<EOF
+
+Update SSL certificate details in AWS
+
+Usage: $(basename $0) -i CERTIFICATE_ID -p CERTIFICATE_PUBLIC -v CERTIFICATE_PRIVATE -c CERTIFICATE_CHAIN -r REGION -q
+    or $(basename $0) -i CERTIFICATE_ID -d
+    or $(basename $0) -l
+
+where
+
+(c) -c CERTIFICATE_CHAIN    is the path to the file containing intermediate certificates, required for upload operation
+    -h                      shows this text
+(c) -i CERTIFICATE_ID       is the id of the certificate, required for delete and upload operations
+(c) -p CERTIFICATE_PUBLIC   is the path to the public certificate file, required for upload operation
+(o) -q                      minimal output (quiet)
+(c) -r REGION               is the AWS region identifier for the region where the certificate should be updated, required for upload operation
+(c) -v CERTIFICATE_PRIVATE  is the path to the private certificate file, required for upload operation
+(o) -l (CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION_LIST}) to list the certificates
+(o) -d (CERTIFICATE_OPERATION=${CERTIFICATE_OPERATION_DELETE}) to delete the certificate
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+CERTIFICATE_OPERATION = ${CERTIFICATE_OPERATION_DEFAULT}
+
+NOTES:
+
+1. The Id is used as the name of the certificate within AWS
+2. The certificate will be loaded for both ELB (/ssl/) and CloudFront (/cloudfront/)
+
+EOF
     exit
 }
 
@@ -63,12 +77,12 @@ while getopts ":c:hi:p:qr:v:dl" opt; do
             CERTIFICATE_PRIVATE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
@@ -83,8 +97,8 @@ case ${CERTIFICATE_OPERATION} in
         ;;
     ${CERTIFICATE_OPERATION_DELETE})
         if [[ (-z "${CERTIFICATE_ID}") ]]; then
-          echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
-          usage
+          echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation" >&2
+          exit
         fi
         ;;
     ${CERTIFICATE_OPERATION_UPLOAD})
@@ -93,13 +107,13 @@ case ${CERTIFICATE_OPERATION} in
               (-z "${CERTIFICATE_PRIVATE}") ||
               (-z "${CERTIFICATE_CHAIN}") ||
               (-z "${REGION}") ]]; then
-          echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
-          usage
+          echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation" >&2
+          exit
         fi
         ;;
     *)
-        echo -e "\n\"${CERTIFICATE_OPERATION}\" is not one of the known certificate operations."
-        usage
+        echo -e "\n\"${CERTIFICATE_OPERATION}\" is not one of the known certificate operations." >&2
+        exit
         ;;
 esac
 

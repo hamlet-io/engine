@@ -3,18 +3,32 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
+
 function usage() {
-    echo -e "\nUpdate SSH certificate details in AWS" 
-    echo -e "\nUsage: $(basename $0) -i CERTIFICATE_ID -p CERTIFICATE_PUBLIC -r REGION -q"
-    echo -e "\nwhere\n"
-    echo -e "    -h shows this text"
-    echo -e "(m) -i CERTIFICATE_ID is the id of the certificate"
-    echo -e "(m) -p CERTIFICATE_PUBLIC is the path to the public certificate file"
-    echo -e "(o) -q minimal output (quiet)"
-    echo -e "(m) -r REGION is the AWS region identifier for the region where the certificate should be updated"
-    echo -e "\nNOTES:\n"
-    echo -e "1. The Id is used as the name of the certificate within AWS"
-    echo -e ""
+    cat <<EOF
+
+Update SSH certificate details in AWS
+
+Usage: $(basename $0) -i CERTIFICATE_ID -p CERTIFICATE_PUBLIC -r REGION -q
+
+where
+
+    -h                      shows this text
+(m) -i CERTIFICATE_ID       is the id of the certificate
+(m) -p CERTIFICATE_PUBLIC   is the path to the public certificate file
+(o) -q                      minimal output (quiet)
+(m) -r REGION               is the AWS region identifier for the region where the certificate should be updated
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+1. The Id is used as the name of the certificate within AWS
+
+EOF
     exit
 }
 
@@ -37,12 +51,12 @@ while getopts ":hi:p:qr:" opt; do
             REGION="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
@@ -51,8 +65,8 @@ done
 if [[ (-z "${CERTIFICATE_ID}") ||
       (-z "${CERTIFICATE_PUBLIC}") ||
       (-z "${REGION}") ]]; then
-  echo -e "\nInsufficient arguments"
-  usage
+  echo -e "\nInsufficient arguments" >&2
+  exit
 fi
 
 # Set up the context
@@ -66,7 +80,7 @@ aws --region ${REGION} ec2 describe-key-pairs --key-name ${CERTIFICATE_ID} > tem
 RESULT=$?
 if [[ "${QUIET}" != "true" ]]; then cat temp_ssh_check.out; fi
 if [[ "${RESULT}" -ne 0 ]]; then
-    CRT=$(cat "${LOCAL_CERTIFICATE_PUBLIC}" | dos2unix | awk 'BEGIN {RS="\n"} /^[^-]/ {printf $1}')
+    CRT=$(dos2unix < ${LOCAL_CERTIFICATE_PUBLIC} | awk 'BEGIN {RS="\n"} /^[^-]/ {printf $1}')
     aws --region ${REGION} ec2 import-key-pair --key-name ${CERTIFICATE_ID} --public-key-material $CRT
     RESULT=$?
 fi

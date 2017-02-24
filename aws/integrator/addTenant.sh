@@ -3,28 +3,42 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
+
 function usage() {
-    echo -e "\nAdd a new tenant"
-    echo -e "\nUsage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_REGION -u"
-    echo -e "\nwhere\n"
-    echo -e "(o) -d DESCRIPTION is the tenant description"
-    echo -e "    -h shows this text"
-    echo -e "(o) -l TITLE is the tenant title"
-    echo -e "(m) -n TENANT is the human readable form (one word, lowercase and no spaces) of the tenant id"
-    echo -e "(o) -o DOMAIN is the default DNS domain to be used for tenant products and accounts"
-    echo -e "(o) -r AWS_REGION is the default AWS region for the tenant"
-    echo -e "(o) -t TID is the tenant id"
-    echo -e "(o) -u if details should be updated"
-    echo -e "\nDEFAULTS (creation only):\n"
-    echo -e "TID=TENANT"
-    echo -e "\nNOTES:\n"
-    echo -e "1. The script must be run from the root of the integrator tree"
-    echo -e "2. A sub-directory is created for the tenant"
-    echo -e "3. The tenant information is saved in the tenant profile"
-    echo -e "4. The integrator profile forms the basis for the tenant profile" 
-    echo -e "5. To update the details, the update option must be explicitly set"
-    echo -e "6. The domain will default on tenant creation to {TENANT}.{integrator domain}"
-    echo -e ""
+    cat <<EOF
+
+Add a new tenant
+
+Usage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_REGION -u
+
+where
+
+(o) -d DESCRIPTION  is the tenant description
+    -h              shows this text
+(o) -l TITLE        is the tenant title
+(m) -n TENANT       is the human readable form (one word, lowercase and no spaces) of the tenant id
+(o) -o DOMAIN       is the default DNS domain to be used for tenant products and accounts
+(o) -r AWS_REGION   is the default AWS region for the tenant
+(o) -t TID          is the tenant id
+(o) -u              if details should be updated
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS (creation only):
+
+TID=TENANT
+
+NOTES:
+
+1. The script must be run from the root of the integrator tree
+2. A sub-directory is created for the tenant
+3. The tenant information is saved in the tenant profile
+4. The integrator profile forms the basis for the tenant profile
+5. To update the details, the update option must be explicitly set
+6. The domain will default on tenant creation to {TENANT}.{integrator domain}
+
+EOF
     exit
 }
 
@@ -56,27 +70,27 @@ while getopts ":d:hl:n:o:r:t:u" opt; do
             UPDATE_TENANT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${TENANT}") ]]; then
-    echo -e "\nInsufficient arguments"
-    usage
+    echo -e "\nInsufficient arguments" >&2
+    exit
 fi
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
 if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?"
-    usage
+    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
+    exit
 fi
 
 # Create the directory for the tenant
@@ -87,8 +101,8 @@ mkdir -p ${TENANT_DIR}
 TENANT_PROFILE=${TENANT_DIR}/tenant.json
 if [[ -f ${TENANT_PROFILE} ]]; then
     if [[ "${UPDATE_TENANT}" != "true" ]]; then
-        echo -e "\nTenant profile already exists. Maybe try using update option?"
-        usage
+        echo -e "\nTenant profile already exists. Maybe try using update option?" >&2
+        exit
     fi
 else
     jq 'del(.Integrator)' ${INTEGRATOR_PROFILE} > ${TENANT_PROFILE}
@@ -113,7 +127,7 @@ if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Certificate.Id
 if [[ -n "${IP_ADDRESS_BLOCKS}" ]]; then FILTER="${FILTER} | .Segment.IPAddressBlocks.global=\$IP_ADDRESS_BLOCKS"; fi
 
 # Generate the tenant profile
-cat ${TENANT_PROFILE} | jq --indent 4 \
+jq --indent 4 \
 --arg TID "${TID}" \
 --arg TENANT "${TENANT}" \
 --arg TITLE "${TITLE}" \
@@ -122,19 +136,19 @@ cat ${TENANT_PROFILE} | jq --indent 4 \
 --arg DOMAIN "${DOMAIN}" \
 --arg VALIDATION_DOMAIN "${VALIDATION_DOMAIN}" \
 --arg IP_ADDRESS_BLOCKS "${IP_ADDRESS_BLOCKS}" \
-"${FILTER}" > ${TENANT_DIR}/temp_tenant.json
+"${FILTER}" < ${TENANT_PROFILE} > ${TENANT_DIR}/temp_tenant.json
 RESULT=$?
 
 if [[ ${RESULT} -eq 0 ]]; then
     mv ${TENANT_DIR}/temp_tenant.json ${TENANT_DIR}/tenant.json
 else
-    echo -e "\nError creating tenant profile" 
+    echo -e "\nError creating tenant profile" >&2
     exit
 fi
 
 # Provide an empty credentials profile for the tenant
 if [[ ! -f ${TENANT_DIR}/credentials.json ]]; then
-    echo "{\"Credentials\" : {}}" | jq --indent 4 '.' > ${TENANT_DIR}/credentials.json
+    jq --indent 4 '.' <<< "{\"Credentials\" : {}}" > ${TENANT_DIR}/credentials.json
 fi
 
 

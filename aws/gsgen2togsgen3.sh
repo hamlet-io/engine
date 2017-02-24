@@ -2,17 +2,31 @@
 
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
+
 function usage() {
-    echo -e "\nConvert config/infrastructure trees used for gsgen2 to the format required for gsgen3" 
-    echo -e "\nUsage: $(basename $0) -a AID -p PID"
-    echo -e "\nwhere\n"
-    echo -e "(m) -a AID is the tenant account id e.g. \"env01\""
-    echo -e "    -h shows this text"
-    echo -e "(m) -p PID is the product id for the product e.g. \"eticket\""
-    echo -e "\nNOTES:\n"
-    echo -e "1. GSGEN3 expects product directories to be the immediate children of the config and infrastructure directories"
-    echo -e "2. It is assumed we are in the config or infrastructure directory under the AID directory when the script is run"
-    echo -e ""
+    cat <<EOF
+
+Convert config/infrastructure trees used for gsgen2 to the format required for gsgen3
+
+Usage: $(basename $0) -a AID -p PID
+
+where
+
+(m) -a AID  is the tenant account id e.g. "env01"
+    -h      shows this text
+(m) -p PID  is the product id for the product e.g. "eticket"
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+NOTES:
+
+1. GSGEN3 expects product directories to be the immediate children of the config and infrastructure directories
+2. It is assumed we are in the config or infrastructure directory under the AID directory when the script is run
+
+EOF
     exit
 }
 
@@ -29,12 +43,12 @@ while getopts ":a:hl:p:r:s:t:" opt; do
             PID="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
@@ -42,16 +56,16 @@ done
 # Ensure mandatory arguments have been provided
 if [[ "${AID}" == "" ||
       "${PID}"  == "" ]]; then
-    echo -e "\nInsufficient arguments"
-    usage
+    echo -e "\nInsufficient arguments" >&2
+    exit
 fi
 
 AID_DIR="$(basename $(cd ..;pwd))"
 CURRENT_DIR="$(basename $(pwd))"
 
 if [[ "${AID}" != "${AID_DIR}" ]]; then
-    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do."
-    usage
+    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
+    exit
 fi
 
 # If in a repo, save the results of the rearrangement

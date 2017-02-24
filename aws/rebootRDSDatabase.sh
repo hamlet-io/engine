@@ -3,23 +3,36 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
 DELAY_DEFAULT=30
 TIER_DEFAULT="database"
+
 function usage() {
-    echo -e "\Reboot an RDS Database" 
-    echo -e "\nUsage: $(basename $0) -t TIER -i COMPONENT -f -d DELAY\n"
-    echo -e "\nwhere\n"
-    echo -e "(o) -d DELAY is the interval between checking the progress of reboot"
-    echo -e "(o) -f force reboot via failover"
-    echo -e "    -h shows this text"
-    echo -e "(m) -i COMPONENT is the name of the database component in the solution"
-    echo -e "(o) -r (REBOOT ONLY) initiates but does not monitor the reboot process"
-    echo -e "(o) -t TIER is the name of the database tier in the solution"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "DELAY     = ${DELAY_DEFAULT} seconds"
-    echo -e "TIER      = ${TIER_DEFAULT}"
-    echo -e "\nNOTES:\n"
-    echo -e ""
+    cat <<EOF
+
+Reboot an RDS Database
+
+Usage: $(basename $0) -t TIER -i COMPONENT -f -d DELAY
+
+where
+
+(o) -d DELAY            is the interval between checking the progress of reboot
+(o) -f                  force reboot via failover
+    -h                  shows this text
+(m) -i COMPONENT        is the name of the database component in the solution
+(o) -r (REBOOT ONLY)    initiates but does not monitor the reboot process
+(o) -t TIER             is the name of the database tier in the solution
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+DELAY     = ${DELAY_DEFAULT} seconds
+TIER      = ${TIER_DEFAULT}
+
+NOTES:
+
+EOF
     exit
 }
 
@@ -49,20 +62,20 @@ while getopts ":d:fhi:rt:" opt; do
             TIER="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
 if [[ "${COMPONENT}"  == "" ]]; then
-  echo -e "\nInsufficient arguments"
-  usage
+  echo -e "\nInsufficient arguments" >&2
+  exit
 fi
 
 # Set up the context
@@ -70,8 +83,8 @@ fi
 
 # Ensure we are in the right place
 if [[ "${LOCATION}" != "segment" ]]; then
-    echo -e "\nWe don't appear to be in the right directory. Nothing to do"
-    usage
+    echo -e "\nWe don't appear to be in the right directory. Nothing to do" >&2
+    exit
 fi
 
 FAILOVER_OPTION="--no-force-failover"

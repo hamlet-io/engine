@@ -3,36 +3,50 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
+# Defaults
 STACK_INITIATE_DEFAULT="true"
 STACK_MONITOR_DEFAULT="true"
 STACK_OPERATION_DEFAULT="update"
 STACK_WAIT_DEFAULT=30
+
 function usage() {
-    echo -e "\nManage a CloudFormation stack"
-    echo -e "\nUsage: $(basename $0) -t TYPE -s SLICE -i -m -w STACK_WAIT -r REGION -n STACK_NAME -d\n"
-    echo -e "\nwhere\n"
-    echo -e "(o) -d (STACK_OPERATION=delete) to delete the stack"
-    echo -e "    -h shows this text"
-    echo -e "(o) -i (STACK_MONITOR=false) initiates but does not monitor the stack operation"
-    echo -e "(o) -m (STACK_INITIATE=false) monitors but does not initiate the stack operation"
-    echo -e "(o) -n STACK_NAME to override standard stack naming"
-    echo -e "(o) -r REGION is the AWS region identifier for the region in which the stack should be managed"
-    echo -e "(m) -s SLICE is the slice used to determine the stack template"
-    echo -e "(m) -t TYPE is the stack type - \"account\", \"product\", \"segment\", \"solution\" or \"application\""
-    echo -e "(o) -w STACK_WAIT is the interval between checking the progress of the stack operation"
-    echo -e "\nDEFAULTS:\n"
-    echo -e "STACK_INITIATE = ${STACK_INITIATE_DEFAULT}"
-    echo -e "STACK_MONITOR = ${STACK_MONITOR_DEFAULT}"
-    echo -e "STACK_OPERATION = ${STACK_OPERATION_DEFAULT}"
-    echo -e "STACK_WAIT = ${STACK_WAIT_DEFAULT} seconds"
-    echo -e "\nNOTES:\n"
-    echo -e "1. You must be in the correct directory corresponding to the requested stack type"
-    echo -e "2. REGION is only relevant for the \"product\" type, where multiple product stacks are necessary"
-    echo -e "   if the product uses resources in multiple regions"  
-    echo -e "3. \"segment\" is now used in preference to \"container\" to avoid confusion with docker"
-    echo -e "4. If stack doesn't exist in AWS, the update operation will create the stack"
-    echo -e "5. Overriding the stack name is not recommended except where legacy naming has to be maintained" 
-    echo -e ""
+    cat <<EOF
+
+Manage a CloudFormation stack
+
+Usage: $(basename $0) -t TYPE -s SLICE -i -m -w STACK_WAIT -r REGION -n STACK_NAME -d
+
+where
+
+(o) -d (STACK_OPERATION=delete) to delete the stack
+    -h                          shows this text
+(o) -i (STACK_MONITOR=false)    initiates but does not monitor the stack operation
+(o) -m (STACK_INITIATE=false)   monitors but does not initiate the stack operation
+(o) -n STACK_NAME               to override standard stack naming
+(o) -r REGION                   is the AWS region identifier for the region in which the stack should be managed
+(m) -s SLICE                    is the slice used to determine the stack template
+(m) -t TYPE                     is the stack type - "account", "product", "segment", "solution" or "application"
+(o) -w STACK_WAIT               is the interval between checking the progress of the stack operation
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+STACK_INITIATE = ${STACK_INITIATE_DEFAULT}
+STACK_MONITOR = ${STACK_MONITOR_DEFAULT}
+STACK_OPERATION = ${STACK_OPERATION_DEFAULT}
+STACK_WAIT = ${STACK_WAIT_DEFAULT} seconds
+
+NOTES:
+
+1. You must be in the correct directory corresponding to the requested stack type
+2. REGION is only relevant for the "product" type, where multiple product stacks are necessary
+   if the product uses resources in multiple regions
+3. "segment" is now used in preference to "container" to avoid confusion with docker
+4. If stack doesn't exist in AWS, the update operation will create the stack
+5. Overriding the stack name is not recommended except where legacy naming has to be maintained
+
+EOF
     exit
 }
 
@@ -67,12 +81,12 @@ while getopts ":dhimn:r:s:t:w:" opt; do
             STACK_WAIT="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
@@ -90,8 +104,8 @@ STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
 pushd ${CF_DIR} > /dev/null 2>&1
 
 if [[ ! -f "$TEMPLATE" ]]; then
-    echo -e "\n\"${TEMPLATE}\" not found. Are we in the correct place in the directory tree?"
-    usage
+    echo -e "\n\"${TEMPLATE}\" not found. Are we in the correct place in the directory tree?" >&2
+    exit
 fi
 
 # Assume all good
@@ -107,7 +121,7 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
 
         update)
             # Compress the template to avoid aws cli size limitations
-            cat $TEMPLATE | jq -c '.' > stripped_${TEMPLATE}
+            jq -c '.' < ${TEMPLATE} > stripped_${TEMPLATE}
         
             # Check if stack needs to be created
             aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null
@@ -125,8 +139,8 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
             ;;
 
         *)
-            echo -e "\n\"${STACK_OPERATION}\" is not one of the known stack operations."
-            usage
+            echo -e "\n\"${STACK_OPERATION}\" is not one of the known stack operations." >&2
+            exit
             ;;
     esac
 fi

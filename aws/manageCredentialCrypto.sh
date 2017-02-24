@@ -5,24 +5,37 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 
+# Defaults
 CREDENTIAL_TYPE_DEFAULT="Login"
+
 function usage() {
-  echo -e "\nManage crypto for credential storage"
-  echo -e "\nUsage: $(basename $0) -f CRYPTO_FILE -n CREDENTIAL_NAME -y CREDENTIAL_TYPE -i CREDENTIAL_ID -s CREDENTIAL_SECRET -e CREDENTIAL_EMAIL -v\n"
-  echo -e "\nwhere\n"
-  echo -e "(o) -e CREDENTIAL_EMAIL is the email associated with the credential (not encrypted)"
-  echo -e "(o) -f CRYPTO_FILE is the path to the credentials file to be used"
-  echo -e "    -h shows this text"
-  echo -e "(o) -i CREDENTIAL_ID of credential (i.e. Username/Client Key/Access Key value) - not encrypted"
-  echo -e "(m) -n CREDENTIAL_NAME for the set of values (id, secret, email)"
-  echo -e "(o) -s CREDENTIAL_SECRET of credential (i.e. Password/Secret Key value) - encrypted"
-  echo -e "(o) -v if CREDENTIAL_SECRET should be decrypted (visible)"
-  echo -e "(m) -y CREDENTIAL_TYPE of credential"
-  echo -e "\nDEFAULTS:\n"
-  echo -e "CREDENTIAL_TYPE = ${CREDENTIAL_TYPE_DEFAULT}"
-  echo -e "\nNOTES:\n"
-  echo -e ""
-  exit
+    cat <<EOF
+
+Manage crypto for credential storage
+
+Usage: $(basename $0) -f CRYPTO_FILE -n CREDENTIAL_NAME -y CREDENTIAL_TYPE -i CREDENTIAL_ID -s CREDENTIAL_SECRET -e CREDENTIAL_EMAIL -v
+
+where
+
+(o) -e CREDENTIAL_EMAIL     is the email associated with the credential (not encrypted)
+(o) -f CRYPTO_FILE          is the path to the credentials file to be used
+    -h                      shows this text
+(o) -i CREDENTIAL_ID        of credential (i.e. Username/Client Key/Access Key value) - not encrypted
+(m) -n CREDENTIAL_NAME      for the set of values (id, secret, email)
+(o) -s CREDENTIAL_SECRET    of credential (i.e. Password/Secret Key value) - encrypted
+(o) -v                      if CREDENTIAL_SECRET should be decrypted (visible)
+(m) -y CREDENTIAL_TYPE      of credential
+
+(m) mandatory, (o) optional, (d) deprecated
+
+DEFAULTS:
+
+CREDENTIAL_TYPE = ${CREDENTIAL_TYPE_DEFAULT}
+
+NOTES:
+
+EOF
+    exit
 }
 
 # Parse options
@@ -53,12 +66,12 @@ while getopts ":e:f:hi:n:s:vy:" opt; do
             CREDENTIAL_TYPE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}"
-            usage
+            echo -e "\nInvalid option: -${OPTARG}" >&2
+            exit
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument"
-            usage
+            echo -e "\nOption -${OPTARG} requires an argument" >&2
+            exit
             ;;
     esac
 done
@@ -67,8 +80,8 @@ CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
 if [[ (-z "${CREDENTIAL_NAME}") || (-z "${CREDENTIAL_TYPE}") ]]; then
-    echo -e "\nInsufficient arguments"
-    usage
+    echo -e "\nInsufficient arguments" >&2
+    exit
 fi
 
 # Define JSON paths
@@ -107,7 +120,7 @@ for ATTRIBUTE in ID SECRET EMAIL; do
         ${GENERATION_DIR}/manageCrypto.sh ${!VAR_ENCRYPT} -t "${!VAR_NAME}" -p "${!VAR_PATH}" -u -q
         RESULT=$?
         if [[ "${RESULT}" -ne 0 ]]; then
-            echo -e "\nFailed to update credential ${ATTRIBUTE}"
+            echo -e "\nFailed to update credential ${ATTRIBUTE}" >&2
             exit
         fi
     fi
@@ -121,7 +134,7 @@ for ATTRIBUTE in ID SECRET EMAIL; do
     RAW_VALUE=$(${GENERATION_DIR}/manageCrypto.sh -n -p "${!VAR_PATH}")
     RESULT=$?
     if [[ "${RESULT}" -eq 0 ]]; then
-        ENCRYPTED=$(echo "${RAW_VALUE}" | grep -q "${BASE64_REGEX}")
+        ENCRYPTED=$(grep -q "${BASE64_REGEX}" <<< "${RAW_VALUE}")
         if [[ ($? -eq 0) && (-n "${CRYPTO_VISIBLE}" ) ]]; then
             VALUE=$(${GENERATION_DIR}/manageCrypto.sh -d -b -v -p "${!VAR_PATH}" 2> /dev/null)
             RESULT=$?
