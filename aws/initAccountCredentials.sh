@@ -14,9 +14,9 @@ Usage: $(basename $0) -o TID -i AINDEX
 
 where
 
-    -h shows this text
-(o) -i AINDEX is the 2 digit tenant account index e.g. "01", "02"
-(m) -o TID is the tenant id e.g. "env"
+    -h          shows this text
+(o) -i AINDEX   is the 2 digit tenant account index e.g. "01", "02"
+(m) -o TID      is the tenant id e.g. "env"
 
 (m) mandatory, (o) optional, (d) deprecated
 

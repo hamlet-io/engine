@@ -14,11 +14,11 @@ Usage: $(basename $0) -i CERTIFICATE_ID -p CERTIFICATE_PUBLIC -r REGION -q
 
 where
 
-    -h shows this text
-(m) -i CERTIFICATE_ID is the id of the certificate
-(m) -p CERTIFICATE_PUBLIC is the path to the public certificate file
-(o) -q minimal output (quiet)
-(m) -r REGION is the AWS region identifier for the region where the certificate should be updated
+    -h                      shows this text
+(m) -i CERTIFICATE_ID       is the id of the certificate
+(m) -p CERTIFICATE_PUBLIC   is the path to the public certificate file
+(o) -q                      minimal output (quiet)
+(m) -r REGION               is the AWS region identifier for the region where the certificate should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

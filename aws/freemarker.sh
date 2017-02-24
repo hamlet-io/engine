@@ -14,12 +14,12 @@ Usage: $(basename $0) -t TEMPLATE -d TEMPLATEDIR -o OUTPUT (-v VARIABLE=VALUE)*
 
 where
 
-(m) -d TEMPLATEDIR is the directory containing the template
-    -h shows this text
-(m) -o OUTPUT is the path of the resulting document
-(o) -r VARIABLE=VALUE (o) defines a variable and corresponding value to be made available in the template
-(m) -t TEMPLATE is the filename of the Freemarker template to use
-(o) -v VARIABLE=VALUE (o) defines a variable and corresponding value to be made available in the template
+(m) -d TEMPLATEDIR          is the directory containing the template
+    -h                      shows this text
+(m) -o OUTPUT               is the path of the resulting document
+(o) -r VARIABLE=VALUE (o)   defines a variable and corresponding value to be made available in the template
+(m) -t TEMPLATE             is the filename of the Freemarker template to use
+(o) -v VARIABLE=VALUE (o)   defines a variable and corresponding value to be made available in the template
 
 (m) mandatory, (o) optional, (d) deprecated
 

@@ -14,10 +14,10 @@ Usage: $(basename $0) -t TENANT -a ACCOUNT -u
 
 where
 
-(m) -a ACCOUNT is the tenant account name
-    -h shows this text
-(m) -t TENANT is the tenant name
-(o) -u if details should be updated
+(m) -a ACCOUNT  is the tenant account name
+    -h          shows this text
+(m) -t TENANT   is the tenant name
+(o) -u          if details should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

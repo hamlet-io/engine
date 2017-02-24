@@ -14,9 +14,9 @@ Usage: $(basename $0) -s SOLUTION_NAME  -u
 
 where
 
-    -h shows this text
-(m) -s SOLUTION_NAME is the name of the solution pattern
-(o) -u if solution should be updated
+    -h                  shows this text
+(m) -s SOLUTION_NAME    is the name of the solution pattern
+(o) -u                  if solution should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

@@ -13,9 +13,9 @@ Usage: $(basename $0) -a AID -p PID
 
 where
 
-(m) -a AID is the tenant account id e.g. "env01"
-    -h shows this text
-(m) -p PID is the product id for the product e.g. "eticket"
+(m) -a AID  is the tenant account id e.g. "env01"
+    -h      shows this text
+(m) -p PID  is the product id for the product e.g. "eticket"
 
 (m) mandatory, (o) optional, (d) deprecated
 

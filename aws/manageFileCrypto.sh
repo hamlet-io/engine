@@ -14,11 +14,11 @@ Usage: $(basename $0) -f CRYPTO_FILE -e -d -u
 
 where
 
-(o) -d if file should be decrypted
-(o) -e if file should be encrypted
-(o) -f CRYPTO_FILE is the path to the file managed
-    -h shows this text
-(o) -u if file should be updated
+(o) -d              if file should be decrypted
+(o) -e              if file should be encrypted
+(o) -f CRYPTO_FILE  is the path to the file managed
+    -h              shows this text
+(o) -u              if file should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

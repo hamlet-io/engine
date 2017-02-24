@@ -14,14 +14,14 @@ Usage: $(basename $0) -l TITLE -n PRODUCT -d DESCRIPTION -p PID -o DOMAIN -r AWS
 
 where
 
-(o) -d DESCRIPTION is the product description
-    -h shows this text
-(o) -l TITLE is the product title
-(m) -n PRODUCT is the human readable form (one word, lowercase and no spaces) of the product id
-(o) -o DOMAIN is the default DNS domain to be used for the product
-(o) -p PID is the product id
-(o) -r AWS_REGION is the default AWS region for the product
-(o) -u if details should be updated
+(o) -d DESCRIPTION  is the product description
+    -h              shows this text
+(o) -l TITLE        is the product title
+(m) -n PRODUCT      is the human readable form (one word, lowercase and no spaces) of the product id
+(o) -o DOMAIN       is the default DNS domain to be used for the product
+(o) -p PID          is the product id
+(o) -r AWS_REGION   is the default AWS region for the product
+(o) -u              if details should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

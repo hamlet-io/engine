@@ -14,14 +14,14 @@ Usage: $(basename $0) -l TITLE -n TENANT -d DESCRIPTION -t TID -o DOMAIN -r AWS_
 
 where
 
-(o) -d DESCRIPTION is the tenant description
-    -h shows this text
-(o) -l TITLE is the tenant title
-(m) -n TENANT is the human readable form (one word, lowercase and no spaces) of the tenant id
-(o) -o DOMAIN is the default DNS domain to be used for tenant products and accounts
-(o) -r AWS_REGION is the default AWS region for the tenant
-(o) -t TID is the tenant id
-(o) -u if details should be updated
+(o) -d DESCRIPTION  is the tenant description
+    -h              shows this text
+(o) -l TITLE        is the tenant title
+(m) -n TENANT       is the human readable form (one word, lowercase and no spaces) of the tenant id
+(o) -o DOMAIN       is the default DNS domain to be used for tenant products and accounts
+(o) -r AWS_REGION   is the default AWS region for the tenant
+(o) -t TID          is the tenant id
+(o) -u              if details should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

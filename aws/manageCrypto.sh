@@ -18,19 +18,19 @@ Usage: $(basename $0) -e -d -n -f CRYPTO_FILE -p JSON_PATH -t CRYPTO_TEXT -a ALI
 
 where
 
-(o) -a ALIAS for the master key to be used
-(o) -b force base64 decode of the input before processing
-(o) -d decrypt operation
-(o) -e encrypt operation
-(o) -f CRYPTO_FILE specifies a file which contains the plaintext or ciphertext to be processed
-    -h shows this text
-(o) -k KEYID for the master key to be used
-(o) -n no alteration to CRYPTO_TEXT (pass through as is)
-(o) -p JSON_PATH is the path to the attribute within CRYPTO_FILE to be processed
-(o) -q don't display result (quiet)
-(o) -t CRYPTO_TEXT is the plaintext or ciphertext to be processed
-    -u update the attribute at JSON_PATH (if provided), or replace CRYPTO_FILE with operation result
-    -v result is base64 decoded (visible)
+(o) -a ALIAS        for the master key to be used
+(o) -b              force base64 decode of the input before processing
+(o) -d              decrypt operation
+(o) -e              encrypt operation
+(o) -f CRYPTO_FILE  specifies a file which contains the plaintext or ciphertext to be processed
+    -h              shows this text
+(o) -k KEYID        for the master key to be used
+(o) -n              no alteration to CRYPTO_TEXT (pass through as is)
+(o) -p JSON_PATH    is the path to the attribute within CRYPTO_FILE to be processed
+(o) -q              don't display result (quiet)
+(o) -t CRYPTO_TEXT  is the plaintext or ciphertext to be processed
+    -u              update the attribute at JSON_PATH (if provided), or replace CRYPTO_FILE with operation result
+    -v              result is base64 decoded (visible)
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -250,7 +250,7 @@ if [[ "${RESULT}" -eq 0 ]]; then
     # Update if required
     if [[ "${CRYPTO_UPDATE}" == "true" ]]; then
         if [[ -n "${JSON_PATH}" ]]; then
-            jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" < ${TARGET_FILE} > "temp_${CRYPTO_FILENAME_DEFAULT}"
+            ${TARGET_FILE}" | jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" > "temp_${CRYPTO_FILENAME_DEFAULT}"
             RESULT=$?
             if [[ "${RESULT}" -eq 0 ]]; then
                 mv "temp_${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"

@@ -18,11 +18,11 @@ Usage: $(basename $0) -d STORAGE_DEVICE -p STORAGE_PROFILE -s STORAGE_SIZE -t CO
 
 where
 
-(m) -d STORAGE_DEVICE is the storage device
-    -h shows this text
-(m) -p STORAGE_PROFILE is the storage profile
-(m) -s STORAGE_SIZE is the storage size in Gb
-(m) -t COMPONENT_TYPE is the component type
+(m) -d STORAGE_DEVICE   is the storage device
+    -h                  shows this text
+(m) -p STORAGE_PROFILE  is the storage profile
+(m) -s STORAGE_SIZE     is the storage size in Gb
+(m) -t COMPONENT_TYPE   is the component type
 
 (m) mandatory, (o) optional, (d) deprecated
 

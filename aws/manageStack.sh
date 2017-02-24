@@ -19,14 +19,14 @@ Usage: $(basename $0) -t TYPE -s SLICE -i -m -w STACK_WAIT -r REGION -n STACK_NA
 where
 
 (o) -d (STACK_OPERATION=delete) to delete the stack
-    -h shows this text
-(o) -i (STACK_MONITOR=false) initiates but does not monitor the stack operation
-(o) -m (STACK_INITIATE=false) monitors but does not initiate the stack operation
-(o) -n STACK_NAME to override standard stack naming
-(o) -r REGION is the AWS region identifier for the region in which the stack should be managed
-(m) -s SLICE is the slice used to determine the stack template
-(m) -t TYPE is the stack type - "account", "product", "segment", "solution" or "application"
-(o) -w STACK_WAIT is the interval between checking the progress of the stack operation
+    -h                          shows this text
+(o) -i (STACK_MONITOR=false)    initiates but does not monitor the stack operation
+(o) -m (STACK_INITIATE=false)   monitors but does not initiate the stack operation
+(o) -n STACK_NAME               to override standard stack naming
+(o) -r REGION                   is the AWS region identifier for the region in which the stack should be managed
+(m) -s SLICE                    is the slice used to determine the stack template
+(m) -t TYPE                     is the stack type - "account", "product", "segment", "solution" or "application"
+(o) -w STACK_WAIT               is the interval between checking the progress of the stack operation
 
 (m) mandatory, (o) optional, (d) deprecated
 
