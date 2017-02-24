@@ -105,9 +105,9 @@ if [[ "${LOCATION}" != "segment" ]]; then
 fi
 
 # Extract key identifiers
-RID=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Id")
-CID=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .Id")
-KID=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .ECS.Tasks[] | objects | select(.Name==\"${TASK}\") | .Id")
+RID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Id" < ${COMPOSITE_BLUEPRINT})
+CID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .Id" < ${COMPOSITE_BLUEPRINT})
+KID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .ECS.Tasks[] | objects | select(.Name==\"${TASK}\") | .Id" < ${COMPOSITE_BLUEPRINT})
 
 # Find the cluster
 CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
@@ -127,7 +127,7 @@ aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition
 RESULT=$?
 if [ "$RESULT" -ne 0 ]; then exit; fi
 cat STATUS.txt
-TASK_ARN=$(cat STATUS.txt | jq -r ".tasks[0].taskArn")
+TASK_ARN=$(jq -r ".tasks[0].taskArn" < STATUS.txt)
 
 while true; do
     aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TASK_ARN} 2>/dev/null | jq ".tasks[] | select(.taskArn == \"${TASK_ARN}\") | {lastStatus: .lastStatus}" > STATUS.txt
@@ -144,7 +144,7 @@ done
 # Show the exit codes and return an error if they are not 0
 aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TASK_ARN} 2>/dev/null | jq ".tasks[].containers[] | {name: .name, exitCode: .exitCode}" > STATUS.txt
 cat STATUS.txt
-RESULT=$(cat STATUS.txt | jq ".exitCode" | grep -m 1 -v "^0$" | tr -d '"')
+RESULT=$(jq ".exitCode" | grep -m 1 -v "^0$" | tr -d '"' < STATUS.txt)
 RESULT=${RESULT:-0}
 
 

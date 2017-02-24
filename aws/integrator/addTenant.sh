@@ -127,7 +127,7 @@ if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Certificate.Id
 if [[ -n "${IP_ADDRESS_BLOCKS}" ]]; then FILTER="${FILTER} | .Segment.IPAddressBlocks.global=\$IP_ADDRESS_BLOCKS"; fi
 
 # Generate the tenant profile
-cat ${TENANT_PROFILE} | jq --indent 4 \
+jq --indent 4 \
 --arg TID "${TID}" \
 --arg TENANT "${TENANT}" \
 --arg TITLE "${TITLE}" \
@@ -136,7 +136,7 @@ cat ${TENANT_PROFILE} | jq --indent 4 \
 --arg DOMAIN "${DOMAIN}" \
 --arg VALIDATION_DOMAIN "${VALIDATION_DOMAIN}" \
 --arg IP_ADDRESS_BLOCKS "${IP_ADDRESS_BLOCKS}" \
-"${FILTER}" > ${TENANT_DIR}/temp_tenant.json
+"${FILTER}" < ${TENANT_PROFILE} > ${TENANT_DIR}/temp_tenant.json
 RESULT=$?
 
 if [[ ${RESULT} -eq 0 ]]; then

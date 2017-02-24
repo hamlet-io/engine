@@ -109,7 +109,7 @@ fi
 # Update the target file
 FILTER=".Storage[\"${STORAGE_PROFILE}\"][\"${COMPONENT_TYPE}\"].Volumes[0].Device=\"/dev/${STORAGE_DEVICE}\""
 FILTER="${FILTER} | .Storage[\"${STORAGE_PROFILE}\"][\"${COMPONENT_TYPE}\"].Volumes[0].Size=\"${STORAGE_SIZE}\""
-cat "${TARGET_FILE}" | jq --indent 4 "${FILTER}" > ./temp_profile.json
+jq --indent 4 "${FILTER}" < ${TARGET_FILE} > ./temp_profile.json
 RESULT=$?
 if [[ "${RESULT}" -eq 0 ]]; then
     mv ./temp_profile.json "${TARGET_FILE}"

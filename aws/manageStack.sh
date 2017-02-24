@@ -121,7 +121,7 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
 
         update)
             # Compress the template to avoid aws cli size limitations
-            cat $TEMPLATE | jq -c '.' > stripped_${TEMPLATE}
+            jq -c '.' < ${TEMPLATE} > stripped_${TEMPLATE}
         
             # Check if stack needs to be created
             aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null

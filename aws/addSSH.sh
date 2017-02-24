@@ -53,12 +53,12 @@ INFRASTRUCTURE_DIR="${GENERATION_DATA_DIR}/infrastructure/${PRODUCT}"
 CREDENTIALS_DIR="${INFRASTRUCTURE_DIR}/credentials"
 if [[ "product" =~ ${LOCATION} ]]; then
     SSH_ID="${PRODUCT}"
-    KEYID=$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r '.[] | select(.OutputKey=="cmkXproductXcmk") | .OutputValue | select (.!=null)')
+    KEYID=$(jq -r '.[] | select(.OutputKey=="cmkXproductXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})
 elif [[ "segment" =~ ${LOCATION} ]]; then
     CREDENTIALS_DIR="${CREDENTIALS_DIR}/${SEGMENT}"
     SSH_ID="${PRODUCT}-${SEGMENT}"
-    KEYID=$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r '.[] | select(.OutputKey=="cmkXsegmentXcmk") | .OutputValue | select (.!=null)')
-    SSHPERSEGMENT=$(cat ${COMPOSITE_BLUEPRINT} | jq -r '.Segment.SSHPerSegment | select (.!=null)')
+    KEYID=$(jq -r '.[] | select(.OutputKey=="cmkXsegmentXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})
+    SSHPERSEGMENT=$(jq -r '.Segment.SSHPerSegment | select (.!=null)' < ${COMPOSITE_BLUEPRINT})
     if [[ "${SSHPERSEGMENT}" != "true" ]]; then
         echo -e "\nAn SSH key is not required for this segment. Check the SSHPerSegment setting if unsure" >&2
         exit
