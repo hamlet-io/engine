@@ -222,7 +222,9 @@ if [[ -n "${PRODUCT}" ]]; then
         
         # Confirm it is an application deployment unit
         # TODO: should we use HERESTRING here?
-        APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(jq -r -f ${GENERATION_DIR}/listApplicationDeploymentUnits.jq < ${COMPOSITE_BLUEPRINT} | dos2unix))
+        # TODO remove next line when path length limitations in jq are fixed
+        cp ${GENERATION_DIR}/listApplicationDeploymentUnits.jq ./temp_listApplicationDeploymentUnits.jq
+        APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(jq -r -f ./temp_listApplicationDeploymentUnits.jq < ${COMPOSITE_BLUEPRINT} | dos2unix))
         if [[ -n "$(echo ${APPLICATION_DEPLOYMENT_UNIT_LIST} | grep -i ${DEPLOYMENT_UNIT})" ]]; then
             IS_APPLICATION_DEPLOYMENT_UNIT="true"
         
@@ -231,7 +233,7 @@ if [[ -n "${PRODUCT}" ]]; then
                 EFFECTIVE_DEPLOYMENT_UNIT=$(<"${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
             fi
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref" ]]; then
-                EFFECTIVE_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref")
+                EFFECTIVE_DEPLOYMENT_UNIT=$(<"${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref")
             fi
             
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/appsettings.json" ]]; then
