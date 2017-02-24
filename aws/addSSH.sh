@@ -57,7 +57,7 @@ fi
 
 # Ensure we've create a cmk to encrypt the SSH private key
 if [[ -z "${KEYID}" ]]; then
-    echo -e "\nNo cmk defined to encrypt the SSH private key. Create the cmk slice before running this script again"
+    echo -e "\nNo cmk defined to encrypt the SSH private key. Create the cmk deployment unit before running this script again"
     usage
 fi
 
