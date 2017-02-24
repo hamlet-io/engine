@@ -12,9 +12,9 @@ Usage: $(basename $0) -s SEGMENT -u
 
 where
 
-    -h shows this text
-(o) -s SEGMENT if details should be copied from an existing segment
-(o) -u if details should be updated
+    -h          shows this text
+(o) -s SEGMENT  if details should be copied from an existing segment
+(o) -u          if details should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

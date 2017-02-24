@@ -17,14 +17,14 @@ Usage: $(basename $0) -f CRYPTO_FILE -n CREDENTIAL_NAME -y CREDENTIAL_TYPE -i CR
 
 where
 
-(o) -e CREDENTIAL_EMAIL is the email associated with the credential (not encrypted)
-(o) -f CRYPTO_FILE is the path to the credentials file to be used
-    -h shows this text
-(o) -i CREDENTIAL_ID of credential (i.e. Username/Client Key/Access Key value) - not encrypted
-(m) -n CREDENTIAL_NAME for the set of values (id, secret, email)
-(o) -s CREDENTIAL_SECRET of credential (i.e. Password/Secret Key value) - encrypted
-(o) -v if CREDENTIAL_SECRET should be decrypted (visible)
-(m) -y CREDENTIAL_TYPE of credential
+(o) -e CREDENTIAL_EMAIL     is the email associated with the credential (not encrypted)
+(o) -f CRYPTO_FILE          is the path to the credentials file to be used
+    -h                      shows this text
+(o) -i CREDENTIAL_ID        of credential (i.e. Username/Client Key/Access Key value) - not encrypted
+(m) -n CREDENTIAL_NAME      for the set of values (id, secret, email)
+(o) -s CREDENTIAL_SECRET    of credential (i.e. Password/Secret Key value) - encrypted
+(o) -v                      if CREDENTIAL_SECRET should be decrypted (visible)
+(m) -y CREDENTIAL_TYPE      of credential
 
 (m) mandatory, (o) optional, (d) deprecated
 

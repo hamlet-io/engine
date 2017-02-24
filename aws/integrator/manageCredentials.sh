@@ -16,14 +16,14 @@ Usage: $(basename $0) -t TENANT -a ACCOUNT -n CREDENTIAL_NAME -y CREDENTIAL_TYPE
 
 where
 
-(o) -a ACCOUNT is the tenant account name
-(o) -e CREDENTIAL_EMAIL is the email associated with the credential (not encrypted)
-    -h shows this text
-(o) -i CREDENTIAL_ID of credential (i.e. Username/Client Key/Access Key value) - not encrypted
-(m) -n CREDENTIAL_NAME for the set of values (id, secret, email)
-(o) -s CREDENTIAL_SECRET of credential (i.e. Password/Secret Key value) - encrypted
-(m) -t TENANT is the tenant name
-(m) -y CREDENTIAL_TYPE of credential
+(o) -a ACCOUNT              is the tenant account name
+(o) -e CREDENTIAL_EMAIL     is the email associated with the credential (not encrypted)
+    -h                      shows this text
+(o) -i CREDENTIAL_ID        of credential (i.e. Username/Client Key/Access Key value) - not encrypted
+(m) -n CREDENTIAL_NAME      for the set of values (id, secret, email)
+(o) -s CREDENTIAL_SECRET    of credential (i.e. Password/Secret Key value) - encrypted
+(m) -t TENANT               is the tenant name
+(m) -y CREDENTIAL_TYPE      of credential
 
 (m) mandatory, (o) optional, (d) deprecated
 

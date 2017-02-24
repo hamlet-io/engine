@@ -17,13 +17,13 @@ Usage: $(basename $0) -t TIER -i COMPONENT -w TASK -e ENV -v VALUE -d DELAY
 
 where
 
-(o) -d DELAY is the interval between checking the progress of the task
-(o) -e ENV is the name of an environment variable to define for the task
-    -h shows this text
-(o) -i COMPONENT is the name of the component in the solution where the task is defined
-(o) -t TIER is the name of the tier in the solution where the task is defined
-(o) -v VALUE is the value for the last environment value defined (via -e) for the task
-(m) -w TASK is the name of the task to be run
+(o) -d DELAY        is the interval between checking the progress of the task
+(o) -e ENV          is the name of an environment variable to define for the task
+    -h              shows this text
+(o) -i COMPONENT    is the name of the component in the solution where the task is defined
+(o) -t TIER         is the name of the tier in the solution where the task is defined
+(o) -v VALUE        is the value for the last environment value defined (via -e) for the task
+(m) -w TASK         is the name of the task to be run
 
 (m) mandatory, (o) optional, (d) deprecated
 

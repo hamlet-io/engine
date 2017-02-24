@@ -14,17 +14,17 @@ Usage: $(basename $0) -l TITLE -n ACCOUNT -d DESCRIPTION -a AID -t TENANT -o DOM
 
 where
 
-(m) -a AID is the tenant account id
-(o) -c AWS_ID is the AWS account id
-(o) -d DESCRIPTION is the account description
-(o) -f if an existing shelf account should be used as the basis for the new account
-    -h shows this text
-(o) -l TITLE is the account title
-(m) -n ACCOUNT is the human readable form (one word, lowercase and no spaces) of the account id
-(o) -o DOMAIN is the default DNS domain to be used for account products
-(o) -r AWS_REGION is the AWS region identifier for the region in which the account will be created
-(m) -t TENANT is the tenant name
-(o) -u if details should be updated
+(m) -a AID          is the tenant account id
+(o) -c AWS_ID       is the AWS account id
+(o) -d DESCRIPTION  is the account description
+(o) -f              if an existing shelf account should be used as the basis for the new account
+    -h              shows this text
+(o) -l TITLE        is the account title
+(m) -n ACCOUNT      is the human readable form (one word, lowercase and no spaces) of the account id
+(o) -o DOMAIN       is the default DNS domain to be used for account products
+(o) -r AWS_REGION   is the AWS region identifier for the region in which the account will be created
+(m) -t TENANT       is the tenant name
+(o) -u              if details should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

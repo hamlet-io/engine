@@ -14,15 +14,15 @@ Usage: $(basename $0) -l TITLE -n SEGMENT -d DESCRIPTION -s SID -e EID -o DOMAIN
 
 where
 
-(o) -d DESCRIPTION is the segment description
-(o) -e EID is the ID of the environment of which this segment is part
-    -h shows this text
-(o) -l TITLE is the segment title
-(m) -n SEGMENT is the human readable form (one word, lowercase and no spaces) of the segment id
-(o) -o DOMAIN is the default DNS domain to be used for the segment
-(o) -r AWS_REGION is the default AWS region for the segment
-(o) -s SID is the segment id
-(o) -u if details should be updated
+(o) -d DESCRIPTION  is the segment description
+(o) -e EID          is the ID of the environment of which this segment is part
+    -h              shows this text
+(o) -l TITLE        is the segment title
+(m) -n SEGMENT      is the human readable form (one word, lowercase and no spaces) of the segment id
+(o) -o DOMAIN       is the default DNS domain to be used for the segment
+(o) -r AWS_REGION   is the default AWS region for the segment
+(o) -s SID          is the segment id
+(o) -u              if details should be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

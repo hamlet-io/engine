@@ -17,11 +17,11 @@ Usage: $(basename $0) -b BUCKET -p PREFIX -a ACL -d
 
 where
 
-(o) -a ACL is the canned ACL to apply to all objects in the bucket
-(m) -b BUCKET is the bucket to be updated
-    -d displays the ACLs but does not update them
-    -h shows this text
-(o) -p PREFIX is the key prefix for objects to be updated
+(o) -a ACL      is the canned ACL to apply to all objects in the bucket
+(m) -b BUCKET   is the bucket to be updated
+    -d          displays the ACLs but does not update them
+    -h          shows this text
+(o) -p PREFIX   is the key prefix for objects to be updated
 
 (m) mandatory, (o) optional, (d) deprecated
 

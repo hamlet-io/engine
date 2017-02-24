@@ -15,10 +15,11 @@ Usage: $(basename $0) -f JSON_FILTER -o JSON_OUTPUT -c -d JSON_LIST
 
 where
 
-(o) -c compact rather than pretty output formatting
-(o) -d to default missing attributes
-(o) -f JSON_FILTER is the filter to use
-(m) -o JSON_OUTPUT is the desired output file
+(o) -c              compact rather than pretty output formatting
+(o) -d              to default missing attributes
+(o) -f JSON_FILTER  is the filter to use
+    -h              shows this text
+(m) -o JSON_OUTPUT  is the desired output file
 
 (m) mandatory, (o) optional, (d) deprecated
 

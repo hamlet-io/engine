@@ -16,10 +16,10 @@ Usage: $(basename $0) -i PROCESSOR_INSTANCE -p PROCESSOR_PROFILE -t COMPONENT_TY
 
 where
 
-    -h shows this text
-(m) -i PROCESSOR_INSTANCE is the processor instance type
-(m) -p PROCESSOR_PROFILE is the processor profile
-(m) -t COMPONENT_TYPE is the component type
+    -h                      shows this text
+(m) -i PROCESSOR_INSTANCE   is the processor instance type
+(m) -p PROCESSOR_PROFILE    is the processor profile
+(m) -t COMPONENT_TYPE       is the component type
 
 (m) mandatory, (o) optional, (d) deprecated
 
