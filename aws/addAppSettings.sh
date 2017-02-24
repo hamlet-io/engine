@@ -77,7 +77,7 @@ if [[ -n "${COPY_SEGMENT}" ]]; then
     COPY_DIR="${APPSETTINGS_DIR}/${COPY_SEGMENT}"
 else
     # Find the solution name
-    SOLUTION_NAME=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Solution.Pattern | select(.!=null)")
+    SOLUTION_NAME=$(jq -r ".Solution.Pattern | select(.!=null)" < ${COMPOSITE_BLUEPRINT})
     
     if [[ -z "${SOLUTION_NAME}" ]]; then
         echo -e "\nNo solution pattern configured yet. Maybe try adding the solution first?" >&2

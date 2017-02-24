@@ -129,7 +129,7 @@ if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Stem=\$DOMAIN"
 if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Certificate.Id=\$CERTIFICATE_ID"; fi
 
 # Generate the product profile
-cat ${PRODUCT_PROFILE} | jq --indent 4 \
+jq --indent 4 \
 --arg PID "${PID}" \
 --arg PRODUCT "${PRODUCT}" \
 --arg TITLE "${TITLE}" \
@@ -137,7 +137,7 @@ cat ${PRODUCT_PROFILE} | jq --indent 4 \
 --arg AWS_REGION "${AWS_REGION}" \
 --arg DOMAIN "${DOMAIN}" \
 --arg CERTIFICATE_ID "${CERTIFICATE_ID}" \
-"${FILTER}" > ${PRODUCT_DIR}/temp_product.json
+"${FILTER}" < ${PRODUCT_PROFILE} > ${PRODUCT_DIR}/temp_product.json
 RESULT=$?
 
 if [[ ${RESULT} -eq 0 ]]; then

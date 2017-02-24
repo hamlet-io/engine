@@ -68,8 +68,8 @@ if [[ ! ("root" =~ ${LOCATION}) ]]; then
 fi
 
 # Locate the bucket names
-CODE_BUCKET=$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r ".[] | select(.OutputKey==\"s3XaccountXcode\") | .OutputValue | select(.!=null)")
-CREDENTIALS_BUCKET=$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r ".[] | select(.OutputKey==\"s3XaccountXcredentials\") | .OutputValue | select(.!=null)")
+CODE_BUCKET=$(jq -r ".[] | select(.OutputKey==\"s3XaccountXcode\") | .OutputValue | select(.!=null)" < ${COMPOSITE_STACK_OUTPUTS})
+CREDENTIALS_BUCKET=$(jq -r ".[] | select(.OutputKey==\"s3XaccountXcredentials\") | .OutputValue | select(.!=null)" < ${COMPOSITE_STACK_OUTPUTS})
 
 if [[ (-z "${CODE_BUCKET}") ||
         (-z "${CREDENTIALS_BUCKET}") ||

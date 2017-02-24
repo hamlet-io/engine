@@ -125,8 +125,8 @@ fi
 FILTER=". | .Docker.Registry=\"${AWS_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com\""
 
 # Generate the account appsettings
-cat ${ACCOUNT_APPSETTINGS} | jq --indent 4 \
-"${FILTER}" > temp_appsettings.json
+jq --indent 4 \
+"${FILTER}" < ${ACCOUNT_APPSETTINGS} > temp_appsettings.json
 RESULT=$?
 
 if [[ ${RESULT} -eq 0 ]]; then

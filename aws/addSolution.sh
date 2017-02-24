@@ -95,7 +95,7 @@ cp -rp ${PATTERN_DIR}/* ${TARGET_DIR}
 # Add a reference to the pattern to the solution
 SOLUTION_TEMP_FILE="${TARGET_DIR}/temp_solution.json"
 if [[ -f "${SOLUTION_FILE}" ]]; then
-    cat "${SOLUTION_FILE}" | jq --indent 4 ".Solution.Pattern=\"${SOLUTION_NAME}\"" > ${SOLUTION_TEMP_FILE}
+    jq --indent 4 ".Solution.Pattern=\"${SOLUTION_NAME}\"" < ${SOLUTION_FILE} > ${SOLUTION_TEMP_FILE}
     RESULT=$?
     if [[ "${RESULT}" -eq 0 ]]; then
         mv "${SOLUTION_TEMP_FILE}" "${SOLUTION_FILE}"

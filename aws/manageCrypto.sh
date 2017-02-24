@@ -140,22 +140,22 @@ if [[ (-z "${KEYID}") && (-n "${ALIAS}") ]]; then
     KEYID="alias/${ALIAS}"
 fi
 if [[ "segment" =~ ${LOCATION} ]]; then
-    KEYID=${KEYID:-$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r '.[] | select(.OutputKey=="cmkXsegmentXcmk") | .OutputValue | select (.!=null)')}
+    KEYID=${KEYID:-$(jq -r '.[] | select(.OutputKey=="cmkXsegmentXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})}
     if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials/${SEGMENT}/${CRYPTO_FILE}"); fi
     FILES+=("${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials/${SEGMENT}/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ "product" =~ ${LOCATION} ]]; then
-    KEYID=${KEYID:-$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r '.[] | select(.OutputKey=="cmkXproductXcmk") | .OutputValue | select (.!=null)')}
+    KEYID=${KEYID:-$(jq -r '.[] | select(.OutputKey=="cmkXproductXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})}
     if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials/${CRYPTO_FILE}"); fi
     FILES+=("${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ "account" =~ ${LOCATION} ]]; then
-    KEYID=${KEYID:-$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r '.[] | select(.OutputKey=="cmkXaccountXcmk") | .OutputValue | select (.!=null)')}
+    KEYID=${KEYID:-$(jq -r '.[] | select(.OutputKey=="cmkXaccountXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})}
     if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${INFRASTRUCTURE_DIR}/${ACCOUNT}/credentials/${CRYPTO_FILENAME_DEFAULT}"); fi
     FILES+=("${INFRASTRUCTURE_DIR}/${ACCOUNT}/credentials/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ ("root" =~ ${LOCATION}) || ("integrator" =~ ${LOCATION}) ]]; then
-    KEYID=${KEYID:-$(cat ${COMPOSITE_STACK_OUTPUTS} | jq -r '.[] | select(.OutputKey=="cmkXaccountXcmk") | .OutputValue | select (.!=null)')}
+    KEYID=${KEYID:-$(jq -r '.[] | select(.OutputKey=="cmkXaccountXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})}
 fi
 
 # Try and locate  file 
@@ -173,7 +173,7 @@ if [[ (-n "${JSON_PATH}") ]]; then
         exit
     fi
     # Default cipherdata to that in the element
-    JSON_TEXT=$(cat "${TARGET_FILE}" | jq -r "${JSON_PATH} | select (.!=null)" )
+    JSON_TEXT=$(jq -r "${JSON_PATH} | select (.!=null)" < ${TARGET_FILE})
     CRYPTO_TEXT="${CRYPTO_TEXT:-$JSON_TEXT}"
 
     if [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]]; then
@@ -192,7 +192,7 @@ else
             fi
         fi
         # Default cipherdata to the file contents
-        FILE_TEXT=$(cat "${TARGET_FILE}" )
+        FILE_TEXT=$( < ${TARGET_FILE})
         CRYPTO_TEXT="${CRYPTO_TEXT:-$FILE_TEXT}"
     fi
 fi
@@ -250,7 +250,7 @@ if [[ "${RESULT}" -eq 0 ]]; then
     # Update if required
     if [[ "${CRYPTO_UPDATE}" == "true" ]]; then
         if [[ -n "${JSON_PATH}" ]]; then
-            cat "${TARGET_FILE}" | jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" > "temp_${CRYPTO_FILENAME_DEFAULT}"
+            jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" < ${TARGET_FILE} > "temp_${CRYPTO_FILENAME_DEFAULT}"
             RESULT=$?
             if [[ "${RESULT}" -eq 0 ]]; then
                 mv "temp_${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"

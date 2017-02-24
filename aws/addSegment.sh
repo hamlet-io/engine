@@ -126,7 +126,7 @@ else
     echo "{\"Segment\":{}}" > ${SEGMENT_PROFILE}
     EID=${EID:-${SID}}
     SID=${SID:-${EID}}
-    ENVIRONMENT_TITLE=$(cat ${COMPOSITE_BLUEPRINT} | jq -r ".Environments[\"${EID}\"].Title | select(.!=null)")
+    ENVIRONMENT_TITLE=$(jq -r ".Environments[\"${EID}\"].Title | select(.!=null)" < ${COMPOSITE_BLUEPRINT})
     if [[ -z "${ENVIRONMENT_TITLE}" ]]; then 
         echo -e "\nEnvironment not defined in masterData.json. Was SID or EID provided?" >&2
         exit
@@ -147,7 +147,7 @@ if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Stem=\$DOMAIN"
 if [[ -n "${DOMAIN}" ]]; then FILTER="${FILTER} | .Product.Domain.Certificate.Id=\$CERTIFICATE_ID"; fi
 
 # Generate the segment profile
-cat ${SEGMENT_PROFILE} | jq --indent 4 \
+jq --indent 4 \
 --arg SID "${SID}" \
 --arg SEGMENT "${SEGMENT}" \
 --arg TITLE "${TITLE}" \
@@ -156,7 +156,7 @@ cat ${SEGMENT_PROFILE} | jq --indent 4 \
 --arg AWS_REGION "${AWS_REGION}" \
 --arg DOMAIN "${DOMAIN}" \
 --arg CERTIFICATE_ID "${CERTIFICATE_ID}" \
-"${FILTER}" > ${SEGMENT_SOLUTIONS_DIR}/temp_segment.json
+"${FILTER}" < ${SEGMENT_PROFILE} > ${SEGMENT_SOLUTIONS_DIR}/temp_segment.json
 RESULT=$?
 
 if [[ ${RESULT} -eq 0 ]]; then
