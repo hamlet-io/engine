@@ -192,7 +192,7 @@ else
             fi
         fi
         # Default cipherdata to the file contents
-        FILE_TEXT=$( < ${TARGET_FILE})
+        FILE_TEXT=$( cat ${TARGET_FILE})
         CRYPTO_TEXT="${CRYPTO_TEXT:-$FILE_TEXT}"
     fi
 fi
@@ -250,7 +250,7 @@ if [[ "${RESULT}" -eq 0 ]]; then
     # Update if required
     if [[ "${CRYPTO_UPDATE}" == "true" ]]; then
         if [[ -n "${JSON_PATH}" ]]; then
-            ${TARGET_FILE}" | jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" > "temp_${CRYPTO_FILENAME_DEFAULT}"
+            jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" < "${TARGET_FILE}"  > "temp_${CRYPTO_FILENAME_DEFAULT}"
             RESULT=$?
             if [[ "${RESULT}" -eq 0 ]]; then
                 mv "temp_${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"
