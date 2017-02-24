@@ -92,7 +92,9 @@ if [[ -z "${JSON_FILTER}" ]]; then
     done
 fi
 if [[ "${JSON_ADD_DEFAULTS}" == "true" ]]; then
-    jq ${JSON_FORMAT} -s "${JSON_FILTER}" "${JSON_ARRAY_SHORT[@]}" | jq -f ${GENERATION_DIR}/addDefaults.jq > ${JSON_OUTPUT}
+    # TODO remove next line when path length limitations in jq are fixed
+    cp ${GENERATION_DIR}/addDefaults.jq ./temp_addDefaults.jq
+    jq ${JSON_FORMAT} -s "${JSON_FILTER}" "${JSON_ARRAY_SHORT[@]}" | jq -f ./temp_addDefaults.jq > ${JSON_OUTPUT}
 else
     jq ${JSON_FORMAT} -s "${JSON_FILTER}" "${JSON_ARRAY_SHORT[@]}" > ${JSON_OUTPUT}
 fi

@@ -221,7 +221,9 @@ if [[ -n "${PRODUCT}" ]]; then
     if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
         
         # Confirm it is an application deployment unit
-        APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(cat ${COMPOSITE_BLUEPRINT} | jq -r -f ${GENERATION_DIR}/listApplicationDeploymentUnits.jq | dos2unix))
+        # TODO remove next line when path length limitations in jq are fixed
+        cp ${GENERATION_DIR}/listApplicationDeploymentUnits.jq ./temp_listApplicationDeploymentUnits.jq
+        APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(cat ${COMPOSITE_BLUEPRINT} | jq -r -f ./temp_listApplicationDeploymentUnits.jq | dos2unix))
         if [[ -n "$(echo ${APPLICATION_DEPLOYMENT_UNIT_LIST} | grep -i ${DEPLOYMENT_UNIT})" ]]; then
             IS_APPLICATION_DEPLOYMENT_UNIT="true"
         
