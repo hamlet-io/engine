@@ -14,7 +14,7 @@ function usage() {
 
 Manage a CloudFormation stack
 
-Usage: $(basename $0) -t TYPE -u DEPLOYMENT_UNIT -i -m -w STACK_WAIT -r REGION -n STACK_NAME -d
+Usage: $(basename $0) -t TYPE -u DEPLOYMENT_UNIT -i -m -w STACK_WAIT -r REGION -n STACK_NAME -y -d
 
 where
 
@@ -28,6 +28,7 @@ where
 (m) -t TYPE                     is the stack type - "account", "product", "segment", "solution" or "application"
 (m) -u DEPLOYMENT_UNIT          is the deployment unit used to determine the stack template
 (o) -w STACK_WAIT               is the interval between checking the progress of the stack operation
+(o) -y (DRYRUN=true)            for a dryrun - show what will happen without actually updating the strack
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -44,14 +45,16 @@ NOTES:
    if the product uses resources in multiple regions
 3. "segment" is now used in preference to "container" to avoid confusion with docker
 4. If stack doesn't exist in AWS, the update operation will create the stack
-5. Overriding the stack name is not recommended except where legacy naming has to be maintained"
+5. Overriding the stack name is not recommended except where legacy naming has to be maintained
+6. A dryrun creates a change set, then displays it. It only applies when
+   the STACK_OPERATION=update
 
 EOF
     exit
 }
 
 # Parse options
-while getopts ":dhimn:r:s:t:u:w:" opt; do
+while getopts ":dhimn:r:s:t:u:w:y" opt; do
     case $opt in
         d)
             STACK_OPERATION=delete
@@ -82,6 +85,9 @@ while getopts ":dhimn:r:s:t:u:w:" opt; do
             ;;
         w)
             STACK_WAIT="${OPTARG}"
+            ;;
+        y)
+            DRYRUN=true
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
@@ -117,6 +123,11 @@ RESULT=0
 if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
         delete)
+            if [[ ("${DRYRUN}" == "true") ]]; then
+                echo -e "\nDryrun not applicable when deleting a stack" >&2
+                exit
+            fi
+
             aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
 
             # For delete, we don't check result as stack may not exist
@@ -133,8 +144,25 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
                 STACK_OPERATION="create"
             fi
 
+            if [[ ("${DRYRUN}" == "true") && ("${STACK_OPERATION}" == "create") ]]; then
+                echo -e "\nDryrun not applicable when creating a stack" >&2
+                exit
+            fi
+
             # Initiate the required operation
-            aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name $STACK_NAME --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
+            if [[ ("${DRYRUN}" == "true") ]]; then
+
+                # Force monitoring to wait for change set to be complete
+                STACK_OPERATION="create"
+                STACK_MONITOR="true"
+
+                # Change set naming
+                CHANGE_SET_NAME="cs$(date +'%s')"
+                STACK="temp_${CHANGE_SET_NAME}_${STACK}"
+                aws --region ${REGION} cloudformation create-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
+            else
+                aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
+            fi
 
             # Check result of operation
             RESULT=$?
@@ -150,13 +178,20 @@ fi
 
 if [[ "${STACK_MONITOR}" = "true" ]]; then
     while true; do
-        aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null
+
+        if [[ ("${DRYRUN}" == "true") ]]; then
+            aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
+        else
+            aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
+        fi
+
         if [[ ("${STACK_OPERATION}" == "delete") && ("$?" -eq 255) ]]; then
             # Assume stack doesn't exist
             RESULT=0
             break
         fi
-        grep "StackStatus" $STACK > STATUS.txt
+
+        grep "StackStatus" "${STACK}" > STATUS.txt
         cat STATUS.txt
         grep "${STACK_OPERATION^^}_COMPLETE" STATUS.txt >/dev/null 2>&1
         RESULT=$?
@@ -168,6 +203,12 @@ if [[ "${STACK_MONITOR}" = "true" ]]; then
     done
 fi
 
-if [[ ("${STACK_OPERATION}" == "delete") && ("${RESULT}" -eq 0) ]]; then
-    rm -f $STACK
+if [[ ("${RESULT}" -eq 0) ]]; then
+    if [[ ("${STACK_OPERATION}" == "delete") ]]; then
+        rm -f "${STACK}"
+    fi
 fi
+if [[ "${DRYRUN}" == "true" ]]; then
+    cat "${STACK}"
+fi
+
