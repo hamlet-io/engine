@@ -59,7 +59,8 @@
                                     },
                                     {
                                         "Resource": [
-                                            "arn:aws:s3:::${operationsBucket}/DOCKERLogs/*"
+                                            "arn:aws:s3:::${operationsBucket}/DOCKERLogs/*",
+                                            "arn:aws:s3:::${operationsBucket}/Backups/*"
                                         ],
                                         "Action": [
                                             "s3:PutObject"
