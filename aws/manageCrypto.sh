@@ -173,7 +173,7 @@ if [[ (-n "${JSON_PATH}") ]]; then
         exit
     fi
     # Default cipherdata to that in the element
-    JSON_TEXT=$(jq -r "${JSON_PATH} | select (.!=null)" < ${TARGET_FILE})
+    JSON_TEXT=$(jq -r "${JSON_PATH} | select (.!=null)" < "${TARGET_FILE}")
     CRYPTO_TEXT="${CRYPTO_TEXT:-$JSON_TEXT}"
 
     if [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]]; then
@@ -192,7 +192,7 @@ else
             fi
         fi
         # Default cipherdata to the file contents
-        FILE_TEXT=$( cat ${TARGET_FILE})
+        FILE_TEXT=$( cat "${TARGET_FILE}")
         CRYPTO_TEXT="${CRYPTO_TEXT:-$FILE_TEXT}"
     fi
 fi
