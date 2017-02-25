@@ -241,9 +241,9 @@ ARGS+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
 ARGS+=("-v" "requestReference=${REQUEST_REFERENCE}")
 ARGS+=("-v" "configurationReference=${CONFIGURATION_REFERENCE}")
 
-${GENERATION_DIR}/freemarker.sh -t ${TEMPLATE} -d ${TEMPLATE_DIR} -o ${TEMP_OUTPUT} "${ARGS[@]}"
+${GENERATION_DIR}/freemarker.sh -t ${TEMPLATE} -d ${TEMPLATE_DIR} -o "${TEMP_OUTPUT}" "${ARGS[@]}"
 RESULT=$?
 if [[ "${RESULT}" -eq 0 ]]; then
     # Tidy up the result
-    jq --indent 4 '.' < ${TEMP_OUTPUT} > ${OUTPUT}
+    jq --indent 4 '.' < "${TEMP_OUTPUT}" > "${OUTPUT}"
 fi
