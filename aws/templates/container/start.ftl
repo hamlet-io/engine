@@ -1,2 +1,2 @@
 [#ftl]
-[#switch container.Id]
+[#switch containerId]

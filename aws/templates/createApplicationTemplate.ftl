@@ -2,7 +2,8 @@
 [#include "setContext.ftl"]
 
 [#-- Application --]
-[#assign docker = appSettingsObject.Docker]
+[#assign docker = appSettingsObject.Docker!"unknown"]
+[#assign lambda = appSettingsObject.Lambda!"unknown"]
 
 [#if buildReference??]
     [#if buildReference?starts_with("{")]
@@ -25,47 +26,54 @@
     [/#if]
 [/#if]
 
-[#macro standardEnvironmentVariables]
-    {
-        "Name" : "TEMPLATE_TIMESTAMP",
-        "Value" : "${.now?iso_utc}"
-    },
-    {
-        "Name" : "ENVIRONMENT",
-        "Value" : "${environmentName}"
-    },
-    {
-        "Name" : "REQUEST_REFERENCE",
-        "Value" : "${requestReference}"
-    },
-    {
-        "Name" : "CONFIGURATION_REFERENCE",
-        "Value" : "${configurationReference}"
-    }
+[#macro environmentVariable name value format="docker"]
+    [#switch format]
+        [#case "docker"]
+            {
+                "Name" : "${name}",
+                "Value" : "${value}"
+            }
+            [#break]
+
+        [#case "lambda"]
+        [#default]
+            "${name}" : "${value}"
+            [#break]
+
+    [/#switch]
+[/#macro]
+
+[#macro standardEnvironmentVariables format="docker"]
+    [@environmentVariable "TEMPLATE_TIMESTAMP" "${.now?iso_utc}" format /],
+    [@environmentVariable "ENVIRONMENT" "${environmentName}" format /],
+    [@environmentVariable "REQUEST_REFERENCE" "${requestReference}" format /],
+    [@environmentVariable "CONFIGURATION_REFERENCE" "${configurationReference}" format /]
     [#if buildCommit??]
-        ,{
-            "Name" : "BUILD_REFERENCE",
-            "Value" : "${buildCommit}"
-        }
+        ,[@environmentVariable "BUILD_REFERENCE" "${buildCommit}" format /]
     [/#if]
     [#if appReference?? && (appReference != "")]
-        ,{
-            "Name" : "APP_REFERENCE",
-            "Value" : "${appReference}"
-        }
+        ,[@environmentVariable "APP_REFERENCE" "${appReference}" format /]
     [/#if]
 [/#macro]
 
-[#macro createTask tier component task]
+[#macro createTask tier component task taskIdStem ]
+    [#-- Set up context for processing the list of containers --]
+    [#assign containerListTarget = "docker"]
+    [#assign containerListRole = formatId("role", taskIdStem)]
+
+    [#-- Check if a role is required --]
     [#assign containerListMode = "policyCount"]
     [#assign policyCount = 0]
     [#list task.Containers?values as container]
         [#if container?is_hash]
+            [#local containerId = container.Id]
             [#include containerList]
         [/#if]
     [/#list]
+
+    [#-- Create a role under which the task will run and attach required policies --]
     [#if policyCount > 0]
-        "roleX${tier.Id}X${component.Id}X${task.Id}" : {
+        "${containerListRole}" : {
             "Type" : "AWS::IAM::Role",
             "Properties" : {
                 "AssumeRolePolicyDocument" : {
@@ -84,15 +92,18 @@
         [#assign containerListMode = "policy"]
         [#list task.Containers?values as container]
             [#if container?is_hash]
+                [#assign containerId = container.Id]
+                [#assign policyIdStem = formatId(taskIdStem, container.Id)]
+                [#assign policyNameStem = formatId(container.Name)]
                 [#include containerList]
             [/#if]
         [/#list]
     [/#if]
-    "ecsTaskX${tier.Id}X${component.Id}X${task.Id}" : {
+
+    "${formatId("ecsTask", taskIdStem)}" : {
         "Type" : "AWS::ECS::TaskDefinition",
         "Properties" : {
             "ContainerDefinitions" : [
-                [#assign containerListMode = "definition"]
                 [#assign containerCount = 0]
                 [#list task.Containers?values as container]
                     [#if container?is_hash]
@@ -102,9 +113,20 @@
                         [/#if]
                         [#if containerCount > 0],[/#if]
                         {
+                            [#assign containerId = container.Id]
+                            [#assign containerName = formatName(tier.Name, component.Name, container.Name)]                           [#assign containerListMode = "definition"]
                             [#include containerList]
+                            [#assign containerListMode = "environmentCount"]
+                            [#assign environmentCount = 0]
+                            [#include containerList]
+                            [#if environmentCount > 0]
+                                "Environment" : [
+                                    [#assign containerListMode = "environment"]
+                                    [#include containerList]
+                                ],
+                            [/#if]
                             "Memory" : "${container.Memory?c}",
-                            "Cpu" : "${container.Cpu?c}",
+                            "Cpu" : "${container.Cpu?c}",                            
                             [#if container.Ports??]
                                 "PortMappings" : [
                                     [#assign portCount = 0]
@@ -145,6 +167,7 @@
             [#assign volumeCount = 0]
             [#list task.Containers?values as container]
                 [#if container?is_hash]
+                    [#assign containerId = container.Id]
                     [#include containerList]
                 [/#if]
             [/#list]
@@ -154,20 +177,21 @@
                     [#assign volumeCount = 0]
                     [#list task.Containers?values as container]
                         [#if container?is_hash]
+                            [#assign containerId = container.Id]
                             [#include containerList]
                         [/#if]
                     [/#list]
                 ]
             [/#if]
             [#if policyCount > 0]
-                ,"TaskRoleArn" : { "Fn::GetAtt" : ["roleX${tier.Id}X${component.Id}X${task.Id}","Arn"]}
+                ,"TaskRoleArn" : { "Fn::GetAtt" : ["${containerListRole}","Arn"]}
             [/#if]
         }
     }
 [/#macro]
 
 [#macro createTargetGroup tier component source destination name]
-    "tgX${tier.Id}X${component.Id}X${source.Port?c}X${name}" : {
+    "${formatId("tg", tier.Id, component.Id, source.Port?c, name)}" : {
         "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
         "Properties" : {
             "HealthCheckPort" : "${(destination.HealthCheck.Port)!"traffic-port"}",
@@ -193,7 +217,7 @@
                 { "Key" : "cot:category", "Value" : "${categoryId}" },
                 { "Key" : "cot:tier", "Value" : "${tier.Id}" },
                 { "Key" : "cot:component", "Value" : "${component.Id}" },
-                { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}-${source.Port?c}-${name}" }
+                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name, source.Port?c, name)}" }
             ],
             "VpcId": "${vpc}"
         }
