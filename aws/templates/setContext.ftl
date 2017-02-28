@@ -167,7 +167,7 @@
     [#local exponent = -1]
     [#list powersOf2 as powerOf2]
         [#if powerOf2 <= value]
-            [#assign exponent = powerOf2?index]
+            [#local exponent = powerOf2?index]
         [#else]
             [#break]
         [/#if]
