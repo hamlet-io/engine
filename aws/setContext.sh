@@ -224,7 +224,7 @@ if [[ -n "${PRODUCT}" ]]; then
         # TODO remove next line when path length limitations in jq are fixed
         cp ${GENERATION_DIR}/listApplicationDeploymentUnits.jq ./temp_listApplicationDeploymentUnits.jq
         APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(jq -r -f ./temp_listApplicationDeploymentUnits.jq < ${COMPOSITE_BLUEPRINT} | dos2unix))
-        if [[ -n $(grep -i "${DEPLOYMENT_UNIT}" <<< "${APPLICATION_DEPLOYMENT_UNIT_LIST}") ]]; then
+        if [[ -n $(grep -iw "${DEPLOYMENT_UNIT}" <<< "${APPLICATION_DEPLOYMENT_UNIT_LIST}") ]]; then
             IS_APPLICATION_DEPLOYMENT_UNIT="true"
         
             EFFECTIVE_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   

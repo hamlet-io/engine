@@ -4,7 +4,7 @@ def walk:
   | if type == "object" then
       reduce keys[] as $key
         ( []; if ($key == "DeploymentUnits") then
-                if ($in["Containers"]) then
+                if ($in["Containers"] or $in["Functions"]) then
                   . + $in[$key]
                 else
                   . + []
