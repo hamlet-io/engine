@@ -45,6 +45,9 @@
         [#case "outputs"]
             "cmkXsegmentXcmk" : {
                 "Value" : { "Ref" : "cmk" }
+            },
+            "cmkXsegmentXcmkXarn" : {
+                "Value" : { "Fn::GetAtt" : ["cmk", "Arn"] }
             }
             [#break]
 
