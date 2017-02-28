@@ -1,4 +1,3 @@
-[#-- ECS --]
 [#if component.ECS??]
     [#assign ecs = component.ECS]
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
@@ -8,6 +7,7 @@
             [#assign serviceFound = false]
             [#if service?is_hash]
                 [#assign serviceIdStem = formatId(componentIdStem, service.Id)]
+                [#assign serviceVersion = ""]
                 [#if service.Versions??]
                     [#list service.Versions?values as version]
                         [#if version?is_hash]
@@ -21,8 +21,7 @@
                         [/#if]
                     [/#list]
                 [#else]
-                    [#if (!(service.DeploymentUnits??)) || 
-                            (service.DeploymentUnits?seq_contains(deploymentUnit)) ]
+                    [#if service.DeploymentUnits?seq_contains(deploymentUnit) ]
                         [#assign serviceFound = true]
                         [#assign serviceObject = service]
                     [/#if]
@@ -33,7 +32,7 @@
                 [#if resourceCount > 0],[/#if]
                 [#switch applicationListMode]
                     [#case "definition"]
-                        [@createTask tier component serviceObject serviceIdStem /],
+                        [@createTask tier component serviceObject serviceIdStem serviceVersion /],
                         "${formatId("ecsService", serviceIdStem)}" : {
                             "Type" : "AWS::ECS::Service",
                             "Properties" : {
@@ -143,7 +142,7 @@
                             [#case "definition"]
                                 [#-- Supplemental definitions for the container --]
                                 [#assign containerListMode = "supplemental"]
-                                [#assign containerId = container.Id]
+                                [#assign containerId = formatName(container.Id, serviceVersion)]
                                 [#include containerList?ensure_starts_with("/")]
                                 [#break]
 
@@ -262,11 +261,13 @@
             [#assign taskFound = false]
             [#if task?is_hash]
                 [#assign taskIdStem = formatId(componentIdStem, task.Id)]
+                [#assign taskVersion = ""]
                 [#if task.Versions??]
                     [#list task.Versions?values as version]
                         [#if version?is_hash]
                             [#if version.DeploymentUnits?seq_contains(deploymentUnit)]
                                 [#assign taskFound = true]
+                                [#assign taskVersion = version.Id]
                                 [#assign taskIdStem = formatId(taskIdStem, version.Id)]
                                 [#assign taskObject = version]
                                 [#break]
@@ -274,8 +275,7 @@
                         [/#if]
                     [/#list]
                 [#else]
-                    [#if (!(task.DeploymentUnits??)) || 
-                            (task.DeploymentUnits?seq_contains(deploymentUnit)) ]
+                    [#if task.DeploymentUnits?seq_contains(deploymentUnit) ]
                         [#assign taskFound = true]
                         [#assign taskObject = task]
                     [/#if]
@@ -285,11 +285,11 @@
                 [#if resourceCount > 0],[/#if]
                 [#switch applicationListMode]
                     [#case "definition"]
-                        [@createTask tier component serviceObject serviceIdStem /],
+                        [@createTask tier component taskObject taskIdStem taskVersion /],
                         [#list task.Containers?values as container]
                             [#if container?is_hash]
                                 [#assign containerListMode = "supplemental"]
-                                [#assign containerId = container.Id]
+                                [#assign containerId = formatName(container.Id, taskVersion)]
                                 [#include containerList?ensure_starts_with("/")]
                             [/#if]
                         [/#list]
