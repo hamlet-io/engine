@@ -117,14 +117,25 @@
     [#assign solnMultiAZ = solutionObject.MultiAZ!(environmentObject.MultiAZ)!false]
 [/#if]
 
+[#-- Concatenate sequence of non-empty strings with a separator --]
+[#function concatenate args separator]
+    [#local content = []]
+    [#list args as arg]
+        [#if arg?has_content]
+            [#local content += [arg]]
+        [/#if]
+    [/#list]
+    [#return content?join(separator)]
+[/#function]
+
 [#-- Format an id - largely used for resource ids which have severe character constraints --]
 [#function formatId args...]
-    [#return args?join("X")]
+    [#return concatenate(args, "X")]
 [/#function]
 
 [#-- Format a name - largely used for names that appear in the AWS console --]
 [#function formatName args...]
-    [#return args?join("-")]
+    [#return concatenate(args, "-")]
 [/#function]
 
 [#-- Get stack output --]
