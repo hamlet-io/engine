@@ -33,7 +33,7 @@
                     }
                 }
             },
-            "aliasXcmk" : {
+            "${formatId("alias", "cmk")}" : {
                 "Type" : "AWS::KMS::Alias",
                 "Properties" : {
                     "AliasName" : "alias/${productName}",
@@ -42,7 +42,7 @@
             }
             [#break]
         [#case "outputs"]
-            "cmkXproductXcmk" : {
+            "${formatId("cmk", "product", "cmk")}" : {
                 "Value" : { "Ref" : "cmk" }
             }
             [#break]
