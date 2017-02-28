@@ -181,8 +181,10 @@ if [[ "${STACK_MONITOR}" = "true" ]]; then
 
         if [[ ("${DRYRUN}" == "true") ]]; then
             aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
+            STATUS_ATTRIBUTE="Status"
         else
             aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
+            STATUS_ATTRIBUTE="StackStatus"
         fi
 
         if [[ ("${STACK_OPERATION}" == "delete") && ("$?" -eq 255) ]]; then
@@ -191,7 +193,7 @@ if [[ "${STACK_MONITOR}" = "true" ]]; then
             break
         fi
 
-        grep "StackStatus" "${STACK}" > STATUS.txt
+        grep "${STATUS_ATTRIBUTE}" "${STACK}" > STATUS.txt
         cat STATUS.txt
         grep "${STACK_OPERATION^^}_COMPLETE" STATUS.txt >/dev/null 2>&1
         RESULT=$?
