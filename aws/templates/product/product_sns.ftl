@@ -3,11 +3,11 @@
     [#if resourceCount > 0],[/#if]
     [#switch productListMode]
         [#case "definition"]
-            "snsXalerts" : {
+            "${formatId("sns", "alerts")}" : {
                 "Type": "AWS::SNS::Topic",
                 "Properties" : {
-                    "DisplayName" : "${(productName + "-alerts")[0..9]}",
-                    "TopicName" : "${productName}-alerts",
+                    "DisplayName" : "${(formatName(productName, "alerts"))[0..9]}",
+                    "TopicName" : "${formatName(productName, "alerts")}",
                     "Subscription" : [
                         {
                             "Endpoint" : "alerts@${productDomain}",
@@ -19,8 +19,8 @@
             [#break]
 
         [#case "outputs"]
-            "snsXproductXalertsX${regionId?replace("-","")}" : {
-                "Value" : { "Ref" : "snsXalerts" }
+            "${formatId("sns", "product", "alerts", regionId?replace("-",""))}" : {
+                "Value" : { "Ref" : "${formatId("sns", "alerts")}" }
             }
             [#break]
 
