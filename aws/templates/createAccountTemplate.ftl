@@ -9,7 +9,7 @@
     [#case "accountInDomain"]
         [#assign accountDomain = accountName + "." + accountDomainStem]
         [#assign accountDomainQualifier = ""]
-        [#assign accountDomainCertificateId = accountDomainCertificateId + "-" + accountId]
+        [#assign accountDomainCertificateId = formatId(accountDomainCertificateId, accountId)]
         [#break]
     [#case "naked"]
         [#assign accountDomain = accountDomainStem]
@@ -18,10 +18,12 @@
     [#case "accountInHost"]
     [#default]
         [#assign accountDomain = accountDomainStem]
-        [#assign accountDomainQualifier = "-" + accountName]
+        [#assign accountDomainQualifier = formatName("", accountName)]
         [#break]
 [/#switch]
+[#-- TODO: check if this can be deleted or accountDomainCertificateId really may conatins "-"
 [#assign accountDomainCertificateId = accountDomainCertificateId?replace("-","X")]
+--]
 
 [#assign categoryId = "account"]
 
