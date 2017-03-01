@@ -12,11 +12,11 @@
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
-            "ecsX${tier.Id}X${component.Id}" : {
+            "${formatId("ecs", tier.Id, component.Id)}" : {
                 "Type" : "AWS::ECS::Cluster"
             },
 
-            "roleX${tier.Id}X${component.Id}": {
+            "${formatId("role", tier.Id, component.Id)}": {
                 "Type" : "AWS::IAM::Role",
                 "Properties" : {
                     "AssumeRolePolicyDocument" : {
@@ -33,7 +33,7 @@
                     "ManagedPolicyArns" : ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"],
                     "Policies": [
                         {
-                            "PolicyName": "${tier.Id}-${component.Id}-docker",
+                            "PolicyName": "${formatName(tier.Id, component.Id, "docker")}",
                             "PolicyDocument" : {
                                 "Version": "2012-10-17",
                                 "Statement": [
@@ -90,15 +90,15 @@
                 }
             },
 
-            "instanceProfileX${tier.Id}X${component.Id}" : {
+            "${formatId("instanceProfile", tier.Id, component.Id)}" : {
                 "Type" : "AWS::IAM::InstanceProfile",
                 "Properties" : {
                     "Path" : "/",
-                    "Roles" : [ { "Ref" : "roleX${tier.Id}X${component.Id}" } ]
+                    "Roles" : [ { "Ref" : "${formatId("role", tier.Id, component.Id)}" } ]
                 }
             },
 
-            "roleX${tier.Id}X${component.Id}Xservice": {
+            "${formatId("role", tier.Id, component.Id, "service")}": {
                 "Type" : "AWS::IAM::Role",
                 "Properties" : {
                     "AssumeRolePolicyDocument" : {
@@ -118,7 +118,7 @@
 
             [#if fixedIP]
                 [#list 1..maxSize as index]
-                    "eipX${tier.Id}X${component.Id}X${index}": {
+                    "${formatId("eip", tier.Id, component.Id, index)}": {
                         "Type" : "AWS::EC2::EIP",
                         "Properties" : {
                             "Domain" : "vpc"
@@ -127,7 +127,7 @@
                 [/#list]
             [/#if]
 
-            "asgX${tier.Id}X${component.Id}": {
+            "${formatId("asg", tier.Id, component.Id)}": {
                 "Type": "AWS::AutoScaling::AutoScalingGroup",
                 "Metadata": {
                     "AWS::CloudFormation::Init": {
@@ -210,7 +210,7 @@
                                                     " ",
                                                     [
                                                         [#list 1..maxSize as index]
-                                                            { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${index}", "AllocationId"] }
+                                                            { "Fn::GetAtt" : ["${formatId("eip", tier.Id, component.Id, index)}", "AllocationId"] }
                                                             [#if index != maxSize],[/#if]
                                                         [/#list]
                                                     ]
@@ -231,7 +231,7 @@
                                     "02ConfigureCluster" : {
                                         "command" : "/opt/codeontap/bootstrap/ecs.sh",
                                         "env" : {
-                                        "ECS_CLUSTER" : { "Ref" : "ecsX${tier.Id}X${component.Id}" },
+                                        "ECS_CLUSTER" : { "Ref" : "${formatId("ecs", tier.Id, component.Id)}" },
                                         "ECS_LOG_DRIVER" : "fluentd"
                                     },
                                     "ignoreErrors" : "false"
@@ -242,21 +242,21 @@
                 },
                 "Properties": {
                     "Cooldown" : "30",
-                    "LaunchConfigurationName": {"Ref": "launchConfigX${tier.Id}X${component.Id}"},
+                    "LaunchConfigurationName": {"Ref": "${formatId("launchConfig", tier.Id, component.Id)}"},
                     [#if multiAZ]
                         "MinSize": "${processorProfile.MinPerZone * zones?size}",
                         "MaxSize": "${maxSize}",
                         "DesiredCapacity": "${processorProfile.DesiredPerZone * zones?size}",
                         "VPCZoneIdentifier": [
                             [#list zones as zone]
-                                "${getKey("subnetX"+tier.Id+"X"+zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                                "${getKey("subnet", tier.Id, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
                             [/#list]
                         ],
                     [#else]
                         "MinSize": "${processorProfile.MinPerZone}",
                         "MaxSize": "${maxSize}",
                         "DesiredCapacity": "${processorProfile.DesiredPerZone}",
-                        "VPCZoneIdentifier" : ["${getKey("subnetX"+tier.Id+"X"+zones[0].Id)}"],
+                        "VPCZoneIdentifier" : ["${getKey("subnet", tier.Id, zones[0].Id)}"],
                     [/#if]
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}", "PropagateAtLaunch" : "True" },
@@ -269,20 +269,20 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}", "PropagateAtLaunch" : "True" },
                         { "Key" : "cot:tier", "Value" : "${tier.Id}", "PropagateAtLaunch" : "True" },
                         { "Key" : "cot:component", "Value" : "${component.Id}", "PropagateAtLaunch" : "True"},
-                        { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}", "PropagateAtLaunch" : "True" }
+                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}", "PropagateAtLaunch" : "True" }
                     ]
                 }
             },
 
-            "launchConfigX${tier.Id}X${component.Id}": {
+            "${formatId("launchConfig", tier.Id, component.Id)}": {
                 "Type": "AWS::AutoScaling::LaunchConfiguration",
                 "Properties": {
                     "KeyName": "${productName + sshPerSegment?string("-" + segmentName,"")}",
                     "ImageId": "${regionObject.AMIs.Centos.ECS}",
                     "InstanceType": "${processorProfile.Processor}",
                     [@createBlockDevices storageProfile=storageProfile /]
-                    "SecurityGroups" : [ {"Ref" : "securityGroupX${tier.Id}X${component.Id}"} [#if securityGroupNAT != "none"], "${securityGroupNAT}"[/#if] ],
-                    "IamInstanceProfile" : { "Ref" : "instanceProfileX${tier.Id}X${component.Id}" },
+                    "SecurityGroups" : [ {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"} [#if securityGroupNAT != "none"], "${securityGroupNAT}"[/#if] ],
+                    "IamInstanceProfile" : { "Ref" : "${formatId("instanceProfile", tier.Id, component.Id)}" },
                     "AssociatePublicIpAddress" : ${(tier.RouteTable == "external")?string("true","false")},
                     [#if (processorProfile.ConfigSet)??]
                         [#assign configSet = processorProfile.ConfigSet]
@@ -300,7 +300,7 @@
                                     "# Remainder of configuration via metadata\n",
                                     "/opt/aws/bin/cfn-init -v",
                                     "         --stack ", { "Ref" : "AWS::StackName" },
-                                    "         --resource asgX${tier.Id}X${component.Id}",
+                                    "         --resource ${formatId("asg", tier.Id, component.Id)}",
                                     "         --region ${regionId} --configsets ${configSet}\n"
                                 ]
                             ]
@@ -311,28 +311,28 @@
             [#break]
 
         [#case "outputs"]
-            "ecsX${tier.Id}X${component.Id}" : {
-                "Value" : { "Ref" : "ecsX${tier.Id}X${component.Id}" }
+            "${formatId("ecs", tier.Id, component.Id)}" : {
+                "Value" : { "Ref" : "${formatId("ecs", tier.Id, component.Id)}" }
             },
-            "roleX${tier.Id}X${component.Id}" : {
-                "Value" : { "Ref" : "roleX${tier.Id}X${component.Id}" }
+            "${formatId("role", tier.Id, component.Id)}" : {
+                "Value" : { "Ref" : "${formatId("role", tier.Id, component.Id)}" }
             },
-            "roleX${tier.Id}X${component.Id}Xarn" : {
-                "Value" : { "Fn::GetAtt" : ["roleX${tier.Id}X${component.Id}", "Arn"] }
+            "${formatId("role", tier.Id, component.Id, "arn")}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("role", tier.Id, component.Id)}", "Arn"] }
             },
-            "roleX${tier.Id}X${component.Id}Xservice" : {
-                "Value" : { "Ref" : "roleX${tier.Id}X${component.Id}Xservice" }
+            "${formatId("role", tier.Id, component.Id, "service")}" : {
+                "Value" : { "Ref" : "${formatId("role", tier.Id, component.Id, "service")}" }
             },
-            "roleX${tier.Id}X${component.Id}XserviceXarn" : {
-                "Value" : { "Fn::GetAtt" : ["roleX${tier.Id}X${component.Id}Xservice", "Arn"] }
+            "${formatId("role", tier.Id, component.Id, "service", "arn")}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("role", tier.Id, component.Id, "service")}", "Arn"] }
             }
             [#if fixedIP]
                 [#list 1..maxSize as index]
-                    ,"eipX${tier.Id}X${component.Id}X${index}Xip": {
-                        "Value" : { "Ref" : "eipX${tier.Id}X${component.Id}X${index}" }
+                    ,"${formatId("eip", tier.Id, component.Id, index, "ip")}": {
+                        "Value" : { "Ref" : "${formatId("eip", tier.Id, component.Id, index)}" }
                     }
-                    ,"eipX${tier.Id}X${component.Id}X${index}Xid": {
-                        "Value" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${index}", "AllocationId"] }
+                    ,"${formatId("eip", tier.Id, component.Id, index, "id")}": {
+                        "Value" : { "Fn::GetAtt" : ["${formatId("eip", tier.Id, component.Id, index)}", "AllocationId"] }
                     }
                 [/#list]
             [/#if]

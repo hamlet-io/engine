@@ -11,8 +11,8 @@
                 [#assign bucketName = component.Name + segmentDomainQualifier + "." + segmentDomain]
             [/#if]
             [#-- Support presence of existing s3 buckets (naming has changed over time) --]
-            [#assign bucketName = getKey("s3X" + tier.Id + "X" + component.Id)!bucketName]
-            "s3X${tier.Id}X${component.Id}" : {
+            [#assign bucketName = getKey("s3", tier.Id, component.Id)!bucketName]
+            "${formatId("s3", tier.Id, component.Id)}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {
                     "BucketName" : "${bucketName}",
@@ -51,15 +51,15 @@
                                         [#if queueCount > 0],[/#if]
                                         {
                                             "Event" : "s3:ObjectCreated:*",
-                                            "Queue" : "${getKey("sqsX"+tier.Id+"X"+queue.Id+"Xarn")}"
+                                            "Queue" : "${getKey("sqs", tier.Id, queue.Id, "arn")}"
                                         },
                                         {
                                             "Event" : "s3:ObjectRemoved:*",
-                                            "Queue" : "${getKey("sqsX"+tier.Id+"X"+queue.Id+"Xarn")}"
+                                            "Queue" : "${getKey("sqs", tier.Id, queue.Id, "arn")}"
                                         },
                                         {
                                             "Event" : "s3:ReducedRedundancyLostObject",
-                                            "Queue" : "${getKey("sqsX"+tier.Id+"X"+queue.Id+"Xarn")}"
+                                            "Queue" : "${getKey("sqs", tier.Id, queue.Id, "arn")}"
                                         }
                                         [#assign queueCount += 1]
                                     [/#if]
@@ -76,7 +76,7 @@
                             [#list s3.Notifications.SQS?values as queue]
                                  [#if queue?is_hash]
                                     [#if queueCount > 0],[/#if]
-                                    "s3X${tier.Id}X${component.Id}X${queue.Id}Xpolicy"
+                                    "${formatId("s3", tier.Id, component.Id, queue.Id, "policy")}"
                                     [#assign queueCount += 1]
                                  [/#if]
                             [/#list]
@@ -88,12 +88,12 @@
                 [#assign queueCount = 0]
                 [#list s3.Notifications.SQS?values as queue]
                     [#if queue?is_hash]
-                        ,"s3X${tier.Id}X${component.Id}X${queue.Id}Xpolicy" : {
+                        ,"${formatId("s3", tier.Id, component.Id, queue.Id, "policy")}" : {
                             "Type" : "AWS::SQS::QueuePolicy",
                             "Properties" : {
                                 "PolicyDocument" : {
                                     "Version" : "2012-10-17",
-                                    "Id" : "s3X${tier.Id}X${component.Id}X${queue.Id}Xpolicy",
+                                    "Id" : "${formatId("s3", tier.Id, component.Id, queue.Id, "policy")}",
                                     "Statement" : [
                                         {
                                             "Effect" : "Allow",
@@ -108,7 +108,7 @@
                                         }
                                     ]
                                 },
-                                "Queues" : [ "${getKey("sqsX"+tier.Id+"X"+queue.Id+"Xurl")}" ]
+                                "Queues" : [ "${getKey("sqs", tier.Id, queue.Id, "url")}" ]
                             }
                         }
                     [/#if]
@@ -117,11 +117,11 @@
             [#break]
 
         [#case "outputs"]
-            "s3X${tier.Id}X${component.Id}" : {
-                "Value" : { "Ref" : "s3X${tier.Id}X${component.Id}" }
+            "${formatId("s3", tier.Id, component.Id)}" : {
+                "Value" : { "Ref" : "${formatId("s3", tier.Id, component.Id)}" }
             },
-            "s3X${tier.Id}X${component.Id}Xurl" : {
-                "Value" : { "Fn::GetAtt" : ["s3X${tier.Id}X${component.Id}", "WebsiteURL"] }
+            "${formatId("s3", tier.Id, component.Id, "url")}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("s3", tier.Id, component.Id)}", "WebsiteURL"] }
             }
             [#break]
 

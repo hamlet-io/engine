@@ -8,25 +8,25 @@
             [#list alb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
                 [#assign destination = ports[portMappings[mapping].Destination]]
-                "securityGroupIngressX${tier.Id}X${component.Id}X${source.Port?c}" : {
+                "${formatId("securityGroupIngress", tier.Id, component.Id, source.Port?c)}" : {
                     "Type" : "AWS::EC2::SecurityGroupIngress",
                     "Properties" : {
-                        "GroupId": {"Ref" : "securityGroupX${tier.Id}X${component.Id}"},
+                        "GroupId": {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"},
                         "IpProtocol": "${source.IPProtocol}",
                         "FromPort": "${source.Port?c}",
                         "ToPort": "${source.Port?c}",
                         "CidrIp": "0.0.0.0/0"
                     }
                 },
-                "listenerX${tier.Id}X${component.Id}X${source.Port?c}" : {
+                "${formatId("listener", tier.Id, component.Id, source.Port?c)}" : {
                     "Type" : "AWS::ElasticLoadBalancingV2::Listener",
                     "Properties" : {
                         [#if (source.Certificate)?? && source.Certificate]
                             "Certificates" : [
                                 {
                                     "CertificateArn" :
-                                        [#if getKey("certificateX" + certificateId)??]
-                                            "${getKey("certificateX" + certificateId)}"
+                                        [#if getKey("certificate", certificateId)??]
+                                            "${getKey("certificate", certificateId)}"
                                         [#else]
                                             {
                                                 "Fn::Join" : [
@@ -44,28 +44,28 @@
                         [/#if]
                         "DefaultActions" : [
                             {
-                              "TargetGroupArn" : { "Ref" : "tgX${tier.Id}X${component.Id}X${source.Port?c}Xdefault" },
+                              "TargetGroupArn" : { "Ref" : "${formatId("tg", tier.Id, component.Id, source.Port?c, "default")}" },
                               "Type" : "forward"
                             }
                         ],
-                        "LoadBalancerArn" : { "Ref" : "albX${tier.Id}X${component.Id}" },
+                        "LoadBalancerArn" : { "Ref" : "${formatId("alb", tier.Id, component.Id)}" },
                         "Port" : ${source.Port?c},
                         "Protocol" : "${source.Protocol}"
                     }
                 },
                 [@createTargetGroup tier=tier component=component source=source destination=destination name="default" /],
             [/#list]
-            "albX${tier.Id}X${component.Id}" : {
+            "${formatId("alb", tier.Id, component.Id)}" : {
                 "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties" : {
                     "Subnets" : [
                         [#list zones as zone]
-                            "${getKey("subnetX"+tier.Id+"X"+zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                            "${getKey("subnet", tier.Id, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
                         [/#list]
                     ],
                     "Scheme" : "${(tier.RouteTable == "external")?string("internet-facing","internal")}",
-                    "SecurityGroups":[ {"Ref" : "securityGroupX${tier.Id}X${component.Id}"} ],
-                    "Name" : "${productId}-${segmentId}-${tier.Id}-${component.Id}",
+                    "SecurityGroups":[ {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"} ],
+                    "Name" : "${formatName(productId, segmentId, tier.Id, component.Id)}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
                         { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
@@ -77,7 +77,7 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
                         { "Key" : "cot:tier", "Value" : "${tier.Id}" },
                         { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}" }
+                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
                     ]
                 }
             }
@@ -85,18 +85,18 @@
         [#case "outputs"]
             [#list alb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
-                "listenerX${tier.Id}X${component.Id}X${source.Port?c}" : {
-                    "Value" : { "Ref" : "listenerX${tier.Id}X${component.Id}X${source.Port?c}" }
+                "${formatId("listener", tier.Id, component.Id, source.Port?c)}" : {
+                    "Value" : { "Ref" : "${formatId("listener", tier.Id, component.Id, source.Port?c)}" }
                 },
-                "tgX${tier.Id}X${component.Id}X${source.Port?c}Xdefault" : {
-                    "Value" : { "Ref" : "tgX${tier.Id}X${component.Id}X${source.Port?c}Xdefault" }
+                "${formatId("tg", tier.Id, component.Id, source.Port?c, "default")}" : {
+                    "Value" : { "Ref" : "${formatId("tg", tier.Id, component.Id, source.Port?c, "default")}" }
                 },
             [/#list]
-            "albX${tier.Id}X${component.Id}" : {
-                "Value" : { "Ref" : "albX${tier.Id}X${component.Id}" }
+            "${formatId("alb", tier.Id, component.Id)}" : {
+                "Value" : { "Ref" : "${formatId("alb", tier.Id, component.Id)}" }
             },
-            "albX${tier.Id}X${component.Id}Xdns" : {
-                "Value" : { "Fn::GetAtt" : ["albX${tier.Id}X${component.Id}", "DNSName"] }
+            "${formatId("alb", tier.Id, component.Id, "dns")}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("alb", tier.Id, component.Id)}", "DNSName"] }
             }
             [#break]
     [/#switch]

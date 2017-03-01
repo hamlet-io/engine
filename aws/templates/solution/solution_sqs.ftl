@@ -4,13 +4,13 @@
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
-            "sqsX${tier.Id}X${component.Id}":{
+            "${formatId("sqs", tier.Id, component.Id)}":{
                 "Type" : "AWS::SQS::Queue",
                 "Properties" : {
                     [#if sqs.Name != "SQS"]
                         "QueueName" : "${sqs.Name}"
                     [#else]
-                        "QueueName" : "${productName}-${environmentName}-${component.Name}"
+                        "QueueName" : "${formatName(productName, environmentName, component.Name)}"
                     [/#if]
                     [#if sqs.DelaySeconds??],"DelaySeconds" : ${sqs.DelaySeconds?c}[/#if]
                     [#if sqs.MaximumMessageSize??],"MaximumMessageSize" : ${sqs.MaximumMessageSize?c}[/#if]
@@ -22,14 +22,14 @@
             [#break]
 
         [#case "outputs"]
-            "sqsX${tier.Id}X${component.Id}" : {
-                "Value" : { "Fn::GetAtt" : ["sqsX${tier.Id}X${component.Id}", "QueueName"] }
+            "${formatId("sqs", tier.Id, component.Id)}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("sqs", tier.Id, component.Id)}", "QueueName"] }
             },
-            "sqsX${tier.Id}X${component.Id}Xurl" : {
-                "Value" : { "Ref" : "sqsX${tier.Id}X${component.Id}" }
+            "${formatId("sqs", tier.Id, component.Id, "url")}" : {
+                "Value" : { "Ref" : "${formatId("sqs", tier.Id, component.Id)}" }
             },
-            "sqsX${tier.Id}X${component.Id}Xarn" : {
-                "Value" : { "Fn::GetAtt" : ["sqsX${tier.Id}X${component.Id}", "Arn"] }
+            "${formatId("sqs", tier.Id, component.Id, "arn")}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("sqs", tier.Id, component.Id)}", "Arn"] }
             }
             [#break]
 
