@@ -7,10 +7,10 @@
         [#case "definition"]
             [#list elb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
-                "securityGroupIngressX${tier.Id}X${component.Id}X${source.Port?c}" : {
+                "${formatId("securityGroupIngress", tier.Id, component.Id, source.Port?c)}" : {
                     "Type" : "AWS::EC2::SecurityGroupIngress",
                     "Properties" : {
-                        "GroupId": {"Ref" : "securityGroupX${tier.Id}X${component.Id}"},
+                        "GroupId": {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"},
                         "IpProtocol": "${source.IPProtocol}",
                         "FromPort": "${source.Port?c}",
                         "ToPort": "${source.Port?c}",
@@ -18,19 +18,19 @@
                     }
                 },
             [/#list]
-            "elbX${tier.Id}X${component.Id}" : {
+            "${formatId("elb", tier.Id, component.Id)}" : {
                 "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
                 "Properties" : {
                     [#if multiAZ]
                         "Subnets" : [
                             [#list zones as zone]
-                                "${getKey("subnetX"+tier.Id+"X"+zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                                "${getKey("subnet", tier.Id, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
                             [/#list]
                         ],
                         "CrossZone" : true,
                     [#else]
                         "Subnets" : [
-                            "${getKey("subnetX"+tier.Id+"X"+zones[0].Id)}"
+                            "${getKey("subnet", tier.Id, zones[0].Id)}"
                         ],
                     [/#if]
                     "Listeners" : [
@@ -44,8 +44,8 @@
                                 "InstanceProtocol" : "${destination.Protocol}"
                                 [#if (source.Certificate)?? && source.Certificate]
                                     ,"SSLCertificateId" :
-                                        [#if getKey("certificateX" + certificateId)??]
-                                            "${getKey("certificateX" + certificateId)}"
+                                        [#if getKey("certificate", certificateId)??]
+                                            "${getKey("certificate", certificateId)}"
                                         [#else]
                                             {
                                                 "Fn::Join" : [
@@ -79,8 +79,8 @@
                         },
                     [/#if]
                     "Scheme" : "${(tier.RouteTable == "external")?string("internet-facing","internal")}",
-                    "SecurityGroups":[ {"Ref" : "securityGroupX${tier.Id}X${component.Id}"} ],
-                    "LoadBalancerName" : "${productId}-${segmentId}-${tier.Id}-${component.Id}",
+                    "SecurityGroups":[ {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"} ],
+                    "LoadBalancerName" : "${formatName(productId, segmentId, tier.Id, component.Id)}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
                         { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
@@ -92,18 +92,18 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
                         { "Key" : "cot:tier", "Value" : "${tier.Id}" },
                         { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}" }
+                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
                     ]
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "elbX${tier.Id}X${component.Id}" : {
-                "Value" : { "Ref" : "elbX${tier.Id}X${component.Id}" }
+            "${formatId("elb", tier.Id, component.Id)}" : {
+                "Value" : { "Ref" : "${formatId("elb", tier.Id, component.Id)}" }
             },
-            "elbX${tier.Id}X${component.Id}Xdns" : {
-                "Value" : { "Fn::GetAtt" : ["elbX${tier.Id}X${component.Id}", "DNSName"] }
+            "${formatId("elb", tier.Id, component.Id, "dns")}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("elb", tier.Id, component.Id)}", "DNSName"] }
             }
             [#break]
 

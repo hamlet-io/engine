@@ -30,7 +30,7 @@
 [/#macro]
 
 [#macro createTargetGroup tier component source destination name]
-    "tgX${tier.Id}X${component.Id}X${source.Port?c}X${name}" : {
+    "${formatId("tg", tier.Id, component.Id, source.Port?c, name)}" : {
         "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
         "Properties" : {
             "HealthCheckPort" : "${(destination.HealthCheck.Port)!"traffic-port"}",
@@ -56,7 +56,7 @@
                 { "Key" : "cot:category", "Value" : "${categoryId}" },
                 { "Key" : "cot:tier", "Value" : "${tier.Id}" },
                 { "Key" : "cot:component", "Value" : "${component.Id}" },
-                { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}-${source.Port?c}-${name}" }
+                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name, source.Port?c, name)}" }
             ],
             "VpcId": "${vpc}"
         }
@@ -67,10 +67,10 @@
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
-            "securityGroupX${tier.Id}X${component.Id}" : {
+            "${formatId("securityGroup", tier.Id, component.Id)}" : {
                 "Type" : "AWS::EC2::SecurityGroup",
                 "Properties" : {
-                    "GroupDescription": "Security Group for ${tier.Name}-${component.Name}",
+                    "GroupDescription": "Security Group for ${formatName(tier.Name, component.Name)}",
                     "VpcId": "${vpc}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -83,15 +83,15 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
                         { "Key" : "cot:tier", "Value" : "${tier.Id}" },
                         { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}" }
+                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
                     ]
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "securityGroupX${tier.Id}X${component.Id}" : {
-                "Value" : { "Ref" : "securityGroupX${tier.Id}X${component.Id}" }
+            "${formatId("securityGroup", tier.Id, component.Id)}" : {
+                "Value" : { "Ref" : "${formatId("securityGroup", tier.Id, component.Id)}" }
             }
             [#break]
 

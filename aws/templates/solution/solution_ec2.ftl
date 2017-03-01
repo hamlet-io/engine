@@ -7,10 +7,10 @@
     [#switch solutionListMode]
         [#case "definition"]
             [#list ec2.Ports as port]
-                "securityGroupIngressX${tier.Id}X${component.Id}X${ports[port].Port?c}" : {
+                "${formatId("securityGroupIngress", tier.Id, component.Id, ports[port].Port?c)}" : {
                     "Type" : "AWS::EC2::SecurityGroupIngress",
                     "Properties" : {
-                        "GroupId": {"Ref" : "securityGroupX${tier.Id}X${component.Id}"},
+                        "GroupId": {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"},
                         "IpProtocol": "${ports[port].IPProtocol}",
                         "FromPort": "${ports[port].Port?c}",
                         "ToPort": "${ports[port].Port?c}",
@@ -18,7 +18,7 @@
                     }
                 },
             [/#list]
-            "roleX${tier.Id}X${component.Id}": {
+            "${formatId("role", tier.Id, component.Id)}": {
                 "Type" : "AWS::IAM::Role",
                 "Properties" : {
                     "AssumeRolePolicyDocument" : {
@@ -34,7 +34,7 @@
                     "Path": "/",
                     "Policies": [
                         {
-                            "PolicyName": "${tier.Id}-${component.Id}-basic",
+                            "PolicyName": "${formatName(tier.Id, component.Id, "basic")}",
                             "PolicyDocument" : {
                                 "Version": "2012-10-17",
                                 "Statement": [
@@ -74,19 +74,19 @@
                 }
             },
 
-            "instanceProfileX${tier.Id}X${component.Id}" : {
+            "${formatId("instanceProfile", tier.Id, component.Id)}" : {
                 "Type" : "AWS::IAM::InstanceProfile",
                 "Properties" : {
                     "Path" : "/",
                     "Roles" : [
-                        { "Ref" : "roleX${tier.Id}X${component.Id}" }
+                        { "Ref" : "${formatId("role", tier.Id, component.Id)}" }
                     ]
                 }
             }
 
             [#list zones as zone]
                 [#if multiAZ || (zones[0].Id = zone.Id)]
-                    ,"ec2InstanceX${tier.Id}X${component.Id}X${zone.Id}": {
+                    ,"${formatId("ec2Instance", tier.Id, component.Id, zone.Id)}": {
                         "Type": "AWS::EC2::Instance",
                         "Metadata": {
                             "AWS::CloudFormation::Init": {
@@ -126,7 +126,7 @@
                                                         "echo \"cot:tier=${tier.Id}\"\n",
                                                         "echo \"cot:component=${component.Id}\"\n",
                                                         "echo \"cot:zone=${zone.Id}\"\n",
-                                                        "echo \"cot:name=${productName}-${segmentName}-${tier.Name}-${component.Name}-${zone.Name}\"\n",
+                                                        "echo \"cot:name=${formatName(productName, segmentName, tier.Name, component.Name, zone.Name)}\"\n",
                                                         "echo \"cot:role=${component.Role}\"\n",
                                                         "echo \"cot:credentials=${credentialsBucket}\"\n",
                                                         "echo \"cot:code=${codeBucket}\"\n",
@@ -166,7 +166,7 @@
                                             ,"03RegisterWithLB" : {
                                                 "command" : "/opt/codeontap/bootstrap/register.sh",
                                                 "env" : {
-                                                    "LOAD_BALANCER" : { "Ref" : "elbXelbX${component.Id}" }
+                                                    "LOAD_BALANCER" : { "Ref" : "${formatId("elb", "elb", component.Id)}" }
                                                 },
                                                 "ignoreErrors" : "false"
                                             }
@@ -189,7 +189,7 @@
                             [@createBlockDevices storageProfile=storageProfile /]
                             "DisableApiTermination" : false,
                             "EbsOptimized" : false,
-                            "IamInstanceProfile" : { "Ref" : "instanceProfileX${tier.Id}X${component.Id}" },
+                            "IamInstanceProfile" : { "Ref" : "${formatId("instanceProfile", tier.Id, component.Id)}" },
                             "ImageId": "${regionObject.AMIs.Centos.EC2}",
                             "InstanceInitiatedShutdownBehavior" : "stop",
                             "InstanceType": "${processorProfile.Processor}",
@@ -198,7 +198,7 @@
                             "NetworkInterfaces" : [
                                 {
                                     "DeviceIndex" : "0",
-                                    "NetworkInterfaceId" : { "Ref" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0" }
+                                    "NetworkInterfaceId" : { "Ref" : "${formatId("eni", tier.Id, component.Id, zone.Id, "eth0")}" }
                                 }
                             ],
                             "Tags" : [
@@ -213,7 +213,7 @@
                                 { "Key" : "cot:tier", "Value" : "${tier.Id}" },
                                 { "Key" : "cot:component", "Value" : "${component.Id}" },
                                 { "Key" : "cot:zone", "Value" : "${zone.Id}" },
-                                { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}-${zone.Name}" }
+                                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name, zone.Name)}" }
                             ],
                             "UserData" : {
                                 "Fn::Base64" : {
@@ -226,7 +226,7 @@
                                             "# Remainder of configuration via metadata\n",
                                             "/opt/aws/bin/cfn-init -v",
                                             "         --stack ", { "Ref" : "AWS::StackName" },
-                                            "         --resource ec2InstanceX${tier.Id}X${component.Id}X${zone.Id}",
+                                            "         --resource ${formatId("ec2Instance", tier.Id, component.Id, zone.Id)}",
                                             "         --region ${regionId} --configsets ec2\n"
                                         ]
                                     ]
@@ -234,23 +234,23 @@
                             }
                         },
                         "DependsOn" : [
-                            "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0"
+                            "${formatId("eni", tier.Id, component.Id, zone.Id, "eth0")}"
                             [#if ec2.LoadBalanced]
-                                ,"elbXelbX${component.Id}"
+                                ,"${formatId("elb", "elb", component.Id)}"
                             [/#if]
                             [#if fixedIP]
-                                ,"eipAssocX${tier.Id}X${component.Id}X${zone.Id}Xeth0"
+                                ,"${formatId("eipAssoc", tier.Id, component.Id, zone.Id, "eth0")}"
                             [/#if]
                         ]
                     },
-                    "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
+                    "${formatId("eni", tier.Id, component.Id, zone.Id, "eth0")}: {
                         "Type" : "AWS::EC2::NetworkInterface",
                         "Properties" : {
                             "Description" : "eth0",
-                            "SubnetId" : "${getKey("subnetX"+tier.Id+"X"+zone.Id)}",
+                            "SubnetId" : "${getKey("subnet", tier.Id, zone.Id)}",
                             "SourceDestCheck" : true,
                             "GroupSet" : [
-                                {"Ref" : "securityGroupX${tier.Id}X${component.Id}"}
+                                {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"}
                                 [#if securityGroupNAT != "none"]
                                     , "${securityGroupNAT}"
                                 [/#if]
@@ -267,36 +267,36 @@
                                 { "Key" : "cot:tier", "Value" : "${tier.Id}" },
                                 { "Key" : "cot:component", "Value" : "${component.Id}" },
                                 { "Key" : "cot:zone", "Value" : "${zone.Id}" },
-                                { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${component.Name}-${zone.Name}-eth0" }
+                                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name, zone.Name, "eth0")}" }
                             ]
                         }
                     }
                     [#if fixedIP]
-                        [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
-                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}": {
+                        [#if getKey("eip", tier.Id, component.Id, zone.Id, "ip")??]
+                            ,"${formatId("eip", tier.Id, component.Id, zone.Id)}": {
                         [#else]
-                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
+                            ,"${formatId("eip", tier.Id, component.Id, zone.Id, "eth0")}": {
                         [/#if]
-                            "DependsOn" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
+                            "DependsOn" : "${formatId("eni", tier.Id, component.Id, zone.Id, "eth0")}",
                             "Type" : "AWS::EC2::EIP",
                             "Properties" : {
                                 "Domain" : "vpc"
                             }
                         }
-                        ,"eipAssocX${tier.Id}X${component.Id}X${zone.Id}Xeth0": {
-                            [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
-                                "DependsOn" : "eipX${tier.Id}X${component.Id}X${zone.Id}",
+                        ,"${formatId("eipAssoc", tier.Id, component.Id, zone.Id, "eth0")}": {
+                            [#if getKey("eip", tier.Id, component.Id, zone.Id, "ip")??]
+                                "DependsOn" : "${formatId("eip", tier.Id, component.Id, zone.Id)}",
                             [#else]
-                                "DependsOn" : "eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0",
+                                "DependsOn" : "${formatId("eip", tier.Id, component.Id, zone.Id, "eth0")}",
                             [/#if]
                             "Type" : "AWS::EC2::EIPAssociation",
                             "Properties" : {
-                                [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
-                                    "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}", "AllocationId"] },
+                                [#if getKey("eip", tier.Id, component.Id, zone.Id, "ip")??]
+                                    "AllocationId" : { "Fn::GetAtt" : ["${formatId("eip", tier.Id, component.Id, zone.Id)}", "AllocationId"] },
                                 [#else]
-                                    "AllocationId" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0", "AllocationId"] },
+                                    "AllocationId" : { "Fn::GetAtt" : ["${formatId("eip", tier.Id, component.Id, zone.Id, "eth0")}", "AllocationId"] },
                                 [/#if]
-                                "NetworkInterfaceId" : { "Ref" : "eniX${tier.Id}X${component.Id}X${zone.Id}Xeth0" }
+                                "NetworkInterfaceId" : { "Ref" : "${formatId("eni", tier.Id, component.Id, zone.Id, "eth0")}" }
                             }
                         }
                     [/#if]
@@ -305,28 +305,28 @@
             [#break]
 
         [#case "outputs"]
-            "roleX${tier.Id}X${component.Id}" : {
-                "Value" : { "Ref" : "roleX${tier.Id}X${component.Id}" }
+            "${formatId("role", tier.Id, component.Id)}" : {
+                "Value" : { "Ref" : "${formatId("role", tier.Id, component.Id)}" }
             },
-            "roleX${tier.Id}X${component.Id}Xarn" : {
-                "Value" : { "Fn::GetAtt" : ["roleX${tier.Id}X${component.Id}", "Arn"] }
+            "${formatId("role", tier.Id, component.Id, "arn")}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("role", tier.Id, component.Id)}", "Arn"] }
             }
             [#if fixedIP]
                 [#list zones as zone]
                     [#if multiAZ || (zones[0].Id = zone.Id)]
-                        [#if getKey("eipX${tier.Id}X${component.Id}X${zone.Id}Xip")??]
-                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xip": {
-                                "Value" : { "Ref" : "eipX${tier.Id}X${component.Id}X${zone.Id}" }
+                        [#if getKey("eip", tier.Id, component.Id, zone.Id, "ip")??]
+                            ,"${formatId("eip", tier.Id, component.Id, zone.Id, "ip")}": {
+                                "Value" : { "Ref" : "${formatId("eip", tier.Id, component.Id, zone.Id)}" }
                             }
-                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xid": {
-                                "Value" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}", "AllocationId"] }
+                            ,"${formatId("eip", tier.Id, component.Id, zone.Id, "id")}": {
+                                "Value" : { "Fn::GetAtt" : ["${formatId("eip", tier.Id, component.Id, zone.Id)}", "AllocationId"] }
                             }
                         [#else]
-                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0Xip": {
-                                "Value" : { "Ref" : "eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0" }
+                            ,"${formatId("eip", tier.Id, component.Id, zone.Id, "eth0", "ip")}": {
+                                "Value" : { "Ref" : "${formatId("eip", tier.Id, component.Id, zone.Id, "eth0")}" }
                             }
-                            ,"eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0Xid": {
-                                "Value" : { "Fn::GetAtt" : ["eipX${tier.Id}X${component.Id}X${zone.Id}Xeth0", "AllocationId"] }
+                            ,"${formatId("eip", tier.Id, component.Id, zone.Id, "eth0", "id")}": {
+                                "Value" : { "Fn::GetAtt" : ["${formatId("eip", tier.Id, component.Id, zone.Id, "eth0")}", "AllocationId"] }
                             }
                         [/#if]
                     [/#if]

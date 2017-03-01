@@ -6,7 +6,7 @@
         [#case "definition"]
             [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
             [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
-            "esX${tier.Id}X${component.Id}":{
+            "${formatId("es", tier.Id, component.Id)}":{
                 "Type" : "AWS::Elasticsearch::Domain",
                 "Properties" : {
                     "AccessPolicies" : {
@@ -25,16 +25,16 @@
                                         [#assign ipCount = 0]
                                         "aws:SourceIp": [
                                             [#list zones as zone]
-                                                [#if (getKey("eipXmgmtXnatX" + zone.Id + "Xip")??)]
+                                                [#if (getKey("eip", "mgmt", "nat", zone.Id, "ip")??)]
                                                     [#if ipCount > 0],[/#if]
-                                                    "${getKey("eipXmgmtXnatX" + zone.Id + "Xip")}"
+                                                    "${getKey("eip", "mgmt", "nat", zone.Id, "ip")}"
                                                     [#assign ipCount += 1]
                                                 [/#if]
                                             [/#list]
                                             [#list 1..20 as i]
-                                                [#if (getKey("eipXmgmtXnatXexternalX" + i)??)]
+                                                [#if (getKey("eip", "mgmt", "nat", "external" + i)??)]
                                                     [#if ipCount > 0],[/#if]
-                                                    "${getKey("eipXmgmtXnatXexternalX" + i)}"
+                                                    "${getKey("eip", "mgmt", "nat", "external", i)}"
                                                     [#assign ipCount += 1]
                                                 [/#if]
                                             [/#list]
@@ -135,14 +135,14 @@
             [#break]
 
         [#case "outputs"]
-            "esX${tier.Id}X${component.Id}" : {
-                "Value" : { "Ref" : "esX${tier.Id}X${component.Id}" }
+            "${formatId("es", tier.Id, component.Id)}" : {
+                "Value" : { "Ref" : "${formatId("es", tier.Id, component.Id)}" }
             },
-            "esX${tier.Id}X${component.Id}Xdns" : {
-                "Value" : { "Fn::GetAtt" : ["esX${tier.Id}X${component.Id}", "DomainEndpoint"] }
+            "${formatId("es", tier.Id, component.Id, "dns")}" : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("es", tier.Id, component.Id)}", "DomainEndpoint"] }
             },
-            "esX${tier.Id}X${component.Id}Xarn" : {
-                "Value" : { "Fn::GetAtt" : ["esX${tier.Id}X${component.Id}", "DomainArn"] }
+            "${formatId("es", tier.Id, component.Id, "arn")} : {
+                "Value" : { "Fn::GetAtt" : ["${formatId("es", tier.Id, component.Id)}", "DomainArn"] }
             }
             [#break]
 
