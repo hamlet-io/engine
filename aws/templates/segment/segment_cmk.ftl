@@ -6,7 +6,7 @@
             "cmk" : {
                 "Type" : "AWS::KMS::Key",
                 "Properties" : {
-                    "Description" : "${productName}-${segmentName}",
+                    "Description" : "${formatName(productName,segmentName)}",
                     "Enabled" : true,
                     "EnableKeyRotation" : ${(rotateKeys)?string("true","false")},
                     "KeyPolicy" : {
@@ -36,17 +36,17 @@
             "aliasXcmk" : {
                 "Type" : "AWS::KMS::Alias",
                 "Properties" : {
-                    "AliasName" : "alias/${productName}-${segmentName}",
+                    "AliasName" : "${formatName("alias/"+productName, segmentName)}",
                     "TargetKeyId" : { "Fn::GetAtt" : ["cmk", "Arn"] }
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "cmkXsegmentXcmk" : {
+            "${formatId("cmk", "segment", "cmk")}" : {
                 "Value" : { "Ref" : "cmk" }
             },
-            "cmkXsegmentXcmkXarn" : {
+            "${formatId("cmk", "segment", "cmk", "arn")}" : {
                 "Value" : { "Fn::GetAtt" : ["cmk", "Arn"] }
             }
             [#break]
