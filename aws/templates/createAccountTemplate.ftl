@@ -18,12 +18,11 @@
     [#case "accountInHost"]
     [#default]
         [#assign accountDomain = accountDomainStem]
-        [#assign accountDomainQualifier = formatName("", accountName)]
+        [#assign accountDomainQualifier = "-" + accountName]
         [#break]
 [/#switch]
-[#-- TODO: check if this can be deleted or accountDomainCertificateId really may conatins "-"
+[#-- TODO: check if this can be deleted or accountDomainCertificateId really may conatins "-" --]
 [#assign accountDomainCertificateId = accountDomainCertificateId?replace("-","X")]
---]
 
 [#assign categoryId = "account"]
 
