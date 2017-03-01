@@ -4,7 +4,7 @@
     [#switch segmentListMode]
         [#case "definition"]
             [#-- Create operations bucket --]
-            "s3X${operationsBucketType}" : {
+            "${formatId("s3", operationsBucketType)}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {
                     "BucketName" : "${operationsBucket}",
@@ -30,8 +30,8 @@
                 }
             },
             [#-- Ensure ELBs can write to the operations bucket for logs --]
-            "s3X${operationsBucketType}Xpolicy" : {
-                "DependsOn" : [ "s3X${operationsBucketType}" ],
+            "${formatId("s3", operationsBucketType, "policy")}" : {
+                "DependsOn" : [ "${formatId("s3", operationsBucketType)}" ],
                 "Type" : "AWS::S3::BucketPolicy",
                 "Properties" : {
                     "Bucket" : "${operationsBucket}",
@@ -50,7 +50,7 @@
                 }
             },
             [#-- Create data bucket --]
-            "s3X${dataBucketType}" : {
+            "${formatId("s3", dataBucketType)}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {
                     "BucketName" : "${dataBucket}",
@@ -79,18 +79,18 @@
 
         [#case "outputs"]
             [#-- Current naming --]
-            "s3XsegmentXoperations" : {
-                "Value" : { "Ref" : "s3X${operationsBucketType}" }
+            "${formatId("s3", "segment", "operations")}" : {
+                "Value" : { "Ref" : "${formatId("s3", operationsBucketType)}" }
             },
-            "s3XsegmentXdata" : {
-                "Value" : { "Ref" : "s3X${dataBucketType}" }
+            "${formatId("s3", "segment", "data")}" : {
+                "Value" : { "Ref" : "${formatId("s3", dataBucketType)}" }
             },
             [#-- Legacy naming --]
-            "s3X${operationsBucketSegment}X${operationsBucketType}" : {
-                "Value" : { "Ref" : "s3X${operationsBucketType}" }
+            "${formatId("s3", operationsBucketSegment, operationsBucketType)}" : {
+                "Value" : { "Ref" : "${formatId("s3", operationsBucketType)}" }
             },
-            "s3X${dataBucketSegment}X${dataBucketType}" : {
-                "Value" : { "Ref" : "s3X${dataBucketType}" }
+            "${formatId("s3", dataBucketSegment, dataBucketType)}" : {
+                "Value" : { "Ref" : "${formatId("s3", dataBucketType)}" }
             }
             [#break]
 

@@ -37,11 +37,11 @@
                             { "Key" : "cot:segment", "Value" : "${segmentId}" },
                             { "Key" : "cot:environment", "Value" : "${environmentId}" },
                             { "Key" : "cot:category", "Value" : "${categoryId}" },
-                            { "Key" : "Name", "Value" : "${productName}-${segmentName}" } 
+                            { "Key" : "Name", "Value" : "${formatName(productName, segmentName)}" }
                         ]
                     }
                 },
-                "igwXattachment" : {
+                "${formatId("igw", "attachment")}" : {
                     "Type" : "AWS::EC2::VPCGatewayAttachment",
                     "Properties" : {
                         "InternetGatewayId" : { "Ref" : "igw" },
@@ -60,7 +60,7 @@
                     [#assign tableName = routeTable.Name + jumpServerPerAZ?string("-" + zone.Id,"")]
                     [#if !solutionRouteTables?seq_contains(tableId)]
                         [#assign solutionRouteTables = solutionRouteTables + [tableId]]
-                        ,"routeTableX${tableId}" : {
+                        ,"${formatId("routeTable", tableId)}" : {
                             "Type" : "AWS::EC2::RouteTable",
                             "Properties" : {
                                 "VpcId" : { "Ref" : "vpc" },
@@ -76,16 +76,16 @@
                                     [#if jumpServerPerAZ]
                                         { "Key" : "cot:zone", "Value" : "${zone.Id}" },
                                     [/#if]
-                                    { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tableName}" } 
+                                    { "Key" : "Name", "Value" : "${formatName(productName,segmentName,tableName)}" }
                                 ]
                             }
                         }
                         [#list routeTable.Routes?values as route]
                             [#if route?is_hash]
-                                ,"routeX${tableId}X${route.Id}" : {
+                                ,"${formatId("route", tableId, route.Id)}" : {
                                     "Type" : "AWS::EC2::Route",
                                     "Properties" : {
-                                        "RouteTableId" : { "Ref" : "routeTableX${tableId}" },
+                                        "RouteTableId" : { "Ref" : "${formatId("routeTable",tableId)}" },
                                         [#switch route.Type]
                                             [#case "gateway"]
                                                 "DestinationCidrBlock" : "0.0.0.0/0",
@@ -107,7 +107,7 @@
                 [#assign networkACL = networkACLs[networkACLId]]
                 [#if !solutionNetworkACLs?seq_contains(networkACLId)]
                     [#assign solutionNetworkACLs = solutionNetworkACLs + [networkACLId]]
-                    ,"networkACLX${networkACLId}" : {
+                    ,"${formatId("networkACL", networkACLId)}" : {
                         "Type" : "AWS::EC2::NetworkAcl",
                         "Properties" : {
                             "VpcId" : { "Ref" : "vpc" },
@@ -120,7 +120,7 @@
                                 { "Key" : "cot:segment", "Value" : "${segmentId}" },
                                 { "Key" : "cot:environment", "Value" : "${environmentId}" },
                                 { "Key" : "cot:category", "Value" : "${categoryId}" },
-                                { "Key" : "Name", "Value" : "${productName}-${segmentName}-${networkACL.Name}" } 
+                                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, networkACL.Name)}" }
                             ]
                         }
                     }                    
@@ -128,10 +128,10 @@
                         [#if networkACL.Rules[direction]??]
                             [#list networkACL.Rules[direction]?values as rule]
                                 [#if rule?is_hash]
-                                    ,"ruleX${networkACLId}X${(direction="Outbound")?string("out", "in")}X${rule.Id}" : {
+                                    ,"${formatId("rule", networkACLId,(direction="Outbound")?string("out", "in"), rule.Id)}" : {
                                         "Type" : "AWS::EC2::NetworkAclEntry",
                                         "Properties" : {
-                                            "NetworkAclId" : { "Ref" : "networkACLX${networkACLId}" },
+                                            "NetworkAclId" : { "Ref" : "${formatId("networkACL", networkACLId)}" },
                                             "Egress" : "${(direction="Outbound")?string("true","false")}",
                                             "RuleNumber" : "${rule.RuleNumber}",
                                             "RuleAction" : "${rule.Allow?string("allow","deny")}",
@@ -170,7 +170,7 @@
                 [#assign networkACLId = tier.NetworkACL]
                 [#assign networkACL = networkACLs[networkACLId]]
                 [#list zones as zone]
-                    ,"subnetX${tier.Id}X${zone.Id}" : {
+                    ,"${formatId("subnet", tier.Id, zone.Id)}" : {
                         "Type" : "AWS::EC2::Subnet",
                         "Properties" : {
                             "VpcId" : { "Ref" : "vpc" },
@@ -191,24 +191,25 @@
                                 [#if routeTable.Private!false]
                                     { "Key" : "network", "Value" : "private" },
                                 [/#if]
-                                { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-${zone.Name}" } 
+                                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, zone.Name)}" }
                             ]
                         }
                     },
                     
-                    "routeTableXassociationX${tier.Id}X${zone.Id}" : {
+                    "${formatId("routeTable", "association", tier.Id, zone.Id)}" : {
                         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
                         "Properties" : {
-                            "SubnetId" : { "Ref" : "subnetX${tier.Id}X${zone.Id}" },
-                            "RouteTableId" : { "Ref" : "routeTableX${routeTableId + jumpServerPerAZ?string("X" + zone.Id,"")}" }
+                            "SubnetId" : { "Ref" : "${formatId("subnet", tier.Id, zone.Id)}" },
+                            [#-- TODO: check the expression and simplify] --]
+                            "RouteTableId" : { "Ref" : "${formatId("routeTable", routeTableId + jumpServerPerAZ?string("X" + zone.Id,""))}" }
                         }
                     },
                     
-                    "networkACLXassociationX${tier.Id}X${zone.Id}" : {
+                    "${formatId("networkACL", "association", tier.Id, zone.Id)}" : {
                         "Type" : "AWS::EC2::SubnetNetworkAclAssociation",
                         "Properties" : {
-                            "SubnetId" : { "Ref" : "subnetX${tier.Id}X${zone.Id}" },
-                            "NetworkAclId" : { "Ref" : "networkACLX${networkACLId}" }
+                            "SubnetId" : { "Ref" : "${formatId("subnet", tier.Id, zone.Id)}" },
+                            "NetworkAclId" : { "Ref" : "${formatId("networkACL", networkACLId)}" }
                         }
                     }
                 [/#list]
@@ -216,7 +217,7 @@
                         
             [#if jumpServer]
                 [#assign tier = getTier("mgmt")]
-                ,"roleX${tier.Id}Xnat": {
+                ,"${formatId("role", tier.Id, "nat")}": {
                     "Type" : "AWS::IAM::Role",
                     "Properties" : {
                         "AssumeRolePolicyDocument" : {
@@ -232,7 +233,7 @@
                         "Path": "/",
                         "Policies": [
                             {
-                                "PolicyName": "${tier.Id}-nat",
+                                "PolicyName": "${formatName(tier.Id, "nat")}",
                                 "PolicyDocument" : {
                                     "Version" : "2012-10-17",
                                     "Statement" : [
@@ -275,16 +276,16 @@
                         ]
                     }
                 },
-                "instanceProfileX${tier.Id}Xnat" : {
+                "${formatId("instanceProfile", tier.Id, "nat")}" : {
                     "Type" : "AWS::IAM::InstanceProfile",
                     "Properties" : {
                         "Path" : "/",
                         "Roles" : [ 
-                            { "Ref" : "roleX${tier.Id}Xnat" } 
+                            { "Ref" : "${formatId("role", tier.Id, "nat")}" }
                         ]
                     }
                 },
-                "securityGroupX${tier.Id}Xnat" : {
+                "${formatId("securityGroup", tier.Id, "nat")}" : {
                     "Type" : "AWS::EC2::SecurityGroup",
                     "Properties" : {
                         "GroupDescription": "Security Group for HA NAT instances",
@@ -300,7 +301,7 @@
                             { "Key" : "cot:category", "Value" : "${categoryId}" },
                             { "Key" : "cot:tier", "Value" : "${tier.Id}"},
                             { "Key" : "cot:component", "Value" : "nat"},
-                            { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-nat" }
+                            { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, "nat")}" }
                         ],
                         "SecurityGroupIngress" : [
                             [#if (segmentObject.IPAddressBlocks)??]
@@ -328,7 +329,7 @@
                         ]
                     }
                 },
-                "securityGroupX${tier.Id}XallXnat" : {
+                "${formatId("securityGroup",tier.Id, "all", "nat")}" : {
                     "Type" : "AWS::EC2::SecurityGroup",
                     "Properties" : {
                         "GroupDescription": "Security Group for access from NAT",
@@ -344,18 +345,18 @@
                             { "Key" : "cot:category", "Value" : "${categoryId}" },
                             { "Key" : "cot:tier", "Value" : "all"},
                             { "Key" : "cot:component", "Value" : "nat"},
-                            { "Key" : "Name", "Value" : "${productName}-${segmentName}-all-nat" }
+                            { "Key" : "Name", "Value" : "${formatName(productName, segmentName, "all", "nat")}"}
                         ],
                         "SecurityGroupIngress" : [
-                            { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "SourceSecurityGroupId": { "Ref" : "securityGroupX${tier.Id}Xnat"} }
+                            { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "SourceSecurityGroupId": { "Ref" : "${formatId("securityGroup", tier.Id, "nat")}" } }
                         ]
                     }
                 }
                         
                 [#list zones as zone]
                     [#if jumpServerPerAZ || (zones[0].Id == zone.Id)]
-                        ,"asgX${tier.Id}XnatX${zone.Id}": {
-                            "DependsOn" : [ "subnetX${tier.Id}X${zone.Id}" ],
+                        ,"${formatId("asg", tier.Id, "nat", zone.Id)}": {
+                            "DependsOn" : [ "${formatId("subnet", tier.Id, zone.Id)}" ],
                             "Type": "AWS::AutoScaling::AutoScalingGroup",
                             "Metadata": {
                                 "AWS::CloudFormation::Init": {
@@ -443,17 +444,17 @@
                                                     "command" : "/opt/codeontap/bootstrap/eip.sh",
                                                     "env" : { 
                                                         [#-- Legacy code to support definition of eip and vpc in one template (deploymentUnit = "eipvpc" or "eips3vpc" depending on how S3 to be defined)  --]
-                                                        "EIP_ALLOCID" : { "Fn::GetAtt" : ["eipX${tier.Id}XnatX${zone.Id}", "AllocationId"] }
+                                                        "EIP_ALLOCID" : { "Fn::GetAtt" : ["${formatId("eip",tier.Id, "nat", zone.Id)}", "AllocationId"] }
                                                     },
                                                     "ignoreErrors" : "false"
                                                 }
                                             [#else]
-                                                [#if getKey("eipX" + tier.Id + "XnatX" + zone.Id + "Xid")??]
+                                                [#if getKey("eip", tier.Id, "nat", zone.Id, "id")??]
                                                     ,"02ExecuteAllocateEIPScript" : {
                                                         "command" : "/opt/codeontap/bootstrap/eip.sh",
                                                         "env" : { 
                                                             [#-- Normally assume eip defined in a separate template to the vpc --]
-                                                            "EIP_ALLOCID" : "${getKey("eipX" + tier.Id + "XnatX" + zone.Id + "Xid")}"
+                                                            "EIP_ALLOCID" : "${getKey("eip", tier.Id, "nat", zone.Id, "id")}"
                                                         },
                                                         "ignoreErrors" : "false"
                                                     }
@@ -465,11 +466,11 @@
                             },
                             "Properties": {
                                 "Cooldown" : "30",
-                                "LaunchConfigurationName": {"Ref": "launchConfigX${tier.Id}XnatX${zone.Id}"},
+                                "LaunchConfigurationName": {"Ref": "${formatId("launchConfig", tier.Id, "nat", zone.Id)}"},
                                 "MinSize": "1",
                                 "MaxSize": "1",
                                 "VPCZoneIdentifier": [ 
-                                    { "Ref" : "subnetX${tier.Id}X${zone.Id}"} 
+                                    { "Ref" : "${formatId("subnet", tier.Id, zone.Id)}"}
                                 ],
                                 "Tags" : [
                                     { "Key" : "cot:request", "Value" : "${requestReference}", "PropagateAtLaunch" : "True" },
@@ -483,21 +484,21 @@
                                     { "Key" : "cot:tier", "Value" : "${tier.Id}", "PropagateAtLaunch" : "True" },
                                     { "Key" : "cot:component", "Value" : "nat", "PropagateAtLaunch" : "True"},
                                     { "Key" : "cot:zone", "Value" : "${zone.Id}", "PropagateAtLaunch" : "True" },
-                                    { "Key" : "Name", "Value" : "${productName}-${segmentName}-${tier.Name}-nat-${zone.Name}", "PropagateAtLaunch" : "True" }
+                                    { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, "nat", zone.Name)}", "PropagateAtLaunch" : "True" }
                                 ]
                             }
                         },
                     
                         [#assign component = { "Id" : ""}]
                         [#assign processorProfile = getProcessor(tier, component, "NAT")]
-                        "launchConfigX${tier.Id}XnatX${zone.Id}": {
+                        "${formatId("launchConfig", tier.Id, "nat", zone.Id)}": {
                             "Type": "AWS::AutoScaling::LaunchConfiguration",
                             "Properties": {
                                 "KeyName": "${productName + sshPerSegment?string("-" + segmentName,"")}",
                                 "ImageId": "${regionObject.AMIs.Centos.NAT}",
                                 "InstanceType": "${processorProfile.Processor}",
-                                "SecurityGroups" : [ { "Ref": "securityGroupX${tier.Id}Xnat" } ],
-                                "IamInstanceProfile" : { "Ref" : "instanceProfileX${tier.Id}Xnat" },
+                                "SecurityGroups" : [ { "Ref": "${formatId("securityGroup", tier.Id, "nat")}" } ],
+                                "IamInstanceProfile" : { "Ref" : "${formatId("instanceProfile", tier.Id, "nat")}" },
                                 "AssociatePublicIpAddress": true,
                                 "UserData": {
                                     "Fn::Base64": { 
@@ -510,7 +511,7 @@
                                                 "# Remainder of configuration via metadata\n",
                                                 "/opt/aws/bin/cfn-init -v",
                                                 "         --stack ", { "Ref" : "AWS::StackName" },
-                                                "         --resource asgX${tier.Id}XnatX${zone.Id}",
+                                                "         --resource ${formatId("asg", tier.Id, "nat", zone.Id)}",
                                                 "         --region ${regionId} --configsets nat\n"
                                             ]
                                         ]
@@ -524,32 +525,32 @@
             [#break]
 
         [#case "outputs"]
-            "domainXsegmentXdomain" : {
+            "${formatId("domain", "segment", "domain")}" : {
                 "Value" : "${segmentDomain}"
             },
-            "domainXsegmentXqualifier" : {
+            "${formatId("domain", "segment", "qualifier")}" : {
                 "Value" : "${segmentDomainQualifier}"
             },
-            "domainXsegmentXcertificate" : {
+            "${formatId("domain", "segment", "certificate")}" : {
                 "Value" : "${segmentDomainCertificateId}"
             },
-            "vpcXsegmentXvpc" : {
+            "${formatId("vpc", "segment", "vpc")}" : {
                 "Value" : { "Ref" : "vpc" }
             },
-            "igwXsegmentXigw" : 
+            "${formatId("igw", "segment", "igw")}" :
             {
                 "Value" : { "Ref" : "igw" }
             }
             [#if jumpServer]
                 [#assign tier = getTier("mgmt")]
-                ,"securityGroupXmgmtXnat" : {
-                    "Value" : { "Ref" : "securityGroupX${tier.Id}XallXnat" }
+                ,"${formatId("securityGroup", "mgmt", "nat")}" : {
+                    "Value" : { "Ref" : "${formatId("securityGroup", tier.Id, "all", "nat")}" }
                 }
             [/#if]
             [#list tiers as tier]
                 [#list zones as zone]
-                    ,"subnetX${tier.Id}X${zone.Id}" : {
-                        "Value" : { "Ref" : "subnetX${tier.Id}X${zone.Id}" }
+                    ,"${formatId("subnet", tier.Id, zone.Id)}" : {
+                        "Value" : { "Ref" : "${formatId("subnet", tier.Id, zone.Id)}" }
                     }
                 [/#list]
             [/#list]

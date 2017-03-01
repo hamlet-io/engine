@@ -9,7 +9,7 @@
                 [#if eipCount > 0],[/#if]
                 [#switch segmentListMode]
                     [#case "definition"]
-                        "eipX${tier.Id}XnatX${zone.Id}": {
+                        "${formatId("eip", tier.Id, "nat", zone.Id)}": {
                             "Type" : "AWS::EC2::EIP",
                             "Properties" : {
                                 "Domain" : "vpc"
@@ -18,11 +18,11 @@
                         [#break]
 
                     [#case "outputs"]
-                        "eipX${tier.Id}XnatX${zone.Id}Xip": {
-                            "Value" : { "Ref" : "eipX${tier.Id}XnatX${zone.Id}" }
+                        "${formatId("eip", tier.Id, "nat", zone.Id, "ip")}": {
+                            "Value" : { "Ref" : "${formatId("eip", tier.Id, "nat", zone.Id)}" }
                         },
-                        "eipX${tier.Id}XnatX${zone.Id}Xid": {
-                            "Value" : { "Fn::GetAtt" : ["eipX${tier.Id}XnatX${zone.Id}", "AllocationId"] }
+                        "${formatId("eip", tier.Id, "nat", zone.Id, "id")}": {
+                            "Value" : { "Fn::GetAtt" : ["${formatId("eip", tier.Id, "nat", zone.Id)}", "AllocationId"] }
                         }
                         [#break]
 

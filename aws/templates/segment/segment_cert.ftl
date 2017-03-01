@@ -18,7 +18,7 @@
             [#break]
 
         [#case "outputs"]
-            "certificateX${segmentDomainCertificateId}" : {
+            "${formatId("certificate", segmentDomainCertificateId)}" : {
                 "Value" : { "Ref" : "certificate" }
             }
             [#break]

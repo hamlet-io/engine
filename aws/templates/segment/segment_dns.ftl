@@ -7,7 +7,7 @@
                 "Type" : "AWS::Route53::HostedZone",
                 "Properties" : {
                     "HostedZoneConfig" : {
-                        "Comment" : "${productName}-${segmentName}" 
+                        "Comment" : "${formatName(productName, segmentName)}"
                     },
                     "HostedZoneTags" : [ 
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -21,14 +21,14 @@
                     ],
                     "Name" : "${segmentName}.${productName}.internal",
                     "VPCs" : [                
-                        { "VPCId" : "${getKey("vpcXsegmentXvpc")}", "VPCRegion" : "${regionId}" }
+                        { "VPCId" : "${getKey("vpc","segment","vpc")}", "VPCRegion" : "${regionId}" }
                     ]
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "dnsXsegmentXdns" : {
+            "${formatId("dns", "segment", "dns")}" : {
                 "Value" : { "Ref" : "dns" }
             }
             [#break]
