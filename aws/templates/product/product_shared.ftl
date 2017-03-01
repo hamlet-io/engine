@@ -1,6 +1,4 @@
 [#if deploymentUnit?contains("shared")]
-    [#assign arg1 = "domain"]
-    [#assign arg2 = "product"]
     [#switch productListMode]
         [#case "definition"]
             [#if (regionId == productRegionId) && (blueprintObject.Tiers["shared"].Components)??]
@@ -16,7 +14,7 @@
                                 [#assign bucketName = component.Name + productDomainQualifier + "." + productDomain]
                             [/#if]
                             [#-- Support presence of existing s3 buckets (naming has changed over time) --]
-                            [#assign bucketName = getKey("s3", arg2, component.Id)!bucketName]
+                            [#assign bucketName = getKey("s3", "product", component.Id)!bucketName]
                             "${formatId("s3", component.Id)}" : {
                                 "Type" : "AWS::S3::Bucket",
                                 "Properties" : {
@@ -54,13 +52,13 @@
         [#case "outputs"]
             [#if (regionId == productRegionId)]
                 [#if resourceCount > 0],[/#if]
-                "${formatId(arg1, arg2, "domain")}" : {
+                "${formatId("domain", "product", "domain")}" : {
                     "Value" : "${productDomain}"
                 },
-                "${formatId(arg1, arg2, "qualifier")}" : {
+                "${formatId("domain", "product", "qualifier")}" : {
                     "Value" : "${productDomainQualifier}"
                 },
-                "${formatId(arg1, arg2, "certificate")}" : {
+                "${formatId("domain", "product", "certificate")}" : {
                     "Value" : "${productDomainCertificateId}"
                 }
                 [#if (regionId == productRegionId) && (blueprintObject.Tiers["shared"].Components)??]
@@ -68,7 +66,7 @@
                         [#if component?is_hash]
                             [#if component.S3??]
                                 [#assign s3 = component.S3]
-                                "${formatId("s3", arg2, component.Id)}" : {
+                                "${formatId("s3", "product", component.Id)}" : {
                                     "Value" : { "Ref" : "${formatId("s3", component.Id)}" }
                                 }
                             [/#if]

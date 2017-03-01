@@ -10,7 +10,7 @@
                 [#-- Current bucket naming --]
                 [#assign bucketName = bucket + accountDomainQualifier + "." + accountDomain]
                 [#-- Support presence of existing s3 buckets (naming has changed over time) --]
-                [#assign bucketName = getKey("s3",categoryId, bucket)!bucketName]
+                [#assign bucketName = getKey("s3","account", bucket)!bucketName]
                 "${formatId("s3", bucket)}" : {
                     "Type" : "AWS::S3::Bucket",
                     "Properties" : {
@@ -29,18 +29,18 @@
             [#break]
         
         [#case "outputs"]
-            "${formatId("domain", categoryId, "domain")}" : {
+            "${formatId("domain", "account", "domain")}" : {
                 "Value" : "${accountDomain}"
             },
-            "${formatId("domain", categoryId, "qualifier")}" : {
+            "${formatId("domain", "account", "qualifier")}" : {
                 "Value" : "${accountDomainQualifier}"
             },
-            "${formatId("domain", categoryId, "certificate")}" : {
+            "${formatId("domain", "account", "certificate")}" : {
                 "Value" : "${accountDomainCertificateId}"
             },
             [#list buckets as bucket]
                 [#if bucketCount > 0],[/#if]
-                "${formatId("s3", categoryId, bucket)}" : {
+                "${formatId("s3", "account", bucket)}" : {
                     "Value" : { "Ref" : "${formatId("s3", bucket)}" }
                 }
                 [#assign bucketCount += 1]
