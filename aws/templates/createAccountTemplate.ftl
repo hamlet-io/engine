@@ -9,7 +9,7 @@
     [#case "accountInDomain"]
         [#assign accountDomain = accountName + "." + accountDomainStem]
         [#assign accountDomainQualifier = ""]
-        [#assign accountDomainCertificateId = formatId(accountDomainCertificateId, accountId)]
+        [#assign accountDomainCertificateId = formatName(accountDomainCertificateId, accountId)]
         [#break]
     [#case "naked"]
         [#assign accountDomain = accountDomainStem]

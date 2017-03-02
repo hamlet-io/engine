@@ -17,7 +17,7 @@
     [#case "productInHost"]
     [#default]
         [#assign productDomain = productDomainStem]
-        [#assign productDomainQualifier = "-" + productDomain]
+        [#assign productDomainQualifier = "-" + productName]
         [#break]
 [/#switch]
 [#assign productDomainCertificateId = productDomainCertificateId?replace("-","X")]
