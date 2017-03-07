@@ -228,11 +228,13 @@ if [[ -n "${PRODUCT}" ]]; then
             IS_APPLICATION_DEPLOYMENT_UNIT="true"
         
             EFFECTIVE_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref" ]]; then
-                EFFECTIVE_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
-            fi
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref" ]]; then
                 EFFECTIVE_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref")
+            else
+                # Legacy naming to support products using the term "slice" instead of "deployment unit"
+                if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref" ]]; then
+                    EFFECTIVE_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
+                fi
             fi
             
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/appsettings.json" ]]; then
@@ -240,10 +242,10 @@ if [[ -n "${PRODUCT}" ]]; then
             fi
     
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.json" ]]; then
-                export BUILD_REFERENCE=$(<"${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.json")
+                export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.json")
             else
                 if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.ref" ]]; then
-                    export BUILD_REFERENCE=$(<"${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.ref")
+                    export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${EFFECTIVE_DEPLOYMENT_UNIT}/build.ref")
                 fi
             fi
         else
