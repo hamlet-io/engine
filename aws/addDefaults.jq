@@ -1,4 +1,11 @@
-# Apply f to composite entities recursively, and to atoms
+# Add missing attributes
+# - .Id   = Parent key if object
+# - .Name = .Id   if not present
+# - .Id   = .Name if not present
+# 
+# Rename atributes
+# - Slices = DeploymentUnits (change of terminology)
+#
 def walk_with_parent($parentKey):
   . as $in
   | if type == "object" then
