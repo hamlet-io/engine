@@ -1049,7 +1049,7 @@
         "RotateKey" : true,
         "Tiers" : {
             "Order" : ["web", "msg", "app", "db", "dir", "ana", "api", "spare",
-            "elb", "ilb", "spare", "spare", "spare", "spare", "spare", "mgmt", "shared"]
+            "elb", "ilb", "spare", "spare", "spare", "spare", "spare", "mgmt"]
         },
         "Zones" : {
             "Order" : ["a", "b", "spare", "spare"]
