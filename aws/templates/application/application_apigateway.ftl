@@ -3,69 +3,115 @@
     [#assign apigateway = component.APIGateway]
     [#if apigateway.Versions??]
         [#list apigateway.Versions?values as version]
-            [#if version?is_hash && (version.Slices!component.Slices)?seq_contains(slice)]
+            [#if version?is_hash && (version.DeploymentUnits)?seq_contains(deploymentUnit)]
+                [#assign apigatewayIdStem = formatId(componentIdStem, version.Id)]
                 [#if resourceCount > 0],[/#if]
                 [#switch applicationListMode]
                     [#case "definition"]
-                        "apiX${tier.Id}X${component.Id}X${version.Id}" : {
+                        "${formatId("api", apigatewayIdStem)}" : {
                             "Type" : "AWS::ApiGateway::RestApi",
                             "Properties" : {
                                 "BodyS3Location" : {
-                                    "Bucket" : "${registryBucket}",
-                                    "Key" : "swagger+integrations.yaml"
+                                    "Bucket" : "${getRegistryEndPoint("swagger")}",
+                                    "Key" : "${getRegistryPrefix("swagger")}${productId}/${deploymentUnit}/${buildCommit}/swagger.yaml"
                                 },
-                                "Name" : "${productName}-${segmentName}-${tier.Name}-${component.Name}-${version.Name}"
+                                "Name" : "${formatName(componentNameStem, version.Name)}"
                             }
                         },
-                        "apiDeployX${tier.Id}X${component.Id}X${version.Id}" : {
+                        "${formatId("apiDeploy", apigatewayIdStem)}" : {
                             "Type": "AWS::ApiGateway::Deployment",
                             "Properties": {
-                                "RestApiId": { "Ref" : "apiX${tier.Id}X${component.Id}X${version.Id}" },
+                                "RestApiId": { "Ref" : "${formatId("api", apigatewayIdStem)}" },
                                 "StageName": "default"
                             },
-                            "DependsOn" : "apiX${tier.Id}X${component.Id}X${version.Id}"
+                            "DependsOn" : "${formatId("api", apigatewayIdStem)}"
                         },
-                        "apiStageX${tier.Id}X${component.Id}X${version.Id}" : {
+                        [#assign stageName = version.Name]
+                        "${formatId("apiStage", apigatewayIdStem)}" : {
                             "Type" : "AWS::ApiGateway::Stage",
                             "Properties" : {
-                                "DeploymentId" : { "Ref" : "apiDeployX${tier.Id}X${component.Id}X${version.Id}" },
-                                "RestApiId" : { "Ref" : "apiX${tier.Id}X${component.Id}X${version.Id}" },
-                                "StageName" : "${version.Name}"
-[#--
+                                "DeploymentId" : { "Ref" : "${formatId("apiDeploy", apigatewayIdStem)}" },
+                                "RestApiId" : { "Ref" : "${formatId("api", apigatewayIdStem)}" },
+                                "StageName" : "${stageName}"
                                 [#if version.Links??]
                                     ,"Variables" : {
                                         [#assign linkCount = 0]
                                         [#list version.Links?values as link]
                                             [#if link?is_hash]
-                                                [#if linkCount > 0],[/#if]
-                                                [#if link.Function??]
-                                                    [@environmentVariable "${link.Name?upper_case}"
-                                                        getKey("lambdaX" + link.Tier + "X" + link.Component + "X" + version.Id + "X" + link.Function + "Xarn")
-                                                        "flat" /]
-
-                                                [#else]
-                                                    [@environmentVariable "${link.Name?upper_case}"
-                                                        getKey("albX" + link.Tier + "X" + link.Component + "Xdns")
-                                                        "flat" /]
-
+                                                [#if getComponent(link.Tier, link.Component)??]
+                                                    [#assign target = getComponent(link.Tier, link.Component)]
+                                                    [#if target.ALB?? || target.ELB??]
+                                                        [#if linkCount > 0],[/#if]
+                                                        [#assign stageVariable = link.Name?upper_case + "_DOCKER" ]
+                                                        [@environmentVariable stageVariable
+                                                            getKey("alb", link.Tier, link.Component, "dns")
+                                                            "apigateway" /]
+                                                        [#assign linkCount += 1]
+                                                    [/#if]
+                                                    [#if (target.Lambda.Versions[version.Id].Functions)??]
+                                                        [#list target.Lambda.Versions[version.Id].Functions?values as fn]
+                                                            [#if fn?is_hash]
+                                                                [#if linkCount > 0],[/#if]
+                                                                [#assign stageVariable = link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA"]
+                                                                [@environmentVariable stageVariable
+                                                                    getKey("lambda", link.Tier, link.Component, version.Id, fn.Id)
+                                                                    "apigateway" /]
+                                                                [#assign linkCount += 1]
+                                                            [/#if]
+                                                        [/#list]
+                                                    [/#if]
                                                 [/#if]
-                                                [#assign linkCount += 1]
                                             [/#if]
                                         [/#list]
                                     }
                                 [/#if]
---]
                             },
-                            "DependsOn" : "apiDeployX${tier.Id}X${component.Id}X${version.Id}"
+                            "DependsOn" : "${formatId("apiDeploy", apigatewayIdStem)}"
                         }
+                        [#-- Include access to lambda functions if required --]
+                        [#if version.Links??]
+                            [#list version.Links?values as link]
+                                [#if link?is_hash]
+                                    [#if getComponent(link.Tier, link.Component)??]
+                                        [#assign target = getComponent(link.Tier, link.Component)]
+                                        [#if (target.Lambda.Versions[version.Id].Functions)??]
+                                            [#list target.Lambda.Versions[version.Id].Functions?values as fn]
+                                                [#if fn?is_hash]
+                                                    ,"${formatId("apiLambdaPermission", apigatewayIdStem, link.Id, fn.Id)}" : {
+                                                        "Type" : "AWS::Lambda::Permission",
+                                                        "Properties" : {
+                                                            "Action" : "lambda:InvokeFunction",
+                                                            "FunctionName" : "${getKey("lambda", link.Tier, link.Component, version.Id, fn.Id)}",
+                                                            "Principal" : "apigateway.amazonaws.com",
+                                                            "SourceArn" : {
+                                                                "Fn::Join" : [
+                                                                    "",
+                                                                    [
+                                                                        "arn:aws:execute-api:",
+                                                                        "${regionId}", ":",
+                                                                        {"Ref" : "AWS::AccountId"}, ":",
+                                                                        { "Ref" : "${formatId("api", apigatewayIdStem)}" },
+                                                                        "/${stageName}/*"
+                                                                    ]
+                                                                ]
+                                                            }
+                                                        }
+                                                    }
+                                                [/#if]
+                                            [/#list]
+                                        [/#if]
+                                    [/#if]
+                                [/#if]
+                            [/#list]
+                        [/#if]
                         [#break]
 
                     [#case "outputs"]
-                        "apiX${tier.Id}X${component.Id}X${version.Id}" : {
-                            "Value" : { "Ref" : "apiX${tier.Id}X${component.Id}X${version.Id}" }
+                        "${formatId("api", apigatewayIdStem)}" : {
+                            "Value" : { "Ref" : "${formatId("api", apigatewayIdStem)}" }
                         },
-                        "apiX${tier.Id}X${component.Id}X${version.Id}Xroot" : {
-                            "Value" : { "Fn::GetAtt" : ["apiX${tier.Id}X${component.Id}X${version.Id}", "RootResourceId"] }
+                        "${formatId("api", apigatewayIdStem, "root")}" : {
+                            "Value" : { "Fn::GetAtt" : ["${formatId("api", apigatewayIdStem)}", "RootResourceId"] }
                         }
                         [#break]
 
