@@ -246,3 +246,38 @@
     [/#if]
 [/#function]
 
+[#macro securityGroup mode tier component version]
+    [#if resourceCount > 0],[/#if]
+    [#switch mode]
+        [#case "definition"]
+            "${formatId("securityGroup", componentIdStem, version)}" : {
+                "Type" : "AWS::EC2::SecurityGroup",
+                "Properties" : {
+                    "GroupDescription": "Security Group for ${formatName(componentNameStem, version)}",
+                    "VpcId": "${vpc}",
+                    "Tags" : [
+                        { "Key" : "cot:request", "Value" : "${requestReference}" },
+                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
+                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
+                        { "Key" : "cot:account", "Value" : "${accountId}" },
+                        { "Key" : "cot:product", "Value" : "${productId}" },
+                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
+                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
+                        { "Key" : "cot:category", "Value" : "${categoryId}" },
+                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
+                        { "Key" : "cot:component", "Value" : "${component.Id}" },
+                        { "Key" : "Name", "Value" : "${formatName(componentNameStem, version)}" }
+                    ]
+                }
+            }
+            [#break]
+
+        [#case "outputs"]
+            "${formatId("securityGroup", componentIdStem, version)}" : {
+                "Value" : { "Ref" : "${formatId("securityGroup", componentIdStem, version)}" }
+            }
+            [#break]
+
+    [/#switch]
+    [#assign resourceCount += 1]
+[/#macro]

@@ -1,6 +1,6 @@
 [#-- ECS --]
 [#if component.ECS??]
-    [@securityGroup tier=tier component=component /]
+    [@securityGroup solutionListMode tier component /]
     [#assign ecs = component.ECS]
     [#assign processorProfile = getProcessor(tier, component, "ECS")]
     [#assign maxSize = processorProfile.MaxPerZone]

@@ -1,6 +1,6 @@
 [#-- ElastiCache --]
 [#if component.ElastiCache??]
-    [@securityGroup tier=tier component=component /]
+    [@securityGroup solutionListMode tier component /]
     [#assign cache = component.ElastiCache]
     [#assign engine = cache.Engine]
     [#if resourceCount > 0],[/#if]

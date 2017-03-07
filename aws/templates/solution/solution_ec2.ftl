@@ -1,6 +1,6 @@
 [#-- EC2 --]
 [#if component.EC2??]
-    [@securityGroup tier=tier component=component /]
+    [@securityGroup solutionListMode tier component /]
     [#assign ec2 = component.EC2]
     [#assign fixedIP = ec2.FixedIP?? && ec2.FixedIP]
     [#if resourceCount > 0],[/#if]
