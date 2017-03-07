@@ -180,14 +180,16 @@ if [[ "${STACK_MONITOR}" = "true" ]]; then
     while true; do
 
         if [[ ("${DRYRUN}" == "true") ]]; then
-            aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
             STATUS_ATTRIBUTE="Status"
+            aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
+            RESULT=$?
         else
-            aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
             STATUS_ATTRIBUTE="StackStatus"
+            aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
+            RESULT=$?
         fi
 
-        if [[ ("${STACK_OPERATION}" == "delete") && ("$?" -eq 255) ]]; then
+        if [[ ("${STACK_OPERATION}" == "delete") && ("${RESULT}" -eq 255) ]]; then
             # Assume stack doesn't exist
             RESULT=0
             break
@@ -197,16 +199,16 @@ if [[ "${STACK_MONITOR}" = "true" ]]; then
         cat STATUS.txt
         grep "${STACK_OPERATION^^}_COMPLETE" STATUS.txt >/dev/null 2>&1
         RESULT=$?
-        if [[ "$RESULT" -eq 0 ]]; then break;fi
+        if [[ "${RESULT}" -eq 0 ]]; then break;fi
         grep "${STACK_OPERATION^^}_IN_PROGRESS" STATUS.txt  >/dev/null 2>&1
         RESULT=$?
-        if [[ "$RESULT" -ne 0 ]]; then break;fi
+        if [[ "${RESULT}" -ne 0 ]]; then break;fi
         sleep ${STACK_WAIT}
     done
 fi
 
-if [[ ("${RESULT}" -eq 0) ]]; then
-    if [[ ("${STACK_OPERATION}" == "delete") ]]; then
+if [[ "${STACK_OPERATION}" == "delete" ]]; then
+    if [[ ("${RESULT}" -eq 0) || !( -s "${STACK}" ) ]]; then
         rm -f "${STACK}"
     fi
 fi
