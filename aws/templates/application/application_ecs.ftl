@@ -8,12 +8,14 @@
             [#if service?is_hash]
                 [#assign serviceIdStem = formatId(componentIdStem, service.Id)]
                 [#assign serviceVersion = ""]
+                [#assign serviceVersionName = ""]
                 [#if service.Versions??]
                     [#list service.Versions?values as version]
                         [#if version?is_hash]
                             [#if version.DeploymentUnits?seq_contains(deploymentUnit)]
                                 [#assign serviceFound = true]
                                 [#assign serviceVersion = version.Id]
+                                [#assign serviceVersionName = version.Name]
                                 [#assign serviceIdStem = formatId(serviceIdStem, version.Id)]
                                 [#assign serviceObject = version]
                                 [#break]
@@ -82,7 +84,7 @@
                                                                 [#if lb.Port??]
                                                                     [#assign lbPort = lb.Port]
                                                                 [/#if]
-                                                                [#assign targetGroup = lb.TargetGroup!serviceVersion]
+                                                                [#assign targetGroup = lb.TargetGroup!serviceVersionName]
                                                                 [#if targetGroup != ""]
                                                                     [#assign targetGroupKey = formatId("tg", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c, targetGroup)]
                                                                     [#if getKey(targetGroupKey)??]
@@ -205,7 +207,7 @@
                                         [#if lb.Port??]
                                             [#assign lbPort = lb.Port]
                                         [/#if]
-                                        [#assign targetGroup = lb.TargetGroup!serviceVersion]
+                                        [#assign targetGroup = lb.TargetGroup!serviceVersionName]
                                         [#if targetGroup != ""]
                                             [#assign targetGroupKey = formatId("tg", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c, targetGroup)]
                                             [#if ! getKey(targetGroupKey)??]
@@ -228,7 +230,7 @@
                                                                 "Conditions": [
                                                                     {
                                                                         "Field": "path-pattern",
-                                                                        "Values": [ "${lb.Path!serviceVersion}" ]
+                                                                        "Values": [ "${lb.Path!serviceVersionName}" ]
                                                                     }
                                                                 ],
                                                                 "ListenerArn" : "${getKey("listener", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c)}"
