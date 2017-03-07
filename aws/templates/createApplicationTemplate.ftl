@@ -1,9 +1,13 @@
 [#ftl]
 [#include "setContext.ftl"]
 
-[#-- Application --]
-[#assign docker = appSettingsObject.Docker!"unknown"]
-[#assign lambda = appSettingsObject.Lambda!"unknown"]
+[#function getRegistryEndPoint type]
+    [#return (appSettingsObject[type?capitalize].Registry)!"unknown"]
+[/#function]
+
+[#function getRegistryPrefix type]
+    [#return (appSettingsObject[type?capitalize].Prefix)!""]
+[/#function]
 
 [#if buildReference??]
     [#if buildReference?starts_with("{")]
@@ -114,7 +118,8 @@
                         [#if containerCount > 0],[/#if]
                         {
                             [#assign containerId = formatName(container.Id, version)]
-                            [#assign containerName = formatName(tier.Name, component.Name, container.Name)]                           [#assign containerListMode = "definition"]
+                            [#assign containerName = formatName(tier.Name, component.Name, container.Name)]
+                            [#assign containerListMode = "definition"]
                             [#include containerList]
                             [#assign containerListMode = "environmentCount"]
                             [#assign environmentCount = 0]
