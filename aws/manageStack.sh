@@ -24,7 +24,7 @@ where
 (o) -m (STACK_INITIATE=false)   monitors but does not initiate the stack operation
 (o) -n STACK_NAME               to override standard stack naming
 (o) -r REGION                   is the AWS region identifier for the region in which the stack should be managed
-(d) -s DEPLOYMENT_UNIT          is the deployment unit used to determine the stack template
+(d) -s DEPLOYMENT_UNIT          same as -u
 (m) -t TYPE                     is the stack type - "account", "product", "segment", "solution" or "application"
 (m) -u DEPLOYMENT_UNIT          is the deployment unit used to determine the stack template
 (o) -w STACK_WAIT               is the interval between checking the progress of the stack operation

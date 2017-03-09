@@ -20,7 +20,7 @@ where
     -h                         shows this text
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
-(d) -s DEPLOYMENT_UNIT         is the deployment unit to be included in the template
+(d) -s DEPLOYMENT_UNIT         same as -u
 (m) -t TYPE                    is the template type - "account", "product", "segment", "solution" or "application"
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 
