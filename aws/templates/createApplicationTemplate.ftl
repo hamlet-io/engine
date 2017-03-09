@@ -2,11 +2,11 @@
 [#include "setContext.ftl"]
 
 [#function getRegistryEndPoint type]
-    [#return (appSettingsObject[type?capitalize].Registry)!"unknown"]
+    [#return (appSettingsObject.Registries[type?lower_case].EndPoint)!(appSettingsObject[type?capitalize].Registry)!"unknown"]
 [/#function]
 
 [#function getRegistryPrefix type]
-    [#return (appSettingsObject[type?capitalize].Prefix)!""]
+    [#return (appSettingsObject.Registries[type?lower_case].Prefix)!(appSettingsObject[type?capitalize].Prefix)!""]
 [/#function]
 
 [#if buildReference??]
