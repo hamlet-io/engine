@@ -566,6 +566,19 @@
                 "Expiration": 90
             }
         },
+        "system": {
+            "Title": "System Test Environment",
+            "Name": "system",
+            "Description": "Same as UAT",
+            "Category": "test",
+            "MultiAZ": true,
+            "Operations": {
+                "Expiration": 30
+            },
+            "Data": {
+                "Expiration": 90
+            }
+        },
         "preprod": {
             "Title": "Preproduction Environment",
             "Name": "preproduction",
