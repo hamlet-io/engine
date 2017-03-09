@@ -66,7 +66,7 @@ if [[ (-f "segment.json") || (-f "container.json") ]]; then
     
     for COMPOSITE in "${COMPOSITES[@]}"; do
         for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
-            eval "[[ x\"\${${COMPOSITE}_ARRAY[*]}\" =~ x${FRAGMENT} ]]"
+            eval "[[ \"\${${COMPOSITE}_ARRAY[*]}\" =~ ${FRAGMENT} ]]"
             if [[ $? -ne 0 ]]; then
                 eval "${COMPOSITE}_ARRAY+=(\"${SOLUTIONS_DIR}/${FRAGMENT}\")"
             fi
