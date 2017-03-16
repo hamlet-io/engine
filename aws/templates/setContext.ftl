@@ -138,6 +138,22 @@
     [#return concatenate(args, "-")]
 [/#function]
 
+[#-- Check if deployment unit occurs anywhere in provided object --]
+[#function deploymentRequired obj unit]
+    [#if obj?is_hash]
+        [#if obj.DeploymentUnits?? && obj.DeploymentUnits?seq_contains(unit)]
+            [#return 1]
+        [#else]
+            [#list obj?values as attribute]
+                [#if deploymentRequired(attribute unit)]
+                    [#return 1]
+                [/#if
+            [/#list]
+        [/#if]
+    [/#if]
+    [#return 0]
+[/#function]
+
 [#-- Get stack output --]
 [#function getKey args...]
     [#local key=args?join("X")]

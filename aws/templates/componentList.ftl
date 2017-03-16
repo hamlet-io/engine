@@ -3,7 +3,7 @@
 [#list tiers as tier]
     [#if tier.Components??]
         [#list tier.Components?values as component]
-            [#if component?is_hash && component.DeploymentUnits?seq_contains(deploymentUnit)]
+            [#if deploymentRequired(component, deploymentUnit)]
                 [#assign componentIdStem = formatId(tier.Id, component.Id)]
                 [#assign componentNameStem = formatName(productName, segmentName, tier.Name, component.Name)]
                 [#if component.MultiAZ??]

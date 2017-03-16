@@ -3,7 +3,7 @@
     [#assign apigateway = component.APIGateway]
     [#if apigateway.Versions??]
         [#list apigateway.Versions?values as version]
-            [#if version?is_hash && (version.DeploymentUnits)?seq_contains(deploymentUnit)]
+            [#if deploymentRequired(version, deploymentUnit)]
                 [#assign apigatewayIdStem = formatId(componentIdStem, version.Id)]
                 [#if resourceCount > 0],[/#if]
                 [#switch applicationListMode]
