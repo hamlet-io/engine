@@ -41,8 +41,8 @@
 [/#if]
 
 
-[#assign operationsExpiration = (segmentObject.Operations.Expiration)!(environmentObject.Operations.Expiration)]
-[#assign dataExpiration = (segmentObject.Data.Expiration)!(environmentObject.Data.Expiration)]
+[#assign operationsExpiration = (segmentObject.Operations.Expiration)!(environmentObject.Operations.Expiration)!"none"]
+[#assign dataExpiration = (segmentObject.Data.Expiration)!(environmentObject.Data.Expiration)!"none"]
 
 [#-- Segment --]
 [#assign baseAddress = segmentObject.CIDR.Address?split(".")]

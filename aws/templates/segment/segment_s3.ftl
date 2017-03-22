@@ -17,16 +17,18 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" }
-                    ],
-                    "LifecycleConfiguration" : {
-                        "Rules" : [
-                            {
-                                "Id" : "default",
-                                "ExpirationInDays" : ${operationsExpiration},
-                                "Status" : "Enabled"
-                            }
-                        ]
-                    }
+                    ]
+                    [#if operationsExpiration != "none"]
+                        ,"LifecycleConfiguration" : {
+                            "Rules" : [
+                                {
+                                    "Id" : "default",
+                                    "ExpirationInDays" : ${operationsExpiration},
+                                    "Status" : "Enabled"
+                                }
+                            ]
+                        }
+                    [/#if]
                 }
             },
             [#-- Ensure ELBs can write to the operations bucket for logs --]
@@ -64,15 +66,17 @@
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" }
                     ],
-                    "LifecycleConfiguration" : {
-                        "Rules" : [
-                            {
-                                "Id" : "default",
-                                "ExpirationInDays" : ${dataExpiration},
-                                "Status" : "Enabled"
-                            }
-                        ]
-                    }
+                    [#if dataExpiration != "none"]
+                        "LifecycleConfiguration" : {
+                            "Rules" : [
+                                {
+                                    "Id" : "default",
+                                    "ExpirationInDays" : ${dataExpiration},
+                                    "Status" : "Enabled"
+                                }
+                            ]
+                        }
+                    [/#if]
                 }
             }
             [#break]
