@@ -95,7 +95,7 @@
     [#if getKey("s3", "container", "backups")??]
         [#assign dataBucket = getKey("s3", "container", "backups")]        
         [#assign dataBucketSegment = "container"]
-        [#assign dataBucketType = "logs"]
+        [#assign dataBucketType = "backups"]
     [/#if]
     [#assign segmentDomain = getKey("domain", "segment", "domain")!"unknown"]
     [#assign segmentDomainQualifier = getKey("domain", "segment", "qualifier")!"unknown"]
@@ -147,7 +147,7 @@
             [#list obj?values as attribute]
                 [#if deploymentRequired(attribute unit)]
                     [#return 1]
-                [/#if
+                [/#if]
             [/#list]
         [/#if]
     [/#if]
