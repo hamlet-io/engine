@@ -18,7 +18,7 @@
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" }
                     ]
-                    [#if operationsExpiration != "none"]
+                    [#if operationsExpiration?is_number]
                         ,"LifecycleConfiguration" : {
                             "Rules" : [
                                 {
@@ -65,9 +65,9 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" }
-                    ],
-                    [#if dataExpiration != "none"]
-                        "LifecycleConfiguration" : {
+                    ]
+                    [#if dataExpiration?is_number]
+                        ,"LifecycleConfiguration" : {
                             "Rules" : [
                                 {
                                     "Id" : "default",
