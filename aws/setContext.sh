@@ -151,6 +151,7 @@ fi
 export TID=${TID:-$(jq -r '.Tenant.Id | select(.!="Tenant") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
 export TENANT=${TENANT:-$(jq -r '.Tenant.Name | select(.!="Tenant") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
 export AID=${AID:-$(jq -r '.Account.Id | select(.!="Account") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export AWSID=${AWSID:-$(jq -r '.Account.AWSId | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
 export ACCOUNT_REGION=${ACCOUNT_REGION:-$(jq -r '.Account.Region | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
 export PID=${PID:-$(jq -r '.Product.Id | select(.!="Product") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
 export PRODUCT_REGION=${PRODUCT_REGION:-$(jq -r '.Product.Region | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
@@ -339,8 +340,25 @@ CHECK_AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN:-${ACCOUNT_TEMP_AWS_SESSION_TOKEN}}
 if [[ -n "${CHECK_AWS_SESSION_TOKEN}" ]]; then export AWS_SESSION_TOKEN="${CHECK_AWS_SESSION_TOKEN}"; fi
 
 # Set the profile for IAM access if AWS credentials not in the environment
-if [[ ((-z "${AWS_ACCESS_KEY_ID}") || (-z "${AWS_SECRET_ACCESS_KEY}")) && (-n "${ACCOUNT}") ]]; then
-    export AWS_DEFAULT_PROFILE="${ACCOUNT}"
+if [[ ((-z "${AWS_ACCESS_KEY_ID}") || (-z "${AWS_SECRET_ACCESS_KEY}")) ]]; then
+    if [[ -n "${ACCOUNT}" ]]; then
+        aws configure list --profile "${ACCOUNT}" >/dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            export AWS_DEFAULT_PROFILE="${ACCOUNT}"
+        fi
+    fi
+    if [[ -n "${AID}" ]]; then
+        aws configure list --profile "${AID}" >/dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            export AWS_DEFAULT_PROFILE="${AID}"
+        fi
+    fi
+    if [[ -n "${AWSID}" ]]; then
+        aws configure list --profile "${AWSID}" >/dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            export AWS_DEFAULT_PROFILE="${AWSID}"
+        fi
+    fi
 fi
 
 # Handle some MINGW peculiarities
