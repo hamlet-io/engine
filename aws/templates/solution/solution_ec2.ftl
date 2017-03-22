@@ -243,7 +243,7 @@
                             [/#if]
                         ]
                     },
-                    "${formatId("eni", tier.Id, component.Id, zone.Id, "eth0")}: {
+                    "${formatId("eni", tier.Id, component.Id, zone.Id, "eth0")}" : {
                         "Type" : "AWS::EC2::NetworkInterface",
                         "Properties" : {
                             "Description" : "eth0",
