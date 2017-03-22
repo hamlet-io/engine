@@ -340,21 +340,23 @@ CHECK_AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN:-${ACCOUNT_TEMP_AWS_SESSION_TOKEN}}
 if [[ -n "${CHECK_AWS_SESSION_TOKEN}" ]]; then export AWS_SESSION_TOKEN="${CHECK_AWS_SESSION_TOKEN}"; fi
 
 # Set the profile for IAM access if AWS credentials not in the environment
+# We would normally redirect to /dev/null but this triggers an "unknown encoding"
+# bug in python
 if [[ ((-z "${AWS_ACCESS_KEY_ID}") || (-z "${AWS_SECRET_ACCESS_KEY}")) ]]; then
     if [[ -n "${ACCOUNT}" ]]; then
-        aws configure list --profile "${ACCOUNT}" >/dev/null 2>&1
+        aws configure list --profile "${ACCOUNT}" > temp_profile_status.txt 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${ACCOUNT}"
         fi
     fi
     if [[ -n "${AID}" ]]; then
-        aws configure list --profile "${AID}" >/dev/null 2>&1
+        aws configure list --profile "${AID}" > temp_profile_status.txt 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${AID}"
         fi
     fi
     if [[ -n "${AWSID}" ]]; then
-        aws configure list --profile "${AWSID}" >/dev/null 2>&1
+        aws configure list --profile "${AWSID}" > temp_profile_status.txt 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${AWSID}"
         fi
