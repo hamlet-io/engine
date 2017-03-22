@@ -478,9 +478,6 @@
             "Description": "Normally only one environment for the alm. Entry mainly here for naming consistency",
             "Category": "alm",
             "Operations": {
-                "Expiration": 30
-            },
-            "Data": {
                 "Expiration": 90
             }
         },
@@ -490,9 +487,6 @@
             "Category": "alm",
             "Operations": {
                 "Expiration": 30
-            },
-            "Data": {
-                "Expiration": 90
             }
         },
         "dev": {
@@ -502,9 +496,6 @@
             "Category": "dev",
             "Operations": {
                 "Expiration": 14
-            },
-            "Data": {
-                "Expiration": 14
             }
         },
         "alpha": {
@@ -512,9 +503,6 @@
             "Description": "Prototyping environment according to DTO classification",
             "Category": "test",
             "Operations": {
-                "Expiration": 14
-            },
-            "Data": {
                 "Expiration": 14
             }
         },
@@ -524,9 +512,6 @@
             "Category": "stg",
             "MultiAZ": true,
             "Operations": {
-                "Expiration": 30
-            },
-            "Data": {
                 "Expiration": 90
             }
         },
@@ -537,9 +522,6 @@
             "Category": "test",
             "Operations": {
                 "Expiration": 30
-            },
-            "Data": {
-                "Expiration": 90
             }
         },
         "aat": {
@@ -549,9 +531,6 @@
             "Category": "test",
             "Operations": {
                 "Expiration": 30
-            },
-            "Data": {
-                "Expiration": 90
             }
         },
         "uat": {
@@ -561,9 +540,6 @@
             "Category": "test",
             "Operations": {
                 "Expiration": 30
-            },
-            "Data": {
-                "Expiration": 90
             }
         },
         "system": {
@@ -574,9 +550,6 @@
             "MultiAZ": true,
             "Operations": {
                 "Expiration": 30
-            },
-            "Data": {
-                "Expiration": 90
             }
         },
         "preprod": {
@@ -586,9 +559,6 @@
             "Category": "stg",
             "MultiAZ": true,
             "Operations": {
-                "Expiration": 30
-            },
-            "Data": {
                 "Expiration": 90
             }
         },
@@ -599,9 +569,6 @@
             "Category": "stg",
             "MultiAZ": true,
             "Operations": {
-                "Expiration": 30
-            },
-            "Data": {
                 "Expiration": 90
             }
         },
@@ -612,9 +579,6 @@
             "Category": "prod",
             "MultiAZ": true,
             "Operations": {
-                "Expiration": 180
-            },
-            "Data": {
                 "Expiration": 365
             }
         },
@@ -624,9 +588,6 @@
             "Description": "",
             "Category": "prod",
             "Operations": {
-                "Expiration": 30
-            },
-            "Data": {
                 "Expiration": 90
             }
         }
