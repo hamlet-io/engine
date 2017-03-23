@@ -21,6 +21,13 @@
                         { "Key" : "Name", "Value" : "${productName}-${segmentName}" } 
                     ]
                 }
+            },
+            "${formatId("vpc", "endpoint")}" : {
+                "Type" : "AWS::EC2::VPCEndpoint",
+                "Properties" : {
+                    "ServiceName" : { "Fn::Join": [ "", [ "com.amazonaws.", { "Ref": "AWS::Region" }, ".s3" ] ] },
+                    "VpcId" : {"Ref" : "vpc"}
+                }
             }
             
             [#-- Define Internet Gateway and connect it to the VPC --]
@@ -536,6 +543,9 @@
             },
             "${formatId("vpc", "segment", "vpc")}" : {
                 "Value" : { "Ref" : "vpc" }
+            },
+            "${formatId("vpc", "segment", "vpc", "endpoint")}" : {
+                 "Value" : { "Ref" : "${formatId("vpc", "endpoint")}" }
             },
             "${formatId("igw", "segment", "igw")}" :
             {
