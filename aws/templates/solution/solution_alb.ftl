@@ -25,19 +25,24 @@
                             "Certificates" : [
                                 {
                                     "CertificateArn" :
-                                        [#if getKey("certificate", certificateId)??]
-                                            "${getKey("certificate", certificateId)}"
+                                        [#if (alb.DNS[mapping])??]
+                                            [#assign certificateLink = alb.DNS[mapping]]
+                                            "${getKey("certificate", certificateLink.Tier, certificateLink.Component)}"
                                         [#else]
-                                            {
-                                                "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "arn:aws:iam::",
-                                                        {"Ref" : "AWS::AccountId"},
-                                                        ":server-certificate/ssl/${certificateId}/${certificateId}-ssl"
+                                            [#if getKey("certificate", certificateId)??]
+                                                "${getKey("certificate", certificateId)}"
+                                            [#else]
+                                                {
+                                                    "Fn::Join" : [
+                                                        "",
+                                                        [
+                                                            "arn:aws:iam::",
+                                                            {"Ref" : "AWS::AccountId"},
+                                                            ":server-certificate/ssl/${certificateId}/${certificateId}-ssl"
+                                                        ]
                                                     ]
-                                                ]
-                                            }
+                                                }
+                                            [/#if]
                                         [/#if]
                                 }
                             ],

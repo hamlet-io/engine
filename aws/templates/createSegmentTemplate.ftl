@@ -9,7 +9,7 @@
     [#case "segmentProductInDomain"]
         [#assign segmentDomain = segmentName + "." + productName + "." + productDomainStem]
         [#assign segmentDomainQualifier = ""]
-        [#assign segmentDomainCertificateId = formatName(segmentDomainCertificateId, productId, + segmentId)]
+        [#assign segmentDomainCertificateId = formatName(segmentDomainCertificateId, productId, segmentId)]
         [#break]
     [#case "segmentInDomain"]
         [#assign segmentDomain = segmentName + "." + productDomainStem]
