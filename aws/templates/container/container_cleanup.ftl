@@ -2,7 +2,7 @@
     [#switch containerListMode]
         [#case "definition"]
             "Name" : "${tier.Name + "-" + component.Name + "-" + container.Name}",
-            "Image" : "${docker.Registry}/cleanup${dockerTag}",
+            "Image" : "${getRegistryEndPoint("docker")}/cleanup${dockerTag}",
             "Environment" : [
                 {
                     "Name" : "CLEAN_PERIOD",

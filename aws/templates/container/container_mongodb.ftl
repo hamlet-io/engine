@@ -2,7 +2,7 @@
     [#switch containerListMode]
         [#case "definition"]
             "Name" : "${tier.Name + "-" + component.Name + "-" + container.Name}",
-            "Image" : "${docker.Registry}/mongodb${dockerTag}",
+            "Image" : "${getRegistryEndPoint("docker")}/mongodb${dockerTag}",
             "MountPoints": [
                 {
                     "SourceVolume": "mongodb",

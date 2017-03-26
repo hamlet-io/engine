@@ -2,7 +2,7 @@
     [#switch containerListMode]
         [#case "definition"]
             "Name" : "${tier.Name + "-" + component.Name + "-" + container.Name}",
-            "Image" : "${docker.Registry}/esfilter${dockerTag}",
+            "Image" : "${getRegistryEndPoint("docker")}/esfilter${dockerTag}",
             "Environment" : [
                 [@standardEnvironmentVariables /],
                 {

@@ -2,7 +2,7 @@
     [#switch containerListMode]
         [#case "definition"]
             "Name" : "${tier.Name + "-" + component.Name + "-" + container.Name}",
-            "Image" : "${docker.Registry}/logstash${dockerTag}",
+            "Image" : "${getRegistryEndPoint("docker")}/logstash${dockerTag}",
             "Environment" : [
                 [@standardEnvironmentVariables /]
                 {
