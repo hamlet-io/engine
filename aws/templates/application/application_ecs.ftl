@@ -283,7 +283,7 @@
                 [#if resourceCount > 0],[/#if]
                 [#switch applicationListMode]
                     [#case "definition"]
-                        [@createTask tier component taskObject taskIdStem taskVersion /],
+                        [@createTask tier component taskObject taskIdStem taskVersion /]
                         [#list task.Containers?values as container]
                             [#if container?is_hash]
                                 [#assign containerListMode = "supplemental"]
