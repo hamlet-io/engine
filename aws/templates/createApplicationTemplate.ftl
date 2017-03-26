@@ -162,7 +162,7 @@
                                 ],
                             [/#if]
                             "LogConfiguration" : {
-                                [#if (docker.LocalLogging?? && (docker.LocalLogging == true)) || (container.LocalLogging?? && (container.LocalLogging == true))]
+                                [#if ((appSettingsObject.Docker.LocalLogging)?? && appSettingsObject.Docker.LocalLogging) || (container.LocalLogging?? && (container.LocalLogging == true))]
                                     "LogDriver" : "json-file"
                                 [#else]
                                     "LogDriver" : "fluentd",
