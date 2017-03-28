@@ -33,7 +33,7 @@
                                                 [#assign certificateFound = true]
                                             [/#if]
                                         [/#if]
-                                        [#if !certificateFound)]
+                                        [#if !certificateFound]
                                             [#if getKey("certificate", certificateId)??]
                                                 "${getKey("certificate", certificateId)}"
                                             [#else]
