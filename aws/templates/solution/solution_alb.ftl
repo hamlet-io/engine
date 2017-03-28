@@ -33,19 +33,21 @@
                                                 [#assign certificateFound = true]
                                             [/#if]
                                         [/#if]
-                                        [#if (!certificateFound) && getKey("certificate", certificateId)??]
+                                        [#if !certificateFound)]
+                                            [#if getKey("certificate", certificateId)??]
                                                 "${getKey("certificate", certificateId)}"
-                                        [#else]
-                                            {
-                                                "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "arn:aws:iam::",
-                                                        {"Ref" : "AWS::AccountId"},
-                                                        ":server-certificate/ssl/${certificateId}/${certificateId}-ssl"
+                                            [#else]
+                                                {
+                                                    "Fn::Join" : [
+                                                        "",
+                                                        [
+                                                            "arn:aws:iam::",
+                                                            {"Ref" : "AWS::AccountId"},
+                                                            ":server-certificate/ssl/${certificateId}/${certificateId}-ssl"
+                                                        ]
                                                     ]
-                                                ]
-                                            }
+                                                }
+                                            [/#if]
                                         [/#if]
                                 }
                             ],
