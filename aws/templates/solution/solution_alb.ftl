@@ -24,25 +24,28 @@
                         [#if (source.Certificate)?? && source.Certificate]
                             "Certificates" : [
                                 {
+                                    [#assign certificateFound = false]
                                     "CertificateArn" :
                                         [#if (alb.DNS[mapping])??]
                                             [#assign certificateLink = alb.DNS[mapping]]
-                                            "${getKey("certificate", certificateLink.Tier, certificateLink.Component)}"
-                                        [#else]
-                                            [#if getKey("certificate", certificateId)??]
-                                                "${getKey("certificate", certificateId)}"
-                                            [#else]
-                                                {
-                                                    "Fn::Join" : [
-                                                        "",
-                                                        [
-                                                            "arn:aws:iam::",
-                                                            {"Ref" : "AWS::AccountId"},
-                                                            ":server-certificate/ssl/${certificateId}/${certificateId}-ssl"
-                                                        ]
-                                                    ]
-                                                }
+                                            [#if getKey("certificate", certificateLink.Tier, certificateLink.Component)??]
+                                                "${getKey("certificate", certificateLink.Tier, certificateLink.Component)}"
+                                                [#assign certificateFound = true]
                                             [/#if]
+                                        [/#if]
+                                        [#if (!certificateFound) && getKey("certificate", certificateId)??]
+                                                "${getKey("certificate", certificateId)}"
+                                        [#else]
+                                            {
+                                                "Fn::Join" : [
+                                                    "",
+                                                    [
+                                                        "arn:aws:iam::",
+                                                        {"Ref" : "AWS::AccountId"},
+                                                        ":server-certificate/ssl/${certificateId}/${certificateId}-ssl"
+                                                    ]
+                                                ]
+                                            }
                                         [/#if]
                                 }
                             ],
