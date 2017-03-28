@@ -63,6 +63,22 @@
             "${formatId("alb", tier.Id, component.Id)}" : {
                 "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties" : {
+                    [#if (alb.Logs)?? && alb.Logs]
+                        "LoadBalancerAttributes" : [
+                            {
+                                "Key" : "access_logs.s3.enabled",
+                                "Value" : true
+                            },
+                            {
+                                "Key" : "access_logs.s3.bucket",
+                                "Value" : "${operationsBucket}"
+                            },
+                            {
+                                "Key" : "access_logs.s3.prefix",
+                                "Value" : ""
+                            }
+                        ],
+                    [/#if]
                     "Subnets" : [
                         [#list zones as zone]
                             "${getKey("subnet", tier.Id, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
