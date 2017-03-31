@@ -9,28 +9,30 @@
                     [#list version.Instances?values as apigatewayInstance]
                         [#if deploymentRequired(apigatewayInstance, deploymentUnit)]
                             [#assign apigatewayInstances += [apigatewayInstance +
-                                {
-                                    "Internal" : {
-                                        "VersionId" : version.Id,
-                                        "VersionName" : version.Name,
-                                        "InstanceId" : (apigatewayInstance.Id == "default")?string("",apigatewayInstance.Id),
-                                        "InstanceName" : (apigatewayInstance.Id == "default")?string("",apigatewayInstance.Name),
+                                    {
+                                        "Internal" : {
+                                            "VersionId" : version.Id,
+                                            "VersionName" : version.Name,
+                                            "InstanceId" : (apigatewayInstance.Id == "default")?string("",apigatewayInstance.Id),
+                                            "InstanceName" : (apigatewayInstance.Id == "default")?string("",apigatewayInstance.Name)
+                                        }
                                     }
-                                }
-                            ] ]
+                                ] 
+                            ]
                         [/#if]
                     [/#list]
                 [#else]
                     [#assign apigatewayInstances += [version +
-                        {
-                            "Internal" : {
-                                "VersionId" : version.Id,
-                                "VersionName" : version.Name,
-                                "InstanceId" : "",
-                                "InstanceName" : ""
+                            {
+                                "Internal" : {
+                                    "VersionId" : version.Id,
+                                    "VersionName" : version.Name,
+                                    "InstanceId" : "",
+                                    "InstanceName" : ""
+                                }
                             }
-                        }
-                    ] ]
+                        ] 
+                    ]
                 [/#if]
             [/#if]
         [/#list]
@@ -119,36 +121,39 @@
                                 [/#list]
                             }
                         [/#if]
-                        },
-                        "DependsOn" : "${formatId("apiDeploy", apigatewayIdStem)}"
-                    }
-                    [#-- Include access to lambda functions if required --]
-                    [#if apigatewayInstance.Links??]
-                        [#list apigatewayInstance.Links?values as link]
-                            [#if link?is_hash]
-                                [#if getComponent(link.Tier, link.Component)??]
-                                    [#assign target = getComponent(link.Tier, link.Component)]
+                    },
+                    "DependsOn" : "${formatId("apiDeploy", apigatewayIdStem)}"
+                }
+                [#-- Include access to lambda functions if required --]
+                [#if apigatewayInstance.Links??]
+                    [#list apigatewayInstance.Links?values as link]
+                        [#if link?is_hash]
+                            [#if getComponent(link.Tier, link.Component)??]
+                                [#assign target = getComponent(link.Tier, link.Component)]
 
-                                    [#if target.Lambda??]
-                                        [#assign lambdaInstance = target.Lambda ]
-                                        [#if target.Lambda.Versions?? ]
-                                            [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId]] ]
-                                            [#if target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
-                                                [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceId] ]
-                                            [/#if]
+                                [#if target.Lambda??]
+                                    [#assign lambdaInstance = target.Lambda ]
+                                    [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
+                                    [#if target.Lambda.Versions?? ]
+                                        [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId]] ]
+                                        [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
+                                        [#if target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
+                                            [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceId] ]
+                                            [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
+                                        [/#if]
                                     [/#if]
 
-                                    [#if lambdaInstance.Functions??]
-                                        [#list lambdaInstance.Functions?values as fn]
+                                    [#if lambdaFunctions?is_hash]
+                                        [#list lambdaFunctions?values as fn]
                                             [#if fn?is_hash]
                                                 ,"${formatId("apiLambdaPermission", apigatewayIdStem, link.Id, fn.Id)}" : {
                                                     "Type" : "AWS::Lambda::Permission",
                                                     "Properties" : {
                                                         "Action" : "lambda:InvokeFunction",
-                                                        "FunctionName" : [@reference ${getReference("lambda", link.Tier, link.Component,
+                                                        "FunctionName" : [@reference getReference("lambda", link.Tier, link.Component,
                                                                                 apigatewayInstance.Internal.VersionId,
                                                                                 apigatewayInstance.Internal.InstanceId,
-                                                                                fn.Id)}],
+                                                                                fn.Id) /],
                                                         "Principal" : "apigateway.amazonaws.com",
                                                         "SourceArn" : {
                                                             "Fn::Join" : [
@@ -169,21 +174,21 @@
                                     [/#if]
                                 [/#if]
                             [/#if]
-                        [/#list]
-                    [/#if]
-                    [#break]
-    
-                [#case "outputs"]
-                    "${formatId("api", apigatewayIdStem)}" : {
-                        "Value" : { "Ref" : "${formatId("api", apigatewayIdStem)}" }
-                    },
-                    "${formatId("api", apigatewayIdStem, "root")}" : {
-                        "Value" : { "Fn::GetAtt" : ["${formatId("api", apigatewayIdStem)}", "RootResourceId"] }
-                    }
-                    [#break]
+                        [/#if]
+                    [/#list]
+                [/#if]
+                [#break]
 
-            [/#switch]
-            [#assign resourceCount += 1]
-        [/#list]
-    [/#if]
+            [#case "outputs"]
+                "${formatId("api", apigatewayIdStem)}" : {
+                    "Value" : { "Ref" : "${formatId("api", apigatewayIdStem)}" }
+                },
+                "${formatId("api", apigatewayIdStem, "root")}" : {
+                    "Value" : { "Fn::GetAtt" : ["${formatId("api", apigatewayIdStem)}", "RootResourceId"] }
+                }
+                [#break]
+
+        [/#switch]
+        [#assign resourceCount += 1]
+    [/#list]
 [/#if]
