@@ -41,13 +41,13 @@
         [#case "docker"]
             {
                 "Name" : "${name}",
-                "Value" : "${value}"
+                "Value" : [@reference "Value" value /]
             }
             [#break]
 
         [#case "lambda"]
         [#default]
-            "${name}" : "${value}"
+            "${name}" : [@reference "Value" value /]
             [#break]
 
     [/#switch]
@@ -66,7 +66,7 @@
     [/#if]
 [/#macro]
 
-[#macro createTask tier component task taskIdStem version]
+[#macro createTask tier component task taskIdStem containerIdStem]
     [#-- Set up context for processing the list of containers --]
     [#assign containerListTarget = "docker"]
     [#assign containerListRole = formatId("role", taskIdStem)]
@@ -76,7 +76,7 @@
     [#assign policyCount = 0]
     [#list task.Containers?values as container]
         [#if container?is_hash]
-            [#assign containerId = formatName(container.Id, version)]
+            [#assign containerId = formatName(container.Id, containerIdStem)]
             [#include containerList]
         [/#if]
     [/#list]
@@ -102,7 +102,7 @@
         [#assign containerListMode = "policy"]
         [#list task.Containers?values as container]
             [#if container?is_hash]
-                [#assign containerId = formatName(container.Id, version)]
+                [#assign containerId = formatName(container.Id, containerIdStem)]
                 [#assign policyIdStem = formatId(taskIdStem, container.Id)]
                 [#assign policyNameStem = formatId(container.Name)]
                 [#include containerList]
@@ -123,7 +123,7 @@
                         [/#if]
                         [#if containerCount > 0],[/#if]
                         {
-                            [#assign containerId = formatName(container.Id, version)]
+                            [#assign containerId = formatName(container.Id, containerIdStem)]
                             [#assign containerName = formatName(tier.Name, component.Name, container.Name)]
                             [#assign containerListMode = "definition"]
                             [#include containerList]
@@ -178,7 +178,7 @@
             [#assign volumeCount = 0]
             [#list task.Containers?values as container]
                 [#if container?is_hash]
-                    [#assign containerId = formatName(container.Id, version)]
+                    [#assign containerId = formatName(container.Id, containerIdStem)]
                     [#include containerList]
                 [/#if]
             [/#list]
@@ -188,7 +188,7 @@
                     [#assign volumeCount = 0]
                     [#list task.Containers?values as container]
                         [#if container?is_hash]
-                            [#assign containerId = formatName(container.Id, version)]
+                            [#assign containerId = formatName(container.Id, containerIdStem)]
                             [#include containerList]
                         [/#if]
                     [/#list]

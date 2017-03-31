@@ -1,4 +1,5 @@
 [#-- Standard set of buckets for a segment --]
+
 [#if deploymentUnit?contains("s3")]
     [#if resourceCount > 0],[/#if]
     [#switch segmentListMode]

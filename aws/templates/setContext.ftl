@@ -156,13 +156,44 @@
 
 [#-- Get stack output --]
 [#function getKey args...]
-    [#local key=args?join("X")]
+    [#-- Line below should be sufficient but triggers bug in jq --]
+    [#-- where result of call to concatenate is returned if no match --]
+    [#-- on a stack output is found --]
+    [#-- TODO: remove copied code when fixed in new version of jq --]
+    [#-- local key = concatenate(args, "X") --]
+    [#local content = []]
+    [#list args as arg]
+        [#if arg?has_content]
+            [#local content += [arg]]
+        [/#if]
+    [/#list]
+    [#local key = content?join("X")]
     [#list stackOutputsObject as pair]
-        [#if pair.OutputKey==key]
+        [#if pair.OutputKey == key]
             [#return pair.OutputValue]
         [/#if]
     [/#list]
 [/#function]
+
+[#-- Get a reference to a resource --]
+[#-- Check if resource has already been defined via getKey --]
+[#-- If not, assume a reference to a resource in the existing template --]
+[#function getReference args...]
+    [#local key = concatenate(args, "X")]
+    [#if getKey(key)??]
+        [#return getKey(key) ]
+    [#else]
+        [#return { "Ref" : key }]
+    [/#if]
+[/#function]
+
+[#macro reference value]
+    [#if value?is_hash && value.Ref??]
+        { "Ref" : "${value.Ref}" }
+    [#else]
+        "${value}"
+    [/#if]
+[/#macro]
 
 [#function getTier tierId]
     [#return blueprintObject.Tiers[tierId]]
@@ -262,14 +293,14 @@
     [/#if]
 [/#function]
 
-[#macro securityGroup mode tier component version=""]
+[#macro securityGroup mode tier component idStem="" nameStem=""]
     [#if resourceCount > 0],[/#if]
     [#switch mode]
         [#case "definition"]
-            "${formatId("securityGroup", componentIdStem, version)}" : {
+            "${formatId("securityGroup", componentIdStem, idStem)}" : {
                 "Type" : "AWS::EC2::SecurityGroup",
                 "Properties" : {
-                    "GroupDescription": "Security Group for ${formatName(componentNameStem, version)}",
+                    "GroupDescription": "Security Group for ${formatName(componentNameStem, nameStem)}",
                     "VpcId": "${vpc}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -282,15 +313,15 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
                         { "Key" : "cot:tier", "Value" : "${tier.Id}" },
                         { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${formatName(componentNameStem, version)}" }
+                        { "Key" : "Name", "Value" : "${formatName(componentNameStem, nameStem)}" }
                     ]
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "${formatId("securityGroup", componentIdStem, version)}" : {
-                "Value" : { "Ref" : "${formatId("securityGroup", componentIdStem, version)}" }
+            "${formatId("securityGroup", componentIdStem, idStem)}" : {
+                "Value" : { "Ref" : "${formatId("securityGroup", componentIdStem, idStem)}" }
             }
             [#break]
 
