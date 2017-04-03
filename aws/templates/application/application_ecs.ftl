@@ -134,7 +134,7 @@
                 "${formatId("ecsService", serviceIdStem)}" : {
                     "Type" : "AWS::ECS::Service",
                     "Properties" : {
-                        "Cluster" : [@reference "ecs", componentIdStem /],
+                        "Cluster" : [@reference getReference("ecs", componentIdStem) /],
                         "DeploymentConfiguration" : {
                             [#if multiAZ]
                                 "MaximumPercent" : 100,
