@@ -354,7 +354,7 @@
 
     [#list taskInstances as taskInstance]
         [#assign taskIdStem = formatId(componentIdStem,
-                                            taskInstance.Internal.ServiceId,
+                                            taskInstance.Internal.TaskId,
                                             taskInstance.Internal.VersionId,
                                             taskInstance.Internal.InstanceId)]
         [#assign containerIdStem = formatName(taskInstance.Internal.VersionId,
@@ -362,8 +362,8 @@
         [#if resourceCount > 0],[/#if]
         [#switch applicationListMode]
             [#case "definition"]
-                [@createTask tier component taskObject taskIdStem containerIdStem /],
-                [#list task.Containers?values as container]
+                [@createTask tier component taskInstance taskIdStem containerIdStem /]
+                [#list taskInstance.Containers?values as container]
                     [#if container?is_hash]
                         [#assign containerListMode = "supplemental"]
                         [#assign containerId = formatName(container.Id, containerIdStem)]
