@@ -41,13 +41,13 @@
         [#case "docker"]
             {
                 "Name" : "${name}",
-                "Value" : [@reference "Value" value /]
+                "Value" : [@reference value /]
             }
             [#break]
 
         [#case "lambda"]
         [#default]
-            "${name}" : [@reference "Value" value /]
+            "${name}" : [@reference value /]
             [#break]
 
     [/#switch]
