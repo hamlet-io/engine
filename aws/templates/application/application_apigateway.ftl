@@ -13,6 +13,7 @@
                                         "Internal" : {
                                             "VersionId" : version.Id,
                                             "VersionName" : version.Name,
+                                            "InstanceIdRef" : apigatewayInstance.Id,
                                             "InstanceId" : (apigatewayInstance.Id == "default")?string("",apigatewayInstance.Id),
                                             "InstanceName" : (apigatewayInstance.Id == "default")?string("",apigatewayInstance.Name)
                                         }
@@ -50,7 +51,7 @@
                     "Properties" : {
                         "BodyS3Location" : {
                             "Bucket" : "${getRegistryEndPoint("swagger")}",
-                            "Key" : "${getRegistryPrefix("swagger")}${productId}/${deploymentUnit}/${buildCommit}/swagger.yaml"
+                            "Key" : "${getRegistryPrefix("swagger")}${productId}/${deploymentUnit}/${buildCommit}/swagger.json"
                         },
                         "Name" : "${formatName(componentNameStem,
                                                 apigatewayInstance.Internal.VersionName,
@@ -91,10 +92,10 @@
                                                 [#assign lambdaInstance = target.Lambda ]
                                                 [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
                                                 [#if target.Lambda.Versions?? ]
-                                                    [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId]] ]
+                                                    [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId] ]
                                                     [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
                                                     [#if target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
-                                                        [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceId] ]
+                                                        [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceIdRef] ]
                                                         [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
                                                     [/#if]
                                                 [/#if]
@@ -135,10 +136,10 @@
                                     [#assign lambdaInstance = target.Lambda ]
                                     [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
                                     [#if target.Lambda.Versions?? ]
-                                        [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId]] ]
+                                        [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId] ]
                                         [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
                                         [#if target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
-                                            [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceId] ]
+                                            [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceIdRef] ]
                                             [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
                                         [/#if]
                                     [/#if]
