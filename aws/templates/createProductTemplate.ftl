@@ -1,4 +1,5 @@
 [#ftl]
+[#include "setContext.ftl" ]
 
 [#-- Domains --]
 [#assign productDomainStem = productObject.Domain.Stem]
