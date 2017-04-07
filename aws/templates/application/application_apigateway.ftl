@@ -51,7 +51,7 @@
                     "Properties" : {
                         "BodyS3Location" : {
                             "Bucket" : "${getRegistryEndPoint("swagger")}",
-                            "Key" : "${getRegistryPrefix("swagger")}${productName}/${deploymentUnit}/${buildCommit}/swagger.json"
+                            "Key" : "${getRegistryPrefix("swagger")}${productName}/${buildDeploymentUnit}/${buildCommit}/swagger.json"
                         },
                         "Name" : "${formatName(componentNameStem,
                                                 apigatewayInstance.Internal.VersionName,
@@ -141,7 +141,7 @@
                     "DependsOn" : "${formatId("apiDeploy", apigatewayIdStem)}"
                 }
                 [#-- Include access to lambda functions if required --]
-                [#if apigatewayInstance.Links??]
+                [#if apigatewayInstance.Links?? ]
                     [#list apigatewayInstance.Links?values as link]
                         [#if link?is_hash]
                             [#if getComponent(link.Tier, link.Component)??]

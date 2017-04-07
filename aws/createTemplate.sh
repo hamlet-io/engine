@@ -12,10 +12,11 @@ function usage() {
 
 Create a CloudFormation (CF) template
 
-Usage: $(basename $0) -t TYPE -u DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
+Usage: $(basename $0) -t TYPE -u DEPLOYMENT_UNIT -b BUILD_DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
 
 where
 
+(m) -b BUILD_DEPLOYMENT_UNIT   is the deployment unit definign the build reference
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
     -h                         shows this text
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
@@ -49,8 +50,11 @@ EOF
 }
 
 # Parse options
-while getopts ":c:hq:r:s:t:u:" opt; do
+while getopts ":b:c:hq:r:s:t:u:" opt; do
     case $opt in
+        b)
+            BUILD_DEPLOYMENT_UNIT="${OPTARG}"
+            ;;
         c)
             CONFIGURATION_REFERENCE="${OPTARG}"
             ;;
@@ -224,6 +228,7 @@ if [[ ! -d ${CF_DIR} ]]; then mkdir -p ${CF_DIR}; fi
 
 ARGS=()
 if [[ -n "${DEPLOYMENT_UNIT}" ]]; then ARGS+=("-v" "deploymentUnit=${DEPLOYMENT_UNIT}"); fi
+if [[ -n "${BUILD_DEPLOYMENT_UNIT}" ]]; then ARGS+=("-v" "buildDeploymentUnit=${BUILD_DEPLOYMENT_UNIT}"); fi
 if [[ -n "${BUILD_REFERENCE}" ]]; then ARGS+=("-v" "buildReference=${BUILD_REFERENCE}"); fi
 
 # Removal of drive letter (/?/) is specifically for MINGW

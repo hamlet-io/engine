@@ -130,7 +130,7 @@
                                 "Properties" : {
                                     "Code" : {
                                         "S3Bucket" : "${getRegistryEndPoint("lambda")}",
-                                        "S3Key" : "${getRegistryPrefix("lambda")}${productId}/${deploymentUnit}/${buildCommit}/lambda.zip"
+                                        "S3Key" : "${getRegistryPrefix("lambda")}${productName}/${buildDeploymentUnit}/${buildCommit}/lambda.zip"
                                     },
                                     [#assign containerListMode = "definition"]
                                     [#include containerList?ensure_starts_with("/")]

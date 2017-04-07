@@ -232,13 +232,13 @@ if [[ -n "${PRODUCT}" ]]; then
                 APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
             fi
 
-            BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
+            export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref" ]]; then
-                BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref")
+                export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref")
             else
                 # Legacy naming to support products using the term "slice" instead of "deployment unit"
                 if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref" ]]; then
-                    BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
+                    export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
                 fi
             fi
             
