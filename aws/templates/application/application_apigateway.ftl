@@ -51,7 +51,7 @@
                     "Properties" : {
                         "BodyS3Location" : {
                             "Bucket" : "${getRegistryEndPoint("swagger")}",
-                            "Key" : "${getRegistryPrefix("swagger")}${productId}/${deploymentUnit}/${buildCommit}/swagger.json"
+                            "Key" : "${getRegistryPrefix("swagger")}${productName}/${deploymentUnit}/${buildCommit}/swagger.json"
                         },
                         "Name" : "${formatName(componentNameStem,
                                                 apigatewayInstance.Internal.VersionName,
@@ -105,12 +105,27 @@
                                                         [#if fn?is_hash]
                                                             [#if linkCount > 0],[/#if]
                                                             [#assign stageVariable = link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA"]
-                                                            [@environmentVariable
-                                                                stageVariable
-                                                                getReference("lambda", link.Tier, link.Component,
+                                                            [#-- In order that lambda code doesn't have to be deployed before the api gateway is
+                                                                 instantiated, construct the function name from constituent parts rather than looking up
+                                                                 via
+                                                                            getReference("lambda", link.Tier, link.Component,
                                                                             apigatewayInstance.Internal.VersionId,
                                                                             apigatewayInstance.Internal.InstanceId,
                                                                             fn.Id)
+"arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${accountObject.AWSId}:function:${fnName}/invocations"
+
+                                                                --]
+                                                            [#assign fnName = formatName(
+                                                                        productName,
+                                                                        segmentName,
+                                                                        getTier(link.Tier).Name,
+                                                                        target.Name,
+                                                                        apigatewayInstance.Internal.VersionName,
+                                                                        apigatewayInstance.Internal.InstanceName,
+                                                                        fn.Name)]
+                                                            [@environmentVariable
+                                                                stageVariable
+                                                                "${fnName}"
                                                                 "apigateway" /]
                                                             [#assign linkCount += 1]
                                                         [/#if]
@@ -147,14 +162,20 @@
                                     [#if lambdaFunctions?is_hash]
                                         [#list lambdaFunctions?values as fn]
                                             [#if fn?is_hash]
+                                                [#-- See comment above re formatting function name --]
+                                                [#assign fnName = formatName(
+                                                            productName,
+                                                            segmentName,
+                                                            getTier(link.Tier).Name,
+                                                            target.Name,
+                                                            apigatewayInstance.Internal.VersionName,
+                                                            apigatewayInstance.Internal.InstanceName,
+                                                            fn.Name)]
                                                 ,"${formatId("apiLambdaPermission", apigatewayIdStem, link.Id, fn.Id)}" : {
                                                     "Type" : "AWS::Lambda::Permission",
                                                     "Properties" : {
                                                         "Action" : "lambda:InvokeFunction",
-                                                        "FunctionName" : [@reference getReference("lambda", link.Tier, link.Component,
-                                                                                apigatewayInstance.Internal.VersionId,
-                                                                                apigatewayInstance.Internal.InstanceId,
-                                                                                fn.Id) /],
+                                                        "FunctionName" : [@reference fnName /],
                                                         "Principal" : "apigateway.amazonaws.com",
                                                         "SourceArn" : {
                                                             "Fn::Join" : [

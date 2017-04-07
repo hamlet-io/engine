@@ -33,7 +33,8 @@
                         [#case "aws_proxy"]
                             "x-amazon-apigateway-integration" : {
                                 "type": "aws_proxy",
-                                "uri" : "${r"${stageVariables." + pattern.Variable + r"}"}",
+                                [#-- "uri" : "${r"${stageVariables." + pattern.Variable + r"}"}", --]
+"uri" : "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${accountObject.AWSId}:function:${r"${stageVariables." + pattern.Variable + r"}"}/invocations",
                                 "passthroughBehavior" : "never",
                                 "httpMethod" : "POST"
                             },
