@@ -62,8 +62,8 @@ done
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
-if [[ ! ("root" =~ ${LOCATION}) ]]; then
-    echo -e "\nNeed to be in the root directory. Nothing to do." >&2
+if [[ ! ("account" =~ ${LOCATION}) ]]; then
+    echo -e "\nNeed to be in the account directory. Nothing to do." >&2
     exit
 fi
 
