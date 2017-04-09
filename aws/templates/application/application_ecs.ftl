@@ -263,7 +263,7 @@
                                 [#if port.ELB??]
                                     [#assign elbSG = getKey("securityGroup","elb", port.ELB)]
                                 [#else]
-                                    [#assign elbSG = getKey("securityGroup", port.lb.Tier, port.lb.Component)]
+                                    [#assign elbSG = getKey("securityGroup", port.LB.Tier, port.LB.Component)]
                                 [/#if]
                             [/#if]
 
@@ -326,7 +326,7 @@
                                                         "Conditions": [
                                                             {
                                                                 "Field": "path-pattern",
-                                                                "Values": [ "${lb.Path!serviceVersionName}" ]
+                                                                "Values": [ "${lb.Path!serviceInstance.Internal.VersionName}" ]
                                                             }
                                                         ],
                                                         "ListenerArn" : "${getKey("listener", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c)}"
