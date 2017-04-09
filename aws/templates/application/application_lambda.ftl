@@ -16,8 +16,8 @@
                                         "InstanceId" : (lambdaInstance.Id == "default")?string("",lambdaInstance.Id),
                                         "InstanceName" : (lambdaInstance.Id == "default")?string("",lambdaInstance.Name),
                                         "RunTime" : lambdaInstance.RunTime!version.RunTime!lambda.RunTime,
-                                        "MemorySize" : lambdaInstance.MemorySize!version.MemorySize!lambda.MemorySize,
-                                        "Timeout" : lambdaInstance.Timeout!version.Timeout!lambda.Timeout,
+                                        "MemorySize" : lambdaInstance.MemorySize!version.MemorySize!lambda.MemorySize!0,
+                                        "Timeout" : lambdaInstance.Timeout!version.Timeout!lambda.Timeout!0,
                                         "Functions" : lambdaInstance.Functions!version.Functions!lambda.Functions!"unknown"
                                     }
                                 }
@@ -33,8 +33,8 @@
                                 "InstanceId" : "",
                                 "InstanceName" : "",
                                 "RunTime" : version.RunTime!lambda.RunTime,
-                                "MemorySize" : version.MemorySize!lambda.MemorySize,
-                                "Timeout" : version.Timeout!lambda.Timeout,
+                                "MemorySize" : version.MemorySize!lambda.MemorySize!0,
+                                "Timeout" : version.Timeout!lambda.Timeout!0,
                                 "Functions" : version.Functions!lambda.Functions!"unknown"
                             }
                         }
@@ -51,8 +51,8 @@
                     "InstanceId" : "",
                     "InstanceName" : "",
                     "RunTime" : lambda.RunTime,
-                    "MemorySize" : lambda.MemorySize,
-                    "Timeout" : lambda.Timeout,
+                    "MemorySize" : lambda.MemorySize!0,
+                    "Timeout" : lambda.Timeout!0,
                     "Functions" : lambda.Functions!"unknown"
                 }
             }
@@ -150,11 +150,13 @@
                                     "Handler" : "${fn.Handler}",
                                     "Role" : { "Fn::GetAtt" : ["${containerListRole}","Arn"]},
                                     "Runtime" : "${fn.RunTime!lambdaInstance.Internal.RunTime}"
-                                    [#if (fn.Memory!lambdaObject.Memory!lambda.Memory)??]
-                                        ,"MemorySize" : ${(fn.Memory!lambdaInstance.Internal.Memory)?c}
+                                    [#assign memorySize = fn.Memory!lambdaInstance.Internal.MemorySize]
+                                    [#if memorySize > 0]
+                                        ,"MemorySize" : ${(memorySize)?c}
                                     [/#if]
-                                    [#if (fn.Timeout!lambdaObject.Timeout!lambda.Timeout)??]
-                                        ,"Timeout" : ${(fn.Timeout!lambdaInstance.Internal.Timeout)?c}
+                                    [#assign timeout = fn.Timeout!lambdaInstance.Internal.Timeout]
+                                    [#if timeout > 0]
+                                        ,"Timeout" : ${(timeout)?c}
                                     [/#if]
                                     [#if lambda.UseSegmentKey?? && (lambda.UseSegmentKey == true) ]
                                         ,"KmsKeyArn" : "${getKey("cmk", "segment", "cmk", "arn")}"
