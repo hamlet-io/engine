@@ -206,11 +206,15 @@ case $TYPE in
     application)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
         TYPE_PREFIX="app-"
-        
-        if [[ "${IS_APPLICATION_DEPLOYMENT_UNIT}" != "true" ]]; then
-            echo -e "\n\"${DEPLOYMENT_UNIT}\" is not defined as an application deployment unit in the blueprint" >&2
-            exit
-        fi
+
+#        TODO: reinstate this check when the logic to list the application
+#               deployment units is fixed. It broke for lambda when defaulting of
+#               the set of functions (to potentially higher levels that the 
+#               deployment unit) was added
+#        if [[ "${IS_APPLICATION_DEPLOYMENT_UNIT}" != "true" ]]; then
+#            echo -e "\n\"${DEPLOYMENT_UNIT}\" is not defined as an application deployment unit in the blueprint" >&2
+#            exit
+#        fi
         ;;
 
     *)

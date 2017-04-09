@@ -222,10 +222,13 @@ if [[ -n "${PRODUCT}" ]]; then
     if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
         
         # Confirm it is an application deployment unit
+        # TODO: reinstate this code when check for application deployment unit is
+        #       fixed for lambda
         # TODO remove next line when path length limitations in jq are fixed
-        cp ${GENERATION_DIR}/listApplicationDeploymentUnits.jq ./temp_listApplicationDeploymentUnits.jq
-        APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(jq -r -f ./temp_listApplicationDeploymentUnits.jq < ${COMPOSITE_BLUEPRINT} | dos2unix))
-        if [[ -n $(grep -iw "${DEPLOYMENT_UNIT}" <<< "${APPLICATION_DEPLOYMENT_UNIT_LIST}") ]]; then
+#        cp ${GENERATION_DIR}/listApplicationDeploymentUnits.jq ./temp_listApplicationDeploymentUnits.jq
+#        APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(jq -r -f ./temp_listApplicationDeploymentUnits.jq < ${COMPOSITE_BLUEPRINT} | dos2unix))
+#        if [[ -n $(grep -iw "${DEPLOYMENT_UNIT}" <<< "${APPLICATION_DEPLOYMENT_UNIT_LIST}") ]]; then
+        if [[  1 ]]; then
             IS_APPLICATION_DEPLOYMENT_UNIT="true"
         
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/appsettings.json" ]]; then
