@@ -190,7 +190,7 @@
                                                                 [#assign serviceDependencies += [formatId("listenerRule", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c, targetGroup)]]
                                                             [/#if]
                                                         [#else]
-                                                            "LoadBalancerName" : "${getKey("alb", lbTier.Id, lbComponent.Id)}",
+                                                            "LoadBalancerName" : "${getKey("elb", lbTier.Id, lbComponent.Id)}",
                                                         [/#if]
                                                     [#else]
                                                         "LoadBalancerName" : "${getKey("elb", "elb", port.ELB)}",
