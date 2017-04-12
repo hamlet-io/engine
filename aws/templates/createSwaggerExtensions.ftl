@@ -3,7 +3,7 @@
 
 [#assign swaggerObject = swagger?eval]
 [#assign integrationsObject = integrations?eval]
-[#assign defaultValidation = "none"]
+[#assign defaultValidation = "all"]
 {
     "x-amazon-apigateway-request-validators" : {
         "all" : {
