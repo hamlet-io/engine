@@ -19,8 +19,8 @@
             "validateRequestParameters" : false
         },
         "none" : {
-            "validateRequestBody" : true,
-            "validateRequestParameters" : true
+            "validateRequestBody" : false,
+            "validateRequestParameters" : false
         }
     },
     "x-amazon-apigateway-request-validator" : "${integrationsObject.Validation ! defaultValidation}"
@@ -67,10 +67,10 @@
                                             }
                                             [#break]
                                     [/#switch]
-                                    [#break]
                                     [#if pattern.Validation??]
                                         ,"x-amazon-apigateway-request-validator" : "${pattern.Validation}"
                                     [/#if]
+                                    [#break]
                                 [/#if]
                             [/#list]
                         }
