@@ -8,7 +8,7 @@
             [#list buckets as bucket]
                 [#if bucketCount > 0],[/#if]
                 [#-- Current bucket naming --]
-                [#assign bucketName = bucket + accountDomainQualifier + "." + accountDomain]
+                [#assign bucketName = formatName(bucket, accountDomainQualifier) + "." + accountDomain]
                 [#-- Support presence of existing s3 buckets (naming has changed over time) --]
                 [#assign bucketName = getKey("s3","account", bucket)!bucketName]
                 "${formatId("s3", bucket)}" : {

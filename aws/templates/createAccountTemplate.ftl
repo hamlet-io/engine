@@ -18,7 +18,7 @@
     [#case "accountInHost"]
     [#default]
         [#assign accountDomain = accountDomainStem]
-        [#assign accountDomainQualifier = "-" + accountName]
+        [#assign accountDomainQualifier = accountName]
         [#break]
 [/#switch]
 [#-- TODO: check if this can be deleted or accountDomainCertificateId really may conatins "-" --]
