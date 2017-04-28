@@ -326,7 +326,7 @@
                                                         "Conditions": [
                                                             {
                                                                 "Field": "path-pattern",
-                                                                "Values": [ "${lb.Path!serviceInstance.Internal.VersionName}" ]
+                                                                "Values": [ "${lb.Path!"/" + serviceInstance.Internal.VersionName + "/*"}" ]
                                                             }
                                                         ],
                                                         "ListenerArn" : "${getKey("listener", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c)}"
