@@ -230,7 +230,13 @@
                 { "Key" : "cot:component", "Value" : "${component.Id}" },
                 { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name, source.Port?c, name)}" }
             ],
-            "VpcId": "${vpc}"
+            "VpcId": "${vpc}",
+            "TargetGroupAttributes" : [
+                {
+                    "Key" : "deregistration_delay.timeout_seconds",
+                    "Value" : "${(destination.DeregistrationDelay)!30}"
+                }
+            ]
         }
     }
 [/#macro]
