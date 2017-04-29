@@ -1,6 +1,6 @@
 [#-- ElastiCache --]
 [#if componentType == "elasticache"]
-    [@securityGroup solutionListMode tier component /]
+    [@createSecurityGroup solutionListMode tier component componentIdStem componentFullNameStem /]
     [#assign cache = component.ElastiCache]
     [#assign engine = cache.Engine]
     [#if resourceCount > 0],[/#if]
@@ -27,46 +27,46 @@
                     [#assign family = "redis" + engineVersion[0..familyVersionIndex]]
                     [#break]
             [/#switch]
-            "${formatId("securityGroupIngress", tier.Id, component.Id)}" : {
+            "${formatId("securityGroupIngress", componentIdStem)}" : {
                 "Type" : "AWS::EC2::SecurityGroupIngress",
                 "Properties" : {
-                    "GroupId": {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"},
+                    "GroupId": {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"},
                     "IpProtocol": "${ports[cache.Port].IPProtocol}",
                     "FromPort": "${ports[cache.Port].Port?c}",
                     "ToPort": "${ports[cache.Port].Port?c}",
                     "CidrIp": "0.0.0.0/0"
                 }
             },
-            "${formatId("cacheSubnetGroup", tier.Id, component.Id)}" : {
+            "${formatId("cacheSubnetGroup", componentIdStem)}" : {
                 "Type" : "AWS::ElastiCache::SubnetGroup",
                 "Properties" : {
-                    "Description" : "${formatName(productName, segmentName, tier.Name, component.Name)}",
+                    "Description" : "${componentFullNameStem}",
                     "SubnetIds" : [
                         [#list zones as zone]
-                            "${getKey("subnet", tier.Id, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                            "${getKey("subnet", tierId, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
                         [/#list]
                     ]
                 }
             },
-            "${formatId("cacheParameterGroup", tier.Id, component.Id)}" : {
+            "${formatId("cacheParameterGroup", componentIdStem)}" : {
                 "Type" : "AWS::ElastiCache::ParameterGroup",
                 "Properties" : {
                     "CacheParameterGroupFamily" : "${family}",
-                    "Description" : "Parameter group for ${formatName(tier.Id, component.Id)}",
+                    "Description" : "${componentFullNameStem}",
                     "Properties" : {
                     }
                 }
             },
             [#assign processorProfile = getProcessor(tier, component, "ElastiCache")]
-            "${formatId("cache", tier.Id, component.Id)}":{
+            "${primaryResourceIdStem}":{
                 "Type":"AWS::ElastiCache::CacheCluster",
                 "Properties":{
                     "Engine": "${cache.Engine}",
                     "EngineVersion": "${engineVersion}",
                     "CacheNodeType" : "${processorProfile.Processor}",
                     "Port" : ${ports[cache.Port].Port?c},
-                    "CacheParameterGroupName": { "Ref" : "${formatId("cacheParameterGroup", tier.Id, component.Id)}" },
-                    "CacheSubnetGroupName": { "Ref" : "${formatId("cacheSubnetGroup", tier.Id, component.Id)}" },
+                    "CacheParameterGroupName": { "Ref" : "${formatId("cacheParameterGroup", componentIdStem)}" },
+                    "CacheSubnetGroupName": { "Ref" : "${formatId("cacheSubnetGroup", componentIdStem)}" },
                     [#if multiAZ]
                         "AZMode": "cross-az",
                         "PreferredAvailabilityZones" : [
@@ -90,7 +90,7 @@
                         "SnapshotRetentionLimit" : ${cache.SnapshotRetentionLimit}
                     [/#if]
                     "VpcSecurityGroupIds":[
-                        { "Ref" : "${formatId("securityGroup", tier.Id, component.Id)}" }
+                        { "Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}" }
                     ],
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -101,9 +101,9 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
+                        { "Key" : "cot:tier", "Value" : "${tierId}" },
+                        { "Key" : "cot:component", "Value" : "${componentId}" },
+                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
                     ]
                 }
             }
@@ -112,11 +112,11 @@
         [#case "outputs"]
             [#switch engine]
                 [#case "memcached"]
-                    "${formatId("cache", tier.Id, component.Id, "dns")}" : {
-                       "Value" : { "Fn::GetAtt" : ["${formatId("cache", tier.Id, component.Id)}", "ConfigurationEndpoint.Address"] }
+                    "${formatId(primaryResourceIdStem, "dns")}" : {
+                       "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "ConfigurationEndpoint.Address"] }
                     },
-                    "${formatId("cache", tier.Id, component.Id, "port")}" : {
-                        "Value" : { "Fn::GetAtt" : ["${formatId("cache", tier.Id, component.Id)}", "ConfigurationEndpoint.Port"] }
+                    "${formatId(primaryResourceIdStem, "port")}" : {
+                        "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "ConfigurationEndpoint.Port"] }
                     }
                 [#break]
                 [#case "redis"]

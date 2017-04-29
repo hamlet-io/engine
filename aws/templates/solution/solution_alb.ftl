@@ -1,6 +1,6 @@
 [#-- ALB --]
 [#if componentType == "alb"]
-    [@securityGroup solutionListMode tier component /]
+    [@createSecurityGroup solutionListMode tier component componentIdStem componentFullNameStem /]
     [#assign alb = component.ALB]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
@@ -8,17 +8,17 @@
             [#list alb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
                 [#assign destination = ports[portMappings[mapping].Destination]]
-                "${formatId("securityGroupIngress", tier.Id, component.Id, source.Port?c)}" : {
+                "${formatId("securityGroupIngress", componentIdStem, source.Port?c)}" : {
                     "Type" : "AWS::EC2::SecurityGroupIngress",
                     "Properties" : {
-                        "GroupId": {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"},
+                        "GroupId": {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"},
                         "IpProtocol": "${source.IPProtocol}",
                         "FromPort": "${source.Port?c}",
                         "ToPort": "${source.Port?c}",
                         "CidrIp": "0.0.0.0/0"
                     }
                 },
-                "${formatId("listener", tier.Id, component.Id, source.Port?c)}" : {
+                "${formatId("listener", componentIdStem, source.Port?c)}" : {
                     "Type" : "AWS::ElasticLoadBalancingV2::Listener",
                     "Properties" : {
                         [#if (source.Certificate)?? && source.Certificate]
@@ -54,18 +54,18 @@
                         [/#if]
                         "DefaultActions" : [
                             {
-                              "TargetGroupArn" : { "Ref" : "${formatId("tg", tier.Id, component.Id, source.Port?c, "default")}" },
+                              "TargetGroupArn" : { "Ref" : "${formatId("tg", componentIdStem, source.Port?c, "default")}" },
                               "Type" : "forward"
                             }
                         ],
-                        "LoadBalancerArn" : { "Ref" : "${formatId("alb", tier.Id, component.Id)}" },
+                        "LoadBalancerArn" : { "Ref" : "${primaryResourceIdStem}" },
                         "Port" : ${source.Port?c},
                         "Protocol" : "${source.Protocol}"
                     }
                 },
-                [@createTargetGroup tier=tier component=component source=source destination=destination name="default" /],
+                [@createTargetGroup tierId componentId componentIdStem componentFullNameStem source destination "default" /],
             [/#list]
-            "${formatId("alb", tier.Id, component.Id)}" : {
+            "${primaryResourceIdStem}" : {
                 "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties" : {
                     [#if (alb.Logs)?? && alb.Logs]
@@ -86,12 +86,12 @@
                     [/#if]
                     "Subnets" : [
                         [#list zones as zone]
-                            "${getKey("subnet", tier.Id, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                            "${getKey("subnet", tierId, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
                         [/#list]
                     ],
                     "Scheme" : "${(tier.RouteTable == "external")?string("internet-facing","internal")}",
-                    "SecurityGroups":[ {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"} ],
-                    "Name" : "${formatName(productId, segmentId, tier.Id, component.Id)}",
+                    "SecurityGroups":[ {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"} ],
+                    "Name" : "${formatName(productId, segmentId, tierId, componentId)}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
                         { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
@@ -101,9 +101,9 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
+                        { "Key" : "cot:tier", "Value" : "${tierId}" },
+                        { "Key" : "cot:component", "Value" : "${componentId}" },
+                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
                     ]
                 }
             }
@@ -111,18 +111,18 @@
         [#case "outputs"]
             [#list alb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
-                "${formatId("listener", tier.Id, component.Id, source.Port?c)}" : {
-                    "Value" : { "Ref" : "${formatId("listener", tier.Id, component.Id, source.Port?c)}" }
+                "${formatId("listener", componentIdStem, source.Port?c)}" : {
+                    "Value" : { "Ref" : "${formatId("listener", componentIdStem, source.Port?c)}" }
                 },
-                "${formatId("tg", tier.Id, component.Id, source.Port?c, "default")}" : {
-                    "Value" : { "Ref" : "${formatId("tg", tier.Id, component.Id, source.Port?c, "default")}" }
+                "${formatId("tg", componentIdStem, source.Port?c, "default")}" : {
+                    "Value" : { "Ref" : "${formatId("tg", componentIdStem, source.Port?c, "default")}" }
                 },
             [/#list]
-            "${formatId("alb", tier.Id, component.Id)}" : {
-                "Value" : { "Ref" : "${formatId("alb", tier.Id, component.Id)}" }
+            "${primaryResourceIdStem}" : {
+                "Value" : { "Ref" : "${primaryResourceIdStem}" }
             },
-            "${formatId("alb", tier.Id, component.Id, "dns")}" : {
-                "Value" : { "Fn::GetAtt" : ["${formatId("alb", tier.Id, component.Id)}", "DNSName"] }
+            "${formatId(primaryResourceIdStem, "dns")}" : {
+                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "DNSName"] }
             }
             [#break]
     [/#switch]

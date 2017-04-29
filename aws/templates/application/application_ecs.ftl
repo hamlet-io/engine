@@ -172,7 +172,7 @@
                                                     [#if port.LB??]
                                                         [#assign lb = port.LB]
                                                         [#assign lbTier = getTier(lb.Tier)]
-                                                        [#assign lbComponent = getComponent(lb.Tier, lb.Component)]
+                                                        [#assign lbComponent = getComponent(lb.Tier, lb.Component, "alb")]
                                                         [#assign lbPort = port.Id]
                                                         [#if lb.PortMapping??]
                                                             [#assign lbPort = portMappings[lb.PortMapping].Source]
@@ -182,7 +182,7 @@
                                                         [/#if]
                                                         [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.VersionName]
                                                         [#if targetGroup != ""]
-                                                            [#assign targetGroupKey = formatId("tg", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c, targetGroup)]
+                                                            [#assign targetGroupKey = getTargetGroupPrimaryResourceId(lbTier, lbComponent, ports[lbPort], targetGroup)]
                                                             [#if getKey(targetGroupKey)??]
                                                                 "TargetGroupArn" : "${getKey(targetGroupKey)}",
                                                             [#else]
@@ -190,12 +190,12 @@
                                                                 [#assign serviceDependencies += [formatId("listenerRule", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c, targetGroup)]]
                                                             [/#if]
                                                         [#else]
-                                                            "LoadBalancerName" : "${getKey("elb", lbTier.Id, lbComponent.Id)}",
+                                                            "LoadBalancerName" : "${getKey("elb", getComponentIdStem(lbTier, lbComponent))}",
                                                         [/#if]
                                                     [#else]
                                                         "LoadBalancerName" : "${getKey("elb", "elb", port.ELB)}",
                                                     [/#if]
-                                                    "ContainerName" : "${formatName(tier.Name, component.Name, container.Name) }",
+                                                    "ContainerName" : "${formatName(tierName, componentName, container.Name) }",
                                                     [#if port.Container??]
                                                         "ContainerPort" : ${ports[port.Container].Port?c}
                                                     [#else]
@@ -261,7 +261,7 @@
 
                             [#if fromSG]
                                 [#if port.ELB??]
-                                    [#assign elbSG = getKey("securityGroup","elb", port.ELB)]
+                                    [#assign elbSG = getKey("securityGroup", "elb", port.ELB)]
                                 [#else]
                                     [#assign elbSG = getKey("securityGroup", port.LB.Tier, port.LB.Component)]
                                 [/#if]
@@ -295,7 +295,7 @@
                             [#if port.LB??]
                                 [#assign lb = port.LB]
                                 [#assign lbTier = getTier(lb.Tier)]
-                                [#assign lbComponent = getComponent(lb.Tier, lb.Component)]
+                                [#assign lbComponent = getComponent(lb.Tier, lb.Component, "alb")]
                                 [#assign lbPort = port.Id]
                                 [#if lb.PortMapping??]
                                     [#assign lbPort = portMappings[lb.PortMapping].Source]
@@ -305,12 +305,15 @@
                                 [/#if]
                                 [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.VersionName]
                                 [#if targetGroup != ""]
-                                    [#assign targetGroupKey = formatId("tg", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c, targetGroup)]
+                                    [#assign targetGroupKey = formatTargetGroupPrimaryResourceId(lbTier, 
+                                                                    lbComponent, 
+                                                                    ports[lbPort], 
+                                                                    targetGroup)]
                                     [#if ! getKey(targetGroupKey)??]
                                         [#switch applicationListMode]
                                             [#case "definition"]
-                                                ,[@createTargetGroup tier=lbTier component=lbComponent source=ports[lbPort] destination=ports[port.Id] name=targetGroup /]
-                                                ,"${formatId("listenerRule", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c, targetGroup)}" : {
+                                                ,[@createTargetGroup lbTier lbComponent ports[lbPort] ports[port.Id] targetGroup /]
+                                                ,"${formatId("listenerRule", getTierId(lbTier), getComponentId(lbComponent), ports[lbPort].Port?c, targetGroup)}" : {
                                                     "DependsOn" : [
                                                         "${targetGroupKey}"
                                                     ],
@@ -329,7 +332,7 @@
                                                                 "Values": [ "${lb.Path!"/" + serviceInstance.Internal.VersionName + "/*"}" ]
                                                             }
                                                         ],
-                                                        "ListenerArn" : "${getKey("listener", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c)}"
+                                                        "ListenerArn" : "${getKey("listener", getTierId(lbTier), getComponentId(lbComponent), ports[lbPort].Port?c)}"
                                                     }
                                                 }
                                                 [#break]

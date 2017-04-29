@@ -63,9 +63,9 @@
         [#assign lambdaIdStem = formatId(componentIdStem,
                                             lambdaInstance.Internal.VersionId,
                                             lambdaInstance.Internal.InstanceId)]
-        [#assign lambdaNameStem = formatName(componentNameStem,
-                                            lambdaInstance.Internal.VersionName,
-                                            lambdaInstance.Internal.InstanceName)]
+        [#assign lambdaFullNameStem = formatName(componentFullNameStem,
+                                                    lambdaInstance.Internal.VersionName,
+                                                    lambdaInstance.Internal.InstanceName)]
 
         [#if lambdaInstance.Internal.Functions?is_hash]
 
@@ -78,9 +78,7 @@
 
             [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
             [#if vpc != "unknown"]
-                [#assign lambdaSGIdStem = formatId(lambdaInstance.Internal.VersionId, lambdaInstance.Internal.InstanceId)]
-                [#assign lambdaSGNameStem = formatName(lambdaInstance.Internal.VersionName, lambdaInstance.Internal.InstanceName)]
-                [@securityGroup applicationListMode tier component lambdaSGIdStem lambdaSGNameStem /]
+                [@createSecurityGroup applicationListMode tier component lambdaIdStem lambdaFullNameStem /]
             [/#if]
 
             [#if resourceCount > 0],[/#if]
@@ -122,7 +120,7 @@
                 [#if fn?is_hash]
                     [#if functionCount > 0],[/#if]
                     [#assign lambdaFunctionIdStem = formatId(lambdaIdStem, fn.Id)]
-                    [#assign lambdaFunctionNameStem = formatName(lambdaNameStem, fn.Name)]
+                    [#assign lambdaFunctionNameStem = formatName(lambdaFullNameStem, fn.Name)]
                     [#switch applicationListMode]
                         [#case "definition"]
                             "${formatId("lambda", lambdaFunctionIdStem)}" : {

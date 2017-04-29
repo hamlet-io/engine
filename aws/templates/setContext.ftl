@@ -141,7 +141,7 @@
     [#return concatenate(args, "-")]
 [/#function]
 
-[#-- Check if deployment unit occurs anywhere in provided object --]
+[#-- Check if a deployment unit occurs anywhere in provided object --]
 [#function deploymentRequired obj unit]
     [#if obj?is_hash]
         [#if obj.DeploymentUnits?? && obj.DeploymentUnits?seq_contains(unit)]
@@ -190,7 +190,8 @@
     [/#if]
 [/#function]
 
-[#macro reference value]
+[#-- Include a reference to a resource in the output --]
+[#macro createReference value]
     [#if value?is_hash && value.Ref??]
         { "Ref" : "${value.Ref}" }
     [#else]
@@ -198,29 +199,107 @@
     [/#if]
 [/#macro]
 
-[#function getTier tierId]
-    [#return blueprintObject.Tiers[tierId]]
+[#-- Check if a tier exists --]
+[#function isTier tierId]
+    [#return (blueprintObject.Tiers[tierId])??]
 [/#function]
 
-[#-- Locate the object for an optionally typed component within a tier --]
+[#-- Get a tier --]
+[#function getTier tierId]
+    [#if isTier(tierId)]
+        [#return blueprintObject.Tiers[tierId]]
+    [/#if]
+[/#function]
+
+[#-- Get the id for a tier --]
+[#function getTierId tier]
+    [#return tier.Id]
+[/#function]
+
+[#-- Get the name for a tier --]
+[#function getTierName tier]
+    [#return tier.Name]
+[/#function]
+
+[#-- Get the id for a component --]
+[#function getComponentId component]
+    [#return component.Id?split("-")[0]]
+[/#function]
+
+[#-- Get the name for a component --]
+[#function getComponentName component]
+    [#return component.Name?split("-")[0]]
+[/#function]
+
+[#-- Get the type for a component --]
+[#function getComponentType component]
+    [#assign idParts = component.Id?split("-")]
+    [#if idParts[1]??]
+        [#return idParts[1]?lower_case]
+    [#else]
+        [#list component?keys as key]
+            [#switch key]
+                [#case "Id"]
+                [#case "Name"]
+                [#case "Title"]
+                [#case "Description"]
+                [#case "DeploymentUnits"]
+                [#case "MultiAZ"]
+                    [#break]
+
+                [#default]
+                    [#return key?lower_case]
+                    [#break]
+            [/#switch]
+        [/#list]
+    [/#if]
+[/#function]
+
+[#-- Get the primary resource type for a component --]
+[#function getComponentPrimaryResourceType component]
+    [#assign componentType = getComponentType(component)]
+    [#assign primaryResourceType = componentType]
+    [#switch componentType]
+        [#case "elasticache"]
+            [#assign primaryResourceType = "es"]
+            [#break]
+        [#case "elasticsearch"]
+            [#assign primaryResourceType = "cache"]
+            [#break]
+    [/#switch]
+    [#return primaryResourceType]
+[/#function]
+
+[#-- Format a component id stem --]
+[#function formatComponentIdStem tier component]
+    [#return formatId(getTierId(tier), getComponentId(component))]
+[/#function]
+
+[#-- Format a component short name stem --]
+[#function formatComponentShortNameStem tier component]
+    [#return formatName(getTierId(tier), getComponentId(component))]
+[/#function]
+
+[#-- Format a component name stem --]
+[#function formatComponentNameStem tier component]
+    [#return formatName(getTierName(tier), getComponentName(component))]
+[/#function]
+
+[#-- Format a component full name stem --]
+[#function formatComponentFullNameStem tier component]
+    [#return formatName(productName, segmentName, formatComponentNameStem(tier, component))]
+[/#function]
+
+[#-- Get a component within a tier --]
 [#function getComponent tierId componentId type]
-    [#local tier = getTier(tierId)]
-    [#list tier.Components?values as component]
-        [#if type?has_content]
-            [#if component.Id == formatName(componentId, type)]
+    [#if isTier(tierId)]
+        [#list getTier(tierId).Components?values as component]
+            [#if (getComponentId(component) == componentId) &&
+                    (getComponentType(component) == type)]
                 [#return component]
             [/#if]
-            [#list component?keys as key]
-                [#if key?lower_case == type]
-                    [#return component]
-                [/#if]
-            [/#list]
-        [#else]
-            [#if component.Id == componentId]
-                [#return component]
-            [/#if]
-        [/#if]
-    [/#list]
+        [/#list]
+    [/#if]
 [/#function]
 
 [#-- Calculate the closest power of 2 --]
@@ -237,10 +316,6 @@
 [/#function]
 
 [#-- Required tiers --]
-[#function isTier tierId]
-    [#return (blueprintObject.Tiers[tierId])??]
-[/#function]
-
 [#assign tiers = []]
 [#list segmentObject.Tiers.Order as tierId]
     [#if isTier(tierId)]
@@ -266,7 +341,7 @@
 
 [#-- Get processor settings --]
 [#function getProcessor tier component type]
-    [#local tc = tier.Id + "-" + component.Id]
+    [#local tc = formatComponentShortNameStem(tier, component)]
     [#local defaultProfile = "default"]
     [#if (component[type].Processor)??]
         [#return component[type].Processor]
@@ -288,7 +363,7 @@
 
 [#-- Get storage settings --]
 [#function getStorage tier component type]
-    [#local tc = tier.Id + "-" + component.Id]
+    [#local tc = formatComponentShortNameStem(tier, component)]
     [#local defaultProfile = "default"]
     [#if (component[type].Storage)??]
         [#return component[type].Storage]
@@ -307,14 +382,18 @@
     [/#if]
 [/#function]
 
-[#macro securityGroup mode tier component idStem="" nameStem=""]
+[#function formatSecurityGroupPrimaryResourceId idStem]
+    [#return formatId("securityGroup", idStem)]
+[/#function]
+
+[#macro createSecurityGroup mode tier component idStem nameStem]
     [#if resourceCount > 0],[/#if]
     [#switch mode]
         [#case "definition"]
-            "${formatId("securityGroup", componentIdStem, idStem)}" : {
+            "${formatId("securityGroup", idStem)}" : {
                 "Type" : "AWS::EC2::SecurityGroup",
                 "Properties" : {
-                    "GroupDescription": "Security Group for ${formatName(componentNameStem, nameStem)}",
+                    "GroupDescription": "${nameStem}",
                     "VpcId": "${vpc}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -325,20 +404,64 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${formatName(componentNameStem, nameStem)}" }
+                        { "Key" : "cot:tier", "Value" : "${getTierId(tier)}" },
+                        { "Key" : "cot:component", "Value" : "${getComponentId(component)}" },
+                        { "Key" : "Name", "Value" : "${nameStem}" }
                     ]
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "${formatId("securityGroup", componentIdStem, idStem)}" : {
-                "Value" : { "Ref" : "${formatId("securityGroup", componentIdStem, idStem)}" }
+            "${formatId("securityGroup", idStem)}" : {
+                "Value" : { "Ref" : "${formatId("securityGroup", idStem)}" }
             }
             [#break]
 
     [/#switch]
     [#assign resourceCount += 1]
+[/#macro]
+
+[#function formatTargetGroupPrimaryResourceId tier component, source, name]
+    [#return formatId("tg", getComponentIdStem(tier, component), source.Port?c, name)]
+[/#function]
+
+[#macro createTargetGroup tier component source destination name]
+    "${formatId("tg", getComponentIdStem(tier, component), source.Port?c, name)}" : {
+        "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+        "Properties" : {
+            "HealthCheckPort" : "${(destination.HealthCheck.Port)!"traffic-port"}",
+            "HealthCheckProtocol" : "${(destination.HealthCheck.Protocol)!destination.Protocol}",
+            "HealthCheckPath" : "${destination.HealthCheck.Path}",
+            "HealthCheckIntervalSeconds" : ${destination.HealthCheck.Interval},
+            "HealthCheckTimeoutSeconds" : ${destination.HealthCheck.Timeout},
+            "HealthyThresholdCount" : ${destination.HealthCheck.HealthyThreshold},
+            "UnhealthyThresholdCount" : ${destination.HealthCheck.UnhealthyThreshold},
+            [#if (destination.HealthCheck.SuccessCodes)?? ]
+                "Matcher" : { "HttpCode" : "${destination.HealthCheck.SuccessCodes}" },
+            [/#if]
+            "Port" : ${destination.Port?c},
+            "Protocol" : "${destination.Protocol}",
+            "Tags" : [
+                { "Key" : "cot:request", "Value" : "${requestReference}" },
+                { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
+                { "Key" : "cot:tenant", "Value" : "${tenantId}" },
+                { "Key" : "cot:account", "Value" : "${accountId}" },
+                { "Key" : "cot:product", "Value" : "${productId}" },
+                { "Key" : "cot:segment", "Value" : "${segmentId}" },
+                { "Key" : "cot:environment", "Value" : "${environmentId}" },
+                { "Key" : "cot:category", "Value" : "${categoryId}" },
+                { "Key" : "cot:tier", "Value" : "${getTierId(tier)}" },
+                { "Key" : "cot:component", "Value" : "${getComponentId(component)}" },
+                { "Key" : "Name", "Value" : "${formatName(formatComponentFullNameStem(tier, component), source.Port?c, name)}" }
+            ],
+            "VpcId": "${vpc}",
+            "TargetGroupAttributes" : [
+                {
+                    "Key" : "deregistration_delay.timeout_seconds",
+                    "Value" : "${(destination.DeregistrationDelay)!30}"
+                }
+            ]
+        }
+    }
 [/#macro]

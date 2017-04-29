@@ -6,7 +6,7 @@
         [#case "definition"]
             [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
             [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
-            "${formatId("es", tier.Id, component.Id)}":{
+            "${primaryResourceIdStem}":{
                 "Type" : "AWS::Elasticsearch::Domain",
                 "Properties" : {
                     "AccessPolicies" : {
@@ -77,7 +77,7 @@
                     [/#if]
                     [#-- In order to permit updates to the security policy, don't name the domain. --]
                     [#-- Use tags in the console to find the right one --]
-                    [#-- "DomainName" : "${productName}-${segmentId}-${tier.Id}-${component.Id}", --]
+                    [#-- "DomainName" : "${productName}-${segmentId}-${tierId}-${componentId}", --]
                     [#if es.Version??]
                         "ElasticsearchVersion" : "${es.Version}",
                     [#else]
@@ -127,22 +127,22 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" }
+                        { "Key" : "cot:tier", "Value" : "${tierId}" },
+                        { "Key" : "cot:component", "Value" : "${componentId}" }
                     ]
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "${formatId("es", tier.Id, component.Id)}" : {
-                "Value" : { "Ref" : "${formatId("es", tier.Id, component.Id)}" }
+            "${primaryResourceIdStem}" : {
+                "Value" : { "Ref" : "${primaryResourceIdStem}" }
             },
-            "${formatId("es", tier.Id, component.Id, "dns")}" : {
-                "Value" : { "Fn::GetAtt" : ["${formatId("es", tier.Id, component.Id)}", "DomainEndpoint"] }
+            "${formatId(primaryResourceIdStem, "dns")}" : {
+                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "DomainEndpoint"] }
             },
-            "${formatId("es", tier.Id, component.Id, "arn")} : {
-                "Value" : { "Fn::GetAtt" : ["${formatId("es", tier.Id, component.Id)}", "DomainArn"] }
+            "${formatId(primaryResourceIdStem, "arn")} : {
+                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "DomainArn"] }
             }
             [#break]
 

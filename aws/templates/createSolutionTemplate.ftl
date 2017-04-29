@@ -29,45 +29,6 @@
     [/#if]
 [/#macro]
 
-[#macro createTargetGroup tier component source destination name]
-    "${formatId("tg", tier.Id, component.Id, source.Port?c, name)}" : {
-        "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
-        "Properties" : {
-            "HealthCheckPort" : "${(destination.HealthCheck.Port)!"traffic-port"}",
-            "HealthCheckProtocol" : "${(destination.HealthCheck.Protocol)!destination.Protocol}",
-            "HealthCheckPath" : "${destination.HealthCheck.Path}",
-            "HealthCheckIntervalSeconds" : ${destination.HealthCheck.Interval},
-            "HealthCheckTimeoutSeconds" : ${destination.HealthCheck.Timeout},
-            "HealthyThresholdCount" : ${destination.HealthCheck.HealthyThreshold},
-            "UnhealthyThresholdCount" : ${destination.HealthCheck.UnhealthyThreshold},
-            [#if (destination.HealthCheck.SuccessCodes)?? ]
-                "Matcher" : { "HttpCode" : "${destination.HealthCheck.SuccessCodes}" },
-            [/#if]
-            "Port" : ${destination.Port?c},
-            "Protocol" : "${destination.Protocol}",
-            "Tags" : [
-                { "Key" : "cot:request", "Value" : "${requestReference}" },
-                { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                { "Key" : "cot:account", "Value" : "${accountId}" },
-                { "Key" : "cot:product", "Value" : "${productId}" },
-                { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                { "Key" : "cot:category", "Value" : "${categoryId}" },
-                { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                { "Key" : "cot:component", "Value" : "${component.Id}" },
-                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name, source.Port?c, name)}" }
-            ],
-            "VpcId": "${vpc}",
-            "TargetGroupAttributes" : [
-                {
-                    "Key" : "deregistration_delay.timeout_seconds",
-                    "Value" : "${(destination.DeregistrationDelay)!30}"
-                }
-        }
-    }
-[/#macro]
-
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl"],

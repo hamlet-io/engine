@@ -16,17 +16,17 @@
                                         "VersionName" : version.Name,
                                         "InstanceId" : (sqsInstance.Id == "default")?string("",sqsInstance.Id),
                                         "InstanceName" : (sqsInstance.Id == "default")?string("",sqsInstance.Name),
-                                        "DelaySeconds" : ${(sqsInstance.DelaySeconds!version.DelaySeconds!sqs.DelaySeconds!-1)},
-                                        "MaximumMessageSize" : ${(sqsInstance.MaximumMessageSize!version.MaximumMessageSize!sqs.MaximumMessageSize!-1)},
-                                        "MessageRetentionPeriod" : ${(sqsInstance.MessageRetentionPeriod!version.MessageRetentionPeriod!sqs.MessageRetentionPeriod!-1)},
-                                        "ReceiveMessageWaitTimeSeconds" : ${(sqsInstance.ReceiveMessageWaitTimeSeconds!version.ReceiveMessageWaitTimeSeconds!sqs.ReceiveMessageWaitTimeSeconds!-1)},
-                                        "VisibilityTimeout" : ${(sqsInstance.VisibilityTimeout!version.VisibilityTimeout!sqs.VisibilityTimeout!-1)}
+                                        "DelaySeconds" : sqsInstance.DelaySeconds!version.DelaySeconds!sqs.DelaySeconds!-1,
+                                        "MaximumMessageSize" : sqsInstance.MaximumMessageSize!version.MaximumMessageSize!sqs.MaximumMessageSize!-1,
+                                        "MessageRetentionPeriod" : sqsInstance.MessageRetentionPeriod!version.MessageRetentionPeriod!sqs.MessageRetentionPeriod!-1,
+                                        "ReceiveMessageWaitTimeSeconds" : sqsInstance.ReceiveMessageWaitTimeSeconds!version.ReceiveMessageWaitTimeSeconds!sqs.ReceiveMessageWaitTimeSeconds!-1,
+                                        "VisibilityTimeout" : sqsInstance.VisibilityTimeout!version.VisibilityTimeout!sqs.VisibilityTimeout!-1
                                     }
                                 }
                             ] ]
                         [/#if]
                     [/#list]
-                 [#else]
+                [#else]
                     [#assign sqsInstances += [version +
                         {
                             "Internal" : {
@@ -34,18 +34,18 @@
                                 "VersionName" : "version.Name",
                                 "InstanceId" : "",
                                 "InstanceName" : "",
-                                "DelaySeconds" : ${(version.DelaySeconds!sqs.DelaySeconds!-1)},
-                                "MaximumMessageSize" : ${(version.MaximumMessageSize!sqs.MaximumMessageSize!-1)},
-                                "MessageRetentionPeriod" : ${(version.MessageRetentionPeriod!sqs.MessageRetentionPeriod!-1)},
-                                "ReceiveMessageWaitTimeSeconds" : ${(version.ReceiveMessageWaitTimeSeconds!sqs.ReceiveMessageWaitTimeSeconds!-1)},
-                                "VisibilityTimeout" : ${(version.VisibilityTimeout!sqs.VisibilityTimeout!-1)}
+                                "DelaySeconds" : version.DelaySeconds!sqs.DelaySeconds!-1,
+                                "MaximumMessageSize" : version.MaximumMessageSize!sqs.MaximumMessageSize!-1,
+                                "MessageRetentionPeriod" : version.MessageRetentionPeriod!sqs.MessageRetentionPeriod!-1,
+                                "ReceiveMessageWaitTimeSeconds" : version.ReceiveMessageWaitTimeSeconds!sqs.ReceiveMessageWaitTimeSeconds!-1,
+                                "VisibilityTimeout" : version.VisibilityTimeout!sqs.VisibilityTimeout!-1
                             }
                         }
                     ]]
                 [/#if]
             [/#if]
         [/#list]
-    [/#else]
+    [#else]
         [#assign sqsInstances += [sqs +
             {
                 "Internal" : {
@@ -53,20 +53,20 @@
                     "VersionName" : "",
                     "InstanceId" : "",
                     "InstanceName" : "",
-                    "DelaySeconds" : ${(sqs.DelaySeconds!-1)},
-                    "MaximumMessageSize" : ${(sqs.MaximumMessageSize!-1)},
-                    "MessageRetentionPeriod" : ${(sqs.MessageRetentionPeriod!-1)},
-                    "ReceiveMessageWaitTimeSeconds" : ${(sqs.ReceiveMessageWaitTimeSeconds!-1)},
-                    "VisibilityTimeout" : ${(sqs.VisibilityTimeout!-1)}
+                    "DelaySeconds" : sqs.DelaySeconds!-1,
+                    "MaximumMessageSize" : sqs.MaximumMessageSize!-1,
+                    "MessageRetentionPeriod" : sqs.MessageRetentionPeriod!-1,
+                    "ReceiveMessageWaitTimeSeconds" : sqs.ReceiveMessageWaitTimeSeconds!-1,
+                    "VisibilityTimeout" : sqs.VisibilityTimeout!-1
                 }
             }
         ]]
     [/#if]
 
     [#list sqsInstances as sqsInstance]
-        [#assign sqsIdStem = formatId(typedComponentIdStem,
-                                    sqsInstance.Internal.VersionId,
-                                    sqsInstance.Internal.InstanceId)]
+        [#assign sqsResourceIdStem = formatId(primaryResourceIdStem,
+                                                sqsInstance.Internal.VersionId,
+                                                sqsInstance.Internal.InstanceId)]
         [#if resourceCount > 0],[/#if]
         [#switch solutionListMode]
             [#case "definition"]
@@ -76,30 +76,30 @@
                         [#if sqs.Name != "SQS"]
                             "QueueName" : "${formatName(sqs.Name,
                                                         sqsInstance.Internal.VersionName,
-                                                        sqsInstance.Internal.InstanceName)])}"
+                                                        sqsInstance.Internal.InstanceName)}"
                         [#else]
-                            "QueueName" : "${formatName(productName, environmentName, component.Name,
+                            "QueueName" : "${formatName(productName, segmentName, componentName,
                                                         sqsInstance.Internal.VersionName,
-                                                        sqsInstance.Internal.InstanceName)])}"
+                                                        sqsInstance.Internal.InstanceName)}"
                         [/#if]
-                        [#if sqsInstance.DelaySeconds != -1],"DelaySeconds" : ${sqsInstance.DelaySeconds?c}[/#if]
-                        [#if sqsInstance.MaximumMessageSize != -1],"MaximumMessageSize" : ${sqsInstance.MaximumMessageSize?c}[/#if]
-                        [#if sqsInstance.MessageRetentionPeriod != -1],"MessageRetentionPeriod" : ${sqsInstance.MessageRetentionPeriod?c}[/#if]
-                        [#if sqsInstance.ReceiveMessageWaitTimeSeconds != -1],"ReceiveMessageWaitTimeSeconds" : ${sqsInstance.ReceiveMessageWaitTimeSeconds?c}[/#if]
-                        [#if sqsInstance.VisibilityTimeout != -1],"VisibilityTimeout" : ${sqsInstance.VisibilityTimeout?c}[/#if]
+                        [#if sqsInstance.Internal.DelaySeconds != -1],"DelaySeconds" : ${sqsInstance.Internal.DelaySeconds?c}[/#if]
+                        [#if sqsInstance.Internal.MaximumMessageSize != -1],"MaximumMessageSize" : ${sqsInstance.Internal.MaximumMessageSize?c}[/#if]
+                        [#if sqsInstance.Internal.MessageRetentionPeriod != -1],"MessageRetentionPeriod" : ${sqsInstance.Internal.MessageRetentionPeriod?c}[/#if]
+                        [#if sqsInstance.Internal.ReceiveMessageWaitTimeSeconds != -1],"ReceiveMessageWaitTimeSeconds" : ${sqsInstance.Internal.ReceiveMessageWaitTimeSeconds?c}[/#if]
+                        [#if sqsInstance.Internal.VisibilityTimeout != -1],"VisibilityTimeout" : ${sqsInstance.Internal.VisibilityTimeout?c}[/#if]
                     }
                 }
                 [#break]
     
             [#case "outputs"]
-                "${sqsIdStem}" : {
-                    "Value" : { "Fn::GetAtt" : ["${sqsIdStem}", "QueueName"] }
+                "${sqsResourceIdStem}" : {
+                    "Value" : { "Fn::GetAtt" : ["${sqsResourceIdStem}", "QueueName"] }
                 },
-                "${formatId(sqsIdStem, "url")}" : {
-                    "Value" : { "Ref" : "${sqsIdStem}" }
+                "${formatId(sqsResourceIdStem, "url")}" : {
+                    "Value" : { "Ref" : "${sqsResourceIdStem}" }
                 },
-                "${formatId(sqsIdStem, "arn")}" : {
-                    "Value" : { "Fn::GetAtt" : ["${sqsIdStem}", "Arn"] }
+                "${formatId(sqsResourceIdStem, "arn")}" : {
+                    "Value" : { "Fn::GetAtt" : ["${sqsResourceIdStem}", "Arn"] }
                 }
                 [#break]
     

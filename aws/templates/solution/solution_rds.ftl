@@ -1,6 +1,6 @@
 [#-- RDS --]
 [#if componentType == "rds"]
-    [@securityGroup solutionListMode tier component /]
+    [@createSecurityGroup solutionListMode tier component componentIdStem componentFullNameStem /]
     [#assign db = component.RDS]
     [#assign engine = db.Engine]
     [#if resourceCount > 0],[/#if]
@@ -25,23 +25,23 @@
                     [#assign family = "postgres" + engineVersion]
                     [#break]
             [/#switch]
-            "${formatId("securityGroupIngress", tier.Id, component.Id)}" : {
+            "${formatId("securityGroupIngress", componentIdStem)}" : {
                 "Type" : "AWS::EC2::SecurityGroupIngress",
                 "Properties" : {
-                    "GroupId": {"Ref" : "${formatId("securityGroup", tier.Id, component.Id)}"},
+                    "GroupId": {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"},
                     "IpProtocol": "${ports[db.Port].IPProtocol}",
                     "FromPort": "${ports[db.Port].Port?c}",
                     "ToPort": "${ports[db.Port].Port?c}",
                     "CidrIp": "0.0.0.0/0"
                 }
             },
-            "${formatId("rdsSubnetGroup", tier.Id, component.Id)}" : {
+            "${formatId("rdsSubnetGroup", componentIdStem)}" : {
                 "Type" : "AWS::RDS::DBSubnetGroup",
                 "Properties" : {
-                    "DBSubnetGroupDescription" : "${formatName(productName, segmentName, tier.Name, component.Name)}",
+                    "DBSubnetGroupDescription" : "${componentFullNameStem}",
                     "SubnetIds" : [
                         [#list zones as zone]
-                            "${getKey("subnet", tier.Id, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                            "${getKey("subnet", componentIdStem)}"[#if !(zones?last.Id == zone.Id)],[/#if]
                         [/#list]
                     ],
                     "Tags" : [
@@ -53,17 +53,17 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
+                        { "Key" : "cot:tier", "Value" : "${tierId}" },
+                        { "Key" : "cot:component", "Value" : "${componentId}" },
+                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
                     ]
                 }
             },
-            "${formatId("rdsParameterGroup", tier.Id, component.Id)}" : {
+            "${formatId("rdsParameterGroup", componentIdStem)}" : {
                 "Type" : "AWS::RDS::DBParameterGroup",
                 "Properties" : {
                     "Family" : "${family}",
-                    "Description" : "Parameter group for ${formatName(tier.Id, component.Id)}",
+                    "Description" : "${componentFullNameStem}",
                     "Parameters" : {
                     },
                     "Tags" : [
@@ -75,18 +75,18 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
+                        { "Key" : "cot:tier", "Value" : "${tierId}" },
+                        { "Key" : "cot:component", "Value" : "${componentId}" },
+                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
                     ]
                 }
             },
-            "${formatId("rdsOptionGroup", tier.Id, component.Id)}" : {
+            "${formatId("rdsOptionGroup", componentIdStem)}" : {
                 "Type" : "AWS::RDS::OptionGroup",
                 "Properties" : {
                     "EngineName": "${engine}",
                     "MajorEngineVersion": "${engineVersion}",
-                    "OptionGroupDescription" : "Option group for ${tier.Id}/${component.Id}",
+                    "OptionGroupDescription" : "${componentFullNameStem}",
                     "OptionConfigurations" : [
                     ],
                     "Tags" : [
@@ -98,14 +98,14 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
+                        { "Key" : "cot:tier", "Value" : "${tierId}" },
+                        { "Key" : "cot:component", "Value" : "${componentId}" },
+                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
                     ]
                 }
             },
             [#assign processorProfile = getProcessor(tier, component, "RDS")]
-            "${formatId("rds", tier.Id, component.Id)}":{
+            "${primaryResourceIdStem}":{
                 "Type":"AWS::RDS::DBInstance",
                 "Properties":{
                     "Engine": "${engine}",
@@ -114,21 +114,21 @@
                     "AllocatedStorage": "${db.Size}",
                     "StorageType" : "gp2",
                     "Port" : "${ports[db.Port].Port?c}",
-                    "MasterUsername": "${credentialsObject[formatName(tier.Id, component.Id)].Login.Username}",
-                    "MasterUserPassword": "${credentialsObject[formatName(tier.Id, component.Id)].Login.Password}",
+                    "MasterUsername": "${credentialsObject[formatName(tierId, componentId)].Login.Username}",
+                    "MasterUserPassword": "${credentialsObject[formatName(tierId, componentId)].Login.Password}",
                     "BackupRetentionPeriod" : "${db.Backup.RetentionPeriod}",
-                    "DBInstanceIdentifier": "${formatName(productName, segmentName, tier.Name, component.Name)}",
+                    "DBInstanceIdentifier": "${componentFullNameStem}",
                     "DBName": "${productName}",
-                    "DBSubnetGroupName": { "Ref" : "${formatId("rdsSubnetGroup", tier.Id, component.Id)}" },
-                    "DBParameterGroupName": { "Ref" : "${formatId("rdsParameterGroup", tier.Id, component.Id)}" },
-                    "OptionGroupName": { "Ref" : "${formatId("rdsOptionGroup", tier.Id, component.Id)}" },
+                    "DBSubnetGroupName": { "Ref" : "${formatId("rdsSubnetGroup", componentIdStem)}" },
+                    "DBParameterGroupName": { "Ref" : "${formatId("rdsParameterGroup", componentIdStemd)}" },
+                    "OptionGroupName": { "Ref" : "${formatId("rdsOptionGroup", componentIdStem)}" },
                     [#if multiAZ]
                         "MultiAZ": true,
                     [#else]
                         "AvailabilityZone" : "${zones[0].AWSZone}",
                     [/#if]
                     "VPCSecurityGroups":[
-                        { "Ref" : "${formatId("securityGroup", tier.Id, component.Id)}" }
+                        { "Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}" }
                     ],
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -139,29 +139,29 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" },
-                        { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, component.Name)}" }
+                        { "Key" : "cot:tier", "Value" : "${tierId}" },
+                        { "Key" : "cot:component", "Value" : "${componentId}" },
+                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
                     ]
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "${formatId("rds", tier.Id, component.Id, "dns")}" : {
-                "Value" : { "Fn::GetAtt" : ["${formatId("rds", tier.Id, component.Id)}", "Endpoint.Address"] }
+            "${formatId(primaryResourceIdStem, "dns")}" : {
+                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "Endpoint.Address"] }
             },
-            "${formatId("rds", tier.Id, component.Id, "port")}" : {
-                    "Value" : { "Fn::GetAtt" : ["${formatId("rds", tier.Id, component.Id)}", "Endpoint.Port"] }
+            "${formatId(primaryResourceIdStem, "port")}" : {
+                    "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "Endpoint.Port"] }
                 },
-            "${formatId("rds", tier.Id, component.Id, "databasename")}" : {
+            "${formatId(primaryResourceIdStem, "databasename")}" : {
                     "Value" : "${productName}"
                 },
-            "${formatId("rds", tier.Id, component.Id, "username")}" : {
-                    "Value" : "${credentialsObject[formatName(tier.Id, component.Id)].Login.Username}"
+            "${formatId(primaryResourceIdStem, "username")}" : {
+                    "Value" : "${credentialsObject[formatName(tierId, componentId)].Login.Username}"
                 },
-            "${formatId("rds", tier.Id, component.Id, "password")}" : {
-                "Value" : "${credentialsObject[formatName(tier.Id, component.Id)].Login.Password}"
+            "${formatId(primaryResourceIdStem, "password")}" : {
+                "Value" : "${credentialsObject[formatName(tierId, componentId)].Login.Password}"
             }
             [#break]
 

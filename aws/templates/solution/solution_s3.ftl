@@ -11,8 +11,8 @@
                 [#assign bucketName = formatName(component.Name, segmentDomainQualifier) + "." + segmentDomain]
             [/#if]
             [#-- Support presence of existing s3 buckets (naming has changed over time) --]
-            [#assign bucketName = getKey("s3", tier.Id, component.Id)!bucketName]
-            "${formatId("s3", tier.Id, component.Id)}" : {
+            [#assign bucketName = getKey("s3", componentIdStem)!bucketName]
+            "${primaryResourceIdStem}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {
                     "BucketName" : "${bucketName}",
@@ -25,8 +25,8 @@
                         { "Key" : "cot:segment", "Value" : "${segmentId}" },
                         { "Key" : "cot:environment", "Value" : "${environmentId}" },
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tier.Id}" },
-                        { "Key" : "cot:component", "Value" : "${component.Id}" }
+                        { "Key" : "cot:tier", "Value" : "${tierId}" },
+                        { "Key" : "cot:component", "Value" : "${componentId}" }
                     ]
                     [#if s3.Lifecycle??]
                         ,"LifecycleConfiguration" : {
@@ -51,15 +51,15 @@
                                         [#if queueCount > 0],[/#if]
                                         {
                                             "Event" : "s3:ObjectCreated:*",
-                                            "Queue" : "${getKey("sqs", tier.Id, queue.Id, "arn")}"
+                                            "Queue" : "${getKey("sqs", tierId, queue.Id, "arn")}"
                                         },
                                         {
                                             "Event" : "s3:ObjectRemoved:*",
-                                            "Queue" : "${getKey("sqs", tier.Id, queue.Id, "arn")}"
+                                            "Queue" : "${getKey("sqs", tierId, queue.Id, "arn")}"
                                         },
                                         {
                                             "Event" : "s3:ReducedRedundancyLostObject",
-                                            "Queue" : "${getKey("sqs", tier.Id, queue.Id, "arn")}"
+                                            "Queue" : "${getKey("sqs", tierId, queue.Id, "arn")}"
                                         }
                                         [#assign queueCount += 1]
                                     [/#if]
@@ -76,7 +76,7 @@
                             [#list s3.Notifications.SQS?values as queue]
                                  [#if queue?is_hash]
                                     [#if queueCount > 0],[/#if]
-                                    "${formatId("s3", tier.Id, component.Id, queue.Id, "policy")}"
+                                    "${formatId(primaryResourceIdStem, queue.Id, "policy")}"
                                     [#assign queueCount += 1]
                                  [/#if]
                             [/#list]
@@ -88,12 +88,12 @@
                 [#assign queueCount = 0]
                 [#list s3.Notifications.SQS?values as queue]
                     [#if queue?is_hash]
-                        ,"${formatId("s3", tier.Id, component.Id, queue.Id, "policy")}" : {
+                        ,"${formatId(primaryResourceIdStem, queue.Id, "policy")}" : {
                             "Type" : "AWS::SQS::QueuePolicy",
                             "Properties" : {
                                 "PolicyDocument" : {
                                     "Version" : "2012-10-17",
-                                    "Id" : "${formatId("s3", tier.Id, component.Id, queue.Id, "policy")}",
+                                    "Id" : "${formatId(primaryResourceIdStem, queue.Id, "policy")}",
                                     "Statement" : [
                                         {
                                             "Effect" : "Allow",
@@ -108,7 +108,7 @@
                                         }
                                     ]
                                 },
-                                "Queues" : [ "${getKey("sqs", tier.Id, queue.Id, "url")}" ]
+                                "Queues" : [ "${getKey("sqs", componentIdStem, "url")}" ]
                             }
                         }
                     [/#if]
@@ -117,11 +117,11 @@
             [#break]
 
         [#case "outputs"]
-            "${formatId("s3", tier.Id, component.Id)}" : {
-                "Value" : { "Ref" : "${formatId("s3", tier.Id, component.Id)}" }
+            "${primaryResourceIdStem}" : {
+                "Value" : { "Ref" : "${primaryResourceIdStem}" }
             },
-            "${formatId("s3", tier.Id, component.Id, "url")}" : {
-                "Value" : { "Fn::GetAtt" : ["${formatId("s3", tier.Id, component.Id)}", "WebsiteURL"] }
+            "${formatId(primaryResourceIdStem, "url")}" : {
+                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "WebsiteURL"] }
             }
             [#break]
 
