@@ -1,5 +1,5 @@
 [#-- ElastiCache --]
-[#if component.ElastiCache??]
+[#if componentType == "elasticache"]
     [@securityGroup solutionListMode tier component /]
     [#assign cache = component.ElastiCache]
     [#assign engine = cache.Engine]

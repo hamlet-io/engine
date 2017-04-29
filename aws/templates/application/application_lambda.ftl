@@ -1,4 +1,4 @@
-[#if component.Lambda??]
+[#if componentType = "lambda"]
     [#assign lambda = component.Lambda]
 
     [#assign lambdaInstances=[] ]

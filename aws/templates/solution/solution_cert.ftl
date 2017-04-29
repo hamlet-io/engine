@@ -1,5 +1,5 @@
 [#-- ACM Certificate --]
-[#if component.ACM??]
+[#if componentType == "acm"]
     [#assign acm = component.ACM]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]

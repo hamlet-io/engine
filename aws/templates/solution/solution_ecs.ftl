@@ -1,5 +1,5 @@
 [#-- ECS --]
-[#if component.ECS??]
+[#if componentType == "ecs"]
     [@securityGroup solutionListMode tier component /]
     [#assign ecs = component.ECS]
     [#assign processorProfile = getProcessor(tier, component, "ECS")]

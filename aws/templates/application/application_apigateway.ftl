@@ -1,5 +1,5 @@
 [#-- API Gateway --]
-[#if component.APIGateway??]
+[#if componentType == "apigateway"]
     [#assign apigateway = component.APIGateway]
     [#assign apigatewayInstances=[] ]
     [#if apigateway.Versions??]

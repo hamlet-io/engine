@@ -1,5 +1,5 @@
 [#-- S3 --]
-[#if component.S3??]
+[#if componentType == "s3"]
     [#assign s3 = component.S3]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]

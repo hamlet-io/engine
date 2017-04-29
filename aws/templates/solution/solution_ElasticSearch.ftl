@@ -1,5 +1,5 @@
 [#-- ElasticSearch --]
-[#if component.ElasticSearch??]
+[#if componentType == "elasticsearch"]
     [#assign es = component.ElasticSearch]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]

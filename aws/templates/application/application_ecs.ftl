@@ -1,4 +1,4 @@
-[#if component.ECS??]
+[#if componentType == "ecs"]
     [#assign ecs = component.ECS]
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
     [#assign ecsSG = getKey("securityGroup", componentIdStem) ]

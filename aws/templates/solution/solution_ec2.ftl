@@ -1,5 +1,5 @@
 [#-- EC2 --]
-[#if component.EC2??]
+[#if componentType == "ec2"]
     [@securityGroup solutionListMode tier component /]
     [#assign ec2 = component.EC2]
     [#assign fixedIP = ec2.FixedIP?? && ec2.FixedIP]

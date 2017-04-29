@@ -1,5 +1,5 @@
 [#-- RDS --]
-[#if component.RDS??]
+[#if componentType == "rds"]
     [@securityGroup solutionListMode tier component /]
     [#assign db = component.RDS]
     [#assign engine = db.Engine]
