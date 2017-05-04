@@ -456,19 +456,19 @@
 [/#function]
 
 [#function formatResourceArnAttributeId resourceId]
-    [#return formatId(
+    [#return formatResourceAttributeId(
                 resourceId,
                 "arn")]
 [/#function]
 
 [#function formatResourceUrlAttributeId resourceId]
-    [#return formatId(
+    [#return formatResourceAttributeId(
                 resourceId,
                 "url")]
 [/#function]
 
 [#function formatResourceDnsAttributeId resourceId]
-    [#return formatId(
+    [#return formatResourceAttributeId(
                 resourceId,
                 "dns")]
 [/#function]
@@ -916,7 +916,7 @@
 [/#function]
 
 [#function formatComponentSQSResourceUrlId tier component sqs extensions...]
-    [#return formatSQSResourceUrlId(
+    [#return formatResourceUrlAttributeId(
                 formatComponentSQSResourceId(
                     tier,
                     component,
@@ -925,7 +925,7 @@
 [/#function]
 
 [#function formatComponentSQSResourceArnId tier component sqs extensions...]
-    [#return formatSQSResourceArnId(
+    [#return formatResourceArnAttributeId(
                 formatComponentSQSResourceId(
                     tier,
                     component,
