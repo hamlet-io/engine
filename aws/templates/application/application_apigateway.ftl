@@ -48,7 +48,7 @@
                                         tier,
                                         component,
                                         apigatewayInstance)]
-        [#assign stageResourceId  = formatAPIGatewayDeployResourceId(
+        [#assign stageResourceId  = formatAPIGatewayStageResourceId(
                                         tier,
                                         component,
                                         apigatewayInstance)]
