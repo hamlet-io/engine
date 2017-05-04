@@ -449,7 +449,7 @@
                                                     "ignoreErrors" : "false"
                                                 }
                                             [#else]
-                                                [#if getKey("eip", tier.Id, "nat", zone.Id, "id")??]
+                                                [#if getKey("eip", tier.Id, "nat", zone.Id, "id")?has_content]
                                                     ,"02ExecuteAllocateEIPScript" : {
                                                         "command" : "/opt/codeontap/bootstrap/eip.sh",
                                                         "env" : { 

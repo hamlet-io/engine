@@ -251,7 +251,7 @@
                             "SourceDestCheck" : true,
                             "GroupSet" : [
                                 {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"}
-                                [#if securityGroupNAT != "none"]
+                                [#if securityGroupNAT?has_content]
                                     , "${securityGroupNAT}"
                                 [/#if]
                             ],
@@ -272,7 +272,7 @@
                         }
                     }
                     [#if fixedIP]
-                        [#if getKey("eip", tierId, componentId, zone.Id, "ip")??]
+                        [#if getKey("eip", tierId, componentId, zone.Id, "ip")?has_content]
                             ,"${formatId("eip", componentIdStem, zone.Id)}": {
                         [#else]
                             ,"${formatId("eip", componentIdStem, zone.Id, "eth0")}": {
@@ -284,14 +284,14 @@
                             }
                         }
                         ,"${formatId("eipAssoc", componentIdStem, zone.Id, "eth0")}": {
-                            [#if getKey("eip", tierId, componentId, zone.Id, "ip")??]
+                            [#if getKey("eip", tierId, componentId, zone.Id, "ip")?has_content]
                                 "DependsOn" : "${formatId("eip", componentIdStem, zone.Id)}",
                             [#else]
                                 "DependsOn" : "${formatId("eip", componentIdStem, zone.Id, "eth0")}",
                             [/#if]
                             "Type" : "AWS::EC2::EIPAssociation",
                             "Properties" : {
-                                [#if getKey("eip", tierId, componentId, zone.Id, "ip")??]
+                                [#if getKey("eip", tierId, componentId, zone.Id, "ip")?has_content]
                                     "AllocationId" : { "Fn::GetAtt" : ["${formatId("eip", componentIdStem, zone.Id)}", "AllocationId"] },
                                 [#else]
                                     "AllocationId" : { "Fn::GetAtt" : ["${formatId("eip", componentIdStem, zone.Id, "eth0")}", "AllocationId"] },
@@ -314,7 +314,7 @@
             [#if fixedIP]
                 [#list zones as zone]
                     [#if multiAZ || (zones[0].Id = zone.Id)]
-                        [#if getKey("eip", tierId, componentId, zone.Id, "ip")??]
+                        [#if getKey("eip", tierId, componentId, zone.Id, "ip")?has_content]
                             ,"${formatId("eip", componentIdStem, zone.Id, "ip")}": {
                                 "Value" : { "Ref" : "${formatId("eip", componentIdStem, zone.Id)}" }
                             }

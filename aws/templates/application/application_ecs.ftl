@@ -203,7 +203,7 @@
                                                                                                 ports[lbPort],
                                                                                                 targetGroup)]
                                                             "TargetGroupArn" : [@createReference targetGroupResourceId /],
-                                                            [#if !(getKey(targetGroupResourceId)??)]
+                                                            [#if !(getKey(targetGroupResourceId)?has_content)]
                                                                 [#assign serviceDependencies += [formatALBListenerRuleResourceId(
                                                                                                     lbTier,
                                                                                                     lbComponent,
@@ -354,7 +354,7 @@
                                                                         lbComponent,
                                                                         ports[lbPort],
                                                                         targetGroup)]
-                                    [#if ! getKey(targetGroupResourceId)??]
+                                    [#if ! getKey(targetGroupResourceId)?has_content]
                                         [#switch applicationListMode]
                                             [#case "definition"]
                                                 ,[@createTargetGroup lbTier lbComponent ports[lbPort] ports[port.Id] targetGroup /]

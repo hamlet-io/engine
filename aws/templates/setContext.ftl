@@ -41,9 +41,9 @@
         [#assign accountRegionObject = regions[accountRegionId]]
         [#assign accountRegionName = accountRegionObject.Name]
     [/#if]
-    [#assign credentialsBucket = getKey("s3","account", "credentials")!"unknown"]
-    [#assign codeBucket = getKey("s3","account","code")!"unknown"]
-    [#assign registryBucket = getKey("s3", "account", "registry")!"unknown"]
+    [#assign credentialsBucket = getKey("s3","account", "credentials")]
+    [#assign codeBucket = getKey("s3","account","code")]
+    [#assign registryBucket = getKey("s3", "account", "registry")]
 [/#if]
 
 [#-- Product --]
@@ -70,41 +70,41 @@
     [#assign operationsBucket = "unknown"]
     [#assign operationsBucketSegment = "segment"]
     [#assign operationsBucketType = "ops"]
-    [#if getKey("s3", "segment", "ops")??]
-        [#assign operationsBucket = getKey("s3", "segment", "ops")]        
+    [#if getKey(formatSegmentS3ResourceId("ops"))?has_content]
+        [#assign operationsBucket = getKey(formatSegmentS3ResourceId("ops"))]        
     [/#if]
-    [#if getKey("s3", "segment", "operations")??]
-        [#assign operationsBucket = getKey("s3", "segment", "operations")]        
+    [#if getKey(formatSegmentS3ResourceId("operations"))?has_content]
+        [#assign operationsBucket = getKey(formatSegmentS3ResourceId("operations"))]        
     [/#if]
-    [#if getKey("s3", "segment", "logs")??]
-        [#assign operationsBucket = getKey("s3", "segment", "logs")]        
+    [#if getKey(formatSegmentS3ResourceId("logs"))?has_content]
+        [#assign operationsBucket = getKey(formatSegmentS3ResourceId("logs"))]        
         [#assign operationsBucketType = "logs"]
     [/#if]
-    [#if getKey("s3", "container", "logs")??]
-        [#assign operationsBucket = getKey("s3", "container", "logs")]        
+    [#if getKey(formatContainerS3ResourceId("logs"))?has_content]
+        [#assign operationsBucket = getKey(formatContainerS3ResourceId("logs"))]        
         [#assign operationsBucketSegment = "container"]
         [#assign operationsBucketType = "logs"]
     [/#if]
     [#assign dataBucket = "unknown"]
     [#assign dataBucketSegment = "segment"]
     [#assign dataBucketType = "data"]
-    [#if getKey("s3", "segment", "data")??]
-        [#assign dataBucket = getKey("s3", "segment", "data")]        
+    [#if getKey(formatSegmentS3ResourceId("data"))?has_content]
+        [#assign dataBucket = getKey(formatSegmentS3ResourceId("data"))]        
     [/#if]
-    [#if getKey("s3", "segment", "backups")??]
-        [#assign dataBucket = getKey("s3", "segment", "backups")]        
+    [#if getKey(formatSegmentS3ResourceId("backups"))?has_content]
+        [#assign dataBucket = getKey(formatSegmentS3ResourceId("backups"))]        
         [#assign dataBucketType = "backups"]
     [/#if]
-    [#if getKey("s3", "container", "backups")??]
-        [#assign dataBucket = getKey("s3", "container", "backups")]        
+    [#if getKey(formatContainerS3ResourceId("backups"))?has_content]
+        [#assign dataBucket = getKey(formatContainerS3ResourceId("backups"))]        
         [#assign dataBucketSegment = "container"]
         [#assign dataBucketType = "backups"]
     [/#if]
-    [#assign segmentDomain = getKey("domain", "segment", "domain")!"unknown"]
-    [#assign segmentDomainQualifier = getKey("domain", "segment", "qualifier")!"unknown"]
-    [#assign certificateId = getKey("domain", "segment", "certificate")!"unknown"]
-    [#assign vpc = getKey("vpc", "segment", "vpc")!"unknown"]
-    [#assign securityGroupNAT = getKey("securityGroup", "mgmt", "nat")!"none"]
+    [#assign segmentDomain = getKey("domain", "segment", "domain")]
+    [#assign segmentDomainQualifier = getKey("domain", "segment", "qualifier")]
+    [#assign certificateId = getKey("domain", "segment", "certificate")]
+    [#assign vpc = getKey("vpc", "segment", "vpc")]
+    [#assign securityGroupNAT = getKey("securityGroup", "mgmt", "nat")]
     [#if segmentObject.Environment??]
         [#assign environmentId = segmentObject.Environment]
         [#assign environmentObject = environments[environmentId]]
@@ -171,23 +171,13 @@
 
 [#-- Get stack output --]
 [#function getKey args...]
-    [#-- Line below should be sufficient but triggers bug in freemarker --]
-    [#-- where result of call to concatenate is returned if no match --]
-    [#-- on a stack output is found --]
-    [#-- TODO: remove copied code when fixed in new version of freemarker --]
-    [#-- local key = concatenate(args, "X") --]
-    [#local content = []]
-    [#list args as arg]
-        [#if arg?has_content]
-            [#local content += [arg]]
-        [/#if]
-    [/#list]
-    [#local key = content?join("X")]
+    [#local key = formatId(args)]
     [#list stackOutputsObject as pair]
         [#if pair.OutputKey == key]
             [#return pair.OutputValue]
         [/#if]
     [/#list]
+    [#return ""]
 [/#function]
 
 [#-- Include a reference to a resource in the output --]
@@ -195,7 +185,7 @@
     [#if value?is_hash && value.Ref??]
         { "Ref" : "${value.Ref}" }
     [#else]
-        [#if getKey(value)??]
+        [#if getKey(value)?has_content]
             "${getKey(value)}"
         [#else]
             { "Ref" : "${value}" }
@@ -424,13 +414,19 @@
                 ids)]
 [/#function]
 
-[#function formatComponentResourceId type tier component extensions...]
+[#-- TODO: Remove when use of "container" is removed --]
+[#function formatContainerResourceId type extensions...]
     [#return formatResourceId(
                 type,
-                formatComponentIdStem(
-                    tier, 
-                    component,
-                    extensions))]
+                "container",
+                extensions)]
+[/#function]
+
+[#function formatSegmentResourceId type extensions...]
+    [#return formatResourceId(
+                type,
+                "segment",
+                extensions)]
 [/#function]
 
 [#function formatZoneResourceId type tier zone extensions...]
@@ -440,6 +436,16 @@
                 getZoneId(zone),
                 extensions)]
 [/#function]
+
+[#function formatComponentResourceId type tier component extensions...]
+    [#return formatResourceId(
+                type,
+                formatComponentIdStem(
+                    tier, 
+                    component,
+                    extensions))]
+[/#function]
+
 
 [#-- Resource attribute id formatting routines --]
 
@@ -877,32 +883,50 @@
 
 [#-- SQS resources --]
 
-[#function formatSQSResourceId tier component sqs extensions...]
+[#function formatSQSResourceId ids...]
+    [#return formatResourceId(
+                "sqs",
+                ids)]
+[/#function]
+
+[#function formatSQSResourceUrlId ids...]
+    [#return formatResourceUrlAttributeId(
+                formatSQSResourceId(
+                    ids))]
+[/#function]
+
+[#function formatSQSResourceArnId ids...]
+    [#return formatResourceArnAttributeId(
+                formatSQSResourceId(
+                    ids))]
+[/#function]
+
+[#function formatComponentSQSResourceId tier component sqs extensions...]
     [#local sqsExtensions = sqs?is_hash?then(
                                                 [
                                                     sqs.Internal.VersionId,
                                                     sqs.Internal.InstanceId
                                                 ],
                                                 extensions)]
-    [#return formatComponentResourceId(
-                "sqs",
-                tier,
-                component,
-                sqsExtensions)]
+    [#return formatSQSResourceId(
+                formatComponentIdStem(
+                    tier,
+                    component,
+                    sqsExtensions))]
 [/#function]
 
-[#function formatSQSResourceUrlId tier component sqs extensions...]
-    [#return formatResourceUrlAttributeId(
-                formatSQSResourceId(
+[#function formatComponentSQSResourceUrlId tier component sqs extensions...]
+    [#return formatSQSResourceUrlId(
+                formatComponentSQSResourceId(
                     tier,
                     component,
                     sqs,
                     extensions))]
 [/#function]
 
-[#function formatSQSResourceArnId tier component sqs extensions...]
-    [#return formatResourceArnAttributeId(
-                formatSQSResourceId(
+[#function formatComponentSQSResourceArnId tier component sqs extensions...]
+    [#return formatSQSResourceArnId(
+                formatComponentSQSResourceId(
                     tier,
                     component,
                     sqs,
@@ -980,3 +1004,56 @@
     [#return formatResourceArnAttributeId(
                 formatKMSCMKResourceId())]
 [/#function]
+
+[#-- S3 resources --]
+
+[#function formatS3ResourceId ids...]
+    [#return formatResourceId(
+                "s3",
+                ids)]
+[/#function]
+
+[#function formatS3ResourceUrlId ids...]
+    [#return formatResourceUrlAttributeId(
+                formatS3ResourceId(
+                    ids))]
+[/#function]
+
+[#-- TODO: Remove when use of "container" is removed --]
+[#function formatContainerS3ResourceId type extensions...]
+    [#return formatContainerResourceId(
+                "s3",
+                type,
+                extensions)]
+[/#function]
+
+[#function formatSegmentS3ResourceId type extensions...]
+    [#return formatSegmentResourceId(
+                "s3",
+                type,
+                extensions)]
+[/#function]
+
+[#function formatComponentS3ResourceId tier component s3 extensions...]
+    [#local s3Extensions = sqs?is_hash?then(
+                                                [
+                                                    s3.Internal.VersionId,
+                                                    s3.Internal.InstanceId
+                                                ],
+                                                extensions)]
+    [#return formatS3ResourceId(
+                formatComponentIdStem(
+                    tier,
+                    component,
+                    sqsExtensions))]
+[/#function]
+
+[#function formatS3ResourceUrlId tier component s3 extensions...]
+    [#return formatS3ResourceUrlId(
+                formatComponentS3ResourceId(
+                    tier,
+                    component,
+                    s3,
+                    extensions))]
+[/#function]
+

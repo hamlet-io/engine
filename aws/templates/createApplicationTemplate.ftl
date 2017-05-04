@@ -9,6 +9,14 @@
     [#return (appSettingsObject.Registries[type?lower_case].Prefix)!(appSettingsObject[type?capitalize].Prefix)!""]
 [/#function]
 
+[#function getCredentialFilePrefix]
+    [#return "credentials/" + productName + "/" + segmentName]
+[/#function]
+
+[#function getAppSettingsFilePrefix]
+    [#return "appsettings/" + productName + "/" + segmentName + "/" + deployment_unit]
+[/#function]
+
 [#if buildReference??]
     [#if buildReference?starts_with("{")]
         [#-- JSON format --]

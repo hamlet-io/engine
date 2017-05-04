@@ -25,14 +25,14 @@
                                         [#assign ipCount = 0]
                                         "aws:SourceIp": [
                                             [#list zones as zone]
-                                                [#if (getKey("eip", "mgmt", "nat", zone.Id, "ip")??)]
+                                                [#if getKey("eip", "mgmt", "nat", zone.Id, "ip")?has_content]
                                                     [#if ipCount > 0],[/#if]
                                                     "${getKey("eip", "mgmt", "nat", zone.Id, "ip")}"
                                                     [#assign ipCount += 1]
                                                 [/#if]
                                             [/#list]
                                             [#list 1..20 as i]
-                                                [#if (getKey("eip", "mgmt", "nat", "external" + i)??)]
+                                                [#if getKey("eip", "mgmt", "nat", "external" + i)?has_content]
                                                     [#if ipCount > 0],[/#if]
                                                     "${getKey("eip", "mgmt", "nat", "external", i)}"
                                                     [#assign ipCount += 1]

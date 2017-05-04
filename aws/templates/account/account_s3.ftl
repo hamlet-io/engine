@@ -10,7 +10,9 @@
                 [#-- Current bucket naming --]
                 [#assign bucketName = formatName(bucket, accountDomainQualifier) + "." + accountDomain]
                 [#-- Support presence of existing s3 buckets (naming has changed over time) --]
-                [#assign bucketName = getKey("s3","account", bucket)!bucketName]
+                [#assign bucketName = getKey("s3", "account", bucket)?has_content?then(
+                                                                getKey("s3", "account", bucket),
+                                                                bucketName)]
                 "${formatId("s3", bucket)}" : {
                     "Type" : "AWS::S3::Bucket",
                     "Properties" : {

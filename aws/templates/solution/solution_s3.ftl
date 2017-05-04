@@ -11,7 +11,9 @@
                 [#assign bucketName = formatName(component.Name, segmentDomainQualifier) + "." + segmentDomain]
             [/#if]
             [#-- Support presence of existing s3 buckets (naming has changed over time) --]
-            [#assign bucketName = getKey("s3", componentIdStem)!bucketName]
+            [#assign bucketName = getKey("s3", componentIdStem)?has_content?then(
+                                                            getKey("s3", componentIdStem),
+                                                            bucketName)]
             "${primaryResourceIdStem}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {

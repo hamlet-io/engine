@@ -64,7 +64,7 @@
     [/#if]
 
     [#list sqsInstances as sqsInstance]
-        [#assign sqsResourceId = formatSQSResourceId(
+        [#assign sqsResourceId = formatComponentSQSResourceId(
                                     tier,
                                     component,
                                     sqsInstance)]

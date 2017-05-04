@@ -39,7 +39,7 @@
                 "${albListenerResourceId}" : {
                     "Type" : "AWS::ElasticLoadBalancingV2::Listener",
                     "Properties" : {
-                        [#if (source.Certificate)?? && source.Certificate]
+                        [#if (source.Certificate)?has_content]
                             "Certificates" : [
                                 {
                                     [#assign certificateFound = false]
@@ -49,7 +49,7 @@
                                             [#assign certificateResourceId = formatComponentCertificateResourceId(
                                                                                 tier,
                                                                                 component)]
-                                            [#if getKey(certificateResourceId)??]
+                                            [#if getKey(certificateResourceId)?has_content]
                                                 "${getKey(certificateResourceId)}"
                                                 [#assign certificateFound = true]
                                             [/#if]
@@ -57,7 +57,7 @@
                                         [#if !certificateFound]
                                             [#assign certificateResourceId = formatCertificateResourceId(
                                                                                 certificateId)]
-                                            [#if getKey(certificateResourceId)??]
+                                            [#if getKey(certificateResourceId)?has_content]
                                                 "${getKey(certificateResourceId)}"
                                             [#else]
                                                 {

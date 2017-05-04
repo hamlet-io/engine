@@ -42,9 +42,9 @@
                                 "Protocol" : "${source.Protocol}",
                                 "InstancePort" : "${destination.Port?c}",
                                 "InstanceProtocol" : "${destination.Protocol}"
-                                [#if (source.Certificate)?? && source.Certificate]
+                                [#if (source.Certificate)?has_content]
                                     ,"SSLCertificateId" :
-                                        [#if getKey("certificate", certificateId)??]
+                                        [#if getKey("certificate", certificateId)?has_content]
                                             "${getKey("certificate", certificateId)}"
                                         [#else]
                                             {

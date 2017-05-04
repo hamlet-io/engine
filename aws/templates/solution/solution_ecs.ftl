@@ -299,7 +299,7 @@
                     [@createBlockDevices storageProfile=storageProfile /]
                     "SecurityGroups" : [
                                         {"Ref" : "${ecsSecurityGroupResourceId}"}
-                                        [#if securityGroupNAT != "none"], "${securityGroupNAT}"[/#if] 
+                                        [#if securityGroupNAT?has_content], "${securityGroupNAT}"[/#if] 
                     ],
                     "IamInstanceProfile" : { "Ref" : "${ecsInstanceProfileResourceId}" },
                     "AssociatePublicIpAddress" : ${(tier.RouteTable == "external")?string("true","false")},
