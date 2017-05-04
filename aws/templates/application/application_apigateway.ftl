@@ -120,11 +120,11 @@
                                                         [#if fn?is_hash]
                                                             [#if linkCount > 0],[/#if]
                                                             [#assign stageVariable = link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA"]
-                                                            [#assign fnName = getKey(formatLambdaFunctionResourceId(
+                                                            [#assign fnName = formatLambdaFunctionName(
                                                                                         targetTier,
                                                                                         targetComponent,
                                                                                         apigatewayInstance,
-                                                                                        fn))]
+                                                                                        fn)]
                                                             [@environmentVariable stageVariable fnName "apigateway" /]
                                                             [#assign linkCount += 1]
                                                         [/#if]
@@ -162,11 +162,11 @@
                                     [#if lambdaFunctions?is_hash]
                                         [#list lambdaFunctions?values as fn]
                                             [#if fn?is_hash]
-                                                [#assign fnName = getKey(formatLambdaFunctionResourceId(
+                                                [#assign fnName = formatLambdaFunctionName(
                                                                             targetTier,
                                                                             targetComponent,
                                                                             apigatewayInstance,
-                                                                            fn))]
+                                                                            fn)]
                                                 ,"${formatAPIGatewayLambdaPermissionResourceId(
                                                         tier,
                                                         component,
@@ -176,7 +176,7 @@
                                                     "Type" : "AWS::Lambda::Permission",
                                                     "Properties" : {
                                                         "Action" : "lambda:InvokeFunction",
-                                                        "FunctionName" : [@createReference fnName /],
+                                                        "FunctionName" : "${fnName}",
                                                         "Principal" : "apigateway.amazonaws.com",
                                                         "SourceArn" : {
                                                             "Fn::Join" : [
