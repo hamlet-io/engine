@@ -1,6 +1,6 @@
 [#-- ElastiCache --]
 [#if componentType == "elasticache"]
-    [@createSecurityGroup solutionListMode tier component componentIdStem componentFullNameStem /]
+    [@createSecurityGroup solutionListMode tier component /]
     [#assign cache = component.ElastiCache]
     [#assign engine = cache.Engine]
     [#if resourceCount > 0],[/#if]

@@ -40,38 +40,49 @@
     [/#if]
 
     [#list apigatewayInstances as apigatewayInstance]
-        [#assign apigatewayIdStem = formatId(componentIdStem,
-                                                apigatewayInstance.Internal.VersionId,
-                                                apigatewayInstance.Internal.InstanceId)]
+        [#assign apiResourceId    = formatAPIGatewayAPIResourceId(
+                                        tier,
+                                        component,
+                                        apigatewayInstance)]
+        [#assign deployResourceId = formatAPIGatewayDeployResourceId(
+                                        tier,
+                                        component,
+                                        apigatewayInstance)]
+        [#assign stageResourceId  = formatAPIGatewayDeployResourceId(
+                                        tier,
+                                        component,
+                                        apigatewayInstance)]
         [#if resourceCount > 0],[/#if]
         [#switch applicationListMode]
             [#case "definition"]
-                "${formatId("api", apigatewayIdStem)}" : {
+                "${apiResourceId}" : {
                     "Type" : "AWS::ApiGateway::RestApi",
                     "Properties" : {
                         "BodyS3Location" : {
                             "Bucket" : "${getRegistryEndPoint("swagger")}",
                             "Key" : "${getRegistryPrefix("swagger")}${productName}/${buildDeploymentUnit}/${buildCommit}/swagger.json"
                         },
-                        "Name" : "${formatName(componentNameStem,
-                                                apigatewayInstance.Internal.VersionName,
-                                                apigatewayInstance.Internal.InstanceName)}"
+                        "Name" : "${formatComponentFullNameStem(
+                                        tier,
+                                        component,
+                                        apigatewayInstance.Internal.VersionName,
+                                        apigatewayInstance.Internal.InstanceName)}"
                     }
                 },
-                "${formatId("apiDeploy", apigatewayIdStem)}" : {
+                "${deployResourceId}" : {
                     "Type": "AWS::ApiGateway::Deployment",
                     "Properties": {
-                        "RestApiId": { "Ref" : "${formatId("api", apigatewayIdStem)}" },
+                        "RestApiId": { "Ref" : "${apiResourceId}" },
                         "StageName": "default"
                     },
-                    "DependsOn" : "${formatId("api", apigatewayIdStem)}"
+                    "DependsOn" : "${apiResourceId}"
                 },
                 [#assign stageName = apigatewayInstance.Internal.VersionName]
-                "${formatId("apiStage", apigatewayIdStem)}" : {
+                "${stageResourceId}" : {
                     "Type" : "AWS::ApiGateway::Stage",
                     "Properties" : {
-                        "DeploymentId" : { "Ref" : "${formatId("apiDeploy", apigatewayIdStem)}" },
-                        "RestApiId" : { "Ref" : "${formatId("api", apigatewayIdStem)}" },
+                        "DeploymentId" : { "Ref" : "${deployResourceId}" },
+                        "RestApiId" : { "Ref" : "${apiResourceId}" },
                         "StageName" : "${stageName}"
                         [#if apigatewayInstance.Links??]
                             ,"Variables" : {
@@ -79,16 +90,20 @@
                                 [#list apigatewayInstance.Links?values as link]
                                     [#if link?is_hash]
                                         [#if getComponent(link.Tier, link.Component)??]
-                                            [#assign target = getComponent(link.Tier, link.Component)]
-                                            [#if target.ALB?? || target.ELB??]
+                                            [#assign targetTier = getTier(link.Tier)]
+                                            [#assign targetComponent = getComponent(link.Tier, link.Component)]
+                                            [#assign targetComponentType = getComponentType(targetComponent)]
+                                            [#if (targetComponentType == "alb") || (targetComponentType == "elb")]
                                                 [#if linkCount > 0],[/#if]
                                                 [#assign stageVariable = link.Name?upper_case + "_DOCKER" ]
                                                 [@environmentVariable stageVariable
-                                                    getKey("alb", link.Tier, link.Component, "dns")
+                                                    getKey(formatALBResourceDNSId(
+                                                            targetTier,
+                                                            targetComponent))
                                                     "apigateway" /]
                                                 [#assign linkCount += 1]
                                             [/#if]
-                                            [#if target.Lambda??]
+                                            [#if targetComponentType == "lambda"]
                                                 [#assign lambdaInstance = target.Lambda ]
                                                 [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
                                                 [#if target.Lambda.Versions?? ]
@@ -105,28 +120,13 @@
                                                         [#if fn?is_hash]
                                                             [#if linkCount > 0],[/#if]
                                                             [#assign stageVariable = link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA"]
-                                                            [#-- In order that lambda code doesn't have to be deployed before the api gateway is
-                                                                 instantiated, construct the function name from constituent parts rather than looking up
-                                                                 via
-                                                                            getReference("lambda", link.Tier, link.Component,
-                                                                            apigatewayInstance.Internal.VersionId,
-                                                                            apigatewayInstance.Internal.InstanceId,
-                                                                            fn.Id)
-"arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${accountObject.AWSId}:function:${fnName}/invocations"
-
-                                                                --]
-                                                            [#assign fnName = formatName(
-                                                                        productName,
-                                                                        segmentName,
-                                                                        getTier(link.Tier).Name,
-                                                                        target.Name,
-                                                                        apigatewayInstance.Internal.VersionName,
-                                                                        apigatewayInstance.Internal.InstanceName,
-                                                                        fn.Name)]
-                                                            [@environmentVariable
-                                                                stageVariable
-                                                                "${fnName}"
-                                                                "apigateway" /]
+                                                            [#assign fnName = getKey(formatLambdaFunctionResourceId(
+                                                                                        targetTier,
+                                                                                        targetComponent,
+                                                                                        fn,
+                                                                                        apigatewayInstance.Internal.VersionId,
+                                                                                        apigatewayInstance.Internal.InstanceId))]
+                                                            [@environmentVariable stageVariable fnName "apigateway" /]
                                                             [#assign linkCount += 1]
                                                         [/#if]
                                                     [/#list]
@@ -138,16 +138,17 @@
                             }
                         [/#if]
                     },
-                    "DependsOn" : "${formatId("apiDeploy", apigatewayIdStem)}"
+                    "DependsOn" : "${deployResourceId}"
                 }
                 [#-- Include access to lambda functions if required --]
                 [#if apigatewayInstance.Links?? ]
                     [#list apigatewayInstance.Links?values as link]
                         [#if link?is_hash]
                             [#if getComponent(link.Tier, link.Component)??]
-                                [#assign target = getComponent(link.Tier, link.Component)]
-
-                                [#if target.Lambda??]
+                                [#assign targetTier = getTier(link.Tier)]
+                                [#assign targetComponent = getComponent(link.Tier, link.Component)]
+                                [#assign targetComponentType = getComponentType(targetComponent)]
+                                [#if targetComponentType == "lambda"]
                                     [#assign lambdaInstance = target.Lambda ]
                                     [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
                                     [#if target.Lambda.Versions?? ]
@@ -163,19 +164,21 @@
                                         [#list lambdaFunctions?values as fn]
                                             [#if fn?is_hash]
                                                 [#-- See comment above re formatting function name --]
-                                                [#assign fnName = formatName(
-                                                            productName,
-                                                            segmentName,
-                                                            getTier(link.Tier).Name,
-                                                            target.Name,
-                                                            apigatewayInstance.Internal.VersionName,
-                                                            apigatewayInstance.Internal.InstanceName,
-                                                            fn.Name)]
-                                                ,"${formatId("apiLambdaPermission", apigatewayIdStem, link.Id, fn.Id)}" : {
+                                                [#assign fnName = getKey(formatLambdaFunctionResourceId(
+                                                                            targetTier,
+                                                                            targetComponent,
+                                                                            apigatewayInstance,
+                                                                            fn))]
+                                                ,"${formatAPIGatewayLambdaPermissionResourceId(
+                                                        tier,
+                                                        component,
+                                                        apiGateway,
+                                                        link,
+                                                        fn)}" : {
                                                     "Type" : "AWS::Lambda::Permission",
                                                     "Properties" : {
                                                         "Action" : "lambda:InvokeFunction",
-                                                        "FunctionName" : [@reference fnName /],
+                                                        "FunctionName" : [@createReference fnName /],
                                                         "Principal" : "apigateway.amazonaws.com",
                                                         "SourceArn" : {
                                                             "Fn::Join" : [
@@ -184,7 +187,7 @@
                                                                     "arn:aws:execute-api:",
                                                                     "${regionId}", ":",
                                                                     {"Ref" : "AWS::AccountId"}, ":",                    
-                                                                    { "Ref" : "${formatId("api", apigatewayIdStem)}" },
+                                                                    { "Ref" : "${apiResourceId}" },
                                                                     "/${stageName}/*"
                                                                 ]
                                                             ]
@@ -202,11 +205,11 @@
                 [#break]
 
             [#case "outputs"]
-                "${formatId("api", apigatewayIdStem)}" : {
-                    "Value" : { "Ref" : "${formatId("api", apigatewayIdStem)}" }
+                "${apiResourceId}" : {
+                    "Value" : { "Ref" : "${apiResourceId}" }
                 },
-                "${formatId("api", apigatewayIdStem, "root")}" : {
-                    "Value" : { "Fn::GetAtt" : ["${formatId("api", apigatewayIdStem)}", "RootResourceId"] }
+                "${formatResourceAttributeId(apiResourceId, "root")}" : {
+                    "Value" : { "Fn::GetAtt" : ["${apiResourceId}", "RootResourceId"] }
                 }
                 [#break]
 

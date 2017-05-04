@@ -1,7 +1,7 @@
 [#ftl]
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
-[#assign credentialsObject = (credentials?eval).Credentials]
+[#assign credentialsObject = (credentials?eval).Credentials]                    
 [#assign appSettingsObject = appsettings?eval]
 [#assign stackOutputsObject = stackOutputs?eval]
 
@@ -120,25 +120,37 @@
     [#assign solnMultiAZ = solutionObject.MultiAZ!(environmentObject.MultiAZ)!false]
 [/#if]
 
-[#-- Concatenate sequence of non-empty strings with a separator --]
+[#-- Recursively concatenate sequence of non-empty strings with a separator --]
 [#function concatenate args separator]
     [#local content = []]
     [#list args as arg]
-        [#if arg?has_content]
-            [#local content += [arg]]
+        [#local argValue = arg]
+        [#if argValue?is_sequence]
+            [#local argValue = concatenate(argValue, separator)]
+        [/#if]
+        [#if argValue?has_content]
+            [#local content += [argValue]]
         [/#if]
     [/#list]
     [#return content?join(separator)]
 [/#function]
 
 [#-- Format an id - largely used for resource ids which have severe character constraints --]
-[#function formatId args...]
-    [#return concatenate(args, "X")]
+[#function formatId ids...]
+    [#return concatenate(ids, "X")]
+[/#function]
+
+[#function formatIdExtension extensions...]
+    [#return formatId(extensions)]
 [/#function]
 
 [#-- Format a name - largely used for names that appear in the AWS console --]
-[#function formatName args...]
-    [#return concatenate(args, "-")]
+[#function formatName names...]
+    [#return concatenate(names, "-")]
+[/#function]
+
+[#function formatNameExtension extensions...]
+    [#return formatName(extensions)]
 [/#function]
 
 [#-- Check if a deployment unit occurs anywhere in provided object --]
@@ -159,10 +171,10 @@
 
 [#-- Get stack output --]
 [#function getKey args...]
-    [#-- Line below should be sufficient but triggers bug in jq --]
+    [#-- Line below should be sufficient but triggers bug in freemarker --]
     [#-- where result of call to concatenate is returned if no match --]
     [#-- on a stack output is found --]
-    [#-- TODO: remove copied code when fixed in new version of jq --]
+    [#-- TODO: remove copied code when fixed in new version of freemarker --]
     [#-- local key = concatenate(args, "X") --]
     [#local content = []]
     [#list args as arg]
@@ -178,24 +190,16 @@
     [/#list]
 [/#function]
 
-[#-- Get a reference to a resource --]
-[#-- Check if resource has already been defined via getKey --]
-[#-- If not, assume a reference to a resource in the existing template --]
-[#function getReference args...]
-    [#local key = concatenate(args, "X")]
-    [#if getKey(key)??]
-        [#return getKey(key) ]
-    [#else]
-        [#return { "Ref" : key }]
-    [/#if]
-[/#function]
-
 [#-- Include a reference to a resource in the output --]
 [#macro createReference value]
     [#if value?is_hash && value.Ref??]
         { "Ref" : "${value.Ref}" }
     [#else]
-        "${value}"
+        [#if getKey(value)??]
+            "${getKey(value)}"
+        [#else]
+            { "Ref" : "${value}" }
+        [/#if]
     [/#if]
 [/#macro]
 
@@ -213,7 +217,11 @@
 
 [#-- Get the id for a tier --]
 [#function getTierId tier]
-    [#return tier.Id]
+    [#if tier?is_hash]
+        [#return tier.Id]
+    [#else]
+        [#return tier]
+    [/#if]
 [/#function]
 
 [#-- Get the name for a tier --]
@@ -221,9 +229,22 @@
     [#return tier.Name]
 [/#function]
 
+[#-- Get the id for a zone --]
+[#function getZoneId zone]
+    [#if zone?is_hash]
+        [#return zone.Id]
+    [#else]
+        [#return zone]
+    [/#if]
+[/#function]
+
 [#-- Get the id for a component --]
 [#function getComponentId component]
-    [#return component.Id?split("-")[0]]
+    [#if component?is_hash]
+        [#return component.Id?split("-")[0]]
+    [#else]
+        [#return component?split("-")[0]]
+    [/#if]
 [/#function]
 
 [#-- Get the name for a component --]
@@ -255,51 +276,64 @@
     [/#if]
 [/#function]
 
-[#-- Get the primary resource type for a component --]
-[#function getComponentPrimaryResourceType component]
-    [#assign componentType = getComponentType(component)]
-    [#assign primaryResourceType = componentType]
-    [#switch componentType]
-        [#case "elasticache"]
-            [#assign primaryResourceType = "es"]
-            [#break]
-        [#case "elasticsearch"]
-            [#assign primaryResourceType = "cache"]
-            [#break]
-    [/#switch]
-    [#return primaryResourceType]
-[/#function]
-
-[#-- Format a component id stem --]
-[#function formatComponentIdStem tier component]
-    [#return formatId(getTierId(tier), getComponentId(component))]
-[/#function]
-
-[#-- Format a component short name stem --]
-[#function formatComponentShortNameStem tier component]
-    [#return formatName(getTierId(tier), getComponentId(component))]
-[/#function]
-
-[#-- Format a component name stem --]
-[#function formatComponentNameStem tier component]
-    [#return formatName(getTierName(tier), getComponentName(component))]
-[/#function]
-
-[#-- Format a component full name stem --]
-[#function formatComponentFullNameStem tier component]
-    [#return formatName(productName, segmentName, formatComponentNameStem(tier, component))]
-[/#function]
-
 [#-- Get a component within a tier --]
-[#function getComponent tierId componentId type]
+[#function getComponent tierId componentId type=""]
     [#if isTier(tierId)]
         [#list getTier(tierId).Components?values as component]
-            [#if (getComponentId(component) == componentId) &&
+            [#if component.Id == componentId]
+                [#return component]
+            [/#if]
+            [#if type?has_content &&
+                    (getComponentId(component) == componentId) &&
                     (getComponentType(component) == type)]
                 [#return component]
             [/#if]
         [/#list]
     [/#if]
+[/#function]
+
+[#-- Format a component id stem --]
+[#function formatComponentIdStem tier component extensions...]
+    [#return formatId(
+                getTierId(tier),
+                getComponentId(component),
+                extensions)]
+[/#function]
+
+[#-- Format a component short name stem --]
+[#function formatComponentShortNameStem tier component extensions...]
+    [#return formatName(
+                getTierId(tier),
+                getComponentId(component),
+                extensions)]
+[/#function]
+
+[#-- Format a component name stem --]
+[#function formatComponentNameStem tier component extensions...]
+    [#return formatName(
+                getTierName(tier),
+                getComponentName(component),
+                extensions)]
+[/#function]
+
+[#-- Format a component "short" full name stem --]
+[#function formatComponentShortFullNameStem tier component extensions...]
+    [#return formatName(
+                productId,
+                segmentId,
+                getTierName(tier),
+                getComponentName(component),
+                extensions)]
+[/#function]
+
+[#-- Format a component full name stem --]
+[#function formatComponentFullNameStem tier component extensions...]
+    [#return formatName(
+                productName,
+                segmentName,
+                getTierName(tier),
+                getComponentName(component),
+                extensions)]
 [/#function]
 
 [#-- Calculate the closest power of 2 --]
@@ -382,18 +416,159 @@
     [/#if]
 [/#function]
 
-[#function formatSecurityGroupPrimaryResourceId idStem]
-    [#return formatId("securityGroup", idStem)]
+[#-- Resource id formatting routines --]
+
+[#function formatResourceId type ids...]
+    [#return formatId(
+                type,
+                ids)]
 [/#function]
 
-[#macro createSecurityGroup mode tier component idStem nameStem]
+[#function formatComponentResourceId type tier component extensions...]
+    [#return formatResourceId(
+                type,
+                formatComponentIdStem(
+                    tier, 
+                    component,
+                    extensions))]
+[/#function]
+
+[#function formatZoneResourceId type tier zone extensions...]
+    [#return formatResourceId(
+                type,
+                getTierId(tier),
+                getZoneId(zone),
+                extensions)]
+[/#function]
+
+[#-- Resource attribute id formatting routines --]
+
+[#function formatResourceAttributeId resourceId attribute]
+    [#return formatId(
+                resourceId,
+                attribute)]
+[/#function]
+
+[#function formatResourceArnAttributeId resourceId]
+    [#return formatId(
+                resourceId,
+                "arn")]
+[/#function]
+
+[#function formatResourceUrlAttributeId resourceId]
+    [#return formatId(
+                resourceId,
+                "url")]
+[/#function]
+
+[#function formatResourceDnsAttributeId resourceId]
+    [#return formatId(
+                resourceId,
+                "dns")]
+[/#function]
+
+
+[#-- Certificate resources --]
+
+[#function formatCertificateResourceId ids...]
+    [#return formatResourceId(
+                "certificate",
+                ids)]
+[/#function]
+
+[#function formatComponentCertificateResourceId tier component extensions...]
+    [#return formatCertificateResourceId(
+                formatComponentIdStem(   
+                    tier,
+                    component,
+                    extensions))]
+[/#function]
+
+[#-- Policy resources --]
+
+[#function formatPolicyResourceId ids...]
+    [#return formatResourceId(
+                "policy",
+                ids)]
+[/#function]
+
+[#function formatComponentPolicyResourceId tier component extensions...]
+    [#return formatPolicyResourceId(
+                formatComponentIdStem(   
+                    tier,
+                    component,
+                    extensions))]
+[/#function]
+
+[#-- Role resources --]
+
+[#function formatRoleResourceId ids...]
+    [#return formatResourceId(
+                "role",
+                ids)]
+[/#function]
+
+[#function formatSubRoleResourceId subRole ids...]
+    [#return formatRoleResourceId(
+                ids,
+                subRole)]
+[/#function]
+
+[#function formatComponentRoleResourceId tier component extensions...]
+    [#return formatRoleResourceId(
+                formatComponentIdStem(   
+                    tier,
+                    component,
+                    extensions))]
+[/#function]
+
+[#function formatComponentSubRoleResourceId tier component subRole extensions...]
+    [#return formatSubRoleResourceId(
+                subRole,
+                formatComponentIdStem(
+                    tier,
+                    component,
+                    extensions))]
+[/#function]
+
+[#-- Security Group resources --]
+
+[#function formatSecurityGroupResourceId ids...]
+    [#return formatResourceId(
+                "securityGroup",
+                ids)]
+[/#function]
+
+[#function formatComponentSecurityGroupResourceId tier component extensions...]
+    [#-- Lookup somewhat convoluted to allow for possibility of ids for tier and component --]
+    [#local componentType = getComponentType(component)]
+
+    [#-- Add a suffix to the type to ensure uniqueness when more than one component --]
+    [#-- in a tier sharing the same componentId (but having a different type --]
+    [#return formatSecurityGroupResourceId(
+                (componentType == "lambda")?then(componentType, ""),
+                formatComponentIdStem(
+                    tier,
+                    component,
+                    extensions))]
+[/#function]
+
+[#macro createSecurityGroup mode tier component idExtension="" nameExtension=""]
     [#if resourceCount > 0],[/#if]
     [#switch mode]
         [#case "definition"]
-            "${formatId("securityGroup", idStem)}" : {
+            [#assign securityGroupResourceId = formatComponentSecurityGroupResourceId(
+                                                tier,
+                                                component,
+                                                idExtension)]
+            [#assign securityGroupName = formatComponentFullNameStem(
+                                            tier,
+                                            component,
+                                            nameExtension)]
+            "${securityGroupResourceId}" : {
                 "Type" : "AWS::EC2::SecurityGroup",
                 "Properties" : {
-                    "GroupDescription": "${nameStem}",
+                    "GroupDescription": "${securityGroupName}",
                     "VpcId": "${vpc}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -406,15 +581,15 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
                         { "Key" : "cot:tier", "Value" : "${getTierId(tier)}" },
                         { "Key" : "cot:component", "Value" : "${getComponentId(component)}" },
-                        { "Key" : "Name", "Value" : "${nameStem}" }
+                        { "Key" : "Name", "Value" : "${securityGroupName}" }
                     ]
                 }
             }
             [#break]
 
         [#case "outputs"]
-            "${formatId("securityGroup", idStem)}" : {
-                "Value" : { "Ref" : "${formatId("securityGroup", idStem)}" }
+            "${securityGroupResourceId}" : {
+                "Value" : { "Ref" : "${securityGroupResourceId}" }
             }
             [#break]
 
@@ -422,12 +597,83 @@
     [#assign resourceCount += 1]
 [/#macro]
 
-[#function formatTargetGroupPrimaryResourceId tier component, source, name]
-    [#return formatId("tg", getComponentIdStem(tier, component), source.Port?c, name)]
+[#function formatSecurityGroupIngressResourceId ids...]
+    [#return formatResourceId(
+                "securityGroupIngress",
+                ids)]
+[/#function]
+
+[#function formatComponentSecurityGroupIngressResourceId tier component extensions...]
+    [#return formatSecurityGroupIngressResourceId(
+                formatComponentIdStem(   
+                    tier,
+                    component,
+                    extensions))]
+[/#function]
+
+[#-- ELB resources --]
+
+[#function formatELBResourceId tier component]
+    [#return formatComponentResourceId(
+                "elb",
+                tier,
+                component)]
+[/#function]
+
+[#-- ALB resources --]
+
+[#function formatALBResourceId tier component extensions...]
+    [#return formatComponentResourceId(
+                "alb",
+                tier,
+                component,
+                extensions)]
+[/#function]
+
+[#function formatALBResourceDNSId tier component extensions...]
+    [#return formatResourceAttributeId(
+                formatALBResourceId(
+                    tier,
+                    component,
+                    extensions),
+                "dns")]
+[/#function]
+
+[#function formatALBListenerResourceId tier component source]
+    [#return formatComponentResourceId(
+                "listener",
+                tier,
+                component,
+                source.Port?c)]
+[/#function]
+
+[#function formatALBListenerSecurityGroupIngressResourceId tier component source]
+    [#return formatComponentSecurityGroupIngressResourceId(
+                tier,
+                component,
+                source.Port?c)]
+[/#function]
+
+[#function formatALBListenerRuleResourceId tier component source name]
+    [#return formatComponentResourceId(
+                "listenerRule", 
+                tier,
+                component,
+                source.Port?c,
+                name)]
+[/#function]
+
+[#function formatALBTargetGroupResourceId tier component source name]
+    [#return formatComponentResourceId(
+                "tg",
+                tier,
+                component,
+                source.Port?c,
+                name)]
 [/#function]
 
 [#macro createTargetGroup tier component source destination name]
-    "${formatId("tg", getComponentIdStem(tier, component), source.Port?c, name)}" : {
+    "${formatALBTargetGroupResourceId(tier, component, source, name)}" : {
         "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
         "Properties" : {
             "HealthCheckPort" : "${(destination.HealthCheck.Port)!"traffic-port"}",
@@ -453,7 +699,7 @@
                 { "Key" : "cot:category", "Value" : "${categoryId}" },
                 { "Key" : "cot:tier", "Value" : "${getTierId(tier)}" },
                 { "Key" : "cot:component", "Value" : "${getComponentId(component)}" },
-                { "Key" : "Name", "Value" : "${formatName(formatComponentFullNameStem(tier, component), source.Port?c, name)}" }
+                { "Key" : "Name", "Value" : "${formatComponentFullNameStem(tier, component, source.Port?c, name)}" }
             ],
             "VpcId": "${vpc}",
             "TargetGroupAttributes" : [
@@ -465,3 +711,272 @@
         }
     }
 [/#macro]
+
+[#-- APIGateway handling --]
+
+[#function formatAPIGatewayAPIResourceId tier component apiGateway]
+    [#return formatComponentResourceId(
+                "api",
+                tier,
+                component,
+                apigatewayInstance.Internal.VersionId,
+                apigatewayInstance.Internal.InstanceId)]
+
+[/#function]
+
+[#function formatAPIGatewayDeployResourceId tier component apiGateway]
+    [#return formatComponentResourceId(
+                "apiDeploy",
+                tier,
+                component,
+                apigateway.Internal.VersionId,
+                apigateway.Internal.InstanceId)]
+[/#function]
+
+[#function formatAPIGatewayStageResourceId tier component apiGateway]
+    [#return formatComponentResourceId(
+                "apiStage",
+                tier,
+                component,
+                apigateway.Internal.VersionId,
+                apigateway.Internal.InstanceId)]
+[/#function]
+
+[#function formatAPIGatewayLambdaPermissionResourceId tier component apiGateway link, fn]
+    [#return formatComponentResourceId(
+                "apiLambdaPermission",
+                tier,
+                component,
+                apigateway.Internal.VersionId,
+                apigateway.Internal.InstanceId)]
+                link.Id,
+                fn.Id]
+[/#function]
+
+[#-- Lambda resources --]
+
+[#function formatLambdaSecurityGroupResourceId tier component lambda]
+    [#return formatComponentSecurityGroupResourceId(
+                    tier,
+                    component,
+                    lambda.Internal.VersionId,
+                    lambda.Internal.InstanceId)]
+[/#function]
+
+[#function formatLambdaFunctionResourceId tier component lambda fn ]
+    [#return formatComponentResourceId(
+                "lambda",
+                tier,
+                component,
+                lambda.Internal.VersionId,
+                lambda.Internal.InstanceId,
+                fn.Id)]
+[/#function]
+
+[#function formatLambdaFunctionName tier component lambda fn ]
+    [#return formatComponentFullNameStem(
+                tier,
+                component,
+                lambda.Internal.VersionName,
+                lambda.Internal.InstanceName,
+                fn.Name)]
+[/#function]
+
+[#-- ECS resources --]
+
+[#function formatECSResourceId tier component]
+    [#return formatComponentResourceId(
+                "ecs",
+                tier,
+                component)]
+[/#function]
+
+[#function formatECSRoleResourceId tier component]
+    [#return formatComponentRoleResourceId(
+                tier,
+                component)]
+[/#function]
+
+[#function formatECSServiceRoleResourceId tier component]
+    [#return formatComponentSubRoleResourceId(
+                tier,
+                component,
+                "service")]
+[/#function]
+
+[#function formatECSServiceResourceId tier component service]
+    [#return formatComponentResourceId(
+                "ecsService",
+                tier,
+                component,
+                service.Internal.ServiceId,
+                service.Internal.VersionId,
+                service.Internal.InstanceId)]
+[/#function]
+
+[#function formatECSTaskResourceId tier component task]
+    [#return formatComponentResourceId(
+                "ecsTask",
+                tier,
+                component,
+                task.Internal.TaskId,
+                task.Internal.VersionId,
+                task.Internal.InstanceId)]
+[/#function]
+
+[#-- Container based resources --]
+
+[#function formatContainerId tier component host container]
+    [#return formatName(
+                container.Id,
+                host.Internal.VersionId,
+                host.Internal.InstanceId)]
+[/#function]
+
+[#function formatContainerName tier component host container]
+    [#return formatComponentNameStem(
+                tier,
+                component,
+                container.Name)]
+[/#function]
+
+[#function formatContainerPolicyResourceId tier component host container]
+    [#return formatComponentPolicyResourceId(
+                tier,
+                component,
+                host.Internal.HostId,
+                host.Internal.VersionId,
+                host.Internal.InstanceId,
+                container.Id)]
+[/#function]
+
+[#function formatContainerPolicyName tier component host container]
+    [#return formatName(
+                container.Name)]
+[/#function]
+
+[#function formatContainerHostRoleResourceId tier component host]
+    [#return formatComponentRoleResourceId(
+                tier,
+                component,
+                host.Internal.HostId,
+                host.Internal.VersionId,
+                host.Internal.InstanceId)]
+[/#function]
+
+[#function formatContainerSecurityGroupIngressResourceId tier component task container portRange]
+    [#return formatComponentSecurityGroupIngressResourceId(
+                tier,
+                component,
+                task.Internal.VersionId,
+                task.Internal.InstanceId,
+                container.Id,
+                portRange)]
+[/#function]
+
+
+[#-- SQS resources --]
+
+[#function formatSQSResourceId tier component sqs extensions...]
+    [#local sqsExtensions = sqs?is_hash?then(
+                                                [
+                                                    sqs.Internal.VersionId,
+                                                    sqs.Internal.InstanceId
+                                                ],
+                                                extensions)]
+    [#return formatComponentResourceId(
+                "sqs",
+                tier,
+                component,
+                sqsExtensions)]
+[/#function]
+
+[#function formatSQSResourceUrlId tier component sqs extensions...]
+    [#return formatResourceUrlAttributeId(
+                formatSQSResourceId(
+                    tier,
+                    component,
+                    sqs,
+                    extensions))]
+[/#function]
+
+[#function formatSQSResourceArnId tier component sqs extensions...]
+    [#return formatResourceArnAttributeId(
+                formatSQSResourceId(
+                    tier,
+                    component,
+                    sqs,
+                    extensions))]
+[/#function]
+
+[#-- EC2 resources --]
+
+[#function formatEC2InstanceProfileResourceId tier component]
+    [#return formatComponentResourceId(
+                "instanceProfile",
+                tier,
+                component)]
+[/#function]
+
+[#function formatEC2AutoScaleGroupResourceId tier component]
+    [#return formatComponentResourceId(
+                "asg",
+                tier,
+                component)]
+[/#function]
+
+[#function formatEC2LaunchConfigResourceId tier component]
+    [#return formatComponentResourceId(
+                "launchConfig",
+                tier,
+                component)]
+[/#function]
+
+[#function formatEC2ElasticIPResourceId tier component extensions...]
+    [#return formatComponentResourceId(
+                "eip",
+                tier,
+                component,
+                extensions)]
+[/#function]
+
+[#function formatEC2ElasticIPResourceIPAddressId tier component extensions...]
+    [#return formatResourceAttributeId(
+                formatEC2ElasticIPResourceId(
+                    tier,
+                    component,
+                    extensions),
+                "ip")]
+[/#function]
+
+[#function formatEC2ElasticIPResourceAllocationId tier component extensions...]
+    [#return formatResourceAttributeId(
+                formatEC2ElasticIPResourceId(
+                    tier,
+                    component,
+                    extensions),
+                "ip")]
+[/#function]
+
+[#-- VPC resources --]
+
+[#function formatVPCSubnetResourceId tier zone]
+    [#return formatZoneResourceId(
+                "subnet",
+                tier,
+                zone)]
+[/#function]
+
+[#-- KMS resources --]
+
+[#function formatKMSCMKResourceId ]
+    [#return formatResourceId(
+                "cmk",
+                "segment",
+                "cmk")]
+[/#function]
+
+[#function formatKMSCMKResourceArnId ]
+    [#return formatResourceArnAttributeId(
+                formatKMSCMKResourceId())]
+[/#function]

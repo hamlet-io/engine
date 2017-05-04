@@ -1,7 +1,9 @@
 [#if componentType == "ecs"]
     [#assign ecs = component.ECS]
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
-    [#assign ecsSG = getKey("securityGroup", componentIdStem) ]
+    [#assign ecsSG = getKey(formatComponentSecurityGroupResourceId(
+                                tier,
+                                component))]
 
     [#assign serviceInstances=[] ]
     [#if ecs.Services??]
@@ -18,6 +20,9 @@
                                                 "Internal" : {
                                                     "ServiceId" : service.Id,
                                                     "ServiceName" : service.Name,
+                                                    "HostId" : service.Id,
+                                                    "TaskId" : service.Id,
+                                                    "TaskName" : service.Name,
                                                     "VersionId" : version.Id,
                                                     "VersionName" : version.Name,
                                                     "InstanceId" : (serviceInstance.Id == "default")?string("",serviceInstance.Id),
@@ -33,6 +38,9 @@
                                         "Internal" : {
                                             "ServiceId" : service.Id,
                                             "ServiceName" : service.Name,
+                                            "HostId" : service.Id,
+                                            "TaskId" : service.Id,
+                                            "TaskName" : service.Name,
                                             "VersionId" : version.Id,
                                             "VersionName" : version.Name,
                                             "InstanceId" : "",
@@ -49,6 +57,9 @@
                             "Internal" : {
                                 "ServiceId" : service.Id,
                                 "ServiceName" : service.Name,
+                                "HostId" : service.Id,
+                                "TaskId" : service.Id,
+                                "TaskName" : service.Name,
                                 "VersionId" : "",
                                 "VersionName" : "",
                                 "InstanceId" : "",
@@ -121,20 +132,24 @@
 
     [#list serviceInstances as serviceInstance]
         [#assign serviceDependencies = []]
-        [#assign serviceIdStem = formatId(componentIdStem,
-                                            serviceInstance.Internal.ServiceId,
-                                            serviceInstance.Internal.VersionId,
-                                            serviceInstance.Internal.InstanceId)]
-        [#assign containerIdStem = formatName(serviceInstance.Internal.VersionId,
-                                            serviceInstance.Internal.InstanceId)]
+        [#assign serviceResourceId = formatECSServiceResourceId(
+                                        tier,
+                                        component,
+                                        serviceInstance)]
+        [#assign taskResourceId    = formatECSTaskResourceId(
+                                        tier,
+                                        component,
+                                        serviceInstance)]
         [#if resourceCount > 0],[/#if]
         [#switch applicationListMode]
             [#case "definition"]
-                [@createTask tier component serviceInstance serviceIdStem containerIdStem /],
-                "${formatId("ecsService", serviceIdStem)}" : {
+                [@createTask tier component serviceInstance /],
+                "${serviceResourceId}" : {
                     "Type" : "AWS::ECS::Service",
                     "Properties" : {
-                        "Cluster" : [@reference getReference("ecs", componentIdStem) /],
+                        "Cluster" : "${getKey(formatECSResourceId(
+                                                tier,
+                                                component))}",
                         "DeploymentConfiguration" : {
                             [#if multiAZ]
                                 "MaximumPercent" : 100,
@@ -172,7 +187,7 @@
                                                     [#if port.LB??]
                                                         [#assign lb = port.LB]
                                                         [#assign lbTier = getTier(lb.Tier)]
-                                                        [#assign lbComponent = getComponent(lb.Tier, lb.Component, "alb")]
+                                                        [#assign lbComponent = getComponent(lb.Tier, lb.Component)]
                                                         [#assign lbPort = port.Id]
                                                         [#if lb.PortMapping??]
                                                             [#assign lbPort = portMappings[lb.PortMapping].Source]
@@ -182,20 +197,34 @@
                                                         [/#if]
                                                         [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.VersionName]
                                                         [#if targetGroup != ""]
-                                                            [#assign targetGroupKey = getTargetGroupPrimaryResourceId(lbTier, lbComponent, ports[lbPort], targetGroup)]
-                                                            [#if getKey(targetGroupKey)??]
-                                                                "TargetGroupArn" : "${getKey(targetGroupKey)}",
-                                                            [#else]
-                                                                "TargetGroupArn" : { "Ref" : "${targetGroupKey}" },
-                                                                [#assign serviceDependencies += [formatId("listenerRule", lbTier.Id, lbComponent.Id, ports[lbPort].Port?c, targetGroup)]]
+                                                            [#assign targetGroupResourceId = formatALBTargetGroupResourceId(
+                                                                                                lbTier,
+                                                                                                lbComponent,
+                                                                                                ports[lbPort],
+                                                                                                targetGroup)]
+                                                            "TargetGroupArn" : [@createReference targetGroupResourceId /],
+                                                            [#if !(getKey(targetGroupResourceId)??)]
+                                                                [#assign serviceDependencies += [formatALBListenerRuleResourceId(
+                                                                                                    lbTier,
+                                                                                                    lbComponent,
+                                                                                                    ports[lbPort],
+                                                                                                    targetGroup)]]
                                                             [/#if]
                                                         [#else]
-                                                            "LoadBalancerName" : "${getKey("elb", getComponentIdStem(lbTier, lbComponent))}",
+                                                            "LoadBalancerName" : "${getKey(formatALBResourceId(
+                                                                                            lbTier,
+                                                                                            lbComponent))}",
                                                         [/#if]
                                                     [#else]
-                                                        "LoadBalancerName" : "${getKey("elb", "elb", port.ELB)}",
+                                                        "LoadBalancerName" : "${getKey(formatELBResourceId(
+                                                                                        getTier("elb"),
+                                                                                        getComponent("elb", port.ELB)))}",
                                                     [/#if]
-                                                    "ContainerName" : "${formatName(tierName, componentName, container.Name) }",
+                                                    "ContainerName" : "${formatContainerName(
+                                                                            tier,
+                                                                            component,
+                                                                            serviceInstance,
+                                                                            container) }",
                                                     [#if port.Container??]
                                                         "ContainerPort" : ${ports[port.Container].Port?c}
                                                     [#else]
@@ -208,9 +237,11 @@
                                     [/#if]
                                 [/#list]
                             ],
-                            "Role" : "${getKey("role", componentIdStem, "service")}",
+                            "Role" : "${getKey(formatECSServiceRoleResourceId(
+                                                tier,
+                                                component))}",
                         [/#if]
-                        "TaskDefinition" : { "Ref" : "${formatId("ecsTask", serviceIdStem)}" }
+                        "TaskDefinition" : { "Ref" : "${taskResourceId}" }
                     }
                     [#if serviceDependencies?size > 0 ]
                         ,"DependsOn" : [
@@ -224,11 +255,11 @@
                 [#break]
 
             [#case "outputs"]
-                "${formatId("ecsService", serviceIdStem)}" : {
-                    "Value" : { "Ref" : "${formatId("ecsService", serviceIdStem)}" }
+                "${serviceResourceId}" : {
+                    "Value" : { "Ref" : "${serviceResourceId}" }
                 },
-                "${formatId("ecsTask", serviceIdStem)}" : {
-                    "Value" : { "Ref" : "${formatId("ecsTask", serviceIdStem)}" }
+                "${taskResourceId}" : {
+                    "Value" : { "Ref" : "${taskResourceId}" }
                 }
                 [#break]
 
@@ -240,7 +271,11 @@
                     [#case "definition"]
                         [#-- Supplemental definitions for the container --]
                         [#assign containerListMode = "supplemental"]
-                        [#assign containerId = formatName(container.Id, containerIdStem)]
+                        [#assign containerId = formatContainerId(
+                                                tier,
+                                                component,
+                                                serviceInstance,
+                                                container)]
                         [#include containerList?ensure_starts_with("/")]
                         [#break]
 
@@ -261,16 +296,25 @@
 
                             [#if fromSG]
                                 [#if port.ELB??]
-                                    [#assign elbSG = getKey("securityGroup", "elb", port.ELB)]
+                                    [#assign elbSG = getKey(formatComponentSecurityGroupResourceId(
+                                                              getTier("elb"), 
+                                                              getComponent("elb", port.ELB)))]
                                 [#else]
-                                    [#assign elbSG = getKey("securityGroup", port.LB.Tier, port.LB.Component)]
+                                    [#assign elbSG = getKey(formatComponentSecurityGroupResourceId(
+                                                              getTier(port.LB.Tier), 
+                                                              getComponent(port.LB.Tier, port.LB.Component)))]
                                 [/#if]
                             [/#if]
 
                             [#switch applicationListMode]
                                 [#case "definition"]
                                     [#-- Security Group ingress for the container ports --]
-                                    ,"${formatId("securityGroupIngress", serviceIdStem, container.Id, portRange)}" : {
+                                    ,"${formatContainerSecurityGroupIngressResourceId(
+                                            tier,
+                                            component,
+                                            serviceInstance,
+                                            container,
+                                            portRange)}" : {
                                         "Type" : "AWS::EC2::SecurityGroupIngress",
                                         "Properties" : {
                                             "GroupId": "${ecsSG}",
@@ -295,7 +339,7 @@
                             [#if port.LB??]
                                 [#assign lb = port.LB]
                                 [#assign lbTier = getTier(lb.Tier)]
-                                [#assign lbComponent = getComponent(lb.Tier, lb.Component, "alb")]
+                                [#assign lbComponent = getComponent(lb.Tier, lb.Component)]
                                 [#assign lbPort = port.Id]
                                 [#if lb.PortMapping??]
                                     [#assign lbPort = portMappings[lb.PortMapping].Source]
@@ -305,17 +349,22 @@
                                 [/#if]
                                 [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.VersionName]
                                 [#if targetGroup != ""]
-                                    [#assign targetGroupKey = formatTargetGroupPrimaryResourceId(lbTier, 
-                                                                    lbComponent, 
-                                                                    ports[lbPort], 
-                                                                    targetGroup)]
-                                    [#if ! getKey(targetGroupKey)??]
+                                    [#assign targetGroupResourceId = formatALBTargetGroupResourceId(
+                                                                        lbTier,
+                                                                        lbComponent,
+                                                                        ports[lbPort],
+                                                                        targetGroup)]
+                                    [#if ! getKey(targetGroupResourceId)??]
                                         [#switch applicationListMode]
                                             [#case "definition"]
                                                 ,[@createTargetGroup lbTier lbComponent ports[lbPort] ports[port.Id] targetGroup /]
-                                                ,"${formatId("listenerRule", getTierId(lbTier), getComponentId(lbComponent), ports[lbPort].Port?c, targetGroup)}" : {
+                                                ,"${formatALBListenerRuleResourceId(
+                                                        lbTier,
+                                                        lbComponent,
+                                                        ports[lbPort],
+                                                        targetGroup)}" : {
                                                     "DependsOn" : [
-                                                        "${targetGroupKey}"
+                                                        "${targetGroupResourceId}"
                                                     ],
                                                     "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule",
                                                     "Properties" : {
@@ -323,7 +372,7 @@
                                                         "Actions" : [
                                                             {
                                                                 "Type": "forward",
-                                                                "TargetGroupArn": { "Ref": "${targetGroupKey}" }
+                                                                "TargetGroupArn": { "Ref": "${targetGroupResourceId}" }
                                                             }
                                                         ],
                                                         "Conditions": [
@@ -332,14 +381,17 @@
                                                                 "Values": [ "${lb.Path!"/" + serviceInstance.Internal.VersionName + "/*"}" ]
                                                             }
                                                         ],
-                                                        "ListenerArn" : "${getKey("listener", getTierId(lbTier), getComponentId(lbComponent), ports[lbPort].Port?c)}"
+                                                        "ListenerArn" : "${getKey(formatALBListenerResourceId(
+                                                                                    lbTier,
+                                                                                    lbComponent,
+                                                                                    ports[lbPort]))}"
                                                     }
                                                 }
                                                 [#break]
 
                                             [#case "outputs"]
-                                                ,"${targetGroupKey}" : {
-                                                    "Value" : { "Ref" : "${targetGroupKey}" }
+                                                ,"${targetGroupResourceId}" : {
+                                                    "Value" : { "Ref" : "${targetGroupResourceId}" }
                                                 }
                                                 [#break]
 
@@ -356,28 +408,30 @@
     [/#list]
 
     [#list taskInstances as taskInstance]
-        [#assign taskIdStem = formatId(componentIdStem,
-                                            taskInstance.Internal.TaskId,
-                                            taskInstance.Internal.VersionId,
-                                            taskInstance.Internal.InstanceId)]
-        [#assign containerIdStem = formatName(taskInstance.Internal.VersionId,
-                                            taskInstance.Internal.InstanceId)]
+        [#assign taskResourceId = formatECSTaskResourceId(
+                                    tier,
+                                    component,
+                                    taskInstance)]
         [#if resourceCount > 0],[/#if]
         [#switch applicationListMode]
             [#case "definition"]
-                [@createTask tier component taskInstance taskIdStem containerIdStem /]
+                [@createTask tier component taskInstance /]
                 [#list taskInstance.Containers?values as container]
                     [#if container?is_hash]
                         [#assign containerListMode = "supplemental"]
-                        [#assign containerId = formatName(container.Id, containerIdStem)]
+                        [#assign containerId = formatContainerId(
+                                                tier,
+                                                component,
+                                                taskInstance,
+                                                container)]
                         [#include containerList?ensure_starts_with("/")]
                     [/#if]
                 [/#list]
                 [#break]
 
             [#case "outputs"]
-                "${formatId("ecsTask", taskIdStem)}" : {
-                    "Value" : { "Ref" : "${formatId("ecsTask", taskIdStem)}" }
+                "${taskResourceId}" : {
+                    "Value" : { "Ref" : "${taskResourceId}" }
                 }
             [#break]
 

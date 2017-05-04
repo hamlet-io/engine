@@ -13,7 +13,6 @@
                 [#assign componentNameStem = formatComponentNameStem(tier, component)]
                 [#assign componentFullNameStem = formatComponentFullNameStem(tier, component)]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
-                [#assign primaryResourceIdStem = formatId(getComponentPrimaryResourceType(component), componentIdStem)]
                 [#include compositeList]
             [/#if]
         [/#list]

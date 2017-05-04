@@ -1,6 +1,8 @@
 [#-- ECS --]
 [#if componentType == "ecs"]
-    [@createSecurityGroup solutionListMode tier component componentIdStem componentFullNameStem /]
+    [@createSecurityGroup solutionListMode tier component /]
+    [#assign ecsSecurityGroupResourceId = formatComponentSecurityGroupResourceId(tier, component)]
+
     [#assign ecs = component.ECS]
     [#assign processorProfile = getProcessor(tier, component, "ECS")]
     [#assign maxSize = processorProfile.MaxPerZone]
@@ -9,14 +11,22 @@
     [/#if]
     [#assign storageProfile = getStorage(tier, component, "ECS")]
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
+    
+    [#assign ecsResourceId = formatECSResourceId(tier, component)]
+    [#assign ecsRoleResourceId = formatECSRoleResourceId(tier, component)]
+    [#assign ecsServiceRoleResourceId = formatECSServiceRoleResourceId(tier, component)]
+    [#assign ecsInstanceProfileResourceId = formatEC2InstanceProfileResourceId(tier, component)]
+    [#assign ecsAutoScaleGroupResourceId = formatEC2AutoScaleGroupResourceId(tier, component)]
+    [#assign ecsLaunchConfigResourceId = formatEC2LaunchConfigResourceId(tier, component)]
+
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
-            "${primaryResourceIdStem}" : {
+            "${ecsResourceId}" : {
                 "Type" : "AWS::ECS::Cluster"
             },
 
-            "${formatId("role", componentIdStem)}": {
+            "${ecsRoleResourceId}": {
                 "Type" : "AWS::IAM::Role",
                 "Properties" : {
                     "AssumeRolePolicyDocument" : {
@@ -90,15 +100,15 @@
                 }
             },
 
-            "${formatId("instanceProfile", componentIdStem)}" : {
+            "${ecsInstanceProfileResourceId}" : {
                 "Type" : "AWS::IAM::InstanceProfile",
                 "Properties" : {
                     "Path" : "/",
-                    "Roles" : [ { "Ref" : "${formatId("role", componentIdStem)}" } ]
+                    "Roles" : [ { "Ref" : "${ecsRoleResourceId}" } ]
                 }
             },
 
-            "${formatId("role", componentIdStem, "service")}": {
+            "${ecsServiceRoleResourceId}": {
                 "Type" : "AWS::IAM::Role",
                 "Properties" : {
                     "AssumeRolePolicyDocument" : {
@@ -118,7 +128,7 @@
 
             [#if fixedIP]
                 [#list 1..maxSize as index]
-                    "${formatId("eip", componentIdStem, index)}": {
+                    "${formatEC2ElasticIPResourceId(tier, component, index)}": {
                         "Type" : "AWS::EC2::EIP",
                         "Properties" : {
                             "Domain" : "vpc"
@@ -127,7 +137,7 @@
                 [/#list]
             [/#if]
 
-            "${formatId("asg", componentIdStem)}": {
+            "${ecsAutoScaleGroupResourceId}": {
                 "Type": "AWS::AutoScaling::AutoScalingGroup",
                 "Metadata": {
                     "AWS::CloudFormation::Init": {
@@ -210,7 +220,12 @@
                                                     " ",
                                                     [
                                                         [#list 1..maxSize as index]
-                                                            { "Fn::GetAtt" : ["${formatId("eip", componentIdStem, index)}", "AllocationId"] }
+                                                            { "Fn::GetAtt" : [
+                                                                "${formatEC2ElasticIPResourceId(
+                                                                    tier,
+                                                                    component,
+                                                                    index)}",
+                                                                "AllocationId"] }
                                                             [#if index != maxSize],[/#if]
                                                         [/#list]
                                                     ]
@@ -231,7 +246,7 @@
                                     "02ConfigureCluster" : {
                                         "command" : "/opt/codeontap/bootstrap/ecs.sh",
                                         "env" : {
-                                        "ECS_CLUSTER" : { "Ref" : "${primaryResourceIdStem}" },
+                                        "ECS_CLUSTER" : { "Ref" : "${ecsResourceId}" },
                                         "ECS_LOG_DRIVER" : "fluentd"
                                     },
                                     "ignoreErrors" : "false"
@@ -242,21 +257,22 @@
                 },
                 "Properties": {
                     "Cooldown" : "30",
-                    "LaunchConfigurationName": {"Ref": "${formatId("launchConfig", componentIdStem)}"},
+                    "LaunchConfigurationName": {"Ref": "${ecsLaunchConfigResourceId}"},
                     [#if multiAZ]
                         "MinSize": "${processorProfile.MinPerZone * zones?size}",
                         "MaxSize": "${maxSize}",
                         "DesiredCapacity": "${processorProfile.DesiredPerZone * zones?size}",
                         "VPCZoneIdentifier": [
                             [#list zones as zone]
-                                "${getKey("subnet", tierId, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                                "${getKey(formatVPCSubnetResourceId(tier, zone))}"
+                                [#if !(zones?last.Id == zone.Id)],[/#if]
                             [/#list]
                         ],
                     [#else]
                         "MinSize": "${processorProfile.MinPerZone}",
                         "MaxSize": "${maxSize}",
                         "DesiredCapacity": "${processorProfile.DesiredPerZone}",
-                        "VPCZoneIdentifier" : ["${getKey("subnet", tierId, zones[0].Id)}"],
+                        "VPCZoneIdentifier" : ["${getKey(formatVPCSubnetResourceId(tier, zones[0]))}"],
                     [/#if]
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}", "PropagateAtLaunch" : "True" },
@@ -274,15 +290,18 @@
                 }
             },
 
-            "${formatId("launchConfig", componentIdStem)}": {
+            "${ecsLaunchConfigResourceId}": {
                 "Type": "AWS::AutoScaling::LaunchConfiguration",
                 "Properties": {
                     "KeyName": "${productName + sshPerSegment?string("-" + segmentName,"")}",
                     "ImageId": "${regionObject.AMIs.Centos.ECS}",
                     "InstanceType": "${processorProfile.Processor}",
                     [@createBlockDevices storageProfile=storageProfile /]
-                    "SecurityGroups" : [ {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"} [#if securityGroupNAT != "none"], "${securityGroupNAT}"[/#if] ],
-                    "IamInstanceProfile" : { "Ref" : "${formatId("instanceProfile", componentIdStem)}" },
+                    "SecurityGroups" : [
+                                        {"Ref" : "${ecsSecurityGroupResourceId}"}
+                                        [#if securityGroupNAT != "none"], "${securityGroupNAT}"[/#if] 
+                    ],
+                    "IamInstanceProfile" : { "Ref" : "${ecsInstanceProfileResourceId}" },
                     "AssociatePublicIpAddress" : ${(tier.RouteTable == "external")?string("true","false")},
                     [#if (processorProfile.ConfigSet)??]
                         [#assign configSet = processorProfile.ConfigSet]
@@ -300,7 +319,7 @@
                                     "# Remainder of configuration via metadata\n",
                                     "/opt/aws/bin/cfn-init -v",
                                     "         --stack ", { "Ref" : "AWS::StackName" },
-                                    "         --resource ${formatId("asg", componentIdStem)}",
+                                    "         --resource ${ecsAutoScaleGroupResourceId}",
                                     "         --region ${regionId} --configsets ${configSet}\n"
                                 ]
                             ]
@@ -311,28 +330,41 @@
             [#break]
 
         [#case "outputs"]
-            "${primaryResourceIdStem}" : {
-                "Value" : { "Ref" : "${primaryResourceIdStem}" }
+            "${ecsResourceId}" : {
+                "Value" : { "Ref" : "${ecsResourceId}" }
             },
-            "${formatId("role", componentIdStem)}" : {
-                "Value" : { "Ref" : "${formatId("role", componentIdStem)}" }
+            "${ecsRoleResourceId}" : {
+                "Value" : { "Ref" : "${ecsRoleResourceId}" }
             },
-            "${formatId("role", componentIdStem, "arn")}" : {
-                "Value" : { "Fn::GetAtt" : ["${formatId("role", componentIdStem)}", "Arn"] }
+            "${formatResourceArnAttributeId(ecsRoleResourceId)}" : {
+                "Value" : { "Fn::GetAtt" : ["${ecsRoleResourceId}", "Arn"] }
             },
-            "${formatId("role", componentIdStem, "service")}" : {
-                "Value" : { "Ref" : "${formatId("role", componentIdStem, "service")}" }
+            "${ecsServiceRoleResourceId}" : {
+                "Value" : { "Ref" : "${ecsServiceRoleResourceId}" }
             },
-            "${formatId("role", componentIdStem, "service", "arn")}" : {
-                "Value" : { "Fn::GetAtt" : ["${formatId("role", componentIdStem, "service")}", "Arn"] }
+            "${formatResourceArnAttributeId(ecsServiceRoleResourceId)}" : {
+                "Value" : { "Fn::GetAtt" : ["${ecsServiceRoleResourceId}", "Arn"] }
             }
             [#if fixedIP]
                 [#list 1..maxSize as index]
-                    ,"${formatId("eip", componentIdStem, index, "ip")}": {
-                        "Value" : { "Ref" : "${formatId("eip", componentIdStem, index)}" }
+                    [#assign ecsElasticIPResourceId = formatEC2ElasticIPResourceId(
+                                                tier,
+                                                component,
+                                                index)]
+                   ,"${formatEC2ElasticIPResourceIPAddressId(
+                        tier,
+                        component,
+                        index)}": {
+                        "Value" : { "Ref" : "${ecsElasticIPResourceId}" }
                     }
-                    ,"${formatId("eip", componentIdStem, index, "id")}": {
-                        "Value" : { "Fn::GetAtt" : ["${formatId("eip", componentIdStem, index)}", "AllocationId"] }
+                    ,"${formatEC2ElasticIPResourceAllocationId(
+                        tier,
+                        component,
+                        index)}": {
+                        "Value" : { "Fn::GetAtt" : [
+                                        "${ecsElasticIPResourceId}",
+                                        "AllocationId"
+                                    ] }
                     }
                 [/#list]
             [/#if]

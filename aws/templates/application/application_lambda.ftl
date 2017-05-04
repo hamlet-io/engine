@@ -11,6 +11,7 @@
                             [#assign lambdaInstances += [lambdaInstance +
                                 {
                                     "Internal" : {
+                                        "HostId" : "lambda",
                                         "VersionId" : version.Id,
                                         "VersionName" : version.Name,
                                         "InstanceId" : (lambdaInstance.Id == "default")?string("",lambdaInstance.Id),
@@ -28,6 +29,7 @@
                     [#assign lambdaInstances += [version +
                         {
                             "Internal" : {
+                                "HostId" : "lambda",
                                 "VersionId" : version.Id,
                                 "VersionName" : version.Name,
                                 "InstanceId" : "",
@@ -46,6 +48,7 @@
         [#assign lambdaInstances += [lambda +
             {
                 "Internal" : {
+                    "HostId" : "lambda",
                     "VersionId" : "",
                     "VersionName" : "",
                     "InstanceId" : "",
@@ -60,25 +63,32 @@
     [/#if]
 
     [#list lambdaInstances as lambdaInstance]
-        [#assign lambdaIdStem = formatId(componentIdStem,
-                                            lambdaInstance.Internal.VersionId,
-                                            lambdaInstance.Internal.InstanceId)]
-        [#assign lambdaFullNameStem = formatName(componentFullNameStem,
-                                                    lambdaInstance.Internal.VersionName,
-                                                    lambdaInstance.Internal.InstanceName)]
-
         [#if lambdaInstance.Internal.Functions?is_hash]
-
+        
             [#-- Set up context for processing the list of containers --]
             [#assign containerListTarget = "lambda"]
-            [#assign containerListRole = formatId("role", lambdaIdStem)]
-            [#assign containerId = formatName(lambda.Container,
-                                                lambdaInstance.Internal.VersionId,
-                                                lambdaInstance.Internal.InstanceId)]
+            [#assign containerListRole = formatContainerHostRoleResourceId(
+                                            tier,
+                                            component,
+                                            lambdaInstance)]
+            [#assign containerId = formatContainerId(
+                                    tier,
+                                    component,
+                                    lambdaInstance,
+                                    {"Id" : lambda.Container })]
 
             [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
             [#if vpc != "unknown"]
-                [@createSecurityGroup applicationListMode tier component lambdaIdStem lambdaFullNameStem /]
+                [@createSecurityGroup 
+                    applicationListMode
+                    tier
+                    component
+                    formatIdExtension(
+                        lambdaInstance.Internal.VersionId,
+                        lambdaInstance.Internal.InstanceId)
+                    formatNameExtension(
+                        lambdaInstance.Internal.VersionName,
+                        lambdaInstance.Internal.InstanceName) /]
             [/#if]
 
             [#if resourceCount > 0],[/#if]
@@ -108,8 +118,16 @@
                         }
                     },
                     [#assign containerListMode = "policy"]
-                    [#assign policyIdStem = lambdaIdStem]
-                    [#assign policyNameStem = lambda.Container]
+                    [#assign containerListPolicyId = formatContainerPolicyResourceId(
+                                                        tier,
+                                                        component,
+                                                        lambdaInstance,
+                                                        {"Id" : lambda.Container })]
+                    [#assign containerListPolicyName = formatContainerPolicyName(
+                                                        tier,
+                                                        component,
+                                                        lambdaInstance,
+                                                        {"Name" : lambda.Container })]
                     [#include containerList?ensure_starts_with("/")]
                     [#break]
                 
@@ -118,12 +136,21 @@
             [#assign functionCount = 0]
             [#list lambdaInstance.Internal.Functions?values as fn]
                 [#if fn?is_hash]
+                    [#assign lambdaFunctionResourceId = formatLambdaFunctionResourceId(
+                                        tier,
+                                        component,
+                                        lambdaInstance,
+                                        fn)]
+
+                    [#assign lambdaFunctionName = formatLambdaFunctionName(
+                                                tier,
+                                                component,
+                                                lambdaInstance,
+                                                fn)]
                     [#if functionCount > 0],[/#if]
-                    [#assign lambdaFunctionIdStem = formatId(lambdaIdStem, fn.Id)]
-                    [#assign lambdaFunctionNameStem = formatName(lambdaFullNameStem, fn.Name)]
                     [#switch applicationListMode]
                         [#case "definition"]
-                            "${formatId("lambda", lambdaFunctionIdStem)}" : {
+                            "${lambdaFunctionResourceId}" : {
                                 "Type" : "AWS::Lambda::Function",
                                 "Properties" : {
                                     "Code" : {
@@ -143,8 +170,8 @@
                                             }
                                         },
                                     [/#if]
-                                    "FunctionName" : "${formatName(lambdaFunctionNameStem)}",
-                                    "Description" : "${formatName(lambdaFunctionNameStem)}",
+                                    "FunctionName" : "${lambdaFunctionName}",
+                                    "Description" : "${lambdaFunctionName}",
                                     "Handler" : "${fn.Handler}",
                                     "Role" : { "Fn::GetAtt" : ["${containerListRole}","Arn"]},
                                     "Runtime" : "${fn.RunTime!lambdaInstance.Internal.RunTime}"
@@ -157,16 +184,22 @@
                                         ,"Timeout" : ${(timeout)?c}
                                     [/#if]
                                     [#if lambda.UseSegmentKey?? && (lambda.UseSegmentKey == true) ]
-                                        ,"KmsKeyArn" : "${getKey("cmk", "segment", "cmk", "arn")}"
+                                        ,"KmsKeyArn" : "${getKey(formatKMSCMKResourceArnId())}"
                                     [/#if]
                                     [#if vpc != "unknown"]
                                         ,"VpcConfig" : {
                                             "SecurityGroupIds" : [ 
-                                                { "Ref" : "${formatId("securityGroup", lambdaIdStem)}" }
+                                                { "Ref" : "${formatLambdaSecurityGroupResourceId(
+                                                                tier,
+                                                                component,
+                                                                lambdaInstance)}" }
                                             ],
                                             "SubnetIds" : [
                                                 [#list zones as zone]
-                                                    "${getKey("subnet", tier.Id, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                                                    "${getKey(formatVPCSubnetResourceId(
+                                                                tier,
+                                                                zone))}"
+                                                    [#if !(zones?last.Id == zone.Id)],[/#if]
                                                 [/#list]
                                             ]
                                         }
@@ -176,11 +209,11 @@
                             [#break]
     
                         [#case "outputs"]
-                            "${formatId("lambda", lambdaFunctionIdStem)}" : {
-                                "Value" : { "Ref" : "${formatId("lambda", lambdaFunctionIdStem)}" }
+                            "${lambdaFunctionResourceId}" : {
+                                "Value" : { "Ref" : "${lambdaFunctionResourceId}" }
                             },
-                            "${formatId("lambda", lambdaFunctionIdStem, "arn")}" : {
-                                "Value" : { "Fn::GetAtt" : ["${formatId("lambda", lambdaFunctionIdStem)}", "Arn"]}
+                            "${formatResourceAttributeId(lambdaFunctionResourceId, "arn")}" : {
+                                "Value" : { "Fn::GetAtt" : ["${lambdaFunctionResourceId}", "Arn"]}
                             }
                             [#break]
     

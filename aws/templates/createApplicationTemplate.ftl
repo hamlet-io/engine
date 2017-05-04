@@ -41,13 +41,13 @@
         [#case "docker"]
             {
                 "Name" : "${name}",
-                "Value" : [@reference value /]
+                "Value" : "${value}"
             }
             [#break]
 
         [#case "lambda"]
         [#default]
-            "${name}" : [@reference value /]
+            "${name}" : "${value}"
             [#break]
 
     [/#switch]
@@ -66,17 +66,24 @@
     [/#if]
 [/#macro]
 
-[#macro createTask tier component task taskIdStem containerIdStem]
+[#macro createTask tier component task]
     [#-- Set up context for processing the list of containers --]
     [#assign containerListTarget = "docker"]
-    [#assign containerListRole = formatId("role", taskIdStem)]
+    [#assign containerListRole = formatContainerHostRoleResourceId(
+                                    tier,
+                                    component,
+                                    task)]
 
     [#-- Check if a role is required --]
     [#assign containerListMode = "policyCount"]
     [#assign policyCount = 0]
     [#list task.Containers?values as container]
         [#if container?is_hash]
-            [#assign containerId = formatName(container.Id, containerIdStem)]
+            [#assign containerId = formatContainerId(
+                                    tier,
+                                    component,
+                                    task,
+                                    container)]
             [#include containerList]
         [/#if]
     [/#list]
@@ -102,15 +109,37 @@
         [#assign containerListMode = "policy"]
         [#list task.Containers?values as container]
             [#if container?is_hash]
-                [#assign containerId = formatName(container.Id, containerIdStem)]
-                [#assign policyIdStem = formatId(taskIdStem, container.Id)]
-                [#assign policyNameStem = formatId(container.Name)]
+                [#assign containerId = formatContainerId(
+                                        tier,
+                                        component,
+                                        task,
+                                        container)]
+                [#-- DEPRECATED: These stem variables are deprecated --]
+                [#--             in favour of the containerListPolicy* variables --]
+                [#assign policyIdStem = formatComponentIdStem(
+                                            tier,
+                                            component,
+                                            task.Internal.TaskId,
+                                            task.Internal.VersionId,
+                                            task.Internal.InstanceId,
+                                            container.Id)]
+                [#assign policyNameStem = formatName(container.Name)]
+                [#assign containerListPolicyId = formatContainerPolicyResourceId(
+                                                tier,
+                                                component,
+                                                task,
+                                                container)]
+                [#assign containerListPolicyName = formatContainerPolicyName(
+                                                tier,
+                                                component,
+                                                task,
+                                                container)]
                 [#include containerList]
             [/#if]
         [/#list]
     [/#if]
 
-    "${formatId("ecsTask", taskIdStem)}" : {
+    "${formatECSTaskResourceId(tier, component, task)}" : {
         "Type" : "AWS::ECS::TaskDefinition",
         "Properties" : {
             "ContainerDefinitions" : [
@@ -123,8 +152,16 @@
                         [/#if]
                         [#if containerCount > 0],[/#if]
                         {
-                            [#assign containerId = formatName(container.Id, containerIdStem)]
-                            [#assign containerName = formatName(tier.Name, component.Name, container.Name)]
+                            [#assign containerId = formatContainerId(
+                                                    tier,
+                                                    component,
+                                                    task,
+                                                    container)]
+                            [#assign containerName = formatContainerName(
+                                                        tier,
+                                                        component,
+                                                        task,
+                                                        container)]
                             [#assign containerListMode = "definition"]
                             [#include containerList]
                             [#assign containerListMode = "environmentCount"]
@@ -178,7 +215,11 @@
             [#assign volumeCount = 0]
             [#list task.Containers?values as container]
                 [#if container?is_hash]
-                    [#assign containerId = formatName(container.Id, containerIdStem)]
+                    [#assign containerId = formatContainerId(
+                                            tier,
+                                            component,
+                                            task,
+                                            container)]
                     [#include containerList]
                 [/#if]
             [/#list]
@@ -188,7 +229,11 @@
                     [#assign volumeCount = 0]
                     [#list task.Containers?values as container]
                         [#if container?is_hash]
-                            [#assign containerId = formatName(container.Id, containerIdStem)]
+                            [#assign containerId = formatContainerId(
+                                                    tier,
+                                                    component,
+                                                    task,
+                                                    container)]
                             [#include containerList]
                         [/#if]
                     [/#list]

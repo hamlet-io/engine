@@ -1,24 +1,42 @@
 [#-- ALB --]
 [#if componentType == "alb"]
-    [@createSecurityGroup solutionListMode tier component componentIdStem componentFullNameStem /]
+    [@createSecurityGroup solutionListMode tier component /]
+    [#assign albSecurityGroupResourceId = formatComponentSecurityGroupResourceId(tier, component)]
+
     [#assign alb = component.ALB]
+    
+    [#assign albResourceId = formatALBResourceId(tier, component)]
+    
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#list alb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
                 [#assign destination = ports[portMappings[mapping].Destination]]
-                "${formatId("securityGroupIngress", componentIdStem, source.Port?c)}" : {
+                [#assign albListenerResourceId = formatALBListenerResourceId(
+                                                    tier,
+                                                    component,
+                                                    source)]
+                [#assign albListenerSecurityGroupIngressResourceId = formatALBListenerSecurityGroupIngressResourceId(
+                                                    tier,
+                                                    component,
+                                                    source)]
+                [#assign albTargetGroupResourceId = formatALBTargetGroupResourceId(
+                                                    tier,
+                                                    component,
+                                                    source,
+                                                    "default")]
+                "${albListenerSecurityGroupIngressResourceId}" : {
                     "Type" : "AWS::EC2::SecurityGroupIngress",
                     "Properties" : {
-                        "GroupId": {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"},
+                        "GroupId": {"Ref" : "${albSecurityGroupResourceId}"},
                         "IpProtocol": "${source.IPProtocol}",
                         "FromPort": "${source.Port?c}",
                         "ToPort": "${source.Port?c}",
                         "CidrIp": "0.0.0.0/0"
                     }
                 },
-                "${formatId("listener", componentIdStem, source.Port?c)}" : {
+                "${albListenerResourceId}" : {
                     "Type" : "AWS::ElasticLoadBalancingV2::Listener",
                     "Properties" : {
                         [#if (source.Certificate)?? && source.Certificate]
@@ -28,14 +46,19 @@
                                     "CertificateArn" :
                                         [#if (alb.DNS[mapping])??]
                                             [#assign certificateLink = alb.DNS[mapping]]
-                                            [#if getKey("certificate", certificateLink.Tier, certificateLink.Component)??]
-                                                "${getKey("certificate", certificateLink.Tier, certificateLink.Component)}"
+                                            [#assign certificateResourceId = formatComponentCertificateResourceId(
+                                                                                tier,
+                                                                                component)]
+                                            [#if getKey(certificateResourceId)??]
+                                                "${getKey(certificateResourceId)}"
                                                 [#assign certificateFound = true]
                                             [/#if]
                                         [/#if]
                                         [#if !certificateFound]
-                                            [#if getKey("certificate", certificateId)??]
-                                                "${getKey("certificate", certificateId)}"
+                                            [#assign certificateResourceId = formatCertificateResourceId(
+                                                                                certificateId)]
+                                            [#if getKey(certificateResourceId)??]
+                                                "${getKey(certificateResourceId)}"
                                             [#else]
                                                 {
                                                     "Fn::Join" : [
@@ -54,18 +77,19 @@
                         [/#if]
                         "DefaultActions" : [
                             {
-                              "TargetGroupArn" : { "Ref" : "${formatId("tg", componentIdStem, source.Port?c, "default")}" },
+                              "TargetGroupArn" : { "Ref" : "${albTargetGroupResourceId}" },
                               "Type" : "forward"
                             }
                         ],
-                        "LoadBalancerArn" : { "Ref" : "${primaryResourceIdStem}" },
+                        "LoadBalancerArn" : { "Ref" : "${albResourceId}" },
                         "Port" : ${source.Port?c},
                         "Protocol" : "${source.Protocol}"
                     }
                 },
-                [@createTargetGroup tierId componentId componentIdStem componentFullNameStem source destination "default" /],
+                [@createTargetGroup tier component source destination "default" /],
             [/#list]
-            "${primaryResourceIdStem}" : {
+
+            "${albResourceId}" : {
                 "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties" : {
                     [#if (alb.Logs)?? && alb.Logs]
@@ -86,12 +110,17 @@
                     [/#if]
                     "Subnets" : [
                         [#list zones as zone]
-                            "${getKey("subnet", tierId, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                            "${getKey(formatVPCSubnetResourceId(
+                                        tier,
+                                        zone))}"
+                            [#if !(zones?last.Id == zone.Id)],[/#if]
                         [/#list]
                     ],
                     "Scheme" : "${(tier.RouteTable == "external")?string("internet-facing","internal")}",
-                    "SecurityGroups":[ {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"} ],
-                    "Name" : "${formatName(productId, segmentId, tierId, componentId)}",
+                    "SecurityGroups":[ {"Ref" : "${albSecurityGroupResourceId}"} ],
+                    "Name" : "${formatComponentShortFullNameStem(
+                                    tier,
+                                    component)}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
                         { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
@@ -111,18 +140,27 @@
         [#case "outputs"]
             [#list alb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
-                "${formatId("listener", componentIdStem, source.Port?c)}" : {
-                    "Value" : { "Ref" : "${formatId("listener", componentIdStem, source.Port?c)}" }
+                [#assign albListenerResourceId = formatALBListenerResourceId(
+                                                    tier,
+                                                    component,
+                                                    source)]
+                [#assign albTargetGroupResourceId = formatALBTargetGroupResourceId(
+                                                    tier,
+                                                    component,
+                                                    source,
+                                                    "default")]
+                "${albListenerResourceId}" : {
+                    "Value" : { "Ref" : "${albListenerResourceId}" }
                 },
-                "${formatId("tg", componentIdStem, source.Port?c, "default")}" : {
-                    "Value" : { "Ref" : "${formatId("tg", componentIdStem, source.Port?c, "default")}" }
+                "${albTargetGroupResourceId}" : {
+                    "Value" : { "Ref" : "${albTargetGroupResourceId}" }
                 },
             [/#list]
-            "${primaryResourceIdStem}" : {
-                "Value" : { "Ref" : "${primaryResourceIdStem}" }
+            "${albResourceId}" : {
+                "Value" : { "Ref" : "${albResourceId}" }
             },
-            "${formatId(primaryResourceIdStem, "dns")}" : {
-                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "DNSName"] }
+            "${formatResourceDnsAttributeId(albResourceId)}" : {
+                "Value" : { "Fn::GetAtt" : ["${albResourceId}", "DNSName"] }
             }
             [#break]
     [/#switch]

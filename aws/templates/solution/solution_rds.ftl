@@ -1,6 +1,6 @@
 [#-- RDS --]
 [#if componentType == "rds"]
-    [@createSecurityGroup solutionListMode tier component componentIdStem componentFullNameStem /]
+    [@createSecurityGroup solutionListMode tier component /]
     [#assign db = component.RDS]
     [#assign engine = db.Engine]
     [#if resourceCount > 0],[/#if]

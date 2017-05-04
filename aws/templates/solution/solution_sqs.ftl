@@ -64,13 +64,14 @@
     [/#if]
 
     [#list sqsInstances as sqsInstance]
-        [#assign sqsResourceIdStem = formatId(primaryResourceIdStem,
-                                                sqsInstance.Internal.VersionId,
-                                                sqsInstance.Internal.InstanceId)]
+        [#assign sqsResourceId = formatSQSResourceId(
+                                    tier,
+                                    component,
+                                    sqsInstance)]
         [#if resourceCount > 0],[/#if]
         [#switch solutionListMode]
             [#case "definition"]
-                "${sqsIdStem}":{
+                "${sqsResourceId}":{
                     "Type" : "AWS::SQS::Queue",
                     "Properties" : {
                         [#if sqs.Name != "SQS"]
@@ -78,9 +79,12 @@
                                                         sqsInstance.Internal.VersionName,
                                                         sqsInstance.Internal.InstanceName)}"
                         [#else]
-                            "QueueName" : "${formatName(productName, segmentName, componentName,
-                                                        sqsInstance.Internal.VersionName,
-                                                        sqsInstance.Internal.InstanceName)}"
+                            "QueueName" : "${formatName(
+                                                productName,
+                                                segmentName,
+                                                componentName,
+                                                sqsInstance.Internal.VersionName,
+                                                sqsInstance.Internal.InstanceName)}"
                         [/#if]
                         [#if sqsInstance.Internal.DelaySeconds != -1],"DelaySeconds" : ${sqsInstance.Internal.DelaySeconds?c}[/#if]
                         [#if sqsInstance.Internal.MaximumMessageSize != -1],"MaximumMessageSize" : ${sqsInstance.Internal.MaximumMessageSize?c}[/#if]
@@ -92,14 +96,14 @@
                 [#break]
     
             [#case "outputs"]
-                "${sqsResourceIdStem}" : {
-                    "Value" : { "Fn::GetAtt" : ["${sqsResourceIdStem}", "QueueName"] }
+                "${sqsResourceId}" : {
+                    "Value" : { "Fn::GetAtt" : ["${sqsResourceId}", "QueueName"] }
                 },
-                "${formatId(sqsResourceIdStem, "url")}" : {
-                    "Value" : { "Ref" : "${sqsResourceIdStem}" }
+                "${formatResourceUrlAttributeId(sqsResourceId)}" : {
+                    "Value" : { "Ref" : "${sqsResourceId}" }
                 },
-                "${formatId(sqsResourceIdStem, "arn")}" : {
-                    "Value" : { "Fn::GetAtt" : ["${sqsResourceIdStem}", "Arn"] }
+                "${formatResourceArnAttributeId(sqsResourceId)}" : {
+                    "Value" : { "Fn::GetAtt" : ["${sqsResourceId}", "Arn"] }
                 }
                 [#break]
     
