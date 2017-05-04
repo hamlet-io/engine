@@ -104,13 +104,13 @@
                                                 [#assign linkCount += 1]
                                             [/#if]
                                             [#if targetComponentType == "lambda"]
-                                                [#assign lambdaInstance = target.Lambda ]
+                                                [#assign lambdaInstance = targetComponent.Lambda ]
                                                 [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
-                                                [#if target.Lambda.Versions?? ]
-                                                    [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId] ]
+                                                [#if targetComponent.Lambda.Versions?? ]
+                                                    [#assign lambdaInstance = targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId] ]
                                                     [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
-                                                    [#if target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
-                                                        [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceIdRef] ]
+                                                    [#if targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
+                                                        [#assign lambdaInstance = targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceIdRef] ]
                                                         [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
                                                     [/#if]
                                                 [/#if]
@@ -123,9 +123,8 @@
                                                             [#assign fnName = getKey(formatLambdaFunctionResourceId(
                                                                                         targetTier,
                                                                                         targetComponent,
-                                                                                        fn,
-                                                                                        apigatewayInstance.Internal.VersionId,
-                                                                                        apigatewayInstance.Internal.InstanceId))]
+                                                                                        apigatewayInstance,
+                                                                                        fn))]
                                                             [@environmentVariable stageVariable fnName "apigateway" /]
                                                             [#assign linkCount += 1]
                                                         [/#if]
@@ -149,13 +148,13 @@
                                 [#assign targetComponent = getComponent(link.Tier, link.Component)]
                                 [#assign targetComponentType = getComponentType(targetComponent)]
                                 [#if targetComponentType == "lambda"]
-                                    [#assign lambdaInstance = target.Lambda ]
+                                    [#assign lambdaInstance = targetComponent.Lambda ]
                                     [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
-                                    [#if target.Lambda.Versions?? ]
-                                        [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId] ]
+                                    [#if targetComponent.Lambda.Versions?? ]
+                                        [#assign lambdaInstance = targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId] ]
                                         [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
-                                        [#if target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
-                                            [#assign lambdaInstance = target.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceIdRef] ]
+                                        [#if targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
+                                            [#assign lambdaInstance = targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceIdRef] ]
                                             [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
                                         [/#if]
                                     [/#if]
@@ -163,7 +162,6 @@
                                     [#if lambdaFunctions?is_hash]
                                         [#list lambdaFunctions?values as fn]
                                             [#if fn?is_hash]
-                                                [#-- See comment above re formatting function name --]
                                                 [#assign fnName = getKey(formatLambdaFunctionResourceId(
                                                                             targetTier,
                                                                             targetComponent,
@@ -172,7 +170,7 @@
                                                 ,"${formatAPIGatewayLambdaPermissionResourceId(
                                                         tier,
                                                         component,
-                                                        apiGateway,
+                                                        apigatewayInstance,
                                                         link,
                                                         fn)}" : {
                                                     "Type" : "AWS::Lambda::Permission",

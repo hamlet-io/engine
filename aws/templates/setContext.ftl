@@ -714,17 +714,17 @@
 
 [#-- APIGateway handling --]
 
-[#function formatAPIGatewayAPIResourceId tier component apiGateway]
+[#function formatAPIGatewayAPIResourceId tier component apigateway]
     [#return formatComponentResourceId(
                 "api",
                 tier,
                 component,
-                apigatewayInstance.Internal.VersionId,
-                apigatewayInstance.Internal.InstanceId)]
+                apigateway.Internal.VersionId,
+                apigateway.Internal.InstanceId)]
 
 [/#function]
 
-[#function formatAPIGatewayDeployResourceId tier component apiGateway]
+[#function formatAPIGatewayDeployResourceId tier component apigateway]
     [#return formatComponentResourceId(
                 "apiDeploy",
                 tier,
@@ -733,7 +733,7 @@
                 apigateway.Internal.InstanceId)]
 [/#function]
 
-[#function formatAPIGatewayStageResourceId tier component apiGateway]
+[#function formatAPIGatewayStageResourceId tier component apigateway]
     [#return formatComponentResourceId(
                 "apiStage",
                 tier,
@@ -742,15 +742,15 @@
                 apigateway.Internal.InstanceId)]
 [/#function]
 
-[#function formatAPIGatewayLambdaPermissionResourceId tier component apiGateway link, fn]
+[#function formatAPIGatewayLambdaPermissionResourceId tier component apigateway link fn]
     [#return formatComponentResourceId(
                 "apiLambdaPermission",
                 tier,
                 component,
                 apigateway.Internal.VersionId,
-                apigateway.Internal.InstanceId)]
+                apigateway.Internal.InstanceId,
                 link.Id,
-                fn.Id]
+                fn.Id)]
 [/#function]
 
 [#-- Lambda resources --]
@@ -763,13 +763,13 @@
                     lambda.Internal.InstanceId)]
 [/#function]
 
-[#function formatLambdaFunctionResourceId tier component lambda fn ]
+[#function formatLambdaFunctionResourceId tier component lambda fn]
     [#return formatComponentResourceId(
                 "lambda",
                 tier,
                 component,
                 lambda.Internal.VersionId,
-                lambda.Internal.InstanceId,
+                lambda.Internal.InstanceId
                 fn.Id)]
 [/#function]
 
