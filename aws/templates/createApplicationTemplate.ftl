@@ -10,11 +10,19 @@
 [/#function]
 
 [#function getCredentialFilePrefix]
-    [#return "credentials/" + productName + "/" + segmentName]
+    [#return "credentials/" + productName + "/" + segmentName + "/" + deployment_unit]
 [/#function]
 
 [#function getAppSettingsFilePrefix]
     [#return "appsettings/" + productName + "/" + segmentName + "/" + deployment_unit]
+[/#function]
+
+[#function getSegmentCredentialFilePrefix]
+    [#return "credentials/" + productName + "/" + segmentName]
+[/#function]
+
+[#function getSegmentAppSettingsFilePrefix]
+    [#return "appsettings/" + productName + "/" + segmentName]
 [/#function]
 
 [#if buildReference??]
