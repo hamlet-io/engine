@@ -86,7 +86,7 @@
                                     {
                                         "Resource": [
                                             "arn:aws:s3:::${operationsBucket}/DOCKERLogs/*",
-                                            "arn:aws:s3:::${operationsBucket}/Backups/*"
+                                            "arn:aws:s3:::${operationsBucket}/backups/*"
                                         ],
                                         "Action": [
                                             "s3:PutObject"
@@ -128,7 +128,7 @@
 
             [#if fixedIP]
                 [#list 1..maxSize as index]
-                    "${formatEC2ElasticIPResourceId(tier, component, index)}": {
+                    "${formatComponentEIPResourceId(tier, component, index)}": {
                         "Type" : "AWS::EC2::EIP",
                         "Properties" : {
                             "Domain" : "vpc"
@@ -221,7 +221,7 @@
                                                     [
                                                         [#list 1..maxSize as index]
                                                             { "Fn::GetAtt" : [
-                                                                "${formatEC2ElasticIPResourceId(
+                                                                "${formatComponentEIPResourceId(
                                                                     tier,
                                                                     component,
                                                                     index)}",
@@ -347,20 +347,14 @@
             }
             [#if fixedIP]
                 [#list 1..maxSize as index]
-                    [#assign ecsElasticIPResourceId = formatEC2ElasticIPResourceId(
+                    [#assign ecsElasticIPResourceId = formatComponentEIPResourceId(
                                                 tier,
                                                 component,
                                                 index)]
-                   ,"${formatEC2ElasticIPResourceIPAddressId(
-                        tier,
-                        component,
-                        index)}": {
+                   ,"${formatEIPResourceIPAddressId(ecsElasticIPResourceId)}": {
                         "Value" : { "Ref" : "${ecsElasticIPResourceId}" }
                     }
-                    ,"${formatEC2ElasticIPResourceAllocationId(
-                        tier,
-                        component,
-                        index)}": {
+                    ,"${formatEIPResourceAllocationIdId(ecsElasticIPResourceId)}": {
                         "Value" : { "Fn::GetAtt" : [
                                         "${ecsElasticIPResourceId}",
                                         "AllocationId"

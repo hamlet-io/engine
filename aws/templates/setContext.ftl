@@ -473,6 +473,17 @@
                 "dns")]
 [/#function]
 
+[#function formatResourceIPAddressAttributeId resourceId]
+    [#return formatResourceAttributeId(
+                resourceId,
+                "ip")]
+[/#function]
+
+[#function formatResourceAllocationIdAttributeId resourceId]
+    [#return formatResourceAttributeId(
+                resourceId,
+                "id")]
+[/#function]
 
 [#-- Certificate resources --]
 
@@ -956,30 +967,48 @@
                 component)]
 [/#function]
 
-[#function formatEC2ElasticIPResourceId tier component extensions...]
-    [#return formatComponentResourceId(
+[#-- EIP resources --]
+
+[#function formatEIPResourceId ids...]
+    [#return formatResourceId(
                 "eip",
-                tier,
-                component,
-                extensions)]
+                ids)]
 [/#function]
 
-[#function formatEC2ElasticIPResourceIPAddressId tier component extensions...]
-    [#return formatResourceAttributeId(
-                formatEC2ElasticIPResourceId(
-                    tier,
-                    component,
-                    extensions),
-                "ip")]
+[#function formatEIPResourceIPAddressId ids...]
+    [#return formatResourceIPAddressAttributeId(
+                formatEIPResourceId(
+                    ids))]
 [/#function]
 
-[#function formatEC2ElasticIPResourceAllocationId tier component extensions...]
-    [#return formatResourceAttributeId(
-                formatEC2ElasticIPResourceId(
+[#function formatEIPResourceAllocationIdId ids...]
+    [#return formatResourceAllocationIdAttributeId(
+                formatEIPResourceId(
+                    ids))]
+[/#function]
+
+[#function formatComponentEIPResourceId tier component extensions...]
+    [#return formatEIPResourceId(
+                formatComponentIdStem(
                     tier,
                     component,
-                    extensions),
-                "ip")]
+                    extensions))]
+[/#function]
+
+[#function formatComponentEIPResourceIPAddressId tier component extensions...]
+    [#return formatResourceIPAddressAttributeId(
+                formatComponentEIPResourceId(
+                    tier,
+                    component,
+                    extensions))]
+[/#function]
+
+[#function formatComponentEIPResourceAllocationId tier component extensions...]
+    [#return formatResourceAllocationIdAttributeId(
+                formatComponentEIPResourceId(
+                    tier,
+                    component,
+                    extensions))]
 [/#function]
 
 [#-- VPC resources --]
@@ -1049,7 +1078,7 @@
 [/#function]
 
 [#function formatS3ResourceUrlId tier component s3 extensions...]
-    [#return formatS3ResourceUrlId(
+    [#return formatResourceUrlAttributeId(
                 formatComponentS3ResourceId(
                     tier,
                     component,
