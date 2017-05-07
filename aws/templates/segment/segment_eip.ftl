@@ -7,10 +7,10 @@
         [#list zones as zone]
             [#if jumpServerPerAZ || (zones[0].Id == zone.Id)]
                 [#if eipCount > 0],[/#if]
-                [#assign elasticIPResourceId = formatComponentEIPResourceId(tier, "nat", zone.Id)]
+                [#assign elasticIPId = formatComponentEIPId(tier, "nat", zone.Id)]
                 [#switch segmentListMode]
                     [#case "definition"]
-                        "${elasticIPResourceId}": {
+                        "${elasticIPId}": {
                             "Type" : "AWS::EC2::EIP",
                             "Properties" : {
                                 "Domain" : "vpc"
@@ -19,12 +19,8 @@
                         [#break]
 
                     [#case "outputs"]
-                        "${formatResourceIPAddressAttributeId(elasticIPResourceId)}": {
-                            "Value" : { "Ref" : "${elasticIPResourceId}" }
-                        },
-                        "${formatResourceAllocationIdAttributeId(elasticIPResourceId)}": {
-                            "Value" : { "Fn::GetAtt" : ["${elasticIPResourceId}", "AllocationId"] }
-                        }
+                        [@outputIPAddress elasticIPId /],
+                        [@outputAllocation elasticIPId /]
                         [#break]
 
                 [/#switch]

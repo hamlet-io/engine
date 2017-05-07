@@ -16,7 +16,7 @@ Usage: $(basename $0) -t TYPE -u DEPLOYMENT_UNIT -b BUILD_DEPLOYMENT_UNIT -c CON
 
 where
 
-(m) -b BUILD_DEPLOYMENT_UNIT   is the deployment unit definign the build reference
+(m) -b BUILD_DEPLOYMENT_UNIT   is the deployment unit defining the build reference
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
     -h                         shows this text
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
@@ -240,6 +240,8 @@ if [[ -n "${BUILD_REFERENCE}" ]]; then ARGS+=("-v" "buildReference=${BUILD_REFER
 if [[ -n "${!COMPOSITE_VAR}"     ]]; then ARGS+=("-r" "${TYPE}List=${!COMPOSITE_VAR#/?/}"); fi
 if [[ -n "${COMPOSITE_POLICY}"   ]]; then ARGS+=("-r" "policyList=${COMPOSITE_POLICY#/?/}"); fi
 if [[ "${TYPE}" == "application" ]]; then ARGS+=("-r" "containerList=${COMPOSITE_CONTAINER#/?/}"); fi
+ARGS+=("-r" "idList=${COMPOSITE_ID#/?/}")
+ARGS+=("-r" "nameList=${COMPOSITE_NAME#/?/}")
 ARGS+=("-v" "region=${REGION}")
 ARGS+=("-v" "productRegion=${PRODUCT_REGION}")
 ARGS+=("-v" "accountRegion=${ACCOUNT_REGION}")

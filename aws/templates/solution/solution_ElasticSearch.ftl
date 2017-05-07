@@ -1,12 +1,17 @@
 [#-- ElasticSearch --]
 [#if componentType == "elasticsearch"]
     [#assign es = component.ElasticSearch]
+    
+    [#assign esId = formatComponentResourceId(
+                        "es",
+                        tier,
+                        component)]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
             [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
-            "${primaryResourceIdStem}":{
+            "${esId}":{
                 "Type" : "AWS::Elasticsearch::Domain",
                 "Properties" : {
                     "AccessPolicies" : {
@@ -135,15 +140,9 @@
             [#break]
 
         [#case "outputs"]
-            "${primaryResourceIdStem}" : {
-                "Value" : { "Ref" : "${primaryResourceIdStem}" }
-            },
-            "${formatId(primaryResourceIdStem, "dns")}" : {
-                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "DomainEndpoint"] }
-            },
-            "${formatId(primaryResourceIdStem, "arn")} : {
-                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "DomainArn"] }
-            }
+            [@output esId /]
+            [@outputElasticSearchUrl esId /]
+            [@outputElasticSearchArn esId /]
             [#break]
 
     [/#switch]

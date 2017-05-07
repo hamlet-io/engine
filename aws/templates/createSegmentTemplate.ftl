@@ -1,6 +1,8 @@
 [#ftl]
 [#include "setContext.ftl" ]
 
+[#-- Initialisation --]
+
 [#-- Domains --]
 [#assign productDomainStem = productObject.Domain.Stem]
 [#assign segmentDomainBehaviour = (productObject.Domain.SegmentBehaviour)!""]

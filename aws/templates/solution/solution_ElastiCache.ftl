@@ -1,8 +1,14 @@
 [#-- ElastiCache --]
 [#if componentType == "elasticache"]
-    [@createSecurityGroup solutionListMode tier component /]
     [#assign cache = component.ElastiCache]
     [#assign engine = cache.Engine]
+    [#assign cacheId = formatComponentResourceId(
+                        "cache",
+                        tier,
+                        component)]
+
+    [@createComponentSecurityGroup solutionListMode tier component /]
+
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
@@ -30,7 +36,9 @@
             "${formatId("securityGroupIngress", componentIdStem)}" : {
                 "Type" : "AWS::EC2::SecurityGroupIngress",
                 "Properties" : {
-                    "GroupId": {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"},
+                    "GroupId": {"Ref" : "${formatComponentSecurityGroupId(
+                                            tier,
+                                            component)}"},
                     "IpProtocol": "${ports[cache.Port].IPProtocol}",
                     "FromPort": "${ports[cache.Port].Port?c}",
                     "ToPort": "${ports[cache.Port].Port?c}",
@@ -58,7 +66,7 @@
                 }
             },
             [#assign processorProfile = getProcessor(tier, component, "ElastiCache")]
-            "${primaryResourceIdStem}":{
+            "${cacheId}":{
                 "Type":"AWS::ElastiCache::CacheCluster",
                 "Properties":{
                     "Engine": "${cache.Engine}",
@@ -90,7 +98,9 @@
                         "SnapshotRetentionLimit" : ${cache.SnapshotRetentionLimit}
                     [/#if]
                     "VpcSecurityGroupIds":[
-                        { "Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}" }
+                        { "Ref" : "${formatComponentSecurityGroupId(
+                                        tier,
+                                        component)}" }
                     ],
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -112,11 +122,11 @@
         [#case "outputs"]
             [#switch engine]
                 [#case "memcached"]
-                    "${formatId(primaryResourceIdStem, "dns")}" : {
-                       "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "ConfigurationEndpoint.Address"] }
+                    "${formatId(cacheId, "dns")}" : {
+                       "Value" : { "Fn::GetAtt" : ["${cacheId}", "ConfigurationEndpoint.Address"] }
                     },
-                    "${formatId(primaryResourceIdStem, "port")}" : {
-                        "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "ConfigurationEndpoint.Port"] }
+                    "${formatId(cacheId, "port")}" : {
+                        "Value" : { "Fn::GetAtt" : ["${cacheId}", "ConfigurationEndpoint.Port"] }
                     }
                 [#break]
                 [#case "redis"]

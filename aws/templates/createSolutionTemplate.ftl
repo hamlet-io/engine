@@ -1,6 +1,10 @@
 [#ftl]
 [#include "setContext.ftl"]
 
+[#-- Functions --]
+
+[#-- Macros --]
+
 [#macro createBlockDevices storageProfile]
     [#if (storageProfile.Volumes)?? ]
         "BlockDeviceMappings" : [
@@ -28,6 +32,8 @@
         ],
     [/#if]
 [/#macro]
+
+[#-- Initialisation --]
 
 {
     "AWSTemplateFormatVersion" : "2010-09-09",

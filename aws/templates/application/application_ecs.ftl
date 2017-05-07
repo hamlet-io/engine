@@ -1,9 +1,18 @@
 [#if componentType == "ecs"]
     [#assign ecs = component.ECS]
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
-    [#assign ecsSG = getKey(formatComponentSecurityGroupResourceId(
-                                tier,
-                                component))]
+    [#assign ecsId = 
+                formatECSId(
+                    tier,
+                    component)]
+    [#assign ecsSecurityGroupId =
+                formatECSSecurityGroupId(
+                    tier,
+                    component)]
+    [#assign ecsServiceRoleId = 
+                formatECSServiceRoleId(
+                    tier,
+                    component)]
 
     [#assign serviceInstances=[] ]
     [#if ecs.Services??]
@@ -18,15 +27,20 @@
                                         [#assign serviceInstances += [serviceInstance +
                                             {
                                                 "Internal" : {
-                                                    "ServiceId" : service.Id,
-                                                    "ServiceName" : service.Name,
-                                                    "HostId" : service.Id,
-                                                    "TaskId" : service.Id,
-                                                    "TaskName" : service.Name,
-                                                    "VersionId" : version.Id,
-                                                    "VersionName" : version.Name,
-                                                    "InstanceId" : (serviceInstance.Id == "default")?string("",serviceInstance.Id),
-                                                    "InstanceName" : (serviceInstance.Id == "default")?string("",serviceInstance.Name)
+                                                    "IdExtensions" : [
+                                                        service.Id,
+                                                        version.Id,
+                                                        (serviceInstance.Id == "default")?
+                                                            string(
+                                                                "",
+                                                                serviceInstance.Id)],
+                                                    "HostIdExtensions" : [
+                                                        version.Id,
+                                                        (serviceInstance.Id == "default")?
+                                                            string(
+                                                                "",
+                                                                serviceInstance.Id)],
+                                                    "StageName" : version.Id
                                                 }
                                             }
                                         ] ]
@@ -36,15 +50,12 @@
                                 [#assign serviceInstances += [version +
                                     {
                                         "Internal" : {
-                                            "ServiceId" : service.Id,
-                                            "ServiceName" : service.Name,
-                                            "HostId" : service.Id,
-                                            "TaskId" : service.Id,
-                                            "TaskName" : service.Name,
-                                            "VersionId" : version.Id,
-                                            "VersionName" : version.Name,
-                                            "InstanceId" : "",
-                                            "InstanceName" : ""
+                                            "IdExtensions" : [
+                                                service.Id,
+                                                version.Id],
+                                            "HostIdExtensions" : [
+                                                version.Id],
+                                            "StageName" : version.Id
                                         }
                                     }
                                 ] ]
@@ -55,15 +66,10 @@
                     [#assign serviceInstances += [service +
                         {
                             "Internal" : {
-                                "ServiceId" : service.Id,
-                                "ServiceName" : service.Name,
-                                "HostId" : service.Id,
-                                "TaskId" : service.Id,
-                                "TaskName" : service.Name,
-                                "VersionId" : "",
-                                "VersionName" : "",
-                                "InstanceId" : "",
-                                "InstanceName" : ""
+                                "IdExtensions" : [
+                                    service.Id],
+                                "HostIdExtensions" : [],
+                                "StageName" : ""
                             }
                         }
                     ]]
@@ -85,12 +91,20 @@
                                         [#assign taskInstances += [taskInstance +
                                             {
                                                 "Internal" : {
-                                                    "TaskId" : task.Id,
-                                                    "TaskName" : task.Name,
-                                                    "VersionId" : version.Id,
-                                                    "VersionName" : version.Name,
-                                                    "InstanceId" : (taskInstance.Id == "default")?string("",taskInstance.Id),
-                                                    "InstanceName" : (taskInstance.Id == "default")?string("",taskInstance.Name)
+                                                    "IdExtensions" : [
+                                                        task.Id,
+                                                        version.Id,
+                                                        (taskInstance.Id == "default")?
+                                                            string(
+                                                                "",
+                                                                taskInstance.Id)],
+                                                   "HostIdExtensions" : [
+                                                        version.Id,
+                                                        (taskInstance.Id == "default")?
+                                                            string(
+                                                                "",
+                                                                taskInstance.Id)],
+                                                    "StageName" : version.Id
                                                 }
                                             }
                                         ] ]
@@ -100,12 +114,12 @@
                                 [#assign taskInstances += [version +
                                     {
                                         "Internal" : {
-                                            "TaskId" : task.Id,
-                                            "TaskName" : task.Name,
-                                            "VersionId" : version.Id,
-                                            "VersionName" : version.Name,
-                                            "InstanceId" : "",
-                                            "InstanceName" : ""
+                                            "IdExtensions" : [
+                                                task.Id,
+                                                version.Id],
+                                            "HostIdExtensions" : [
+                                                version.Id],
+                                            "StageName" : version.Id
                                         }
                                     }
                                 ] ]
@@ -116,12 +130,10 @@
                     [#assign taskInstances += [task +
                         {
                             "Internal" : {
-                                "TaskId" : task.Id,
-                                "TaskName" : task.Name,
-                                "VersionId" : "",
-                                "VersionName" : "",
-                                "InstanceId" : "",
-                                "InstanceName" : ""
+                                "IdExtensions" : [
+                                    task.Id],
+                                "HostIdExtensions" : [],
+                                "StageName" : ""
                             }
                         }
                     ]]
@@ -132,24 +144,22 @@
 
     [#list serviceInstances as serviceInstance]
         [#assign serviceDependencies = []]
-        [#assign serviceResourceId = formatECSServiceResourceId(
-                                        tier,
-                                        component,
-                                        serviceInstance)]
-        [#assign taskResourceId    = formatECSTaskResourceId(
-                                        tier,
-                                        component,
-                                        serviceInstance)]
+        [#assign serviceId = formatECSServiceId(
+                                tier,
+                                component,
+                                serviceInstance)]
+        [#assign taskId    = formatECSTaskId(
+                                tier,
+                                component,
+                                serviceInstance)]
         [#if resourceCount > 0],[/#if]
         [#switch applicationListMode]
             [#case "definition"]
                 [@createTask tier component serviceInstance /],
-                "${serviceResourceId}" : {
+                "${serviceId}" : {
                     "Type" : "AWS::ECS::Service",
                     "Properties" : {
-                        "Cluster" : "${getKey(formatECSResourceId(
-                                                tier,
-                                                component))}",
+                        "Cluster" : "${getKey(ecsId)}",
                         "DeploymentConfiguration" : {
                             [#if multiAZ]
                                 "MaximumPercent" : 100,
@@ -195,34 +205,32 @@
                                                         [#if lb.Port??]
                                                             [#assign lbPort = lb.Port]
                                                         [/#if]
-                                                        [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.VersionName]
+                                                        [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.StageName]
                                                         [#if targetGroup != ""]
-                                                            [#assign targetGroupResourceId = formatALBTargetGroupResourceId(
-                                                                                                lbTier,
-                                                                                                lbComponent,
-                                                                                                ports[lbPort],
-                                                                                                targetGroup)]
-                                                            "TargetGroupArn" : [@createReference targetGroupResourceId /],
-                                                            [#if !(getKey(targetGroupResourceId)?has_content)]
-                                                                [#assign serviceDependencies += [formatALBListenerRuleResourceId(
+                                                            [#assign targetGroupId = formatALBTargetGroupId(
+                                                                                        lbTier,
+                                                                                        lbComponent,
+                                                                                        ports[lbPort],
+                                                                                        targetGroup)]
+                                                            "TargetGroupArn" : [@createReference targetGroupId /],
+                                                            [#if !(getKey(targetGroupId)?has_content)]
+                                                                [#assign serviceDependencies += [formatALBListenerRuleId(
                                                                                                     lbTier,
                                                                                                     lbComponent,
                                                                                                     ports[lbPort],
                                                                                                     targetGroup)]]
                                                             [/#if]
                                                         [#else]
-                                                            "LoadBalancerName" : "${getKey(formatALBResourceId(
+                                                            "LoadBalancerName" : "${getKey(formatALBId(
                                                                                             lbTier,
                                                                                             lbComponent))}",
                                                         [/#if]
                                                     [#else]
-                                                        "LoadBalancerName" : "${getKey(formatELBResourceId(
+                                                        "LoadBalancerName" : "${getKey(formatELBId(
                                                                                         getTier("elb"),
                                                                                         getComponent("elb", port.ELB)))}",
                                                     [/#if]
                                                     "ContainerName" : "${formatContainerName(
-                                                                            tier,
-                                                                            component,
                                                                             serviceInstance,
                                                                             container) }",
                                                     [#if port.Container??]
@@ -237,11 +245,9 @@
                                     [/#if]
                                 [/#list]
                             ],
-                            "Role" : "${getKey(formatECSServiceRoleResourceId(
-                                                tier,
-                                                component))}",
+                            "Role" : "${getKey(ecsServiceRoleId)}",
                         [/#if]
-                        "TaskDefinition" : { "Ref" : "${taskResourceId}" }
+                        "TaskDefinition" : { "Ref" : "${taskId}" }
                     }
                     [#if serviceDependencies?size > 0 ]
                         ,"DependsOn" : [
@@ -255,12 +261,8 @@
                 [#break]
 
             [#case "outputs"]
-                "${serviceResourceId}" : {
-                    "Value" : { "Ref" : "${serviceResourceId}" }
-                },
-                "${taskResourceId}" : {
-                    "Value" : { "Ref" : "${taskResourceId}" }
-                }
+                [@output serviceId /],
+                [@output taskId /]
                 [#break]
 
         [/#switch]
@@ -272,8 +274,6 @@
                         [#-- Supplemental definitions for the container --]
                         [#assign containerListMode = "supplemental"]
                         [#assign containerId = formatContainerId(
-                                                tier,
-                                                component,
                                                 serviceInstance,
                                                 container)]
                         [#include containerList?ensure_starts_with("/")]
@@ -296,11 +296,11 @@
 
                             [#if fromSG]
                                 [#if port.ELB??]
-                                    [#assign elbSG = getKey(formatComponentSecurityGroupResourceId(
+                                    [#assign elbSG = getKey(formatComponentSecurityGroupId(
                                                               getTier("elb"), 
                                                               getComponent("elb", port.ELB)))]
                                 [#else]
-                                    [#assign elbSG = getKey(formatComponentSecurityGroupResourceId(
+                                    [#assign elbSG = getKey(formatComponentSecurityGroupId(
                                                               getTier(port.LB.Tier), 
                                                               getComponent(port.LB.Tier, port.LB.Component)))]
                                 [/#if]
@@ -309,15 +309,13 @@
                             [#switch applicationListMode]
                                 [#case "definition"]
                                     [#-- Security Group ingress for the container ports --]
-                                    ,"${formatContainerSecurityGroupIngressResourceId(
-                                            tier,
-                                            component,
-                                            serviceInstance,
+                                    ,"${formatContainerSecurityGroupIngressId(
+                                            ecsSecurityGroupId,
                                             container,
                                             portRange)}" : {
                                         "Type" : "AWS::EC2::SecurityGroupIngress",
                                         "Properties" : {
-                                            "GroupId": "${ecsSG}",
+                                            "GroupId": "${getKey(ecsSecurityGroupId)}",
                                             "IpProtocol": "${ports[port.Id].IPProtocol}",
                                             [#if useDynamicHostPort]
                                                 "FromPort": "32768",
@@ -347,24 +345,29 @@
                                 [#if lb.Port??]
                                     [#assign lbPort = lb.Port]
                                 [/#if]
-                                [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.VersionName]
+                                [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.StageName]
                                 [#if targetGroup != ""]
-                                    [#assign targetGroupResourceId = formatALBTargetGroupResourceId(
-                                                                        lbTier,
-                                                                        lbComponent,
-                                                                        ports[lbPort],
-                                                                        targetGroup)]
-                                    [#if ! getKey(targetGroupResourceId)?has_content]
+                                    [#assign targetGroupId = formatALBTargetGroupId(
+                                                                lbTier,
+                                                                lbComponent,
+                                                                ports[lbPort],
+                                                                targetGroup)]
+                                    [#if ! getKey(targetGroupId)?has_content]
                                         [#switch applicationListMode]
                                             [#case "definition"]
-                                                ,[@createTargetGroup lbTier lbComponent ports[lbPort] ports[port.Id] targetGroup /]
-                                                ,"${formatALBListenerRuleResourceId(
+                                                ,[@createTargetGroup
+                                                    lbTier
+                                                    lbComponent
+                                                    ports[lbPort]
+                                                    ports[port.Id]
+                                                    targetGroup /]
+                                                ,"${formatALBListenerRuleId(
                                                         lbTier,
                                                         lbComponent,
                                                         ports[lbPort],
                                                         targetGroup)}" : {
                                                     "DependsOn" : [
-                                                        "${targetGroupResourceId}"
+                                                        "${targetGroupId}"
                                                     ],
                                                     "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule",
                                                     "Properties" : {
@@ -372,16 +375,16 @@
                                                         "Actions" : [
                                                             {
                                                                 "Type": "forward",
-                                                                "TargetGroupArn": { "Ref": "${targetGroupResourceId}" }
+                                                                "TargetGroupArn": { "Ref": "${targetGroupId}" }
                                                             }
                                                         ],
                                                         "Conditions": [
                                                             {
                                                                 "Field": "path-pattern",
-                                                                "Values": [ "${lb.Path!"/" + serviceInstance.Internal.VersionName + "/*"}" ]
+                                                                "Values": [ "${lb.Path!"/" + serviceInstance.Internal.StageName + "/*"}" ]
                                                             }
                                                         ],
-                                                        "ListenerArn" : "${getKey(formatALBListenerResourceId(
+                                                        "ListenerArn" : "${getKey(formatALBListenerId(
                                                                                     lbTier,
                                                                                     lbComponent,
                                                                                     ports[lbPort]))}"
@@ -390,9 +393,7 @@
                                                 [#break]
 
                                             [#case "outputs"]
-                                                ,"${targetGroupResourceId}" : {
-                                                    "Value" : { "Ref" : "${targetGroupResourceId}" }
-                                                }
+                                                ,[@output targetGroupId /]
                                                 [#break]
 
                                         [/#switch]
@@ -408,7 +409,7 @@
     [/#list]
 
     [#list taskInstances as taskInstance]
-        [#assign taskResourceId = formatECSTaskResourceId(
+        [#assign taskId = formatECSTaskId(
                                     tier,
                                     component,
                                     taskInstance)]
@@ -420,8 +421,6 @@
                     [#if container?is_hash]
                         [#assign containerListMode = "supplemental"]
                         [#assign containerId = formatContainerId(
-                                                tier,
-                                                component,
                                                 taskInstance,
                                                 container)]
                         [#include containerList?ensure_starts_with("/")]
@@ -430,9 +429,7 @@
                 [#break]
 
             [#case "outputs"]
-                "${taskResourceId}" : {
-                    "Value" : { "Ref" : "${taskResourceId}" }
-                }
+                [@output taskId /]
             [#break]
 
         [/#switch]

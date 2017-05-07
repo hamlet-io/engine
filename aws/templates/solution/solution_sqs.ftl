@@ -12,10 +12,18 @@
                             [#assign sqsInstances += [sqsInstance +
                                 {
                                     "Internal" : {
-                                        "VersionId" : version.Id,
-                                        "VersionName" : version.Name,
-                                        "InstanceId" : (sqsInstance.Id == "default")?string("",sqsInstance.Id),
-                                        "InstanceName" : (sqsInstance.Id == "default")?string("",sqsInstance.Name),
+                                        "IdExtensions" : [
+                                            version.Id, 
+                                            (sqsInstance.Id == "default")?
+                                                string(
+                                                    "",
+                                                    sqsInstance.Id)],
+                                        "NameExtensions" : [
+                                            version.Name,
+                                            (sqsInstance.Id == "default")?
+                                                string(
+                                                    "",
+                                                    sqsInstance.Name)],
                                         "DelaySeconds" : sqsInstance.DelaySeconds!version.DelaySeconds!sqs.DelaySeconds!-1,
                                         "MaximumMessageSize" : sqsInstance.MaximumMessageSize!version.MaximumMessageSize!sqs.MaximumMessageSize!-1,
                                         "MessageRetentionPeriod" : sqsInstance.MessageRetentionPeriod!version.MessageRetentionPeriod!sqs.MessageRetentionPeriod!-1,
@@ -30,10 +38,10 @@
                     [#assign sqsInstances += [version +
                         {
                             "Internal" : {
-                                "VersionId" : "version.Id",
-                                "VersionName" : "version.Name",
-                                "InstanceId" : "",
-                                "InstanceName" : "",
+                                "IdExtensions" : [
+                                    version.Id],
+                                "NameExtensions" : [
+                                    version.Name],
                                 "DelaySeconds" : version.DelaySeconds!sqs.DelaySeconds!-1,
                                 "MaximumMessageSize" : version.MaximumMessageSize!sqs.MaximumMessageSize!-1,
                                 "MessageRetentionPeriod" : version.MessageRetentionPeriod!sqs.MessageRetentionPeriod!-1,
@@ -49,10 +57,8 @@
         [#assign sqsInstances += [sqs +
             {
                 "Internal" : {
-                    "VersionId" : "",
-                    "VersionName" : "",
-                    "InstanceId" : "",
-                    "InstanceName" : "",
+                    "IdExtensions" : [],
+                    "NameExtensions" : [],
                     "DelaySeconds" : sqs.DelaySeconds!-1,
                     "MaximumMessageSize" : sqs.MaximumMessageSize!-1,
                     "MessageRetentionPeriod" : sqs.MessageRetentionPeriod!-1,
@@ -64,27 +70,28 @@
     [/#if]
 
     [#list sqsInstances as sqsInstance]
-        [#assign sqsResourceId = formatComponentSQSResourceId(
-                                    tier,
-                                    component,
-                                    sqsInstance)]
+    
+        [#assign sqsId = formatComponentSQSId(
+                            tier,
+                            component,
+                            sqsInstance)]
+
         [#if resourceCount > 0],[/#if]
         [#switch solutionListMode]
             [#case "definition"]
-                "${sqsResourceId}":{
+                "${sqsId}":{
                     "Type" : "AWS::SQS::Queue",
                     "Properties" : {
                         [#if sqs.Name != "SQS"]
-                            "QueueName" : "${formatName(sqs.Name,
-                                                        sqsInstance.Internal.VersionName,
-                                                        sqsInstance.Internal.InstanceName)}"
+                            "QueueName" : "${formatName(
+                                                sqs.Name,
+                                                sqsInstance)}"
                         [#else]
                             "QueueName" : "${formatName(
                                                 productName,
                                                 segmentName,
                                                 componentName,
-                                                sqsInstance.Internal.VersionName,
-                                                sqsInstance.Internal.InstanceName)}"
+                                                sqsInstance)}"
                         [/#if]
                         [#if sqsInstance.Internal.DelaySeconds != -1],"DelaySeconds" : ${sqsInstance.Internal.DelaySeconds?c}[/#if]
                         [#if sqsInstance.Internal.MaximumMessageSize != -1],"MaximumMessageSize" : ${sqsInstance.Internal.MaximumMessageSize?c}[/#if]
@@ -96,15 +103,9 @@
                 [#break]
     
             [#case "outputs"]
-                "${sqsResourceId}" : {
-                    "Value" : { "Fn::GetAtt" : ["${sqsResourceId}", "QueueName"] }
-                },
-                "${formatResourceUrlAttributeId(sqsResourceId)}" : {
-                    "Value" : { "Ref" : "${sqsResourceId}" }
-                },
-                "${formatResourceArnAttributeId(sqsResourceId)}" : {
-                    "Value" : { "Fn::GetAtt" : ["${sqsResourceId}", "Arn"] }
-                }
+                [@outputSQS sqsId /],
+                [@outputSQSUrl sqsId /],
+                [@outputArn sqsId /]
                 [#break]
     
         [/#switch]

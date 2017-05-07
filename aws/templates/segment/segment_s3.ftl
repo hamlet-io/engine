@@ -1,11 +1,17 @@
 [#-- Standard set of buckets for a segment --]
 
 [#if deploymentUnit?contains("s3")]
+
+    [#-- TODO: Should be using formatSegmentS3Id() not formatS3Id() --]
+    [#assign s3OperationsId = formatS3Id(operationsBucketType)]
+    [#assign s3DataId = formatS3Id(dataBucketType)]
+    [#assign s3OperationsPolicyId = formatS3BucketPolicyId(s3OperationsId)]
+
     [#if resourceCount > 0],[/#if]
     [#switch segmentListMode]
         [#case "definition"]
             [#-- Create operations bucket --]
-            "${formatId("s3", operationsBucketType)}" : {
+            "${s3OperationsId}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {
                     "BucketName" : "${operationsBucket}",
@@ -33,8 +39,8 @@
                 }
             },
             [#-- Ensure ELBs can write to the operations bucket for logs --]
-            "${formatId("s3", operationsBucketType, "policy")}" : {
-                "DependsOn" : [ "${formatId("s3", operationsBucketType)}" ],
+            "${s3OperationsPolicyId}" : {
+                "DependsOn" : [ "${s3OperationsId}" ],
                 "Type" : "AWS::S3::BucketPolicy",
                 "Properties" : {
                     "Bucket" : "${operationsBucket}",
@@ -53,7 +59,7 @@
                 }
             },
             [#-- Create data bucket --]
-            "${formatId("s3", dataBucketType)}" : {
+            "${s3DataId}" : {
                 "Type" : "AWS::S3::Bucket",
                 "Properties" : {
                     "BucketName" : "${dataBucket}",
@@ -84,18 +90,30 @@
 
         [#case "outputs"]
             [#-- Current naming --]
-            "${formatId("s3", "segment", "operations")}" : {
-                "Value" : { "Ref" : "${formatId("s3", operationsBucketType)}" }
+            [#-- TODO: Should be using s3OperationsId not formatSegmentS3Id("ops") --]
+            "${formatSegmentS3Id("ops")}" : {
+                "Value" : { "Ref" : "${s3OperationsId}" }
             },
-            "${formatId("s3", "segment", "data")}" : {
-                "Value" : { "Ref" : "${formatId("s3", dataBucketType)}" }
+            [#-- TODO: Should be using s3DataId not formatSegmentS3Id("data") --]
+            "${formatSegmentS3Id("data")}" : {
+                "Value" : { "Ref" : "${s3DataId}" }
             },
             [#-- Legacy naming --]
-            "${formatId("s3", operationsBucketSegment, operationsBucketType)}" : {
-                "Value" : { "Ref" : "${formatId("s3", operationsBucketType)}" }
+            [#-- TODO: Remove --]
+            "${formatSegmentS3Id("operations")}" : {
+                "Value" : { "Ref" : "${s3OperationsId}" }
             },
-            "${formatId("s3", dataBucketSegment, dataBucketType)}" : {
-                "Value" : { "Ref" : "${formatId("s3", dataBucketType)}" }
+            "${formatSegmentS3Id("logs")}" : {
+                "Value" : { "Ref" : "${s3OperationsId}" }
+            },
+            "${formatContainerS3Id("logs")}" : {
+                "Value" : { "Ref" : "${s3OperationsId}" }
+            },
+            "${formatSegmentS3Id("backups")}" : {
+                "Value" : { "Ref" : "${s3DataId}" }
+            },
+            "${formatContainerS3Id("backups")}" : {
+                "Value" : { "Ref" : "${s3DataId}" }
             }
             [#break]
 

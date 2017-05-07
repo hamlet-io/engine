@@ -1,7 +1,9 @@
 [#-- API Gateway --]
+
 [#if componentType == "apigateway"]
     [#assign apigateway = component.APIGateway]
-    [#assign apigatewayInstances=[] ]
+    
+    [#assign apigatewayInstances=[] ]    
     [#if apigateway.Versions??]
         [#list apigateway.Versions?values as version]
             [#if deploymentRequired(version, deploymentUnit)]  
@@ -11,11 +13,21 @@
                             [#assign apigatewayInstances += [apigatewayInstance +
                                     {
                                         "Internal" : {
+                                            "IdExtensions" : [
+                                                version.Id,
+                                                (apigatewayInstance.Id == "default")?
+                                                    string(
+                                                        "",
+                                                        apigatewayInstance.Id)],
+                                            "NameExtensions" : [
+                                                version.Name,
+                                                (apigatewayInstance.Id == "default")?
+                                                    string(
+                                                        "",
+                                                        apigatewayInstance.Name)],
                                             "VersionId" : version.Id,
-                                            "VersionName" : version.Name,
-                                            "InstanceIdRef" : apigatewayInstance.Id,
-                                            "InstanceId" : (apigatewayInstance.Id == "default")?string("",apigatewayInstance.Id),
-                                            "InstanceName" : (apigatewayInstance.Id == "default")?string("",apigatewayInstance.Name)
+                                            "StageName" : version.Name,
+                                            "InstanceIdRef" : apigatewayInstance.Id
                                         }
                                     }
                                 ] 
@@ -26,10 +38,10 @@
                     [#assign apigatewayInstances += [version +
                             {
                                 "Internal" : {
+                                    "IdExtensions" : [version.Id],
+                                    "NameExtensions" : [version.Name],
                                     "VersionId" : version.Id,
-                                    "VersionName" : version.Name,
-                                    "InstanceId" : "",
-                                    "InstanceName" : ""
+                                    "StageName" : version.Name
                                 }
                             }
                         ] 
@@ -40,49 +52,49 @@
     [/#if]
 
     [#list apigatewayInstances as apigatewayInstance]
-        [#assign apiResourceId    = formatAPIGatewayAPIResourceId(
-                                        tier,
-                                        component,
-                                        apigatewayInstance)]
-        [#assign deployResourceId = formatAPIGatewayDeployResourceId(
-                                        tier,
-                                        component,
-                                        apigatewayInstance)]
-        [#assign stageResourceId  = formatAPIGatewayStageResourceId(
-                                        tier,
-                                        component,
-                                        apigatewayInstance)]
+        [#assign apiId    = formatAPIGatewayId(
+                                tier,
+                                component,
+                                apigatewayInstance)]
+        [#assign deployId = formatAPIGatewayDeployId(
+                                tier,
+                                component,
+                                apigatewayInstance)]
+        [#assign stageId  = formatAPIGatewayStageId(
+                                tier,
+                                component,
+                                apigatewayInstance)]
+
         [#if resourceCount > 0],[/#if]
         [#switch applicationListMode]
             [#case "definition"]
-                "${apiResourceId}" : {
+                "${apiId}" : {
                     "Type" : "AWS::ApiGateway::RestApi",
                     "Properties" : {
                         "BodyS3Location" : {
                             "Bucket" : "${getRegistryEndPoint("swagger")}",
                             "Key" : "${getRegistryPrefix("swagger")}${productName}/${buildDeploymentUnit}/${buildCommit}/swagger.json"
                         },
-                        "Name" : "${formatComponentFullNameStem(
+                        "Name" : "${formatComponentFullName(
                                         tier,
                                         component,
-                                        apigatewayInstance.Internal.VersionName,
-                                        apigatewayInstance.Internal.InstanceName)}"
+                                        apigatewayInstance)}"
                     }
                 },
-                "${deployResourceId}" : {
+                "${deployId}" : {
                     "Type": "AWS::ApiGateway::Deployment",
                     "Properties": {
-                        "RestApiId": { "Ref" : "${apiResourceId}" },
+                        "RestApiId": { "Ref" : "${apiId}" },
                         "StageName": "default"
                     },
-                    "DependsOn" : "${apiResourceId}"
+                    "DependsOn" : "${apiId}"
                 },
-                [#assign stageName = apigatewayInstance.Internal.VersionName]
-                "${stageResourceId}" : {
+                [#assign stageName = apigatewayInstance.Internal.StageName]
+                "${stageId}" : {
                     "Type" : "AWS::ApiGateway::Stage",
                     "Properties" : {
-                        "DeploymentId" : { "Ref" : "${deployResourceId}" },
-                        "RestApiId" : { "Ref" : "${apiResourceId}" },
+                        "DeploymentId" : { "Ref" : "${deployId}" },
+                        "RestApiId" : { "Ref" : "${apiId}" },
                         "StageName" : "${stageName}"
                         [#if apigatewayInstance.Links??]
                             ,"Variables" : {
@@ -97,7 +109,7 @@
                                                 [#if linkCount > 0],[/#if]
                                                 [#assign stageVariable = link.Name?upper_case + "_DOCKER" ]
                                                 [@environmentVariable stageVariable
-                                                    getKey(formatALBResourceDNSId(
+                                                    getKey(formatALBDNSId(
                                                             targetTier,
                                                             targetComponent))
                                                     "apigateway" /]
@@ -137,7 +149,7 @@
                             }
                         [/#if]
                     },
-                    "DependsOn" : "${deployResourceId}"
+                    "DependsOn" : "${deployId}"
                 }
                 [#-- Include access to lambda functions if required --]
                 [#if apigatewayInstance.Links?? ]
@@ -167,12 +179,12 @@
                                                                             targetComponent,
                                                                             apigatewayInstance,
                                                                             fn)]
-                                                ,"${formatAPIGatewayLambdaPermissionResourceId(
+                                                ,"${formatAPIGatewayLambdaPermissionId(
                                                         tier,
                                                         component,
-                                                        apigatewayInstance,
                                                         link,
-                                                        fn)}" : {
+                                                        fn,
+                                                        apigatewayInstance)}" : {
                                                     "Type" : "AWS::Lambda::Permission",
                                                     "Properties" : {
                                                         "Action" : "lambda:InvokeFunction",
@@ -185,7 +197,7 @@
                                                                     "arn:aws:execute-api:",
                                                                     "${regionId}", ":",
                                                                     {"Ref" : "AWS::AccountId"}, ":",                    
-                                                                    { "Ref" : "${apiResourceId}" },
+                                                                    { "Ref" : "${apiId}" },
                                                                     "/${stageName}/*"
                                                                 ]
                                                             ]
@@ -203,12 +215,8 @@
                 [#break]
 
             [#case "outputs"]
-                "${apiResourceId}" : {
-                    "Value" : { "Ref" : "${apiResourceId}" }
-                },
-                "${formatResourceAttributeId(apiResourceId, "root")}" : {
-                    "Value" : { "Fn::GetAtt" : ["${apiResourceId}", "RootResourceId"] }
-                }
+                [@output apiId /],
+                [@outputRoot apiId /]
                 [#break]
 
         [/#switch]

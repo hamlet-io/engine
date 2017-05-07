@@ -1,6 +1,8 @@
 [#ftl]
 [#include "setContext.ftl"]
 
+[#-- Functions --]
+
 [#function getRegistryEndPoint type]
     [#return (appSettingsObject.Registries[type?lower_case].EndPoint)!(appSettingsObject[type?capitalize].Registry)!"unknown"]
 [/#function]
@@ -25,32 +27,7 @@
     [#return "appsettings/" + productName + "/" + segmentName]
 [/#function]
 
-[#if buildReference??]
-    [#if buildReference?starts_with("{")]
-        [#-- JSON format --]
-        [#assign buildReferenceObject = buildReference?eval]
-        [#if buildReferenceObject.commit?? ]
-            [#assign buildCommit = buildReferenceObject.commit]
-        [/#if]
-        [#if buildReferenceObject.Commit?? ]
-            [#assign buildCommit = buildReferenceObject.Commit]
-        [/#if]
-        [#if buildReferenceObject.tag??]
-            [#assign appReference = buildReferenceObject.tag]
-        [/#if]
-        [#if buildReferenceObject.Tag??]
-            [#assign appReference = buildReferenceObject.Tag]
-        [/#if]
-    [#else]
-        [#-- Legacy format --]
-        [#assign buildCommit = buildReference]
-        [#assign buildSeparator = buildReference?index_of(" ")]
-        [#if buildSeparator != -1]
-            [#assign buildCommit = buildReference[0..(buildSeparator-1)]]
-            [#assign appReference = buildReference[(buildSeparator+1)..]]
-        [/#if]
-    [/#if]
-[/#if]
+[#-- Macros --]
 
 [#macro environmentVariable name value format="docker"]
     [#switch format]
@@ -83,12 +60,11 @@
 [/#macro]
 
 [#macro createTask tier component task]
+    [#assign taskId = formatECSTaskId(tier component task)]
+    
     [#-- Set up context for processing the list of containers --]
     [#assign containerListTarget = "docker"]
-    [#assign containerListRole = formatContainerHostRoleResourceId(
-                                    tier,
-                                    component,
-                                    task)]
+    [#assign containerListRole = formatDependentRoleId(taskId)]
 
     [#-- Check if a role is required --]
     [#assign containerListMode = "policyCount"]
@@ -96,8 +72,6 @@
     [#list task.Containers?values as container]
         [#if container?is_hash]
             [#assign containerId = formatContainerId(
-                                    tier,
-                                    component,
                                     task,
                                     container)]
             [#include containerList]
@@ -126,36 +100,28 @@
         [#list task.Containers?values as container]
             [#if container?is_hash]
                 [#assign containerId = formatContainerId(
-                                        tier,
-                                        component,
                                         task,
                                         container)]
                 [#-- DEPRECATED: These stem variables are deprecated --]
                 [#--             in favour of the containerListPolicy* variables --]
-                [#assign policyIdStem = formatComponentIdStem(
+                [#assign policyIdStem = formatComponentId(
                                             tier,
                                             component,
-                                            task.Internal.TaskId,
-                                            task.Internal.VersionId,
-                                            task.Internal.InstanceId,
+                                            task,
                                             container.Id)]
                 [#assign policyNameStem = formatName(container.Name)]
-                [#assign containerListPolicyId = formatContainerPolicyResourceId(
-                                                tier,
-                                                component,
-                                                task,
-                                                container)]
+                [#assign containerListPolicyId = formatDependentPolicyId(
+                                                    taskId,
+                                                    container)]
                 [#assign containerListPolicyName = formatContainerPolicyName(
-                                                tier,
-                                                component,
-                                                task,
-                                                container)]
+                                                    task,
+                                                    container)]
                 [#include containerList]
             [/#if]
         [/#list]
     [/#if]
 
-    "${formatECSTaskResourceId(tier, component, task)}" : {
+    "${taskId}" : {
         "Type" : "AWS::ECS::TaskDefinition",
         "Properties" : {
             "ContainerDefinitions" : [
@@ -169,15 +135,11 @@
                         [#if containerCount > 0],[/#if]
                         {
                             [#assign containerId = formatContainerId(
-                                                    tier,
-                                                    component,
                                                     task,
                                                     container)]
                             [#assign containerName = formatContainerName(
-                                                        tier,
-                                                        component,
-                                                        task,
-                                                        container)]
+                                                       task,
+                                                       container)]
                             [#assign containerListMode = "definition"]
                             [#include containerList]
                             [#assign containerListMode = "environmentCount"]
@@ -232,8 +194,6 @@
             [#list task.Containers?values as container]
                 [#if container?is_hash]
                     [#assign containerId = formatContainerId(
-                                            tier,
-                                            component,
                                             task,
                                             container)]
                     [#include containerList]
@@ -246,8 +206,6 @@
                     [#list task.Containers?values as container]
                         [#if container?is_hash]
                             [#assign containerId = formatContainerId(
-                                                    tier,
-                                                    component,
                                                     task,
                                                     container)]
                             [#include containerList]
@@ -261,6 +219,35 @@
         }
     }
 [/#macro]
+
+[#-- Initialisation --]
+
+[#if buildReference??]
+    [#if buildReference?starts_with("{")]
+        [#-- JSON format --]
+        [#assign buildReferenceObject = buildReference?eval]
+        [#if buildReferenceObject.commit?? ]
+            [#assign buildCommit = buildReferenceObject.commit]
+        [/#if]
+        [#if buildReferenceObject.Commit?? ]
+            [#assign buildCommit = buildReferenceObject.Commit]
+        [/#if]
+        [#if buildReferenceObject.tag??]
+            [#assign appReference = buildReferenceObject.tag]
+        [/#if]
+        [#if buildReferenceObject.Tag??]
+            [#assign appReference = buildReferenceObject.Tag]
+        [/#if]
+    [#else]
+        [#-- Legacy format --]
+        [#assign buildCommit = buildReference]
+        [#assign buildSeparator = buildReference?index_of(" ")]
+        [#if buildSeparator != -1]
+            [#assign buildCommit = buildReference[0..(buildSeparator-1)]]
+            [#assign appReference = buildReference[(buildSeparator+1)..]]
+        [/#if]
+    [/#if]
+[/#if]
 
 {
     "AWSTemplateFormatVersion" : "2010-09-09",

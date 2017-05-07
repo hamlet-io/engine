@@ -1,7 +1,10 @@
 [#-- ELB --]
 [#if componentType == "elb"]
-    [@createSecurityGroup solutionListMode tier component /]
     [#assign elb = component.ELB]
+    [#assign elbId = formatELBId(tier, component)]
+
+    [@createComponentSecurityGroup solutionListMode tier component /]
+
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
@@ -10,7 +13,9 @@
                 "${formatId("securityGroupIngress", componentIdStem, source.Port?c)}" : {
                     "Type" : "AWS::EC2::SecurityGroupIngress",
                     "Properties" : {
-                        "GroupId": {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"},
+                        "GroupId": {"Ref" : "${formatComponentSecurityGroupId(
+                                                tier,
+                                                component)}"},
                         "IpProtocol": "${source.IPProtocol}",
                         "FromPort": "${source.Port?c}",
                         "ToPort": "${source.Port?c}",
@@ -18,7 +23,7 @@
                     }
                 },
             [/#list]
-            "${primaryResourceIdStem}" : {
+            "${elbId}" : {
                 "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
                 "Properties" : {
                     [#if multiAZ]
@@ -79,7 +84,9 @@
                         },
                     [/#if]
                     "Scheme" : "${(tier.RouteTable == "external")?string("internet-facing","internal")}",
-                    "SecurityGroups":[ {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"} ],
+                    "SecurityGroups":[ {"Ref" : "${formatComponentSecurityGroupId(
+                                                    tier,
+                                                    component)}"} ],
                     "LoadBalancerName" : "${formatName(productId, segmentId, tierId, componentId)}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -99,12 +106,8 @@
             [#break]
 
         [#case "outputs"]
-            "${primaryResourceIdStem}" : {
-                "Value" : { "Ref" : "${primaryResourceIdStem}" }
-            },
-            "${formatId(primaryResourceIdStem, "dns")}" : {
-                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "DNSName"] }
-            }
+            [@output elbId /],
+            [@outputLBDns elbId /]
             [#break]
 
     [/#switch]

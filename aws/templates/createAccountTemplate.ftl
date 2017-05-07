@@ -1,6 +1,8 @@
 [#ftl]
 [#include "setContext.ftl" ]
 
+[#-- Initialisation --]
+
 [#-- Domains --]
 [#assign accountDomainStem = accountObject.Domain.Stem]
 [#assign accountDomainBehaviour = (accountObject.Domain.AccountBehaviour)!""]

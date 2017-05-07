@@ -12,6 +12,8 @@ if [[ -n "${GENERATION_CONTEXT_DEFINED}" ]]; then return 0; fi
 export GENERATION_CONTEXT_DEFINED="true"
 GENERATION_CONTEXT_DEFINED_LOCAL="true"
 
+[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\n--- starting setContext.sh ---\n"
+
 # If no files match a glob, return nothing
 # Many of the file existence for loops in this script rely on this setting
 shopt -s nullglob
@@ -20,7 +22,7 @@ shopt -s nullglob
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
 pushd "$(pwd)" >/dev/null
-COMPOSITES=("ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" "POLICY" "CONTAINER")
+COMPOSITES=("ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" "POLICY" "CONTAINER" "ID" "NAME")
 BLUEPRINT_ARRAY=()
 for COMPOSITE in "${COMPOSITES[@]}"; do
     # define the array holding the list of composite fragment filenames
@@ -30,6 +32,13 @@ for COMPOSITE in "${COMPOSITES[@]}"; do
     for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/*start.ftl; do
         eval "${COMPOSITE}_ARRAY+=(\"${FRAGMENT}\")"
     done
+    
+    # If no composite specific start fragment, use a generic one
+    eval "FRAGMENT_COUNT=\"\${#${COMPOSITE}_ARRAY[@]}\""
+    if [[ "${FRAGMENT_COUNT}" -eq 0 ]]; then
+        eval "${COMPOSITE}_ARRAY+=(\"${GENERATION_DIR}/templates/start.ftl\")"
+    fi
+
 done
 
 if [[ (-f "segment.json") || (-f "container.json") ]]; then
@@ -138,6 +147,7 @@ if [[ -f "${TENANT_DIR}/tenant.json" ]]; then
 fi
 
 # Build the composite solution ( aka blueprint)
+[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\nBLUEPRINT=${BLUEPRINT_ARRAY[*]}"
 export COMPOSITE_BLUEPRINT="${CONFIG_DIR}/composite_blueprint.json"
 if [[ "${#BLUEPRINT_ARRAY[@]}" -gt 0 ]]; then
     GENERATION_MASTER_DATA_DIR="${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"
@@ -203,8 +213,8 @@ done
 # fragment has been found
 for COMPOSITE in "${COMPOSITES[@]}"; do
     eval "FRAGMENT_COUNT=\"\${#${COMPOSITE}_ARRAY[@]}\""
-    if [[ "${FRAGMENT_COUNT}" -gt 0 ]]; then
-        [[ -n "${GENERATION_DEBUG}" ]] && eval "echo ${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}"
+    if [[ "${FRAGMENT_COUNT}" -gt 1 ]]; then
+        [[ -n "${GENERATION_DEBUG}" ]] && eval "echo -e \"\\n${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}\""
         eval "export COMPOSITE_${COMPOSITE}=\${CONFIG_DIR}/composite_${COMPOSITE,,}.ftl"
         eval "cat \"\${${COMPOSITE}_ARRAY[@]}\" > \${COMPOSITE_${COMPOSITE}}"
     fi
@@ -289,7 +299,7 @@ if [[ -n "${PRODUCT}" ]]; then
 fi
 
 # Build the composite appsettings
-[[ -n "${GENERATION_DEBUG}" ]] && echo appsettings=${APPSETTINGS_ARRAY[*]}
+[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\nAPPSETTINGS=${APPSETTINGS_ARRAY[*]}"
 export COMPOSITE_APPSETTINGS="${CONFIG_DIR}/composite_appsettings.json"
 if [[ "${#APPSETTINGS_ARRAY[@]}" -gt 0 ]]; then
     ${GENERATION_DIR}/manageJSON.sh -c -o ${COMPOSITE_APPSETTINGS} "${APPSETTINGS_ARRAY[@]}"
@@ -303,7 +313,7 @@ if [[ -f "${ACCOUNT_CREDENTIALS_DIR}/credentials.json" ]]; then
 fi
 
 # Build the composite credentials
-[[ -n "${GENERATION_DEBUG}" ]] && echo credentials=${CREDENTIALS_ARRAY[*]}
+[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\nCREDENTIALS=${CREDENTIALS_ARRAY[*]}"
 export COMPOSITE_CREDENTIALS="${INFRASTRUCTURE_DIR}/composite_credentials.json"
 if [[ "${#CREDENTIALS_ARRAY[@]}" -gt 0 ]]; then
     ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
@@ -323,6 +333,7 @@ if [[ (-n "${SEGMENT}") && (-n "${REGION}") && (-d "${INFRASTRUCTURE_DIR}/${PROD
     STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf/*-${REGION}-stack.json)
 fi
 
+[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\nSTACK_OUTPUTS=${STACK_ARRAY[*]}"
 export COMPOSITE_STACK_OUTPUTS="${INFRASTRUCTURE_DIR}/composite_stack_outputs.json"
 if [[ "${#STACK_ARRAY[@]}" -gt 0 ]]; then
     ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) | .[]]" -o ${COMPOSITE_STACK_OUTPUTS} "${STACK_ARRAY[@]}"
@@ -382,4 +393,7 @@ else
     export FILE_MV="mv"
     export FILE_RM="rm"
 fi
+
+[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\n--- finished setContext.sh ---\n"
+
 

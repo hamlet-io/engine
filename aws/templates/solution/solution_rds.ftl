@@ -1,8 +1,14 @@
 [#-- RDS --]
 [#if componentType == "rds"]
-    [@createSecurityGroup solutionListMode tier component /]
     [#assign db = component.RDS]
     [#assign engine = db.Engine]
+    [#assign rdsId = formatComponentResourceId(
+                        "rds",
+                        tier,
+                        component)]
+
+    [@createComponentSecurityGroup solutionListMode tier component /]
+    
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
@@ -28,7 +34,9 @@
             "${formatId("securityGroupIngress", componentIdStem)}" : {
                 "Type" : "AWS::EC2::SecurityGroupIngress",
                 "Properties" : {
-                    "GroupId": {"Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}"},
+                    "GroupId": {"Ref" : "${formatComponentSecurityGroupId(
+                                            tier,
+                                            component)}"},
                     "IpProtocol": "${ports[db.Port].IPProtocol}",
                     "FromPort": "${ports[db.Port].Port?c}",
                     "ToPort": "${ports[db.Port].Port?c}",
@@ -105,7 +113,7 @@
                 }
             },
             [#assign processorProfile = getProcessor(tier, component, "RDS")]
-            "${primaryResourceIdStem}":{
+            "${rdsId}":{
                 "Type":"AWS::RDS::DBInstance",
                 "Properties":{
                     "Engine": "${engine}",
@@ -128,7 +136,9 @@
                         "AvailabilityZone" : "${zones[0].AWSZone}",
                     [/#if]
                     "VPCSecurityGroups":[
-                        { "Ref" : "${formatSecurityGroupPrimaryResourceId(componentIdStem)}" }
+                        { "Ref" : "${formatComponentSecurityGroupId(
+                                        tier,
+                                        component)}" }
                     ],
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -148,19 +158,19 @@
             [#break]
 
         [#case "outputs"]
-            "${formatId(primaryResourceIdStem, "dns")}" : {
-                "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "Endpoint.Address"] }
+            "${formatId(rdsId, "dns")}" : {
+                "Value" : { "Fn::GetAtt" : ["${rdsId}", "Endpoint.Address"] }
             },
-            "${formatId(primaryResourceIdStem, "port")}" : {
-                    "Value" : { "Fn::GetAtt" : ["${primaryResourceIdStem}", "Endpoint.Port"] }
+            "${formatId(rdsId, "port")}" : {
+                    "Value" : { "Fn::GetAtt" : ["${rdsId}", "Endpoint.Port"] }
                 },
-            "${formatId(primaryResourceIdStem, "databasename")}" : {
+            "${formatId(rdsId, "databasename")}" : {
                     "Value" : "${productName}"
                 },
-            "${formatId(primaryResourceIdStem, "username")}" : {
+            "${formatId(rdsId, "username")}" : {
                     "Value" : "${credentialsObject[formatName(tierId, componentId)].Login.Username}"
                 },
-            "${formatId(primaryResourceIdStem, "password")}" : {
+            "${formatId(rdsId, "password")}" : {
                 "Value" : "${credentialsObject[formatName(tierId, componentId)].Login.Password}"
             }
             [#break]
