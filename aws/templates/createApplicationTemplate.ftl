@@ -114,6 +114,8 @@
                                                     taskId,
                                                     container)]
                 [#assign containerListPolicyName = formatContainerPolicyName(
+                                                    tier,
+                                                    component,
                                                     task,
                                                     container)]
                 [#include containerList]
@@ -138,6 +140,8 @@
                                                     task,
                                                     container)]
                             [#assign containerName = formatContainerName(
+                                                       tier,
+                                                       component,
                                                        task,
                                                        container)]
                             [#assign containerListMode = "definition"]

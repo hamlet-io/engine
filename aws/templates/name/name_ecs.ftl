@@ -4,10 +4,12 @@
 
 [#-- Resources --]
 
-[#function formatContainerName host container]
-    [#return container.Name]
+[#function formatContainerName tier component host container]
+    [#return formatName(
+                container)]
 [/#function]
 
-[#function formatContainerPolicyName host container]
-    [#return container.Name]
+[#function formatContainerPolicyName tier component host container]
+    [#return formatName(
+                container)]
 [/#function]

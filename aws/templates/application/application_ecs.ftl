@@ -231,6 +231,8 @@
                                                                                         getComponent("elb", port.ELB)))}",
                                                     [/#if]
                                                     "ContainerName" : "${formatContainerName(
+                                                                            tier,
+                                                                            component,
                                                                             serviceInstance,
                                                                             container) }",
                                                     [#if port.Container??]
