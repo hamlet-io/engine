@@ -1,6 +1,6 @@
-[#-- ACM Certificate --]
-[#if componentType == "acm"]
-    [#assign acm = component.ACM]
+[#-- Certificate --]
+[#if componentType == "cert"]
+    [#assign acm = component.Cert]
     [#assign certId = formatComponentCertificateId(
                         tier,
                         component)]
