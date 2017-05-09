@@ -50,8 +50,8 @@
                                         [#if (alb.DNS[mapping])??]
                                             [#assign certificateLink = alb.DNS[mapping]]
                                             [#assign mappingCertificateId = formatComponentCertificateId(
-                                                                                certificateLink.tier,
-                                                                                certificateLink.component)]
+                                                                                certificateLink.Tier,
+                                                                                certificateLink.Component)]
                                             [#if getKey(mappingCertificateId)?has_content]
                                                 "${getKey(mappingCertificateId)}"
                                                 [#assign certificateFound = true]

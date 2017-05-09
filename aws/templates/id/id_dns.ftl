@@ -16,9 +16,15 @@
 [/#function]
 
 [#function formatSegmentDomainId extensions...]
-    [#return formatSegmentResourceId(
+    [#local legacyId = formatSegmentResourceId(
+                "domain",
                 "domain",
                 extensions)]
+    [#return getKey(legacyId)?has_content?then(
+                legacyId,
+                formatSegmentResourceId(
+                    "domain",
+                    extensions))]
 [/#function]
 
 [#function formatComponentDomainId tier component extensions...]
@@ -30,9 +36,15 @@
 [/#function]
 
 [#function formatAccountDomainId extensions...]
-    [#return formatAccountResourceId(
+    [#local legacyId = formatAccountResourceId(
+                "domain",
                 "domain",
                 extensions)]
+    [#return getKey(legacyId)?has_content?then(
+                legacyId,
+                formatAccountResourceId(
+                    "domain",
+                    extensions))]
 [/#function]
 
 [#-- Attributes --]

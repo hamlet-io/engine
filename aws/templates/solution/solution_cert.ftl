@@ -1,17 +1,25 @@
 [#-- ACM Certificate --]
 [#if componentType == "acm"]
     [#assign acm = component.ACM]
+    [#assign certId = formatComponentCertificateId(
+                        tier,
+                        component)]
+    [#-- If creating cert in another region, domain must be explicitly --]
+    [#-- provided                                                      --]
+    [#assign certDomain = acm.Domain?has_content?then(
+                            acm.Domain,
+                            segmentDomain)]
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
-            "${formatId("certificate", componentIdStem)}" : {
+            "${certId}" : {
                 "Type" : "AWS::CertificateManager::Certificate",
                 "Properties" : {
-                    "DomainName" : "${segmentDomain}"
+                    "DomainName" : "${certDomain}"
                     [#if (tenantObject.Domain.Validation)??]
                         ,"DomainValidationOptions" : [
                             {
-                                "DomainName" : "${segmentDomain}",
+                                "DomainName" : "${certDomain}",
                                 "ValidationDomain" : "${tenantObject.Domain.Validation}"
                             }
                         ]
@@ -21,9 +29,7 @@
             [#break]
 
         [#case "outputs"]
-            "${formatId("certificate", componentIdStem)}" : {
-                "Value" : { "Ref" : "${formatId("certificate", componentIdStem)}" }
-            }
+            [@output certId /]
             [#break]
 
     [/#switch]
