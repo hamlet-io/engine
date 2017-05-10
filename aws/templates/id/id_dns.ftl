@@ -74,13 +74,25 @@
 [/#function]
 
 [#function formatSegmentDomainQualifierId extensions...]
-    [#return formatQualifierAttributeId(
-                formatSegmentDomainId(extensions))]
+    [#local legacyId = formatQualifierAttributeId(
+                            formatSegmentResourceId(
+                                "domain",
+                                extensions))]
+    [#return getKey(legacyId)?has_content?then(
+                legacyId,
+                formatQualifierAttributeId(
+                    formatSegmentDomainId(extensions)))]
 [/#function]
 
 [#function formatSegmentDomainCertificateId extensions...]
-    [#return formatCertificateAttributeId(
-                formatSegmentDomainId(extensions))]
+    [#local legacyId = formatCertificateAttributeId(
+                            formatSegmentResourceId(
+                                "domain",
+                                extensions))]
+    [#return getKey(legacyId)?has_content?then(
+                legacyId,
+                formatCertificateAttributeId(
+                    formatSegmentDomainId(extensions)))]
 [/#function]
 
 [#function formatComponentDomainQualifierId tier component extensions...]
