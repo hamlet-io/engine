@@ -238,10 +238,10 @@ if [[ -n "${BUILD_REFERENCE}" ]]; then ARGS+=("-v" "buildReference=${BUILD_REFER
 # Removal of drive letter (/?/) is specifically for MINGW
 # It shouldn't affect other platforms as it won't be matched
 if [[ -n "${!COMPOSITE_VAR}"     ]]; then ARGS+=("-r" "${TYPE}List=${!COMPOSITE_VAR#/?/}"); fi
-if [[ -n "${COMPOSITE_POLICY}"   ]]; then ARGS+=("-r" "policyList=${COMPOSITE_POLICY#/?/}"); fi
 if [[ "${TYPE}" == "application" ]]; then ARGS+=("-r" "containerList=${COMPOSITE_CONTAINER#/?/}"); fi
 ARGS+=("-r" "idList=${COMPOSITE_ID#/?/}")
 ARGS+=("-r" "nameList=${COMPOSITE_NAME#/?/}")
+ARGS+=("-r" "policyList=${COMPOSITE_POLICY#/?/}")
 ARGS+=("-v" "region=${REGION}")
 ARGS+=("-v" "productRegion=${PRODUCT_REGION}")
 ARGS+=("-v" "accountRegion=${ACCOUNT_REGION}")

@@ -134,6 +134,8 @@
                                                         lambdaId,
                                                         {"Id" : lambda.Container })]
                     [#assign containerListPolicyName = formatContainerPolicyName(
+                                                        tier,
+                                                        component,
                                                         lambdaInstance,
                                                         {"Name" : lambda.Container })]
                     [#include containerList?ensure_starts_with("/")]
