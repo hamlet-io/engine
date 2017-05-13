@@ -1,52 +1,34 @@
 [#case "cleanup"]
     [#switch containerListMode]
         [#case "definition"]
-            "Name" : "${tier.Name + "-" + component.Name + "-" + container.Name}",
-            "Image" : "${getRegistryEndPoint("docker")}/cleanup${dockerTag}",
-            "Environment" : [
-                {
-                    "Name" : "CLEAN_PERIOD",
-                    "Value" : "900"
-                },
-                {
-                    "Name" : "DELAY_TIME",
-                    "Value" : "10800"
-                }
-            ],
-            "MountPoints": [
-                {
-                    "SourceVolume": "dockerDaemon",
-                    "ContainerPath": "/var/run/docker.sock",
-                    "ReadOnly": false
-                },
-                {
-                    "SourceVolume": "dockerFiles",
-                    "ContainerPath": "/var/lib/docker",
-                    "ReadOnly": false
-                }
-            ],
-            "Essential" : true,
+            [@containerBasicAttributes
+                containerName
+                "cleanup" + dockerTag
+            /]
+            [#break]
+
+        [#case "environmentCount"]
+        [#case "environment"]
+            [@environmentVariable
+                "CLEAN_PERIOD" "900"
+                containerListTarget containerListMode/]
+            [@environmentVariable
+                "DELAY_TIME" "10800"
+                containerListTarget containerListMode/]
             [#break]
 
         [#case "volumeCount"]
-            [#assign volumeCount += 2]
-            [#break]
-
         [#case "volumes"]
-            [#if volumeCount > 0],[/#if]
-            {
-                "Host": {
-                    "SourcePath": "/var/run/docker.sock"
-                },
-                "Name": "dockerDaemon"
-            },
-            {
-                "Host": {
-                    "SourcePath": "/var/lib/docker"
-                },
-                "Name": "dockerFiles"
-            }
-            [#assign volumeCount += 2]
+        [#case "mountPointCount"]
+        [#case "mountPoints"]
+            [@containerVolume
+                "dockerDaemon"
+                "/var/run/docker.sock"
+                "/var/run/docker.sock" /]
+            [@containerVolume
+                "dockerFiles"
+                "/var/lib/docker"
+                "/var/lib/docker" /]
             [#break]
 
     [/#switch]
