@@ -1,141 +1,193 @@
 [#-- S3 --]
 [#if componentType == "s3"]
     [#assign s3 = component.S3]
-    [#assign s3Id = formatComponentS3Id(tier, component)]
 
-    [#if resourceCount > 0],[/#if]
-    [#switch solutionListMode]
-        [#case "definition"]
-            [#-- Current bucket naming --]
-            [#if s3.Name != "S3"]
-                [#assign bucketName = formatName(s3.Name, segmentDomainQualifier) + "." + segmentDomain]
-            [#else]
-                [#assign bucketName = formatName(component.Name, segmentDomainQualifier) + "." + segmentDomain]
-            [/#if]
-            [#-- Support presence of existing s3 buckets (naming has changed over time) --]
-            [#assign bucketName = getKey(s3Id)?has_content?then(
-                                    getKey(s3Id),
-                                    bucketName)]
-            "${s3Id}" : {
-                "Type" : "AWS::S3::Bucket",
-                "Properties" : {
-                    "BucketName" : "${bucketName}",
-                    "Tags" : [
-                        { "Key" : "cot:request", "Value" : "${requestReference}" },
-                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                        { "Key" : "cot:account", "Value" : "${accountId}" },
-                        { "Key" : "cot:product", "Value" : "${productId}" },
-                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                        { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tierId}" },
-                        { "Key" : "cot:component", "Value" : "${componentId}" }
-                    ]
-                    [#if s3.Lifecycle??]
-                        ,"LifecycleConfiguration" : {
-                            "Rules" : [
+    [#assign s3Instances=[]]
+    [#if s3.Versions??]
+        [#list s3.Versions?values as version]
+            [#if deploymentRequired(version, deploymentUnit)]
+                [#if version.Instances??]
+                    [#list version.Instances?values as s3Instance]
+                        [#if deploymentRequired(s3Instance, deploymentUnit)]
+                            [#assign s3Instances += [s3Instance +
                                 {
-                                    "Id" : "default",
-                                    [#if s3.Lifecycle.Expiration??]
-                                        "ExpirationInDays" : ${s3.Lifecycle.Expiration},
-                                    [/#if]
-                                    "Status" : "Enabled"
+                                    "Internal" : {
+                                        "IdExtensions" : [
+                                            version.Id,
+                                            (s3Instance.Id == "default")?
+                                                string(
+                                                    "",
+                                                    s3Instance.Id)],
+                                        "NameExtensions" : [
+                                            version.Name,
+                                            (s3Instance.Id == "default")?
+                                                string(
+                                                    "",
+                                                    s3Instance.Name)],
+                                        "Lifecycle" : s3Instance.Lifecycle!version.Lifecycle!s3.Lifecycle!-1,
+                                        "Notifications" : s3Instance.Notifications!version.Notifications!s3.Notifications!-1
+                                    }
                                 }
-                            ]
-                        }
-                    [/#if]
-                    [#if s3.Notifications??]
-                        ,"NotificationConfiguration" : {
-                        [#if s3.Notifications.SQS??]
-                            "QueueConfigurations" : [
-                                [#assign queueCount = 0]
-                                [#list s3.Notifications.SQS?values as queue]
-                                    [#if queue?is_hash]
-                                        [#assign sqsArn = getKey(
-                                                            formatComponentSQSArnId(
-                                                                queue.Tier!tier,
-                                                                queue.Component!queue.id))]
-                                        [#if queueCount > 0],[/#if]
-                                        {
-                                            "Event" : "s3:ObjectCreated:*",
-                                            "Queue" : "${sqsArn}"
-                                        },
-                                        {
-                                            "Event" : "s3:ObjectRemoved:*",
-                                            "Queue" : "${sqsArn}"
-                                        },
-                                        {
-                                            "Event" : "s3:ReducedRedundancyLostObject",
-                                            "Queue" : "${sqsArn}"
-                                        }
-                                        [#assign queueCount += 1]
-                                    [/#if]
-                                [/#list]
-                            ]
+                            ] ]
                         [/#if]
-                        }
-                    [/#if]
-                }
-                [#if s3.Notifications??]
-                    ,"DependsOn" : [
-                        [#if (s3.Notifications.SQS)??]
-                            [#assign queueCount = 0]
-                            [#list s3.Notifications.SQS?values as queue]
-                                 [#if queue?is_hash]
-                                    [#if queueCount > 0],[/#if]
-                                    "${formatS3NotificationsQueuePolicyId(
-                                        s3Id,
-                                        queue)}"
-                                    [#assign queueCount += 1]
-                                 [/#if]
-                            [/#list]
-                        [/#if]
-                    ]
-                [/#if]
-            }
-            [#if (s3.Notifications.SQS)??]
-                [#assign queueCount = 0]
-                [#list s3.Notifications.SQS?values as queue]
-                    [#if queue?is_hash]
-                        [#assign sqsUrl = getKey(
-                                            formatComponentSQSUrlId(
-                                                queue.Tier!tier,
-                                                queue.Component!queue.id))]
-                        ,"${formatS3NotificationsQueuePolicyId(
-                                s3Id,
-                                queue)}" : {
-                            "Type" : "AWS::SQS::QueuePolicy",
-                            "Properties" : {
-                                "PolicyDocument" : {
-                                    "Version" : "2012-10-17",
-                                    "Statement" : [
-                                        {
-                                            "Effect" : "Allow",
-                                            "Principal" : "*",
-                                            "Action" : "sqs:SendMessage",
-                                            "Resource" : "*",
-                                            "Condition" : {
-                                                "ArnLike" : {
-                                                    "aws:sourceArn" : "arn:aws:s3:::*"
-                                                }
-                                            }
-                                        }
-                                    ]
-                                },
-                                "Queues" : [ "${sqsUrl}" ]
+                    [/#list]
+                [#else]
+                    [#assign s3Instances += [version +
+                        {
+                            "Internal" : {
+                                "IdExtensions" : [
+                                    version.Id],
+                                "NameExtensions" : [
+                                    version.Name],
+                                "Lifecycle" : version.Lifecycle!s3.Lifecycle!-1,
+                                "Notifications" : version.Notifications!s3.Notifications!-1
                             }
                         }
-                    [/#if]
-                [/#list]
+                    ]]
+                [/#if]
             [/#if]
-            [#break]
+        [/#list]
+    [#else]
+        [#assign s3Instances += [s3 +
+            {
+                "Internal" : {
+                    "IdExtensions" : [],
+                    "NameExtensions" : [],
+                    "Lifecycle" : s3.Lifecycle!-1,
+                    "Notifications" : s3.Notifications!-1
+                }
+            }
+        ]]
+    [/#if]
 
-        [#case "outputs"]
-            [@output s3Id /],
-            [@outputS3Url s3Id /]
-            [#break]
+    [#list s3Instances as s3Instance]
 
-    [/#switch]
-    [#assign resourceCount += 1]
+        [#assign s3Id = formatComponentS3Id(
+                            tier,
+                            component,
+                            s3Instance)]
+
+        [#if resourceCount > 0],[/#if]
+        [#switch solutionListMode]
+            [#case "definition"]
+                [#-- Current bucket naming --]
+                [#if s3.Name != "S3"]
+                    [#assign bucketName = formatName(s3.Name, s3Instance, segmentDomainQualifier) + "." + segmentDomain]
+                [#else]
+                    [#assign bucketName = formatName(componentName, s3Instance, segmentDomainQualifier) + "." + segmentDomain]
+                [/#if]
+                [#-- Support presence of existing s3 buckets (naming has changed over time) --]
+                [#assign bucketName = getKey(s3Id)?has_content?then(
+                                        getKey(s3Id),
+                                        bucketName)]
+                "${s3Id}" : {
+                    "Type" : "AWS::S3::Bucket",
+                    "Properties" : {
+                        "BucketName" : "${bucketName}",
+                        "Tags" : [
+                            { "Key" : "cot:request", "Value" : "${requestReference}" },
+                            { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
+                            { "Key" : "cot:tenant", "Value" : "${tenantId}" },
+                            { "Key" : "cot:account", "Value" : "${accountId}" },
+                            { "Key" : "cot:product", "Value" : "${productId}" },
+                            { "Key" : "cot:segment", "Value" : "${segmentId}" },
+                            { "Key" : "cot:environment", "Value" : "${environmentId}" },
+                            { "Key" : "cot:category", "Value" : "${categoryId}" },
+                            { "Key" : "cot:tier", "Value" : "${tierId}" },
+                            { "Key" : "cot:component", "Value" : "${componentId}" }
+                        ]
+                        [#if s3Instance.Internal.Lifecycle?is_hash]
+                            [#assign s3Lifecycle = s3Instance.Internal.Lifecycle]
+                            ,"LifecycleConfiguration" : {
+                                "Rules" : [
+                                    {
+                                        "Id" : "default",
+                                        [#if s3Lifecycle.Expiration??]
+                                            "ExpirationInDays" : ${s3Lifecycle.Expiration},
+                                        [/#if]
+                                        "Status" : "Enabled"
+                                    }
+                                ]
+                            }
+                        [/#if]
+                        [#if s3Instance.Internal.Notifications?is_hash]
+                            ,"NotificationConfiguration" : {
+                            [#if s3Instance.Internal.Notifications.SQS??]
+                                [#assign sqsNotifications = s3Instance.Internal.Notifications.SQS]
+                                "QueueConfigurations" : [
+                                    [#assign queueCount = 0]
+                                    [#list sqsNotifications?values as queue]
+                                        [#if queue?is_hash]
+                                            [#assign sqsArn = getKey(
+                                                                formatComponentSQSArnId(
+                                                                    queue.Tier!tier,
+                                                                    queue.Component!queue.id,
+                                                                    s3Instance))]
+                                            [#if queueCount > 0],[/#if]
+                                            {
+                                                "Event" : "s3:ObjectCreated:*",
+                                                "Queue" : "${sqsArn}"
+                                            },
+                                            {
+                                                "Event" : "s3:ObjectRemoved:*",
+                                                "Queue" : "${sqsArn}"
+                                            },
+                                            {
+                                                "Event" : "s3:ReducedRedundancyLostObject",
+                                                "Queue" : "${sqsArn}"
+                                            }
+                                            [#assign queueCount += 1]
+                                        [/#if]
+                                    [/#list]
+                                ]
+                            [/#if]
+                            }
+                        [/#if]
+                    }
+                    [#if s3Instance.Internal.Notifications?is_hash]
+                        ,"DependsOn" : [
+                            [#if s3Instance.Internal.Notifications.SQS??]
+                                [#assign sqsNotifications = s3Instance.Internal.Notifications.SQS]
+                                [#assign queueCount = 0]
+                                [#list sqsNotifications?values as queue]
+                                     [#if queue?is_hash]
+                                        [#if queueCount > 0],[/#if]
+                                        "${formatS3NotificationsQueuePolicyId(
+                                            s3Id,
+                                            queue)}"
+                                        [#assign queueCount += 1]
+                                     [/#if]
+                                [/#list]
+                            [/#if]
+                        ]
+                    [/#if]
+                }
+                [#if s3Instance.Internal.Notifications?is_hash &&
+                        (s3Instance.Internal.Notifications.SQS)??]
+                    [#assign sqsNotifications = s3Instance.Internal.Notifications.SQS]
+                    [#assign queueCount = 0]
+                    [#list sqsNotifications?values as queue]
+                        [#if queue?is_hash]
+                            [#assign sqsId = formatComponentSQSId(
+                                                    queue.Tier!tier,
+                                                    queue.Component!queue.id,
+                                                    s3Instance)]
+                            [@sqsPolicyHeader formatS3NotificationsQueuePolicyId(
+                                                s3Id,
+                                                queue) /]
+                            [@sqsS3WriteStatement sqsId /]
+                            [@sqsPolicyFooter sqsId /]
+                        [/#if]
+                    [/#list]
+                [/#if]
+                [#break]
+    
+            [#case "outputs"]
+                [@output s3Id /],
+                [@outputS3Url s3Id /]
+                [#break]
+    
+        [/#switch]
+        [#assign resourceCount += 1]
+    [/#list]
 [/#if]
