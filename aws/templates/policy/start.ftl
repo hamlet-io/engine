@@ -8,17 +8,16 @@
                 "Type" : "AWS::IAM::${type}",
                 "Properties" : {
                 [#if roles?has_content]
-                    "Roles" :
+                    "Roles" : [
                         [#if roles?is_sequence && (roles?size > 0)]
-                            [
-                                [#list roles as role]
-                                    { "Ref" : "${role}" }
-                                    [#if role?last != role],[/#if]
-                                [/#list]
-                            ]
+                            [#list roles as role]
+                                { "Ref" : "${role}" }
+                                [#if role?last != role],[/#if]
+                            [/#list]
                         [#else]
                             { "Ref" : "${roles}" }
                         [/#if]
+                    ]
                 [/#if],
         [#else]
             {
