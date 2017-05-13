@@ -1,6 +1,7 @@
 [#-- ElastiCache --]
-[#if componentType == "elasticache"]
-    [#assign cache = component.ElastiCache]
+[#if (componentType == "elasticache") ||
+        (componentType == "cache")]
+    [#assign cache = component.Cache!component.ElastiCache]
     [#assign engine = cache.Engine]
     [#assign cacheId = formatComponentResourceId(
                         "cache",
