@@ -29,8 +29,18 @@
                         ,"LifecycleConfiguration" : {
                             "Rules" : [
                                 {
-                                    "Id" : "default",
                                     "ExpirationInDays" : ${operationsExpiration},
+                                    "Prefix" : "AWSLogs",
+                                    "Status" : "Enabled"
+                                },
+                                {
+                                    "ExpirationInDays" : ${operationsExpiration},
+                                    "Prefix" : "CLOUDFRONTLogs",
+                                    "Status" : "Enabled"
+                                },
+                                {
+                                    "ExpirationInDays" : ${operationsExpiration},
+                                    "Prefix" : "DOCKERLogs",
                                     "Status" : "Enabled"
                                 }
                             ]
