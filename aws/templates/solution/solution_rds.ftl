@@ -49,7 +49,7 @@
                     "DBSubnetGroupDescription" : "${componentFullNameStem}",
                     "SubnetIds" : [
                         [#list zones as zone]
-                            "${getKey("subnet", componentIdStem)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                            "${getKey("subnet",  tierId, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
                         [/#list]
                     ],
                     "Tags" : [
@@ -128,7 +128,7 @@
                     "DBInstanceIdentifier": "${componentFullNameStem}",
                     "DBName": "${productName}",
                     "DBSubnetGroupName": { "Ref" : "${formatId("rdsSubnetGroup", componentIdStem)}" },
-                    "DBParameterGroupName": { "Ref" : "${formatId("rdsParameterGroup", componentIdStemd)}" },
+                    "DBParameterGroupName": { "Ref" : "${formatId("rdsParameterGroup", componentIdStem)}" },
                     "OptionGroupName": { "Ref" : "${formatId("rdsOptionGroup", componentIdStem)}" },
                     [#if multiAZ]
                         "MultiAZ": true,
