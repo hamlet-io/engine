@@ -227,6 +227,37 @@
 
 [#-- Utility Macros --]
 
+[#-- Output hash as JSON --]
+[#macro toJSON obj]
+    [#if obj?is_hash]
+    {
+        [#local objCount = 0]
+        [#list obj as key,value]
+            "${key}" : [@toJSON value /]
+            [#if objCount > 0],[/#if]
+            [#local objCount += 1]
+        [/#list]
+    }
+    [#else]
+        [#if obj?is_sequence]
+            [
+                [#local entryCount = 0]
+                [#list obj as entry]
+                    [@toJSON entry /]
+                    [#if entryCount > 0],[/#if]
+                    [#local entryCount += 1]
+                [/#list]
+            ]
+        [#else]
+            [#if obj?is_string]
+                "${obj}"
+            [#else]
+                ${obj}
+            [/#if]
+        [/#if]
+    [/#if]
+[/#macro]
+
 [#-- Include a reference to a resource in the output --]
 [#macro createReference value]
     [#if value?is_hash && value.Ref??]
