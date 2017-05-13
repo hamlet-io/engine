@@ -11,52 +11,90 @@
     [#return (appSettingsObject.Registries[type?lower_case].Prefix)!(appSettingsObject[type?capitalize].Prefix)!""]
 [/#function]
 
-[#function getCredentialFilePrefix]
-    [#return "credentials/" + productName + "/" + segmentName + "/" + deployment_unit]
-[/#function]
-
-[#function getAppSettingsFilePrefix]
-    [#return "appsettings/" + productName + "/" + segmentName + "/" + deployment_unit]
-[/#function]
-
-[#function getSegmentCredentialFilePrefix]
-    [#return "credentials/" + productName + "/" + segmentName]
-[/#function]
-
-[#function getSegmentAppSettingsFilePrefix]
-    [#return "appsettings/" + productName + "/" + segmentName]
-[/#function]
-
 [#-- Macros --]
 
-[#macro environmentVariable name value format="docker"]
-    [#switch format]
-        [#case "docker"]
-            {
-                "Name" : "${name}",
-                "Value" : "${value}"
-            }
+[#macro environmentVariable name value format="docker" mode=""]
+    [#-- Legacy use will not provide mode --]
+    [#switch mode]
+        [#case "environment"]
+        [#case ""]
+            [#if mode?has_content && (environmentCount > 0)],[/#if]
+            [#switch format]
+                [#case "docker"]
+                    {
+                        "Name" : "${name}",
+                        "Value" : "${value}"
+                    }
+                    [#break]
+        
+                [#case "lambda"]
+                [#default]
+                    "${name}" : "${value}"
+                    [#break]
+            [/#switch]
+            [#-- No break --]
+        [#case "environmentCount"]
+            [#if mode?has_content]
+                [#assign environmentCount += 1]
+            [/#if]
             [#break]
-
-        [#case "lambda"]
-        [#default]
-            "${name}" : "${value}"
-            [#break]
-
     [/#switch]
 [/#macro]
 
-[#macro standardEnvironmentVariables format="docker"]
-    [@environmentVariable "TEMPLATE_TIMESTAMP" "${.now?iso_utc}" format /],
-    [@environmentVariable "ENVIRONMENT" "${environmentName}" format /],
-    [@environmentVariable "REQUEST_REFERENCE" "${requestReference}" format /],
-    [@environmentVariable "CONFIGURATION_REFERENCE" "${configurationReference}" format /]
+[#macro standardEnvironmentVariables format="docker" mode=""]
+    [@environmentVariable "TEMPLATE_TIMESTAMP" "${.now?iso_utc}" format mode /]
+    [#if !mode?has_content],[/#if]
+    [@environmentVariable "ENVIRONMENT" "${environmentName}" format mode /]
+    [#if !mode?has_content],[/#if]
+    [@environmentVariable "REQUEST_REFERENCE" "${requestReference}" format mode /]
+    [#if !mode?has_content],[/#if]
+    [@environmentVariable "CONFIGURATION_REFERENCE" "${configurationReference}" format mode /]
     [#if buildCommit??]
-        ,[@environmentVariable "BUILD_REFERENCE" "${buildCommit}" format /]
+        [#if !mode?has_content],[/#if]
+        [@environmentVariable "BUILD_REFERENCE" "${buildCommit}" format mode /]
     [/#if]
     [#if appReference?? && (appReference != "")]
-        ,[@environmentVariable "APP_REFERENCE" "${appReference}" format /]
+        [#if !mode?has_content],[/#if]
+        [@environmentVariable "APP_REFERENCE" "${appReference}" format mode /]
     [/#if]
+[/#macro]
+
+[#macro containerBasicAttributes name image="" essential=true]
+    "Name" : "${name}",
+    "Image" : "${getRegistryEndPoint("docker")}/${image?has_content?then(
+                    image,
+                    productName + "/" + buildDeploymentUnit + "-" + buildCommit)}",
+    "Essential" : ${essential?c},
+[/#macro]
+
+[#macro containerVolume name containerPath hostPath="" readonly=false]
+    [#switch containerListMode]
+        [#case "volumes"]
+            [#if volumeCount > 0],[/#if]
+            {
+                "Host": {
+                    "SourcePath": "${hostPath}"
+                },
+                "Name": "${name}"
+            }
+            [#-- No break --]
+        [#case "volumeCount"]
+            [#assign volumeCount += 1]
+            [#break]
+            
+        [#case "mountPoints"]
+            [#if mountPointCount > 0],[/#if]
+            {
+                "SourceVolume": "${name}",
+                "ContainerPath": "${containerPath}",
+                "ReadOnly": ${readonly?c}
+            }
+            [#-- No break --]
+        [#case "mountPointCount"]
+            [#assign mountPointCount += 1]
+        [#break]
+    [/#switch]
+
 [/#macro]
 
 [#macro createTask tier component task]
@@ -69,6 +107,8 @@
     [#-- Check if a role is required --]
     [#assign containerListMode = "policyCount"]
     [#assign policyCount = 0]
+    [#assign containerListPolicyId = ""]
+    [#assign containerListPolicyName = ""]
     [#list task.Containers?values as container]
         [#if container?is_hash]
             [#assign containerId = formatContainerId(
@@ -151,7 +191,18 @@
                             [#include containerList]
                             [#if environmentCount > 0]
                                 "Environment" : [
+                                    [#assign environmentCount = 0]
                                     [#assign containerListMode = "environment"]
+                                    [#include containerList]
+                                ],
+                            [/#if]
+                            [#assign containerListMode = "mountPointCount"]
+                            [#assign mountPointCount = 0]
+                            [#include containerList]
+                            [#if mountPointCount > 0]
+                                "MountPoints" : [
+                                    [#assign mountPointCount = 0]
+                                    [#assign containerListMode = "mountPoints"]
                                     [#include containerList]
                                 ],
                             [/#if]

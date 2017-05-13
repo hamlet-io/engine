@@ -1,12 +1,7 @@
 [#-- SQS --]
 
 [#macro sqsPolicyHeader id]
-    "${id}": {
-        "Type" : "AWS::IAM::QueuePolicy",
-        "Properties" : {
-            "PolicyDocument" : {
-                "Version": "2012-10-17",
-                "Statement": [
+    [@policyHeader id "" "QueuePolicy" /]
 [/#macro]
 
 [#macro sqsPolicyFooter queueIds]

@@ -130,6 +130,7 @@
                         }
                     },
                     [#assign containerListMode = "policy"]
+                    [#assign policyCount = 0]
                     [#assign containerListPolicyId = formatDependentPolicyId(
                                                         lambdaId,
                                                         {"Id" : lambda.Container })]
@@ -176,6 +177,7 @@
                                         "Environment" : {
                                             "Variables" : {
                                                 [#assign containerListMode = "environment"]
+                                                [#assign environmentCount = 0]
                                                 [#include containerList?ensure_starts_with("/")]
                                             }
                                         },

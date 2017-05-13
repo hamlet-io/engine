@@ -10,8 +10,16 @@
     /]
 [/#macro]
 
-[#macro s3GetStatement bucket key="" object="*"]
+[#macro s3ReadStatement bucket key="" object="*"]
     [@s3Statement "s3:GetObject" bucket key object /]
+[/#macro]
+
+[#macro s3WriteStatement bucket key="" object="*"]
+    [@s3Statement "s3:PutObject" bucket key object /]
+[/#macro]
+
+[#macro s3ListStatement bucket key="" object=""]
+    [@s3Statement "s3:List*" bucket key object /]
 [/#macro]
 
 

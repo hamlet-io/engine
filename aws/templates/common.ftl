@@ -82,6 +82,28 @@
     [#return exponent]
 [/#function]
 
+[#-- S3 config/credential storage  --]
+
+[#function getCredentialFilePrefix]
+    [#return "credentials/" + productName + "/" + segmentName + "/" + deployment_unit]
+[/#function]
+
+[#function getAppSettingsFilePrefix]
+    [#return "appsettings/" + productName + "/" + segmentName + "/" + deployment_unit]
+[/#function]
+
+[#function getSegmentCredentialsFilePrefix]
+    [#return "credentials/" + productName + "/" + segmentName]
+[/#function]
+
+[#function getSegmentAppSettingsFilePrefix]
+    [#return "appsettings/" + productName + "/" + segmentName]
+[/#function]
+
+[#function getSegmentBackupsFilePrefix]
+    [#return "backups/" + productName + "/" + segmentName]
+[/#function]
+
 [#-- Tiers --]
 
 [#-- Check if a tier exists --]

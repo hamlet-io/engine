@@ -43,60 +43,19 @@
                     "Path": "/",
                     "ManagedPolicyArns" : ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"],
                     "Policies": [
-                        {
-                            "PolicyName": "${formatName(tierId, componentId, "docker")}",
-                            "PolicyDocument" : {
-                                "Version": "2012-10-17",
-                                "Statement": [
-                                    {
-                                        "Effect": "Allow",
-                                        "Action": ["s3:GetObject"],
-                                        "Resource": [
-                                            "arn:aws:s3:::${credentialsBucket}/${accountId}/alm/docker/*"
-                                        ]
-                                    },
-                                    [#if fixedIP]
-                                        {
-                                            "Effect" : "Allow",
-                                            "Action" : [
-                                                "ec2:DescribeAddresses",
-                                                "ec2:AssociateAddress"
-                                            ],
-                                            "Resource": "*"
-                                        },
-                                    [/#if]
-                                    {
-                                        "Resource": [
-                                            "arn:aws:s3:::${codeBucket}",
-                                            "arn:aws:s3:::${operationsBucket}"
-                                        ],
-                                        "Action": [
-                                            "s3:List*"
-                                        ],
-                                        "Effect": "Allow"
-                                    },
-                                    {
-                                        "Resource": [
-                                            "arn:aws:s3:::${codeBucket}/*"
-                                        ],
-                                        "Action": [
-                                            "s3:GetObject"
-                                        ],
-                                        "Effect": "Allow"
-                                    },
-                                    {
-                                        "Resource": [
-                                            "arn:aws:s3:::${operationsBucket}/DOCKERLogs/*",
-                                            "arn:aws:s3:::${operationsBucket}/Backups/*"
-                                        ],
-                                        "Action": [
-                                            "s3:PutObject"
-                                        ],
-                                        "Effect": "Allow"
-                                    }
-                                ]
-                            }
-                        }
+                        [@policyHeader formatName(tierId, componentId, "docker") /]
+                        [@s3ReadStatement credentialsBucket accountId + "/alm/docker" /]
+                        [#if fixedIP]
+                            [@IPAddressWriteStatement /]
+                        [/#if]
+                        [@s3ListStatement codeBucket /]
+                        [@s3ReadStatement codeBucket /]
+                        [@s3ListStatement operationsBucket /]
+                        [@s3ReadStatement operationsBucket getSegmentCredentialsFilePrefix() /]
+                        [@s3ReadStatement operationsBucket getSegmentAppSettingsFilePrefix() /]
+                        [@s3WriteStatement operationsBucket getSegmentBackupsFilePrefix() /]
+                        [@s3WriteStatement operationsBucket "DOCKERLogs" /]
+                        [@policyFooter /]
                     ]
                 }
             },
