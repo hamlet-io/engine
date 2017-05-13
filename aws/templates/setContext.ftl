@@ -81,6 +81,7 @@
     [/#if]
     [#if getKey(formatSegmentS3Id("operations"))?has_content]
         [#assign operationsBucket = getKey(formatSegmentS3Id("operations"))]        
+        [#assign operationsBucketType = "operations"]
     [/#if]
     [#if getKey(formatSegmentS3Id("logs"))?has_content]
         [#assign operationsBucket = getKey(formatSegmentS3Id("logs"))]        
