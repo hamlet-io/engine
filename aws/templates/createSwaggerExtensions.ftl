@@ -3,7 +3,31 @@
 
 [#assign swaggerObject = swagger?eval]
 [#assign integrationsObject = integrations?eval]
-[#assign defaultValidation = "all"]
+[#assign defaultValidation = integrationsObject.Validation ! "all"]
+[#assign defaultSig4 = integrationsObject.Sig4 ! false]
+[#assign defaultApiKey = integrationsObject.ApiKey ! false]
+
+[#macro security sig4 apiKey]
+    "security": [
+        [#local count = 0]
+        [#if sig4]
+            {
+                "sigv4": []
+            }
+            [#local count += 1]
+        [#if apiKey]
+            [#if count > 0],[/#if]
+            {
+                "api_key": []
+            }
+        [/#if]
+    ]
+[/#macro]
+
+[#macro validator type]
+    "x-amazon-apigateway-request-validator" : "${type}"
+[/#macro]
+
 {
     "x-amazon-apigateway-request-validators" : {
         "all" : {
@@ -23,7 +47,21 @@
             "validateRequestParameters" : false
         }
     },
-    "x-amazon-apigateway-request-validator" : "${integrationsObject.Validation ! defaultValidation}"
+    "securityDefinitions": {
+        "api_key": {
+          "type": "apiKey",
+          "name": "x-api-key",
+          "in": "header"
+        },
+        "sigv4": {
+          "type": "apiKey",
+          "name": "Authorization",
+          "in": "header",
+          "x-amazon-apigateway-authtype": "awsSigv4"
+        }
+    },
+    [@security defaultSig4 defaultApiKey /],
+    [@validator defaultValidation /]
     [#if swaggerObject.paths??]
         ,"paths"  : {
             [#assign pathCount = 0]
@@ -68,7 +106,13 @@
                                             [#break]
                                     [/#switch]
                                     [#if pattern.Validation??]
-                                        ,"x-amazon-apigateway-request-validator" : "${pattern.Validation}"
+                                        ,[@validator pattern.Validation /]
+                                    [/#if]
+                                    [#assign patternSig4 = pattern.Sig4 ! defaultSig4]
+                                    [#assign patternApiKey = pattern.ApiKey ! defaultApiKey]
+                                    [#if (patternSig4 != defaultSig4) ||
+                                            (patternApiKey != defaultAPiKey))]
+                                        ,[@security patternSig4 patternApiKey /]
                                     [/#if]
                                     [#break]
                                 [/#if]
