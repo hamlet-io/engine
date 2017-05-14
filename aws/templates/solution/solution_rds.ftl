@@ -66,7 +66,8 @@
                     "DBSubnetGroupDescription" : "${rdsFullName}",
                     "SubnetIds" : [
                         [#list zones as zone]
-                            "${getKey(formatSubnetId(tier, zone))}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                            "${getKey(formatSubnetId(tier, zone))}"
+                            [#if !(zones?last.Id == zone.Id)],[/#if]
                         [/#list]
                     ],
                     "Tags" : [

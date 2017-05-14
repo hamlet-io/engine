@@ -3,13 +3,26 @@
         (componentType == "cache")]
     [#assign cache = component.Cache!component.ElastiCache]
     [#assign engine = cache.Engine]
-    [#assign cacheId = formatComponentResourceId(
-                        "cache",
+
+    [#assign cacheId = formatCacheId(
                         tier,
                         component)]
     [#assign cacheFullName = componentFullName]
+    [#assign cacheSubnetGroupId = formatCacheSubnetGroupId(tier, component)]
+    [#assign cacheParameterGroupId = formatCacheParameterGroupId(tier, component)]
 
-    [@createComponentSecurityGroup solutionListMode tier component /]
+    [#assign cacheSecurityGroupId = formatDependentSecurityGroupId(
+                                        cacheId)]
+    [#assign cacheSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
+                                            cacheSecurityGroupId, 
+                                            ports[cache.Port].Port?c)]
+
+    [@createDependentSecurityGroup
+        solutionListMode
+        tier
+        component
+        cacheId
+        cacheFullName/]
 
     [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
@@ -35,30 +48,29 @@
                     [#assign family = "redis" + engineVersion[0..familyVersionIndex]]
                     [#break]
             [/#switch]
-            "${formatId("securityGroupIngress", componentIdStem)}" : {
+            "${cacheSecurityGroupIngressId}" : {
                 "Type" : "AWS::EC2::SecurityGroupIngress",
                 "Properties" : {
-                    "GroupId": {"Ref" : "${formatComponentSecurityGroupId(
-                                            tier,
-                                            component)}"},
+                    "GroupId": {"Ref" : "${cacheSecurityGroupId}"},
                     "IpProtocol": "${ports[cache.Port].IPProtocol}",
                     "FromPort": "${ports[cache.Port].Port?c}",
                     "ToPort": "${ports[cache.Port].Port?c}",
                     "CidrIp": "0.0.0.0/0"
                 }
             },
-            "${formatId("cacheSubnetGroup", componentIdStem)}" : {
+            "${cacheSubnetGroupId}" : {
                 "Type" : "AWS::ElastiCache::SubnetGroup",
                 "Properties" : {
                     "Description" : "${cacheFullName}",
                     "SubnetIds" : [
                         [#list zones as zone]
-                            "${getKey("subnet", tierId, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
+                            "${getKey(formatSubnetId(tier, zone))}"
+                            [#if !(zones?last.Id == zone.Id)],[/#if]
                         [/#list]
                     ]
                 }
             },
-            "${formatId("cacheParameterGroup", componentIdStem)}" : {
+            "${cacheParameterGroupId}" : {
                 "Type" : "AWS::ElastiCache::ParameterGroup",
                 "Properties" : {
                     "CacheParameterGroupFamily" : "${family}",
@@ -75,8 +87,8 @@
                     "EngineVersion": "${engineVersion}",
                     "CacheNodeType" : "${processorProfile.Processor}",
                     "Port" : ${ports[cache.Port].Port?c},
-                    "CacheParameterGroupName": { "Ref" : "${formatId("cacheParameterGroup", componentIdStem)}" },
-                    "CacheSubnetGroupName": { "Ref" : "${formatId("cacheSubnetGroup", componentIdStem)}" },
+                    "CacheParameterGroupName": { "Ref" : "${cacheParameterGroupId}" },
+                    "CacheSubnetGroupName": { "Ref" : "${cacheSubnetGroupId}" },
                     [#if multiAZ]
                         "AZMode": "cross-az",
                         "PreferredAvailabilityZones" : [
@@ -100,9 +112,7 @@
                         "SnapshotRetentionLimit" : ${cache.SnapshotRetentionLimit}
                     [/#if]
                     "VpcSecurityGroupIds":[
-                        { "Ref" : "${formatComponentSecurityGroupId(
-                                        tier,
-                                        component)}" }
+                        { "Ref" : "${cacheSecurityGroupId}" }
                     ],
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
@@ -124,14 +134,12 @@
         [#case "outputs"]
             [#switch engine]
                 [#case "memcached"]
-                    "${formatId(cacheId, "dns")}" : {
-                       "Value" : { "Fn::GetAtt" : ["${cacheId}", "ConfigurationEndpoint.Address"] }
-                    },
-                    "${formatId(cacheId, "port")}" : {
-                        "Value" : { "Fn::GetAtt" : ["${cacheId}", "ConfigurationEndpoint.Port"] }
-                    }
+                    [@outputMemcachedDns cacheId /],
+                    [@outputMemcachedPort cacheId /]
                 [#break]
                 [#case "redis"]
+                    [@outputRedisDns cacheId /],
+                    [@outputRedisPort cacheId /]
                     [#break]
             [/#switch]
             [#break]
