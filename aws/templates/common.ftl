@@ -306,6 +306,12 @@
     }
 [/#macro]
 
+[#macro outputValue outputId value]
+    "${outputId}" : {
+        "Value" : "${value}"
+    }
+[/#macro]
+
 [#macro outputArn resourceId]
     [@outputAtt
         formatArnAttributeId(resourceId)
@@ -374,7 +380,6 @@
         "RootResourceId" /]
 [/#macro]
 
-
 [#macro createSecurityGroup mode tier component id name description=""]
     [#if resourceCount > 0],[/#if]
     [#switch mode]
@@ -409,7 +414,12 @@
     [#assign resourceCount += 1]
 [/#macro]
 
-[#macro createDependentSecurityGroup mode tier component resourceId resourceName]
+[#macro createDependentSecurityGroup
+            mode
+            tier
+            component
+            resourceId
+            resourceName]
     [@createSecurityGroup 
         mode 
         tier 
@@ -419,7 +429,12 @@
         "Security Group for " + resourceName /]
 [/#macro]
 
-[#macro createComponentSecurityGroup mode tier component idExtension="" nameExtension=""]
+[#macro createComponentSecurityGroup
+            mode
+            tier
+            component
+            idExtension=""
+            nameExtension=""]
     [@createSecurityGroup 
         mode 
         tier 
@@ -432,6 +447,35 @@
             tier,
             component,
             nameExtension) /]
+[/#macro]
+
+[#macro createDependentComponentSecurityGroup
+            mode
+            tier
+            component
+            resourceId
+            resourceName
+            idExtension=""
+            nameExtension=""]
+    [#local legacyId = formatComponentSecurityGroupId(
+                        tier,
+                        component,
+                        idExtension)]
+    [#if getKey(legacyId)?has_content]
+        [@createComponentSecurityGroup 
+            mode 
+            tier 
+            component
+            idExtension
+            nameExtension /]
+    [#else]
+        [@createDependentSecurityGroup 
+            mode 
+            tier 
+            component
+            resourceId
+            resourceName /]
+    [/#if]
 [/#macro]
 
 [#macro createTargetGroup tier component source destination name]

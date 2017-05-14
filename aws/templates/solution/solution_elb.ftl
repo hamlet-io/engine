@@ -1,7 +1,10 @@
 [#-- ELB --]
 [#if componentType == "elb"]
     [#assign elb = component.ELB]
+
     [#assign elbId = formatELBId(tier, component)]
+    [#assign elbFullName = componentFullName]
+    [#assign elbShortFullName = componentShortFullName]
 
     [@createComponentSecurityGroup solutionListMode tier component /]
 
@@ -87,7 +90,7 @@
                     "SecurityGroups":[ {"Ref" : "${formatComponentSecurityGroupId(
                                                     tier,
                                                     component)}"} ],
-                    "LoadBalancerName" : "${formatName(productId, segmentId, tierId, componentId)}",
+                    "LoadBalancerName" : "${elbShortFullName}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
                         { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
@@ -99,7 +102,7 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
                         { "Key" : "cot:tier", "Value" : "${tierId}" },
                         { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
+                        { "Key" : "Name", "Value" : "${elbFullName}" }
                     ]
                 }
             }

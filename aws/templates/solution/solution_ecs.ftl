@@ -2,6 +2,7 @@
 [#if componentType == "ecs"]
     [#assign ecs = component.ECS]
     [#assign ecsId = formatECSId(tier, component)]
+    [#assign ecsFullName = componentFullName]
     [#assign ecsRoleId = formatECSRoleId(tier, component)]
     [#assign ecsServiceRoleId = formatECSServiceRoleId(tier, component)]
     [#assign ecsInstanceProfileId = formatEC2InstanceProfileId(tier, component)]
@@ -245,7 +246,7 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}", "PropagateAtLaunch" : "True" },
                         { "Key" : "cot:tier", "Value" : "${tierId}", "PropagateAtLaunch" : "True" },
                         { "Key" : "cot:component", "Value" : "${componentId}", "PropagateAtLaunch" : "True"},
-                        { "Key" : "Name", "Value" : "${componentFullNameStem}", "PropagateAtLaunch" : "True" }
+                        { "Key" : "Name", "Value" : "${ecsFullName}", "PropagateAtLaunch" : "True" }
                     ]
                 }
             },

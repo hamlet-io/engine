@@ -7,6 +7,7 @@
                         "cache",
                         tier,
                         component)]
+    [#assign cacheFullName = componentFullName]
 
     [@createComponentSecurityGroup solutionListMode tier component /]
 
@@ -49,7 +50,7 @@
             "${formatId("cacheSubnetGroup", componentIdStem)}" : {
                 "Type" : "AWS::ElastiCache::SubnetGroup",
                 "Properties" : {
-                    "Description" : "${componentFullNameStem}",
+                    "Description" : "${cacheFullName}",
                     "SubnetIds" : [
                         [#list zones as zone]
                             "${getKey("subnet", tierId, zone.Id)}"[#if !(zones?last.Id == zone.Id)],[/#if]
@@ -61,7 +62,7 @@
                 "Type" : "AWS::ElastiCache::ParameterGroup",
                 "Properties" : {
                     "CacheParameterGroupFamily" : "${family}",
-                    "Description" : "${componentFullNameStem}",
+                    "Description" : "${cacheFullName}",
                     "Properties" : {
                     }
                 }
@@ -114,7 +115,7 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
                         { "Key" : "cot:tier", "Value" : "${tierId}" },
                         { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
+                        { "Key" : "Name", "Value" : "${cacheFullName}" }
                     ]
                 }
             }

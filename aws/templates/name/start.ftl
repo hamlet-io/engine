@@ -20,6 +20,15 @@
                 extensions)]
 [/#function]
 
+[#-- Format a component short name with type - based on ids not names --]
+[#function formatComponentShortNameWithType tier component extensions...]
+    [#return formatName(
+                getTierId(tier),
+                getComponentId(component),
+                getComponentType(component),
+                extensions)]
+[/#function]
+
 [#-- Format a component name --]
 [#function formatComponentName tier component extensions...]
     [#return formatName(

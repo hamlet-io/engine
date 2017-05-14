@@ -3,8 +3,10 @@
     [#assign alb = component.ALB]
 
     [#assign albId = formatALBId(tier, component)]
-    [#assign albSecurityGroupId = formatALBSecurityGroupId(tier, component)]
+    [#assign albFullName = componentFullName]
+    [#assign albShortFullName = componentShortFullName]
 
+    [#assign albSecurityGroupId = formatALBSecurityGroupId(tier, component)]
     [@createComponentSecurityGroup solutionListMode tier component /]
 
     [#if resourceCount > 0],[/#if]
@@ -121,9 +123,7 @@
                     ],
                     "Scheme" : "${(tier.RouteTable == "external")?string("internet-facing","internal")}",
                     "SecurityGroups":[ {"Ref" : "${albSecurityGroupId}"} ],
-                    "Name" : "${formatComponentShortFullName(
-                                    tier,
-                                    component)}",
+                    "Name" : "${albShortFullName}",
                     "Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
                         { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
@@ -135,7 +135,7 @@
                         { "Key" : "cot:category", "Value" : "${categoryId}" },
                         { "Key" : "cot:tier", "Value" : "${tierId}" },
                         { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${componentFullNameStem}" }
+                        { "Key" : "Name", "Value" : "${albFullName}" }
                     ]
                 }
             }

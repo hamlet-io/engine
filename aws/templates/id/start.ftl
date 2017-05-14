@@ -137,3 +137,26 @@
                 "root")]
 [/#function]
 
+[#function formatPortAttributeId resourceId]
+    [#return formatAttributeId(
+                resourceId,
+                "port")]
+[/#function]
+
+[#function formatUsernameAttributeId resourceId]
+    [#return formatAttributeId(
+                resourceId,
+                "username")]
+[/#function]
+
+[#function formatPasswordAttributeId resourceId]
+    [#return formatAttributeId(
+                resourceId,
+                "password")]
+[/#function]
+
+[#function formatDatabaseNameAttributeId resourceId]
+    [#return formatAttributeId(
+                resourceId,
+                "databasename")]
+[/#function]

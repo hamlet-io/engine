@@ -2,7 +2,8 @@
 [#if componentType == "ec2"]
     [#assign ec2 = component.EC2]
     [#assign fixedIP = ec2.FixedIP?? && ec2.FixedIP]
-    
+
+    [#assign ec2FullName = componentFullName ]
     [#assign ec2SecurityGroupId = formatEC2SecurityGroupId(tier, component)]
     [#assign ec2RoleId = formatEC2RoleId(tier, component)]
     [#assign ec2InstanceProfileId = formatEC2InstanceProfileId(tier, component)]
@@ -169,7 +170,7 @@
                                                         "echo \"cot:tier=${tierId}\"\n",
                                                         "echo \"cot:component=${componentId}\"\n",
                                                         "echo \"cot:zone=${zone.Id}\"\n",
-                                                        "echo \"cot:name=${componentFullNameStem}\"\n",
+                                                        "echo \"cot:name=${ec2FullName}\"\n",
                                                         "echo \"cot:role=${component.Role}\"\n",
                                                         "echo \"cot:credentials=${credentialsBucket}\"\n",
                                                         "echo \"cot:code=${codeBucket}\"\n",

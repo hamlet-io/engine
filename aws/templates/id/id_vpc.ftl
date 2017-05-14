@@ -27,6 +27,22 @@
                 extensions)]
 [/#function]
 
+[#function formatDependentComponentSecurityGroupId 
+            tier
+            component
+            resourceId
+            extensions...]
+    [#local legacyId = formatComponentSecurityGroupId(
+                        tier,
+                        component,
+                        extensions)]
+    [#return getKey(legacyId)?has_content?then(
+                legacyId,
+                formatDependentSecurityGroupId(
+                    resourceId,
+                    extensions))]
+[/#function]
+
 [#function formatSecurityGroupIngressId ids...]
     [#return formatResourceId(
                 "securityGroupIngress",
@@ -35,6 +51,8 @@
 
 [#-- Use the associated security group where possible as the dependent --]
 [#-- resource. (It may well in turn be a dependent resource)           --]
+[#-- As nothing depends in ingress resources, Cloud Formation will     --]
+[#-- deal with deleting the resource with the old format id.           --]
 [#function formatDependentSecurityGroupIngressId resourceId extensions...]
     [#return formatDependentResourceId(
                 "ingress",
