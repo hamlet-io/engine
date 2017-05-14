@@ -774,6 +774,18 @@
         }
     },
     "Ports": {
+        "couchdb": {
+            "Port": 5984,
+            "Protocol": "HTTP",
+            "IPProtocol": "tcp",
+            "HealthCheck": {
+                "Path": "/",
+                "HealthyThreshold": "3",
+                "UnhealthyThreshold": "5",
+                "Interval": "30",
+                "Timeout": "5"
+            }
+        },
         "ednp": {
             "Port": 25672,
             "IPProtocol": "tcp"
@@ -958,6 +970,10 @@
         }
     },
     "PortMappings": {
+        "couchdb": {
+            "Source": "https",
+            "Destination": "couchdb"
+        },
         "elasticsearch": {
             "Source": "https",
             "Destination": "elasticsearch"
