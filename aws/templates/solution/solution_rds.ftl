@@ -175,9 +175,7 @@
         [#case "outputs"]
             [@outputRDSDns rdsId /],
             [@outputRDSPort rdsId /],
-            [@outputRDSDatabaseName rdsId productName /],
-            [@outputRDSUsername rdsId rdsUsername /],
-            [@outputRDSPassword rdsId rdsPassword /]
+            [@outputRDSDatabaseName rdsId productName /]
             [#break]
 
     [/#switch]

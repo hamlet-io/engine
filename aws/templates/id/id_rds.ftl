@@ -48,14 +48,6 @@
     [#return formatDatabaseNameAttributeId(resourceId)]
 [/#function]
 
-[#function formatRDSUsernameId resourceId]
-    [#return formatUsernameAttributeId(resourceId)]
-[/#function]
-
-[#function formatRDSPasswordId resourceId]
-    [#return formatPasswordAttributeId(resourceId)]
-[/#function]
-
 [#-- Outputs --]
 
 [#macro outputRDSDns resourceId]
@@ -78,14 +70,3 @@
         value /]
 [/#macro]
 
-[#macro outputRDSUsername resourceId value]
-    [@outputValue
-        formatRDSUsernameId(resourceId)
-        value /]
-[/#macro]
-
-[#macro outputRDSPassword resourceId value]
-    [@outputValue
-        formatRDSPasswordId(resourceId)
-        value /]
-[/#macro]
