@@ -52,8 +52,6 @@
                         [@s3ListStatement codeBucket /]
                         [@s3ReadStatement codeBucket /]
                         [@s3ListStatement operationsBucket /]
-                        [@s3ReadStatement operationsBucket getSegmentCredentialsFilePrefix() /]
-                        [@s3ReadStatement operationsBucket getSegmentAppSettingsFilePrefix() /]
                         [@s3WriteStatement operationsBucket getSegmentBackupsFilePrefix() /]
                         [@s3WriteStatement operationsBucket "DOCKERLogs" /]
                         [@policyFooter /]
