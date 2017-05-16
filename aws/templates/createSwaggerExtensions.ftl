@@ -15,6 +15,7 @@
                 "sigv4": []
             }
             [#local count += 1]
+        [/#if]
         [#if apiKey]
             [#if count > 0],[/#if]
             {
