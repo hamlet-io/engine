@@ -112,7 +112,7 @@
                                     [#assign patternSig4 = pattern.Sig4 ! defaultSig4]
                                     [#assign patternApiKey = pattern.ApiKey ! defaultApiKey]
                                     [#if (patternSig4 != defaultSig4) ||
-                                            (patternApiKey != defaultAPiKey))]
+                                            (patternApiKey != defaultAPiKey)]
                                         ,[@security patternSig4 patternApiKey /]
                                     [/#if]
                                     [#break]
