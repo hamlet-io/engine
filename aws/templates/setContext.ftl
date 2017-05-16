@@ -1,8 +1,8 @@
 [#ftl]
 
-[#include idList]
-[#include nameList]
-[#include policyList]
+[#if idList??][#include idList][/#if]
+[#if nameList??][#include nameList][/#if]
+[#if policyList??][#include policyList][/#if]
 [#include "common.ftl"]
 
 [#-- Standard inputs --]
