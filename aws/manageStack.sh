@@ -28,7 +28,7 @@ where
 (m) -t TYPE                     is the stack type - "account", "product", "segment", "solution" or "application"
 (m) -u DEPLOYMENT_UNIT          is the deployment unit used to determine the stack template
 (o) -w STACK_WAIT               is the interval between checking the progress of the stack operation
-(o) -y (DRYRUN=true)            for a dryrun - show what will happen without actually updating the strack
+(o) -y (DRYRUN=--dryrun)        for a dryrun - show what will happen without actually updating the strack
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -87,7 +87,7 @@ while getopts ":dhimn:r:s:t:u:w:y" opt; do
             STACK_WAIT="${OPTARG}"
             ;;
         y)
-            DRYRUN=true
+            DRYRUN="--dryrun"
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
@@ -123,7 +123,7 @@ RESULT=0
 if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
         delete)
-            if [[ ("${DRYRUN}" == "true") ]]; then
+            if [[ -n "${DRYRUN}" ]]; then
                 echo -e "\nDryrun not applicable when deleting a stack" >&2
                 exit
             fi
@@ -131,6 +131,12 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
             aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
 
             # For delete, we don't check result as stack may not exist
+
+            # Delete any associated S3 files
+            if [[ "${TYPE}" == "application" ]]; then
+                deleteCMDBFilesFromOperationsBucket "appsettings"
+                deleteCMDBFilesFromOperationsBucket "credentials"
+            fi
             ;;
 
         update)
@@ -144,13 +150,13 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
                 STACK_OPERATION="create"
             fi
 
-            if [[ ("${DRYRUN}" == "true") && ("${STACK_OPERATION}" == "create") ]]; then
+            if [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]]; then
                 echo -e "\nDryrun not applicable when creating a stack" >&2
                 exit
             fi
 
             # Initiate the required operation
-            if [[ ("${DRYRUN}" == "true") ]]; then
+            if [[ -n "${DRYRUN}" ]]; then
 
                 # Force monitoring to wait for change set to be complete
                 STACK_OPERATION="create"
@@ -167,6 +173,12 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
             # Check result of operation
             RESULT=$?
             if [[ "$RESULT" -ne 0 ]]; then exit; fi
+            
+            # Update any S3 based files
+            if [[ "${TYPE}" == "application" ]]; then
+                syncCMDBFilesToOperationsBucket ${APPSETTINGS_DIR} "appsettings" ${DRYRUN}
+                syncCMDBFilesToOperationsBucket ${CREDENTIALS_DIR} "credentials" ${DRYRUN}
+            fi
             ;;
 
         *)
@@ -179,7 +191,7 @@ fi
 if [[ "${STACK_MONITOR}" = "true" ]]; then
     while true; do
 
-        if [[ ("${DRYRUN}" == "true") ]]; then
+        if [[ -n "${DRYRUN}" ]]; then
             STATUS_ATTRIBUTE="Status"
             aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
             RESULT=$?
@@ -212,7 +224,7 @@ if [[ "${STACK_OPERATION}" == "delete" ]]; then
         rm -f "${STACK}"
     fi
 fi
-if [[ "${DRYRUN}" == "true" ]]; then
+if [[ -n "${DRYRUN}" ]]; then
     cat "${STACK}"
 fi
 
