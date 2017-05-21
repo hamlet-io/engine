@@ -52,13 +52,13 @@
 
 [#function formatContainerId host container]
     [#return formatName(
-                container.Id,
+                getContainerId(container),
                 concatenate(host.Internal.HostIdExtensions,"-"))]
 [/#function]
 
 [#function formatContainerSecurityGroupIngressId resourceId container portRange]
     [#return formatDependentSecurityGroupIngressId(
                 resourceId,
-                container,
+                getContainerId(container),
                 portRange)]
 [/#function]

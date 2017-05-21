@@ -28,7 +28,7 @@
                                             {
                                                 "Internal" : {
                                                     "IdExtensions" : [
-                                                        service.Id,
+                                                        getTaskId(service),
                                                         version.Id,
                                                         (serviceInstance.Id == "default")?
                                                             string(
@@ -51,7 +51,7 @@
                                     {
                                         "Internal" : {
                                             "IdExtensions" : [
-                                                service.Id,
+                                                getTaskId(service),
                                                 version.Id],
                                             "HostIdExtensions" : [
                                                 version.Id],
@@ -67,7 +67,7 @@
                         {
                             "Internal" : {
                                 "IdExtensions" : [
-                                    service.Id],
+                                    getTaskId(service)],
                                 "HostIdExtensions" : [],
                                 "StageName" : ""
                             }
@@ -92,7 +92,7 @@
                                             {
                                                 "Internal" : {
                                                     "IdExtensions" : [
-                                                        task.Id,
+                                                        getTaskId(task),
                                                         version.Id,
                                                         (taskInstance.Id == "default")?
                                                             string(
@@ -115,7 +115,7 @@
                                     {
                                         "Internal" : {
                                             "IdExtensions" : [
-                                                task.Id,
+                                                getTaskId(task),
                                                 version.Id],
                                             "HostIdExtensions" : [
                                                 version.Id],
@@ -131,7 +131,7 @@
                         {
                             "Internal" : {
                                 "IdExtensions" : [
-                                    task.Id],
+                                    getTaskId(task)],
                                 "HostIdExtensions" : [],
                                 "StageName" : ""
                             }

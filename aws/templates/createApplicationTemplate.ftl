@@ -11,6 +11,33 @@
     [#return (appSettingsObject.Registries[type?lower_case].Prefix)!(appSettingsObject[type?capitalize].Prefix)!""]
 [/#function]
 
+[#function getTaskId task]
+    [#assign idParts = task?is_hash?then(
+                        task.Id?split("-"),
+                        task?split("-"))]
+
+    [#return formatId(idParts)]
+[/#function]
+
+[#function getContainerId container]
+    [#return container?is_hash?then(
+                container.Id?split("-")[0],
+                container?split("-")[0])]
+[/#function]
+
+[#function getContainerName container]
+    [#return container.Name?split("-")[0]]
+[/#function]
+
+[#function getContainerMode container]
+    [#assign idParts = container?is_hash?then(
+                        container.Id?split("-"),
+                        container?split("-"))]
+    [#return idParts[1]?has_content?then(
+                idParts[1]?upper_case,
+                "WEB")]
+[/#function]
+
 [#-- Macros --]
 
 [#macro environmentVariable name value format="docker" mode=""]
@@ -44,16 +71,22 @@
 [#macro standardEnvironmentVariables format="docker" mode=""]
     [@environmentVariable "TEMPLATE_TIMESTAMP" "${.now?iso_utc}" format mode /]
     [#if !mode?has_content],[/#if]
+    [@environmentVariable "AWS_REGION" "${regionId}" format mode /]
+    [#if !mode?has_content],[/#if]
     [@environmentVariable "ENVIRONMENT" "${environmentName}" format mode /]
     [#if !mode?has_content],[/#if]
     [@environmentVariable "REQUEST_REFERENCE" "${requestReference}" format mode /]
     [#if !mode?has_content],[/#if]
     [@environmentVariable "CONFIGURATION_REFERENCE" "${configurationReference}" format mode /]
-    [#if buildCommit??]
+    [#if buildCommit?has_content]
         [#if !mode?has_content],[/#if]
         [@environmentVariable "BUILD_REFERENCE" "${buildCommit}" format mode /]
     [/#if]
-    [#if appReference?? && (appReference != "")]
+    [#if containerRunMode?has_content]
+        [#if !mode?has_content],[/#if]
+        [@environmentVariable "APP_RUN_MODE" "${containerRunMode?upper_case}" format mode /]
+    [/#if]
+    [#if appReference?has_content]
         [#if !mode?has_content],[/#if]
         [@environmentVariable "APP_REFERENCE" "${appReference}" format mode /]
     [/#if]
@@ -114,6 +147,7 @@
             [#assign containerId = formatContainerId(
                                     task,
                                     container)]
+            [#assign containerRunMode = getContainerMode(container)]
             [#include containerList]
         [/#if]
     [/#list]
@@ -142,6 +176,15 @@
                 [#assign containerId = formatContainerId(
                                         task,
                                         container)]
+                [#assign containerRunMode = getContainerMode(container)]
+                [#assign containerListPolicyId = formatDependentPolicyId(
+                                                    taskId,
+                                                    getContainerId(container))]
+                [#assign containerListPolicyName = formatContainerPolicyName(
+                                                    tier,
+                                                    component,
+                                                    task,
+                                                    container)]
                 [#-- DEPRECATED: These stem variables are deprecated --]
                 [#--             in favour of the containerListPolicy* variables --]
                 [#assign policyIdStem = formatComponentId(
@@ -149,15 +192,7 @@
                                             component,
                                             task,
                                             container.Id)]
-                [#assign policyNameStem = formatName(container.Name)]
-                [#assign containerListPolicyId = formatDependentPolicyId(
-                                                    taskId,
-                                                    container)]
-                [#assign containerListPolicyName = formatContainerPolicyName(
-                                                    tier,
-                                                    component,
-                                                    task,
-                                                    container)]
+                [#assign policyNameStem = getContainerName(container)]
                 [#include containerList]
             [/#if]
         [/#list]
@@ -184,6 +219,7 @@
                                                        component,
                                                        task,
                                                        container)]
+                            [#assign containerRunMode = getContainerMode(container)]
                             [#assign containerListMode = "definition"]
                             [#include containerList]
                             [#assign containerListMode = "environmentCount"]
@@ -251,6 +287,7 @@
                     [#assign containerId = formatContainerId(
                                             task,
                                             container)]
+                    [#assign containerRunMode = getContainerMode(container)]
                     [#include containerList]
                 [/#if]
             [/#list]
@@ -263,6 +300,7 @@
                             [#assign containerId = formatContainerId(
                                                     task,
                                                     container)]
+                            [#assign containerRunMode = getContainerMode(container)]
                             [#include containerList]
                         [/#if]
                     [/#list]

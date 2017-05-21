@@ -6,10 +6,10 @@
 
 [#function formatContainerName tier component host container]
     [#return formatName(
-                container)]
+                getContainerName(container))]
 [/#function]
 
 [#function formatContainerPolicyName tier component host container]
     [#return formatName(
-                container)]
+                getContainerName(container))]
 [/#function]
