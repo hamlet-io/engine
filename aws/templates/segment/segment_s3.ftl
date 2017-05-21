@@ -48,7 +48,6 @@
                     [/#if]
                 }
             },
-            [#-- Ensure ELBs can write to the operations bucket for logs --]
             "${s3OperationsPolicyId}" : {
                 "DependsOn" : [ "${s3OperationsId}" ],
                 "Type" : "AWS::S3::BucketPolicy",
@@ -56,6 +55,7 @@
                     "Bucket" : "${operationsBucket}",
                     "PolicyDocument" : {
                         "Statement": [
+                            [#-- Ensure ELBs can write to the operations bucket for logs --]
                             {
                                 "Effect": "Allow",
                                 "Principal": {
@@ -63,6 +63,20 @@
                                 },
                                 "Action": "s3:PutObject",
                                 "Resource": "arn:aws:s3:::${operationsBucket}/AWSLogs/*"
+                            },
+                            [#-- Ensure CloudWatch can export to the operations bucket for logs --]
+                            {
+                                "Action": "s3:GetBucketAcl",
+                                "Effect": "Allow",
+                                "Resource": "arn:aws:s3:::${operationsBucket}",
+                                "Principal": { "Service": "logs.${regionId}.amazonaws.com" }
+                            },
+                            {
+                                "Action": "s3:PutObject" ,
+                                "Effect": "Allow",
+                                "Resource": "arn:aws:s3:::${operationsBucket}/*",
+                                "Condition": { "StringEquals": { "s3:x-amz-acl": "bucket-owner-full-control" } },
+                                "Principal": { "Service": "logs.${regionId}.amazonaws.com" }
                             }
                         ]
                     }
