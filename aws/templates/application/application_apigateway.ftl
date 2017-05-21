@@ -50,6 +50,9 @@
             [/#if]
         [/#list]
     [/#if]
+    
+    [#-- Non-repeating text to ensure deploy/stage happen every time --]
+    [#assign noise = (.now?long / 1000)?string.computer]
 
     [#list apigatewayInstances as apigatewayInstance]
         [#assign apiId    = formatAPIGatewayId(
@@ -59,11 +62,13 @@
         [#assign deployId = formatAPIGatewayDeployId(
                                 tier,
                                 component,
-                                apigatewayInstance)]
+                                apigatewayInstance,
+                                noise)]
         [#assign stageId  = formatAPIGatewayStageId(
                                 tier,
                                 component,
-                                apigatewayInstance)]
+                                apigatewayInstance,
+                                noise)]
 
         [#if resourceCount > 0],[/#if]
         [#switch applicationListMode]
