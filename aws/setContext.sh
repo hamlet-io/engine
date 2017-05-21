@@ -12,6 +12,9 @@ if [[ -n "${GENERATION_CONTEXT_DEFINED}" ]]; then return 0; fi
 export GENERATION_CONTEXT_DEFINED="true"
 GENERATION_CONTEXT_DEFINED_LOCAL="true"
 
+# Utility functions
+. ${GENERATION_DIR}/common.sh
+
 [[ -n "${GENERATION_DEBUG}" ]] && echo -e "\n--- starting setContext.sh ---\n"
 
 # If no files match a glob, return nothing
@@ -246,13 +249,15 @@ if [[ -n "${PRODUCT}" ]]; then
             fi
 
             export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
+            # Legacy naming to support products using the term "slice" or "unit" instead of "deployment_unit"
+            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref" ]]; then
+                export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
+            fi
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref" ]]; then
                 export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref")
-            else
-                # Legacy naming to support products using the term "slice" instead of "deployment unit"
-                if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref" ]]; then
-                    export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
-                fi
+            fi
+            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/deployment_unit.ref" ]]; then
+                export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/deployment_unit.ref")
             fi
             
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/appsettings.json" ]]; then
