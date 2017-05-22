@@ -30,7 +30,7 @@
             "s3:DeleteObject*",
             "s3:RestoreObject*",
             "s3:ListMultipart*",
-            "s3:AbortMultipart*",
+            "s3:AbortMultipart*"
         ]
         bucket key object /]
 [/#macro]
