@@ -16,7 +16,7 @@ if [[ (-z "${GENERATION_DEBUG}") && (-n "${GENERATION_DATA_DIR}") ]]; then
     TEMP_DIRS=($(find ${GENERATION_DATA_DIR} -name "temp_*" -type d))
     for TEMP_DIR in "${TEMP_DIRS[@]}"; do
         # Subdir may already have been deleted by parent temporary directory
-        if [[ -e "${TEMPDIR}" ]]; then
+        if [[ -e "${TEMP_DIR}" ]]; then
             rm -rf "${TEMP_DIR}"
         fi
     done
