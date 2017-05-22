@@ -84,12 +84,16 @@
 
 [#-- S3 config/credential storage  --]
 
-[#function getCredentialFilePrefix]
-    [#return "credentials/" + productName + "/" + segmentName + "/" + deployment_unit]
+[#function getCredentialsFilePrefix]
+    [#return "credentials/" + productName + "/" + segmentName + "/" + deploymentUnit]
 [/#function]
 
 [#function getAppSettingsFilePrefix]
-    [#return "appsettings/" + productName + "/" + segmentName + "/" + deployment_unit]
+    [#return "appsettings/" + productName + "/" + segmentName + "/" + deploymentUnit]
+[/#function]
+
+[#function getBackupsFilePrefix]
+    [#return "backups/" + productName + "/" + segmentName + "/" + deploymentUnit]
 [/#function]
 
 [#function getSegmentCredentialsFilePrefix]
