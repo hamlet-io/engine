@@ -82,7 +82,7 @@
     [#return exponent]
 [/#function]
 
-[#-- S3 config/credential storage  --]
+[#-- S3 config/credentials/appdata storage  --]
 
 [#function getCredentialsFilePrefix]
     [#return "credentials/" + productName + "/" + segmentName + "/" + deploymentUnit]
@@ -90,6 +90,10 @@
 
 [#function getAppSettingsFilePrefix]
     [#return "appsettings/" + productName + "/" + segmentName + "/" + deploymentUnit]
+[/#function]
+
+[#function getAppDataFilePrefix]
+    [#return "appdata/" + productName + "/" + segmentName + "/" + deploymentUnit]
 [/#function]
 
 [#function getBackupsFilePrefix]
@@ -102,6 +106,10 @@
 
 [#function getSegmentAppSettingsFilePrefix]
     [#return "appsettings/" + productName + "/" + segmentName]
+[/#function]
+
+[#function getSegmentAppDataFilePrefix]
+    [#return "appdata/" + productName + "/" + segmentName]
 [/#function]
 
 [#function getSegmentBackupsFilePrefix]

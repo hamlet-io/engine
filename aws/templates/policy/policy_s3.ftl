@@ -22,4 +22,17 @@
     [@s3Statement "s3:List*" bucket key object /]
 [/#macro]
 
+[#macro s3AllStatement bucket key="" object="*"]
+    [@s3Statement 
+        [
+            "s3:GetObject*",
+            "s3:PutObject*",
+            "s3:DeleteObject*",
+            "s3:RestoreObject*",
+            "s3:ListMultipart*",
+            "s3:AbortMultipart*",
+        ]
+        bucket key object /]
+[/#macro]
+
 
