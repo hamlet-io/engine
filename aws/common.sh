@@ -2,8 +2,6 @@
 
 # Utility Functions
 #
-# There are a few uses of this, e.g.
-#
 # This script is designed to be sourced into other scripts
 
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
@@ -22,10 +20,6 @@ function getOperationsBucket() {
 
 function getCodeBucket() {
     getBucketName "s3XaccountXcode"
-}
-
-function getCredentialsBucket() {
-    getBucketName "s3XaccountXcredentials"
 }
 
 function isBucketAccessible() {
