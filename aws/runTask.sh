@@ -109,6 +109,15 @@ RID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Id" < ${COMPOSIT
 CID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .Id" < ${COMPOSITE_BLUEPRINT})
 KID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .ECS.Tasks[] | objects | select(.Name==\"${TASK}\") | .Id" < ${COMPOSITE_BLUEPRINT})
 
+# Remove component type
+CID="${CID%-*}"
+
+# Handle task mode
+KID="${KID/-/X}"
+
+# Handle container name
+CONTAINER="${KID%X*}"
+
 # Find the cluster
 CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
 if [[ -z "${CLUSTER_ARN}" ]]; then
@@ -123,7 +132,7 @@ if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
     exit
 fi
 
-aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${TIER}-${COMPONENT}-${TASK}\",${ENV_STRUCTURE}}]}" > STATUS.txt
+aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${CONTAINER}\",${ENV_STRUCTURE}}]}" > STATUS.txt
 RESULT=$?
 if [ "$RESULT" -ne 0 ]; then exit; fi
 cat STATUS.txt
