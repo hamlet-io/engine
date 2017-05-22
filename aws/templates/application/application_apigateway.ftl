@@ -52,7 +52,7 @@
     [/#if]
     
     [#-- Non-repeating text to ensure deploy/stage happen every time --]
-    [#assign noise = (.now?long / 1000)?string.computer]
+    [#assign noise = (.now?long / 1000)?round?string.computer]
 
     [#list apigatewayInstances as apigatewayInstance]
         [#assign apiId    = formatAPIGatewayId(
