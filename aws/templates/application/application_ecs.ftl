@@ -175,7 +175,7 @@
                                 "MinimumHealthyPercent" : 0
                             [/#if]
                         },
-                        [#if serviceInstance.DesiredCount > 0 ]
+                        [#if serviceInstance.Internal.DesiredCount > 0 ]
                             "DesiredCount" : "${serviceInstance.DesiredCount}",
                         [#else]
                             "DesiredCount" : "${multiAZ?string(zones?size,"1")}",
