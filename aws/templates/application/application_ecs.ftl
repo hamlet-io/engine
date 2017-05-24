@@ -40,7 +40,10 @@
                                                             string(
                                                                 "",
                                                                 serviceInstance.Id)],
-                                                    "StageName" : version.Id
+                                                    "StageName" : version.Id,
+                                                    "DesiredCount" : serviceInstance.DesiredCount!
+                                                                        version.DesiredCount!
+                                                                        service.DesiredCount!-1
                                                 }
                                             }
                                         ] ]
@@ -55,7 +58,9 @@
                                                 version.Id],
                                             "HostIdExtensions" : [
                                                 version.Id],
-                                            "StageName" : version.Id
+                                            "StageName" : version.Id,
+                                            "DesiredCount" : version.DesiredCount!
+                                                                service.DesiredCount!-1
                                         }
                                     }
                                 ] ]
@@ -69,7 +74,8 @@
                                 "IdExtensions" : [
                                     getTaskId(service)],
                                 "HostIdExtensions" : [],
-                                "StageName" : ""
+                                "StageName" : "",
+                                "DesiredCount" : service.DesiredCount!-1
                             }
                         }
                     ]]
@@ -169,7 +175,7 @@
                                 "MinimumHealthyPercent" : 0
                             [/#if]
                         },
-                        [#if serviceInstance.DesiredCount??]
+                        [#if serviceInstance.DesiredCount > 0 ]
                             "DesiredCount" : "${serviceInstance.DesiredCount}",
                         [#else]
                             "DesiredCount" : "${multiAZ?string(zones?size,"1")}",
