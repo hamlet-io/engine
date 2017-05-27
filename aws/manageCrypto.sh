@@ -202,11 +202,17 @@ if [[ ("${CRYPTO_OPERATION}" == "encrypt") && (-z "${KEYID}") ]]; then
     exit
 fi
 
+# Strip any explicit indication of base64 encoding
+if [[ $(grep "^base64:" <<< "${CRYPTO_TEXT}") ]]; then
+    CRYPTO_DECODE="true"
+    CRYPTO_TEXT="${CRYPTO_TEXT#base64:}"
+fi
+
 # Prepare ciphertext for processing
 echo -n "${CRYPTO_TEXT}" > ./ciphertext.src
 
 # base64 decode if necessary
-if [[ -n "${CRYPTO_DECODE}" ]]; then
+if [[ (-n "${CRYPTO_DECODE}") ]]; then
     # Sanity check on input
     dos2unix < ./ciphertext.src | grep -q "${BASE64_REGEX}"
     RESULT=$?
@@ -250,6 +256,9 @@ if [[ "${RESULT}" -eq 0 ]]; then
     # Update if required
     if [[ "${CRYPTO_UPDATE}" == "true" ]]; then
         if [[ -n "${JSON_PATH}" ]]; then
+            if [[ "${CRYPTO_OPERATION}" == "encrypt" ]]; then
+                CRYPTO_TEXT="base64:${CRYPTO_TEXT}"
+            fi
             jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" < "${TARGET_FILE}"  > "temp_${CRYPTO_FILENAME_DEFAULT}"
             RESULT=$?
             if [[ "${RESULT}" -eq 0 ]]; then
