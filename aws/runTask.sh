@@ -132,9 +132,15 @@ if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
     exit
 fi
 
-aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${CONTAINER}\",${ENV_STRUCTURE}}]}" > STATUS.txt
-RESULT=$?
+# Find the container - support legacy naming
+for CONTAINER_NAME in "${CONTAINER}" "${PRODUCT}-${SEGMENT}-${CONTAINER}"; do
+    aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${CONTAINER_NAME}\",${ENV_STRUCTURE}}]}" > STATUS.txt 2>&1
+    RESULT=$?
+    [[ "$RESULT" -eq 0 ]] && break
+done
+
 if [ "$RESULT" -ne 0 ]; then exit; fi
+
 cat STATUS.txt
 TASK_ARN=$(jq -r ".tasks[0].taskArn" < STATUS.txt)
 
