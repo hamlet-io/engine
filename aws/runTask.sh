@@ -133,7 +133,7 @@ if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
 fi
 
 # Find the container - support legacy naming
-for CONTAINER_NAME in "${CONTAINER}" "${PRODUCT}-${SEGMENT}-${CONTAINER}"; do
+for CONTAINER_NAME in "${CONTAINER}" "${TIER}-${COMPONENT}-${CONTAINER}"; do
     aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${CONTAINER_NAME}\",${ENV_STRUCTURE}}]}" > STATUS.txt 2>&1
     RESULT=$?
     [[ "$RESULT" -eq 0 ]] && break
