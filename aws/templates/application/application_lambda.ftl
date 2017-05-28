@@ -94,7 +94,7 @@
                                     {"Id" : lambda.Container })]
 
             [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
-            [#if vpc != "unknown"]
+            [#if vpc?has_content]
                 [@createDependentSecurityGroup 
                     applicationListMode
                     tier
