@@ -54,7 +54,7 @@
     /]
 [/#macro]
 
-[#macro sqsWriteStatement id principals="" resources=""]
+[#macro sqsWriteStatement id]
     [@sqsStatement "sqs:SendMessage*" id /]
 [/#macro]
 
