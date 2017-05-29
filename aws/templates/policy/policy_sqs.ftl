@@ -54,6 +54,19 @@
     /]
 [/#macro]
 
+[#macro sqsConsumeStatement id]
+    [@sqsStatement
+        [
+            "sqs:ReceiveMessage*",
+            "sqs:ChangeMessage*",
+            "sqs:DeleteMessage*",
+            "sqs:Get*",
+            "sqs:List*"
+        ]
+        id
+    /]
+[/#macro]
+
 [#macro sqsWriteStatement id]
     [@sqsStatement "sqs:SendMessage*" id /]
 [/#macro]
