@@ -166,8 +166,13 @@
                     "Type" : "AWS::ECS::Service",
                     "Properties" : {
                         "Cluster" : "${getKey(ecsId)}",
+                        [#if serviceInstance.Internal.DesiredCount > 0 ]
+                            [#assign desiredCount = serviceInstance.Internal.DesiredCount ]
+                        [#else]
+                            [#assign desiredCount = multiAZ?then(zones?size,1)]
+                        [/#if]
                         "DeploymentConfiguration" : {
-                            [#if multiAZ]
+                            [#if desiredCount > 1]
                                 "MaximumPercent" : 100,
                                 "MinimumHealthyPercent" : 50
                             [#else]
@@ -175,11 +180,7 @@
                                 "MinimumHealthyPercent" : 0
                             [/#if]
                         },
-                        [#if serviceInstance.Internal.DesiredCount > 0 ]
-                            "DesiredCount" : "${serviceInstance.DesiredCount}",
-                        [#else]
-                            "DesiredCount" : "${multiAZ?string(zones?size,"1")}",
-                        [/#if]
+                        "DesiredCount" : "${desiredCount}",
                         [#assign portCount = 0]
                         [#list serviceInstance.Containers?values as container]
                             [#if container?is_hash && container.Ports??]
