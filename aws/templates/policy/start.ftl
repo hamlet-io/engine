@@ -1,5 +1,5 @@
 [#ftl]
-[#macro policyHeader name id="" roles="" type="Policy" ]
+[#macro policyHeader name id="" roles="" type="Policy"]
     [#if (!containerListMode??) ||
         (containerListMode == "policy")]
         [#assign explicitPolicyId = id?has_content] 
@@ -9,10 +9,10 @@
                 "Properties" : {
                 [#if roles?has_content]
                     "Roles" : [
-                        [#if roles?is_sequence && (roles?size > 0)]
+                        [#if roles?is_sequence]
                             [#list roles as role]
                                 { "Ref" : "${role}" }
-                                [#if role?last != role],[/#if]
+                                [#sep],[/#sep]
                             [/#list]
                         [#else]
                             { "Ref" : "${roles}" }
@@ -20,15 +20,13 @@
                     ]
                 [/#if],
         [#else]
+            [#if policyCount > 0],[/#if]
             {
         [/#if]
         "PolicyName" : "${name}",
         "PolicyDocument" : {
             "Version": "2012-10-17",
             "Statement": [
-    [/#if]
-    [#if containerListMode??]
-        [#assign policyCount += 1]
     [/#if]
     [#assign statementCount = 0]
 [/#macro]
@@ -45,8 +43,8 @@
     [/#if]
     [#if containerListMode??]
         [#if containerListMode == "policy"],[/#if]
-        [#assign policyCount += 1]
     [/#if]
+    [#assign policyCount += 1]
 [/#macro]
 
 [#macro policyStatement actions resources="*" effect="Allow" principals="" conditions=""]
@@ -60,7 +58,7 @@
                         [
                             [#list principals as principal]
                                 "${principal}"
-                                [#if principals?last != principal],[/#if]
+                                [#sep],[/#sep]
                             [/#list]
                         ]
                     [#else]
@@ -75,7 +73,7 @@
                     [
                         [#list actions as action]
                             "${action}"
-                            [#if actions?last != action],[/#if]
+                            [#sep],[/#sep]
                         [/#list]
                     ]
                 [#else]
@@ -86,7 +84,7 @@
                     [
                         [#list resources as resource]
                             "${resource}"
-                            [#if actions?last != action],[/#if]
+                            [#sep],[/#sep]
                         [/#list]
                     ]
                 [#else]
@@ -98,3 +96,72 @@
     [/#if]
 [/#macro]
 
+[#macro roleHeader id trustedServices=[] managedArns=[] path="" name="" embeddedPolicies=true ]
+    [#assign policiesEmbedded = embeddedPolicies]
+    [#assign policyCount = 0]
+    "${id}": {
+        "Type" : "AWS::IAM::Role",
+        "Properties" : {
+            [#assign propertyCount = 0]
+            [#if trustedServices?has_content]
+                "AssumeRolePolicyDocument" : {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                [#if trustedServices?has_content]
+                                    "Service": [
+                                        [#list trustedServices as service]
+                                            "${service}"
+                                            [#sep],[/#sep]
+                                        [/#list]
+                                    ]
+                                [/#if]
+                            },
+                            "Action": [ "sts:AssumeRole" ]
+                        }
+                    ]
+                }
+                [#assign propertyCount += 1]
+            [/#if]
+            [#if managedArns?has_content]
+                [#if propertyCount > 0],[/#if]
+                "ManagedPolicyArns" : [
+                    [#list managedArns as arn]
+                        "${arn}"
+                        [#sep],[/#sep]
+                    [/#list]
+                ]
+                [#assign propertyCount += 1]
+            [/#if]
+            [#if path?has_content]
+                [#if propertyCount > 0],[/#if]
+                "Path": "${path}",
+                [#assign propertyCount += 1]
+            [/#if]
+            [#if name?has_content]
+                [#if propertyCount > 0],[/#if]
+                "RoleName": "${name}",
+                [#assign propertyCount += 1]
+            [/#if]
+            [#if policiesEmbedded]
+                [#if propertyCount > 0],[/#if]
+                "Policies": [
+            [#else]
+        }
+    }
+            [/#if]
+[/#macro]
+
+[#macro roleFooter ]
+    [#if policiesEmbedded]
+            ]
+    [/#if]
+        }
+    }
+[/#macro]
+
+[#macro role id trustedServices=[] managedArns=[] path="" name="" ]
+    [@roleHeader id trustedServices managedArns path name false /]
+[/#macro]

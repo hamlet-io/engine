@@ -77,7 +77,7 @@
 [#function formatAccountResourceId type extensions...]
     [#return formatResourceId(
                 type,
-                "product",
+                "account",
                 extensions)]
 [/#function]
 

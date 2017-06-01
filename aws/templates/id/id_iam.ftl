@@ -36,6 +36,13 @@
                 extensions)]
 [/#function]
 
+[#function formatAccountRoleId type extensions...]
+    [#return formatAccountResourceId(
+                "role",
+                type,
+                extensions)]
+[/#function]
+
 [#function formatComponentRoleId tier component extensions...]
     [#return formatComponentResourceId(
                 "role",

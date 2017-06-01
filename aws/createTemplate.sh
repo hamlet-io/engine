@@ -100,7 +100,7 @@ if [[ (-z "${TYPE}") ||
     exit
 fi
 if [[ ("${TYPE}" == "account") && 
-      (!("${DEPLOYMENT_UNIT}" =~ s3|cert)) ]]; then
+      (!("${DEPLOYMENT_UNIT}" =~ s3|cert|roles)) ]]; then
     echo -e "\nUnknown deployment unit ${DEPLOYMENT_UNIT} for the account type" >&2
     exit
 fi
