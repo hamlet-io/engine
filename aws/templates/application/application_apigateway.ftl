@@ -99,6 +99,14 @@
                     "Properties" : {
                         "DeploymentId" : { "Ref" : "${deployId}" },
                         "RestApiId" : { "Ref" : "${apiId}" },
+                        "MethodSettings": [
+                            {
+                              "HttpMethod": "*",
+                              "ResourcePath": "/*",
+                              "LoggingLevel": "INFO",
+                              "DataTraceEnabled": true
+                            }
+                        ],
                         "StageName" : "${stageName}"
                         [#if apigatewayInstance.Links??]
                             ,"Variables" : {
