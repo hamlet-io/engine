@@ -124,20 +124,11 @@
             },
             [#-- Legacy naming --]
             [#-- TODO: Remove --]
-            "${formatSegmentS3Id("operations")}" : {
-                "Value" : { "Ref" : "${s3OperationsId}" }
-            },
-            "${formatSegmentS3Id("logs")}" : {
-                "Value" : { "Ref" : "${s3OperationsId}" }
-            },
-            "${formatContainerS3Id("logs")}" : {
-                "Value" : { "Ref" : "${s3OperationsId}" }
-            },
-            "${formatSegmentS3Id("backups")}" : {
-                "Value" : { "Ref" : "${s3DataId}" }
-            },
-            "${formatContainerS3Id("backups")}" : {
-                "Value" : { "Ref" : "${s3DataId}" }
+            "${formatId("s3", operationsBucketSegment, operationsBucketType)}" : {
+                "Value" : { "Ref" : "${formatId("s3", operationsBucketType)}" }
+            },                
+            "${formatId("s3", dataBucketSegment, dataBucketType)}" : {
+                "Value" : { "Ref" : "${formatId("s3", dataBucketType)}" }
             }
             [#break]
 
