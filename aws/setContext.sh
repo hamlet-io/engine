@@ -233,16 +233,9 @@ if [[ -n "${PRODUCT}" ]]; then
     
     # deployment unit level appsettings
     if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
-        
         # Confirm it is an application deployment unit
-        # TODO: reinstate this code when check for application deployment unit is
-        #       fixed for lambda
-        # TODO remove next line when path length limitations in jq are fixed
-#        cp ${GENERATION_DIR}/listApplicationDeploymentUnits.jq ./temp_listApplicationDeploymentUnits.jq
-#        APPLICATION_DEPLOYMENT_UNIT_LIST=$(echo $(jq -r -f ./temp_listApplicationDeploymentUnits.jq < ${COMPOSITE_BLUEPRINT} | dos2unix))
-#        if [[ -n $(grep -iw "${DEPLOYMENT_UNIT}" <<< "${APPLICATION_DEPLOYMENT_UNIT_LIST}") ]]; then
-        if [[  1 ]]; then
-            IS_APPLICATION_DEPLOYMENT_UNIT="true"
+        . ${GENERATION_DIR}/validateDeploymentUnit.sh
+        if [[ "${IS_APPLICATION_UNIT}" == "true" ]]; then
         
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/appsettings.json" ]]; then
                 APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
@@ -271,8 +264,6 @@ if [[ -n "${PRODUCT}" ]]; then
                     export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/build.ref")
                 fi
             fi
-        else
-            IS_APPLICATION_DEPLOYMENT_UNIT="false"
         fi
     fi
     

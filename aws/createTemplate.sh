@@ -36,7 +36,7 @@ NOTES:
 
 1. You must be in the directory specific to the type
 2. REGION is only relevant for the "product" type
-3. DEPLOYMENT_UNIT may be one of "s3" or "cert" for the "account" type
+3. DEPLOYMENT_UNIT may be one of "s3", "cert" or "roles" for the "account" type
 4. DEPLOYMENT_UNIT may be one of "cmk", "cert", "sns" or "shared" for the "product" type
 5. DEPLOYMENT_UNIT may be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" type
 6. Stack for DEPLOYMENT_UNIT of "eip" or "s3" must be created before stack for "vpc" for the "segment" type
@@ -91,27 +91,13 @@ done
 CONFIGURATION_REFERENCE="${CONFIGURATION_REFERENCE:-${CONFIGURATION_REFERENCE_DEFAULT}}"
 REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
 
-# Ensure mandatory arguments have been provided
-if [[ (-z "${TYPE}") ||
-        (-z "${DEPLOYMENT_UNIT}") ||
-        (-z "${REQUEST_REFERENCE}") ||
+# Check type and deployment unit
+. ${GENERATION_DIR}/validateDeploymentUnit.sh 
+
+# Ensure other mandatory arguments have been provided
+if [[ (-z "${REQUEST_REFERENCE}") ||
         (-z "${CONFIGURATION_REFERENCE}")]]; then
     echo -e "\nInsufficient arguments" >&2
-    exit
-fi
-if [[ ("${TYPE}" == "account") && 
-      (!("${DEPLOYMENT_UNIT}" =~ s3|cert|roles)) ]]; then
-    echo -e "\nUnknown deployment unit ${DEPLOYMENT_UNIT} for the account type" >&2
-    exit
-fi
-if [[ ("${TYPE}" == "product") && 
-      (!("${DEPLOYMENT_UNIT}" =~ s3|sns|cmk|cert)) ]]; then
-    echo -e "\nUnknown deployment unit ${DEPLOYMENT_UNIT} for the product type" >&2
-    exit
-fi
-if [[ ("${TYPE}" == "segment") && 
-      (!("${DEPLOYMENT_UNIT}" =~ eip|s3|cmk|cert|vpc|dns|eipvpc|eips3vpc)) ]]; then
-    echo -e "\nUnknown deployment unit ${DEPLOYMENT_UNIT} for the segment type" >&2
     exit
 fi
 
@@ -206,15 +192,6 @@ case $TYPE in
     application)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
         TYPE_PREFIX="app-"
-
-#        TODO: reinstate this check when the logic to list the application
-#               deployment units is fixed. It broke for lambda when defaulting of
-#               the set of functions (to potentially higher levels that the 
-#               deployment unit) was added
-#        if [[ "${IS_APPLICATION_DEPLOYMENT_UNIT}" != "true" ]]; then
-#            echo -e "\n\"${DEPLOYMENT_UNIT}\" is not defined as an application deployment unit in the blueprint" >&2
-#            exit
-#        fi
         ;;
 
     *)
