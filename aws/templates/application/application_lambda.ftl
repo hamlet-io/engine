@@ -32,6 +32,7 @@
                                         "RunTime" : lambdaInstance.RunTime!version.RunTime!lambda.RunTime,
                                         "MemorySize" : lambdaInstance.MemorySize!version.MemorySize!lambda.MemorySize!0,
                                         "Timeout" : lambdaInstance.Timeout!version.Timeout!lambda.Timeout!0,
+                                        "VPCAccess" : lambdaInstance.VPCAccess!version.VPCAccess!lambda.VPCAccess!true,
                                         "Functions" : lambdaInstance.Functions!version.Functions!lambda.Functions!"unknown"
                                     }
                                 }
@@ -51,6 +52,7 @@
                                 "RunTime" : version.RunTime!lambda.RunTime,
                                 "MemorySize" : version.MemorySize!lambda.MemorySize!0,
                                 "Timeout" : version.Timeout!lambda.Timeout!0,
+                                "VPCAccess" : version.VPCAccess!lambda.VPCAccess!true,
                                 "Functions" : version.Functions!lambda.Functions!"unknown"
                             }
                         }
@@ -68,6 +70,7 @@
                     "RunTime" : lambda.RunTime,
                     "MemorySize" : lambda.MemorySize!0,
                     "Timeout" : lambda.Timeout!0,
+                    "VPCAccess" : lambda.VPCAccess!true,
                     "Functions" : lambda.Functions!"unknown"
                 }
             }
@@ -108,27 +111,20 @@
                 [#case "definition"]            
                     [#-- Create a role under which the function will run and attach required policies --]
                     [#-- The role is mandatory though there may be no policies attached to it --]
-                    "${containerListRole}" : {
-                        "Type" : "AWS::IAM::Role",
-                        "Properties" : {
-                            "AssumeRolePolicyDocument" : {
-                                "Version": "2012-10-17",
-                                "Statement": [
-                                    {
-                                        "Effect": "Allow",
-                                        "Principal": { "Service": [ "lambda.amazonaws.com" ] },
-                                        "Action": [ "sts:AssumeRole" ]
-                                    }
-                                ]
-                            },
-                            "Path": "/"
-                            [#if vpc != "unknown"]
-                                ,"ManagedPolicyArns" : [
-                                    "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-                                ]
-                            [/#if]
-                        }
-                    },
+                    [#assign managedArns = []]
+                    [#if vpc?has_content && lambdaInstance.Internal.VPCAccess]
+                        managedArns = [
+                            "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+                        ]
+                    [#else]
+                        managedArns = [
+                            "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                        ]                    
+                    [/#if]
+                    [@role
+                        containerListRole,
+                        ["lambda.amazonaws.com" ],
+                        managedArns /],
                     [#assign containerListMode = "policy"]
                     [#assign policyCount = 0]
                     [#assign containerListPolicyId = formatDependentPolicyId(

@@ -28,36 +28,23 @@
                 "Type" : "AWS::ECS::Cluster"
             },
 
-            "${ecsRoleId}": {
-                "Type" : "AWS::IAM::Role",
-                "Properties" : {
-                    "AssumeRolePolicyDocument" : {
-                        "Version": "2012-10-17",
-                        "Statement": [
-                            {
-                                "Effect": "Allow",
-                                "Principal": { "Service": [ "ec2.amazonaws.com" ] },
-                                "Action": [ "sts:AssumeRole" ]
-                            }
-                        ]
-                    },
-                    "Path": "/",
-                    "ManagedPolicyArns" : ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"],
-                    "Policies": [
-                        [@policyHeader formatName(tierId, componentId, "docker") /]
+                [@roleHeader
+                    ecsRoleId
+                    ["ec2.amazonaws.com" ]
+                    ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
+                /]
+                    [@policyHeader formatName(tierId, componentId, "docker") /]
                         [@s3ReadStatement credentialsBucket accountId + "/alm/docker" /]
                         [#if fixedIP]
-                            [@IPAddressWriteStatement /]
+                            [@IPAddressUpdateStatement /]
                         [/#if]
                         [@s3ListStatement codeBucket /]
                         [@s3ReadStatement codeBucket /]
                         [@s3ListStatement operationsBucket /]
                         [@s3WriteStatement operationsBucket getSegmentBackupsFilePrefix() /]
                         [@s3WriteStatement operationsBucket "DOCKERLogs" /]
-                        [@policyFooter /]
-                    ]
-                }
-            },
+                    [@policyFooter /]
+                [@roleFooter /],
 
             "${ecsInstanceProfileId}" : {
                 "Type" : "AWS::IAM::InstanceProfile",
@@ -67,23 +54,11 @@
                 }
             },
 
-            "${ecsServiceRoleId}": {
-                "Type" : "AWS::IAM::Role",
-                "Properties" : {
-                    "AssumeRolePolicyDocument" : {
-                        "Version": "2012-10-17",
-                        "Statement": [
-                            {
-                                "Effect": "Allow",
-                                "Principal": { "Service": [ "ecs.amazonaws.com" ] },
-                                "Action": [ "sts:AssumeRole" ]
-                            }
-                        ]
-                    },
-                    "Path": "/",
-                    "ManagedPolicyArns" : ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
-                }
-            },
+            [@role
+                ecsServiceRoleId
+                ["ecs.amazonaws.com" ]
+                ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
+            /],
 
             [#if fixedIP]
                 [#list 1..maxSize as index]

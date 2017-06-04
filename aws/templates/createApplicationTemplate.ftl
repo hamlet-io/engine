@@ -161,22 +161,7 @@
 
     [#-- Create a role under which the task will run and attach required policies --]
     [#if policyCount > 0]
-        "${containerListRole}" : {
-            "Type" : "AWS::IAM::Role",
-            "Properties" : {
-                "AssumeRolePolicyDocument" : {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Principal": { "Service": [ "ecs-tasks.amazonaws.com" ] },
-                            "Action": [ "sts:AssumeRole" ]
-                        }
-                    ]
-                },
-                "Path": "/"
-            }
-        },
+        [@role containerListRole, ["ecs-tasks.amazonaws.com" ] /],
         [#assign containerListMode = "policy"]
         [#list task.Containers?values as container]
             [#if container?is_hash]

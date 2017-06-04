@@ -28,64 +28,23 @@
                     }
                 },
             [/#list]
-            "${ec2RoleId}": {
-                "Type" : "AWS::IAM::Role",
-                "Properties" : {
-                    "AssumeRolePolicyDocument" : {
-                        "Version": "2012-10-17",
-                        "Statement": [
-                            {
-                                "Effect": "Allow",
-                                "Principal": { "Service": [ "ec2.amazonaws.com" ] },
-                                "Action": [ "sts:AssumeRole" ]
-                            }
-                        ]
-                    },
-                    "Path": "/",
-                    "Policies": [
-                        {
-                            "PolicyName": "${formatComponentShortName(
-                                                tier,
-                                                component,
-                                                "basic")}",
-                            "PolicyDocument" : {
-                                "Version": "2012-10-17",
-                                "Statement": [
-                                    {
-                                        "Resource": [
-                                            "arn:aws:s3:::${codeBucket}",
-                                            "arn:aws:s3:::${operationsBucket}"
-                                        ],
-                                        "Action": [
-                                            "s3:List*"
-                                        ],
-                                        "Effect": "Allow"
-                                    },
-                                    {
-                                        "Resource": [
-                                            "arn:aws:s3:::${codeBucket}/*"
-                                        ],
-                                        "Action": [
-                                            "s3:GetObject"
-                                        ],
-                                        "Effect": "Allow"
-                                    },
-                                    {
-                                        "Resource": [
-                                            "arn:aws:s3:::${operationsBucket}/DOCKERLogs/*",
-                                            "arn:aws:s3:::${operationsBucket}/Backups/*"
-                                        ],
-                                        "Action": [
-                                            "s3:PutObject"
-                                        ],
-                                        "Effect": "Allow"
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
+
+            [@roleHeader
+                ec2RoleId
+                ["ec2.amazonaws.com" ]
+            /]
+                [@policyHeader
+                    formatComponentShortName(
+                        tier,
+                        component,
+                        "basic") /]
+                    [@s3ListStatement codeBucket /]
+                    [@s3ReadStatement codeBucket /]
+                    [@s3ListStatement operationsBucket /]
+                    [@s3WriteStatement operationsBucket "DOCKERLogs" /]
+                    [@s3WriteStatement operationsBucket "Backups" /]
+                [@policyFooter /]
+            [@roleFooter /],
 
             "${ec2InstanceProfileId}" : {
                 "Type" : "AWS::IAM::InstanceProfile",

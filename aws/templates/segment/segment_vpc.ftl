@@ -217,65 +217,17 @@
                         
             [#if jumpServer]
                 [#assign tier = getTier("mgmt")]
-                ,"${formatId("role", tier.Id, "nat")}": {
-                    "Type" : "AWS::IAM::Role",
-                    "Properties" : {
-                        "AssumeRolePolicyDocument" : {
-                            "Version": "2012-10-17",
-                            "Statement": [ 
-                                {
-                                    "Effect": "Allow",
-                                    "Principal": { "Service": [ "ec2.amazonaws.com" ] },
-                                    "Action": [ "sts:AssumeRole" ]
-                                }
-                            ]
-                        },
-                        "Path": "/",
-                        "Policies": [
-                            {
-                                "PolicyName": "${formatName(tier.Id, "nat")}",
-                                "PolicyDocument" : {
-                                    "Version" : "2012-10-17",
-                                    "Statement" : [
-                                        {
-                                            "Effect" : "Allow",
-                                            "Action" : [
-                                                "ec2:DescribeInstances",
-                                                "ec2:ModifyInstanceAttribute",
-                                                "ec2:DescribeSubnets",
-                                                "ec2:DescribeRouteTables",
-                                                "ec2:CreateRoute",
-                                                "ec2:ReplaceRoute",
-                                                "ec2:DescribeAddresses",
-                                                "ec2:AssociateAddress"
-                                            ],
-                                            "Resource": "*"
-                                        },
-                                        {
-                                            "Resource": [
-                                                "arn:aws:s3:::${codeBucket}"
-                                            ],
-                                            "Action": [
-                                                "s3:ListBucket"
-                                            ],
-                                            "Effect": "Allow"
-                                        },
-                                        {
-                                            "Resource": [
-                                                "arn:aws:s3:::${codeBucket}/*"
-                                            ],
-                                            "Action": [
-                                                "s3:GetObject",
-                                                "s3:ListObjects"
-                                            ],
-                                            "Effect": "Allow"
-                                        }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                },
+                ,[@roleHeader formatId("role", tier.Id, "nat"), ["ec2.amazonaws.com" ] /]
+                    [@policyHeader formatName(tier.Id, "nat") /]
+                        [@IPAddressUpdateStatement /]
+                        [@subnetReadStatement /]
+                        [@routeAllStatement /]
+                        [@instanceUpdateStatement /]
+                        [@s3ListStatement codeBucket /]
+                        [@s3ReadStatement codeBucket /]
+                    [@policyFooter /]
+                [@roleFooter /],
+
                 "${formatId("instanceProfile", tier.Id, "nat")}" : {
                     "Type" : "AWS::IAM::InstanceProfile",
                     "Properties" : {

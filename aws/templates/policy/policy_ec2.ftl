@@ -9,7 +9,7 @@
     /]
 [/#macro]
 
-[#macro IPAddressWriteStatement ]
+[#macro IPAddressUpdateStatement ]
     [@policyStatement
         [
             "ec2:DescribeAddresses",
@@ -18,4 +18,32 @@
     /]
 [/#macro]
 
+[#macro routeAllStatement ]
+    [@policyStatement
+        [
+            "ec2:DescribeRouteTables",
+            "ec2:CreateRoute",
+            "ec2:ReplaceRoute"
+        ]
+    /]
+[/#macro]
 
+[#macro subnetReadStatement ]
+    [@policyStatement
+        [
+            "ec2:DescribeSubnets",
+            "ec2:DescribeRouteTables",
+            "ec2:CreateRoute",
+            "ec2:ReplaceRoute"
+        ]
+    /]
+[/#macro]
+
+[#macro instanceUpdateStatement ]
+    [@policyStatement
+        [
+            "ec2:DescribeInstances",
+            "ec2:ModifyInstanceAttribute"
+        ]
+    /]
+[/#macro]
