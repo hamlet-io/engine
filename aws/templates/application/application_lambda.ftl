@@ -198,7 +198,7 @@
                                     [#if lambda.UseSegmentKey?? && (lambda.UseSegmentKey == true) ]
                                         ,"KmsKeyArn" : "${getKey(formatSegmentCMKArnId())}"
                                     [/#if]
-                                    [#if vpc != "unknown"]
+                                    [#if vpc?has_content && lambdaInstance.Internal.VPCAccess]
                                         ,"VpcConfig" : {
                                             "SecurityGroupIds" : [ 
                                                 { "Ref" : "${formatDependentSecurityGroupId(lambdaId)}" }
