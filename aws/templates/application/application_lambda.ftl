@@ -113,13 +113,17 @@
                     [#-- The role is mandatory though there may be no policies attached to it --]
                     [#assign managedArns = []]
                     [#if vpc?has_content && lambdaInstance.Internal.VPCAccess]
-                        managedArns = [
-                            "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+                        [#assign
+                            managedArns = [
+                                "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+                            ]
                         ]
                     [#else]
-                        managedArns = [
-                            "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-                        ]                    
+                        [#assign
+                            managedArns = [
+                                "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                            ]
+                        ]
                     [/#if]
                     [@role
                         containerListRole,
