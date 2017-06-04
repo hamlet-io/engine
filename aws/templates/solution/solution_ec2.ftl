@@ -30,7 +30,7 @@
             [/#list]
 
             [@roleHeader
-                ec2RoleId
+                ec2RoleId,
                 ["ec2.amazonaws.com" ]
             /]
                 [@policyHeader
@@ -129,7 +129,7 @@
                                                         "echo \"cot:tier=${tierId}\"\n",
                                                         "echo \"cot:component=${componentId}\"\n",
                                                         "echo \"cot:zone=${zone.Id}\"\n",
-                                                        "echo \"cot:name=${ec2FullName}\"\n",
+                                                        "echo \"cot:name=${formatName(ec2FullName,zone)}\"\n",
                                                         "echo \"cot:role=${component.Role}\"\n",
                                                         "echo \"cot:credentials=${credentialsBucket}\"\n",
                                                         "echo \"cot:code=${codeBucket}\"\n",
@@ -303,8 +303,8 @@
             [#break]
 
         [#case "outputs"]
-            [@outputsRef ec2RoleId /],
-            [@outputsGetArnAtt ec2RoleId /]
+            [@output ec2RoleId /],
+            [@outputArn ec2RoleId /]
             [#if fixedIP]
                 [#list zones as zone]
                     [#if multiAZ || (zones[0].Id = zone.Id)]
@@ -321,8 +321,8 @@
                                                     "eth0")]
                         [/#if]
 
-                        ,[@outputsIPAddress ec2EIPId /]
-                        ,[@outputsAllocation ec2EIPId /]
+                        ,[@outputIPAddress ec2EIPId /]
+                        ,[@outputAllocation ec2EIPId /]
                     [/#if]
                 [/#list]
             [/#if]
