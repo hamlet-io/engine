@@ -29,8 +29,8 @@
             },
 
                 [@roleHeader
-                    ecsRoleId
-                    ["ec2.amazonaws.com" ]
+                    ecsRoleId,
+                    ["ec2.amazonaws.com" ],
                     ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
                 /]
                     [@policyHeader formatName(tierId, componentId, "docker") /]
@@ -55,8 +55,8 @@
             },
 
             [@role
-                ecsServiceRoleId
-                ["ecs.amazonaws.com" ]
+                ecsServiceRoleId,
+                ["ecs.amazonaws.com" ],
                 ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
             /],
 
