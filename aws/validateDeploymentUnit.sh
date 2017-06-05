@@ -11,8 +11,8 @@
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
 
 # Expected arguments
-CHECK_UNIT="${DEPLOYMENT_UNIT:-$1}"
-CHECK_TYPE="${TYPE:-$2}"
+CHECK_UNIT="${DEPLOYMENT_UNIT}"
+CHECK_TYPE="${TYPE}"
 
 # Ensure lower case
 CHECK_UNIT="${CHECK_UNIT,,}"
