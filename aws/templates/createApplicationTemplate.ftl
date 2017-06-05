@@ -234,8 +234,11 @@
                                     [#include containerList]
                                 ],
                             [/#if]
-                            "Memory" : "${container.Memory?c}",
-                            "Cpu" : "${container.Cpu?c}",                            
+                            "MemoryReservation" : ${container.Memory?c},
+                            [#if container.MaximumMemory?has_content]
+                                "Memory" : ${container.MaximumMemory?c},
+                            [/#if]
+                            "Cpu" : ${container.Cpu?c},                            
                             [#if container.Ports??]
                                 "PortMappings" : [
                                     [#assign portCount = 0]
