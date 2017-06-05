@@ -25,6 +25,7 @@
                                                     "",
                                                     s3Instance.Name)],
                                         "Lifecycle" : s3Instance.Lifecycle!version.Lifecycle!s3.Lifecycle!-1,
+                                        "Style" : s3Instance.Style!version.Style!s3.Style!"domain",
                                         "Notifications" : s3Instance.Notifications!version.Notifications!s3.Notifications!-1
                                     }
                                 }
@@ -40,6 +41,7 @@
                                 "NameExtensions" : [
                                     version.Name],
                                 "Lifecycle" : version.Lifecycle!s3.Lifecycle!-1,
+                                "Style" : version.Style!s3.Style!"domain",
                                 "Notifications" : version.Notifications!s3.Notifications!-1
                             }
                         }
@@ -54,6 +56,7 @@
                     "IdExtensions" : [],
                     "NameExtensions" : [],
                     "Lifecycle" : s3.Lifecycle!-1,
+                    "Style" : s3.Style!"domain",
                     "Notifications" : s3.Notifications!-1
                 }
             }
@@ -71,11 +74,13 @@
         [#switch solutionListMode]
             [#case "definition"]
                 [#-- Current bucket naming --]
-                [#if s3.Name != "S3"]
-                    [#assign bucketName = formatName(s3.Name, s3Instance, segmentDomainQualifier) + "." + segmentDomain]
-                [#else]
-                    [#assign bucketName = formatName(componentName, s3Instance, segmentDomainQualifier) + "." + segmentDomain]
-                [/#if]
+                [#assign hostName = (s3.Name != "S3")?then(s3.Name, componentName)]
+                [#assign bucketName = formatName(hostName, s3Instance, segmentDomainQualifier) + "." + segmentDomain]
+                [#switch s3Instance.Internal.Style]
+                    [#case "hyphenated"]
+                        [#assign bucketName = bucketName?replace(".", "-")]
+                        [#break]
+                [/#switch]
                 [#-- Support presence of existing s3 buckets (naming has changed over time) --]
                 [#assign bucketName = getKey(s3Id)?has_content?then(
                                         getKey(s3Id),
