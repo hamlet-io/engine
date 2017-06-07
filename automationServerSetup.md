@@ -59,7 +59,7 @@ Change mode for backup script to make it executable:
 ```
 chmod 755 /root/backup_data.sh
 ```
-Create crontab:
+Create a crontab file '/var/spool/cron/root':
 ```
 # Copy key data to S3 each day
 0  2 * * * /root/backup_data.sh
@@ -78,7 +78,11 @@ service tomcat7 start
 ```
 service docker start
 ```
-6) **Setup httpd**
+
+6) **Setup sentry**
+Install docker-compose
+
+7) **Setup httpd**
 
 Create `jenkins.conf` vhost for http redirect to https - replacing `{domain}` with the required domain:
 ```
@@ -141,13 +145,13 @@ Check renewal will work ok - need to reconfigure to allow for running http serve
 ./certbot-auto --apache certonly --debug
 ./certbot-auto renew --dry-run
 ```
-7) **configure the services in chkconfig:**
+8) **configure the services in chkconfig:**
 ```
   chkconfig tomcat7 on
   chkconfig httpd on
   chkconfig docker on
 ```
-8) **Configure Jenkins.**
+9) **Configure Jenkins.**
 
 Go to Jenkins at https://automation.{domain} in a browser (initial admin password in `/codeontap/jenkins/secrets/initialAdminPassword`).
 Install the recommended plugins, and **DON'T** set up an admin user - we will configure authentication using github.
@@ -160,7 +164,7 @@ In `Manage Plugins`, install non-standard plugins:
   5. Environment Injector
   6. Parameterized Trigger
 
-9) **Add GitHub Authentication**
+10) **Add GitHub Authentication**
 
 Add OAuth Application in github organisation, set callback to `https://automation.{domain}/securityRealm/finishLogin`.
 
@@ -169,14 +173,14 @@ Add OAuth Application in github organisation, set callback to `https://automatio
 Select `any logged in user` for the authorisation, save, and log off/log on to confirm authentication now through github.
 Switch to `project based matrix authorisation`, add an entry for the organsiation granting general read, add an entry for the org devops group granting all permissions, save and confirm can still log in as part of devops team (create in github if not there already)..
 
-10) **Add Credentials**
+11) **Add Credentials**
 
 In `Jenkins->Credentials` add global credentials (Usename/Password) for GitHub and AWS. Set a 
 Add Jenkins integration to Slack team to get a token, add a global credential (secret text) for Slack.
 Pick the credential on `Jenkins->Manage Jenkins->Configure System` screen in 'Global Slack Notifier Settings' section. Set `Team Subdomain` and `Channel`.
 The credentials can be decrypted from `aws-accounts` repo in `gs-gs` account.
 
-11) **Run sudo commands without tty**
+12) **Run sudo commands without tty**
 
 If tomcat user needs to be able to run sudo commands without tty, you need to the following:
 ```
@@ -198,7 +202,7 @@ and change tomcat shell in `/etc/passwd` to `/bin/bash`
  
 > *NOTE: This is not necessary if sudo is only required to be able to run docker assuming tomcat added to the docker group as shown above*
 
-12) ***Set up LDAP jenkins authentication (as alternative to GitHub Authentication)***
+13) ***Set up LDAP jenkins authentication (as alternative to GitHub Authentication)***
   1. Open jenkins URL(since it is not setup yet, it should allow anonymous login)
   2. Go to Manage Jenkins -> Configure Global Security
   3. There you will need to check Enable Security box and then select LDAP as security Realm
@@ -238,7 +242,7 @@ Email Address LDAP attribute: mail
 `docker push docker.env01.gosource.com.au:443/logstash`
 
 
-14) Google email domains and addresses
+15) Google email domains and addresses
 GoSource uses Google to host the various email domains it uses under gosource.com.au. To set up an email domain:
 
   1. Add the domain in the Google console->Domains. Domains take the form {OrganisationIdentifier}{SequenceNumber = 01, 02...}, e.g. fin01, gs03. NOTE: Make sure "Add another domain" is selected NOT the default "Add a domain alias of gosource.com.au"
@@ -265,7 +269,7 @@ Finally, each domain should have a "root" and "alerts" group. The root group wil
   6. Add the domain default email (if created) to the group via the Google console->Groups->root group->Add.
   7. Repeat the process replacing "root" with "alerts".
 
-15) SSL certificates
+16) SSL certificates
 GoSource obtains an SSL certificate for any accounts in which an alm is established, and if a project is using the gosource domain, can also obtain a certificate for project environments. We'd expect any production environment would use a project specific SSL certificate.
 
 The following openssl command should be used to generate the domain keypair (crt) and the certificate signing request (csr). Both should be stored in the top level of the account/project credentials S3 bucket.
@@ -309,7 +313,7 @@ Technical Details: <same as admin details>
 
 Ensure the resulting certificate is provided in PEM format, and save it in S3 with the CSR as {domain}-ssl-crt.pem. It may also be necessary to capture issuer intermediary certificates, e.g. rapidssl-ssl-intermediate.pem.
 
-16) Shelf Account Creation
+17) Shelf Account Creation
 In order to speed up the process of organisation account creation, we maintain a few GoSource "shelf" accounts - shelf01, shelf02, ..shelfnn. These are basically fully set up AWS accounts. Importantly, they are already linked for consolidated billing and have cross-account access established via the gosource-administration role.
 
 When a customer needs a new account, a shelf account is converted into an organisation account as described below.
@@ -359,7 +363,7 @@ The next step is to create a role in the account that will be used by the GoSour
 
 ***NOTE: the steps above are for manual creation of the the shelf account. The next step will be to change this to use a CloudFormation script for as much of the creation as possible.***
 
-17) Conversion of Shelf Account to Organisation Account
+18) Conversion of Shelf Account to Organisation Account
 Most of the work to set up an AWS account is performed as part of creating the shelf account. The following steps are needed:
 
   1. If not already set up, create a new email domain based on the organisation id, e.g. fin01.gosource.com.au.
