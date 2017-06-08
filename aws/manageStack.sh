@@ -131,12 +131,6 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
             aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
 
             # For delete, we don't check result as stack may not exist
-
-            # Delete any associated S3 files
-            if [[ "${TYPE}" == "application" ]]; then
-                deleteCMDBFilesFromOperationsBucket "appsettings"
-                deleteCMDBFilesFromOperationsBucket "credentials"
-            fi
             ;;
 
         update)
@@ -172,18 +166,27 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
 
             # Check result of operation
             RESULT=$?
-            if [[ "$RESULT" -ne 0 ]]; then exit; fi
-            
-            # Update any S3 based files
-            if [[ "${TYPE}" == "application" ]]; then
-                syncCMDBFilesToOperationsBucket ${APPSETTINGS_DIR} "appsettings" ${DRYRUN}
-                syncCMDBFilesToOperationsBucket ${CREDENTIALS_DIR} "credentials" ${DRYRUN}
-            fi
+            if [[ "$RESULT" -ne 0 ]]; then exit; fi            
             ;;
 
         *)
             echo -e "\n\"${STACK_OPERATION}\" is not one of the known stack operations." >&2
             exit
+            ;;
+    esac
+fi
+
+# Update any file base configuration
+if [[ "${TYPE}" == "application" ]]; then
+    case ${STACK_OPERATION} in
+        delete)
+            deleteCMDBFilesFromOperationsBucket "appsettings"
+            deleteCMDBFilesFromOperationsBucket "credentials"
+            ;;
+
+        update)
+            syncCMDBFilesToOperationsBucket ${APPSETTINGS_DIR} "appsettings" ${DRYRUN}
+            syncCMDBFilesToOperationsBucket ${CREDENTIALS_DIR} "credentials" ${DRYRUN}
             ;;
     esac
 fi
