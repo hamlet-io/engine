@@ -54,6 +54,17 @@
     /]
 [/#macro]
 
+[#macro sqsProduceStatement id]
+    [@sqsStatement
+        [
+            "sqs:SendMessage*",
+            "sqs:Get*",
+            "sqs:List*"
+        ]
+        id
+    /]
+[/#macro]
+
 [#macro sqsConsumeStatement id]
     [@sqsStatement
         [
