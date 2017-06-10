@@ -80,7 +80,149 @@ service docker start
 ```
 
 6) **Setup sentry**
-Install docker-compose
+Install docker-compose replacing $dockerComposeVersion
+```
+curl -L https://github.com/docker/compose/releases/download/$dockerComposeVersion/docker-compose-`uname -s`-`uname -m` > /usr/local/sbin/docker-compose
+```
+Apply executable permissions to the binary:
+```
+sudo chmod +x /usr/local/sbin/docker-compose
+```
+Add an Oauth app to github organisation with a callback url `https://sentry.{domain}`
+Get smtp credentials.
+Create sentry.env 
+```
+mkdir -p /opt/sentry
+cd /opt/sentry
+```
+```
+vi /opt/sentry/sentry.env 
+```
+Add a sentry content, replacing sentry secrect key, smtp username/password and github id/secret:
+```
+# All settings:
+# https://hub.docker.com/_/sentry/
+# make it 32 characters or longer
+SENTRY_SECRET_KEY={key}
+# if we handle HTTPS outside the docker-compose installation
+SENTRY_USE_SSL=false
+# Classic email configuration
+SENTRY_EMAIL_HOST=email-smtp.us-west-2.amazonaws.com
+SENTRY_EMAIL_PASSWORD={smtp-user}
+SENTRY_EMAIL_PORT=587
+SENTRY_EMAIL_USER={smtp-user}
+SENTRY_EMAIL_USE_TLS=true
+SENTRY_SERVER_EMAIL=sentry@{domain}
+# If you use mailgun
+SENTRY_REDIS_HOST=redis
+SENTRY_POSTGRES_HOST=postgres
+SENTRY_DB_USER: sentry
+SENTRY_DB_PASSWORD: sentry
+
+POSTGRES_USER: sentry
+POSTGRES_PASSWORD: sentry
+POSTGRES_DBNAME: sentry
+POSTGRES_DBUSER: sentry
+POSTGRES_DBPASS: sentry
+
+GITHUB_APP_ID={github-app-id}
+GITHUB_API_SECRET={github-app-secret}
+#GITHUB_EXTENDED_PERMISSIONS=
+```
+
+Create docker-compose.yml file:
+```
+version: '2'
+
+services:
+  redis:
+    image: redis:3.0
+    restart: always
+
+  postgres:
+    image: postgres
+    env_file: sentry.env
+    volumes:
+      - /codeontap/sentry/var/pg_data/:/var/lib/postgresql/data
+      - /codeontap/sentry/var/pg_backups/:/backups
+    restart: always
+
+  sentry:
+    image: sentry
+    ports:
+      - 8000:9000
+    links:
+      - redis
+      - postgres
+    env_file: sentry.env
+    restart: always
+
+  celerybeat:
+    image: sentry
+    links:
+      - redis
+      - postgres
+    command: sentry run cron
+    env_file: sentry.env
+    restart: always
+
+  celeryworker:
+    image: sentry
+    links:
+      - redis
+      - postgres
+    command: sentry run worker
+    env_file: sentry.env
+    restart: always
+```
+First time run docker-compose without -d option to confirm it is starting OK and create a super user:
+```
+docker-compose up
+```
+Stop it with ctrl+c and run as a daemon:
+```
+docker-compose up -d
+```
+Upgrade sentry:
+```
+docker-compose exec sentry sentry upgrade
+```
+Install GitHub Auth for Sentry:
+```
+docker-compose exec sentry bash -c "pip install https://github.com/getsentry/sentry-auth-github/archive/master.zip"
+```
+Disable registration if needed:
+```
+docker-compose exec sentry bash -c "echo SENTRY_FEATURES[\'auth:register\'] = False >> /etc/sentry/sentry.conf.py"
+```
+Restart sentry:
+```
+docker-compose restart
+```
+Create backup script in `/root/backup_sentry_data.sh` - replace `{domain}` to required domain:
+```
+#!/bin/bash
+SENTRY_DIR="/codeontap/sentry"
+REGION="ap-southeast-2"
+BUCKET="s3://operations-alm-automation.dawr.gosource.com.au/Backups/alm"
+TIMESTAMP=`date +"%Y-%m-%d-%H-%M"`
+
+cd /opt/sentry/ && docker-compose exec postgres bash -c "mkdir -p /backups; pg_dump -U postgres postgres > /backups/pg-dump.sql"
+
+aws s3 cp $SENTRY_DIR/var/pg_backups/pg-dump.sql $BUCKET/sentry/pg_backups/pg-dump-$TIMESTAMP.sql --region $REGION
+```
+Change mode for backup script to make it executable:
+```
+chmod 755 /root/backup_sentry_data.sh
+```
+Update the crontab file '/var/spool/cron/root' with additional crons:
+```
+# Ccreate sentry pg dump and copy it to s3 each day
+20 2 * * * /root/backup_sentry_data.sh
+#
+# Clean up sentry docker container
+40 2 * * * docker-compose exec sentry sentry cleanup
+```
 
 7) **Setup httpd**
 
@@ -145,13 +287,14 @@ Check renewal will work ok - need to reconfigure to allow for running http serve
 ./certbot-auto --apache certonly --debug
 ./certbot-auto renew --dry-run
 ```
+If you have installed Sentry, make the same steps for sentry.{domain}.
 8) **configure the services in chkconfig:**
 ```
   chkconfig tomcat7 on
   chkconfig httpd on
   chkconfig docker on
 ```
-9) **Configure Jenkins.**
+9) **Configure Jenkins**
 
 Go to Jenkins at https://automation.{domain} in a browser (initial admin password in `/codeontap/jenkins/secrets/initialAdminPassword`).
 Install the recommended plugins, and **DON'T** set up an admin user - we will configure authentication using github.
@@ -164,7 +307,11 @@ In `Manage Plugins`, install non-standard plugins:
   5. Environment Injector
   6. Parameterized Trigger
 
-10) **Add GitHub Authentication**
+10) **Configure Sentry**
+
+Go to Sentry at https://sentry.{domain} in a browser, initial admin user was created during installation process. Go to Auth tab and configure GitHub Authentification.
+
+11) **Add GitHub Authentication**
 
 Add OAuth Application in github organisation, set callback to `https://automation.{domain}/securityRealm/finishLogin`.
 
