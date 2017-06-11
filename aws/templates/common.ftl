@@ -331,13 +331,6 @@
         "Arn" /]
 [/#macro]
 
-[#macro outputElasticSearchArn resourceId]
-    [@outputAtt
-        formatArnAttributeId(resourceId)
-        resourceId
-        "DomainArn" /]
-[/#macro]
-
 [#macro outputS3Url resourceId]
     [@outputAtt
         formatUrlAttributeId(resourceId)
@@ -356,13 +349,6 @@
         formatDnsAttributeId(resourceId)
         resourceId
         "DNSName" /]
-[/#macro]
-
-[#macro outputElasticSearchUrl resourceId]
-    [@outputAtt
-        formatDnsAttributeId(resourceId)
-        resourceId
-        "DomainEndpoint" /]
 [/#macro]
 
 [#macro outputSQS resourceId]

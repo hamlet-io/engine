@@ -1,9 +1,9 @@
 [#-- ElasticSearch --]
-[#if componentType == "elasticsearch"]
-    [#assign es = component.ElasticSearch]
+[#if componentType == "elasticsearch" ||
+        (componentType == "es")]
+    [#assign es = component.ES!component.ElasticSearch]
     
-    [#assign esId = formatComponentResourceId(
-                        "es",
+    [#assign esId = formatElasticSearchId(
                         tier,
                         component)]
     [#if resourceCount > 0],[/#if]
@@ -140,8 +140,8 @@
             [#break]
 
         [#case "outputs"]
-            [@output esId /]
-            [@outputElasticSearchUrl esId /]
+            [@output esId /],
+            [@outputElasticSearchUrl esId /],
             [@outputElasticSearchArn esId /]
             [#break]
 
