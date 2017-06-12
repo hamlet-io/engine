@@ -4,7 +4,7 @@ In general ALM consists of jenkins, docker and httpd as frontend. Jenkins is dis
 
 1) **Run up ALM server, and create DNS entry for it - `automation.{domain}`** 
 
-If Sentry will be installed, do not forget about `sentry.{domain}` A-record.
+If Sentry to be installed, do not forget about `sentry.{domain}` A-record.
 
 2) **Install the required packages**
 ```
