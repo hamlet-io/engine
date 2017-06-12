@@ -76,7 +76,7 @@
                         "AdvancedOptions" : {
                             [#list es.AdvancedOptions as option]
                                 "${option.Id}" : "${option.Value}"
-                                [#if option.Id != es.AdvancedOptions?last.Id],[/#if]
+                                [#sep],[/#sep]
                             [/#list]
                         },
                     [/#if]
