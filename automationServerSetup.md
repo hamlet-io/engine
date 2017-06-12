@@ -2,7 +2,9 @@
 
 In general ALM consists of jenkins, docker and httpd as frontend. Jenkins is distributed as a war file and thus needs some container service to be run on, we use tomcat7.
 
-1) **Run up ALM server, and create DNS entry for it - `{automation}.domain`**
+1) **Run up ALM server, and create DNS entry for it - `automation.{domain}`** 
+If Sentry will be installed, do not forget about `sentry.{domain}` A-record.
+
 2) **Install the required packages**
 ```
 yum -y update
@@ -288,6 +290,7 @@ Check renewal will work ok - need to reconfigure to allow for running http serve
 ./certbot-auto renew --dry-run
 ```
 If you have installed Sentry, make the same steps for sentry.{domain}.
+
 8) **configure the services in chkconfig:**
 ```
   chkconfig tomcat7 on
