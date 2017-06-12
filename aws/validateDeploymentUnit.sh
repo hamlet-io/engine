@@ -42,11 +42,13 @@ SOLUTION_UNITS_ARRAY=(${CHECK_UNIT})
 SEGMENT_UNITS_ARRAY=("eip" "s3 " "cmk" "cert" "vpc" "dns" "eipvpc" "eips3vpc")
 
 # Apply explicit unit lists and check for presence of unit
+# Allow them to be separated by commas or spaces in line with the separator
+# definitions in setContext.sh for the automation framework
 for T in "${TYPES[@]}"; do
     UNITS_SOURCE="${T^^}_UNITS"
     UNITS_ARRAY_VAR="${UNITS_SOURCE}_ARRAY"
     if [[ -n "${!UNITS_SOURCE}" ]]; then
-        eval "${UNITS_ARRAY_VAR}=\$(IFS=','; echo \"\${${UNITS_SOURCE}[*]}\")"
+        eval "${UNITS_ARRAY_VAR}=\$(IFS=', '; echo \"\${${UNITS_SOURCE}[*]}\")"
     fi
 
     
