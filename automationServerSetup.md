@@ -53,7 +53,7 @@ Create backup script in `/root/backup_data.sh` - replace `{domain}` to required 
 #!/bin/bash
 JENKINS_DIR="/codeontap/jenkins"
 REGION="ap-southeast-2"
-BUCKET="s3://operations-alm-automation.{domain}/Backups/alm"
+BUCKET="s3://ops-alm-automation.{domain}/Backups/alm"
 TIMESTAMP=`date +"%Y-%m-%d-%H-%M"`
 aws s3 cp --recursive --exclude "*log" $JENKINS_DIR/jobs $BUCKET/jenkins/$TIMESTAMP/jobs --region $REGION
 aws s3 cp $JENKINS_DIR/config.xml $BUCKET/jenkins/$TIMESTAMP/config.xml --region $REGION
