@@ -212,6 +212,11 @@ TIMESTAMP=`date +"%Y-%m-%d-%H-%M"`
 
 cd /opt/sentry/ && docker-compose exec postgres bash -c "mkdir -p /backups; pg_dump -U postgres postgres > /backups/pg-dump.sql"
 
+if [ -s $SENTRY_DIR/var/pg_backups/pg-dump.sql ]
+then
+        sleep 30
+fi
+
 aws s3 cp $SENTRY_DIR/var/pg_backups/pg-dump.sql $BUCKET/sentry/pg_backups/pg-dump-$TIMESTAMP.sql --region $REGION
 ```
 Change mode for backup script to make it executable:
