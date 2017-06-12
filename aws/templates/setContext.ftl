@@ -7,7 +7,10 @@
 
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
-[#assign credentialsObject = (credentials?eval).Credentials]                    
+[#assign credentialsObject = {"Credentials" : {}}]
+[#if credentials??]
+    [#assign credentialsObject = (credentials?eval).Credentials]
+[/#if]
 [#assign appSettingsObject = appsettings?eval]
 [#assign stackOutputsObject = stackOutputs?eval]
 

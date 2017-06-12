@@ -314,7 +314,7 @@ export COMPOSITE_CREDENTIALS="${INFRASTRUCTURE_DIR}/composite_credentials.json"
 if [[ "${#CREDENTIALS_ARRAY[@]}" -gt 0 ]]; then
     ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
 else
-    echo "{}" > ${COMPOSITE_CREDENTIALS}
+    echo "{\"Credentials\" : {}}" > ${COMPOSITE_CREDENTIALS}
 fi    
 
 # Create the composite stack outputs

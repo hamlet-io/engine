@@ -96,30 +96,56 @@
     [/#if]
 [/#macro]
 
-[#macro roleHeader id trustedServices=[] managedArns=[] path="" name="" embeddedPolicies=true ]
+[#macro roleHeader 
+            id trustedServices=[] managedArns=[] trustedAccounts=[] condition=""
+            path="" name="" multiFactor=false embeddedPolicies=true ]
     [#assign policiesEmbedded = embeddedPolicies]
     [#assign policyCount = 0]
     "${id}": {
         "Type" : "AWS::IAM::Role",
         "Properties" : {
             [#assign propertyCount = 0]
-            [#if trustedServices?has_content]
+            [#if trustedServices?has_content ||
+                    trustedAccounts?has_content]
                 "AssumeRolePolicyDocument" : {
                     "Version": "2012-10-17",
                     "Statement": [
                         {
                             "Effect": "Allow",
                             "Principal": {
+                                [#assign principalSeen = false]
                                 [#if trustedServices?has_content]
                                     "Service": [
-                                        [#list trustedServices as service]
-                                            "${service}"
+                                        [#list trustedServices as trustedService]
+                                            "${trustedService}"
                                             [#sep],[/#sep]
                                         [/#list]
                                     ]
+                                    [#assign principalSeen = true]
+                                [/#if]
+                                [#if trustedAccounts?has_content]
+                                    [#if principalSeen],[/#if]
+                                    "AWS": [
+                                        [#list trustedAccounts as trustedAccount]
+                                            "arn:aws:iam:${trustedAccount}:root"
+                                            [#sep],[/#sep]
+                                        [/#list]
+                                    ]
+                                    [#assign principalSeen = true]
                                 [/#if]
                             },
                             "Action": [ "sts:AssumeRole" ]
+                            [#if multiFactor || condition?has_content]
+                                ,"Condition": {
+                                    [#if multiFactor]
+                                        "Bool": {
+                                          "aws:MultiFactorAuthPresent": "true"
+                                        }
+                                    [#else]
+                                        ${condition}
+                                    [/#if]
+                                }                            
+                            [/#if]
                         }
                     ]
                 }
@@ -137,12 +163,12 @@
             [/#if]
             [#if path?has_content]
                 [#if propertyCount > 0],[/#if]
-                "Path": "${path}",
+                "Path": "${path}"
                 [#assign propertyCount += 1]
             [/#if]
             [#if name?has_content]
                 [#if propertyCount > 0],[/#if]
-                "RoleName": "${name}",
+                "RoleName": "${name}"
                 [#assign propertyCount += 1]
             [/#if]
             [#if policiesEmbedded]
@@ -162,6 +188,10 @@
     }
 [/#macro]
 
-[#macro role id trustedServices=[] managedArns=[] path="" name="" ]
-    [@roleHeader id trustedServices managedArns path name false /]
+[#macro role
+            id trustedServices=[] managedArns=[] trustedAccounts=[] condition=""
+            path="" name="" multiFactor=false]
+    [@roleHeader
+        id trustedServices managedArns trustedAccounts condition 
+        path name multiFactor false /]
 [/#macro]
