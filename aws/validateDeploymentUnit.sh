@@ -35,7 +35,7 @@ if [[ (-n "${CHECK_TYPE}") &&
 fi
 
 # Default deployment units for each type
-ACCOUNT_UNITS_ARRAY=("s3" "cert" "roles")
+ACCOUNT_UNITS_ARRAY=("s3" "cert" "roles" "apigateway")
 PRODUCT_UNITS_ARRAY=("s3" "sns" "cert" "cmk")
 APPLICATION_UNITS_ARRAY=(${CHECK_UNIT})
 SOLUTION_UNITS_ARRAY=(${CHECK_UNIT})

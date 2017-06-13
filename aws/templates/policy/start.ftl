@@ -127,7 +127,7 @@
                                     [#if principalSeen],[/#if]
                                     "AWS": [
                                         [#list trustedAccounts as trustedAccount]
-                                            "arn:aws:iam:${trustedAccount}:root"
+                                            "arn:aws:iam::${trustedAccount}:root"
                                             [#sep],[/#sep]
                                         [/#list]
                                     ]
