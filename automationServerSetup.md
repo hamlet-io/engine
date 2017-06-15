@@ -85,11 +85,11 @@ service docker start
 6) **Setup sentry**
 Install docker-compose replacing $dockerComposeVersion
 ```
-curl -L https://github.com/docker/compose/releases/download/$dockerComposeVersion/docker-compose-`uname -s`-`uname -m` > /usr/local/sbin/docker-compose
+curl -L https://github.com/docker/compose/releases/download/$dockerComposeVersion/docker-compose-`uname -s`-`uname -m` > /usr/bin/docker-compose
 ```
 Apply executable permissions to the binary:
 ```
-sudo chmod +x /usr/local/sbin/docker-compose
+sudo chmod +x /usr/bin/docker-compose
 ```
 Add an Oauth app to github organisation with a callback url `https://sentry.{domain}`
 Get smtp credentials.
