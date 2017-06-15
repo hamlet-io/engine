@@ -134,6 +134,13 @@ GITHUB_API_SECRET={github-app-secret}
 ```
 
 Create docker-compose.yml file:
+
+```
+vi /opt/sentry/docker-compose.yml
+```
+
+Add content:
+
 ```
 version: '2'
 
