@@ -4,10 +4,11 @@
 [#-- Initialisation --]
 
 [#-- Domains --]
-[#if accountObject.Domain??]
-    [#assign accountDomainStem = accountObject.Domain.Stem]
-    [#assign accountDomainBehaviour = (accountObject.Domain.AccountBehaviour)!""]
-    [#assign accountDomainCertificateId = accountObject.Domain.Certificate.Id]
+[#if accountDomain??]
+    [#assign accountDomainObject = domains[accountDomain]]
+    [#assign accountDomainStem = accountDomainObject.Stem]
+    [#assign accountDomainBehaviour = (accountDomainObject.AccountBehaviour)!""]
+    [#assign accountDomainCertificateId = accountDomainObject.Certificate.Id]
     [#switch accountDomainBehaviour]
         [#case "accountInDomain"]
             [#assign accountDomain = accountName + "." + accountDomainStem]
@@ -33,13 +34,13 @@
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl"],
     "Resources" : {
-        [#assign resourceCount = 0]
+        [@noResourcesCreated /]
         [#assign accountListMode="definition"]
         [#include accountList]
     },
     "Outputs" : 
     {
-        [#assign resourceCount = 0]
+        [@noResourcesCreated /]
         [#assign accountListMode="outputs"]
         [#include accountList]
     }

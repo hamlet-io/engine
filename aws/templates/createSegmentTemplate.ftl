@@ -4,31 +4,33 @@
 [#-- Initialisation --]
 
 [#-- Domains --]
-[#assign productDomainStem = productObject.Domain.Stem]
-[#assign segmentDomainBehaviour = (productObject.Domain.SegmentBehaviour)!""]
-[#assign segmentDomainCertificateId = productObject.Domain.Certificate.Id]
+[#assign segmentDomainId = segmentObject.Domain!productDomain]
+[#assign segmentDomainObject = domains[segmentDomainId]]
+[#assign segmentDomainStem = segmentDomainObject.Stem]
+[#assign segmentDomainBehaviour = (segmentDomainObject.SegmentBehaviour)!""]
+[#assign segmentDomainCertificateId = segmentDomainId]
 [#switch segmentDomainBehaviour]
     [#case "segmentProductInDomain"]
-        [#assign segmentDomain = segmentName + "." + productName + "." + productDomainStem]
+        [#assign segmentDomain = segmentName + "." + productName + "." + segmentDomainStem]
         [#assign segmentDomainQualifier = ""]
         [#assign segmentDomainCertificateId = formatName(segmentDomainCertificateId, productId, segmentId)]
         [#break]
     [#case "segmentInDomain"]
-        [#assign segmentDomain = segmentName + "." + productDomainStem]
+        [#assign segmentDomain = segmentName + "." + segmentDomainStem]
         [#assign segmentDomainQualifier = ""]
         [#assign segmentDomainCertificateId = formatName(segmentDomainCertificateId, segmentId)]
         [#break]
     [#case "naked"]
-        [#assign segmentDomain = productDomainStem]
+        [#assign segmentDomain = segmentDomainStem]
         [#assign segmentDomainQualifier = ""]
         [#break]
     [#case "segmentInHost"]
-        [#assign segmentDomain = productDomainStem]
+        [#assign segmentDomain = segmentDomainStem]
         [#assign segmentDomainQualifier = segmentName]
         [#break]
     [#case "segmentProductInHost"]
     [#default]
-        [#assign segmentDomain = productDomainStem]
+        [#assign segmentDomain = segmentDomainStem]
         [#assign segmentDomainQualifier = formatName(segmentName, productName)]
         [#break]
 [/#switch]
@@ -41,10 +43,6 @@
 [#if dataBucket == "unknown"]
     [#assign dataBucket = formatName(dataBucketType, segmentDomainQualifier) + "." + segmentDomain]
 [/#if]
-
-
-[#assign operationsExpiration = (segmentObject.Operations.Expiration)!(environmentObject.Operations.Expiration)!"none"]
-[#assign dataExpiration = (segmentObject.Data.Expiration)!(environmentObject.Data.Expiration)!"none"]
 
 [#-- Segment --]
 [#assign baseAddress = segmentObject.CIDR.Address?split(".")]
@@ -60,13 +58,13 @@
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl" ],
     "Resources" : {
-        [#assign resourceCount = 0]
+        [@noResourcesCreated /]
         [#assign segmentListMode="definition"]
         [#include segmentList]                      
     },
     "Outputs" : 
     {
-        [#assign resourceCount = 0]
+        [@noResourcesCreated /]
         [#assign segmentListMode="outputs"]
         [#include segmentList]
     }
