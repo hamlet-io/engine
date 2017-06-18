@@ -281,7 +281,7 @@
                                                         "awslogs"
                                                 )
                                             ]
-                                            "logDriver": "${logDriver}"
+                                            "LogDriver": "${logDriver}"
                                             [#switch logDriver]
                                                 [#case "fluentd"]
                                                         ,"Options" : { 
