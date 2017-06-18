@@ -24,6 +24,7 @@ where
 (d) -s DEPLOYMENT_UNIT         same as -u
 (m) -t TYPE                    is the template type - "account", "product", "segment", "solution" or "application"
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
+(o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required 
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -50,7 +51,7 @@ EOF
 }
 
 # Parse options
-while getopts ":b:c:hq:r:s:t:u:" opt; do
+while getopts ":b:c:hq:r:s:t:u:z:" opt; do
     case $opt in
         b)
             BUILD_DEPLOYMENT_UNIT="${OPTARG}"
@@ -75,6 +76,9 @@ while getopts ":b:c:hq:r:s:t:u:" opt; do
             ;;
         u)
             DEPLOYMENT_UNIT="${OPTARG}"
+            ;;
+        z)
+            DEPLOYMENT_UNIT_SUBSET="${OPTARG}"
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
@@ -129,6 +133,9 @@ COMPOSITE_VAR="COMPOSITE_${TYPE^^}"
 TYPE_PREFIX="$TYPE-"
 DEPLOYMENT_UNIT_PREFIX="${DEPLOYMENT_UNIT}-"
 REGION_PREFIX="${REGION}-"
+if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
+    DEPLOYMENT_UNIT_SUBSET_PREFIX="${DEPLOYMENT_UNIT_SUBSET,,}-"
+fi
 case $TYPE in
     account)
         CF_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf"
@@ -201,14 +208,15 @@ case $TYPE in
 esac
 
 # Generate the template filename
-OUTPUT="${CF_DIR}/${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json"
-TEMP_OUTPUT="${CF_DIR}/temp_${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json"
+OUTPUT="${CF_DIR}/${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
+TEMP_OUTPUT="${CF_DIR}/temp_${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
 
 # Ensure the aws tree for the templates exists
 if [[ ! -d ${CF_DIR} ]]; then mkdir -p ${CF_DIR}; fi
 
 ARGS=()
 if [[ -n "${DEPLOYMENT_UNIT}" ]]; then ARGS+=("-v" "deploymentUnit=${DEPLOYMENT_UNIT}"); fi
+if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then ARGS+=("-v" "deploymentUnitSubset=${DEPLOYMENT_UNIT_SUBSET}"); fi
 if [[ -n "${BUILD_DEPLOYMENT_UNIT}" ]]; then ARGS+=("-v" "buildDeploymentUnit=${BUILD_DEPLOYMENT_UNIT}"); fi
 if [[ -n "${BUILD_REFERENCE}" ]]; then ARGS+=("-v" "buildReference=${BUILD_REFERENCE}"); fi
 

@@ -29,15 +29,16 @@ where
 (m) -u DEPLOYMENT_UNIT          is the deployment unit used to determine the stack template
 (o) -w STACK_WAIT               is the interval between checking the progress of the stack operation
 (o) -y (DRYRUN=--dryrun)        for a dryrun - show what will happen without actually updating the strack
+(o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required 
 
 (m) mandatory, (o) optional, (d) deprecated
 
 DEFAULTS:
 
-STACK_INITIATE = ${STACK_INITIATE_DEFAULT}
-STACK_MONITOR = ${STACK_MONITOR_DEFAULT}
+STACK_INITIATE  = ${STACK_INITIATE_DEFAULT}
+STACK_MONITOR   = ${STACK_MONITOR_DEFAULT}
 STACK_OPERATION = ${STACK_OPERATION_DEFAULT}
-STACK_WAIT = ${STACK_WAIT_DEFAULT} seconds
+STACK_WAIT      = ${STACK_WAIT_DEFAULT} seconds
 
 NOTES:
 1. You must be in the correct directory corresponding to the requested stack type
@@ -54,7 +55,7 @@ EOF
 }
 
 # Parse options
-while getopts ":dhimn:r:s:t:u:w:y" opt; do
+while getopts ":dhimn:r:s:t:u:w:yz:" opt; do
     case $opt in
         d)
             STACK_OPERATION=delete
@@ -88,6 +89,9 @@ while getopts ":dhimn:r:s:t:u:w:y" opt; do
             ;;
         y)
             DRYRUN="--dryrun"
+            ;;
+        z)
+            DEPLOYMENT_UNIT_SUBSET="${OPTARG}"
             ;;
         \?)
             echo -e "\nInvalid option: -${OPTARG}" >&2
