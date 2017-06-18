@@ -28,7 +28,6 @@
         rdsId
         rdsFullName/]
     
-    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#switch engine]
@@ -50,6 +49,7 @@
                     [#assign family = "postgres" + engineVersion]
                     [#break]
             [/#switch]
+            [@checkIfResourcesCreated /]
             "${rdsSecurityGroupIngressId}" : {
                 "Type" : "AWS::EC2::SecurityGroupIngress",
                 "Properties" : {
@@ -171,14 +171,14 @@
                     ]
                 }
             }
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
-            [@outputRDSDns rdsId /],
-            [@outputRDSPort rdsId /],
+            [@outputRDSDns rdsId /]
+            [@outputRDSPort rdsId /]
             [@outputRDSDatabaseName rdsId productName /]
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
 [/#if]

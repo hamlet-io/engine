@@ -70,7 +70,6 @@
                             component,
                             s3Instance)]
 
-        [#if resourceCount > 0],[/#if]
         [#switch solutionListMode]
             [#case "definition"]
                 [#-- Current bucket naming --]
@@ -85,6 +84,7 @@
                 [#assign bucketName = getKey(s3Id)?has_content?then(
                                         getKey(s3Id),
                                         bucketName)]
+                [@checkIfResourcesCreated /]
                 "${s3Id}" : {
                     "Type" : "AWS::S3::Bucket",
                     "Properties" : {
@@ -167,6 +167,7 @@
                         ]
                     [/#if]
                 }
+                [@resourcesCreated /]
                 [#if s3Instance.Internal.Notifications?is_hash &&
                         (s3Instance.Internal.Notifications.SQS)??]
                     [#assign sqsNotifications = s3Instance.Internal.Notifications.SQS]
@@ -188,11 +189,10 @@
                 [#break]
     
             [#case "outputs"]
-                [@output s3Id /],
+                [@output s3Id /]
                 [@outputS3Url s3Id /]
                 [#break]
     
         [/#switch]
-        [#assign resourceCount += 1]
     [/#list]
 [/#if]

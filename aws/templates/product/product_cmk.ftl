@@ -1,6 +1,6 @@
 [#-- KMS CMK --]
 [#if deploymentUnit?contains("cmk")]
-    [#if resourceCount > 0],[/#if]
+    [@checkIfResourcesCreated /]
     [#switch productListMode]
         [#case "definition"]
             "cmk" : {
@@ -48,6 +48,6 @@
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
+    [@resourcesCreated /]
 [/#if]
 

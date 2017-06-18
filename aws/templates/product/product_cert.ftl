@@ -1,6 +1,6 @@
 [#-- Certificate --]
 [#if deploymentUnit?contains("cert")]
-    [#if resourceCount > 0],[/#if]
+    [@checkIfResourcesCreated /]
     [#switch productListMode]
         [#case "definition"]
             "certificate" : {
@@ -24,6 +24,6 @@
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
+    [@resourcesCreated /]
 [/#if]
 

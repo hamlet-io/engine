@@ -70,9 +70,9 @@
                                 component,
                                 apigatewayInstance)]
 
-        [#if resourceCount > 0],[/#if]
         [#switch applicationListMode]
             [#case "definition"]
+                [@checkIfResourcesCreated /]
                 "${apiId}" : {
                     "Type" : "AWS::ApiGateway::RestApi",
                     "Properties" : {
@@ -225,14 +225,14 @@
                         [/#if]
                     [/#list]
                 [/#if]
+                [@resourcesCreated /]
                 [#break]
 
             [#case "outputs"]
-                [@output apiId /],
+                [@output apiId /]
                 [@outputRoot apiId /]
                 [#break]
 
         [/#switch]
-        [#assign resourceCount += 1]
     [/#list]
 [/#if]

@@ -7,7 +7,7 @@
     [#assign s3DataId = formatS3Id(dataBucketType)]
     [#assign s3OperationsPolicyId = formatS3BucketPolicyId(s3OperationsId)]
 
-    [#if resourceCount > 0],[/#if]
+    [@checkIfResourcesCreated /]
     [#switch segmentListMode]
         [#case "definition"]
             [#-- Create operations bucket --]
@@ -133,6 +133,6 @@
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
+    [@resourcesCreated /]
 [/#if]
 

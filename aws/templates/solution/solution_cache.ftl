@@ -24,7 +24,6 @@
         cacheId
         cacheFullName/]
 
-    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#switch engine]
@@ -48,6 +47,7 @@
                     [#assign family = "redis" + engineVersion[0..familyVersionIndex]]
                     [#break]
             [/#switch]
+            [@checkIfResourcesCreated /]
             "${cacheSecurityGroupIngressId}" : {
                 "Type" : "AWS::EC2::SecurityGroupIngress",
                 "Properties" : {
@@ -129,21 +129,21 @@
                     ]
                 }
             }
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
             [#switch engine]
                 [#case "memcached"]
-                    [@outputMemcachedDns cacheId /],
+                    [@outputMemcachedDns cacheId /]
                     [@outputMemcachedPort cacheId /]
                 [#break]
                 [#case "redis"]
-                    [@outputRedisDns cacheId /],
+                    [@outputRedisDns cacheId /]
                     [@outputRedisPort cacheId /]
                     [#break]
             [/#switch]
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
 [/#if]

@@ -1,11 +1,11 @@
 [#-- Account level roles --]
 [#if deploymentUnit?contains("apigateway")]
-    [#if resourceCount > 0],[/#if]
     [#assign cloudWatchRoleId = formatAccountRoleId("cloudwatch")]
     [#assign apiAccountId = formatAccountResourceId("apiAccount","cloudwatch")]
 
     [#switch accountListMode]
         [#case "definition"]
+            [@checkIfResourcesCreated /]
             [@role
                 id=cloudWatchRoleId
                 trustedServices=
@@ -24,15 +24,14 @@
                     { "Fn::GetAtt" : ["${cloudWatchRoleId}", "Arn"] }
               }
             }
-            
+            [@resourcesCreated /]
             [#break]
         
         [#case "outputs"]
-            [@output cloudWatchRoleId /],
+            [@output cloudWatchRoleId /]
             [@outputArn cloudWatchRoleId /]
             [#break]
 
     [/#switch]        
-    [#assign resourceCount += 1]
 [/#if]
 

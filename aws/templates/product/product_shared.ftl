@@ -6,7 +6,7 @@
                     [#if component?is_hash]
                         [#if component.S3??]
                             [#assign s3 = component.S3]
-                            [#if resourceCount > 0],[/#if]
+                            [@checkIfResourcesCreated /]
                             [#-- Current bucket naming --]
                             [#if s3.Name != "S3"]
                                 [#assign bucketName = s3.Name + productDomainQualifier + "." + productDomain]
@@ -42,7 +42,7 @@
                                     [/#if]
                                 }
                             }
-                            [#assign resourceCount += 1]
+                            [@resourcesCreated /]
                         [/#if]
                     [/#if]
                 [/#list]
@@ -51,7 +51,7 @@
 
         [#case "outputs"]
             [#if (regionId == productRegionId)]
-                [#if resourceCount > 0],[/#if]
+                [@checkIfResourcesCreated /]
                 "${formatId("domain", "product", "domain")}" : {
                     "Value" : "${productDomain}"
                 },
@@ -61,19 +61,21 @@
                 "${formatId("domain", "product", "certificate")}" : {
                     "Value" : "${productDomainCertificateId}"
                 }
+                [@resourcesCreated /]
                 [#if (regionId == productRegionId) && (blueprintObject.Tiers["shared"].Components)??]
                     [#list blueprintObject.Tiers["shared"].Components?values as component]
                         [#if component?is_hash]
                             [#if component.S3??]
                                 [#assign s3 = component.S3]
+                                [@checkIfResourcesCreated /]
                                 "${formatId("s3", "product", component.Id)}" : {
                                     "Value" : { "Ref" : "${formatId("s3", component.Id)}" }
                                 }
+                                [@resourcesCreated /]
                             [/#if]
                         [/#if]
                     [/#list]
                 [/#if]
-                [#assign resourceCount += 1]
             [/#if]
             [#break]
 

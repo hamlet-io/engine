@@ -1,6 +1,6 @@
 [#-- SNS for product --]
 [#if deploymentUnit?contains("sns")]
-    [#if resourceCount > 0],[/#if]
+    [@checkIfResourcesCreated /]
     [#switch productListMode]
         [#case "definition"]
             "${formatId("sns", "alerts")}" : {
@@ -26,6 +26,6 @@
 
 
     [/#switch]
-    [#assign resourceCount += 1]
+    [@resourcesCreated /]
 [/#if]
 

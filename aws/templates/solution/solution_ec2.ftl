@@ -10,10 +10,10 @@
     [#assign ec2ELBId = formatELBId("elb", component)]
     [@createComponentSecurityGroup solutionListMode tier component /]
     
-    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#list ec2.Ports as port]
+                [@checkIfResourcesCreated /]
                 "${formatEC2SecurityGroupIngressId(
                     tier,
                     component,
@@ -26,7 +26,8 @@
                         "ToPort": "${ports[port].Port?c}",
                         "CidrIp": "0.0.0.0/0"
                     }
-                },
+                }
+                [@resourcesCreated /]
             [/#list]
 
             [@roleHeader
@@ -44,8 +45,9 @@
                     [@s3WriteStatement operationsBucket "DOCKERLogs" /]
                     [@s3WriteStatement operationsBucket "Backups" /]
                 [@policyFooter /]
-            [@roleFooter /],
+            [@roleFooter /]
 
+            [@checkIfResourcesCreated /]
             "${ec2InstanceProfileId}" : {
                 "Type" : "AWS::IAM::InstanceProfile",
                 "Properties" : {
@@ -55,6 +57,7 @@
                     ]
                 }
             }
+            [@resourcesCreated /]
 
             [#list zones as zone]
                 [#if multiAZ || (zones[0].Id = zone.Id)]
@@ -89,7 +92,8 @@
                                     zone,
                                     "eth0")]
 
-                    ,"${ec2InstanceId}": {
+                    [@checkIfResourcesCreated /]
+                    "${ec2InstanceId}": {
                         "Type": "AWS::EC2::Instance",
                         "Metadata": {
                             "AWS::CloudFormation::Init": {
@@ -300,10 +304,11 @@
                     [/#if]
                 [/#if]
             [/#list]
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
-            [@output ec2RoleId /],
+            [@output ec2RoleId /]
             [@outputArn ec2RoleId /]
             [#if fixedIP]
                 [#list zones as zone]
@@ -321,13 +326,12 @@
                                                     "eth0")]
                         [/#if]
 
-                        ,[@outputIPAddress ec2EIPId /]
-                        ,[@outputAllocation ec2EIPId /]
+                        [@outputIPAddress ec2EIPId /]
+                        [@outputAllocation ec2EIPId /]
                     [/#if]
                 [/#list]
             [/#if]
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
 [/#if]

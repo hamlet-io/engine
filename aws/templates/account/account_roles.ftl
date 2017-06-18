@@ -1,12 +1,12 @@
 [#-- Account level roles --]
 [#if deploymentUnit?contains("roles")]
-    [#if resourceCount > 0],[/#if]
     [#assign automationRoleId = formatAccountRoleId("automation")]
     [#assign administratorRoleId = formatAccountRoleId("administrator")]
     [#assign viewerRoleId = formatAccountRoleId("viewer")]
 
     [#switch accountListMode]
         [#case "definition"]            
+            [@checkIfResourcesCreated /]
             [#assign accessAccounts=[]]
             [#list accountObject.Access?values as accessAccount]
                 [#if accessAccount?is_hash]
@@ -42,18 +42,18 @@
                     ]
                 multiFactor=true
             /]
+            [@resourcesCreated /]
             [#break]
         
         [#case "outputs"]
-            [@output automationRoleId /],
-            [@outputArn automationRoleId /],
-            [@output administratorRoleId /],
-            [@outputArn administratorRoleId /],
-            [@output viewerRoleId /],
+            [@output automationRoleId /]
+            [@outputArn automationRoleId /]
+            [@output administratorRoleId /]
+            [@outputArn administratorRoleId /]
+            [@output viewerRoleId /]
             [@outputArn viewerRoleId /]
             [#break]
 
     [/#switch]        
-    [#assign resourceCount += 1]
 [/#if]
 

@@ -106,7 +106,6 @@
                     lambdaName  /]
             [/#if]
 
-            [#if resourceCount > 0],[/#if]
             [#switch applicationListMode]
                 [#case "definition"]            
                     [#-- Create a role under which the function will run and attach required policies --]
@@ -128,9 +127,9 @@
                     [@role
                         containerListRole,
                         ["lambda.amazonaws.com" ],
-                        managedArns /],
+                        managedArns /]
+                    [@resourcesCreated /]
                     [#assign containerListMode = "policy"]
-                    [#assign policyCount = 0]
                     [#assign containerListPolicyId = formatDependentPolicyId(
                                                         lambdaId,
                                                         {"Id" : lambda.Container })]
@@ -144,7 +143,6 @@
                 
             [/#switch]
         
-            [#assign functionCount = 0]
             [#list lambdaInstance.Internal.Functions?values as fn]
                 [#if fn?is_hash]
                     [#assign lambdaFunctionId = formatLambdaFunctionId(
@@ -158,9 +156,9 @@
                                                 component,
                                                 lambdaInstance,
                                                 fn)]
-                    [#if functionCount > 0],[/#if]
                     [#switch applicationListMode]
                         [#case "definition"]
+                            [@checkIfResourcesCreated /]
                             "${lambdaFunctionId}" : {
                                 "Type" : "AWS::Lambda::Function",
                                 "Properties" : {
@@ -215,18 +213,17 @@
                                     [/#if]
                                 }
                             }
+                            [@resourcesCreated /]
                             [#break]
     
                         [#case "outputs"]
-                            [@output lambdaFunctionId /],
+                            [@output lambdaFunctionId /]
                             [@outputArn lambdaFunctionId /]
                             [#break]
     
                     [/#switch]
-                    [#assign functionCount += 1]
                 [/#if]
             [/#list]
-            [#assign resourceCount += 1]
         [/#if]
     [/#list]
 [/#if]

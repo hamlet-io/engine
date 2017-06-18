@@ -9,9 +9,9 @@
     [#assign certDomain = acm.Domain?has_content?then(
                             acm.Domain,
                             segmentDomain)]
-    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
+            [@checkIfResourcesCreated /]
             "${certId}" : {
                 "Type" : "AWS::CertificateManager::Certificate",
                 "Properties" : {
@@ -26,6 +26,7 @@
                     [/#if]
                 }
             }
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
@@ -33,5 +34,4 @@
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
 [/#if]

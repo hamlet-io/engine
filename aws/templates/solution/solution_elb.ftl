@@ -8,11 +8,11 @@
 
     [@createComponentSecurityGroup solutionListMode tier component /]
 
-    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#list elb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
+                [@checkIfResourcesCreated /]
                 "${formatId("securityGroupIngress", componentIdStem, source.Port?c)}" : {
                     "Type" : "AWS::EC2::SecurityGroupIngress",
                     "Properties" : {
@@ -24,8 +24,10 @@
                         "ToPort": "${source.Port?c}",
                         "CidrIp": "0.0.0.0/0"
                     }
-                },
+                }
+                [@resourcesCreated /]
             [/#list]
+            [@checkIfResourcesCreated /]
             "${elbId}" : {
                 "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
                 "Properties" : {
@@ -106,13 +108,13 @@
                     ]
                 }
             }
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
-            [@output elbId /],
+            [@output elbId /]
             [@outputLBDns elbId /]
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
 [/#if]

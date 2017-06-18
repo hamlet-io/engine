@@ -76,9 +76,9 @@
                             component,
                             sqsInstance)]
 
-        [#if resourceCount > 0],[/#if]
         [#switch solutionListMode]
             [#case "definition"]
+                [@checkIfResourcesCreated /]
                 "${sqsId}":{
                     "Type" : "AWS::SQS::Queue",
                     "Properties" : {
@@ -100,15 +100,15 @@
                         [#if sqsInstance.Internal.VisibilityTimeout != -1],"VisibilityTimeout" : ${sqsInstance.Internal.VisibilityTimeout?c}[/#if]
                     }
                 }
+                [@resourcesCreated /]
                 [#break]
     
             [#case "outputs"]
-                [@outputSQS sqsId /],
-                [@outputSQSUrl sqsId /],
+                [@outputSQS sqsId /]
+                [@outputSQSUrl sqsId /]
                 [@outputArn sqsId /]
                 [#break]
     
         [/#switch]
-        [#assign resourceCount += 1]
     [/#list]
 [/#if]

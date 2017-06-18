@@ -1,6 +1,6 @@
 [#-- Private DNS zone --]
 [#if deploymentUnit?contains("dns")]
-    [#if resourceCount > 0],[/#if]
+    [@checkIfResourcesCreated /]
     [#switch segmentListMode]
         [#case "definition"]
             "dns" : {
@@ -34,6 +34,6 @@
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
+    [@resourcesCreated /]
 [/#if]
 

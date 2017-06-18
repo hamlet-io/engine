@@ -8,13 +8,16 @@
 
     [#assign albSecurityGroupId = formatALBSecurityGroupId(tier, component)]
     [@createComponentSecurityGroup solutionListMode tier component /]
+    [#list alb.PortMappings as mapping]
+        [#assign source = ports[portMappings[mapping].Source]]
+        [#assign destination = ports[portMappings[mapping].Destination]]
+        [@createTargetGroup solutionListMode tier component source destination "default" /]
+    [/#list]
 
-    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#list alb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
-                [#assign destination = ports[portMappings[mapping].Destination]]
                 [#assign albListenerId =
                             formatALBListenerId(
                                 tier,
@@ -31,6 +34,7 @@
                                 component,
                                 source,
                                 "default")]
+                [@checkIfResourcesCreated /]
                 "${albListenerSecurityGroupIngressId}" : {
                     "Type" : "AWS::EC2::SecurityGroupIngress",
                     "Properties" : {
@@ -90,10 +94,11 @@
                         "Port" : ${source.Port?c},
                         "Protocol" : "${source.Protocol}"
                     }
-                },
-                [@createTargetGroup tier component source destination "default" /],
+                }
+                [@resourcesCreated /]
             [/#list]
 
+            [@checkIfResourcesCreated /]
             "${albId}" : {
                 "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties" : {
@@ -139,25 +144,20 @@
                     ]
                 }
             }
+            [@resourcesCreated /]
             [#break]
+
         [#case "outputs"]
+            [@output albId /]
+            [@outputLBDns albId /]
             [#list alb.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
                 [#assign albListenerId = formatALBListenerId(
                                                     tier,
                                                     component,
                                                     source)]
-                [#assign albTargetGroupId = formatALBTargetGroupId(
-                                                    tier,
-                                                    component,
-                                                    source,
-                                                    "default")]
-                [@output albListenerId /],
-                [@output albTargetGroupId /],
+                [@output albListenerId /]
             [/#list]
-            [@output albId /],
-            [@outputLBDns albId /]
             [#break]
     [/#switch]
-    [#assign resourceCount += 1]
 [/#if]

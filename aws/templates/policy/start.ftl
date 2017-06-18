@@ -4,6 +4,7 @@
         (containerListMode == "policy")]
         [#assign explicitPolicyId = id?has_content] 
         [#if explicitPolicyId]
+            [@checkIfResourcesCreated /]
             "${id}": {
                 "Type" : "AWS::IAM::${type}",
                 "Properties" : {
@@ -17,8 +18,9 @@
                         [#else]
                             { "Ref" : "${roles}" }
                         [/#if]
-                    ]
-                [/#if],
+                    ],
+                [/#if]
+            [@resourcesCreated /]
         [#else]
             [#if policyCount > 0],[/#if]
             {
@@ -27,6 +29,11 @@
         "PolicyDocument" : {
             "Version": "2012-10-17",
             "Statement": [
+    [/#if]
+    [#if (containerListMode?has_content &&
+            containerListMode == "policyList")]
+        [#if policyCount > 0],[/#if]
+        "${id}"
     [/#if]
     [#assign statementCount = 0]
 [/#macro]
@@ -40,9 +47,6 @@
                 }
         [/#if]
         }
-    [/#if]
-    [#if containerListMode??]
-        [#if containerListMode == "policy"],[/#if]
     [/#if]
     [#assign policyCount += 1]
 [/#macro]
@@ -96,11 +100,12 @@
     [/#if]
 [/#macro]
 
-[#macro roleHeader 
+[#macro roleHeader
             id trustedServices=[] managedArns=[] trustedAccounts=[] condition=""
             path="" name="" multiFactor=false embeddedPolicies=true ]
     [#assign policiesEmbedded = embeddedPolicies]
     [#assign policyCount = 0]
+    [@checkIfResourcesCreated /]
     "${id}": {
         "Type" : "AWS::IAM::Role",
         "Properties" : {
@@ -178,9 +183,10 @@
         }
     }
             [/#if]
+    [@resourcesCreated /]
 [/#macro]
 
-[#macro roleFooter ]
+[#macro roleFooter]
     [#if policiesEmbedded]
             ]
     [/#if]

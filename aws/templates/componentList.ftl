@@ -1,5 +1,5 @@
 [#ftl]
-[#assign resourceCount = 0]
+[@noResourcesCreated /]
 [#list tiers as tier]
     [#assign tierId = tier.Id]
     [#assign tierName = tier.Name]
