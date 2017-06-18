@@ -11,6 +11,7 @@
     [#assign ecsSecurityGroupId = formatComponentSecurityGroupId(tier, component)]
 
     [@createComponentSecurityGroup solutionListMode tier component /]
+    [@createComponentLogGroup tier component/]
 
     [#assign processorProfile = getProcessor(tier, component, "ECS")]
     [#assign maxSize = processorProfile.MaxPerZone]
@@ -19,58 +20,64 @@
     [/#if]
     [#assign storageProfile = getStorage(tier, component, "ECS")]
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
+    [#assign defaultLogDriver = ecs.LogDriver!"awslogs"]
     
-
-    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
+            [@checkIfResourcesCreated /]
             "${ecsId}" : {
                 "Type" : "AWS::ECS::Cluster"
-            },
+            }
+            [@resourcesCreated /]
 
-                [@roleHeader
-                    ecsRoleId,
-                    ["ec2.amazonaws.com" ],
-                    ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
-                /]
-                    [@policyHeader formatName(tierId, componentId, "docker") /]
-                        [@s3ReadStatement credentialsBucket accountId + "/alm/docker" /]
-                        [#if fixedIP]
-                            [@IPAddressUpdateStatement /]
-                        [/#if]
-                        [@s3ListStatement codeBucket /]
-                        [@s3ReadStatement codeBucket /]
-                        [@s3ListStatement operationsBucket /]
-                        [@s3WriteStatement operationsBucket getSegmentBackupsFilePrefix() /]
-                        [@s3WriteStatement operationsBucket "DOCKERLogs" /]
-                    [@policyFooter /]
-                [@roleFooter /],
+            [@roleHeader
+                ecsRoleId,
+                ["ec2.amazonaws.com" ],
+                ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
+            /]
+                [@policyHeader formatName(tierId, componentId, "docker") /]
+                    [@s3ReadStatement credentialsBucket accountId + "/alm/docker" /]
+                    [#if fixedIP]
+                        [@IPAddressUpdateStatement /]
+                    [/#if]
+                    [@s3ListStatement codeBucket /]
+                    [@s3ReadStatement codeBucket /]
+                    [@s3ListStatement operationsBucket /]
+                    [@s3WriteStatement operationsBucket getSegmentBackupsFilePrefix() /]
+                    [@s3WriteStatement operationsBucket "DOCKERLogs" /]
+                [@policyFooter /]
+            [@roleFooter /]
 
+            [@checkIfResourcesCreated /]
             "${ecsInstanceProfileId}" : {
                 "Type" : "AWS::IAM::InstanceProfile",
                 "Properties" : {
                     "Path" : "/",
                     "Roles" : [ { "Ref" : "${ecsRoleId}" } ]
                 }
-            },
+            }
+            [@resourcesCreated /]
 
             [@role
                 ecsServiceRoleId,
                 ["ecs.amazonaws.com" ],
                 ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
-            /],
+            /]
 
             [#if fixedIP]
                 [#list 1..maxSize as index]
+                    [@checkIfResourcesCreated /]
                     "${formatComponentEIPId(tier, component, index)}": {
                         "Type" : "AWS::EC2::EIP",
                         "Properties" : {
                             "Domain" : "vpc"
                         }
-                    },
+                    }
+                    [@resourcesCreated /]
                 [/#list]
             [/#if]
 
+            [@checkIfResourcesCreated /]
             "${ecsAutoScaleGroupId}": {
                 "Type": "AWS::AutoScaling::AutoScalingGroup",
                 "Metadata": {
@@ -169,19 +176,21 @@
                                         "ignoreErrors" : "false"
                                     }
                                 [/#if]
-                                }
-                            },
-                            "ecs": {
-                                "commands": {
+                            }
+                        },
+                        "ecs": {
+                            "commands": {
+                                [#if defaultLogDriver == "fluentd"]
                                     "01Fluentd" : {
                                         "command" : "/opt/codeontap/bootstrap/fluentd.sh",
                                         "ignoreErrors" : "false"
                                     },
-                                    "02ConfigureCluster" : {
-                                        "command" : "/opt/codeontap/bootstrap/ecs.sh",
-                                        "env" : {
+                                [/#if]
+                                "02ConfigureCluster" : {
+                                    "command" : "/opt/codeontap/bootstrap/ecs.sh",
+                                    "env" : {
                                         "ECS_CLUSTER" : { "Ref" : "${ecsId}" },
-                                        "ECS_LOG_DRIVER" : "fluentd"
+                                        "ECS_LOG_DRIVER" : "${defaultLogDriver}"
                                     },
                                     "ignoreErrors" : "false"
                                 }
@@ -261,13 +270,14 @@
                     }
                 }
             }
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
-            [@output ecsId /],
-            [@output ecsRoleId /],
-            [@outputArn ecsRoleId /],
-            [@output ecsServiceRoleId /],
+            [@output ecsId /]
+            [@output ecsRoleId /]
+            [@outputArn ecsRoleId /]
+            [@output ecsServiceRoleId /]
             [@outputArn ecsServiceRoleId /]
             [#if fixedIP]
                 [#list 1..maxSize as index]
@@ -275,12 +285,11 @@
                                             tier,
                                             component,
                                             index)]
-                    ,[@outputIPAddress ecsEIPId /]
-                    ,[@outputAllocation ecsEIPId /]
+                    [@outputIPAddress ecsEIPId /]
+                    [@outputAllocation ecsEIPId /]
                 [/#list]
             [/#if]
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
 [/#if]
