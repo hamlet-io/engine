@@ -32,13 +32,13 @@
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl"],
     "Resources" : {
-        [#assign resourceCount = 0]
+        [@noResourcesCreated /]
         [#assign productListMode="definition"]
         [#include productList]
     },
 
     "Outputs" : {
-        [#assign resourceCount = 0]
+        [@noResourcesCreated /]
         [#assign productListMode="outputs"]
         [#include productList]
     }

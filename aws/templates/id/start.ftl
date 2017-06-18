@@ -89,6 +89,12 @@
                 attributeId)]
 [/#function]
 
+[#function formatDeploymentUnitAttributeId resourceId]
+    [#return formatAttributeId(
+                resourceId,
+                "du")]
+[/#function]
+
 [#function formatArnAttributeId resourceId]
     [#return formatAttributeId(
                 resourceId,
