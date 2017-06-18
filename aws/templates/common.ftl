@@ -22,6 +22,7 @@
                     [/#if]
                     [#break]
                 [#case "-"]
+                [#case "/"]
                     [#if (argValue.Internal.NameExtensions)??]
                         [#local argValue = concatenate(
                                             argValue.Internal.NameExtensions,
@@ -58,6 +59,12 @@
     [#return false]
 [/#function]
 
+[#function deploymentSubsetRequired subset]
+    [#return 
+        deploymentUnitSubset?has_content &&
+        deploymentUnitSubset?lower_case?contains(subset)]
+[/#function]
+
 [#-- Get stack output --]
 [#function getKey args...]
     [#local key = formatId(args)]
@@ -85,19 +92,24 @@
 [#-- S3 config/credentials/appdata storage  --]
 
 [#function getCredentialsFilePrefix]
-    [#return "credentials/" + productName + "/" + segmentName + "/" + deploymentUnit]
+    [#return 
+        "credentials/" + productName + "/" + segmentName + "/" +
+        (appSettingsObject.FilePrefixes.Credentials)!(appSettingsObject.DefaultFilePrefix)!deploymentUnit]
 [/#function]
 
 [#function getAppSettingsFilePrefix]
-    [#return "appsettings/" + productName + "/" + segmentName + "/" + deploymentUnit]
+    [#return "appsettings/" + productName + "/" + segmentName + "/" +
+        (appSettingsObject.FilePrefixes.AppSettings)!(appSettingsObject.DefaultFilePrefix)!deploymentUnit]
 [/#function]
 
 [#function getAppDataFilePrefix]
-    [#return "appdata/" + productName + "/" + segmentName + "/" + deploymentUnit]
+    [#return "appdata/" + productName + "/" + segmentName + "/" +
+        (appSettingsObject.FilePrefixes.AppData)!(appSettingsObject.DefaultFilePrefix)!deploymentUnit]
 [/#function]
 
 [#function getBackupsFilePrefix]
-    [#return "backups/" + productName + "/" + segmentName + "/" + deploymentUnit]
+    [#return "backups/" + productName + "/" + segmentName + "/" +
+        (appSettingsObject.FilePrefixes.Backups)!(appSettingsObject.DefaultFilePrefix)!deploymentUnit]
 [/#function]
 
 [#function getSegmentCredentialsFilePrefix]
@@ -259,6 +271,25 @@
     [/#if]
 [/#function]
 
+[#-- Is a resource part of a deployment unit --]
+[#function isPartOfDeploymentUnit id deploymentUnit]
+    [#local resourceValue = getKey(id)]
+    [#local creatingDeploymentUnit = getKey(formatDeploymentUnitAttributeId(id))]
+    [#local currentDeploymentUnit = 
+                deploymentUnit +
+                deploymentUnitSubset?has_content?then(
+                    "-" + deploymentUnitSubset?lower_case,
+                    "")]
+    [#return !(resourceValue?has_content &&
+                creatingDeploymentUnit?has_content &&
+                creatingDeploymentUnit != currentDeploymentUnit)]
+[/#function]
+
+[#-- Is a resource part of the current deployment unit --]
+[#function isPartOfCurrentDeploymentUnit id]
+    [#return isPartOfDeploymentUnit(id, deploymentUnit)]
+[/#function]
+
 [#-- Utility Macros --]
 
 [#-- Output hash as JSON --]
@@ -292,36 +323,68 @@
     [/#if]
 [/#macro]
 
-[#-- Include a reference to a resource in the output --]
+[#-- Include a reference to a resource --]
+[#-- Allows resources to share a template or be separated --]
+[#-- Note that if separate, creation order becomes important --]
 [#macro createReference value]
-    [#if value?is_hash && value.Ref??]
-        { "Ref" : "${value.Ref}" }
+    [#if isPartOfCurrentDeploymentUnit(value)]
+        { "Ref" : "${value}" }
     [#else]
-        [#if getKey(value)?has_content]
-            "${getKey(value)}"
-        [#else]
-            { "Ref" : "${value}" }
-        [/#if]
+        "${getKey(value)}"
     [/#if]
+[/#macro]
+
+[#macro createArnReference resourceId]
+    [#if isPartOfCurrentDeploymentUnit(resourceId)]
+        { "Fn::GetAtt" : ["${resourceId}", "Arn"] }
+    [#else]
+        "${getKey(formatArnAttributeId(resourceId))}"
+    [/#if]
+[/#macro]
+
+[#macro noResourcesCreated]
+    [#assign resourceCount = 0]
+[/#macro]
+
+[#macro resourcesCreated count=1]
+    [#assign resourceCount += count]
+[/#macro]
+
+[#macro checkIfResourcesCreated]
+    [#if resourceCount > 0],[/#if]
 [/#macro]
 
 [#-- Outputs generation --]
 [#macro output resourceId outputId=""]
+    [@checkIfResourcesCreated /]
     "${outputId?has_content?then(outputId,resourceId)}" : {
         "Value" : { "Ref" : "${resourceId}" }
+    },
+    [#-- Remember under which deployment unit this resource was created --]
+    "${formatDeploymentUnitAttributeId(
+        outputId?has_content?then(outputId,resourceId))}" : {
+        "Value" : "${deploymentUnit + 
+                        deploymentUnitSubset?has_content?then(
+                            "-" + deploymentUnitSubset?lower_case,
+                            "")}"
     }
+    [@resourcesCreated /]
 [/#macro]
 
 [#macro outputAtt outputId resourceId attributeType]
+    [@checkIfResourcesCreated /]
     "${outputId}" : {
         "Value" : { "Fn::GetAtt" : ["${resourceId}", "${attributeType}"] }
     }
+    [@resourcesCreated /]
 [/#macro]
 
 [#macro outputValue outputId value]
+    [@checkIfResourcesCreated /]
     "${outputId}" : {
         "Value" : "${value}"
     }
+    [@resourcesCreated /]
 [/#macro]
 
 [#macro outputArn resourceId]
@@ -379,9 +442,9 @@
 [/#macro]
 
 [#macro createSecurityGroup mode tier component id name description=""]
-    [#if resourceCount > 0],[/#if]
     [#switch mode]
         [#case "definition"]
+            [@checkIfResourcesCreated /]
             "${id}" : {
                 "Type" : "AWS::EC2::SecurityGroup",
                 "Properties" : {
@@ -402,6 +465,7 @@
                     ]
                 }
             }
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
@@ -409,7 +473,6 @@
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
 [/#macro]
 
 [#macro createDependentSecurityGroup
@@ -476,49 +539,90 @@
     [/#if]
 [/#macro]
 
-[#macro createTargetGroup tier component source destination name]
-    "${formatALBTargetGroupId(tier, component, source, name)}" : {
-        "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
-        "Properties" : {
-            "HealthCheckPort" : "${(destination.HealthCheck.Port)!"traffic-port"}",
-            "HealthCheckProtocol" : "${(destination.HealthCheck.Protocol)!destination.Protocol}",
-            "HealthCheckPath" : "${destination.HealthCheck.Path}",
-            "HealthCheckIntervalSeconds" : ${destination.HealthCheck.Interval},
-            "HealthCheckTimeoutSeconds" : ${destination.HealthCheck.Timeout},
-            "HealthyThresholdCount" : ${destination.HealthCheck.HealthyThreshold},
-            "UnhealthyThresholdCount" : ${destination.HealthCheck.UnhealthyThreshold},
-            [#if (destination.HealthCheck.SuccessCodes)?? ]
-                "Matcher" : { "HttpCode" : "${destination.HealthCheck.SuccessCodes}" },
-            [/#if]
-            "Port" : ${destination.Port?c},
-            "Protocol" : "${destination.Protocol}",
-            "Tags" : [
-                { "Key" : "cot:request", "Value" : "${requestReference}" },
-                { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                { "Key" : "cot:account", "Value" : "${accountId}" },
-                { "Key" : "cot:product", "Value" : "${productId}" },
-                { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                { "Key" : "cot:category", "Value" : "${categoryId}" },
-                { "Key" : "cot:tier", "Value" : "${getTierId(tier)}" },
-                { "Key" : "cot:component", "Value" : "${getComponentId(component)}" },
-                { "Key" : "Name", "Value" : "${formatComponentFullName(
-                                                tier, 
-                                                component, 
-                                                source.Port?c, 
-                                                name)}" }
-            ],
-            "VpcId": "${vpc}",
-            "TargetGroupAttributes" : [
-                {
-                    "Key" : "deregistration_delay.timeout_seconds",
-                    "Value" : "${(destination.DeregistrationDelay)!30}"
+[#macro createTargetGroup mode tier component source destination name]
+    [#local targetGroupId = formatALBTargetGroupId(tier, component, source, name)]
+    [#switch mode]
+        [#case "definition"]
+            [@checkIfResourcesCreated /]
+            "${targetGroupId}" : {
+                "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+                "Properties" : {
+                    "HealthCheckPort" : "${(destination.HealthCheck.Port)!"traffic-port"}",
+                    "HealthCheckProtocol" : "${(destination.HealthCheck.Protocol)!destination.Protocol}",
+                    "HealthCheckPath" : "${destination.HealthCheck.Path}",
+                    "HealthCheckIntervalSeconds" : ${destination.HealthCheck.Interval},
+                    "HealthCheckTimeoutSeconds" : ${destination.HealthCheck.Timeout},
+                    "HealthyThresholdCount" : ${destination.HealthCheck.HealthyThreshold},
+                    "UnhealthyThresholdCount" : ${destination.HealthCheck.UnhealthyThreshold},
+                    [#if (destination.HealthCheck.SuccessCodes)?? ]
+                        "Matcher" : { "HttpCode" : "${destination.HealthCheck.SuccessCodes}" },
+                    [/#if]
+                    "Port" : ${destination.Port?c},
+                    "Protocol" : "${destination.Protocol}",
+                    "Tags" : [
+                        { "Key" : "cot:request", "Value" : "${requestReference}" },
+                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
+                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
+                        { "Key" : "cot:account", "Value" : "${accountId}" },
+                        { "Key" : "cot:product", "Value" : "${productId}" },
+                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
+                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
+                        { "Key" : "cot:category", "Value" : "${categoryId}" },
+                        { "Key" : "cot:tier", "Value" : "${getTierId(tier)}" },
+                        { "Key" : "cot:component", "Value" : "${getComponentId(component)}" },
+                        { "Key" : "Name", "Value" : "${formatComponentFullName(
+                                                        tier, 
+                                                        component, 
+                                                        source.Port?c, 
+                                                        name)}" }
+                    ],
+                    "VpcId": "${vpc}",
+                    "TargetGroupAttributes" : [
+                        {
+                            "Key" : "deregistration_delay.timeout_seconds",
+                            "Value" : "${(destination.DeregistrationDelay)!30}"
+                        }
+                    ]
                 }
-            ]
-        }
-    }
+            }
+            [@resourcesCreated /]
+            [#break]
+
+        [#case "outputs"]
+            [@output targetGroupId /]
+            [#break]
+
+    [/#switch]
 [/#macro]
+
+[#macro createLogGroup mode id name retention=0]
+    [#switch mode]
+        [#case "definition"]
+            [@checkIfResourcesCreated /]
+            "${id}" : {
+                "Type" : "AWS::Logs::LogGroup",
+                "Properties" : {
+                    "LogGroupName" : "${name}"
+                    [#if retention > 0]
+                        ,"RetentionInDays" : ${retention}
+                    [#else]
+                        [#if operationsExpiration?is_number]
+                            ,"RetentionInDays" : ${operationsExpiration}
+                        [/#if]
+                    [/#if]
+                }
+            }
+            [@resourcesCreated /]
+            [#break]
+
+        [#case "outputs"]
+            [@output id /]
+            [@outputArn id /]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
 
 
 
