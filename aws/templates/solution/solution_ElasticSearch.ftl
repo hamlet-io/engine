@@ -6,11 +6,11 @@
     [#assign esId = formatElasticSearchId(
                         tier,
                         component)]
-    [#if resourceCount > 0],[/#if]
     [#switch solutionListMode]
         [#case "definition"]
             [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
             [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
+            [@checkIfResourcesCreated /]
             "${esId}":{
                 "Type" : "AWS::Elasticsearch::Domain",
                 "Properties" : {
@@ -43,27 +43,25 @@
                                                     [#assign ipCount += 1]
                                                 [/#if]
                                             [/#list]
-                                            [#if (segmentObject.IPAddressBlocks)??]
-                                                [#list segmentObject.IPAddressBlocks?values as groupValue]
-                                                    [#if groupValue?is_hash]
-                                                        [#list groupValue?values as entryValue]
-                                                            [#if entryValue?is_hash && (entryValue.CIDR)?has_content ]
-                                                                [#if (!entryValue.Usage??) || entryValue.Usage?seq_contains("es") ]
-                                                                    [#if (entryValue.CIDR)?is_sequence]
-                                                                        [#list entryValue.CIDR as CIDRBlock]
-                                                                            [#if ipCount > 0],[/#if]
-                                                                            "${CIDRBlock}"
-                                                                            [#assign ipCount += 1]
-                                                                        [/#list]
-                                                                    [#else]
+                                            [#if (segmentObject.IPAddressGroups)??]
+                                                [#list segmentObject.IPAddressGroups as group]
+                                                    [#list ipAddressGroups[group]?values as entryValue]
+                                                        [#if entryValue?is_hash && (entryValue.CIDR)?has_content ]
+                                                            [#if (!entryValue.Usage??) || entryValue.Usage?seq_contains("es") ]
+                                                                [#if (entryValue.CIDR)?is_sequence]
+                                                                    [#list entryValue.CIDR as CIDRBlock]
                                                                         [#if ipCount > 0],[/#if]
-                                                                        "${entryValue.CIDR}"
+                                                                        "${CIDRBlock}"
                                                                         [#assign ipCount += 1]
-                                                                    [/#if]
+                                                                    [/#list]
+                                                                [#else]
+                                                                    [#if ipCount > 0],[/#if]
+                                                                    "${entryValue.CIDR}"
+                                                                    [#assign ipCount += 1]
                                                                 [/#if]
                                                             [/#if]
-                                                        [/#list]
-                                                    [/#if]
+                                                        [/#if]
+                                                    [/#list]
                                                 [/#list]
                                             [/#if]
                                         ]
@@ -137,14 +135,14 @@
                     ]
                 }
             }
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
-            [@output esId /],
-            [@outputElasticSearchUrl esId /],
+            [@output esId /]
+            [@outputElasticSearchUrl esId /]
             [@outputElasticSearchArn esId /]
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
 [/#if]

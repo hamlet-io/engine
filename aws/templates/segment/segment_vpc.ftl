@@ -1,6 +1,6 @@
 [#-- Define VPC --]
 [#if deploymentUnit?contains("vpc")]
-    [#if resourceCount > 0],[/#if]
+    [@checkIfResourcesCreated /]
     [#switch segmentListMode]
         [#case "definition"]
             "vpc" : {
@@ -256,23 +256,21 @@
                             { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, "nat")}" }
                         ],
                         "SecurityGroupIngress" : [
-                            [#if (segmentObject.IPAddressBlocks)??]
-                                [#list segmentObject.IPAddressBlocks?values as groupValue]
-                                    [#if groupValue?is_hash]
-                                        [#list groupValue?values as entryValue]
-                                            [#if entryValue?is_hash && (entryValue.CIDR)?has_content ]
-                                                [#if (!entryValue.Usage??) || entryValue.Usage?seq_contains("nat") ]
-                                                    [#if (entryValue.CIDR)?is_sequence]
-                                                        [#list entryValue.CIDR as CIDRBlock]
-                                                            { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "${CIDRBlock}" },
-                                                        [/#list]
-                                                    [#else]
-                                                        { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "${entryValue.CIDR}" },
-                                                    [/#if]
+                            [#if (segmentObject.IPAddressGroups)??]
+                                [#list segmentObject.IPAddressGroups as group]
+                                    [#list ipAddressGroups[group]?values as entryValue]
+                                        [#if entryValue?is_hash && (entryValue.CIDR)?has_content ]
+                                            [#if (!entryValue.Usage??) || entryValue.Usage?seq_contains("nat") ]
+                                                [#if (entryValue.CIDR)?is_sequence]
+                                                    [#list entryValue.CIDR as CIDRBlock]
+                                                        { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "${CIDRBlock}" },
+                                                    [/#list]
+                                                [#else]
+                                                    { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "${entryValue.CIDR}" },
                                                 [/#if]
                                             [/#if]
-                                        [/#list]
-                                    [/#if]
+                                        [/#if]
+                                    [/#list]
                                 [/#list]
                             [#else]
                                 { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0" },
@@ -509,6 +507,6 @@
             [#break]
 
     [/#switch]
-    [#assign resourceCount += 1]
+    [@resourcesCreated /]
 [/#if]
 
