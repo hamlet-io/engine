@@ -8,6 +8,10 @@
     [#return concatenate(names, "-")]
 [/#function]
 
+[#function formatPath names...]
+    [#return "/" + concatenate(names, "/")]
+[/#function]
+
 [#function formatNameExtension extensions...]
     [#return formatName(extensions)]
 [/#function]
@@ -57,3 +61,12 @@
                 extensions)]
 [/#function]
 
+[#-- Format a component full path --]
+[#function formatComponentFullPath tier component extensions...]
+    [#return formatPath(
+                productName,
+                segmentName,
+                getTierName(tier),
+                getComponentName(component),
+                extensions)]
+[/#function]
