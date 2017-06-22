@@ -52,7 +52,6 @@
     [/#if]
     
     [#-- Non-repeating text to ensure deploy happens every time --]
-    [#-- Also used to continually change the default stage used to create the deployment --]
     [#assign noise = (.now?long / 1000)?round?string.computer]
 
     [#list apigatewayInstances as apigatewayInstance]
@@ -90,7 +89,7 @@
                     "Type": "AWS::ApiGateway::Deployment",
                     "Properties": {
                         "RestApiId": { "Ref" : "${apiId}" },
-                        "StageName": "default${noise}"
+                        "StageName": "default"
                     },
                     "DependsOn" : "${apiId}"
                 },
