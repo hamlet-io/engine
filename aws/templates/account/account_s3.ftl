@@ -43,7 +43,8 @@
                 "Value" : "${accountDomainCertificateId}"
             }
             [#list buckets as bucket]
-               [#-- TODO: Should be using s3Id not formatAccountS3Id(bucket) --]
+                [#assign s3Id = formatS3Id(bucket)]
+                [#-- TODO: Should be using s3Id not formatAccountS3Id(bucket) --]
                 ,"${formatAccountS3Id(bucket)}" : {
                     "Value" : { "Ref" : "${s3Id}" }
                 }
