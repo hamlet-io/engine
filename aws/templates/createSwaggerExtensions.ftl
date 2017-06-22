@@ -6,6 +6,10 @@
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
 [#assign defaultApiKey = integrationsObject.ApiKey ! false]
+[#assign defaultPath = integrationsObject.Path ! ".*"]
+[#assign defaultVerb = integrationsObject.Verb ! ".*"]
+[#assign defaultType = integrationsObject.Type ! "lambda"]
+[#assign defaultVariable = integrationsObject.Variable ! ""]
 
 [#macro security sig4 apiKey]
     "security": [
@@ -76,13 +80,20 @@
                         "${verb}" : {
                             [#assign verbObject = pathObject[verb]]
                             [#list integrationsObject.Patterns as pattern]
-                                [#if path?matches(pattern.Path) && verb?matches(pattern.Verb)]
-                                    [#switch pattern.Type]
+                                [#assign patternSig4 = pattern.Sig4 ! defaultSig4]
+                                [#assign patternApiKey = pattern.ApiKey ! defaultApiKey]
+                                [#assign patternPath = pattern.Path ! defaultPath ]
+                                [#assign patternVerb = pattern.Verb ! defaultVerb ]
+                                [#assign patternType = pattern.Type ! defaultType ]
+                                [#assign patternVariable = pattern.Variable ! defaultVariable ]
+                                [#if path?matches(patternPath) && verb?matches(patternVerb)]
+                                    [@security patternSig4 patternApiKey /],
+                                    [#switch patternType]
                                         [#case "docker"]
                                         [#case "http_proxy"]
                                             "x-amazon-apigateway-integration" : {
                                                 "type": "http_proxy"
-                                                ,"uri" : "${r"https://${stageVariables." + pattern.Variable + r"}"}",
+                                                ,"uri" : "${r"https://${stageVariables." + patternVariable + r"}"}",
                                                 "passthroughBehavior" : "when_no_match",
                                                 "httpMethod" : "${verb}"
                                             }
@@ -92,8 +103,8 @@
                                         [#case "aws_proxy"]
                                             "x-amazon-apigateway-integration" : {
                                                 "type": "aws_proxy",
-                                                [#-- "uri" : "${r"${stageVariables." + pattern.Variable + r"}"}", --]
-                "uri" : "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${accountObject.AWSId}:function:${r"${stageVariables." + pattern.Variable + r"}"}/invocations",
+                                                [#-- "uri" : "${r"${stageVariables." + patternVariable + r"}"}", --]
+                "uri" : "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${accountObject.AWSId}:function:${r"${stageVariables." + patternVariable + r"}"}/invocations",
                                                 "passthroughBehavior" : "never",
                                                 "httpMethod" : "POST"
                                             },
@@ -109,9 +120,6 @@
                                     [#if pattern.Validation??]
                                         ,[@validator pattern.Validation /]
                                     [/#if]
-                                    [#assign patternSig4 = pattern.Sig4 ! defaultSig4]
-                                    [#assign patternApiKey = pattern.ApiKey ! defaultApiKey]
-                                    ,[@security patternSig4 patternApiKey /]
                                     [#break]
                                 [/#if]
                             [/#list]
