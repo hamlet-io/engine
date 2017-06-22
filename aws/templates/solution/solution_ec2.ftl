@@ -133,7 +133,7 @@
                                                         "echo \"cot:tier=${tierId}\"\n",
                                                         "echo \"cot:component=${componentId}\"\n",
                                                         "echo \"cot:zone=${zone.Id}\"\n",
-                                                        "echo \"cot:name=${formatName(ec2FullName,zone)}\"\n",
+                                                        "echo \"cot:name=${formatName(tenantId,ec2FullName,zone)}\"\n",
                                                         "echo \"cot:role=${component.Role}\"\n",
                                                         "echo \"cot:credentials=${credentialsBucket}\"\n",
                                                         "echo \"cot:code=${codeBucket}\"\n",
