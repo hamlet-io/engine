@@ -61,6 +61,7 @@
           "x-amazon-apigateway-authtype": "awsSigv4"
         }
     },
+    [@security patternSig4 patternApiKey /],
     [@validator defaultValidation /]
     [#if swaggerObject.paths??]
         ,"paths"  : {
