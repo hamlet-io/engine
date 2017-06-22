@@ -5,6 +5,8 @@
 [#assign integrationsObject = integrations?eval]
 [#assign defaultPathPattern = integrationsObject.Path ! ".*"]
 [#assign defaultVerbPattern = integrationsObject.Verb ! ".*"]
+[#assign defaultType = integrationsObject.Type ! ""]
+[#assign defaultVariable = integrationsObject.Variable ! ""]
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
 [#assign defaultApiKey = integrationsObject.ApiKey ! false]
@@ -101,12 +103,12 @@
     [@validator defaultValidation /]
     [#if swaggerObject.paths??]
         ,"paths"  : {
-            [#list swaggerObject.paths?keys as path]
+            [#list swaggerObject.paths as path, pathObject]
                 "${path}" : {
-                    [#assign pathObject = swaggerObject.paths[path]]
-                    [#list pathObject?keys as verb]
+                    [#list pathObject as verb, verbObject]
                         "${verb}" : {
-                            [#assign verbObject = pathObject[verb]]
+                            [#assign matchSeen = false]
+                            [#if integrationsObject.Patterns??]
                             [#list integrationsObject.Patterns as pattern]
                                 [#assign pathPattern = pattern.Path ! defaultPathPattern ]
                                 [#assign verbPattern = pattern.Verb ! defaultVerbPattern ]
@@ -119,9 +121,21 @@
                                         pattern.Sig4 ! defaultSig4
                                         pattern.ApiKey ! defaultApiKey
                                     /]
+                                    [#assign matchSeen = true]
                                     [#break]
                                 [/#if]
                             [/#list]
+                            [#if ! matchSeen]
+                                [@methodEntry
+                                    verb
+                                    defaultType
+                                    defaultVariable
+                                    defaultValidation
+                                    defaultSig4
+                                    defaultApiKey
+                                /]
+                            [/#if]
+                            [/#if]
                         }
                         [#sep],[/#sep]
                     [/#list]
