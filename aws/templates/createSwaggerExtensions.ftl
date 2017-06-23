@@ -109,22 +109,23 @@
                         "${verb}" : {
                             [#assign matchSeen = false]
                             [#if integrationsObject.Patterns??]
-                            [#list integrationsObject.Patterns as pattern]
-                                [#assign pathPattern = pattern.Path ! defaultPathPattern ]
-                                [#assign verbPattern = pattern.Verb ! defaultVerbPattern ]
-                                [#if path?matches(pathPattern) && verb?matches(verbPattern)]
-                                    [@methodEntry 
-                                        verb
-                                        pattern.Type ! defaultType
-                                        pattern.Variable ! defaultVariable
-                                        pattern.Validation ! defaultValidation
-                                        pattern.Sig4 ! defaultSig4
-                                        pattern.ApiKey ! defaultApiKey
-                                    /]
-                                    [#assign matchSeen = true]
-                                    [#break]
-                                [/#if]
-                            [/#list]
+                                [#list integrationsObject.Patterns as pattern]
+                                    [#assign pathPattern = pattern.Path ! defaultPathPattern ]
+                                    [#assign verbPattern = pattern.Verb ! defaultVerbPattern ]
+                                    [#if path?matches(pathPattern) && verb?matches(verbPattern)]
+                                        [@methodEntry 
+                                            verb
+                                            pattern.Type ! defaultType
+                                            pattern.Variable ! defaultVariable
+                                            pattern.Validation ! defaultValidation
+                                            pattern.Sig4 ! defaultSig4
+                                            pattern.ApiKey ! defaultApiKey
+                                        /]
+                                        [#assign matchSeen = true]
+                                        [#break]
+                                    [/#if]
+                                [/#list]
+                            [/#if]
                             [#if ! matchSeen]
                                 [@methodEntry
                                     verb
@@ -134,7 +135,6 @@
                                     defaultSig4
                                     defaultApiKey
                                 /]
-                            [/#if]
                             [/#if]
                         }
                         [#sep],[/#sep]
