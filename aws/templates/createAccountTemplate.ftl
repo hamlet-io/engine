@@ -7,8 +7,15 @@
 [#if accountDomain??]
     [#assign accountDomainObject = domains[accountDomain]]
     [#assign accountDomainStem = accountDomainObject.Stem]
-    [#assign accountDomainBehaviour = (accountDomainObject.AccountBehaviour)!""]
-    [#assign accountDomainCertificateId = accountDomainObject.Certificate.Id]
+    [#assign accountDomainBehaviour =
+            (accountDomainObject.Product)!
+            (accountDomainObject.ProductBehaviour)!
+            ""]
+    [#assign accountDomainValidation =
+                (productDomainObject.Validation)!
+                (domains.Validation)!
+                ""]           
+    [#assign accountDomainCertificateId = accountDomain]
     [#switch accountDomainBehaviour]
         [#case "accountInDomain"]
             [#assign accountDomain = accountName + "." + accountDomainStem]

@@ -7,7 +7,15 @@
 [#assign segmentDomainId = segmentObject.Domain!productDomain]
 [#assign segmentDomainObject = domains[segmentDomainId]]
 [#assign segmentDomainStem = segmentDomainObject.Stem]
-[#assign segmentDomainBehaviour = (segmentDomainObject.SegmentBehaviour)!""]
+[#assign segmentDomainBehaviour =
+            (segmentDomainObject.Segment)!
+            (segmentDomainObject.SegmentBehaviour)!
+            (environmentObject.DomainBehaviours.Segment)!
+            ""]
+[#assign segmentDomainValidation =
+            (segmentDomainObject.Validation)!
+            (domains.Validation)!
+            ""]           
 [#assign segmentDomainCertificateId = segmentDomainId]
 [#switch segmentDomainBehaviour]
     [#case "segmentProductInDomain"]

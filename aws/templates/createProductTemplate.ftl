@@ -4,9 +4,17 @@
 [#-- Initialisation --]
 
 [#-- Domains --]
-[#assign productDomainStem = productObject.Domain.Stem]
-[#assign productDomainBehaviour = (productObject.Domain.ProductBehaviour)!""]
-[#assign productDomainCertificateId = productObject.Domain.Certificate.Id]
+[#assign productDomainObject = domains[productDomain]]
+[#assign productDomainStem = productDomainObject.Stem]
+[#assign productDomainBehaviour =
+            (productDomainObject.Product)!
+            (productDomainObject.ProductBehaviour)!
+            ""]
+[#assign productDomainValidation =
+            (productDomainObject.Validation)!
+            (domains.Validation)!
+            ""]           
+[#assign productDomainCertificateId = productDomain]
 [#switch productDomainBehaviour]
     [#case "productInDomain"]
         [#assign productDomain = productName + "." + productDomainStem]

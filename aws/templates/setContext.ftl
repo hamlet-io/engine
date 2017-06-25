@@ -60,6 +60,14 @@
 
 [#-- Domains --]
 [#assign domains = (blueprintObject.Domains)!{}]
+[#if (tenantObject.Domain)??]
+    [#if tenantObject.Domain?is_hash && (tenantObject.Domain.Validation)??]
+        [#assign domains += {"Validation" : tenantObject.Domain.Validation}]
+    [/#if]
+[/#if]
+
+[#-- Certificates --]
+[#assign certificates = (blueprintObject.Certificates)!{}]
 
 [#-- Accounts --]
 [#assign accounts = (blueprintObject.Accounts)!{}]
@@ -211,5 +219,77 @@
             {"Index" : zoneId?index}]]
     [/#if]
 [/#list]
+
+[#-- Annotate IPAddressGroups --]
+[#assign usageList = ["nat", "waf"]]
+[#assign ipAddressGroupsUsage = {}]
+[#list ipAddressGroups as groupKey,groupValue]
+    [#if groupValue?is_hash]
+        [#list groupValue as entryKey,entryValue]
+            [#if entryValue?is_hash && (entryValue.CIDR)?has_content ]
+                [#assign cidrList = (entryValue.CIDR)?is_sequence?then(
+                    entryValue.CIDR,
+                    [entryValue.CIDR])]
+                [#assign isOpen = (entryValue.IsOpen)!false]
+                [#assign newCIDR = []]
+                [#list cidrList as CIDRBlock]
+                    [#if CIDRBlock?contains("0.0.0.0")]
+                        [#assign isOpen = true]
+                    [#else]
+                        [#assign newCIDR += [CIDRBlock]]
+                    [/#if]
+                [/#list]
+                [#assign newUsage = (entryValue.Usage)?has_content?then(
+                    entryValue.Usage?is_sequence?then(
+                        entryValue.Usage,
+                        [entryValue.Usage]),
+                    usageList)]
+                [#assign newValue = entryValue +
+                    {
+                        "Usage" : newUsage,
+                        "CIDR" : newCIDR,
+                        "IsOpen" : isOpen
+                    }
+                ]
+                [#assign ipAddressGroups += 
+                    {
+                        groupKey : groupValue + 
+                            {
+                                entryKey : newValue
+                            }
+                    }
+                ]
+                [#list usageList as usage]
+                    [#if newUsage?seq_contains(usage) ]
+                        [#assign usageGroups = (ipAddressGroupsUsage[usage])!{}]
+                        [#assign usageEntries = (usageGroups[groupKey].Entries)!{}]
+                        [#assign usageCIDR = (usageGroups[groupKey].CIDR)![] +
+                                    newCIDR]
+                        [#assign usageIsOpen = (usageGroups[groupKey].IsOpen)!false ||
+                                    isOpen]
+                        [#assign ipAddressGroupsUsage +=
+                            {
+                                usage : usageGroups +
+                                    {
+                                        groupKey :  {
+                                            "Id" : groupValue.Id,
+                                            "Name" : groupValue.Name,
+                                            "Entries" : usageEntries +
+                                                {
+                                                    entryKey :  newValue
+                                                },
+                                            "CIDR" : usageCIDR,
+                                            "IsOpen" : usageIsOpen
+                                        }
+                                    }
+                            }
+                        ]
+                    [/#if]
+                [/#list]
+            [/#if]
+        [/#list]
+    [/#if]
+[/#list]
+
 
 

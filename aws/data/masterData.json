@@ -479,6 +479,9 @@
             "Category": "alm",
             "Operations": {
                 "Expiration": 90
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "shared": {
@@ -496,6 +499,9 @@
             "Category": "dev",
             "Operations": {
                 "Expiration": 14
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "alpha": {
@@ -504,6 +510,9 @@
             "Category": "test",
             "Operations": {
                 "Expiration": 14
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "beta": {
@@ -513,6 +522,9 @@
             "MultiAZ": true,
             "Operations": {
                 "Expiration": 90
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "int": {
@@ -522,6 +534,9 @@
             "Category": "test",
             "Operations": {
                 "Expiration": 30
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "aat": {
@@ -531,6 +546,9 @@
             "Category": "test",
             "Operations": {
                 "Expiration": 30
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "uat": {
@@ -540,6 +558,9 @@
             "Category": "test",
             "Operations": {
                 "Expiration": 30
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "system": {
@@ -550,6 +571,9 @@
             "MultiAZ": true,
             "Operations": {
                 "Expiration": 30
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "preprod": {
@@ -560,6 +584,9 @@
             "MultiAZ": true,
             "Operations": {
                 "Expiration": 90
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "stg": {
@@ -570,6 +597,9 @@
             "MultiAZ": true,
             "Operations": {
                 "Expiration": 90
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         },
         "prod": {
@@ -580,6 +610,9 @@
             "MultiAZ": true,
             "Operations": {
                 "Expiration": 365
+            },
+            "DomainBehaviours" : {
+                "Segment" : "naked"
             }
         },
         "trn": {
@@ -589,6 +622,9 @@
             "Category": "prod",
             "Operations": {
                 "Expiration": 90
+            },
+            "DomainBehaviours" : {
+                "Segment" : "segmentInHost"
             }
         }
     },
