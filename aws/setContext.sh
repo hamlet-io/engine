@@ -108,7 +108,16 @@ if [[ -f "product.json" ]]; then
     export PRODUCT_DIR="$(pwd)"
     export PRODUCT="$(basename $(pwd))"
 
+    for DOMAIN_FILE in ${PRODUCT_DIR}/domains*.json; do
+        BLUEPRINT_ARRAY=("${DOMAIN_FILE}" "${BLUEPRINT_ARRAY[@]}")
+    done
+    
+    for IPADDRESSGROUPS_FILE in ${PRODUCT_DIR}/ipaddressgroups*.json; do
+        BLUEPRINT_ARRAY=("${IPADDRESSGROUPS_FILE}" "${BLUEPRINT_ARRAY[@]}")
+    done
+
     BLUEPRINT_ARRAY=("${PRODUCT_DIR}/product.json" "${BLUEPRINT_ARRAY[@]}")
+
     export GENERATION_DATA_DIR="$(cd ../..;pwd)"
 fi
 
@@ -144,6 +153,14 @@ export ACCOUNT_CREDENTIALS="${ACCOUNT_CREDENTIALS_DIR}/credentials.json"
 if [[ -f "${ACCOUNT_DIR}/account.json" ]]; then
     BLUEPRINT_ARRAY=("${ACCOUNT_DIR}/account.json" "${BLUEPRINT_ARRAY[@]}")
 fi
+
+for DOMAIN_FILE in ${TENANT_DIR}/domains*.json; do
+    BLUEPRINT_ARRAY=("${DOMAIN_FILE}" "${BLUEPRINT_ARRAY[@]}")
+done
+
+for IPADDRESSGROUPS_FILE in ${TENANT_DIR}/ipaddressgroups*.json; do
+    BLUEPRINT_ARRAY=("${IPADDRESSGROUPS_FILE}" "${BLUEPRINT_ARRAY[@]}")
+done
 
 if [[ -f "${TENANT_DIR}/tenant.json" ]]; then
     BLUEPRINT_ARRAY=("${TENANT_DIR}/tenant.json" "${BLUEPRINT_ARRAY[@]}")
