@@ -126,7 +126,7 @@
     [/#if]
     
     [#-- Non-repeating text to ensure deploy happens every time --]
-    [#assign noise = random.nextInt()?string.computer]
+    [#assign noise = random.nextLong()?string.computer?replace("-","X")]
     [#list apigatewayInstances as apigatewayInstance]
         [#assign apiId    = formatAPIGatewayId(
                                 tier,
@@ -147,7 +147,12 @@
                                 tier,
                                 component,
                                 apigatewayInstance)]
-        [#assign wafAclId  = formatDependentWAFRuleId(
+        [#assign usagePlanId  = formatDependentAPIGatewayUsagePlanId(cfId)]
+        [#assign usagePlanName = formatComponentUsagePlanName(
+                                tier,
+                                component,
+                                apigatewayInstance)]
+         [#assign wafAclId  = formatDependentWAFRuleId(
                                 apiId)]
         [#assign wafAclName  = formatComponentWAFRuleName(
                                 tier,
@@ -403,7 +408,7 @@
                                         "OriginCustomHeaders" : [
                                             {
                                               "HeaderName" : "x-api-key",
-                                              "HeaderValue" : "${deployId}"
+                                              "HeaderValue" : "${credentialsObject.APIGateway.API.AccessKey}"
                                             }
                                         ]
                                     }
@@ -432,6 +437,18 @@
                                 [/#if]
                             }
                         }
+                    },
+                    "${usagePlanId}" : {
+                        "Type" : "AWS::ApiGateway::UsagePlan",
+                        "Properties" : {
+                            "ApiStages" : [
+                                {
+                                  "ApiId" : [@createReference apiId /],
+                                  "Stage" : "${stageName}"
+                                }
+                            ],
+                            "UsagePlanName" : "${usagePlanName}"
+                        }
                     }
                     [@resourcesCreated /]
                     [#break]
@@ -439,6 +456,7 @@
                 [#case "outputs"]
                     [@output cfId /]
                     [@outputCFDns cfId /]
+                    [@output usagePlanId /]
                     [#break]
 
             [/#switch]

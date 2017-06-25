@@ -257,6 +257,9 @@ if [[ -n "${PRODUCT}" ]]; then
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/appsettings.json" ]]; then
                 APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
             fi
+            if [[ -f "${CREDENTIALS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/credentials.json" ]]; then
+                CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
+            fi
 
             export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
             # Legacy naming to support products using the term "slice" or "unit" instead of "deployment_unit"
@@ -273,6 +276,9 @@ if [[ -n "${PRODUCT}" ]]; then
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/appsettings.json" ]]; then
                 APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
             fi            
+            if [[ -f "${CREDENTIALS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/credentials.json" ]]; then
+                CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
+            fi
 
             if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/build.json" ]]; then
                 export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/build.json")
@@ -291,7 +297,7 @@ if [[ -n "${PRODUCT}" ]]; then
         fi
 
         if [[ -f "${CREDENTIALS_DIR}/${SEGMENT}/credentials.json" ]]; then
-        CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/${SEGMENT}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
+            CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/${SEGMENT}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
         fi
     fi
     

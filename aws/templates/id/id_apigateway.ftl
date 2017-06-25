@@ -26,6 +26,20 @@
                 extensions)]
 [/#function]
 
+[#function formatDependentAPIGatewayUsagePlanId resourceId extensions...]
+    [#return formatDependentResourceId(
+                "apiUsagePlan",
+                resourceId,
+                extensions)]
+[/#function]
+
+[#function formatDependentAPIGatewayAPIKeyId resourceId extensions...]
+    [#return formatDependentResourceId(
+                "apiKey",
+                resourceId,
+                extensions)]
+[/#function]
+
 [#function formatAPIGatewayLambdaPermissionId tier component link fn extensions...]
     [#return formatComponentResourceId(
                 "apiLambdaPermission",
