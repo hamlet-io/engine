@@ -375,6 +375,7 @@
                                     "ViewerProtocolPolicy" : "redirect-to-https"
                                 },
                                 "Enabled" : true,
+                                "HttpVersion" : "http2",
                                 "Logging" : {
                                     "Bucket" : "${operationsBucket + ".s3.amazonaws.com"}",
                                     "IncludeCookies" : false,
