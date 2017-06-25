@@ -412,11 +412,11 @@
                                 "ViewerCertificate" : {
                                     "AcmCertificateArn" : {
                                         "Fn::Join" : [
-                                                ":",
+                                                "",
                                                 [
-                                                    "arn:aws:acm:us-east-1",
+                                                    "arn:aws:acm:us-east-1:",
                                                     {"Ref" : "AWS::AccountId"},
-                                                    [@createReference apiId/],
+                                                    ":certificate/",
                                                     "${appSettingsObject.CertificateId}"
                                                 ]
                                         ]
