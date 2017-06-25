@@ -3,7 +3,7 @@
 [#-- Resources --]
 
 [#function formatComponentLogGroupName tier component extensions...]
-    [#return formatComponentFullPath(
+    [#return formatComponentAbsoluteFullPath(
                 tier,
                 component,
                 extensions)]

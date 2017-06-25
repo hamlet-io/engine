@@ -8,8 +8,18 @@
     [#return concatenate(names, "-")]
 [/#function]
 
-[#function formatPath names...]
-    [#return "/" + concatenate(names, "/")]
+[#function formatPath absolute names...]
+    [#return
+        absolute?then("/","") +
+        concatenate(names, "/")]
+[/#function]
+
+[#function formatAbsolutePath names...]
+    [#return formatPath(true, names)]
+[/#function]
+
+[#function formatRelativePath names...]
+    [#return formatPath(false, names)]
 [/#function]
 
 [#function formatNameExtension extensions...]
@@ -61,12 +71,26 @@
                 extensions)]
 [/#function]
 
-[#-- Format a component full path --]
-[#function formatComponentFullPath tier component extensions...]
-    [#return formatPath(
+[#-- Format a segment path --]
+[#function formatSegmentRelativePath extensions...]
+    [#return formatRelativePath(
                 productName,
                 segmentName,
-                getTierName(tier),
-                getComponentName(component),
                 extensions)]
+[/#function]
+
+[#-- Format a file prefix path --]
+[#function formatSegmentPrefixPath type extensions...]
+    [#return formatRelativePath(
+                type,
+                formatSegmentRelativePath(extensions))]
+[/#function]
+
+[#-- Format a component full path --]
+[#function formatComponentAbsoluteFullPath tier component extensions...]
+    [#return formatAbsolutePath(
+                formatSegmentRelativePath(
+                    getTierName(tier),
+                    getComponentName(component),
+                    extensions))]
 [/#function]

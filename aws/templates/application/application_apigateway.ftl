@@ -29,18 +29,44 @@
                                             "StageName" : version.Name,
                                             "InstanceIdRef" : apigatewayInstance.Id,
                                             "WAF" : {
-                                                "IsConfigured" : apigatewayInstance.WAF?? ||
-                                                                    version.WAF?? ||
-                                                                    apigateway.WAF??,
-                                                "IPAddressGroups" : (apigatewayInstance.WAF.IPAddressGroups) !
-                                                                    (version.WAF.IPAddressGroups) !
-                                                                    apigateway.WAF.IPAddressGroups![],
-                                                "Default" : (apigatewayInstance.WAF.Default) !
-                                                                    (version.WAF.Default) !
-                                                                    (apigateway.WAF.Default)!"",
-                                                "RuleDefault" : (apigatewayInstance.WAF.RuleDefault) !
-                                                                    (version.WAF.RuleDefault) !
-                                                                    (apigateway.WAF.RuleDefault)!""
+                                                "IsConfigured" :
+                                                    (apigatewayInstance.WAF?? ||
+                                                        version.WAF?? ||
+                                                        apigateway.WAF??) &&
+                                                    ipAddressGroupsUsage["waf"]?has_content,
+                                                "IPAddressGroups" :
+                                                    (apigatewayInstance.WAF.IPAddressGroups) !
+                                                    (version.WAF.IPAddressGroups) !
+                                                    apigateway.WAF.IPAddressGroups !
+                                                    [],
+                                                "Default" :
+                                                    (apigatewayInstance.WAF.Default) !
+                                                    (version.WAF.Default) !
+                                                    (apigateway.WAF.Default) !
+                                                    "",
+                                                "RuleDefault" :
+                                                    (apigatewayInstance.WAF.RuleDefault) !
+                                                    (version.WAF.RuleDefault) !
+                                                    (apigateway.WAF.RuleDefault) !
+                                                    ""
+                                            },
+                                            "CloudFront" : {
+                                                "IsConfigured" :
+                                                    apigatewayInstance.CloudFront?? ||
+                                                    version.CloudFront?? ||
+                                                    apigateway.CloudFront??,
+                                                "AssumeSNI" :
+                                                    (apigatewayInstance.CloudFront.AssumeSNI) !
+                                                    (version.CloudFront.AssumeSNI) !
+                                                    (apigateway.CloudFront.AssumeSNI)!
+                                                    true
+                                            },
+                                            "DNS" : {
+                                                "Host" :
+                                                    (apigatewayInstance.DNS.Host) !
+                                                    (version.DNS.Host) !
+                                                    (apigateway.DNS.Host)!
+                                                    ""
                                             }
                                         }
                                     }
@@ -58,14 +84,37 @@
                                     "StageName" : version.Name,
                                     "InstanceIdRef" : apigatewayInstance.Id,
                                     "WAF" : {
-                                        "IsConfigured" : version.WAF?? ||
-                                                        apigateway.WAF??,
-                                        "IPAddressGroups" : (version.WAF.IPAddressGroups) !
-                                                                apigateway.WAF.IPAddressGroups![],
-                                        "Default" : (version.WAF.Default) !
-                                                                (apigateway.WAF.Default)!"",
-                                        "RuleDefault" : (version.WAF.RuleDefault) !
-                                                                (apigateway.WAF.RuleDefault)!""
+                                        "IsConfigured" :
+                                            (version.WAF?? ||
+                                                apigateway.WAF??) &&
+                                            ipAddressGroupsUsage["waf"]?has_content,
+                                        "IPAddressGroups" :
+                                            (version.WAF.IPAddressGroups) !
+                                            apigateway.WAF.IPAddressGroups !
+                                            [],
+                                        "Default" :
+                                            (version.WAF.Default) !
+                                            (apigateway.WAF.Default) !
+                                            "",
+                                        "RuleDefault" :
+                                            (version.WAF.RuleDefault) !
+                                            (apigateway.WAF.RuleDefault) !
+                                            ""
+                                    },
+                                    "CloudFront" : {
+                                        "IsConfigured" :
+                                            version.CloudFront?? ||
+                                            apigateway.CloudFront??,
+                                        "AssumeSNI" :
+                                            (version.CloudFront.AssumeSNI) !
+                                            (apigateway.CloudFront.AssumeSNI) !
+                                            true
+                                    },
+                                    "DNS" : {
+                                        "Host" :
+                                            (version.DNS.Host) !
+                                            (apigateway.DNS.Host)!
+                                            ""
                                     }
                                 }
                             }
@@ -77,8 +126,7 @@
     [/#if]
     
     [#-- Non-repeating text to ensure deploy happens every time --]
-    [#assign noise = (.now?long / 1000)?round?string.computer]
-
+    [#assign noise = random.nextInt()?string.computer]
     [#list apigatewayInstances as apigatewayInstance]
         [#assign apiId    = formatAPIGatewayId(
                                 tier,
@@ -90,6 +138,12 @@
                                 apigatewayInstance,
                                 noise)]
         [#assign stageId  = formatAPIGatewayStageId(
+                                tier,
+                                component,
+                                apigatewayInstance)]
+        [#assign cfId  = formatDependentCFDistributionId(
+                                apiId)]
+        [#assign cfName  = formatComponentCFDistributionName(
                                 tier,
                                 component,
                                 apigatewayInstance)]
@@ -264,24 +318,169 @@
                 [#break]
 
         [/#switch]
-        [#if apigatewayInstance.Internal.WAF.IsConfigured &&
-                ipAddressGroupsUsage["waf"]?has_content]
-            [#assign wafGroups = []]
-            [#assign wafRuleDefault = 
-                        apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
-                            apigatewayInstance.Internal.WAF.RuleDefault,
-                            "ALLOW")]
-            [#assign wafDefault = 
-                        apigatewayInstance.Internal.WAF.Default?has_content?then(
-                            apigatewayInstance.Internal.WAF.Default,
-                            "BLOCK")]
-            [#if apigatewayInstance.Internal.WAF.IPAddressGroups?has_content]
-                [#list apigatewayInstance.Internal.WAF.IPAddressGroups as group]
-                    [#assign groupId = group?is_hash?then(
-                                    group.Id,
-                                    group)]
-                    [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
-                        [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
+        [#if apigatewayInstance.Internal.CloudFront.IsConfigured]
+            [#switch applicationListMode]
+                [#case "definition"]
+                    [@checkIfResourcesCreated /]
+                    "${cfId}" : {
+                        "Type" : "AWS::CloudFront::Distribution",
+                        "Properties" : {
+                            "DistributionConfig" : {
+                                "Aliases" : [
+                                    "${formatName(
+                                        apigatewayInstance.Internal.DNS.Host,
+                                        segmentDomainQualifier) + "." + segmentDomain}"
+                                ],
+                                "CacheBehaviors" : [
+                                    {
+                                        "AllowedMethods" : [
+                                            "DELETE",
+                                            "GET",
+                                            "HEAD",
+                                            "OPTIONS",
+                                            "PATCH",
+                                            "POST",
+                                            "PUT"
+                                        ],
+                                        "CachedMethods" : [
+                                            "GET",
+                                            "HEAD"
+                                        ],
+                                        "Compress" : false,
+                                        "DefaultTTL" : 0,
+                                        "ForwardedValues" : {
+                                            "Cookies" : {
+                                                "Forward" : "all"
+                                            },
+                                            "Headers" : [
+                                                "Accept",
+                                                "Accept-Charset",
+                                                "Accept-Datetime",
+                                                "Accept-Language",
+                                                "Authorization",
+                                                "Origin",
+                                                "Referer"
+                                            ],
+                                            "QueryString" : true
+                                        },
+                                        "MaxTTL" : 0,
+                                        "MinTTL" : 0,
+                                        "PathPattern" : "*",
+                                        "SmoothStreaming" : false,
+                                        "TargetOriginId" : "apigateway",
+                                        "ViewerProtocolPolicy" : "redirect-to-https"
+                                    }
+                                ],
+                                "Comment" : "${cfName}",
+                                "DefaultCacheBehavior" : {
+                                },
+                                "Enabled" : true,
+                                "Logging" : {
+                                    "Bucket" : "${operationsBucket}",
+                                    "IncludeCookies" : false,
+                                    "Prefix" : "${"CLOUDFRONTLogs" +
+                                                  formatComponentAbsoluteFullPath(
+                                                    tier,
+                                                    component,
+                                                    apigatewayInstance)}"
+                                },
+                                "Origins" : [
+                                    {
+                                        "CustomOriginConfig" : {
+                                            "OriginProtocolPolicy" : "https-only",
+                                            "OriginSSLProtocols" : ["TLSv1.2"]
+                                        },
+                                        "DomainName" : {
+                                            "Fn::Join" : [
+                                                    ".",
+                                                    [
+                                                        [@createReference apiId/],
+                                                        "execute-api.${regionId}.amazonaws.com"
+                                                    ]
+                                            ]
+                                        },
+                                        "Id" : "apigateway",
+                                        "OriginCustomHeaders" : [
+                                            {
+                                              "HeaderName" : "x-api-key",
+                                              "HeaderValue" : "${deployId}"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                [#-- TODO : Pick up Certificate ARN dynamically --]
+                                "ViewerCertificate" : {
+                                    "AcmCertificateArn" : {
+                                        "Fn::Join" : [
+                                                ":",
+                                                [
+                                                    "arn:aws:acm:us-east-1",
+                                                    {"Ref" : "AWS::AccountId"},
+                                                    [@createReference apiId/],
+                                                    "${appSettingsObject.CertificateId}"
+                                                ]
+                                        ]
+                                    },
+                                    "MinimumProtocolVersion" : "TLSv1",
+                                    "SslSupportMethod" :
+                                        "${apigatewayInstance.Internal.CloudFront.AssumeSNI?then(
+                                            "sni-only",
+                                            "vip")}"
+                                }
+                                [#if apigatewayInstance.Internal.WAF.IsConfigured]
+                                    ,"WebACLId" : [@createReference wafAclId /]
+                                [/#if]
+                            }
+                        }
+                    }
+                    [@resourcesCreated /]
+                    [#break]
+
+                [#case "outputs"]
+                    [@output cfId /]
+                    [@outputCFDns cfId /]
+                    [#break]
+
+            [/#switch]
+
+            [#if apigatewayInstance.Internal.WAF.IsConfigured]
+                [#assign wafGroups = []]
+                [#assign wafRuleDefault = 
+                            apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
+                                apigatewayInstance.Internal.WAF.RuleDefault,
+                                "ALLOW")]
+                [#assign wafDefault = 
+                            apigatewayInstance.Internal.WAF.Default?has_content?then(
+                                apigatewayInstance.Internal.WAF.Default,
+                                "BLOCK")]
+                [#if apigatewayInstance.Internal.WAF.IPAddressGroups?has_content]
+                    [#list apigatewayInstance.Internal.WAF.IPAddressGroups as group]
+                        [#assign groupId = group?is_hash?then(
+                                        group.Id,
+                                        group)]
+                        [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
+                            [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
+                            [#if usageGroup.IsOpen]
+                                [#assign wafRuleDefault = 
+                                    apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
+                                        apigatewayInstance.Internal.WAF.RuleDefault,
+                                        "COUNT")]
+                                [#assign wafDefault = 
+                                        apigatewayInstance.Internal.WAF.Default?has_content?then(
+                                            apigatewayInstance.Internal.WAF.Default,
+                                            "ALLOW")]
+                            [/#if]
+                            [#if usageGroup.CIDR?has_content]
+                                [#assign wafGroups += 
+                                            group?is_hash?then(
+                                                [group],
+                                                [{"Id" : groupId}]
+                                            )]
+                            [/#if]
+                        [/#if]
+                    [/#list]
+                [#else]
+                    [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
                         [#if usageGroup.IsOpen]
                             [#assign wafRuleDefault = 
                                 apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
@@ -293,49 +492,29 @@
                                         "ALLOW")]
                         [/#if]
                         [#if usageGroup.CIDR?has_content]
-                            [#assign wafGroups += 
-                                        group?is_hash?then(
-                                            [group],
-                                            [{"Id" : groupId}]
-                                        )]
+                            [#assign wafGroups += [{"Id" : usageGroup.Id}]]
                         [/#if]
-                    [/#if]
-                [/#list]
-            [#else]
-                [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
-                    [#if usageGroup.IsOpen]
-                        [#assign wafRuleDefault = 
-                            apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
-                                apigatewayInstance.Internal.WAF.RuleDefault,
-                                "COUNT")]
-                        [#assign wafDefault = 
-                                apigatewayInstance.Internal.WAF.Default?has_content?then(
-                                    apigatewayInstance.Internal.WAF.Default,
-                                    "ALLOW")]
-                    [/#if]
-                    [#if usageGroup.CIDR?has_content]
-                        [#assign wafGroups += [{"Id" : usageGroup.Id}]]
-                    [/#if]
-                [/#list]
-            [/#if]
-
-            [#assign wafRules = []]
-            [#list wafGroups as group]
-                [#assign wafRules += [
-                        {
-                            "Id" : "${formatWAFIPSetRuleId(group)}",
-                            "Action" : "${(group.Action?upper_case)!wafRuleDefault}"
-                        }
+                    [/#list]
+                [/#if]
+    
+                [#assign wafRules = []]
+                [#list wafGroups as group]
+                    [#assign wafRules += [
+                            {
+                                "Id" : "${formatWAFIPSetRuleId(group)}",
+                                "Action" : "${(group.Action?upper_case)!wafRuleDefault}"
+                            }
+                        ]
                     ]
-                ]
-            [/#list]
-            [@createWAFAcl 
-                applicationListMode
-                wafAclId
-                wafAclName
-                wafAclName
-                wafDefault
-                wafRules/]
+                [/#list]
+                [@createWAFAcl 
+                    applicationListMode
+                    wafAclId
+                    wafAclName
+                    wafAclName
+                    wafDefault
+                    wafRules /]
+            [/#if]
         [/#if]
     [/#list]
 [/#if]

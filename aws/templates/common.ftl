@@ -92,40 +92,51 @@
 [#-- S3 config/credentials/appdata storage  --]
 
 [#function getCredentialsFilePrefix]
-    [#return 
-        "credentials/" + productName + "/" + segmentName + "/" +
-        (appSettingsObject.FilePrefixes.Credentials)!(appSettingsObject.DefaultFilePrefix)!deploymentUnit]
+    [#return formatSegmentPrefixPath(
+            "credentials",
+            (appSettingsObject.FilePrefixes.Credentials)!
+                (appSettingsObject.DefaultFilePrefix)!
+                deploymentUnit)]
 [/#function]
 
 [#function getAppSettingsFilePrefix]
-    [#return "appsettings/" + productName + "/" + segmentName + "/" +
-        (appSettingsObject.FilePrefixes.AppSettings)!(appSettingsObject.DefaultFilePrefix)!deploymentUnit]
+    [#return formatSegmentPrefixPath(
+            "appsettings",
+            (appSettingsObject.FilePrefixes.AppSettings)!
+                (appSettingsObject.DefaultFilePrefix)!
+                deploymentUnit)]
 [/#function]
 
 [#function getAppDataFilePrefix]
-    [#return "appdata/" + productName + "/" + segmentName + "/" +
-        (appSettingsObject.FilePrefixes.AppData)!(appSettingsObject.DefaultFilePrefix)!deploymentUnit]
+    [#return formatSegmentPrefixPath(
+            "appdata",
+            (appSettingsObject.FilePrefixes.AppData)!
+                (appSettingsObject.DefaultFilePrefix)!
+                deploymentUnit)]
 [/#function]
 
 [#function getBackupsFilePrefix]
-    [#return "backups/" + productName + "/" + segmentName + "/" +
-        (appSettingsObject.FilePrefixes.Backups)!(appSettingsObject.DefaultFilePrefix)!deploymentUnit]
+    [#return formatSegmentPrefixPath(
+            "backups",
+            (appSettingsObject.FilePrefixes.Backups)!
+                (appSettingsObject.DefaultFilePrefix)!
+                deploymentUnit)]
 [/#function]
 
 [#function getSegmentCredentialsFilePrefix]
-    [#return "credentials/" + productName + "/" + segmentName]
+    [#return formatSegmentPrefixPath("credentials")]
 [/#function]
 
 [#function getSegmentAppSettingsFilePrefix]
-    [#return "appsettings/" + productName + "/" + segmentName]
+    [#return formatSegmentPrefixPath("appsettings")]
 [/#function]
 
 [#function getSegmentAppDataFilePrefix]
-    [#return "appdata/" + productName + "/" + segmentName]
+    [#return formatSegmentPrefixPath("appdata")]
 [/#function]
 
 [#function getSegmentBackupsFilePrefix]
-    [#return "backups/" + productName + "/" + segmentName]
+    [#return formatSegmentPrefixPath("backups")]
 [/#function]
 
 [#-- Tiers --]
@@ -408,6 +419,13 @@
         formatDnsAttributeId(resourceId)
         resourceId
         "DNSName" /]
+[/#macro]
+
+[#macro outputCFDns resourceId]
+    [@outputAtt
+        formatDnsAttributeId(resourceId)
+        resourceId
+        "DomainName" /]
 [/#macro]
 
 [#macro outputSQS resourceId]
