@@ -124,6 +124,23 @@ fi
 # Assume all good
 RESULT=0
 
+# Update any file base configuration
+# Do this before stack in case it needs any of the files
+# to be present in the bucket e.g. swagger file
+if [[ "${TYPE}" == "application" ]]; then
+    case ${STACK_OPERATION} in
+        delete)
+            deleteCMDBFilesFromOperationsBucket "appsettings"
+            deleteCMDBFilesFromOperationsBucket "credentials"
+            ;;
+
+        update)
+            syncCMDBFilesToOperationsBucket ${APPSETTINGS_DIR} "appsettings" ${DRYRUN}
+            syncCMDBFilesToOperationsBucket ${CREDENTIALS_DIR} "credentials" ${DRYRUN}
+            ;;
+    esac
+fi
+
 if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
         delete)
@@ -176,21 +193,6 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
         *)
             echo -e "\n\"${STACK_OPERATION}\" is not one of the known stack operations." >&2
             exit
-            ;;
-    esac
-fi
-
-# Update any file base configuration
-if [[ "${TYPE}" == "application" ]]; then
-    case ${STACK_OPERATION} in
-        delete)
-            deleteCMDBFilesFromOperationsBucket "appsettings"
-            deleteCMDBFilesFromOperationsBucket "credentials"
-            ;;
-
-        update)
-            syncCMDBFilesToOperationsBucket ${APPSETTINGS_DIR} "appsettings" ${DRYRUN}
-            syncCMDBFilesToOperationsBucket ${CREDENTIALS_DIR} "credentials" ${DRYRUN}
             ;;
     esac
 fi
