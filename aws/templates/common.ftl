@@ -668,7 +668,9 @@
                             {
                               "RuleId" : [@createReference rule.Id /],
                               "Priority" : ${rule?counter?c},
-                              "Type" : "${rule.Action}"
+                              "Action" : {
+                                  "Type" : "${rule.Action}"
+                              }
                             }
                             [#sep],[/#sep]
                         [/#list]
