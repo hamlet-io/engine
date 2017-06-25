@@ -27,7 +27,21 @@
                                                         apigatewayInstance.Name)],
                                             "VersionId" : version.Id,
                                             "StageName" : version.Name,
-                                            "InstanceIdRef" : apigatewayInstance.Id
+                                            "InstanceIdRef" : apigatewayInstance.Id,
+                                            "WAF" : {
+                                                "IsConfigured" : apigatewayInstance.WAF?? ||
+                                                                    version.WAF?? ||
+                                                                    apigateway.WAF??,
+                                                "IPAddressGroups" : (apigatewayInstance.WAF.IPAddressGroups) !
+                                                                    (version.WAF.IPAddressGroups) !
+                                                                    apigateway.WAF.IPAddressGroups![],
+                                                "Default" : (apigatewayInstance.WAF.Default) !
+                                                                    (version.WAF.Default) !
+                                                                    (apigateway.WAF.Default)!"",
+                                                "RuleDefault" : (apigatewayInstance.WAF.RuleDefault) !
+                                                                    (version.WAF.RuleDefault) !
+                                                                    (apigateway.WAF.RuleDefault)!""
+                                            }
                                         }
                                     }
                                 ] 
@@ -41,7 +55,18 @@
                                     "IdExtensions" : [version.Id],
                                     "NameExtensions" : [version.Name],
                                     "VersionId" : version.Id,
-                                    "StageName" : version.Name
+                                    "StageName" : version.Name,
+                                    "InstanceIdRef" : apigatewayInstance.Id,
+                                    "WAF" : {
+                                        "IsConfigured" : version.WAF?? ||
+                                                        apigateway.WAF??,
+                                        "IPAddressGroups" : (version.WAF.IPAddressGroups) !
+                                                                apigateway.WAF.IPAddressGroups![],
+                                        "Default" : (version.WAF.Default) !
+                                                                (apigateway.WAF.Default)!"",
+                                        "RuleDefault" : (version.WAF.RuleDefault) !
+                                                                (apigateway.WAF.RuleDefault)!""
+                                    }
                                 }
                             }
                         ] 
@@ -65,6 +90,12 @@
                                 apigatewayInstance,
                                 noise)]
         [#assign stageId  = formatAPIGatewayStageId(
+                                tier,
+                                component,
+                                apigatewayInstance)]
+        [#assign wafAclId  = formatDependentWAFRuleId(
+                                apiId)]
+        [#assign wafAclName  = formatComponentWAFRuleName(
                                 tier,
                                 component,
                                 apigatewayInstance)]
@@ -224,7 +255,7 @@
                         [/#if]
                     [/#list]
                 [/#if]
-                [@resourcesCreated /]
+                [@resourcesCreated/]
                 [#break]
 
             [#case "outputs"]
@@ -233,5 +264,77 @@
                 [#break]
 
         [/#switch]
+        [#if apigatewayInstance.Internal.WAF.IsConfigured &&
+                ipAddressGroupsUsage["waf"]?has_content]
+            [#assign wafGroups = []]
+            [#assign wafRuleDefault = 
+                        apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
+                            apigatewayInstance.Internal.WAF.RuleDefault,
+                            "ALLOW")]
+            [#assign wafDefault = 
+                        apigatewayInstance.Internal.WAF.Default?has_content?then(
+                            apigatewayInstance.Internal.WAF.Default,
+                            "BLOCK")]
+            [#if apigatewayInstance.Internal.WAF.IPAddressGroups?has_content]
+                [#list apigatewayInstance.Internal.WAF.IPAddressGroups as group]
+                    [#assign groupId = group?is_hash?then(
+                                    group.Id,
+                                    group)]
+                    [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
+                        [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
+                        [#if usageGroup.IsOpen]
+                            [#assign wafRuleDefault = 
+                                apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
+                                    apigatewayInstance.Internal.WAF.RuleDefault,
+                                    "COUNT")]
+                            [#assign wafDefault = 
+                                    apigatewayInstance.Internal.WAF.Default?has_content?then(
+                                        apigatewayInstance.Internal.WAF.Default,
+                                        "ALLOW")]
+                        [/#if]
+                        [#if usageGroup.CIDR?has_content]
+                            [#assign wafGroups += 
+                                        group?is_hash?then(
+                                            [group],
+                                            [{"Id" : groupId}]
+                                        )]
+                        [/#if]
+                    [/#if]
+                [/#list]
+            [#else]
+                [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
+                    [#if usageGroup.IsOpen]
+                        [#assign wafRuleDefault = 
+                            apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
+                                apigatewayInstance.Internal.WAF.RuleDefault,
+                                "COUNT")]
+                        [#assign wafDefault = 
+                                apigatewayInstance.Internal.WAF.Default?has_content?then(
+                                    apigatewayInstance.Internal.WAF.Default,
+                                    "ALLOW")]
+                    [/#if]
+                    [#if usageGroup.CIDR?has_content]
+                        [#assign wafGroups += [{"Id" : usageGroup.Id}]]
+                    [/#if]
+                [/#list]
+            [/#if]
+
+            [#assign wafRules = []]
+            [#list wafGroups as group]
+                [#assign wafRules += [
+                        {
+                            "Id" : "${formatWAFIPSetRuleId(group)}",
+                            "Action" : "${(group.Action?upper_case)!wafRuleDefault}"
+                        }
+                    ]
+                ]
+            [/#list]
+            [@createWAFAcl 
+                applicationListMode
+                wafAclId
+                wafAclName
+                wafDefault
+                wafRules/]
+        [/#if]
     [/#list]
 [/#if]
