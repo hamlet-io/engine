@@ -336,48 +336,43 @@
                                         apigatewayInstance.Internal.DNS.Host,
                                         segmentDomainQualifier) + "." + segmentDomain}"
                                 ],
-                                "CacheBehaviors" : [
-                                    {
-                                        "AllowedMethods" : [
-                                            "DELETE",
-                                            "GET",
-                                            "HEAD",
-                                            "OPTIONS",
-                                            "PATCH",
-                                            "POST",
-                                            "PUT"
-                                        ],
-                                        "CachedMethods" : [
-                                            "GET",
-                                            "HEAD"
-                                        ],
-                                        "Compress" : false,
-                                        "DefaultTTL" : 0,
-                                        "ForwardedValues" : {
-                                            "Cookies" : {
-                                                "Forward" : "all"
-                                            },
-                                            "Headers" : [
-                                                "Accept",
-                                                "Accept-Charset",
-                                                "Accept-Datetime",
-                                                "Accept-Language",
-                                                "Authorization",
-                                                "Origin",
-                                                "Referer"
-                                            ],
-                                            "QueryString" : true
-                                        },
-                                        "MaxTTL" : 0,
-                                        "MinTTL" : 0,
-                                        "PathPattern" : "*",
-                                        "SmoothStreaming" : false,
-                                        "TargetOriginId" : "apigateway",
-                                        "ViewerProtocolPolicy" : "redirect-to-https"
-                                    }
-                                ],
                                 "Comment" : "${cfName}",
                                 "DefaultCacheBehavior" : {
+                                    "AllowedMethods" : [
+                                        "DELETE",
+                                        "GET",
+                                        "HEAD",
+                                        "OPTIONS",
+                                        "PATCH",
+                                        "POST",
+                                        "PUT"
+                                    ],
+                                    "CachedMethods" : [
+                                        "GET",
+                                        "HEAD"
+                                    ],
+                                    "Compress" : false,
+                                    "DefaultTTL" : 0,
+                                    "ForwardedValues" : {
+                                        "Cookies" : {
+                                            "Forward" : "all"
+                                        },
+                                        "Headers" : [
+                                            "Accept",
+                                            "Accept-Charset",
+                                            "Accept-Datetime",
+                                            "Accept-Language",
+                                            "Authorization",
+                                            "Origin",
+                                            "Referer"
+                                        ],
+                                        "QueryString" : true
+                                    },
+                                    "MaxTTL" : 0,
+                                    "MinTTL" : 0,
+                                    "SmoothStreaming" : false,
+                                    "TargetOriginId" : "apigateway",
+                                    "ViewerProtocolPolicy" : "redirect-to-https"
                                 },
                                 "Enabled" : true,
                                 "Logging" : {
