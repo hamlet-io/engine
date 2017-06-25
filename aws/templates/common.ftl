@@ -619,14 +619,43 @@
     [/#switch]
 [/#macro]
 
-[#macro createWAFRule mode id name conditions]
+[#macro createWAFIPSet mode id name cidr]
+    [#switch mode]
+        [#case "definition"]
+            [@checkIfResourcesCreated /]
+            "${id}" : {
+                "Type" : "AWS::WAF::IPSet",
+                "Properties" : {
+                    "Name": "${name}",
+                    "IPSetDescriptors": [
+                        [#list cidr as entry]
+                            {
+                                "Type" : "IPV4",
+                                "Value" : "${entry}"
+                            }
+                            [#sep],[/#sep]
+                        [/#list]
+                    ]
+                }
+            }
+            [@resourcesCreated /]
+            [#break]
+
+        [#case "outputs"]
+            [@output id /]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
+[#macro createWAFRule mode id name metric conditions]
     [#switch mode]
         [#case "definition"]
             [@checkIfResourcesCreated /]
             "${id}" : {
                 "Type" : "AWS::WAF::Rule",
                 "Properties" : {
-                    "MetricName" : "${name}",
+                    "MetricName" : "${metric?replace("-","X")}",
                     "Name": "${name}",
                     "Predicates" : [
                         [#list conditions as condition]
@@ -651,7 +680,7 @@
     [/#switch]
 [/#macro]
 
-[#macro createWAFAcl mode id name default rules]
+[#macro createWAFAcl mode id name metric default rules]
     [#switch mode]
         [#case "definition"]
             [@checkIfResourcesCreated /]
@@ -661,7 +690,7 @@
                     "DefaultAction" : {
                         "Type" : "${default}"
                     },
-                    "MetricName" : "${name}",
+                    "MetricName" : "${metric?replace("-","X")}",
                     "Name": "${name}",
                     "Rules" : [
                         [#list rules as rule]

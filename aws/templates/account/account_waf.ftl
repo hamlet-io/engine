@@ -11,34 +11,16 @@
             [/#if]
         [/#list]
         [#if entries?has_content]
-            [#switch accountListMode]
-                [#case "definition"]
-                    [@checkIfResourcesCreated /]
-                    "${ipSetId}" : {
-                        "Type" : "AWS::WAF::IPSet",
-                        "Properties" : {
-                            "Name": "${ipSetName}",
-                            "IPSetDescriptors": [
-                                [#list entries as entry]
-                                    {
-                                        "Type" : "IPV4",
-                                        "Value" : "${entry}"
-                                    }
-                                    [#sep],[/#sep]
-                                [/#list]
-                            ]
-                        }
-                    }
-                    [@resourcesCreated /]
-                    [#break]
-            
-                [#case "outputs"]
-                    [@output ipSetId /]
-                    [#break]
-            [/#switch]
+            [@createWAFIPSet
+                accountListMode,
+                ipSetId,
+                ipSetName,
+                entries
+            /]
             [@createWAFRule
                 accountListMode,
                 ipRuleId,
+                ipSetName,
                 ipSetName,
                 [
                     {

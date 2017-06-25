@@ -333,6 +333,7 @@
                 applicationListMode
                 wafAclId
                 wafAclName
+                wafAclName
                 wafDefault
                 wafRules/]
         [/#if]
