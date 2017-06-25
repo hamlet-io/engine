@@ -296,28 +296,24 @@
 [#macro toJSON obj]
     [#if obj?is_hash]
     {
-        [#local objCount = 0]
         [#list obj as key,value]
             "${key}" : [@toJSON value /]
-            [#if objCount > 0],[/#if]
-            [#local objCount += 1]
+            [#sep],[/#sep]
         [/#list]
     }
     [#else]
         [#if obj?is_sequence]
             [
-                [#local entryCount = 0]
                 [#list obj as entry]
                     [@toJSON entry /]
-                    [#if entryCount > 0],[/#if]
-                    [#local entryCount += 1]
+                    [#sep],[/#sep]
                 [/#list]
             ]
         [#else]
             [#if obj?is_string]
                 "${obj}"
             [#else]
-                ${obj}
+                ${obj?c}
             [/#if]
         [/#if]
     [/#if]
@@ -623,6 +619,69 @@
     [/#switch]
 [/#macro]
 
+[#macro createWAFRule mode id name conditions]
+    [#switch mode]
+        [#case "definition"]
+            [@checkIfResourcesCreated /]
+            "${id}" : {
+                "Type" : "AWS::WAF::Rule",
+                "Properties" : {
+                    "MetricName" : "${name}",
+                    "Name": "${name}",
+                    "Predicates" : [
+                        [#list conditions as condition]
+                            {
+                              "DataId" : [@createReference condition.Id /],
+                              "Negated" : ${(condition.Negate?has_content &&
+                                            condition.Negate)?c},
+                              "Type" : "${condition.Type}"
+                            }
+                            [#sep],[/#sep]
+                        [/#list]
+                    ]
+                }
+            }
+            [@resourcesCreated /]
+            [#break]
 
+        [#case "outputs"]
+            [@output id /]
+            [#break]
 
+    [/#switch]
+[/#macro]
+
+[#macro createWAFAcl mode id name default rules]
+    [#switch mode]
+        [#case "definition"]
+            [@checkIfResourcesCreated /]
+            "${id}" : {
+                "Type" : "AWS::WAF::WebACL",
+                "Properties" : {
+                    "DefaultAction" : {
+                        "Type" : "${default}"
+                    },
+                    "MetricName" : "${name}",
+                    "Name": "${name}",
+                    "Rules" : [
+                        [#list rules as rule]
+                            {
+                              "RuleId" : [@createReference rule.Id /],
+                              "Priority" : ${rule?counter?c},
+                              "Type" : "${rule.Action}"
+                            }
+                            [#sep],[/#sep]
+                        [/#list]
+                    ]
+                }
+            }
+            [@resourcesCreated /]
+            [#break]
+
+        [#case "outputs"]
+            [@output id /]
+            [#break]
+
+    [/#switch]
+[/#macro]
 
