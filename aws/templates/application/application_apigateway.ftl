@@ -376,7 +376,7 @@
                                 },
                                 "Enabled" : true,
                                 "Logging" : {
-                                    "Bucket" : "${operationsBucket}",
+                                    "Bucket" : "${operationsBucket + ".s3.amazonaws.com"}",
                                     "IncludeCookies" : false,
                                     "Prefix" : "${"CLOUDFRONTLogs" +
                                                   formatComponentAbsoluteFullPath(
