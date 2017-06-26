@@ -77,10 +77,10 @@ if [[ (-z "${SWAGGER_FILE}") ||
 fi
 
 # Determine the base of the resulting files
-EXTENDED_SWAGGER_FILE_BASE="${EXTENDED_SWAGGER_FILE%.*}"
 EXTENDED_SWAGGER_FILE_PATH="${EXTENDED_SWAGGER_FILE%/*}"
-EXTENDED_SWAGGER_FILE_EXTENSION="${EXTENDED_SWAGGER_FILE##*.}"
-EXTENDED_SWAGGER_FILE_BASENAME="${EXTENDED_SWAGGER_FILE##*/}"
+EXTENDED_SWAGGER_FILE_BASENAME="${EXTENDED_SWAGGER_FILE_BASE##*/}"
+EXTENDED_SWAGGER_FILE_EXTENSION="${EXTENDED_SWAGGER_FILE_BASENAME##*.}"
+EXTENDED_SWAGGER_FILE_BASE="${EXTENDED_SWAGGER_FILE_BASENAME%.*}"
 
 # Determine the accounts and regions
 ACCOUNTS=($(jq -r '.Accounts | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | tr -s [:space:] ' '))
@@ -101,7 +101,7 @@ mkdir -p temp_results_dir
 for ACCOUNT in "${ACCOUNTS[@]}"; do
     for REGION in "${REGIONS[@]}"; do
 
-        TARGET_SWAGGER_FILE="temp_results_dir/${EXTENDED_SWAGGER_FILE_BASENAME}-${ACCOUNT}-${REGION}.json"
+        TARGET_SWAGGER_FILE="temp_results_dir/${EXTENDED_SWAGGER_FILE_BASE}-${ACCOUNT}-${REGION}.json"
 
         ARGS=()
         ARGS+=("-v" "account=${ACCOUNT}")
@@ -129,10 +129,11 @@ done
 # If the target is a zip file, zip up the generated files
 cd temp_results_dir
 if [[ "${EXTENDED_SWAGGER_FILE_EXTENSION}" == "zip" ]]; then
-    zip ${EXTENDED_SWAGGER_FILE_BASENAME}.zip ${EXTENDED_SWAGGER_FILE_BASENAME}-*.json
-else
-    cp ${EXTENDED_SWAGGER_FILE_BASENAME}-*.json "${EXTENDED_SWAGGER_FILE_PATH}"
+    zip ${EXTENDED_SWAGGER_FILE_BASE}.zip *.json
+    rm *.json
 fi
+cp * "${EXTENDED_SWAGGER_FILE_PATH}"
+
 
 # All good
 RESULT=0
