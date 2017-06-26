@@ -173,9 +173,9 @@
                                         buildDeploymentUnit,
                                         buildCommit,
                                         "swagger-" +
-                                            accountObject.AWSId +
-                                            "-" +
                                             region +
+                                            "-" +
+                                            accountObject.AWSId +
                                             ".json")}"
                         },
                         "Name" : "${formatComponentFullName(

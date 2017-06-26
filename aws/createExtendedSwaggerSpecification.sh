@@ -101,7 +101,7 @@ mkdir -p temp_results_dir
 for ACCOUNT in "${ACCOUNTS[@]}"; do
     for REGION in "${REGIONS[@]}"; do
 
-        TARGET_SWAGGER_FILE="temp_results_dir/${EXTENDED_SWAGGER_FILE_BASE}-${ACCOUNT}-${REGION}.json"
+        TARGET_SWAGGER_FILE="temp_results_dir/${EXTENDED_SWAGGER_FILE_BASE}-${REGION}-${ACCOUNT}.json"
 
         ARGS=()
         ARGS+=("-v" "account=${ACCOUNT}")
