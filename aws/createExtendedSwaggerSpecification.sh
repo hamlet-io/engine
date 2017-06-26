@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
-trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+trap 'rm -f temp_*; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 # Defaults
 INTEGRATIONS_FILE_DEFAULT="apigw.json"
@@ -28,7 +28,9 @@ INTEGRATIONS_FILE = "${INTEGRATIONS_FILE_DEFAULT}"
 
 NOTES:
 
-1. The file produced contains the extensions requested. It needs to be merged
+1. A file is produced for every combination of region and account included in
+   the integrations file with the account and region appended to the provided filename
+3. The files produced contain the extensions requested. They need to be merged
    with the original swagger file before being given to AWS.
 
 EOF
@@ -72,43 +74,51 @@ if [[ (-z "${SWAGGER_FILE}") ||
     exit
 fi
 
-# Set up the context
-. ${GENERATION_DIR}/setContext.sh
+# Determine the base of the resulting files
+EXTENDED_SWAGGER_FILE_BASE="${EXTENDED_SWAGGER_FILE%.*}"
 
+# Determine the accounts and regions
+ACCOUNTS=($(jq -r '.Accounts | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | tr -s [:space:] ' '))
+REGIONS=($(jq -r '.Regions | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | tr -s [:space:] ' '))
+
+# TODO adjust next lines when path length limitations in jq are fixed
+POST_PROCESSING_FILTER="./temp_post_processing.jq"
+cp ${GENERATION_DIR}/postProcessSwagger.jq "${POST_PROCESSING_FILTER}"
+            
 # Set up the type specific template information
 TEMPLATE_DIR="${GENERATION_DIR}/templates"
 TEMPLATE="createSwaggerExtensions.ftl"
 SWAGGER_EXTENSIONS_FILE="temp_swagger_extensions.json"
 SWAGGER_EXTENSIONS_PRE_POST_FILE="temp_swagger_pre_post.json"
 
-ARGS=()
-ARGS+=("-r" "idList=${COMPOSITE_ID#/?/}")
-ARGS+=("-r" "nameList=${COMPOSITE_NAME#/?/}")
-ARGS+=("-r" "policyList=${COMPOSITE_POLICY#/?/}")
-ARGS+=("-v" "region=${REGION}")
-ARGS+=("-v" "productRegion=${PRODUCT_REGION}")
-ARGS+=("-v" "accountRegion=${ACCOUNT_REGION}")
-ARGS+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
-ARGS+=("-v" "credentials=${COMPOSITE_CREDENTIALS}")
-ARGS+=("-v" "appsettings=${COMPOSITE_APPSETTINGS}")
-ARGS+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
+# Process the required accounts and regions
+for ACCOUNT in "${ACCOUNTS[@]}"; do
+    for REGION in "${REGIONS[@]}"; do
 
-ARGS+=("-v" "swagger=${SWAGGER_FILE}")
-ARGS+=("-v" "integrations=${INTEGRATIONS_FILE}")
+        EXTENDED_SWAGGER_FILE="${EXTENDED_SWAGGER_FILE_BASE}-${ACCOUNT}-${REGION}.json"
 
-${GENERATION_DIR}/freemarker.sh -t ${TEMPLATE} -d ${TEMPLATE_DIR} -o "${SWAGGER_EXTENSIONS_FILE}" "${ARGS[@]}"
-RESULT=$?
-if [[ "${RESULT}" -eq 0 ]]; then
-    # Merge the two
-    ${GENERATION_DIR}/manageJSON.sh -o "${SWAGGER_EXTENSIONS_PRE_POST_FILE}" "${SWAGGER_FILE}" "${SWAGGER_EXTENSIONS_FILE}"
-    RESULT=$?
-    if [[ "${RESULT}" -eq 0 ]]; then
-        # TODO adjust next lines when path length limitations in jq are fixed
-        POST_PROCESSING_FILTER="./temp_post_processing.jq"
-        cp ${GENERATION_DIR}/postProcessSwagger.jq "${POST_PROCESSING_FILTER}"
+        ARGS=()
+        ARGS+=("-v" "account=${ACCOUNT}")
+        ARGS+=("-v" "region=${REGION}")
+        ARGS+=("-v" "swagger=${SWAGGER_FILE}")
+        ARGS+=("-v" "integrations=${INTEGRATIONS_FILE}")
+        
+        ${GENERATION_DIR}/freemarker.sh -t ${TEMPLATE} -d ${TEMPLATE_DIR} -o "${SWAGGER_EXTENSIONS_FILE}" "${ARGS[@]}"
+        RESULT=$?
+        [[ "${RESULT}" -ne 0 ]] && exit
+
+        # Merge the two
+        ${GENERATION_DIR}/manageJSON.sh -o "${SWAGGER_EXTENSIONS_PRE_POST_FILE}" "${SWAGGER_FILE}" "${SWAGGER_EXTENSIONS_FILE}"
+        RESULT=$?
+        [[ "${RESULT}" -ne 0 ]] && exit
+
+        # Post processing
         jq -f "${POST_PROCESSING_FILTER}" < "${SWAGGER_EXTENSIONS_PRE_POST_FILE}" > "${EXTENDED_SWAGGER_FILE}"
         RESULT=$?
-    fi
-fi
+        [[ "${RESULT}" -ne 0 ]] && exit
+        
+    done
+done
 
-# Let last result become the result of this script
+# All good
+RESULT=0

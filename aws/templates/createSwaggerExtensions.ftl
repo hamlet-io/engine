@@ -1,5 +1,4 @@
 [#ftl]
-[#include "setContext.ftl"]
 
 [#assign swaggerObject = swagger?eval]
 [#assign integrationsObject = integrations?eval]
@@ -52,7 +51,7 @@
             "x-amazon-apigateway-integration" : {
                 "type": "aws_proxy",
                 [#-- "uri" : "${r"${stageVariables." + apiVariable + r"}"}", --]
-                "uri" : "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${accountObject.AWSId}:function:${r"${stageVariables." + apiVariable + r"}"}/invocations",
+                "uri" : "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${r"${stageVariables." + apiVariable + r"}"}/invocations",
                 "passthroughBehavior" : "never",
                 "httpMethod" : "POST"
             },
