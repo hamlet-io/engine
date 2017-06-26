@@ -37,7 +37,11 @@
             [/#switch]
         [/#if]
         [#if argValue?has_content]
-            [#local content += [argValue]]
+            [#local content +=
+                [
+                    argValue?remove_beginning(separator)?remove_ending(separator)
+                ]
+            ]
         [/#if]
     [/#list]
     [#return content?join(separator)]
