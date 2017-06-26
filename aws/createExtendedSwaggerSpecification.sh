@@ -29,9 +29,11 @@ INTEGRATIONS_FILE = "${INTEGRATIONS_FILE_DEFAULT}"
 NOTES:
 
 1. A file is produced for every combination of region and account included in
-   the integrations file with the account and region appended to the provided filename
-3. The files produced contain the extensions requested. They need to be merged
-   with the original swagger file before being given to AWS.
+   the integrations file with the account and region appended to the provided 
+   filename with "-" separators.
+2. If EXTENDED_SWAGER_FILE ends with a ".zip" extension, then the generated
+   files are packaged into a zip file.
+3. The files produced contain the swagger extensions requested.
 
 EOF
     exit
@@ -76,6 +78,7 @@ fi
 
 # Determine the base of the resulting files
 EXTENDED_SWAGGER_FILE_BASE="${EXTENDED_SWAGGER_FILE%.*}"
+EXTENDED_SWAGGER_FILE_EXTENSION="${EXTENDED_SWAGGER_FILE##*.}"
 
 # Determine the accounts and regions
 ACCOUNTS=($(jq -r '.Accounts | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | tr -s [:space:] ' '))
@@ -95,7 +98,7 @@ SWAGGER_EXTENSIONS_PRE_POST_FILE="temp_swagger_pre_post.json"
 for ACCOUNT in "${ACCOUNTS[@]}"; do
     for REGION in "${REGIONS[@]}"; do
 
-        EXTENDED_SWAGGER_FILE="${EXTENDED_SWAGGER_FILE_BASE}-${ACCOUNT}-${REGION}.json"
+        TARGET_SWAGGER_FILE="${EXTENDED_SWAGGER_FILE_BASE}-${ACCOUNT}-${REGION}.json"
 
         ARGS=()
         ARGS+=("-v" "account=${ACCOUNT}")
@@ -113,12 +116,18 @@ for ACCOUNT in "${ACCOUNTS[@]}"; do
         [[ "${RESULT}" -ne 0 ]] && exit
 
         # Post processing
-        jq -f "${POST_PROCESSING_FILTER}" < "${SWAGGER_EXTENSIONS_PRE_POST_FILE}" > "${EXTENDED_SWAGGER_FILE}"
+        jq -f "${POST_PROCESSING_FILTER}" < "${SWAGGER_EXTENSIONS_PRE_POST_FILE}" > "${TARGET_SWAGGER_FILE}"
         RESULT=$?
         [[ "${RESULT}" -ne 0 ]] && exit
         
     done
 done
+
+# If the target is a zip file, zip up the generated files
+if [[ "${EXTENDED_SWAGGER_FILE_EXTENSION}" == "zip" ]]; then
+    zip ${EXTENDED_SWAGGER_FILE_BASE}.zip ${EXTENDED_SWAGGER_FILE_BASE}-*.json
+    rm -f ${EXTENDED_SWAGGER_FILE_BASE}-*.json
+fi
 
 # All good
 RESULT=0
