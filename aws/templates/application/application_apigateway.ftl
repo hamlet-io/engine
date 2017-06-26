@@ -167,7 +167,16 @@
                     "Properties" : {
                         "BodyS3Location" : {
                             "Bucket" : "${getRegistryEndPoint("swagger")}",
-                            "Key" : "${getRegistryPrefix("swagger")}${productName}/${buildDeploymentUnit}/${buildCommit}/swagger.json"
+                            "Key" : "${formatRelativePath(
+                                        getRegistryPrefix("swagger"),
+                                        productName,
+                                        buildDeploymentUnit,
+                                        buildCommit,
+                                        "swagger-" +
+                                            accountObject.AWSId +
+                                            "-" +
+                                            region +
+                                            ".json")}"
                         },
                         "Name" : "${formatComponentFullName(
                                         tier,
