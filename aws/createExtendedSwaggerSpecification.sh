@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
-trap 'rm -f temp_*; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+trap 'rm -rf temp_*; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 # Defaults
 INTEGRATIONS_FILE_DEFAULT="apigw.json"
@@ -78,7 +78,9 @@ fi
 
 # Determine the base of the resulting files
 EXTENDED_SWAGGER_FILE_BASE="${EXTENDED_SWAGGER_FILE%.*}"
+EXTENDED_SWAGGER_FILE_PATH="${EXTENDED_SWAGGER_FILE%/*}"
 EXTENDED_SWAGGER_FILE_EXTENSION="${EXTENDED_SWAGGER_FILE##*.}"
+EXTENDED_SWAGGER_FILE_BASENAME="${EXTENDED_SWAGGER_FILE##*/}"
 
 # Determine the accounts and regions
 ACCOUNTS=($(jq -r '.Accounts | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | tr -s [:space:] ' '))
@@ -95,10 +97,11 @@ SWAGGER_EXTENSIONS_FILE="temp_swagger_extensions.json"
 SWAGGER_EXTENSIONS_PRE_POST_FILE="temp_swagger_pre_post.json"
 
 # Process the required accounts and regions
+mkdir -p temp_results_dir
 for ACCOUNT in "${ACCOUNTS[@]}"; do
     for REGION in "${REGIONS[@]}"; do
 
-        TARGET_SWAGGER_FILE="${EXTENDED_SWAGGER_FILE_BASE}-${ACCOUNT}-${REGION}.json"
+        TARGET_SWAGGER_FILE="temp_results_dir/${EXTENDED_SWAGGER_FILE_BASENAME}-${ACCOUNT}-${REGION}.json"
 
         ARGS=()
         ARGS+=("-v" "account=${ACCOUNT}")
@@ -124,9 +127,11 @@ for ACCOUNT in "${ACCOUNTS[@]}"; do
 done
 
 # If the target is a zip file, zip up the generated files
+cd temp_results_dir
 if [[ "${EXTENDED_SWAGGER_FILE_EXTENSION}" == "zip" ]]; then
-    zip ${EXTENDED_SWAGGER_FILE_BASE}.zip ${EXTENDED_SWAGGER_FILE_BASE}-*.json
-    rm -f ${EXTENDED_SWAGGER_FILE_BASE}-*.json
+    zip ${EXTENDED_SWAGGER_FILE_BASENAME}.zip ${EXTENDED_SWAGGER_FILE_BASENAME}-*.json
+else
+    cp ${EXTENDED_SWAGGER_FILE_BASENAME}-*.json "${EXTENDED_SWAGGER_FILE_PATH}"
 fi
 
 # All good
