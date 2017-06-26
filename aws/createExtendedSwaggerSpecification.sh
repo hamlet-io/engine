@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
-trap "[[ -z "${GENERATION_DEBUG}" ]] && rm -rf temp_*; exit ${RESULT:-1}" EXIT SIGHUP SIGINT SIGTERM
+trap '[[ -z ${GENERATION_DEBUG} ]] && rm -rf temp_*; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 
 # Defaults
 INTEGRATIONS_FILE_DEFAULT="apigw.json"
