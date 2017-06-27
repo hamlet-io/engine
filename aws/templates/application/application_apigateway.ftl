@@ -342,9 +342,14 @@
                         "Properties" : {
                             "DistributionConfig" : {
                                 "Aliases" : [
-                                    "${formatName(
-                                        apigatewayInstance.Internal.DNS.Host,
-                                        segmentDomainQualifier) + "." + segmentDomain}"
+                                    "${concatenate(
+                                        [
+                                            formatName(
+                                                apigatewayInstance.Internal.DNS.Host,
+                                                segmentDomainQualifier),
+                                            segmentDomain
+                                        ],
+                                        ".")}"
                                 ],
                                 "Comment" : "${cfName}",
                                 "DefaultCacheBehavior" : {
