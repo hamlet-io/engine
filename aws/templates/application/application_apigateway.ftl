@@ -314,7 +314,7 @@
                                                             ]
                                                         }
                                                     },
-                                                    "DependsOn" : [@createReference stageId /]
+                                                    "DependsOn" : "${stageId}"
                                                 }
                                             [/#if]
                                         [/#list]
@@ -443,7 +443,7 @@
                                 [/#if]
                             }
                         },
-                        "DependsOn" : [@createReference stageId /]
+                        "DependsOn" : "${stageId}"
                     },
                     "${usagePlanId}" : {
                         "Type" : "AWS::ApiGateway::UsagePlan",
@@ -456,7 +456,7 @@
                             ],
                             "UsagePlanName" : "${usagePlanName}"
                         },
-                        "DependsOn" : [@createReference stageId /]
+                        "DependsOn" : "${stageId}"
                     }
                     [@resourcesCreated /]
                     [#break]
