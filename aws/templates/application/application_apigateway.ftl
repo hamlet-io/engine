@@ -313,7 +313,8 @@
                                                                 ]
                                                             ]
                                                         }
-                                                    }
+                                                    },
+                                                    "DependsOn" : [@createReference stageId /]
                                                 }
                                             [/#if]
                                         [/#list]
@@ -441,7 +442,8 @@
                                     ,"WebACLId" : [@createReference wafAclId /]
                                 [/#if]
                             }
-                        }
+                        },
+                        "DependsOn" : [@createReference stageId /]
                     },
                     "${usagePlanId}" : {
                         "Type" : "AWS::ApiGateway::UsagePlan",
@@ -453,7 +455,8 @@
                                 }
                             ],
                             "UsagePlanName" : "${usagePlanName}"
-                        }
+                        },
+                        "DependsOn" : [@createReference stageId /]
                     }
                     [@resourcesCreated /]
                     [#break]
