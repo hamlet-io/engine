@@ -22,4 +22,3 @@
                 component,
                 extensions)]
 [/#function]
-

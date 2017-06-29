@@ -68,11 +68,48 @@
                 extensions)]
 [/#function]
 
-[#-- TODO: Remove second "vpc"  when cleaning up naming --]
 [#function formatVPCId]
-    [#return formatSegmentResourceId(
-            "vpc",
-            "vpc")]
+    [#local legacyId = formatSegmentResourceId(
+                "vpc",
+                "vpc")]
+    [#return getKey(legacyId)?has_content?then(
+                legacyId,
+                formatSegmentResourceId("vpc"))]
+[/#function]
+
+[#function formatVPCIGWId]
+    [#local legacyId = formatSegmentResourceId(
+                "igw",
+                "igw")]
+    [#return getKey(legacyId)?has_content?then(
+                legacyId,
+                formatSegmentResourceId("igw"))]
+[/#function]
+
+[#function formatVPCFlowLogsId extensions...]
+    [#return formatDependentResourceId(
+        formatSegmentResourceId("vpc"),
+        "vpcflowlogs",
+        extensions)]
+[/#function]
+
+[#-- Legacy functions reflecting inconsistencies in template id naming --]
+[#function formatVPCTemplateId]
+    [#local legacyId = formatSegmentResourceId(
+                "vpc",
+                "vpc")]
+    [#return getKey(legacyId)?has_content?then(
+                "vpc",
+                formatSegmentResourceId("vpc"))]
+[/#function]
+
+[#function formatVPCIGWTemplateId]
+    [#local legacyId = formatSegmentResourceId(
+                "igw",
+                "igw")]
+    [#return getKey(legacyId)?has_content?then(
+                "igw",
+                formatSegmentResourceId("igw"))]
 [/#function]
 
 [#function formatSubnetId tier zone]

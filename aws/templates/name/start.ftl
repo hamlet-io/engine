@@ -72,11 +72,20 @@
 [/#function]
 
 [#-- Format a segment path --]
-[#function formatSegmentRelativePath extensions...]
-    [#return formatRelativePath(
+[#function formatSegmentPath absolute extensions...]
+    [#return formatPath(
+                absolute,
                 productName,
                 segmentName,
                 extensions)]
+[/#function]
+
+[#function formatSegmentRelativePath extensions...]
+    [#return formatSegmentPath(false, extensions)]
+[/#function]
+
+[#function formatSegmentAbsolutePath extensions...]
+    [#return formatSegmentPath(true, extensions)]
 [/#function]
 
 [#-- Format a file prefix path --]

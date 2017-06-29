@@ -1,6 +1,31 @@
 [#ftl]
 [#include "setContext.ftl" ]
 
+[#-- Functions --]
+
+[#-- Macros --]
+
+[#macro createVPCFlowLog mode id vpcId roleId logGroupName trafficType]
+    [@createFlowLog 
+        mode,
+        id,
+        roleId,
+        logGroupName,
+        vpcId,
+        "VPC",
+        trafficType /]
+[/#macro]
+
+[#macro createVPCLogGroup mode id name retention ]
+    [#if isPartOfCurrentDeploymentUnit(id)]
+        [@createLogGroup 
+            mode
+            id
+            name
+            retention /]
+    [/#if]
+[/#macro]
+
 [#-- Initialisation --]
 
 [#-- Domains --]

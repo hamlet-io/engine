@@ -738,3 +738,36 @@
     [/#switch]
 [/#macro]
 
+[#macro createFlowLog 
+            mode
+            id
+            roleId
+            logGroupName
+            resourceId
+            resourceType
+            trafficType]
+    [#switch mode]
+        [#case "definition"]
+            [@checkIfResourcesCreated /]
+            "${id}" : {
+                "Type" : "AWS::EC2::FlowLog",
+                "Properties" : {
+                    "DeliverLogsPermissionArn" : 
+                        [@createArnReference roleId /],
+                    "LogGroupName" : "${logGroupName}",
+                    "ResourceId" : 
+                        [@createReference resourceId /],
+                    "ResourceType" : "${resourceType}",
+                    "TrafficType" : "${trafficType}"
+                }
+            }
+            [@resourcesCreated /]
+            [#break]
+
+        [#case "outputs"]
+            [@output id /]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
