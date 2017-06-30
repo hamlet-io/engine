@@ -1,8 +1,9 @@
 [#-- Certificate --]
 [#if deploymentUnit?contains("cert")]
-    [@checkIfResourcesCreated /]
+    [#assign certificateId = formatCertificateId(region, segmentDomainCertificateId)]
     [#switch segmentListMode]
         [#case "definition"]
+            [@checkIfResourcesCreated /]
             "certificate" : {
                 "Type" : "AWS::CertificateManager::Certificate",
                 "Properties" : {
@@ -15,15 +16,13 @@
                     ]
                 }
             }
+            [@resourcesCreated /]
             [#break]
 
         [#case "outputs"]
-            "${formatId("certificate", segmentDomainCertificateId)}" : {
-                "Value" : { "Ref" : "certificate" }
-            }
+            [@output "certificate" certificateId /]
             [#break]
 
     [/#switch]
-    [@resourcesCreated /]
 [/#if]
 

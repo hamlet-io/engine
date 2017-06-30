@@ -2,6 +2,7 @@
 [#if componentType == "cert"]
     [#assign acm = component.Cert]
     [#assign certId = formatComponentCertificateId(
+                        region,
                         tier,
                         component)]
     [#-- If creating cert in another region, domain must be explicitly --]
@@ -20,7 +21,7 @@
                         ,"DomainValidationOptions" : [
                             {
                                 "DomainName" : "${certDomain}",
-                                "ValidationDomain" : "${tenantObject.Domain.Validation}"
+                                "ValidationDomain" : "${domains.Validation}"
                             }
                         ]
                     [/#if]

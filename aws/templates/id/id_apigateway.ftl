@@ -26,6 +26,13 @@
                 extensions)]
 [/#function]
 
+[#function formatDependentAPIGatewayBasePathMappingId resourceId extensions...]
+    [#return formatDependentResourceId(
+                "apiBasePathMapping",
+                resourceId,
+                extensions)]
+[/#function]
+
 [#function formatDependentAPIGatewayUsagePlanId resourceId extensions...]
     [#return formatDependentResourceId(
                 "apiUsagePlan",

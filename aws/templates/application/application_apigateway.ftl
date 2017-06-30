@@ -62,6 +62,10 @@
                                                     true
                                             },
                                             "DNS" : {
+                                                "IsConfigured" :
+                                                    apigatewayInstance.DNS?? ||
+                                                        version.DNS?? ||
+                                                        apigateway.DNS??,
                                                 "Host" :
                                                     (apigatewayInstance.DNS.Host) !
                                                     (version.DNS.Host) !
@@ -82,7 +86,7 @@
                                     "NameExtensions" : [version.Name],
                                     "VersionId" : version.Id,
                                     "StageName" : version.Name,
-                                    "InstanceIdRef" : apigatewayInstance.Id,
+                                    "InstanceIdRef" : version.Id,
                                     "WAF" : {
                                         "IsConfigured" :
                                             (version.WAF?? ||
@@ -90,7 +94,7 @@
                                             ipAddressGroupsUsage["waf"]?has_content,
                                         "IPAddressGroups" :
                                             (version.WAF.IPAddressGroups) !
-                                            apigateway.WAF.IPAddressGroups !
+                                            (apigateway.WAF.IPAddressGroups) !
                                             [],
                                         "Default" :
                                             (version.WAF.Default) !
@@ -111,6 +115,9 @@
                                             true
                                     },
                                     "DNS" : {
+                                        "IsConfigured" :
+                                            version.DNS?? ||
+                                                apigateway.WAF??,
                                         "Host" :
                                             (version.DNS.Host) !
                                             (apigateway.DNS.Host)!
@@ -141,20 +148,31 @@
                                 tier,
                                 component,
                                 apigatewayInstance)]
+        [#assign stageName = apigatewayInstance.Internal.StageName]
+        [#assign basePathMappingId  = formatDependentAPIGatewayBasePathMappingId(stageId)]
+        [#assign dns = concatenate(
+                        [
+                            formatName(
+                                apigatewayInstance.Internal.DNS.Host,
+                                segmentDomainQualifier),
+                            segmentDomain
+                        ],
+                        ".")]
+
         [#assign cfId  = formatDependentCFDistributionId(
                                 apiId)]
         [#assign cfName  = formatComponentCFDistributionName(
                                 tier,
                                 component,
                                 apigatewayInstance)]
-        [#assign usagePlanId  = formatDependentAPIGatewayUsagePlanId(cfId)]
-        [#assign usagePlanName = formatComponentUsagePlanName(
+        [#assign wafAclId  = formatDependentWAFRuleId(
+                                apiId)]
+        [#assign wafAclName  = formatComponentWAFRuleName(
                                 tier,
                                 component,
                                 apigatewayInstance)]
-         [#assign wafAclId  = formatDependentWAFRuleId(
-                                apiId)]
-        [#assign wafAclName  = formatComponentWAFRuleName(
+        [#assign usagePlanId  = formatDependentAPIGatewayUsagePlanId(cfId)]
+        [#assign usagePlanName = formatComponentUsagePlanName(
                                 tier,
                                 component,
                                 apigatewayInstance)]
@@ -192,7 +210,6 @@
                     },
                     "DependsOn" : "${apiId}"
                 },
-                [#assign stageName = apigatewayInstance.Internal.StageName]
                 "${stageId}" : {
                     "Type" : "AWS::ApiGateway::Stage",
                     "Properties" : {
@@ -341,16 +358,11 @@
                         "Type" : "AWS::CloudFront::Distribution",
                         "Properties" : {
                             "DistributionConfig" : {
-                                "Aliases" : [
-                                    "${concatenate(
-                                        [
-                                            formatName(
-                                                apigatewayInstance.Internal.DNS.Host,
-                                                segmentDomainQualifier),
-                                            segmentDomain
-                                        ],
-                                        ".")}"
-                                ],
+                                [#if apigatewayInstance.Internal.DNS.IsConfigured ]
+                                    "Aliases" : [
+                                        "${dns}"
+                                    ],
+                                [/#if]
                                 "Comment" : "${cfName}",
                                 "DefaultCacheBehavior" : {
                                     "AllowedMethods" : [
@@ -545,6 +557,27 @@
                     wafAclName
                     wafDefault
                     wafRules /]
+            [/#if]
+        [#else]
+            [#if apigatewayInstance.Internal.DNS.IsConfigured ]
+                [#switch applicationListMode]
+                    [#case "definition"]
+                        [@checkIfResourcesCreated /]
+                        "${basePathMappingId}" : {
+                            "Type" : "AWS::ApiGateway::BasePathMapping",
+                            "Properties" : {
+                                "DomainName" : "${dns}",
+                                "RestApiId" : [@createReference apiId /],
+                                "Stage" : "${stageName}"
+                            }
+                        }
+                        [@resourcesCreated /]
+                        [#break]
+    
+                    [#case "outputs"]
+                        [#break]
+    
+                [/#switch]
             [/#if]
         [/#if]
     [/#list]

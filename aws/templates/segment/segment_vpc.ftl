@@ -28,14 +28,14 @@
             segmentListMode,
             flowLogsAllLogGroupId,
             flowLogsAllLogGroupName,
-            (SegmentObject.Operations.FlowLogs.Expiration) !
-                (SegmentObject.Operations.Expiration) !
+            (segmentObject.Operations.FlowLogs.Expiration) !
+                (segmentObject.Operations.Expiration) !
             (environmentObject.Operations.FlowLogs.Expiration) !
                 (environmentObject.Operations.Expiration) ! 7 /]
     [/#if]
         
     [#if !deploymentSubsetRequired("flowlogs")]
-        [#if (SegmentObject.Operations.FlowLogs.Enabled)!
+        [#if (segmentObject.Operations.FlowLogs.Enabled)!
                 (environmentObject.Operations.FlowLogs.Enabled)! false]
             [@createVPCFlowLog
                 segmentListMode,

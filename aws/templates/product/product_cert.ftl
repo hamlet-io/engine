@@ -1,6 +1,6 @@
 [#-- Certificate --]
 [#if deploymentUnit?contains("cert")]
-    [#assign certificateId = formatCertificateId(productDomainCertificateId)]
+    [#assign certificateId = formatCertificateId(region, productDomainCertificateId)]
     [#switch productListMode]
         [#case "definition"]
             [@checkIfResourcesCreated /]

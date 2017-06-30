@@ -65,6 +65,7 @@
                                         [/#if]
                                         [#if !certificateFound]
                                             [#assign acmCertificateId = formatCertificateId(
+                                                                            region,
                                                                             certificateId)]
                                             [#if getKey(acmCertificateId)?has_content]
                                                 "${getKey(acmCertificateId)}"

@@ -10,7 +10,7 @@
                     "DomainValidationOptions" : [
                         {
                             "DomainName" : "*.${accountDomain}",
-                            "ValidationDomain" : "${tenantObject.Domain.Validation}"
+                            "ValidationDomain" : "${accountDomainValidation}"
                         }
                     ]
                 }
