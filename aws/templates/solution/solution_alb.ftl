@@ -59,16 +59,15 @@
                                                                                 certificateLink.Tier,
                                                                                 certificateLink.Component)]
                                             [#if getKey(mappingCertificateId)?has_content]
-                                                "${getKey(mappingCertificateId)}"
+                                                "${getKeyByRegion(region, mappingCertificateId)}"
                                                 [#assign certificateFound = true]
                                             [/#if]
                                         [/#if]
                                         [#if !certificateFound]
                                             [#assign acmCertificateId = formatCertificateId(
-                                                                            region,
                                                                             certificateId)]
-                                            [#if getKey(acmCertificateId)?has_content]
-                                                "${getKey(acmCertificateId)}"
+                                            [#if getKeyByRegion(region, acmCertificateId)?has_content]
+                                                "${getKeyByRegion(region, acmCertificateId)}"
                                             [#else]
                                                 {
                                                     "Fn::Join" : [

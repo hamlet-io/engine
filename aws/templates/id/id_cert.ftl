@@ -2,28 +2,25 @@
 
 [#-- Resources --]
 
-[#function formatCertificateId region ids...]
+[#function formatCertificateId ids...]
     [#return formatResourceId(
                 "certificate",
-                ids,
-                region?replace("-","X"))]
+                ids)]
 [/#function]
 
-[#function formatDependentCertificateId region resourceId extensions...]
+[#function formatDependentCertificateId resourceId extensions...]
     [#return formatDependentResourceId(
                 "certificate",
                 resourceId,
-                extensions,
-                region?replace("-","X"))]
+                extensions)]
 [/#function]
 
-[#function formatComponentCertificateId region tier component extensions...]
+[#function formatComponentCertificateId tier component extensions...]
     [#return formatComponentResourceId(
                 "certificate",
                 tier,
                 component,
-                extensions,
-                region?replace("-","X"))]
+                extensions)]
 [/#function]
 
 [#-- Attributes --]

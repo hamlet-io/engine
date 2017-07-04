@@ -1,6 +1,6 @@
 [#-- Certificate --]
 [#if deploymentUnit?contains("cert")]
-    [#assign certificateId = formatCertificateId(region, segmentDomainCertificateId)]
+    [#assign certificateId = formatCertificateId(segmentDomainCertificateId)]
     [#switch segmentListMode]
         [#case "definition"]
             [@checkIfResourcesCreated /]
@@ -20,7 +20,7 @@
             [#break]
 
         [#case "outputs"]
-            [@output "certificate" certificateId /]
+            [@output "certificate" certificateId region /]
             [#break]
 
     [/#switch]

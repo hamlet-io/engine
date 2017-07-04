@@ -80,6 +80,11 @@
     [#return ""]
 [/#function]
 
+[#-- Get stack output by region --]
+[#function getKeyByRegion region args...]
+    [#return getKey(args,region?replace('-',"X"))]
+[/#function]
+
 [#-- Calculate the closest power of 2 --]
 [#function getPowerOf2 value]
     [#local exponent = -1]
@@ -366,14 +371,19 @@
 [/#macro]
 
 [#-- Outputs generation --]
-[#macro output resourceId outputId=""]
+[#macro output resourceId outputId="" region=""]
+    [#assign fullOutputId = 
+                outputId?has_content?then(outputId,resourceId) +
+                region?has_content?then(
+                    "X" + region?replace("-", "X"),
+                    "")]
+
     [@checkIfResourcesCreated /]
-    "${outputId?has_content?then(outputId,resourceId)}" : {
+    "${fullOutputId}" : {
         "Value" : { "Ref" : "${resourceId}" }
     },
     [#-- Remember under which deployment unit this resource was created --]
-    "${formatDeploymentUnitAttributeId(
-        outputId?has_content?then(outputId,resourceId))}" : {
+    "${formatDeploymentUnitAttributeId(fullOutputId)}" : {
         "Value" : "${deploymentUnit + 
                         deploymentUnitSubset?has_content?then(
                             "-" + deploymentUnitSubset?lower_case,
@@ -382,17 +392,29 @@
     [@resourcesCreated /]
 [/#macro]
 
-[#macro outputAtt outputId resourceId attributeType]
+[#macro outputAtt outputId resourceId attributeType region=""]
+    [#assign fullOutputId =
+                outputId +
+                region?has_content?then(
+                    "X" + region?replace("-", "X"),
+                    "")]
+
     [@checkIfResourcesCreated /]
-    "${outputId}" : {
+    "${fullOutputId}" : {
         "Value" : { "Fn::GetAtt" : ["${resourceId}", "${attributeType}"] }
     }
     [@resourcesCreated /]
 [/#macro]
 
-[#macro outputValue outputId value]
+[#macro outputValue outputId value region=""]
+    [#assign fullOutputId =
+                outputId +
+                region?has_content?then(
+                    "X" + region?replace("-", "X"),
+                    "")]
+
     [@checkIfResourcesCreated /]
-    "${outputId}" : {
+    "${fullOutputId}" : {
         "Value" : "${value}"
     }
     [@resourcesCreated /]
