@@ -117,7 +117,7 @@
                                     "DNS" : {
                                         "IsConfigured" :
                                             version.DNS?? ||
-                                                apigateway.WAF??,
+                                                apigateway.DNS??,
                                         "Host" :
                                             (version.DNS.Host) !
                                             (apigateway.DNS.Host)!
