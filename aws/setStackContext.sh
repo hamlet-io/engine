@@ -61,9 +61,15 @@ case $TYPE in
         fi
         
         # Simplify stack naming if stack doesn't already exist
-        if [[ ! -f "${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json" ]]; then
+        if [[ ! -f "${CF_DIR}/${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json" ]]; then
             PRODUCT_PREFIX=""
             TYPE_SUFFIX="${TYPE}"
+        else
+            EXISTING_STACK_NAME=$(jq -r ".Stacks[0].StackName" <  "${CF_DIR}/${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json")
+            if [[ ! ("${EXISTING_STACK_NAME%%-*}" == "${ACCOUNT}") ]]; then 
+                PRODUCT_PREFIX=""
+                TYPE_SUFFIX="${TYPE}"
+            fi
         fi
         ;;
 
