@@ -303,19 +303,17 @@
                             "SecurityGroupIngress" : [
                                 [#if (segmentObject.IPAddressGroups)??]
                                     [#list segmentObject.IPAddressGroups as group]
-                                        [#list ipAddressGroups[group]?values as entryValue]
-                                            [#if entryValue?is_hash && (entryValue.CIDR)?has_content ]
-                                                [#if (!entryValue.Usage??) || entryValue.Usage?seq_contains("nat") ]
-                                                    [#if (entryValue.CIDR)?is_sequence]
-                                                        [#list entryValue.CIDR as CIDRBlock]
-                                                            { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "${CIDRBlock}" },
-                                                        [/#list]
-                                                    [#else]
-                                                        { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "${entryValue.CIDR}" },
-                                                    [/#if]
-                                                [/#if]
+                                        [#if (ipAddressGroupsUsage["nat"][group])?has_content]
+                                            [#assign usageGroup = ipAddressGroupsUsage["nat"][group]]
+                                            [#if usageGroup.IsOpen]
+                                                { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0" },
                                             [/#if]
-                                        [/#list]
+                                            [#if usageGroup.CIDR?has_content]
+                                                [#list usageGroup.CIDR as cidrBlock]
+                                                    { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "${cidrBlock}" },
+                                                [/#list]
+                                            [/#if]
+                                        [/#if]
                                     [/#list]
                                 [#else]
                                     { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0" },

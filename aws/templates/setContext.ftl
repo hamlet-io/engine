@@ -221,7 +221,7 @@
 [/#list]
 
 [#-- Annotate IPAddressGroups --]
-[#assign usageList = ["nat", "waf"]]
+[#assign usageList = ["es", "nat", "waf"]]
 [#assign ipAddressGroupsUsage = {}]
 [#list ipAddressGroups as groupKey,groupValue]
     [#if groupValue?is_hash]
