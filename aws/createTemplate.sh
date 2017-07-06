@@ -37,7 +37,7 @@ NOTES:
 
 1. You must be in the directory specific to the type
 2. REGION is only relevant for the "product" type
-3. DEPLOYMENT_UNIT may be one of "s3", "cert" or "roles" for the "account" type
+3. DEPLOYMENT_UNIT may be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" type
 4. DEPLOYMENT_UNIT may be one of "cmk", "cert", "sns" or "shared" for the "product" type
 5. DEPLOYMENT_UNIT may be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" type
 6. Stack for DEPLOYMENT_UNIT of "eip" or "s3" must be created before stack for "vpc" for the "segment" type
