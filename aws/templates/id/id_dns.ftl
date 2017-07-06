@@ -113,10 +113,14 @@
 
 [#function formatAccountDomainQualifierId extensions...]
     [#return formatQualifierAttributeId(
-                formatAccountDomainId(extensions))]
+                formatAccountResourceId(
+                    "domain",
+                    extensions))]
 [/#function]
 
 [#function formatAccountDomainCertificateId extensions...]
     [#return formatCertificateAttributeId(
-                formatAccountDomainId(extensions))]
+                formatAccountResourceId(
+                    "domain",
+                    extensions))]
 [/#function]
