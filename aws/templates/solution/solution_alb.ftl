@@ -83,6 +83,7 @@
                                         [/#if]
                                 }
                             ],
+                            "SslPolicy" : "ELBSecurityPolicy-TLS-1-2-2017-01",
                         [/#if]
                         "DefaultActions" : [
                             {
