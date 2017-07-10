@@ -227,6 +227,7 @@ if [[ "${TYPE}" == "application" ]]; then ARGS+=("-r" "containerList=${COMPOSITE
 ARGS+=("-r" "idList=${COMPOSITE_ID#/?/}")
 ARGS+=("-r" "nameList=${COMPOSITE_NAME#/?/}")
 ARGS+=("-r" "policyList=${COMPOSITE_POLICY#/?/}")
+ARGS+=("-r" "resourceList=${COMPOSITE_RESOURCE#/?/}")
 ARGS+=("-v" "region=${REGION}")
 ARGS+=("-v" "productRegion=${PRODUCT_REGION}")
 ARGS+=("-v" "accountRegion=${ACCOUNT_REGION}")

@@ -25,7 +25,7 @@ shopt -s nullglob
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
 pushd "$(pwd)" >/dev/null
-COMPOSITES=("ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" "POLICY" "CONTAINER" "ID" "NAME")
+COMPOSITES=("ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" "POLICY" "CONTAINER" "ID" "NAME" "RESOURCE")
 BLUEPRINT_ARRAY=()
 for COMPOSITE in "${COMPOSITES[@]}"; do
     # define the array holding the list of composite fragment filenames

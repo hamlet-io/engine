@@ -3,6 +3,7 @@
 [#include idList]
 [#include nameList]
 [#include policyList]
+[#include resourceList]
 [#include "common.ftl"]
 
 [#-- Standard inputs --]
