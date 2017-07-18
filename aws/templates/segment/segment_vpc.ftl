@@ -2,11 +2,13 @@
 [#if deploymentUnit?contains("vpc")]
     [#assign vpcId = formatVPCTemplateId() ]
     [#assign igwId = formatVPCIGWTemplateId() ]
+    [#assign topicId = formatSegmentSNSTopicId() ]
+    [#assign dashboardId = formatSegmentCWDashboardId() ]
     [#assign flowLogsRoleId = formatDependentRoleId(vpcId) ]
     [#assign flowLogsAllId = formatVPCFlowLogsId("all") ]
     [#assign flowLogsAllLogGroupId = formatDependentLogGroupId(vpcId, "all") ]
     [#assign flowLogsAllLogGroupName = formatSegmentLogGroupName("vpcflowlogs", "all") ]
-    [#if isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
+    [#if deploymentSubsetRequired("flowlogs", true) && isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
         [#switch segmentListMode]
             [#case "definition"]
                 [@checkIfResourcesCreated /]
@@ -34,7 +36,7 @@
                 (environmentObject.Operations.Expiration) ! 7 /]
     [/#if]
         
-    [#if !deploymentSubsetRequired("flowlogs")]
+    [#if deploymentSubsetRequired("vpc", true)]
         [#if (segmentObject.Operations.FlowLogs.Enabled)!
                 (environmentObject.Operations.FlowLogs.Enabled)! false]
             [@createVPCFlowLog
@@ -45,6 +47,8 @@
                 flowLogsAllLogGroupName,
                 "ALL" /]
         [/#if]
+            
+        [@createSegmentSNSTopic segmentListMode topicId /]
         [#switch segmentListMode]
             [#case "definition"]
                 [@checkIfResourcesCreated /]
@@ -271,9 +275,9 @@
                             [@s3ListStatement codeBucket /]
                             [@s3ReadStatement codeBucket /]
                         [@policyFooter /]
-                    [@roleFooter /],
+                    [@roleFooter /]
     
-                    "${formatId("instanceProfile", tier.Id, "nat")}" : {
+                    ,"${formatId("instanceProfile", tier.Id, "nat")}" : {
                         "Type" : "AWS::IAM::InstanceProfile",
                         "Properties" : {
                             "Path" : "/",
@@ -281,70 +285,41 @@
                                 { "Ref" : "${formatId("role", tier.Id, "nat")}" }
                             ]
                         }
-                    },
-                    "${formatId("securityGroup", tier.Id, "nat")}" : {
-                        "Type" : "AWS::EC2::SecurityGroup",
-                        "Properties" : {
-                            "GroupDescription": "Security Group for HA NAT instances",
-                            "VpcId": { "Ref": "${vpcId}" },
-                            "Tags" : [
-                                { "Key" : "cot:request", "Value" : "${requestReference}" },
-                                { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                                { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                                { "Key" : "cot:account", "Value" : "${accountId}" },
-                                { "Key" : "cot:product", "Value" : "${productId}" },
-                                { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                                { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                                { "Key" : "cot:category", "Value" : "${categoryId}" },
-                                { "Key" : "cot:tier", "Value" : "${tier.Id}"},
-                                { "Key" : "cot:component", "Value" : "nat"},
-                                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, tier.Name, "nat")}" }
-                            ],
-                            "SecurityGroupIngress" : [
-                                [#if (segmentObject.IPAddressGroups)??]
-                                    [#list segmentObject.IPAddressGroups as group]
-                                        [#if (ipAddressGroupsUsage["nat"][group])?has_content]
-                                            [#assign usageGroup = ipAddressGroupsUsage["nat"][group]]
-                                            [#if usageGroup.IsOpen]
-                                                { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0" },
-                                            [/#if]
-                                            [#if usageGroup.CIDR?has_content]
-                                                [#list usageGroup.CIDR as cidrBlock]
-                                                    { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "${cidrBlock}" },
-                                                [/#list]
-                                            [/#if]
-                                        [/#if]
-                                    [/#list]
-                                [#else]
-                                    { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": "0.0.0.0/0" },
-                                [/#if]
-                                { "IpProtocol": "-1", "FromPort": "1", "ToPort": "65535", "CidrIp": "${segmentObject.CIDR.Address}/${segmentObject.CIDR.Mask}" }
-                            ]
-                        }
-                    },
-                    "${formatId("securityGroup",tier.Id, "all", "nat")}" : {
-                        "Type" : "AWS::EC2::SecurityGroup",
-                        "Properties" : {
-                            "GroupDescription": "Security Group for access from NAT",
-                            "VpcId": { "Ref": "${vpcId}" },
-                            "Tags" : [
-                                { "Key" : "cot:request", "Value" : "${requestReference}" },
-                                { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                                { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                                { "Key" : "cot:account", "Value" : "${accountId}" },
-                                { "Key" : "cot:product", "Value" : "${productId}" },
-                                { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                                { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                                { "Key" : "cot:category", "Value" : "${categoryId}" },
-                                { "Key" : "cot:tier", "Value" : "all"},
-                                { "Key" : "cot:component", "Value" : "nat"},
-                                { "Key" : "Name", "Value" : "${formatName(productName, segmentName, "all", "nat")}"}
-                            ],
-                            "SecurityGroupIngress" : [
-                                { "IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "SourceSecurityGroupId": { "Ref" : "${formatId("securityGroup", tier.Id, "nat")}" } }
-                            ]
-                        }
                     }
+                    [@createSecurityGroup
+                        segmentListMode,
+                        tier,
+                        "nat",
+                        formatId("securityGroup", tier.Id, "nat"),
+                        formatName(productName, segmentName, tier.Name, "nat"),
+                        "Security Group for HA NAT instances",
+                        [
+                            {
+                                "Port" : "ssh",
+                                "CIDR" : getUsageCIDRs(
+                                            "ssh",
+                                            segmentObject.IPAddressGroups![])
+                            },
+                            {
+                                "Port" : "all",
+                                "CIDR" : [segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask]
+                            }
+                        ]
+                    /]
+                    [@createSecurityGroup
+                        segmentListMode,
+                        "all",
+                        "nat",
+                        formatId("securityGroup",tier.Id, "all", "nat"),
+                        formatName(productName, segmentName, "all", "nat"),
+                        "Security Group for access from NAT",
+                        [
+                            {
+                                "Port" : "ssh",
+                                "CIDR" : [formatId("securityGroup", tier.Id, "nat")]
+                            }
+                        ]
+                    /]
                             
                     [#list zones as zone]
                         [#if jumpServerPerAZ || (zones[0].Id == zone.Id)]
@@ -540,6 +515,14 @@
                 [#break]
     
         [/#switch]
+    [/#if]
+
+    [#if deploymentSubsetRequired("dashboard")]
+        [@createDashboard
+            segmentListMode,
+            dashboardId,
+            formatSegmentFullName(),
+            dashboardWidgets /]
     [/#if]
 [/#if]
 

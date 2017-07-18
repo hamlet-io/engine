@@ -8,27 +8,26 @@
     [#assign ec2RoleId = formatEC2RoleId(tier, component)]
     [#assign ec2InstanceProfileId = formatEC2InstanceProfileId(tier, component)]
     [#assign ec2ELBId = formatELBId("elb", component)]
-    [@createComponentSecurityGroup solutionListMode tier component /]
+    
+    [#assign ingressRules = []]
+    [#list ec2.Ports as port]
+        [#assign nextPort = port?is_hash?then(port.Port, port)]
+        [#assign portCIDRs = getUsageCIDRs(
+                            nextPort,
+                            port?is_hash?then(port.IPAddressGroups![], []))]
+        [#if portCIDRs?has_content]
+            [#assign ingressRules +=
+                [{
+                    "Port" : nextPort,
+                    "CIDR" : portCIDRs
+                }]]
+        [/#if]
+    [/#list]    
+    
+    [@createComponentSecurityGroup solutionListMode tier component "" "" ingressRules /]
     
     [#switch solutionListMode]
         [#case "definition"]
-            [#list ec2.Ports as port]
-                [@checkIfResourcesCreated /]
-                "${formatEC2SecurityGroupIngressId(
-                    tier,
-                    component,
-                    ports[port])}" : {
-                    "Type" : "AWS::EC2::SecurityGroupIngress",
-                    "Properties" : {
-                        "GroupId": {"Ref" : "${ec2SecurityGroupId}"},
-                        "IpProtocol": "${ports[port].IPProtocol}",
-                        "FromPort": "${ports[port].Port?c}",
-                        "ToPort": "${ports[port].Port?c}",
-                        "CidrIp": "0.0.0.0/0"
-                    }
-                }
-                [@resourcesCreated /]
-            [/#list]
 
             [@roleHeader
                 ec2RoleId,

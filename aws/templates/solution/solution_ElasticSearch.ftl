@@ -51,14 +51,15 @@
                                                             [#if ipCount > 0],[/#if]
                                                             "0.0.0.0/0"
                                                             [#assign ipCount += 1]
-                                                        [/#if]
-                                                        [#if usageGroup.CIDR?has_content]
-                                                            [#if ipCount > 0],[/#if]
-                                                            [#list usageGroup.CIDR as cidrBlock]
-                                                                "${cidrBlock}"
-                                                                [#sep],[/#sep]
-                                                            [/#list]
-                                                            [#assign ipCount += 1]
+                                                        [#else]
+                                                            [#if usageGroup.CIDR?has_content]
+                                                                [#if ipCount > 0],[/#if]
+                                                                [#list usageGroup.CIDR as cidrBlock]
+                                                                    "${cidrBlock}"
+                                                                    [#sep],[/#sep]
+                                                                [/#list]
+                                                                [#assign ipCount += 1]
+                                                            [/#if]
                                                         [/#if]
                                                     [/#if]
                                                 [/#list]

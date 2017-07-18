@@ -112,7 +112,8 @@
 [/#if]
 
 [#-- IP Address Groups --]
-[#assign ipAddressGroups = (blueprintObject.IPAddressGroups)!{}]
+[#-- IsOpen flag is for legacy builds, where the default was for access to be open --]
+[#assign ipAddressGroups = (blueprintObject.IPAddressGroups)!{"IsOpen" : true}]
 
 [#-- Segments --]
 [#assign segments = (blueprintObject.Segments)!{}]
@@ -222,16 +223,21 @@
 [/#list]
 
 [#-- Annotate IPAddressGroups --]
-[#assign usageList = ["es", "nat", "waf"]]
-[#assign ipAddressGroupsUsage = {}]
+[#assign ipAddressGroupsUsage = { "DefaultUsageList" : ["es", "ssh", "http", "https", "waf"]}]
 [#list ipAddressGroups as groupKey,groupValue]
-    [#if groupValue?is_hash]
+    [#if groupValue?is_hash &&
+            (groupValue.Enabled!true)]
         [#list groupValue as entryKey,entryValue]
-            [#if entryValue?is_hash && (entryValue.CIDR)?has_content ]
-                [#assign cidrList = (entryValue.CIDR)?is_sequence?then(
-                    entryValue.CIDR,
-                    [entryValue.CIDR])]
+            [#if entryValue?is_hash && 
+                    (entryValue.Enabled!true) &&
+                    ((entryValue.CIDR)?has_content ||
+                        (entryValue.IsOpen!false))]
                 [#assign isOpen = (entryValue.IsOpen)!false]
+                [#assign cidrList = entryValue.CIDR?has_content?then(
+                        entryValue.CIDR?is_sequence?then(
+                            entryValue.CIDR,
+                            [entryValue.CIDR]),
+                        [])]
                 [#assign newCIDR = []]
                 [#list cidrList as CIDRBlock]
                     [#if CIDRBlock?contains("0.0.0.0")]
@@ -244,7 +250,7 @@
                     entryValue.Usage?is_sequence?then(
                         entryValue.Usage,
                         [entryValue.Usage]),
-                    usageList)]
+                    ipAddressGroupsUsage.DefaultUsageList)]
                 [#assign newValue = entryValue +
                     {
                         "Usage" : newUsage,
@@ -260,37 +266,73 @@
                             }
                     }
                 ]
-                [#list usageList as usage]
-                    [#if newUsage?seq_contains(usage) ]
-                        [#assign usageGroups = (ipAddressGroupsUsage[usage])!{}]
-                        [#assign usageEntries = (usageGroups[groupKey].Entries)!{}]
-                        [#assign usageCIDR = (usageGroups[groupKey].CIDR)![] +
-                                    newCIDR]
-                        [#assign usageIsOpen = (usageGroups[groupKey].IsOpen)!false ||
-                                    isOpen]
-                        [#assign ipAddressGroupsUsage +=
-                            {
-                                usage : usageGroups +
-                                    {
-                                        groupKey :  {
-                                            "Id" : groupValue.Id,
-                                            "Name" : groupValue.Name,
-                                            "Entries" : usageEntries +
-                                                {
-                                                    entryKey :  newValue
-                                                },
-                                            "CIDR" : usageCIDR,
-                                            "IsOpen" : usageIsOpen
-                                        }
+                [#list newUsage as usage]
+                    [#assign usageGroups = (ipAddressGroupsUsage[usage])!{}]
+                    [#assign usageEntries = (usageGroups[groupKey].Entries)!{}]
+                    [#assign usageCIDR = (usageGroups[groupKey].CIDR)![] +
+                                newCIDR]
+                    [#assign usageIsOpen = (usageGroups[groupKey].IsOpen)!false ||
+                                isOpen]
+                    [#assign ipAddressGroupsUsage +=
+                        {
+                            usage : usageGroups +
+                                {
+                                    groupKey :  {
+                                        "Id" : groupValue.Id,
+                                        "Name" : groupValue.Name,
+                                        "Entries" : usageEntries +
+                                            {
+                                                entryKey :  newValue
+                                            },
+                                        "CIDR" : usageCIDR,
+                                        "IsOpen" : usageIsOpen
                                     }
-                            }
-                        ]
-                    [/#if]
+                                }
+                        }
+                    ]
                 [/#list]
             [/#if]
         [/#list]
     [/#if]
 [/#list]
+
+[#function isUsageOpen usage groupList]
+    [#list groupList as group]
+        [#if (ipAddressGroupsUsage[usage][group].IsOpen)!false]
+            [#return true]
+        [/#if]
+    [/#list]
+    [#return false]
+[/#function]
+
+[#function getUsageCIDRs usage groupList checkIsOpen=true]
+    [#local cidrs = []]
+    [#if groupList?has_content]
+        [#list groupList as group]
+            [#if (ipAddressGroupsUsage[usage][group])?has_content]
+                [#local usageGroup = ipAddressGroupsUsage[usage][group]]
+                [#if checkIsOpen &&
+                        (usageGroup.IsOpen!false)]
+                    [#return ["0.0.0.0/0"]]
+                [/#if]
+                [#if usageGroup.CIDR?has_content]
+                    [#local cidrs += usageGroup.CIDR]
+                [/#if]
+            [/#if]
+        [/#list]
+    [#else]
+        [#if ipAddressGroups.IsOpen!false]
+            [#return ["0.0.0.0/0"]]
+        [/#if]
+    [/#if]
+    [#return cidrs]
+[/#function]
+
+
+[#include "commonSolution.ftl"]
+[#include "commonApplication.ftl"]
+
+
 
 
 
