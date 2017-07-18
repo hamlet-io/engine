@@ -142,7 +142,7 @@
 
 [/#macro]
 
-[#macro createTask tier component task]
+[#macro createTask tier component task iamOnly]
     [#assign taskId = formatECSTaskId(tier component task)]
     [#assign taskLogGroupId = formatComponentLogGroupId(tier component)]
     
@@ -191,7 +191,7 @@
         [/#switch]
     [/#if]
 
-    [#if !deploymentSubsetRequired("iam")]
+    [#if !iamOnly]
         [#switch applicationListMode]
             [#case "definition"]
                 [@checkIfResourcesCreated /]

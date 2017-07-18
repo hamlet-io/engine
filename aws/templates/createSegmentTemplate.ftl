@@ -26,6 +26,17 @@
     [/#if]
 [/#macro]
 
+[#macro createSegmentCountLogMetric mode id name logGroup filter]
+    [@createLogMetric 
+        mode,
+        id,
+        name,
+        logGroup,
+        filter,
+        "${formatSegmentFullName()}",
+        "1" /]
+[/#macro]
+
 [#-- Initialisation --]
 
 [#-- Domains --]
@@ -87,13 +98,23 @@
 [#assign dnsHostnames = segmentObject.DNSHostnames]
 [#assign rotateKeys = (segmentObject.RotateKeys)!true]
 
+[#-- Handle segment dashboard generation --]
+[#if deploymentSubsetRequired("dashboard")]
+    [#assign allDeploymentUnits = true]
+    [#assign dashboardWidgets = {}]
+    [#assign compositeLists=[applicationList, solutionList]]
+    [#assign applicationListMode="dashboard"]
+    [#assign solutionListMode="dashboard"]
+    [#include "componentList.ftl"]
+[/#if]
+
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl" ],
     "Resources" : {
         [@noResourcesCreated /]
         [#assign segmentListMode="definition"]
-        [#include segmentList]                      
+        [#include segmentList]
     },
     "Outputs" : 
     {

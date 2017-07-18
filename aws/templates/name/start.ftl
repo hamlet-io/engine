@@ -26,6 +26,22 @@
     [#return formatName(extensions)]
 [/#function]
 
+[#-- Format segment short name --]
+[#function formatSegmentShortName extensions...]
+    [#return formatName(
+                productId,
+                segmentId,
+                extensions)]
+[/#function]
+
+[#-- Format segment name --]
+[#function formatSegmentFullName extensions...]
+    [#return formatName(
+                productName,
+                segmentName,
+                extensions)]
+[/#function]
+
 [#-- Format a component short name - based on ids not names --]
 [#function formatComponentShortName tier component extensions...]
     [#return formatName(
@@ -53,9 +69,7 @@
 
 [#-- Format a component "short" full name - based on ids not names --]
 [#function formatComponentShortFullName tier component extensions...]
-    [#return formatName(
-                productId,
-                segmentId,
+    [#return formatSegmentShortName(
                 getTierName(tier),
                 getComponentName(component),
                 extensions)]
@@ -63,9 +77,7 @@
 
 [#-- Format a component full name --]
 [#function formatComponentFullName tier component extensions...]
-    [#return formatName(
-                productName,
-                segmentName,
+    [#return formatSegmentFullName(
                 getTierName(tier),
                 getComponentName(component),
                 extensions)]

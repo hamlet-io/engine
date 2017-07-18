@@ -1,6 +1,64 @@
 [#-- VPC --]
 
-[#macro createSecurityGroup mode tier component id name description=""]
+[#macro createSecurityGroupIngressFragment port cidr groupId=""]
+    [#local cidrs = cidr?is_sequence?then(
+            cidr,
+            [cidr]
+        )]
+    [#list cidrs as cidrBlock]
+        {
+            [#if groupId?has_content]
+                "GroupId": [@createReference groupId /],
+            [/#if]
+            "IpProtocol": "${ports[port]?has_content?then(
+                                ports[port].IPProtocol,
+                                "-1")}",
+            "FromPort": "${ports[port]?has_content?then(
+                                ports[port].Port?c,
+                                "1")}",
+            "ToPort": "${ports[port]?has_content?then(
+                                ports[port].Port?c,
+                                "65535")}",
+            [#if cidrBlock?contains("X")]
+                "SourceSecurityGroupId": [@createReference cidrBlock /]
+            [#else]
+                [#if cidrBlock?contains(":") ]
+                    "CidrIpv6": "${cidrBlock}"
+                [#else]
+                    "CidrIp": "${cidrBlock}"
+                [/#if]
+            [/#if]
+        }
+        [#sep],[/#sep]
+    [/#list]
+[/#macro]
+
+[#macro createSecurityGroupIngress mode id port cidr groupId]
+    [#local cidrs = cidr?is_sequence?then(
+            cidr,
+            [cidr]
+        )]
+    [#list cidrs as cidrBlock]
+        [#switch mode]
+            [#case "definition"]
+                [@checkIfResourcesCreated /]
+                "${formatId(
+                    id,
+                    (cidrs?size > 1)?then(
+                        cidrBlock?index?c,
+                        ""))}" : {
+                    "Type" : "AWS::EC2::SecurityGroupIngress",
+                    "Properties" : 
+                        [@createSecurityGroupIngressFragment port cidrBlock groupId/]
+                }
+                [@resourcesCreated /]
+            [#break]
+        [/#switch]
+        [#sep],[/#sep]
+    [/#list]
+[/#macro]
+
+[#macro createSecurityGroup mode tier component id name description="" ingressRules=""]
     [#switch mode]
         [#case "definition"]
             [@checkIfResourcesCreated /]
@@ -8,8 +66,12 @@
                 "Type" : "AWS::EC2::SecurityGroup",
                 "Properties" : {
                     "GroupDescription": "${description?has_content?then(description, name)}",
-                    "VpcId": "${vpc}",
-                    "Tags" : [
+                    [#if vpcId?has_content]
+                        "VpcId": [@createReference vpcId /]
+                    [#else]
+                        "VpcId": "${vpc}"
+                    [/#if]
+                    ,"Tags" : [
                         { "Key" : "cot:request", "Value" : "${requestReference}" },
                         { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
                         { "Key" : "cot:tenant", "Value" : "${tenantId}" },
@@ -22,6 +84,14 @@
                         { "Key" : "cot:component", "Value" : "${getComponentId(component)}" },
                         { "Key" : "Name", "Value" : "${name}" }
                     ]
+                    [#if ingressRules?is_sequence && ingressRules?has_content]
+                    ,"SecurityGroupIngress" : [
+                        [#list ingressRules as ingressRule]
+                            [@createSecurityGroupIngressFragment ingressRule.Port ingressRule.CIDR /]
+                            [#sep],[/#sep]
+                        [/#list]
+                    ]
+                    [/#if]
                 }
             }
             [@resourcesCreated /]
@@ -39,14 +109,16 @@
             tier
             component
             resourceId
-            resourceName]
+            resourceName
+            ingressRules=""]
     [@createSecurityGroup 
         mode 
         tier 
         component
         formatDependentSecurityGroupId(resourceId)
         resourceName
-        "Security Group for " + resourceName /]
+        "Security Group for " + resourceName
+        ingressRules /]
 [/#macro]
 
 [#macro createComponentSecurityGroup
@@ -54,7 +126,8 @@
             tier
             component
             idExtension=""
-            nameExtension=""]
+            nameExtension=""
+            ingressRules=""]
     [@createSecurityGroup 
         mode 
         tier 
@@ -66,7 +139,9 @@
         formatComponentFullName(
             tier,
             component,
-            nameExtension) /]
+            nameExtension)
+        ""
+        ingressRules /]
 [/#macro]
 
 [#macro createDependentComponentSecurityGroup
@@ -76,7 +151,8 @@
             resourceId
             resourceName
             idExtension=""
-            nameExtension=""]
+            nameExtension=""
+            ingressRules=""]
     [#local legacyId = formatComponentSecurityGroupId(
                         tier,
                         component,
@@ -87,16 +163,19 @@
             tier 
             component
             idExtension
-            nameExtension /]
+            nameExtension
+            ingressRules /]
     [#else]
         [@createDependentSecurityGroup 
             mode 
             tier 
             component
             resourceId
-            resourceName /]
+            resourceName
+            ingressRules /]
     [/#if]
 [/#macro]
+
 
 [#macro createFlowLog 
             mode

@@ -166,3 +166,9 @@
                 resourceId,
                 "databasename")]
 [/#function]
+
+[#function formatTopicNameAttributeId resourceId]
+    [#return formatAttributeId(
+                resourceId,
+                "topicname")]
+[/#function]

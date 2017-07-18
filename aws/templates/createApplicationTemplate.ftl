@@ -1,11 +1,10 @@
 [#ftl]
 [#include "setContext.ftl"]
-[#include "commonApplication.ftl"]
 
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl"],
-    [#assign compositeList=applicationList]
+    [#assign compositeList=[applicationList]]
     "Resources" : {
         [#assign applicationListMode="definition"]
         [#include "componentList.ftl"]

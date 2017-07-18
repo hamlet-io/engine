@@ -183,8 +183,8 @@
                                 component,
                                 serviceInstance)]
 
-        [@createTask tier component serviceInstance /]
-        [#if !deploymentSubsetRequired("iam")]
+        [@createTask tier component serviceInstance deploymentSubsetRequired("iam") /]
+        [#if deploymentSubsetRequired("ecs", true)]
             [#switch applicationListMode]
                 [#case "definition"]
                     [@checkIfResourcesCreated /]
@@ -464,8 +464,8 @@
     [/#list]
 
     [#list taskInstances as taskInstance]
-        [@createTask tier component taskInstance /]
-        [#if !deploymentSubsetRequired("iam")]
+        [@createTask tier component taskInstance deploymentSubsetRequired("iam")/]
+        [#if deploymentSubsetRequired("ecs", true)]
             [#switch applicationListMode]
                 [#case "definition"]
                     [#assign containerListMode = "supplementalCount"]

@@ -106,7 +106,7 @@
                     lambdaName  /]
             [/#if]
 
-            [#if isPartOfCurrentDeploymentUnit(containerListRole)]
+            [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(containerListRole)]
                 [#switch applicationListMode]
                     [#case "definition"]            
                         [#-- Create a role under which the function will run and attach required policies --]
@@ -150,7 +150,7 @@
                 [/#switch]
             [/#if]
         
-            [#if !deploymentSubsetRequired("iam")]
+            [#if deploymentSubsetRequired("lambda", true)]
                 [#list lambdaInstance.Internal.Functions?values as fn]
                     [#if fn?is_hash]
                         [#assign lambdaFunctionId = formatLambdaFunctionId(

@@ -22,3 +22,22 @@
                 component,
                 extensions)]
 [/#function]
+
+[#function formatLogMetricId ids...]
+    [#return formatResourceId(
+                "lmetric",
+                ids)]
+[/#function]
+
+[#function formatDependentLogMetricId resourceId extensions...]
+    [#return formatDependentResourceId(
+                "lmetric",
+                resourceId,
+                extensions)]
+[/#function]
+
+[#function formatSegmentCWDashboardId extensions...]
+    [#return formatSegmentResourceId(
+                "cwdashboard",
+                extensions)]
+[/#function]
