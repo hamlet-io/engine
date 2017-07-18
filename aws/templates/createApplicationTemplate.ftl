@@ -4,7 +4,7 @@
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
     [#include "templateMetadata.ftl"],
-    [#assign compositeList=[applicationList]]
+    [#assign compositeLists=[applicationList]]
     "Resources" : {
         [#assign applicationListMode="definition"]
         [#include "componentList.ftl"]
