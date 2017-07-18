@@ -478,7 +478,11 @@
             "Description": "Normally only one environment for the alm. Entry mainly here for naming consistency",
             "Category": "alm",
             "Operations": {
-                "Expiration": 90
+                "Expiration": 90,
+                "FlowLogs" : {
+                    "Enabled" : true,
+                    "Expiration" : 7
+                }
             },
             "DomainBehaviours" : {
                 "Segment" : "segmentInHost"
