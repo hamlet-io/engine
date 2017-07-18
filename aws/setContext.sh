@@ -25,9 +25,9 @@ shopt -s nullglob
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
 pushd "$(pwd)" >/dev/null
-COMPOSITES=("ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" "POLICY" "CONTAINER" "ID" "NAME" "RESOURCE")
+TEMPLATE_COMPOSITES=("ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" "POLICY" "CONTAINER" "ID" "NAME" "RESOURCE")
 BLUEPRINT_ARRAY=()
-for COMPOSITE in "${COMPOSITES[@]}"; do
+for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     # define the array holding the list of composite fragment filenames
     declare -a "${COMPOSITE}_ARRAY"
 
@@ -61,7 +61,7 @@ if [[ (-f "segment.json") || (-f "container.json") ]]; then
     fi
 
     # Segment based composite fragments
-    for COMPOSITE in "${COMPOSITES[@]}"; do
+    for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
         for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
             eval "${COMPOSITE}_ARRAY+=(\"${SEGMENT_DIR}/${FRAGMENT}\")"
         done
@@ -76,7 +76,7 @@ if [[ (-f "segment.json") || (-f "container.json") ]]; then
         BLUEPRINT_ARRAY=("${SOLUTIONS_DIR}/solution.json" "${BLUEPRINT_ARRAY[@]}")
     fi
     
-    for COMPOSITE in "${COMPOSITES[@]}"; do
+    for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
         for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
             eval "[[ \"\${${COMPOSITE}_ARRAY[*]}\" =~ ${FRAGMENT} ]]"
             if [[ $? -ne 0 ]]; then
@@ -216,7 +216,7 @@ if [[ (-n "${SEGMENT}") &&
 fi
 
 # Add default composite fragments including end fragment
-for COMPOSITE in "${COMPOSITES[@]}"; do
+for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/${COMPOSITE,,}_*.ftl; do
         eval "[[ \"x\${${COMPOSITE}_ARRAY[*]}\" =~ x\$(basename ${FRAGMENT}) ]]"
         if [[ $? -ne 0 ]]; then
@@ -228,16 +228,11 @@ for COMPOSITE in "${COMPOSITES[@]}"; do
     done
 done
 
-# create the composites if one or more fragments have been found
-# note that the composite will be created even if only a start and/or end
-# fragment has been found
-for COMPOSITE in "${COMPOSITES[@]}"; do
-    eval "FRAGMENT_COUNT=\"\${#${COMPOSITE}_ARRAY[@]}\""
-    if [[ "${FRAGMENT_COUNT}" -gt 1 ]]; then
-        [[ -n "${GENERATION_DEBUG}" ]] && eval "echo -e \"\\n${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}\""
-        eval "export COMPOSITE_${COMPOSITE}=\${CONFIG_DIR}/composite_${COMPOSITE,,}.ftl"
-        eval "cat \"\${${COMPOSITE}_ARRAY[@]}\" > \${COMPOSITE_${COMPOSITE}}"
-    fi
+# create the template composites
+for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
+    [[ -n "${GENERATION_DEBUG}" ]] && eval "echo -e \"\\n${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}\""
+    eval "export COMPOSITE_${COMPOSITE}=\${CONFIG_DIR}/composite_${COMPOSITE,,}.ftl"
+    eval "cat \"\${${COMPOSITE}_ARRAY[@]}\" > \${COMPOSITE_${COMPOSITE}}"
 done
 
 # Product specific context if the product is known
