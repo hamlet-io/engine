@@ -178,7 +178,7 @@
                                 component,
                                 apigatewayInstance)]
 
-        [#if deploymentSubsetRequired("apigateway", true) && isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
+        [#if deploymentSubsetRequired("apigateway", true) && isPartOfCurrentDeploymentUnit(apiId)]
             [#switch applicationListMode]
                 [#case "definition"]
                     [@checkIfResourcesCreated /]
