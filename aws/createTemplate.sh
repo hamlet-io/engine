@@ -127,7 +127,7 @@ esac
 # Set up the type specific template information
 TEMPLATE_DIR="${GENERATION_DIR}/templates"
 TEMPLATE="create${TYPE^}Template.ftl"
-COMPOSITE_VAR="COMPOSITE_${TYPE^^}"
+TEMPLATE_COMPOSITES=("POLICY" "ID" "NAME" "RESOURCE")
 
 # Determine the template name
 TYPE_PREFIX="$TYPE-"
@@ -140,6 +140,7 @@ case $TYPE in
     account)
         CF_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf"
         REGION_PREFIX="${ACCOUNT_REGION}-"
+        TEMPLATE_COMPOSITES+=("ACCOUNT")
 
         # LEGACY: Support stacks created before deployment units added to account
         if [[ "${DEPLOYMENT_UNIT}" =~ s3 ]]; then
@@ -151,6 +152,7 @@ case $TYPE in
 
     product)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf"
+        TEMPLATE_COMPOSITES+=("PRODUCT")
 
         # LEGACY: Support stacks created before deployment units added to product
         if [[ "${DEPLOYMENT_UNIT}" =~ cmk ]]; then
@@ -163,6 +165,8 @@ case $TYPE in
     solution)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
         TYPE_PREFIX="soln-"
+        TEMPLATE_COMPOSITES+=("SOLUTION" )
+
         if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
             TYPE_PREFIX="solution-"
             DEPLOYMENT_UNIT_PREFIX=""
@@ -172,6 +176,7 @@ case $TYPE in
     segment)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
         TYPE_PREFIX="seg-"
+        TEMPLATE_COMPOSITES+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
 
         # LEGACY: Support old formats for existing stacks so they can be updated 
         if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
@@ -199,6 +204,7 @@ case $TYPE in
     application)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
         TYPE_PREFIX="app-"
+        TEMPLATE_COMPOSITES+=("APPLICATION" "CONTAINER" )
         ;;
 
     *)
@@ -220,14 +226,14 @@ if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then ARGS+=("-v" "deploymentUnitSubset=
 if [[ -n "${BUILD_DEPLOYMENT_UNIT}" ]]; then ARGS+=("-v" "buildDeploymentUnit=${BUILD_DEPLOYMENT_UNIT}"); fi
 if [[ -n "${BUILD_REFERENCE}" ]]; then ARGS+=("-v" "buildReference=${BUILD_REFERENCE}"); fi
 
+# Include the template composites
 # Removal of drive letter (/?/) is specifically for MINGW
 # It shouldn't affect other platforms as it won't be matched
-if [[ -n "${!COMPOSITE_VAR}"     ]]; then ARGS+=("-r" "${TYPE}List=${!COMPOSITE_VAR#/?/}"); fi
-if [[ "${TYPE}" == "application" ]]; then ARGS+=("-r" "containerList=${COMPOSITE_CONTAINER#/?/}"); fi
-ARGS+=("-r" "idList=${COMPOSITE_ID#/?/}")
-ARGS+=("-r" "nameList=${COMPOSITE_NAME#/?/}")
-ARGS+=("-r" "policyList=${COMPOSITE_POLICY#/?/}")
-ARGS+=("-r" "resourceList=${COMPOSITE_RESOURCE#/?/}")
+for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
+    COMPOSITE_VAR="COMPOSITE_${COMPOSITE^^}"
+    ARGS+=("-r" "${COMPOSITE,,}List=${!COMPOSITE_VAR#/?/}")
+done
+
 ARGS+=("-v" "region=${REGION}")
 ARGS+=("-v" "productRegion=${PRODUCT_REGION}")
 ARGS+=("-v" "accountRegion=${ACCOUNT_REGION}")
