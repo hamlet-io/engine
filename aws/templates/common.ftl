@@ -50,6 +50,7 @@
 [#-- Check if a deployment unit occurs anywhere in provided object --]
 [#function deploymentRequired obj unit]
     [#if obj?is_hash]
+        [#if allDeploymentUnits?has_content && allDeploymentUnits][#return true][/#if]
         [#if obj.DeploymentUnits?? && obj.DeploymentUnits?seq_contains(unit)]
             [#return true]
         [#else]
@@ -63,10 +64,11 @@
     [#return false]
 [/#function]
 
-[#function deploymentSubsetRequired subset]
+[#function deploymentSubsetRequired subset default=false]
     [#return 
-        deploymentUnitSubset?has_content &&
-        deploymentUnitSubset?lower_case?contains(subset)]
+        (deploymentUnitSubset?has_content &&
+        deploymentUnitSubset?lower_case?contains(subset)) ||
+        ((!deploymentUnitSubset?has_content) && default)]
 [/#function]
 
 [#-- Get stack output --]
@@ -292,7 +294,7 @@
 [/#function]
 
 [#-- Is a resource part of a deployment unit --]
-[#function isPartOfDeploymentUnit id deploymentUnit]
+[#function isPartOfDeploymentUnit id deploymentUnit deploymentUnitSubset]
     [#local resourceValue = getKey(id)]
     [#local creatingDeploymentUnit = getKey(formatDeploymentUnitAttributeId(id))]
     [#local currentDeploymentUnit = 
@@ -307,7 +309,7 @@
 
 [#-- Is a resource part of the current deployment unit --]
 [#function isPartOfCurrentDeploymentUnit id]
-    [#return isPartOfDeploymentUnit(id, deploymentUnit)]
+    [#return isPartOfDeploymentUnit(id, deploymentUnit, deploymentUnitSubset!"")]
 [/#function]
 
 [#-- Utility Macros --]
@@ -343,10 +345,14 @@
 [#-- Allows resources to share a template or be separated --]
 [#-- Note that if separate, creation order becomes important --]
 [#macro createReference value]
-    [#if isPartOfCurrentDeploymentUnit(value)]
-        { "Ref" : "${value}" }
+    [#if value?is_hash]
+        { "Ref" : "${value.Ref}" }
     [#else]
-        "${getKey(value)}"
+        [#if isPartOfCurrentDeploymentUnit(value)]
+            { "Ref" : "${value}" }
+        [#else]
+            "${getKey(value)}"
+        [/#if]
     [/#if]
 [/#macro]
 
@@ -481,3 +487,10 @@
         "RootResourceId" /]
 [/#macro]
 
+[#macro outputTopicName resourceId region]
+    [@outputAtt
+        formatTopicNameAttributeId(resourceId)
+        resourceId
+        "TopicName"
+        region /]
+[/#macro]
