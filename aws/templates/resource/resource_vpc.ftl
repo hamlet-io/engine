@@ -59,6 +59,14 @@
 [/#macro]
 
 [#macro createSecurityGroup mode tier component id name description="" ingressRules=""]
+    [#local nonemptyIngressRules = []]
+    [#if ingressRules?has_content && ingressRules?is_sequence]
+        [#list ingressRules as ingressRule]
+            [#if ingressRule.CIDR?has_content]
+                [#local nonemptyIngressRules += [ingressRule]]
+            [/#if]
+        [/#list]
+    [/#if]
     [#switch mode]
         [#case "definition"]
             [@checkIfResourcesCreated /]
@@ -84,9 +92,9 @@
                         { "Key" : "cot:component", "Value" : "${getComponentId(component)}" },
                         { "Key" : "Name", "Value" : "${name}" }
                     ]
-                    [#if ingressRules?is_sequence && ingressRules?has_content]
+                    [#if nonemptyIngressRules?has_content]
                     ,"SecurityGroupIngress" : [
-                        [#list ingressRules as ingressRule]
+                        [#list nonemptyIngressRules as ingressRule]
                             [@createSecurityGroupIngressFragment ingressRule.Port ingressRule.CIDR /]
                             [#sep],[/#sep]
                         [/#list]
