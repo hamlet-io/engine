@@ -498,7 +498,9 @@
                 [@outputValue formatId("domain", "segment", "qualifier") segmentDomainQualifier /]
                 [@outputValue formatId("domain", "segment", "certificate") segmentDomainCertificateId /]
                 [@output vpcId formatVPCId() /]
-                [@output igwId formatVPCIGWId() /]
+                [#if internetAccess]
+                    [@output igwId formatVPCIGWId() /]
+                [/#if]
                 [#if jumpServer]
                     [#assign tier = getTier("mgmt")]
                         [@output
