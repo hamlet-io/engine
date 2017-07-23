@@ -233,7 +233,7 @@
 [#function getComponent tierId componentId type=""]
     [#if isTier(tierId)]
         [#list getTier(tierId).Components?values as component]
-            [#if component.Id == componentId]
+            [#if component?is_hash && component.Id == componentId]
                 [#return component]
             [/#if]
             [#if type?has_content &&
