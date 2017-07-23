@@ -231,7 +231,7 @@
 
 [#-- Get a component within a tier --]
 [#function getComponent tierId componentId type=""]
-    [#if isTier(tierId)]
+    [#if isTier(tierId) && (getTier(tierId).Components)??]
         [#list getTier(tierId).Components?values as component]
             [#if component?is_hash && (component.Id == componentId)]
                 [#return component]
