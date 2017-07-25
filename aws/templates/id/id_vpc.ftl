@@ -88,8 +88,8 @@
 
 [#function formatVPCFlowLogsId extensions...]
     [#return formatDependentResourceId(
-        formatSegmentResourceId("vpc"),
         "vpcflowlogs",
+        formatSegmentResourceId("vpc"),
         extensions)]
 [/#function]
 
