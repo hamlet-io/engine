@@ -133,7 +133,7 @@ if [[ "${EXTENDED_SWAGGER_FILE_EXTENSION}" == "zip" ]]; then
     rm *.json
 fi
 cp * "${EXTENDED_SWAGGER_FILE_PATH}"
-
+cd ..
 
 # All good
 RESULT=0
