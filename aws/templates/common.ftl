@@ -72,10 +72,15 @@
 [/#function]
 
 [#-- Get stack output --]
+[#-- Include resource with explict region that matches the current region --]
+[#-- Note that region can still be provided in the args, in which case --]
+[#-- check against current region will fail --]
 [#function getKey args...]
     [#local key = formatId(args)]
+    [#local regionalKey = formatId(key,region?replace('-',"X"))]
     [#list stackOutputsObject as pair]
-        [#if pair.OutputKey == key]
+        [#if (pair.OutputKey == key) ||
+                (pair.OutputKey == regionalKey)]
             [#return pair.OutputValue]
         [/#if]
     [/#list]
@@ -314,54 +319,67 @@
 
 [#-- Utility Macros --]
 
-[#-- Output hash as JSON --]
-[#macro toJSON obj]
+[#-- Output object as JSON --]
+[#function getJSON obj]
+    [#local result = ""]
     [#if obj?is_hash]
-    {
+        [#local result += "{"]
         [#list obj as key,value]
-            "${key}" : [@toJSON value /]
-            [#sep],[/#sep]
+            [#local result += "\"" + key + "\" : " + getJSON(value)]
+            [#sep][#local result += ","][/#sep]
         [/#list]
-    }
+        [#local result += "}"]
     [#else]
         [#if obj?is_sequence]
-            [
-                [#list obj as entry]
-                    [@toJSON entry /]
-                    [#sep],[/#sep]
-                [/#list]
-            ]
+            [#local result += "["]
+            [#list obj as entry]
+                [#local result += getJSON(entry)]
+                [#sep][#local result += ","][/#sep]
+            [/#list]
+            [#local result += "]"]
         [#else]
             [#if obj?is_string]
-                "${obj}"
+                [#local result = "\"" + obj + "\""]
             [#else]
-                ${obj?c}
+                [#local result = obj?c]
             [/#if]
         [/#if]
     [/#if]
-[/#macro]
+    [#return result]
+[/#function]
+
+[#macro toJSON obj escaped=false]
+    ${escaped?then(
+        getJSON(obj)?json_string,
+        getJSON(obj))}[/#macro]
 
 [#-- Include a reference to a resource --]
 [#-- Allows resources to share a template or be separated --]
 [#-- Note that if separate, creation order becomes important --]
-[#macro createReference value]
+[#function getReference value]
     [#if value?is_hash]
-        { "Ref" : "${value.Ref}" }
+        [#return { "Ref" : value.Ref }]
     [#else]
         [#if isPartOfCurrentDeploymentUnit(value)]
-            { "Ref" : "${value}" }
+            [#return { "Ref" : value }]
         [#else]
-            "${getKey(value)}"
+            [#return getKey(value)]
         [/#if]
     [/#if]
+[/#function]
+[#macro createReference value]
+    [@toJSON getReference(value) /]
 [/#macro]
 
-[#macro createArnReference resourceId]
+[#function getArnReference resourceId]
     [#if isPartOfCurrentDeploymentUnit(resourceId)]
-        { "Fn::GetAtt" : ["${resourceId}", "Arn"] }
+        [#return { "Fn::GetAtt" : [resourceId, "Arn"] }]
     [#else]
-        "${getKey(formatArnAttributeId(resourceId))}"
+        [#return getKey(formatArnAttributeId(resourceId))]
     [/#if]
+[/#function]
+[#macro createArnReference resourceId]
+    [@toJSON getArnReference(resourceId) /]
 [/#macro]
 
 [#macro noResourcesCreated]
@@ -378,8 +396,14 @@
 
 [#-- Outputs generation --]
 [#macro output resourceId outputId="" region=""]
-    [#assign fullOutputId = 
+    [#local fullOutputId = 
                 outputId?has_content?then(outputId,resourceId) +
+                region?has_content?then(
+                    "X" + region?replace("-", "X"),
+                    "")]
+    [#local duId = 
+                formatDeploymentUnitAttributeId(
+                    outputId?has_content?then(outputId,resourceId)) +
                 region?has_content?then(
                     "X" + region?replace("-", "X"),
                     "")]
@@ -389,7 +413,7 @@
         "Value" : { "Ref" : "${resourceId}" }
     },
     [#-- Remember under which deployment unit this resource was created --]
-    "${formatDeploymentUnitAttributeId(fullOutputId)}" : {
+    "${duId}" : {
         "Value" : "${deploymentUnit + 
                         deploymentUnitSubset?has_content?then(
                             "-" + deploymentUnitSubset?lower_case,
