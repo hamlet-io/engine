@@ -36,21 +36,7 @@
                 "Type" : "AWS::Logs::MetricFilter",
                 "Properties" : {
                     "FilterPattern" : "${filter}",
-                    "LogGroupName" : 
-                        [#if logGroup?is_hash]
-                            {
-                                "Fn::Join" : [
-                                    "",
-                                    [
-                                        "API-Gateway-Execution-Logs_",
-                                        { "Ref" : "${logGroup.Api}" },
-                                        "/${logGroup.Stage}"
-                                    ]
-                                ]
-                            },
-                        [#else]
-                            "${logGroup}",
-                        [/#if]
+                    "LogGroupName" : [@toJSON logGroup /],
                     "MetricTransformations": [
                         {
                             "MetricName": "${name}",
@@ -78,7 +64,7 @@
                 "Type" : "AWS::CloudWatch::Dashboard",
                 "Properties" : {
                     "DashboardName" : "${name}",
-                    "DashboardBody" : [@toJSON body /]
+                    "DashboardBody" : "[@toJSON body true /]"
                 }
             }
             [@resourcesCreated /]
@@ -91,4 +77,69 @@
     [/#switch]
 [/#macro]
 
+[#macro createCountAlarm mode id name
+            actions
+            metric namespace dimensions=[]
+            description=""
+            threshold=1
+            statistic="Sum"
+            evaluationPeriods=1
+            period=300
+            operator="GreaterThanOrEqualToThreshold"
+            missingData="notBreaching"
+            reportOK=false]
+    [#switch mode]
+        [#case "definition"]
+            [@checkIfResourcesCreated /]
+            "${id}" : {
+                "Type" : "AWS::CloudWatch::Alarm",
+                "Properties" : {
+                    "ActionsEnabled" : true,
+                    "AlarmActions" : [
+                        [#list actions as action]
+                            [@toJSON action /]
+                            [#sep],[/#sep]
+                        [/#list]
+                    ],
+                    "AlarmDescription" : "${description?has_content?then(description,name)}",
+                    "AlarmName" : "${name}",
+                    "ComparisonOperator" : "${operator}",
+                    [#if dimensions?has_content]
+                        "Dimensions" : [
+                            [#list dimensions as dimension]
+                                {
+                                    "Name" : "${dimension.Name}",
+                                    "Value" : [@toJSON dimension.Value /]
+                                }
+                                [#sep],[/#sep]
+                            [/#list]
+                        ],
+                    [/#if]
+                    "EvaluationPeriods" : ${evaluationPeriods},
+                    "MetricName" : "${metric}",
+                    "Namespace" : "${namespace}",
+                    [#if reportOK]
+                        "OKActions" : [
+                            [#list actions as action]
+                                "${action}"
+                                [#sep],[/#sep]
+                            [/#list]
+                        ]
+                    [/#if]
+                    "Period" : ${period},
+                    "Statistic" : "${statistic}",
+                    "Threshold" : ${threshold},
+                    "TreatMissingData" : "${missingData}",
+                    "Unit" : "Count"
+                }
+            }
+            [@resourcesCreated /]
+            [#break]
+
+        [#case "outputs"]
+            [@output id /]
+            [#break]
+
+    [/#switch]
+[/#macro]
 

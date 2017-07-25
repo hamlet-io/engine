@@ -41,3 +41,17 @@
                 "cwdashboard",
                 extensions)]
 [/#function]
+
+[#function formatAlarmId ids...]
+    [#return formatResourceId(
+                "alarm",
+                ids)]
+[/#function]
+
+[#function formatDependentAlarmId resourceId extensions...]
+    [#return formatDependentResourceId(
+                "alarm",
+                resourceId,
+                extensions)]
+[/#function]
+

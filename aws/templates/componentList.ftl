@@ -14,10 +14,22 @@
                 [#assign componentShortNameWithType = formatComponentShortNameWithType(tier, component)]
                 [#assign componentShortFullName = formatComponentShortFullName(tier, component)]
                 [#assign componentFullName = formatComponentFullName(tier, component)]
+                [#assign dashboardRows = []]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
                 [#list compositeLists as compositeList]
                     [#include compositeList]
                 [/#list]
+                [#if dashboardRows?has_content]
+                    [#assign dashboardComponents += [
+                            {
+                                "Title" : component.Title?has_content?then(
+                                            component.Title,
+                                            formatComponentName(tier, component)),
+                                "Rows" : dashboardRows
+                            }
+                        ]
+                    ]
+                [/#if]
             [/#if]
         [/#list]
     [/#if]

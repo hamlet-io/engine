@@ -75,6 +75,23 @@
                             tier,
                             component,
                             sqsInstance)]
+        [#assign sqsName = (sqs.Name != "SQS")?then(
+                                formatName(
+                                    sqs.Name,
+                                    sqsInstance),
+                                formatName(
+                                    productName,
+                                    segmentName,
+                                    componentName,
+                                    sqsInstance))]
+        [#assign sqsDimensions =
+            [
+                {
+                    "Name" : "QueueName",
+                    "Value" : sqsName
+                }
+            ]
+        ]
 
         [#switch solutionListMode]
             [#case "definition"]
@@ -82,17 +99,7 @@
                 "${sqsId}":{
                     "Type" : "AWS::SQS::Queue",
                     "Properties" : {
-                        [#if sqs.Name != "SQS"]
-                            "QueueName" : "${formatName(
-                                                sqs.Name,
-                                                sqsInstance)}"
-                        [#else]
-                            "QueueName" : "${formatName(
-                                                productName,
-                                                segmentName,
-                                                componentName,
-                                                sqsInstance)}"
-                        [/#if]
+                        "QueueName" : "${sqsName}"
                         [#if sqsInstance.Internal.DelaySeconds != -1],"DelaySeconds" : ${sqsInstance.Internal.DelaySeconds?c}[/#if]
                         [#if sqsInstance.Internal.MaximumMessageSize != -1],"MaximumMessageSize" : ${sqsInstance.Internal.MaximumMessageSize?c}[/#if]
                         [#if sqsInstance.Internal.MessageRetentionPeriod != -1],"MessageRetentionPeriod" : ${sqsInstance.Internal.MessageRetentionPeriod?c}[/#if]
@@ -109,6 +116,49 @@
                 [@outputArn sqsId /]
                 [#break]
     
+            [#case "dashboard"]
+                [#if getKey(sqsId)?has_content]
+                    [#assign widgets =
+                        [
+                            {
+                                "Type" : "metric",
+                                "Metrics" : [
+                                    {
+                                        "Namespace" : "AWS/SQS",
+                                        "Metric" : "NumberOfMessagesReceived",
+                                        "Dimensions" : sqsDimensions
+                                    }
+                                ],
+                                "Title" : "Received",
+                                "Width" : 6,
+                                "asGraph" : true
+                            },
+                            {
+                                "Type" : "metric",
+                                "Metrics" : [
+                                    {
+                                        "Namespace" : "AWS/SQS",
+                                        "Metric" : "ApproximateAgeOfOldestMessage",
+                                        "Dimensions" : sqsDimensions,
+                                        "Statistic" : "Maximum"
+                                    }
+                                ],
+                                "Title" : "Oldest",
+                                "Width" : 6,
+                                "asGraph" : true
+                            }
+                        ]
+                    ]
+                    [#assign dashboardRows +=
+                        [
+                            {
+                                "Title" : formatName(sqsInstance),
+                                "Widgets" : widgets
+                            }
+                        ]
+                    ]
+                [/#if]
+                [#break]
         [/#switch]
     [/#list]
 [/#if]

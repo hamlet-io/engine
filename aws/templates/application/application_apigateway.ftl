@@ -2,7 +2,7 @@
 
 [#if componentType == "apigateway"]
     [#assign apigateway = component.APIGateway]
-    
+
     [#assign apigatewayInstances=[] ]    
     [#if apigateway.Versions??]
         [#list apigateway.Versions?values as version]
@@ -59,6 +59,11 @@
                                                     (apigatewayInstance.CloudFront.AssumeSNI) !
                                                     (version.CloudFront.AssumeSNI) !
                                                     (apigateway.CloudFront.AssumeSNI)!
+                                                    true,
+                                                "EnableLogging" :
+                                                    (apigatewayInstance.CloudFront.EnableLogging) !
+                                                    (version.CloudFront.EnableLogging) !
+                                                    (apigateway.CloudFront.EnableLogging)!
                                                     true
                                             },
                                             "DNS" : {
@@ -112,7 +117,12 @@
                                         "AssumeSNI" :
                                             (version.CloudFront.AssumeSNI) !
                                             (apigateway.CloudFront.AssumeSNI) !
+                                            true,
+                                        "EnableLogging" :
+                                            (version.CloudFront.EnableLogging) !
+                                            (apigateway.CloudFront.EnableLogging)!
                                             true
+
                                     },
                                     "DNS" : {
                                         "IsConfigured" :
@@ -139,6 +149,10 @@
                                 tier,
                                 component,
                                 apigatewayInstance)]
+        [#assign apiName  = formatComponentFullName(
+                                tier,
+                                component,
+                                apigatewayInstance)]
         [#assign deployId = formatAPIGatewayDeployId(
                                 tier,
                                 component,
@@ -148,8 +162,40 @@
                                 tier,
                                 component,
                                 apigatewayInstance)]
-        [#assign invalidLogMetricId = formatDependentLogMetricId(stageId, "invalid")]
         [#assign stageName = apigatewayInstance.Internal.StageName]
+        [#assign stageDimensions =
+            [
+                {
+                    "Name" : "ApiName",
+                    "Value" : apiName
+                },
+                {
+                    "Name" : "Stage",
+                    "Value" : stageName
+                }
+            ]
+        ]
+        [#assign logGroup =
+            {
+                "Fn::Join" : [
+                    "",
+                    [
+                        "API-Gateway-Execution-Logs_",
+                        getReference(apiId),
+                        "/",
+                        stageName
+                    ]                       
+                ]
+            }
+        ]
+        [#assign invalidLogMetricId = formatDependentLogMetricId(stageId, "invalid")]
+        [#assign invalidLogMetricName = "Invalid"]
+        [#assign invalidAlarmId = formatDependentAlarmId(stageId, "invalid")]
+        [#assign invalidAlarmName = formatComponentAlarmName(
+                                        tier,
+                                        component,
+                                        apigatewayInstance,
+                                        "invalid")]
         [#assign basePathMappingId  = formatDependentAPIGatewayBasePathMappingId(stageId)]
         [#assign dns = concatenate(
                         [
@@ -198,10 +244,7 @@
                                                 accountObject.AWSId +
                                                 ".json")}"
                             },
-                            "Name" : "${formatComponentFullName(
-                                            tier,
-                                            component,
-                                            apigatewayInstance)}"
+                            "Name" : "${apiName}"
                         }
                     },
                     "${deployId}" : {
@@ -355,12 +398,20 @@
             [@createSegmentCountLogMetric
                     applicationListMode,
                     invalidLogMetricId,
-                    "Invalid",
-                    {
-                        "Api" : apiId,
-                        "Stage" : stageName
-                    },
+                    invalidLogMetricName,
+                    logGroup,
                     "Invalid" /]
+            [@createCountAlarm
+                applicationListMode,
+                invalidAlarmId,
+                invalidAlarmName,
+                [
+                    getReference(formatSegmentSNSTopicId())
+                ]
+                invalidLogMetricName,
+                formatSegmentNamespace(),
+                stageDimensions
+            /]
                     
             [#if apigatewayInstance.Internal.CloudFront.IsConfigured]
                 [#switch applicationListMode]
@@ -415,15 +466,17 @@
                                     },
                                     "Enabled" : true,
                                     "HttpVersion" : "http2",
-                                    "Logging" : {
-                                        "Bucket" : "${operationsBucket + ".s3.amazonaws.com"}",
-                                        "IncludeCookies" : false,
-                                        "Prefix" : "${"CLOUDFRONTLogs" +
-                                                      formatComponentAbsoluteFullPath(
-                                                        tier,
-                                                        component,
-                                                        apigatewayInstance)}"
-                                    },
+                                    [#if apigatewayInstance.Internal.CloudFront.EnableLogging]
+                                        "Logging" : {
+                                            "Bucket" : "${operationsBucket + ".s3.amazonaws.com"}",
+                                            "IncludeCookies" : false,
+                                            "Prefix" : "${"CLOUDFRONTLogs" +
+                                                          formatComponentAbsoluteFullPath(
+                                                            tier,
+                                                            component,
+                                                            apigatewayInstance)}"
+                                        },
+                                    [/#if]
                                     "Origins" : [
                                         {
                                             "CustomOriginConfig" : {
@@ -447,26 +500,28 @@
                                                 }
                                             ]
                                         }
-                                    ],
+                                    ]
                                     [#-- TODO : Pick up Certificate ARN dynamically --]
-                                    "ViewerCertificate" : {
-                                        "AcmCertificateArn" : {
-                                            "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "arn:aws:acm:us-east-1:",
-                                                        {"Ref" : "AWS::AccountId"},
-                                                        ":certificate/",
-                                                        "${appSettingsObject.CertificateId}"
-                                                    ]
-                                            ]
-                                        },
-                                        "MinimumProtocolVersion" : "TLSv1",
-                                        "SslSupportMethod" :
-                                            "${apigatewayInstance.Internal.CloudFront.AssumeSNI?then(
-                                                "sni-only",
-                                                "vip")}"
-                                    }
+                                    [#if apigatewayInstance.Internal.DNS.IsConfigured ]
+                                        ,"ViewerCertificate" : {
+                                            "AcmCertificateArn" : {
+                                                "Fn::Join" : [
+                                                        "",
+                                                        [
+                                                            "arn:aws:acm:us-east-1:",
+                                                            {"Ref" : "AWS::AccountId"},
+                                                            ":certificate/",
+                                                            "${appSettingsObject.CertificateId}"
+                                                        ]
+                                                ]
+                                            },
+                                            "MinimumProtocolVersion" : "TLSv1",
+                                            "SslSupportMethod" :
+                                                "${apigatewayInstance.Internal.CloudFront.AssumeSNI?then(
+                                                    "sni-only",
+                                                    "vip")}"
+                                        }
+                                    [/#if]
                                     [#if apigatewayInstance.Internal.WAF.IsConfigured]
                                         ,"WebACLId" : [@createReference wafAclId /]
                                     [/#if]
@@ -595,12 +650,62 @@
                 [/#if]
             [/#if]
         [/#if]
-        [#if deploymentSubsetRequired("dashboard")]
-            [#assign dashboardWidgets += {
-                    "apigateway" : {                   
-                    }
-                }
-            ]
-        [/#if]
+        [#switch applicationListMode]
+            [#case "dashboard"]
+                [#if getKey(apiId)?has_content]
+                    [#assign widgets =
+                        [
+                            {
+                                "Type" : "metric",
+                                "Metrics" : [
+                                    {
+                                        "Namespace" : "AWS/ApiGateway",
+                                        "Metric" : "Latency",
+                                        "Dimensions" : stageDimensions,
+                                        "Statistic" : "Maximum"
+                                    }
+                                ],
+                                "Width" : 6,
+                                "asGraph" : true
+                            },
+                            {
+                                "Type" : "metric",
+                                "Metrics" : [
+                                    {
+                                        "Namespace" : "AWS/ApiGateway",
+                                        "Metric" : "Count",
+                                        "Dimensions" : stageDimensions
+                                    }
+                                ]
+                            }
+                        ]
+                    ]
+                    [#if getKey(invalidLogMetricId)?has_content]
+                        [#assign widgets +=
+                            [
+                                {
+                                    "Type" : "metric",
+                                    "Metrics" : [
+                                        {
+                                            "Namespace" : formatSegmentNamespace(),
+                                            "Metric" : invalidLogMetricName,
+                                            "Dimensions" : stageDimensions
+                                        }
+                                    ]
+                                }
+                            ]
+                        ]
+                    [/#if]
+                    [#assign dashboardRows +=
+                        [
+                            {
+                                "Title" : formatName(apigatewayInstance),
+                                "Widgets" : widgets
+                            }
+                        ]
+                    ]
+                [/#if]
+                [#break]
+        [/#switch]
     [/#list]
 [/#if]

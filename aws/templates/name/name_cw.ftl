@@ -13,3 +13,10 @@
                 component,
                 extensions)]
 [/#function]
+
+[#function formatComponentAlarmName tier component extensions...]
+    [#return formatComponentFullName(
+                tier,
+                component,
+                extensions)]
+[/#function]

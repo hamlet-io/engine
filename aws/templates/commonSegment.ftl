@@ -23,6 +23,10 @@
     [/#if]
 [/#macro]
 
+[#function formatSegmentNamespace]
+    [#return formatSegmentFullName()]
+[/#function]
+
 [#macro createSegmentCountLogMetric mode id name logGroup filter]
     [@createLogMetric 
         mode,
@@ -30,7 +34,7 @@
         name,
         logGroup,
         filter,
-        "${formatSegmentFullName()}",
+        formatSegmentNamespace(),
         "1" /]
 [/#macro]
 

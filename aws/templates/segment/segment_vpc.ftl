@@ -520,11 +520,138 @@
     [/#if]
 
     [#if deploymentSubsetRequired("dashboard")]
+        [#assign dashboardWidgets = []]
+        [#assign defaultTitleHeight = 1]
+        [#assign defaultWidgetHeight = 3]
+        [#assign defaultWidgetWidth = 3]
+        [#assign dashboardY = 0]
+        [#list dashboardComponents as dashboardComponent]
+            [#assign dashboardWidgets += [{
+                    "type" : "text",
+                    "x" : 0,
+                    "y" : dashboardY,
+                    "width" : 24,
+                    "height" : defaultTitleHeight,
+                    "properties" : {
+                        "markdown" : dashboardComponent.Title
+                    }                    
+                }]
+            ]
+            [#assign dashboardY += defaultTitleHeight]
+            [#list dashboardComponent.Rows as row]
+                [#assign dashboardX = 0]
+                [#if row.Title?has_content]
+                    [#assign dashboardWidgets += [{
+                            "type" : "text",
+                            "x" : dashboardX,
+                            "y" : dashboardY,
+                            "width" : defaultWidgetWidth,
+                            "height" : defaultTitleHeight,
+                            "properties" : {
+                                "markdown" : row.Title
+                            }                    
+                        }]
+                    ]
+                    [#assign dashboardX += defaultWidgetWidth]
+                [/#if]
+                [#assign maxWidgetHeight = 0]
+                [#list row.Widgets as widget]
+                    [#assign widgetMetrics = []]
+                    [#list widget.Metrics as widgetMetric]
+                        [#assign widgetMetricObject =
+                            [
+                                widgetMetric.Namespace,
+                                widgetMetric.Metric
+                            ]
+                        ]
+                        [#if widgetMetric.Dimensions?has_content]
+                            [#list widgetMetric.Dimensions as dimension]
+                                [#assign widgetMetricObject +=
+                                    [
+                                        dimension.Name,
+                                        dimension.Value
+                                    ]
+                                ]
+                            [/#list]
+                        [/#if]
+                        [#assign renderingObject = {}]
+                        [#if widgetMetric.Statistic?has_content]
+                            [#assign renderingObject += 
+                                {
+                                    "stat" : widgetMetric.Statistic
+                                }
+                            ]
+                        [/#if]
+                        [#if widgetMetric.Period?has_content]
+                            [#assign renderingObject += 
+                                {
+                                    "period" : widgetMetric.Period
+                                }
+                            ]
+                        [/#if]
+                        [#if widgetMetric.Label?has_content]
+                            [#assign renderingObject += 
+                                {
+                                    "label" : widgetMetric.Period
+                                }
+                            ]
+                        [/#if]
+                        [#if renderingObject?has_content]
+                            [#assign widgetMetricObject += [renderingObject]]
+                        [/#if]
+                        [#assign widgetMetrics += [widgetMetricObject]]
+                    [/#list]
+                    [#assign widgetWidth = widget.Width ! defaultWidgetWidth]
+                    [#assign widgetHeight = widget.Height ! defaultWidgetHeight]
+                    [#assign maxWidgetHeight = (widgetHeight > maxWidgetHeight)?then(
+                                widgetHeight,
+                                maxWidgetHeight)]
+                    [#assign widgetProperties =
+                        {
+                            "metrics" : widgetMetrics,
+                            "region" : region,
+                            "stat" : "Sum",
+                            "period": 300,
+                            "view" : widget.asGraph?has_content?then(
+                                            widget.asGraph?then(
+                                                "timeSeries",
+                                                "singleValue"),
+                                            "singleValue"),
+                            "stacked" : widget.stacked ! false
+                        }                    
+                    ]
+                    [#if widget.Title?has_content]
+                        [#assign widgetProperties +=
+                            {
+                                "title" : widget.Title
+                            }
+                        ]
+                    [/#if]
+                    [#assign dashboardWidgets +=
+                        [
+                            {
+                                "type" : "metric",
+                                "x" : dashboardX,
+                                "y" : dashboardY,
+                                "width" : widgetWidth,
+                                "height" : widgetHeight,
+                                "properties" : widgetProperties
+                            }
+                        ]
+                    ]
+                    [#assign dashboardX += widgetWidth]
+                [/#list]
+                [#assign dashboardY += maxWidgetHeight]
+            [/#list]
+        [/#list]
         [@createDashboard
             segmentListMode,
             dashboardId,
             formatSegmentFullName(),
-            dashboardWidgets /]
+            {
+                "widgets" : dashboardWidgets
+            } 
+        /]
     [/#if]
 [/#if]
 

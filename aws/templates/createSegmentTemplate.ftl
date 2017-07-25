@@ -69,7 +69,7 @@
 [#-- Handle segment dashboard generation --]
 [#if deploymentSubsetRequired("dashboard")]
     [#assign allDeploymentUnits = true]
-    [#assign dashboardWidgets = {}]
+    [#assign dashboardComponents = []]
     [#assign compositeLists=[applicationList, solutionList]]
     [#assign applicationListMode="dashboard"]
     [#assign solutionListMode="dashboard"]
