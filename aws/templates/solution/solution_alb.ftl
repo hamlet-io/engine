@@ -17,38 +17,47 @@
     [#switch solutionListMode]
         [#case "definition"]
             [#list alb.PortMappings as mapping]
-                [#assign source = ports[portMappings[mapping].Source]]
+                
+                [#assign sourceMapping =
+                            mapping?is_hash?then(
+                                mapping.Mapping,
+                                mapping)]
+                [#assign source = portMappings[sourceMapping].Source]
+                [#assign sourcePort = ports[source]]
+                [#assign sourceIPAddressGroups =
+                            mapping?is_hash?then(
+                                mapping.IPAddressGroups!alb.IPAddressGroups![],
+                                alb.IPAddressGroups![])]
                 [#assign albListenerId =
                             formatALBListenerId(
                                 tier,
                                 component,
-                                source)]
+                                sourcePort)]
                 [#assign albListenerSecurityGroupIngressId =
                             formatALBListenerSecurityGroupIngressId(
                                 tier,
                                 component,
-                                source)]
+                                sourcePort)]
                 [#assign albTargetGroupId =
                             formatALBTargetGroupId(
                                 tier,
                                 component,
-                                source,
+                                sourcePort,
                                 "default")]
+                [@createSecurityGroupIngress
+                    solutionListMode,
+                    albListenerSecurityGroupIngressId,
+                    source,
+                    getUsageCIDRs(
+                        source,
+                        sourceIPAddressGroups),
+                    albSecurityGroupId
+                /]
                 [@checkIfResourcesCreated /]
-                "${albListenerSecurityGroupIngressId}" : {
-                    "Type" : "AWS::EC2::SecurityGroupIngress",
-                    "Properties" : {
-                        "GroupId": {"Ref" : "${albSecurityGroupId}"},
-                        "IpProtocol": "${source.IPProtocol}",
-                        "FromPort": "${source.Port?c}",
-                        "ToPort": "${source.Port?c}",
-                        "CidrIp": "0.0.0.0/0"
-                    }
-                },
                 "${albListenerId}" : {
                     "Type" : "AWS::ElasticLoadBalancingV2::Listener",
                     "Properties" : {
-                        [#if (source.Certificate)?has_content]
+                        [#if (sourcePort.Certificate)?has_content]
                             "Certificates" : [
                                 {
                                     [#assign certificateFound = false]
@@ -92,8 +101,8 @@
                             }
                         ],
                         "LoadBalancerArn" : { "Ref" : "${albId}" },
-                        "Port" : ${source.Port?c},
-                        "Protocol" : "${source.Protocol}"
+                        "Port" : ${sourcePort.Port?c},
+                        "Protocol" : "${sourcePort.Protocol}"
                     }
                 }
                 [@resourcesCreated /]
@@ -124,7 +133,7 @@
                             "${getKey(formatSubnetId(
                                         tier,
                                         zone))}"
-                            [#if !(zones?last.Id == zone.Id)],[/#if]
+                            [#sep],[/#sep]
                         [/#list]
                     ],
                     "Scheme" : "${(tier.RouteTable == "external")?string("internet-facing","internal")}",
