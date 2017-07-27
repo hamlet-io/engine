@@ -28,7 +28,7 @@
     [/#switch]
 [/#macro]
 
-[#macro createLogMetric mode id name logGroup filter namespace value]
+[#macro createLogMetric mode id name logGroup filter namespace value dependencies]
     [#switch mode]
         [#case "definition"]
             [@checkIfResourcesCreated /]
@@ -45,6 +45,14 @@
                         }
                     ]
                 }
+                [#if dependencies?has_content]
+                    ,"DependsOn" : [
+                        [#list dependencies as dependency]
+                            "${dependency}"
+                            [#sep],[/#sep]
+                        [/#list]
+                    ]
+                [/#if]
             }
             [@resourcesCreated /]
             [#break]
@@ -87,7 +95,8 @@
             period=300
             operator="GreaterThanOrEqualToThreshold"
             missingData="notBreaching"
-            reportOK=false]
+            reportOK=false
+            dependencies=""]
     [#switch mode]
         [#case "definition"]
             [@checkIfResourcesCreated /]
@@ -132,6 +141,14 @@
                     "TreatMissingData" : "${missingData}",
                     "Unit" : "Count"
                 }
+                [#if dependencies?has_content]
+                    ,"DependsOn" : [
+                        [#list dependencies as dependency]
+                            "${dependency}"
+                            [#sep],[/#sep]
+                        [/#list]
+                    ]
+                [/#if]
             }
             [@resourcesCreated /]
             [#break]

@@ -400,17 +400,20 @@
                     invalidLogMetricId,
                     invalidLogMetricName,
                     logGroup,
-                    "Invalid" /]
+                    "Invalid",
+                    [stageId]
+            /]
             [@createCountAlarm
-                applicationListMode,
-                invalidAlarmId,
-                invalidAlarmName,
-                [
+                mode=applicationListMode
+                id=invalidAlarmId
+                name=invalidAlarmName
+                actions=[
                     getReference(formatSegmentSNSTopicId())
                 ]
-                invalidLogMetricName,
-                formatSegmentNamespace(),
-                stageDimensions
+                metric=invalidLogMetricName
+                namespace=formatSegmentNamespace()
+                dimensions=stageDimensions
+                dependencies=[invalidLogMetricId]
             /]
                     
             [#if apigatewayInstance.Internal.CloudFront.IsConfigured]

@@ -27,7 +27,7 @@
     [#return formatSegmentFullName()]
 [/#function]
 
-[#macro createSegmentCountLogMetric mode id name logGroup filter]
+[#macro createSegmentCountLogMetric mode id name logGroup filter dependencies=""]
     [@createLogMetric 
         mode,
         id,
@@ -35,6 +35,8 @@
         logGroup,
         filter,
         formatSegmentNamespace(),
-        "1" /]
+        "1"
+        dependencies
+    /]
 [/#macro]
 
