@@ -96,16 +96,6 @@
                                     lambdaInstance,
                                     {"Id" : lambda.Container })]
 
-            [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
-            [#if vpc?has_content && lambdaInstance.Internal.VPCAccess]
-                [@createDependentSecurityGroup 
-                    applicationListMode
-                    tier
-                    component
-                    lambdaId
-                    lambdaName  /]
-            [/#if]
-
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(containerListRole)]
                 [#switch applicationListMode]
                     [#case "definition"]            
@@ -151,6 +141,16 @@
             [/#if]
         
             [#if deploymentSubsetRequired("lambda", true)]
+                [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
+                [#if vpc?has_content && lambdaInstance.Internal.VPCAccess]
+                    [@createDependentSecurityGroup 
+                        applicationListMode
+                        tier
+                        component
+                        lambdaId
+                        lambdaName  /]
+                [/#if]
+
                 [#list lambdaInstance.Internal.Functions?values as fn]
                     [#if fn?is_hash]
                         [#assign lambdaFunctionId = formatLambdaFunctionId(
