@@ -220,6 +220,11 @@
                                             }
                                         [/#if]
                                     }
+                                    [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(containerListRole)]
+                                        ,"DependsOn" : [
+                                            "${containerListRole}"
+                                        ]
+                                    [/#if]
                                 }
                                 [@resourcesCreated /]
                                 [#break]
