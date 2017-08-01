@@ -2,7 +2,6 @@
 [#if componentType == "elasticsearch" ||
         (componentType == "es")]
     [#assign es = component.ES!component.ElasticSearch]
-    
     [#assign esId = formatElasticSearchId(
                         tier,
                         component)]
@@ -24,49 +23,35 @@
                                     "AWS": "*"
                                 },
                                 "Action": "es:*",
-                                "Resource": "*",
-                                "Condition": {
-                                    "IpAddress": {
-                                        [#assign ipCount = 0]
-                                        "aws:SourceIp": [
-                                            [#list zones as zone]
-                                                [#if getKey("eip", "mgmt", "nat", zone.Id, "ip")?has_content]
-                                                    [#if ipCount > 0],[/#if]
-                                                    "${getKey("eip", "mgmt", "nat", zone.Id, "ip")}"
-                                                    [#assign ipCount += 1]
-                                                [/#if]
-                                            [/#list]
-                                            [#list 1..20 as i]
-                                                [#if getKey("eip", "mgmt", "nat", "external" + i)?has_content]
-                                                    [#if ipCount > 0],[/#if]
-                                                    "${getKey("eip", "mgmt", "nat", "external", i)}"
-                                                    [#assign ipCount += 1]
-                                                [/#if]
-                                            [/#list]
-                                            [#if (segmentObject.IPAddressGroups)?has_content]
-                                                [#list segmentObject.IPAddressGroups as group]
-                                                    [#if (ipAddressGroupsUsage["es"][group])?has_content]
-                                                        [#assign usageGroup = ipAddressGroupsUsage["es"][group]]
-                                                        [#if usageGroup.IsOpen]
-                                                            [#if ipCount > 0],[/#if]
-                                                            "0.0.0.0/0"
-                                                            [#assign ipCount += 1]
-                                                        [#else]
-                                                            [#if usageGroup.CIDR?has_content]
-                                                                [#if ipCount > 0],[/#if]
-                                                                [#list usageGroup.CIDR as cidrBlock]
-                                                                    "${cidrBlock}"
-                                                                    [#sep],[/#sep]
-                                                                [/#list]
-                                                                [#assign ipCount += 1]
-                                                            [/#if]
-                                                        [/#if]
-                                                    [/#if]
+                                "Resource": "*"
+                                [#assign esCIDRs =
+                                            getUsageCIDRs(
+                                                "es",
+                                                es.IPAddressGroups![])]
+                                [#list zones as zone]
+                                    [#if getKey("eip", "mgmt", "nat", zone.Id, "ip")?has_content]
+                                        [#assign esCIDRs +=
+                                            [getKey("eip", "mgmt", "nat", zone.Id, "ip")]]
+                                    [/#if]
+                                [/#list]
+                                [#list 1..20 as i]
+                                    [#if getKey("eip", "mgmt", "nat", "external" + i)?has_content]
+                                        [#assign esCIDRs +=
+                                            [getKey("eip", "mgmt", "nat", "external", i)]]
+                                    [/#if]
+                                [/#list]
+                                [#if esCIDRs?has_content]
+                                    ,"Condition": {
+                                        "IpAddress": {
+                                            "aws:SourceIp": [
+                                                [#list esCIDRs as cidrBlock]
+                                                    "${cidrBlock}"
+                                                    [#sep],[/#sep]
                                                 [/#list]
-                                            [/#if]
-                                        ]
+                                            ]
+                                        }
                                     }
-                                }
+                                [/#if]
                             }
                         ]
                     },
