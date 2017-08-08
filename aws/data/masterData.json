@@ -831,6 +831,9 @@
             "NAT": {
                 "Processor": "t2.micro"
             },
+            "SSH": {
+                "Processor": "t2.micro"
+            },
             "EC2": {
                 "Processor": "t2.micro"
             },
@@ -1113,7 +1116,15 @@
         "DNSHostnames" : true,
         "NAT" : {
             "Enabled" : true,
-            "MultiAZ" : false
+            "MultiAZ" : false,
+            "Hosted" : false
+        },
+        "SSH" : {
+            "Enabled" : true,
+            "Active" : false,
+            "PerSegment" : true,
+            "Standalone" : false,
+            "IPAddressGroups" : []
         },
         "SSHPerSegment" : true,
         "RotateKey" : true,

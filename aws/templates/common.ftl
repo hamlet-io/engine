@@ -207,7 +207,11 @@
 
 [#-- Get the name for a component --]
 [#function getComponentName component]
-    [#return component.Name?split("-")[0]]
+    [#if component?is_hash]
+        [#return component.Name?split("-")[0]]
+    [#else]
+        [#return component?split("-")[0]]
+    [/#if]
 [/#function]
 
 [#-- Get the type for a component --]
@@ -367,6 +371,7 @@
         [/#if]
     [/#if]
 [/#function]
+
 [#macro createReference value]
     [@toJSON getReference(value) /]
 [/#macro]
@@ -378,77 +383,53 @@
         [#return getKey(formatArnAttributeId(resourceId))]
     [/#if]
 [/#function]
+
 [#macro createArnReference resourceId]
     [@toJSON getArnReference(resourceId) /]
 [/#macro]
 
-[#macro noResourcesCreated]
-    [#assign resourceCount = 0]
-[/#macro]
-
-[#macro resourcesCreated count=1]
-    [#assign resourceCount += count]
-[/#macro]
-
-[#macro checkIfResourcesCreated]
-    [#if resourceCount > 0],[/#if]
-[/#macro]
-
 [#-- Outputs generation --]
-[#macro output resourceId outputId="" region=""]
-    [#local fullOutputId = 
-                outputId?has_content?then(outputId,resourceId) +
-                region?has_content?then(
-                    "X" + region?replace("-", "X"),
-                    "")]
-    [#local duId = 
-                formatDeploymentUnitAttributeId(
-                    outputId?has_content?then(outputId,resourceId)) +
+[#macro outputValue outputId value region=""]
+    [#local fullOutputId =
+                outputId +
                 region?has_content?then(
                     "X" + region?replace("-", "X"),
                     "")]
 
     [@checkIfResourcesCreated /]
     "${fullOutputId}" : {
-        "Value" : { "Ref" : "${resourceId}" }
-    },
-    [#-- Remember under which deployment unit this resource was created --]
-    "${duId}" : {
-        "Value" : "${deploymentUnit + 
-                        deploymentUnitSubset?has_content?then(
-                            "-" + deploymentUnitSubset?lower_case,
-                            "")}"
+        "Value" : [@toJSON value /]
     }
     [@resourcesCreated /]
+[/#macro]
+
+[#macro output resourceId outputId="" region=""]
+    [@outputValue
+        outputId?has_content?then(outputId,resourceId),
+        {
+            "Ref" : resourceId
+        },
+        region /]
+    [#-- Remember under which deployment unit this resource was created --]
+    [@outputValue
+        formatDeploymentUnitAttributeId(
+            outputId?has_content?then(outputId,resourceId)),
+            deploymentUnit + 
+                deploymentUnitSubset?has_content?then(
+                    "-" + deploymentUnitSubset?lower_case,
+                    ""),
+            region /]
 [/#macro]
 
 [#macro outputAtt outputId resourceId attributeType region=""]
-    [#assign fullOutputId =
-                outputId +
-                region?has_content?then(
-                    "X" + region?replace("-", "X"),
-                    "")]
-
-    [@checkIfResourcesCreated /]
-    "${fullOutputId}" : {
-        "Value" : { "Fn::GetAtt" : ["${resourceId}", "${attributeType}"] }
-    }
-    [@resourcesCreated /]
+    [@outputValue
+        outputId,
+        {
+            "Fn::GetAtt" : [resourceId, attributeType] 
+        },
+        region /]
 [/#macro]
 
-[#macro outputValue outputId value region=""]
-    [#assign fullOutputId =
-                outputId +
-                region?has_content?then(
-                    "X" + region?replace("-", "X"),
-                    "")]
-
-    [@checkIfResourcesCreated /]
-    "${fullOutputId}" : {
-        "Value" : "${value}"
-    }
-    [@resourcesCreated /]
-[/#macro]
 
 [#macro outputArn resourceId]
     [@outputAtt

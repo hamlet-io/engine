@@ -121,10 +121,16 @@
 [#if segmentObject?has_content]
     [#assign segmentId = segmentObject.Id]
     [#assign segmentName = segmentObject.Name]
-    [#assign sshPerSegment = segmentObject.SSHPerSegment]
     [#assign internetAccess = segmentObject.InternetAccess]
-    [#assign jumpServer = internetAccess && segmentObject.NAT.Enabled]
-    [#assign jumpServerPerAZ = jumpServer && segmentObject.NAT.MultiAZ]
+    [#assign natEnabled = internetAccess && ((segmentObject.NAT.Enabled)!true)]
+    [#assign natPerAZ = natEnabled && ((segmentObject.NAT.MultiAZ)!false)]
+    [#assign natHosted = (segmentObject.NAT.Hosted)!false]
+    [#assign sshEnabled = internetAccess &&
+                            ((segmentObject.SSH.Enabled)!true)]
+    [#assign sshActive = sshEnabled &&
+                            ((segmentObject.SSH.Active)!false)]
+    [#assign sshPerSegment = (segmentObject.SSH.PerSegment)!segmentObject.SSHPerSegment!true]
+    [#assign sshStandalone = ((segmentObject.SSH.Standalone)!false) || natHosted ]
     [#assign operationsBucket = "unknown"]
     [#assign operationsBucketSegment = "segment"]
     [#assign operationsBucketType = "ops"]
@@ -164,9 +170,7 @@
     [#assign segmentDomainQualifier = getKey(formatSegmentDomainQualifierId())]
     [#assign certificateId = getKey(formatSegmentDomainCertificateId())]
     [#assign vpc = getKey(formatVPCId())]
-    [#assign securityGroupNAT = getKey(formatComponentSecurityGroupId(
-                                        "mgmt",
-                                        "nat"))]
+    [#assign sshFromProxySecurityGroup = getKey(formatSSHFromProxySecurityGroupId())]
     [#if segmentObject.Environment??]
         [#assign environmentId = segmentObject.Environment]
         [#assign environmentObject = environments[environmentId]]
@@ -204,10 +208,13 @@
     [#if isTier(tierId)]
         [#assign tier = getTier(tierId)]
         [#if tier.Components??
-            || ((tier.Required)?? && tier.Required)
-            || (jumpServer && (tierId == "mgmt"))]
+            || ((tier.Required)!false)
+            || (tierId == "mgmt")]
             [#assign tiers += [tier + 
-                {"Index" : tierId?index}]]
+                {
+                    "Index" : tierId?index,
+                    "RouteTable" : internetAccess?then(tier.RouteTable, "internal")
+                }]]
         [/#if]
     [/#if]
 [/#list]

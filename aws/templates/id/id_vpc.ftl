@@ -68,6 +68,17 @@
                 extensions)]
 [/#function]
 
+[#function formatSSHFromProxySecurityGroupId ]
+    [#local legacyId = formatComponentSecurityGroupId(
+                        "mgmt",
+                        "nat")]
+    [#return getKey(legacyId)?has_content?then(
+                legacyId,
+                formatComponentSecurityGroupId(
+                        "all",
+                        "ssh"))]
+[/#function]
+
 [#function formatVPCId]
     [#local legacyId = formatSegmentResourceId(
                 "vpc",
@@ -115,6 +126,56 @@
 [#function formatSubnetId tier zone]
     [#return formatZoneResourceId(
             "subnet",
+            tier,
+            zone)]
+[/#function]
+
+[#function formatRouteTableAssociationId subnetId extensions...]
+    [#return formatDependentResourceId(
+            "association",
+            subnetId,
+            "routeTable",
+            extensions)]
+[/#function]
+
+[#function formatNetworkACLAssociationId subnetId extensions...]
+    [#return formatDependentResourceId(
+            "association",
+            subnetId,
+            "networkACL",
+            extensions)]
+[/#function]
+
+[#function formatRouteTableId ids...]
+    [#return formatResourceId(
+            "routeTable",
+            ids)]
+[/#function]
+
+[#function formatRouteId routeTableId extensions...]
+    [#return formatDependentResourceId(
+            "route",
+            routeTableId,
+            extensions)]
+[/#function]
+
+[#function formatNetworkACLId ids...]
+    [#return formatResourceId(
+            "networkACL",
+            ids)]
+[/#function]
+
+[#function formatNetworkACLEntryId networkACLId outbound extensions...]
+    [#return formatDependentResourceId(
+            "rule",
+            networkACLId,
+            outbound?then("out","in"),
+            extensions)]
+[/#function]
+
+[#function formatNATGatewayId tier zone]
+    [#return formatZoneResourceId(
+            "natGateway",
             tier,
             zone)]
 [/#function]

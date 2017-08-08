@@ -260,8 +260,8 @@
                             "SourceDestCheck" : true,
                             "GroupSet" : [
                                 {"Ref" : "${ec2SecurityGroupId}"}
-                                [#if securityGroupNAT?has_content]
-                                    , "${securityGroupNAT}"
+                                [#if sshFromProxySecurityGroup?has_content]
+                                    , "${sshFromProxySecurityGroup}"
                                 [/#if]
                             ],
                             "Tags" : [

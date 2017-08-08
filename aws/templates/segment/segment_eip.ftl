@@ -1,30 +1,19 @@
 [#-- EIPs --]
 [#if deploymentUnit?contains("eip")]
-    [#if jumpServer]
-        [#assign tier = getTier("mgmt")]
+    [#assign mgmtTier = getTier("mgmt")]
+    [#if natEnabled]
         [#list zones as zone]
-            [#if jumpServerPerAZ || (zones[0].Id == zone.Id)]
-                [#assign elasticIPId = formatComponentEIPId(tier, "nat", zone.Id)]
-                [#switch segmentListMode]
-                    [#case "definition"]
-                        [@checkIfResourcesCreated /]
-                        "${elasticIPId}": {
-                            "Type" : "AWS::EC2::EIP",
-                            "Properties" : {
-                                "Domain" : "vpc"
-                            }
-                        }
-                        [@resourcesCreated /]
-                        [#break]
-
-                    [#case "outputs"]
-                        [@outputIPAddress elasticIPId /]
-                        [@outputAllocation elasticIPId /]
-                        [#break]
-
-                [/#switch]
+            [#if natPerAZ || zone?is_first]
+                [@createEIP
+                    segmentListMode,
+                    formatComponentEIPId(mgmtTier, "nat", zone) /]
             [/#if]
         [/#list]
+    [/#if]
+    [#if sshEnabled && sshStandalone]
+        [@createEIP
+            segmentListMode,
+            formatComponentEIPId(mgmtTier, "ssh") /]
     [/#if]
 [/#if]
 
