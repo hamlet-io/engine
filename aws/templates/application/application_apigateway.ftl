@@ -269,7 +269,7 @@
                                 }
                             ],
                             "StageName" : "${stageName}"
-                            [#if apigatewayInstance.Links??]
+                            [#if apigatewayInstance.Links?has_content]
                                 ,"Variables" : {
                                     [#assign linkCount = 0]
                                     [#list apigatewayInstance.Links?values as link]
@@ -325,7 +325,7 @@
                         "DependsOn" : "${deployId}"
                     }
                     [#-- Include access to lambda functions if required --]
-                    [#if apigatewayInstance.Links?? ]
+                    [#if apigatewayInstance.Links?has_content ]
                         [#list apigatewayInstance.Links?values as link]
                             [#if link?is_hash]
                                 [#if getComponent(link.Tier, link.Component)??]
