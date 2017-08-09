@@ -72,10 +72,15 @@
                                                         version.DNS?? ||
                                                         apigateway.DNS??,
                                                 "Host" :
-                                                    (apigatewayInstance.DNS.Host) !
-                                                    (version.DNS.Host) !
-                                                    (apigateway.DNS.Host)!
-                                                    ""
+                                                    formatName(
+                                                        (apigatewayInstance.Id == "default")?
+                                                            string(
+                                                                "",
+                                                                apigatewayInstance.Name),
+                                                        ((apigatewayInstance.DNS.Host) !
+                                                            (version.DNS.Host) !
+                                                            (apigateway.DNS.Host)!
+                                                            ""))
                                             }
                                         }
                                     }
