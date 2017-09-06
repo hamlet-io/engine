@@ -90,6 +90,8 @@
     [@environmentVariable "APPDATA_BUCKET" "${dataBucket}" format mode /]
     [#if !mode?has_content],[/#if]
     [@environmentVariable "APPDATA_PREFIX" "${getAppDataFilePrefix()}" format mode /]
+    [#if !mode?has_content],[/#if]
+    [@environmentVariable "APPSETTINGS_PREFIX" "${getAppSettingsFilePrefix()}" format mode /]
     [#if buildCommit?has_content]
         [#if !mode?has_content],[/#if]
         [@environmentVariable "BUILD_REFERENCE" "${buildCommit}" format mode /]
