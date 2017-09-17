@@ -13,10 +13,5 @@
         [#case "volumes"]
         [#case "mountPointCount"]
         [#case "mountPoints"]
-            [@containerVolume
-                "redirector"
-                "/var/lib/redirector"
-                "/codeontap/redirector" /]
-            [#break]
     [/#switch]
     [#break]
