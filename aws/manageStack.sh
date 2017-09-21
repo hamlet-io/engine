@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 # Defaults
 STACK_INITIATE_DEFAULT="true"
@@ -111,7 +111,7 @@ STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
 
 
 # Set up the context
-. ${GENERATION_DIR}/setStackContext.sh
+. "${GENERATION_DIR}/setStackContext.sh"
 
 pushd ${CF_DIR} > /dev/null 2>&1
 

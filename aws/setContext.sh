@@ -6,7 +6,7 @@
 # This script is designed to be sourced into other scripts
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 # If the context has already been determined, there is nothing to do
 if [[ -n "${GENERATION_CONTEXT_DEFINED}" ]]; then return 0; fi
@@ -120,7 +120,8 @@ fi
 popd >/dev/null
 
 # Analyse directory structure
-findGen3Dirs "${GENERATION_DATA_DIR}" "${PRODUCT}" "${SEGMENT}" || exit
+export ACCOUNT="$(fileName "${GENERATION_DATA_DIR}")"
+findGen3Dirs "${GENERATION_DATA_DIR}" || exit
 
 addToArrayHead "BLUEPRINT_ARRAY" \
     "${ACCOUNT_DIR}"/account*.json \

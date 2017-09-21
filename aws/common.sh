@@ -257,7 +257,7 @@ function isBucketAccessible() {
     local bucket="${1}"; shift
     local prefix="${1}"
 
-    aws --region ${1} s3 ls "s3://${2}/${3}${3:+/}" > temp_bucket_access.txt
+    aws --region ${region} s3 ls "s3://${bucket}/${prefix}${prefix:+/}" > temp_bucket_access.txt
     return $?
 }
 
@@ -292,19 +292,19 @@ function syncFilesToBucket() {
     aws --region ${region} s3 sync ${dryrunOrDelete} "${tempDir}/" "s3://${bucket}/${prefix}${prefix:+/}"
 }
 function deleteTreeFromBucket() {
-    local region="${1}"
-    local bucket="${2}"
-    local prefix="${3}"
-    local dryrun="${4}"
+    local region="${1}"; shift
+    local bucket="${1}"; shift
+    local prefix="${1}"; shift
+    local dryrun="${1}"
 
     # Delete everything below the prefix
     aws --region ${region} s3 rm --recursive ${dryrun} "s3://${bucket}/${prefix}/"
 }
 
 function syncCMDBFilesToOperationsBucket() {
-    local sourceBaseDir="${1}"
-    local prefix="${2}"
-    local dryrun="${3}"
+    local sourceBaseDir="${1}"; shift
+    local prefix="${1}"; shift
+    local dryrun="${1}"; shift
 
     SYNC_FILES_ARRAY=()
 
@@ -316,8 +316,8 @@ function syncCMDBFilesToOperationsBucket() {
 }
 
 function deleteCMDBFilesFromOperationsBucket() {
-    local prefix="${1}"
-    local dryrun="${2}"
+    local prefix="${1}"; shift
+    local dryrun="${1}"; shift
         
     deleteTreeFromBucket ${REGION} $(getOperationsBucket)  "${prefix}/${PRODUCT}/${SEGMENT}${DEPLOYMENT_UNIT}" ${dryrun}
 }
@@ -385,81 +385,81 @@ function findGen3RootDir() {
 }
 
 function findGen3ProductDir() {
-    local ROOT_DIR="${1}"; shift
-    local PRODUCT="${1}"
+    local GEN3_ROOT_DIR="${1}"; shift
+    local GEN3_PRODUCT="${1:=${PRODUCT}}"
     
-    findSubDir "${PRODUCT}/product.json" "${ROOT_DIR}" 
+    findSubDir "${GEN3_PRODUCT}/product.json" "${GEN3_ROOT_DIR}" 
 }
 
 function findGen3SegmentDir() {
-    local ROOT_DIR="${1}"; shift
-    local PRODUCT="${1}"; shift
-    local SEGMENT="${1}"
+    local GEN3_ROOT_DIR="${1}"; shift
+    local GEN3_PRODUCT="${1:-${PRODUCT}}"; shift
+    local GEN3_SEGMENT="${1:-${SEGMENT}}"
     
-    local PRODUCT_DIR="$(findGen3ProductDir "${ROOT_DIR}" "${PRODUCT}")"
-    [[ -z "${PRODUCT_DIR}" ]] && return 1
+    local GEN3_PRODUCT_DIR="$(findGen3ProductDir "${GEN3_ROOT_DIR}" "${GEN3_PRODUCT}")"
+    [[ -z "${GEN3_PRODUCT_DIR}" ]] && return 1
     
-    findSubDir "solutions/${SEGMENT}/segment.json" "${PRODUCT_DIR}" ||
-    findSubDir "solutions/${SEGMENT}/container.json" "${PRODUCT_DIR}"
+    findSubDir "solutions/${GEN3_SEGMENT}/segment.json"   "${GEN3_PRODUCT_DIR}" ||
+    findSubDir "solutions/${GEN3_SEGMENT}/container.json" "${GEN3_PRODUCT_DIR}"
 }
 
 function getGen3Env() {
-    local ENV="${1}"; shift
-    local PREFIX="${1}"
+    local GEN3_ENV="${1}"; shift
+    local GEN3_PREFIX="${1}"
     
-    local ENV_NAME="${PREFIX}${ENV}"
-    echo "${!ENV_NAME}"
+    local GEN3_ENV_NAME="${GEN3_PREFIX}${GEN3_ENV}"
+    echo "${!GEN3_ENV_NAME}"
 }
 
 function checkGen3Dir() {
-    local ENV="${1}"; shift
-    local PREFIX="${1}"; shift
+    local GEN3_ENV="${1}"; shift
+    local GEN3_PREFIX="${1}"
 
-    local ENV_NAME="${PREFIX}${ENV}"
+    local GEN3_ENV_NAME="${GEN3_PREFIX}${GEN3_ENV}"
     for DIR in "$@"; do
         if [[ -d "${DIR}" ]]; then
-            eval "export ${ENV_NAME}=${DIR}"
+            eval "export ${GEN3_ENV_NAME}=${DIR}"
             return 0
         fi
     done
 
-    error $(locationMessage "Can't locate ${ENV} directory.")
+    error $(locationMessage "Can't locate ${GEN3_ENV} directory.")
     return 1
 }
 
 function findGen3Dirs() {
-    local ROOT_DIR="${1}"; shift
-    local PRODUCT="${1}"; shift
-    local SEGMENT="${1}"; shift
-    local PREFIX="${1}"; shift
+    local GEN3_ROOT_DIR="${1}"; shift
+    local GEN3_ACCOUNT="${1:-${ACCOUNT}}"; shift
+    local GEN3_PRODUCT="${1:-${PRODUCT}}"; shift
+    local GEN3_SEGMENT="${1:-${SEGMENT}}"; shift
+    local GEN3_PREFIX="${1}"; shift
     
-    export ACCOUNT="$(fileName "${ROOT_DIR}")"
     checkGen3Dir "CONFIG_DIR" "${PREFIX}" \
-        "${ROOT_DIR}/config" || return 1
+        "${GEN3_ROOT_DIR}/config" || return 1
     checkGen3Dir "INFRASTRUCTURE_DIR" "${PREFIX}" \
-        "${ROOT_DIR}/infrastructure" || return 1
+        "${GEN3_ROOT_DIR}/infrastructure" || return 1
 
     checkGen3Dir "TENANT_DIR" "${PREFIX}" \
-        "$(findSubDir "tenant.json" "${ROOT_DIR}")" || return 1
+        "$(findSubDir "tenant.json" "${GEN3_ROOT_DIR}")" || return 1
     checkGen3Dir "ACCOUNT_DIR" "${PREFIX}" \
-        "$(findSubDir "${ACCOUNT}/account.json" "${ROOT_DIR}")" || return 1
+        "$(findSubDir "${GEN3_ACCOUNT}/account.json" "${GEN3_ROOT_DIR}")" || return 1
     checkGen3Dir "ACCOUNT_INFRASTRUCTURE_DIR" "${PREFIX}" \
-        "$(findSubDir "${ACCOUNT}" "${ROOT_DIR}/infrastructure")" || return 1
+        "$(findSubDir "${GEN3_ACCOUNT}" "${GEN3_ROOT_DIR}/infrastructure")" || return 1
     eval "export ${PREFIX}ACCOUNT_APPSETTINGS_DIR=$(getGen3Env "ACCOUNT_DIR" "${PREFIX}")/appsettings"
     eval "export ${PREFIX}ACCOUNT_CREDENTIALS_DIR=$(getGen3Env "ACCOUNT_INFRASTRUCTURE_DIR" "${PREFIX}")/credentials"
 
-    if [[ -n "${PRODUCT}" ]]; then
+    if [[ -n "${GEN3_PRODUCT}" ]]; then
         checkGen3Dir "PRODUCT_DIR" "${PREFIX}" \
-            "$(findGen3ProductDir "${ROOT_DIR}" "${PRODUCT}")" || return 1
+            "$(findGen3ProductDir "${GEN3_ROOT_DIR}" "${GEN3_PRODUCT}")" || return 1
         checkGen3Dir "PRODUCT_INFRASTRUCTURE_DIR" "${PREFIX}" \
-            "$(findSubDir "${PRODUCT}" "${ROOT_DIR}/infrastructure")" || return 1
+            "$(findSubDir "${GEN3_PRODUCT}" "${GEN3_ROOT_DIR}/infrastructure")" || return 1
         eval "export ${PREFIX}PRODUCT_APPSETTINGS_DIR=$(getGen3Env "PRODUCT_DIR" "${PREFIX}")/appsettings"
         eval "export ${PREFIX}PRODUCT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_INFRASTRUCTURE_DIR" "${PREFIX}")/credentials"
-        if [[ -n "${SEGMENT}" ]]; then
+        if [[ -n "${GEN3_SEGMENT}" ]]; then
             checkGen3Dir "SEGMENT_DIR"  "${PREFIX}" \
-                "$(findGen3SegmentDir "${ROOT_DIR}" "${PRODUCT}" "${SEGMENT}")" || return 1
-            eval "export ${PREFIX}SEGMENT_APPSETTINGS_DIR=$(getGen3Env "PRODUCT_APPSETTINGS_DIR" "${PREFIX}")/${SEGMENT}"
-            eval "export ${PREFIX}SEGMENT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_CREDENTIALS_DIR" "${PREFIX}")/${SEGMENT}"
+                "$(findGen3SegmentDir "${GEN3_ROOT_DIR}" "${GEN3_PRODUCT}" "${GEN3_SEGMENT}")" || return 1
+            eval "export ${PREFIX}SEGMENT_APPSETTINGS_DIR=$(getGen3Env "PRODUCT_APPSETTINGS_DIR" "${PREFIX}")/${GEN3_SEGMENT}"
+            eval "export ${PREFIX}SEGMENT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_CREDENTIALS_DIR" "${PREFIX}")/${GEN3_SEGMENT}"
         fi
     fi
 }

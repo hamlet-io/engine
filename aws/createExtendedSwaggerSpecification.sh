@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '[[ -z ${GENERATION_DEBUG} ]] && rm -rf temp_*; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 # Defaults
 INTEGRATIONS_FILE_DEFAULT="apigw.json"

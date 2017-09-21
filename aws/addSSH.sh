@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 # Defaults
 
@@ -44,7 +44,7 @@ while getopts ":hn:" opt; do
     esac
 done
 
-. ${GENERATION_DIR}/setContext.sh
+. "${GENERATION_DIR}/setContext.sh"
 
 # Process the relevant directory
 if [[ "product" =~ ${LOCATION} ]]; then

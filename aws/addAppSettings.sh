@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 function usage() {
     cat <<EOF
@@ -54,7 +54,7 @@ while getopts ":hs:u" opt; do
 done
 
 # Set up the context
-. ${GENERATION_DIR}/setContext.sh
+. "${GENERATION_DIR}/setContext.sh"
 
 # Ensure we are in the segment directory
 checkInSegmentDirectory

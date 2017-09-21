@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 CERTIFICATE_OPERATION_LIST="list"
 CERTIFICATE_OPERATION_DELETE="delete"
@@ -112,7 +112,7 @@ case ${CERTIFICATE_OPERATION} in
 esac
 
 # Set up the context
-. ${GENERATION_DIR}/setContext.sh
+. "${GENERATION_DIR}/setContext.sh"
 
 case ${CERTIFICATE_OPERATION} in
     ${CERTIFICATE_OPERATION_LIST})

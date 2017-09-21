@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 # Defaults
 
@@ -60,7 +60,7 @@ PATTERN_DIR="${GENERATION_PATTERNS_DIR}/solutions/${SOLUTION_NAME}"
 [[ ! -d "${PATTERN_DIR}" ]] && fatal "Solution pattern is not known"
 
 # Set up the context
-. ${GENERATION_DIR}/setContext.sh
+. "${GENERATION_DIR}/setContext.sh"
 
 # Ensure we are in the product or segment directory
 if [[ ("product" =~ "${LOCATION}") ]]; then

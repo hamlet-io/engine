@@ -2,7 +2,7 @@
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 
@@ -125,7 +125,7 @@ done
 CRYPTO_OPERATION="${CRYPTO_OPERATION:-$CRYPTO_OPERATION_DEFAULT}"
 
 # Set up the context - LOCATION will tell us where we are
-. ${GENERATION_DIR}/setContext.sh
+. "${GENERATION_DIR}/setContext.sh"
 
 # Set up the list of files to check
 FILES=()

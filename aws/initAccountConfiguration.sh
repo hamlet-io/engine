@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-. ${GENERATION_DIR}/common.sh
+. "${GENERATION_DIR}/common.sh"
 
 # Defaults
 ALMSIZE_DEFAULT="small"
