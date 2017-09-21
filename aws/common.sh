@@ -31,6 +31,10 @@ function info() {
     message "Info" "$@"
 }
 
+function warn() {
+    message "Warning" "$@"
+}
+
 function error() {
     message "Error" "$@" >&2
 }
