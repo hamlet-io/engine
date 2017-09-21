@@ -11,7 +11,7 @@
     ((-z "${DEPLOYMENT_UNIT}") && (! ("${TYPE}" =~ product ))) ]] && fatalMandatory
 
 # Set up the context
-. ${GENERATION_DIR}/setContext.sh
+. "${GENERATION_DIR}/setContext.sh"
 
 case $TYPE in
     account|product)
