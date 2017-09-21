@@ -137,10 +137,9 @@ function findSubDir() {
     shift
     local ROOT_DIR="${1:-$(pwd)}"
 
-
     local NULLGLOB=$(shopt -p nullglob)
     local GLOBSTAR=$(shopt -p globstar)
-    
+
     shopt -s nullglob globstar
     MATCHES=("${ROOT_DIR}"/**/${MARKER})
 
@@ -150,7 +149,7 @@ function findSubDir() {
     if [[ $(arrayIsEmpty "MATCHES") ]]; then
         return 1
     fi
-    
+
     [[ -f "${MATCHES[0]}" ]] && \
         echo -n "$(filePath "${MATCHES[0]}")" || \
         echo -n "${MATCHES[0]}"
@@ -181,7 +180,7 @@ function arrayIsEmpty() {
 function addToArrayWithPrefix() {
     local ARRAY="${1}"; shift
     local PREFIX="${1}"; shift
-    
+
     for ARG in "$@"; do
         if [[ -n "${ARG}" ]]; then
             eval "${ARRAY}+=(\"${PREFIX}${ARG}\")"
@@ -191,14 +190,14 @@ function addToArrayWithPrefix() {
 
 function addToArray() {
     local ARRAY="${1}"; shift
-    
+
     addToArrayWithPrefix "${ARRAY}" "" "$@"
 }
-    
+
 function addToArrayHeadWithPrefix() {
     local ARRAY="${1}"; shift
     local PREFIX="${1}"; shift
-    
+
     for ARG in "$@"; do
         if [[ -n "${ARG}" ]]; then
             eval "${ARRAY}=(\"${PREFIX}${ARG}\" \"\${${ARRAY}[@]}\")"
@@ -208,10 +207,10 @@ function addToArrayHeadWithPrefix() {
 
 function addToArrayHead() {
     local ARRAY="${1}"; shift
-    
+
     addToArrayHeadWithPrefix "${ARRAY}" "" "$@"
 }
-    
+
 # -- JSON manipulation --
 
 function runJQ() {
@@ -236,8 +235,8 @@ function runJQ() {
     # TODO: Add -L once path length limitations fixed
     jq "${JQ_ARGS[@]}"
     RETURN_VALUE=$?
-    
-    if [[ ! -n "${GENERATION_DEBUG}" ]]; then 
+
+    if [[ ! -n "${GENERATION_DEBUG}" ]]; then
         rm -rf ./temp_jq
     fi
     return ${RETURN_VALUE}
@@ -246,7 +245,7 @@ function runJQ() {
 function getJSONValue() {
     local JSON_FILE="${1}"; shift
     local VALUE
-    
+
     for PATTERN in "$@"; do
         VALUE=$(runJQ -r "${PATTERN} | select (.!=null)" < "${STACK_FILE}")
         [[ -n "${VALUE}" ]] && echo "${VALUE}" && return 0
@@ -322,14 +321,14 @@ function syncCMDBFilesToOperationsBucket() {
 function deleteCMDBFilesFromOperationsBucket() {
     local prefix="${1}"; shift
     local dryrun="${1}"; shift
-        
+
     deleteTreeFromBucket ${REGION} $(getOperationsBucket)  "${prefix}/${PRODUCT}/${SEGMENT}${DEPLOYMENT_UNIT}" ${dryrun}
 }
 
 # -- Composites --
 
 function parseStackFilename() {
-    
+
     # Parse stack name for key values
     # Account is not yet part of the stack filename
     contains $(fileName "${1}") "([a-z0-9]+)-(.+)-([a-z]{2}-[a-z]+-[1-9])-stack.json"
@@ -342,7 +341,7 @@ function parseStackFilename() {
 function getCompositeStackOutput() {
     local STACK_FILE="${1}"; shift
     local PATTERNS=()
-    
+
     for KEY in "$@"; do
         PATTERNS+=(".[] | .${KEY} ")
     done
@@ -367,7 +366,7 @@ function getCmk() {
     getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "cmkX${LEVEL}" "cmkX${LEVEL}Xcmk"
 }
 
-function getBluePrintParameter() {   
+function getBluePrintParameter() {
     getJSONValue "${COMPOSITE_BLUEPRINT}" "$@"
 }
 
@@ -380,7 +379,7 @@ function findGen3RootDir() {
     local CONFIG_ROOT_DIR="$(filePath "$(findAncestorDir config "${CURRENT}")")"
     local INFRASTRUCTURE_ROOT_DIR="$(filePath "$(findAncestorDir infrastructure "${CURRENT}")")"
     local ROOT_DIR="${CONFIG_ROOT_DIR:-${INFRASTRUCTURE_ROOT_DIR}}"
-        
+
     if [[ (-d "${ROOT_DIR}/config") && (-d "${ROOT_DIR}/infrastructure") ]]; then
         echo -n "${ROOT_DIR}"
         return 0
@@ -391,18 +390,18 @@ function findGen3RootDir() {
 function findGen3ProductDir() {
     local GEN3_ROOT_DIR="${1}"; shift
     local GEN3_PRODUCT="${1:=${PRODUCT}}"
-    
-    findSubDir "${GEN3_PRODUCT}/product.json" "${GEN3_ROOT_DIR}" 
+
+    findSubDir "${GEN3_PRODUCT}/product.json" "${GEN3_ROOT_DIR}"
 }
 
 function findGen3SegmentDir() {
     local GEN3_ROOT_DIR="${1}"; shift
     local GEN3_PRODUCT="${1:-${PRODUCT}}"; shift
     local GEN3_SEGMENT="${1:-${SEGMENT}}"
-    
+
     local GEN3_PRODUCT_DIR="$(findGen3ProductDir "${GEN3_ROOT_DIR}" "${GEN3_PRODUCT}")"
     [[ -z "${GEN3_PRODUCT_DIR}" ]] && return 1
-    
+
     findSubDir "solutions/${GEN3_SEGMENT}/segment.json"   "${GEN3_PRODUCT_DIR}" ||
     findSubDir "solutions/${GEN3_SEGMENT}/container.json" "${GEN3_PRODUCT_DIR}"
 }
@@ -410,7 +409,7 @@ function findGen3SegmentDir() {
 function getGen3Env() {
     local GEN3_ENV="${1}"; shift
     local GEN3_PREFIX="${1}"
-    
+
     local GEN3_ENV_NAME="${GEN3_PREFIX}${GEN3_ENV}"
     echo "${!GEN3_ENV_NAME}"
 }
@@ -437,7 +436,7 @@ function findGen3Dirs() {
     local GEN3_PRODUCT="${1:-${PRODUCT}}"; shift
     local GEN3_SEGMENT="${1:-${SEGMENT}}"; shift
     local GEN3_PREFIX="${1}"; shift
-    
+
     checkGen3Dir "CONFIG_DIR" "${PREFIX}" \
         "${GEN3_ROOT_DIR}/config" || return 1
     checkGen3Dir "INFRASTRUCTURE_DIR" "${PREFIX}" \
@@ -469,24 +468,21 @@ function findGen3Dirs() {
 }
 
 function checkInRootDirectory() {
-    [[ ! ("root" =~ "${1:-$LOCATION}}") ]] && fatalDirectory "root"
+    [[ ! ("root" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "root"
 }
 
 function checkInSegmentDirectory() {
-    [[ ! ("segment" =~ "${1:-$LOCATION}}") ]] && fatalDirectory "segment"
+    [[ ! ("segment" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "segment"
 }
 
 function checkInProductDirectory() {
-    [[ ! ("product" =~ "${1:-$LOCATION}}") ]] && fatalDirectory "product"
+    [[ ! ("product" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "product"
 }
 
 function checkInAccountDirectory() {
-    [[ ! ("account" =~ "${1:-$LOCATION}}") ]] && fatalDirectory "account"
+    [[ ! ("account" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "account"
 }
 
 function fatalProductOrSegmentDirectory() {
     fatalDirectory "product or segment"
 }
-
-
-
