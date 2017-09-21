@@ -13,5 +13,6 @@
     "Outputs" : {
         [#assign solutionListMode="outputs"]
         [#include "componentList.ftl"]
+        [@cfTemplateGlobalOutputs "outputs" "solution" /]
     }
 }

@@ -8,7 +8,7 @@
                 extensions)]
 [/#function]
 
-[#function formatComponentWAFRuleName tier component extensions...]
+[#function formatComponentWAFAclName tier component extensions...]
     [#return formatComponentFullName(
                 tier,
                 component,

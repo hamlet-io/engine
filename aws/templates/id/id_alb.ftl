@@ -2,9 +2,11 @@
 
 [#-- Resources --]
 
+[#assign ALB_RESOURCE_TYPE = "alb" ]
+
 [#function formatALBId tier component extensions...]
     [#return formatComponentResourceId(
-                "alb",
+                ALB_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -16,7 +18,7 @@
                 tier,
                 component,
                 extensions,
-                source.Port?c)]
+                source.Port)]
 [/#function]
 
 [#function formatALBListenerRuleId tier component source name extensions...]
@@ -25,7 +27,7 @@
                 tier,
                 component,
                 extensions,
-                source.Port?c,
+                source.Port,
                 name)]
 [/#function]
 
@@ -35,21 +37,21 @@
                 tier,
                 component,
                 extensions,
-                source.Port?c,
+                source.Port,
                 name)]
 [/#function]
 
-[#function formatALBSecurityGroupId tier component]
+[#function formatALBSecurityGroupId tier component extensions...]
     [#return formatComponentSecurityGroupId(
                 tier,
-                component)]
+                component,
+                extensions)]
 [/#function]
 
-[#function formatALBListenerSecurityGroupIngressId tier component source]
-    [#return formatComponentSecurityGroupIngressId(
-                tier,
-                component,
-                source.Port?c)]
+[#function formatALBListenerSecurityGroupIngressId resourceId source ]
+    [#return formatDependentSecurityGroupIngressId(
+                resourceId,
+                source.Port)]
 [/#function]
 
 [#-- Attributes --]

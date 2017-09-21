@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 
@@ -51,23 +52,18 @@ while getopts ":hi:p:qr:" opt; do
             REGION="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${CERTIFICATE_ID}") ||
+[[ (-z "${CERTIFICATE_ID}") ||
       (-z "${CERTIFICATE_PUBLIC}") ||
-      (-z "${REGION}") ]]; then
-  echo -e "\nInsufficient arguments" >&2
-  exit
-fi
+      (-z "${REGION}") ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh

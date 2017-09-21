@@ -1,8 +1,9 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+if [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-    
+. ${GENERATION_DIR}/common.sh
+
 # Defaults
 
 function usage() {
@@ -80,36 +81,26 @@ while getopts ":a:c:d:fhl:n:o:r:t:u" opt; do
             UPDATE_ACCOUNT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${TENANT}") ||
-      (-z "${ACCOUNT}") ]]; then
-  echo -e "\nInsufficient arguments" >&2
-  exit
-fi
+[[ (-z "${TENANT}") ||
+    (-z "${ACCOUNT}") ]] && fatalMandatory
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
-if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
-    exit
-fi
+[[ ! -f "${INTEGRATOR_PROFILE}" ]] && \
+    fatalLocation "We don't appear to be in the root of the integrator tree."
 
 # Ensure the tenant already exists
 TENANT_DIR="$(pwd)/tenants/${TENANT}"
-if [[ ! -d "${TENANT_DIR}" ]]; then
-    echo -e "\nThe tenant needs to be added before the account" >&2
-    exit
-fi
+[[ ! -d "${TENANT_DIR}" ]] && fatal "The tenant needs to be added before the account"
 
 # Create the directory for the account, potentially using a shelf account
 ACCOUNTS_DIR="${TENANT_DIR}/accounts"
@@ -136,11 +127,9 @@ fi
 # Check whether the account profile is already in place
 ACCOUNT_PROFILE=${ACCOUNT_DIR}/account.json
 if [[ -f ${ACCOUNT_PROFILE} ]]; then
-    if [[ ("${UPDATE_ACCOUNT}" != "true") &&
-          (-z "${LAST_SHELF_ACCOUNT}") ]]; then
-        echo -e "\nAccount profile already exists. Maybe try using update option?" >&2
-        exit
-    fi
+    [[ ("${UPDATE_ACCOUNT}" != "true") &&
+        (-z "${LAST_SHELF_ACCOUNT}") ]] && \
+        fatal "Account profile already exists. Maybe try using update option?"
 else
     echo "{\"Account\":{}}" > ${ACCOUNT_PROFILE}
     AID="${AID:-${ACCOUNT}}"
@@ -171,13 +160,9 @@ jq --indent 4 \
 --arg CERTIFICATE_ID "${CERTIFICATE_ID}" \
 "${FILTER}" < ${ACCOUNT_PROFILE} > ${ACCOUNT_DIR}/temp_account.json
 RESULT=$?
+[[ ${RESULT} -ne 0 ]] && fatal "Error creating account profile"
 
-if [[ ${RESULT} -eq 0 ]]; then
-    mv ${ACCOUNT_DIR}/temp_account.json ${ACCOUNT_DIR}/account.json
-else
-    echo -e "\nError creating account profile" >&2
-    exit
-fi
+mv ${ACCOUNT_DIR}/temp_account.json ${ACCOUNT_DIR}/account.json
 
 # Provide an empty credentials profile for the account
 if [[ ! -f ${ACCOUNT_DIR}/credentials.json ]]; then

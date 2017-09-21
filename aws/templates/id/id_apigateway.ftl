@@ -2,9 +2,11 @@
 
 [#-- Resources --]
 
+[#assign APIGATEWAY_RESOURCE_TYPE = "api" ]
+
 [#function formatAPIGatewayId tier component extensions...]
     [#return formatComponentResourceId(
-                "api",
+                APIGATEWAY_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -23,6 +25,13 @@
                 "apiStage",
                 tier,
                 component,
+                extensions)]
+[/#function]
+
+[#function formatDependentAPIGatewayDomainId resourceId extensions...]
+    [#return formatDependentResourceId(
+                "apiDomain",
+                resourceId,
                 extensions)]
 [/#function]
 

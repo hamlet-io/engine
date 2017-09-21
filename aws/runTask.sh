@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 DELAY_DEFAULT=30
@@ -68,18 +69,17 @@ while getopts ":d:e:hi:t:v:w:" opt; do
             TIER="${OPTARG}"
             ;;
         v)
+            # TODO: add escaping of quotes in OPTARG
             ENV_STRUCTURE="${ENV_STRUCTURE}{\"name\":\"${ENV_NAME}\", \"value\":\"${OPTARG}\"}"
             ;;
         w)
             TASK="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -90,24 +90,18 @@ COMPONENT="${COMPONENT:-${COMPONENT_DEFAULT}}"
 ENV_STRUCTURE="${ENV_STRUCTURE}]"
 
 # Ensure mandatory arguments have been provided
-if [[ "${TASK}"  == "" ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ -z "${TASK}" ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
 # Ensure we are in the right place
-if [[ "${LOCATION}" != "segment" ]]; then
-    echo -e "\nWe don't appear to be in the right directory. Nothing to do" >&2
-    exit
-fi
+checkInSegmentDirectory
 
 # Extract key identifiers
-RID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Id" < ${COMPOSITE_BLUEPRINT})
-CID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .Id" < ${COMPOSITE_BLUEPRINT})
-KID=$(jq -r ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .ECS.Tasks[] | objects | select(.Name==\"${TASK}\") | .Id" < ${COMPOSITE_BLUEPRINT})
+RID=$(getJSONValue "COMPOSITE_BLUEPRINT" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Id")
+CID=$(getJSONValue "COMPOSITE_BLUEPRINT" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .Id")
+KID=$(getJSONValue "COMPOSITE_BLUEPRINT" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .ECS.Tasks[] | objects | select(.Name==\"${TASK}\") | .Id")
 
 # Remove component type
 CID="${CID%-*}"
@@ -120,17 +114,11 @@ CONTAINER="${KID%X*}"
 
 # Find the cluster
 CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
-if [[ -z "${CLUSTER_ARN}" ]]; then
-    echo -e "\nUnable to locate ECS cluster" >&2
-    exit
-fi
+[[ -z "${CLUSTER_ARN}" ]] && fatal "Unable to locate ECS cluster"
 
 # Find the task definition
 TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
-if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
-    echo -e "\nUnable to locate task definition" >&2
-    exit
-fi
+[[ -z "${TASK_DEFINITION_ARN}" ]] && fatal "Unable to locate task definition"
 
 # Find the container - support legacy naming
 for CONTAINER_NAME in "${CONTAINER}" "${TIER}-${COMPONENT}-${CONTAINER}"; do

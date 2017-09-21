@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 JSON_FORMAT_DEFAULT="--indent 4"
@@ -59,12 +60,10 @@ while getopts ":cdf:ho:" opt; do
             JSON_OUTPUT="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -78,42 +77,24 @@ JSON_ARRAY=(${JSON_LIST})
 JSON_ARRAY+=("$@")
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${JSON_OUTPUT}") || ("${#JSON_ARRAY[@]}" -eq 0) ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
-
-# Temporary hack to get around segmentation fault
-# Hopefully fixed in next official release after 1.5
-JSON_ARRAY_SHORT=()
-JSON_INDEX=0
-for F in "${JSON_ARRAY[@]}"; do
-    TEMP="./temp_${JSON_INDEX}.json"
-    cp $F "${TEMP}"
-    JSON_ARRAY_SHORT+=("$TEMP")
-    JSON_INDEX=$(( $JSON_INDEX + 1 ))
-done
-
+[[ (-z "${JSON_OUTPUT}") ||
+    ("${#JSON_ARRAY[@]}" -eq 0) ]] && fatalMandatory
 
 # Merge the files
 if [[ -z "${JSON_FILTER}" ]]; then
     FILTER_INDEX=0
     JSON_FILTER=".[${FILTER_INDEX}]"
     for F in "${JSON_ARRAY[@]}"; do
-        if [[ "${FILTER_INDEX}" > 0 ]]; then
-            JSON_FILTER="${JSON_FILTER} * .[$FILTER_INDEX]"
-        fi
+        [[ "${FILTER_INDEX}" > 0 ]] && JSON_FILTER="${JSON_FILTER} * .[$FILTER_INDEX]"
         FILTER_INDEX=$(( $FILTER_INDEX + 1 ))
     done
 fi
 if [[ "${JSON_ADD_DEFAULTS}" == "true" ]]; then
-    # TODO remove next line when path length limitations in jq are fixed
-    cp ${GENERATION_DIR}/addDefaults.jq ./temp_addDefaults.jq
-    jq -s "${JSON_FILTER}" "${JSON_ARRAY_SHORT[@]}" | jq ${JSON_FORMAT} -f ./temp_addDefaults.jq > ${JSON_OUTPUT}
+    runJQ -s "${JSON_FILTER}" "${JSON_ARRAY[@]}" | \
+    runJQ ${JSON_FORMAT} -f ${GENERATION_DIR}/addDefaults.jq > ${JSON_OUTPUT}
 else
-    jq ${JSON_FORMAT} -s "${JSON_FILTER}" "${JSON_ARRAY_SHORT[@]}" > ${JSON_OUTPUT}
+    runJQ ${JSON_FORMAT} -s "${JSON_FILTER}" "${JSON_ARRAY[@]}" > ${JSON_OUTPUT}
 fi
 RESULT=$?
-if [[ "${RESULT}" -eq 0 ]]; then dos2unix "${JSON_OUTPUT}" 2> /dev/null; fi
-if [[ ! -n "${GENERATION_DEBUG}" ]]; then rm -f "${JSON_ARRAY_SHORT[@]}"; fi
+[[ "${RESULT}" -eq 0 ]] && dos2unix "${JSON_OUTPUT}" 2> /dev/null
 #

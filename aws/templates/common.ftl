@@ -9,7 +9,7 @@
         [#local argValue = arg]
         [#if argValue?is_sequence]
             [#local argValue = concatenate(argValue, separator)]
-        [/#if]
+        [/#if]f
         [#if argValue?is_hash]
             [#switch separator]
                 [#case "X"]
@@ -36,6 +36,9 @@
                     [#break]
             [/#switch]
         [/#if]
+        [#if argValue?is_number]
+            [#local argValue = argValue?c]
+        [/#if]
         [#if argValue?has_content]
             [#local content +=
                 [
@@ -50,46 +53,30 @@
 [#-- Check if a deployment unit occurs anywhere in provided object --]
 [#function deploymentRequired obj unit]
     [#if obj?is_hash]
-        [#if allDeploymentUnits?has_content && allDeploymentUnits][#return true][/#if]
-        [#if obj.DeploymentUnits?? && obj.DeploymentUnits?seq_contains(unit)]
+        [#if allDeploymentUnits!false]
             [#return true]
-        [#else]
-            [#list obj?values as attribute]
-                [#if deploymentRequired(attribute unit)]
-                    [#return true]
-                [/#if]
-            [/#list]
         [/#if]
+        [#if !unit?has_content]
+            [#return true]
+        [/#if]
+        [#if obj.DeploymentUnits?has_content && obj.DeploymentUnits?seq_contains(unit)]
+            [#return true]
+        [/#if]
+        [#list obj?values as attribute]
+            [#if deploymentRequired(attribute unit)]
+                [#return true]
+            [/#if]
+        [/#list]
     [/#if]
     [#return false]
 [/#function]
 
 [#function deploymentSubsetRequired subset default=false]
     [#return 
-        (deploymentUnitSubset?has_content &&
-        deploymentUnitSubset?lower_case?contains(subset)) ||
-        ((!deploymentUnitSubset?has_content) && default)]
-[/#function]
-
-[#-- Get stack output --]
-[#-- Include resource with explict region that matches the current region --]
-[#-- Note that region can still be provided in the args, in which case --]
-[#-- check against current region will fail --]
-[#function getKey args...]
-    [#local key = formatId(args)]
-    [#local regionalKey = formatId(key,region?replace('-',"X"))]
-    [#list stackOutputsObject as pair]
-        [#if (pair.OutputKey == key) ||
-                (pair.OutputKey == regionalKey)]
-            [#return pair.OutputValue]
-        [/#if]
-    [/#list]
-    [#return ""]
-[/#function]
-
-[#-- Get stack output by region --]
-[#function getKeyByRegion region args...]
-    [#return getKey(args,region?replace('-',"X"))]
+        deploymentUnitSubset?has_content?then(
+            deploymentUnitSubset?lower_case?contains(subset),
+            default
+        )]
 [/#function]
 
 [#-- Calculate the closest power of 2 --]
@@ -216,7 +203,7 @@
 
 [#-- Get the type for a component --]
 [#function getComponentType component]
-    [#assign idParts = component.Id?split("-")]
+    [#local idParts = component.Id?split("-")]
     [#if idParts[1]??]
         [#return idParts[1]?lower_case]
     [#else]
@@ -238,6 +225,50 @@
     [/#if]
 [/#function]
 
+[#-- Get the type for a component --]
+[#function getComponentType component]
+    [#local idParts = component.Id?split("-")]
+    [#if idParts[1]??]
+        [#return idParts[1]?lower_case]
+    [#else]
+        [#list component?keys as key]
+            [#switch key]
+                [#case "Id"]
+                [#case "Name"]
+                [#case "Title"]
+                [#case "Description"]
+                [#case "DeploymentUnits"]
+                [#case "MultiAZ"]
+                    [#break]
+
+                [#default]
+                    [#return key?lower_case]
+                    [#break]
+            [/#switch]
+        [/#list]
+    [/#if]
+[/#function]
+
+[#-- Get the type object for a component --]
+[#function getComponentTypeObject component]
+    [#list component as key,value]
+        [#switch key]
+            [#case "Id"]
+            [#case "Name"]
+            [#case "Title"]
+            [#case "Description"]
+            [#case "DeploymentUnits"]
+            [#case "MultiAZ"]
+                [#break]
+
+            [#default]
+                [#return value]
+                [#break]
+        [/#switch]
+    [/#list]
+    [#return {}]
+[/#function]
+
 [#-- Get a component within a tier --]
 [#function getComponent tierId componentId type=""]
     [#if isTier(tierId) && (getTier(tierId).Components)??]
@@ -246,12 +277,270 @@
                 [#return component]
             [/#if]
             [#if type?has_content &&
-                    (getComponentId(component) == componentId) &&
-                    (getComponentType(component) == type)]
+                (getComponentId(component) == componentId) &&
+                (getComponentType(component) == type)]
                 [#return component]
             [/#if]
         [/#list]
     [/#if]
+    [#return {} ]
+[/#function]
+
+[#-- Get the type specific attributes of versions/instances of a component --]
+[#function getComponentOccurenceAttributes attributes=[] root={} version={} instance={} ]
+    [#local result = {} ]
+    [#list asArray(attributes) as attribute]
+        [#local attributeName = attribute?is_hash?then(attribute.Name, attribute) ]
+        [#local children = attribute?is_hash?then(attribute.Children![], []) ]
+        [#local attributeDefault = attribute?is_hash?then(attribute.Default!"","") ]
+        [#local isConfigured =
+                    instance[attributeName]?? ||
+                    version[attributeName]?? ||
+                    root[attributeName]?? ]
+        [#local result +=
+            {
+                attributeName + "IsConfigured": isConfigured
+            }
+        ]
+        [#local result +=
+            {
+                attributeName :
+                    children?has_content?then(
+                        getComponentOccurenceAttributes(
+                            children,
+                            root[attributeName]!{},
+                            version[attributeName]!{},
+                            instance[attributeName]!{}
+                        ),
+                        instance[attributeName]!
+                            version[attributeName]!
+                            root[attributeName]!
+                            attributeDefault
+                    )
+            }
+        ]
+    [/#list]
+    [#return result ] 
+[/#function]
+
+[#-- A "default" version/instance doesn't need extensions --]
+[#function getComponentOccurrenceIdExtension occurrence]
+    [#return
+        (occurrence.Id == "default")?then(
+            "",
+            occurrence.Id
+        )
+    ]
+[/#function]
+
+[#function getComponentOccurrenceNameExtension occurrence]
+    [#return
+        getComponentOccurrenceIdExtension(occurrence)?has_content?then(
+            occurrence.Name,
+            ""
+        )
+    ]
+[/#function]
+
+[#-- Component attributes object can be extended dynamically by each component type --]
+[#assign componentAttributes =
+    {
+        "alb" :
+            [
+                {
+                    "Name" : "Logs",
+                    "Default" : false
+                },
+                {
+                    "Name" : "PortMappings",
+                    "Default" : []
+                },
+                {
+                    "Name" : "IPAddressGroups",
+                    "Default" : []
+                },
+                {
+                    "Name" : "DNS",
+                    "Default" : {}
+                }
+            ],
+        "apigateway" :
+            [
+                {
+                    "Name" : "Links",
+                    "Default" : {}
+                },
+                {
+                    "Name" : "WAF",
+                    "Children" : [
+                        {
+                            "Name" : "IPAddressGroups",
+                            "Default" : []
+                        },
+                        {
+                            "Name" : "Default"
+                        },
+                        {
+                            "Name" : "RuleDefault"
+                        }
+                    ]
+                },
+                {
+                    "Name" : "CloudFront",
+                    "Children" : [
+                        {
+                            "Name" : "AssumeSNI",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "EnableLogging",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "CountryGroups",
+                            "Default" : []
+                        }
+                    ]
+                },
+                {
+                    "Name" : "DNS",
+                    "Children" : [
+                        {
+                            "Name" : "Host",
+                            "Default" : ""
+                        }
+                    ]
+                }
+            ],
+        "lambda" :
+            [
+                {
+                    "Name" : "Functions",
+                    "Default" : {}
+                }
+            ],
+        "s3" : 
+            [
+                "Lifecycle",
+                "Style",
+                "Notifications"
+            ],
+        "sqs" : 
+            [
+                "DelaySeconds",
+                "MaximumMessageSize",
+                "MessageRetentionPeriod",
+                "ReceiveMessageWaitTimeSeconds",
+                "VisibilityTimeout"               
+            ]
+    }
+]
+
+[#-- Get the versions/instances of a component --]
+[#function getComponentOccurrences component deploymentUnit=""]
+    [#local typeObject = getComponentTypeObject(component)]
+    [#local attributes = componentAttributes[getComponentType(component)]![] ]
+    [#local occurrences=[] ]
+    [#if typeObject.Versions?has_content]
+        [#list typeObject.Versions?values as version]
+            [#if version?is_hash && deploymentRequired(version, deploymentUnit)]
+                [#local versionIdExtension = getComponentOccurrenceIdExtension(version)]
+                [#local versionNameExtension = getComponentOccurrenceNameExtension(version)]
+                [#if version.Instances?has_content]
+                    [#list version.Instances?values as instance]
+                        [#if instance?is_hash && deploymentRequired(instance, deploymentUnit)]
+                            [#local instanceIdExtension = getComponentOccurrenceIdExtension(instance)]
+                            [#local instanceNameExtension = getComponentOccurrenceNameExtension(instance)]
+                            [#local occurrences +=
+                                [
+                                    {
+                                        "Root" : typeObject,
+                                        "Version" : version,
+                                        "Instance" : instance,
+                                        "VersionId" : version.Id,
+                                        "VersionName" : versionNameExtension,
+                                        "InstanceId" : instance.Id,
+                                        "InstanceName" : instanceNameExtension,
+                                        "Internal" : {
+                                            "IdExtensions" : [versionIdExtension, instanceIdExtension],
+                                            "NameExtensions" : [versionNameExtension, instanceNameExtension]
+                                        }
+                                    } +
+                                    getComponentOccurenceAttributes(attributes, typeObject, version, instance)
+                                ]
+                            ]
+                        [/#if]
+                    [/#list]
+                [#else]
+                    [#local occurrences +=
+                        [
+                            {
+                                "Root" : typeObject,
+                                "Version" : version,
+                                "Instance" : {},
+                                "VersionId" : version.Id,
+                                "VersionName" : versionNameExtension,
+                                "InstanceId" : "",
+                                "InstanceName" : "",
+                                "Internal" : {
+                                    "IdExtensions" : [versionIdExtension],
+                                    "NameExtensions" : [versionNameExtension]
+                                }
+                            } +
+                            getComponentOccurenceAttributes(attributes, typeObject, version)
+                        ]
+                    ]
+                [/#if]
+            [/#if]
+        [/#list]
+    [#else]
+        [#if typeObject.Instances?has_content]
+            [#list typeObject.Instances?values as instance]
+                [#if instance?is_hash && deploymentRequired(instance, deploymentUnit)]
+                    [#local instanceIdExtension = getComponentOccurrenceIdExtension(instance)]
+                    [#local instanceNameExtension = getComponentOccurrenceNameExtension(instance)]
+                    [#local occurrences +=
+                        [
+                            {
+                                "Root" : typeObject,
+                                "Version" : {},
+                                "Instance" : instance,
+                                "VersionId" : "",
+                                "VersionName" : "",
+                                "InstanceId" : instance.Id,
+                                "InstanceName" : instanceNameExtension,
+                                "Internal" : {
+                                    "IdExtensions" : [instanceIdExtension],
+                                    "NameExtensions" : [instanceNameExtension]
+                                }
+                            } +
+                            getComponentOccurenceAttributes(attributes, typeObject, {}, instance)
+                        ]
+                    ]
+                [/#if]
+            [/#list]
+        [#else]
+            [#local occurrences +=
+                [
+                    {
+                        "Root" : typeObject,
+                        "Version" : {},
+                        "Instance" : {},
+                        "VersionId" : "",
+                        "VersionName" : "",
+                        "InstanceId" : "",
+                        "InstanceName" : "",
+                        "Internal" : {
+                            "IdExtensions" : [],
+                            "NameExtensions" : []
+                        }
+                    } +
+                    getComponentOccurenceAttributes(attributes, typeObject)
+                ]
+            ]
+        [/#if]
+    [/#if]
+    [#return occurrences ]
 [/#function]
 
 [#-- Get processor settings --]
@@ -302,25 +591,6 @@
     [/#if]
 [/#function]
 
-[#-- Is a resource part of a deployment unit --]
-[#function isPartOfDeploymentUnit id deploymentUnit deploymentUnitSubset]
-    [#local resourceValue = getKey(id)]
-    [#local creatingDeploymentUnit = getKey(formatDeploymentUnitAttributeId(id))]
-    [#local currentDeploymentUnit = 
-                deploymentUnit +
-                deploymentUnitSubset?has_content?then(
-                    "-" + deploymentUnitSubset?lower_case,
-                    "")]
-    [#return !(resourceValue?has_content &&
-                creatingDeploymentUnit?has_content &&
-                creatingDeploymentUnit != currentDeploymentUnit)]
-[/#function]
-
-[#-- Is a resource part of the current deployment unit --]
-[#function isPartOfCurrentDeploymentUnit id]
-    [#return isPartOfDeploymentUnit(id, deploymentUnit, deploymentUnitSubset!"")]
-[/#function]
-
 [#-- Utility Macros --]
 
 [#-- Output object as JSON --]
@@ -356,78 +626,54 @@
     ${escaped?then(
         getJSON(obj)?json_string,
         getJSON(obj))}[/#macro]
-
-[#-- Include a reference to a resource --]
-[#-- Allows resources to share a template or be separated --]
-[#-- Note that if separate, creation order becomes important --]
-[#function getReference value]
-    [#if value?is_hash]
-        [#return { "Ref" : value.Ref }]
-    [#else]
-        [#if isPartOfCurrentDeploymentUnit(value)]
-            [#return { "Ref" : value }]
-        [#else]
-            [#return getKey(value)]
-        [/#if]
-    [/#if]
+        
+[#function asArray arg]
+    [#return arg?is_sequence?then(arg, [arg])]
 [/#function]
 
-[#macro createReference value]
-    [@toJSON getReference(value) /]
-[/#macro]
-
-[#function getArnReference resourceId]
-    [#if isPartOfCurrentDeploymentUnit(resourceId)]
-        [#return { "Fn::GetAtt" : [resourceId, "Arn"] }]
-    [#else]
-        [#return getKey(formatArnAttributeId(resourceId))]
-    [/#if]
+[#function asString arg attribute]
+    [#return
+        arg?is_string?then(
+            arg,
+            arg?is_hash?then(
+                arg[attribute]?has_content?then(
+                    asString(arg[attribute], attribute),
+                    ""
+                ),
+                arg[0]?has_content?then(
+                    asString(arg[0], attribute),
+                    ""
+                )
+            )
+        )
+    ]
 [/#function]
-
-[#macro createArnReference resourceId]
-    [@toJSON getArnReference(resourceId) /]
-[/#macro]
 
 [#-- Outputs generation --]
-[#macro outputValue outputId value region=""]
-    [#local fullOutputId =
-                outputId +
-                region?has_content?then(
-                    "X" + region?replace("-", "X"),
-                    "")]
-
+[#macro outputValue outputId value]
     [@checkIfResourcesCreated /]
-    "${fullOutputId}" : {
+    "${outputId}" : {
         "Value" : [@toJSON value /]
     }
     [@resourcesCreated /]
 [/#macro]
 
-[#macro output resourceId outputId="" region=""]
+[#macro output resourceId outputId=""]
     [@outputValue
         outputId?has_content?then(outputId,resourceId),
         {
             "Ref" : resourceId
-        },
-        region /]
-    [#-- Remember under which deployment unit this resource was created --]
-    [@outputValue
-        formatDeploymentUnitAttributeId(
-            outputId?has_content?then(outputId,resourceId)),
-            deploymentUnit + 
-                deploymentUnitSubset?has_content?then(
-                    "-" + deploymentUnitSubset?lower_case,
-                    ""),
-            region /]
+        }
+    /]
 [/#macro]
 
-[#macro outputAtt outputId resourceId attributeType region=""]
+[#macro outputAtt outputId resourceId attributeType]
     [@outputValue
         outputId,
         {
             "Fn::GetAtt" : [resourceId, attributeType] 
-        },
-        region /]
+        }
+    /]
 [/#macro]
 
 
@@ -435,67 +681,6 @@
     [@outputAtt
         formatArnAttributeId(resourceId)
         resourceId
-        "Arn" /]
-[/#macro]
-
-[#macro outputS3Url resourceId]
-    [@outputAtt
-        formatUrlAttributeId(resourceId)
-        resourceId
-        "WebsiteURL" /]
-[/#macro]
-
-[#macro outputSQSUrl resourceId]
-    [@output
-        resourceId
-        formatUrlAttributeId(resourceId) /]
-[/#macro]
-
-[#macro outputLBDns resourceId]
-    [@outputAtt
-        formatDnsAttributeId(resourceId)
-        resourceId
-        "DNSName" /]
-[/#macro]
-
-[#macro outputCFDns resourceId]
-    [@outputAtt
-        formatDnsAttributeId(resourceId)
-        resourceId
-        "DomainName" /]
-[/#macro]
-
-[#macro outputSQS resourceId]
-    [@outputAtt
-        resourceId
-        resourceId
-        "QueueName" /]
-[/#macro]
-
-[#macro outputIPAddress resourceId]
-    [@output
-        resourceId
-        formatIPAddressAttributeId(resourceId) /]
-[/#macro]
-
-[#macro outputAllocation resourceId]
-    [@outputAtt
-        formatAllocationAttributeId(resourceId)
-        resourceId
-        "AllocationId" /]
-[/#macro]
-
-[#macro outputRoot resourceId]
-    [@outputAtt
-        formatRootAttributeId(resourceId)
-        resourceId
-        "RootResourceId" /]
-[/#macro]
-
-[#macro outputTopicName resourceId region]
-    [@outputAtt
-        formatTopicNameAttributeId(resourceId)
-        resourceId
-        "TopicName"
-        region /]
+        "Arn"
+    /]
 [/#macro]

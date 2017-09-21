@@ -1,66 +1,73 @@
 [#-- VPC --]
 
 [#function getSecurityGroupIngressRules port cidr groupId=""]
-    [#local cidrs = cidr?is_sequence?then(
-            cidr,
-            [cidr]
-        )]
-    [#local rules = []]
-    [#list cidrs as cidrBlock]
-        [#local rule = {
+    [#local rules = [] ]
+    [#list asArray(cidr) as cidrBlock]
+        [#local rule =
+            {
                 "IpProtocol": ports[port]?has_content?then(
                                     ports[port].IPProtocol,
-                                    "-1"),
+                                    -1),
                 "FromPort": ports[port]?has_content?then(
-                                    ports[port].Port?c,
-                                    "1"),
+                                    ports[port].Port,
+                                    1),
                 "ToPort": ports[port]?has_content?then(
-                                    ports[port].Port?c,
-                                    "65535")
-            }]
+                                    ports[port].Port,
+                                    65535)
+            }
+        ]
 
         [#if groupId?has_content]
-            [#local rule += {
+            [#local rule +=
+                {
                     "GroupId": getReference(groupId)
-                }]
+                }
+            ]
         [/#if]
         [#if cidrBlock?contains("X")]
-            [#local rule += {
+            [#local rule +=
+                {
                     "SourceSecurityGroupId": getReference(cidrBlock)
-                }]
+                }
+            ]
         [#else]
             [#if cidrBlock?contains(":") ]
-                [#local rule += {
+                [#local rule +=
+                    {
                         "CidrIpv6": cidrBlock
-                    }]
+                    }
+                ]
             [#else]
-                [#local rule += {
+                [#local rule +=
+                    {
                         "CidrIp": cidrBlock
-                    }]
+                    }
+                ]
             [/#if]
         [/#if]
-        [#local rules += [rule]]
+        [#local rules += [rule] ]
     [/#list]
     [#return rules]
 [/#function]
 
 [#macro createSecurityGroupIngress mode id port cidr groupId]
-    [#local cidrs = cidr?is_sequence?then(
-            cidr,
-            [cidr]
-        )]
+    [#local cidrs = asArray(cidr) ]
     [#list cidrs as cidrBlock]
         [#switch mode]
             [#case "definition"]
                 [@cfTemplate
-                    mode,
-                    formatId(
-                        id,
-                        (cidrs?size > 1)?then(
-                            cidrBlock?index?c,
-                            "")),
-                    "AWS::EC2::SecurityGroupIngress",
-                    getSecurityGroupIngressRules(port, cidrBlock, groupId)[0]
+                    mode=mode
+                    id=
+                        formatId(
+                            id,
+                            (cidrs?size > 1)?then(
+                                cidrBlock?index,
+                                ""
+                            )
+                        )
+                    type="AWS::EC2::SecurityGroupIngress"
+                    properties=
+                        getSecurityGroupIngressRules(port, cidrBlock, groupId)[0]
                 /]
             [#break]
         [/#switch]
@@ -68,36 +75,40 @@
 [/#macro]
 
 [#macro createSecurityGroup mode tier component id name description="" ingressRules=""]
-    [#local nonemptyIngressRules = []]
+    [#local nonemptyIngressRules = [] ]
     [#if ingressRules?has_content && ingressRules?is_sequence]
         [#list ingressRules as ingressRule]
             [#if ingressRule.CIDR?has_content]
                 [#local nonemptyIngressRules +=
                             getSecurityGroupIngressRules(
                                 ingressRule.Port,
-                                ingressRule.CIDR)]
+                                ingressRule.CIDR) ]
             [/#if]
         [/#list]
     [/#if]
-    [#local properties = {
+    [#local properties =
+        {
             "GroupDescription" : description?has_content?then(description, name),
             "VpcId" : (vpcId?has_content)?then(
-                        getReference(vpcId),
-                        vpc)
-        }]
+                            getReference(vpcId),
+                            vpc
+                      )
+        }
+    ]
     [#if nonemptyIngressRules?has_content]
-        [#local properties += {
+        [#local properties +=
+            {
                 "SecurityGroupIngress" : nonemptyIngressRules
-            }]
+            }
+        ]
     [/#if]
 
     [@cfTemplate
-        mode,
-        id,
-        "AWS::EC2::SecurityGroup",
-        properties,
-        [{"UseRef" : true}],
-        cfTemplateCoreTags(name, tier, component)
+        mode=mode
+        id=id
+        type="AWS::EC2::SecurityGroup"
+        properties=properties
+        tags=getCfTemplateCoreTags(name, tier, component)
     /]
 [/#macro]
 
@@ -109,36 +120,34 @@
             resourceName
             ingressRules=""]
     [@createSecurityGroup 
-        mode 
-        tier 
-        component
-        formatDependentSecurityGroupId(resourceId)
-        resourceName
-        "Security Group for " + resourceName
-        ingressRules /]
+        mode=mode 
+        tier=tier 
+        component=component
+        id=formatDependentSecurityGroupId(resourceId)
+        name=resourceName
+        description="Security Group for " + resourceName
+        ingressRules=ingressRules /]
 [/#macro]
 
 [#macro createComponentSecurityGroup
             mode
             tier
             component
-            idExtension=""
-            nameExtension=""
+            extensions=""
             ingressRules=""]
     [@createSecurityGroup 
-        mode 
-        tier 
-        component
-        formatComponentSecurityGroupId(
+        mode=mode 
+        tier=tier 
+        component=component
+        id=formatComponentSecurityGroupId(
             tier,
             component,
-            idExtension)
-        formatComponentFullName(
+            extensions)
+        name=formatComponentFullName(
             tier,
             component,
-            nameExtension)
-        ""
-        ingressRules /]
+            extensions)
+        ingressRules=ingressRules /]
 [/#macro]
 
 [#macro createDependentComponentSecurityGroup
@@ -147,29 +156,32 @@
             component
             resourceId
             resourceName
-            idExtension=""
-            nameExtension=""
+            extensions=""
             ingressRules=""]
     [#local legacyId = formatComponentSecurityGroupId(
                         tier,
                         component,
-                        idExtension)]
-    [#if getKey(legacyId)?has_content]
+                        extensions)]
+    [#if getExistingReference(legacyId)?has_content]
         [@createComponentSecurityGroup 
-            mode 
-            tier 
-            component
-            idExtension
-            nameExtension
-            ingressRules /]
+            mode=mode 
+            tier=tier 
+            component=component
+            extensions=extensions
+            ingressRules=ingressRules /]
     [#else]
         [@createDependentSecurityGroup 
-            mode 
-            tier 
-            component
-            resourceId
-            resourceName
-            ingressRules /]
+            mode=mode 
+            tier=tier 
+            component=component
+            extensions=
+                {
+                    "Internal" : {
+                        "IdExtensions" : [resourceId],
+                        "NameExtensions" : [resourceName]
+                    }
+                }
+            ingressRules=ingressRules /]
     [/#if]
 [/#macro]
 
@@ -181,14 +193,18 @@
             resourceId
             resourceType
             trafficType]
-    [@cfTemplate mode, id, "AWS::EC2::FlowLog",
-        {
-            "DeliverLogsPermissionArn" : getArnReference(roleId),
-            "LogGroupName" : logGroupName,
-            "ResourceId" : getReference(resourceId),
-            "ResourceType" : resourceType,
-            "TrafficType" : trafficType
-        }
+    [@cfTemplate 
+        mode=mode
+        id=id
+        type="AWS::EC2::FlowLog"
+        properties=
+            {
+                "DeliverLogsPermissionArn" : getArnReference(roleId),
+                "LogGroupName" : logGroupName,
+                "ResourceId" : getReference(resourceId),
+                "ResourceType" : resourceType,
+                "TrafficType" : trafficType
+            }
     /]
 [/#macro]
 
@@ -199,16 +215,18 @@
             cidr
             dnsSupport
             dnsHostnames]
-    [@cfTemplate mode, id, "AWS::EC2::VPC",
-        {
-            "CidrBlock" : cidr,
-            "EnableDnsSupport" : dnsSupport,
-            "EnableDnsHostnames" : dnsHostnames
-        },
-        [
-            { "UseRef" : true, "AlternateId" : formatVPCId() }
-        ],
-        cfTemplateCoreTags(name)
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::VPC"
+        properties=
+            {
+                "CidrBlock" : cidr,
+                "EnableDnsSupport" : dnsSupport,
+                "EnableDnsHostnames" : dnsHostnames
+            }
+        tags=getCfTemplateCoreTags(name)
+        outputId=formatVPCId()
     /]
 [/#macro]
 
@@ -216,12 +234,12 @@
             mode
             id
             name]
-    [@cfTemplate mode, id, "AWS::EC2::InternetGateway",
-        {},
-        [
-            { "UseRef" : true, "AlternateId" : formatVPCIGWId() }
-        ],
-        cfTemplateCoreTags(name)
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::InternetGateway"
+        tags=getCfTemplateCoreTags(name)
+        outputId=formatVPCIGWId()
     /]
 [/#macro]
 
@@ -230,27 +248,52 @@
             id
             vpcId
             igwId]
-    [@cfTemplate mode, id, "AWS::EC2::VPCGatewayAttachment",
-        {
-            "InternetGatewayId" : { "Ref" : igwId },
-            "VpcId" : { "Ref" : vpcId }
-        },
-        []
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::VPCGatewayAttachment"
+        properties=
+            {
+                "InternetGatewayId" : getReference(igwId),
+                "VpcId" : getReference(vpcId)
+            }
+        outputs={}
     /]
 [/#macro]
 
+[#assign EIP_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        IP_ADDRESS_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
+        },
+        ALLOCATION_ATTRIBUTE_TYPE : { 
+            "Attribute" : "AllocationId"
+        }
+    }
+]
+[#assign outputMappings +=
+    {
+        EIP_RESOURCE_TYPE : EIP_OUTPUT_MAPPINGS
+    }
+]
+
 [#macro createEIP
             mode
-            id]
-    [@cfTemplate mode, id, "AWS::EC2::EIP",
-        {
-            "Domain" : "vpc"
-        },
-        [
-            { "Type" : "ip", "UseRef" : true},
-            { "Type" : "id", "Attribute" : "AllocationId" },
-            { "UseRef" : true}
-        ]
+            id
+            dependencies=""]
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::EIP"
+        properties=
+            {
+                "Domain" : "vpc"
+            }
+        outputs=EIP_OUTPUT_MAPPINGS
+        dependencies=dependencies
     /]
 [/#macro]
 
@@ -259,11 +302,15 @@
             id,
             subnetId,
             eipId]
-    [@cfTemplate mode, id, "AWS::EC2::NatGateway",
-        {
-            "AllocationId" : getKey(formatAllocationAttributeId(eipId)),
-            "SubnetId" : getReference(subnetId)
-        }
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::NatGateway"
+        properties=
+            {
+                "AllocationId" : getReference(eipId, ALLOCATION_ATTRIBUTE_TYPE),
+                "SubnetId" : getReference(subnetId)
+            }
     /]
 [/#macro]
 
@@ -273,12 +320,16 @@
             name,
             vpcId,
             zone=""]
-    [@cfTemplate mode, id, "AWS::EC2::RouteTable",
-        {
-            "VpcId" : getReference(vpcId)
-        },
-        [],
-        cfTemplateCoreTags(name,"",""zone)
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::RouteTable"
+        properties=
+            {
+                "VpcId" : getReference(vpcId)
+            }
+        tags=getCfTemplateCoreTags(name,"","",zone)
+        outputs={}
     /]
 [/#macro]
 
@@ -288,33 +339,44 @@
             routeTableId,
             route]
             
-    [#local properties = {
+    [#local properties =
+        {
             "RouteTableId" : getReference(routeTableId),
             "DestinationCidrBlock" : route.CIDR
-        }]
+        }
+    ]
     [#switch route.Type]
         [#case "gateway"]
-            [#local properties += {
+            [#local properties +=
+                {
                     "GatewayId" : getReference(route.IgwId)
-                }]
+                }
+            ]
             [#break]
 
         [#case "instance"]
-            [#local properties += {
+            [#local properties +=
+                {
                     "InstanceId" : getReference(route.InstanceId)
-                }]
+                }
+            ]
             [#break]
         
         [#case "nat"]
-            [#local properties += {
+            [#local properties +=
+                {
                     "NatGatewayId" : getReference(route.NatId)
-                }]
+                }
+            ]
             [#break]
         
     [/#switch]
-    [@cfTemplate mode, id, "AWS::EC2::Route",
-        properties,
-        []
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::Route"
+        properties=properties
+        outputs={}
     /]
 [/#macro]
 
@@ -323,12 +385,16 @@
             id,
             name,
             vpcId]
-    [@cfTemplate mode, id, "AWS::EC2::NetworkAcl",
-        {
-            "VpcId" : getReference(vpcId)
-        },
-        [],
-        cfTemplateCoreTags(name)
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::NetworkAcl"
+        properties=
+            {
+                "VpcId" : getReference(vpcId)
+            }
+        tags=getCfTemplateCoreTags(name)
+        outputs={}
     /]
 [/#macro]
 
@@ -340,51 +406,64 @@
             rule]
     [#switch rule.Protocol]
         [#case "all"]
-            [#local properties = {
+            [#local properties =
+                {
                     "Protocol" : "-1",
                     "PortRange" : {
                         "From" : (rule.PortRange.From)!0,
                         "To" : (rule.PortRange.To)!65535
                     }
-                }]
+                }
+            ]
             [#break]
         [#case "icmp"]
-            [#local properties = {
+            [#local properties =
+                {
                     "Protocol" : "1",
                     "Icmp" : {
                         "Code" : (rule.ICMP.Code)!-1,
                         "Type" : (rule.ICMP.Type)!-1
                     }
-                }]
+                }
+            ]
             [#break]
         [#case "udp"]
-            [#local properties = {
+            [#local properties =
+                {
                     "Protocol" : "17",
                     "PortRange" : {
                         "From" : (rule.PortRange.From)!0,
                         "To" : (rule.PortRange.To)!65535
                     }
-                }]
+                }
+            ]
             [#break]
         [#case "tcp"]
-            [#local properties = {
+            [#local properties =
+                {
                     "Protocol" : "6",
                     "PortRange" : {
                         "From" : (rule.PortRange.From)!0,
                         "To" : (rule.PortRange.To)!65535
                     }
-                }]
+                }
+            ]
             [#break]
     [/#switch]
-    [@cfTemplate mode, id, "AWS::EC2::NetworkAclEntry",
-        {
-            "NetworkAclId" : getReference(networkACLId),
-            "Egress" : outbound,
-            "RuleNumber" : rule.RuleNumber,
-            "RuleAction" : rule.Allow?string("allow","deny"),
-            "CidrBlock" : rule.CIDRBlock
-        } + properties,
-        []
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::NetworkAclEntry"
+        properties=
+            properties + 
+            {
+                "NetworkAclId" : getReference(networkACLId),
+                "Egress" : outbound,
+                "RuleNumber" : rule.RuleNumber,
+                "RuleAction" : rule.Allow?string("allow","deny"),
+                "CidrBlock" : rule.CIDRBlock
+            }
+        outputs={}
     /]
 [/#macro]
 
@@ -397,56 +476,102 @@
             zone,
             cidr,
             private]
-    [#local tags = private?then(
-        [
+    [#local tags =
+        private?then(
+            [
+                {
+                    "Key" : "network",
+                    "Value" : "private"
+                }
+            ],
+            []
+        ) 
+    ]
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::Subnet"
+        properties=
             {
-                "Key" : "network",
-                "Value" : "private"
+                "VpcId" : getReference(vpcId),
+                "AvailabilityZone" : zone.AWSZone,
+                "CidrBlock" : cidr
             }
-        ],
-        [])]
-    [@cfTemplate mode, id, "AWS::EC2::Subnet",
-        {
-            "VpcId" : getReference(vpcId),
-            "AvailabilityZone" : zone.AWSZone,
-            "CidrBlock" : cidr
-        },
-        [
-            { "UseRef" : true}
-        ],
-        tags + cfTemplateCoreTags(name, tier, "", zone)
+        tags=
+            tags +
+            getCfTemplateCoreTags(name, tier, "", zone)
     /]
 [/#macro]
 
 [#macro createRouteTableAssociation
             mode,
             id,
-            subnetId
+            subnetId,
             routeTableId]
             
-    [@cfTemplate mode, id, "AWS::EC2::SubnetRouteTableAssociation",
-        {
-            "SubnetId" : getReference(subnetId),
-            "RouteTableId" : getReference(routeTableId)
-        },
-        []
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::SubnetRouteTableAssociation"
+        properties=
+            {
+                "SubnetId" : getReference(subnetId),
+                "RouteTableId" : getReference(routeTableId)
+            }
+        outputs={}
     /]
 [/#macro]
 
 [#macro createNetworkACLAssociation
             mode,
             id,
-            subnetId
+            subnetId,
             networkACLId]
             
-    [@cfTemplate mode, id, "AWS::EC2::SubnetNetworkAclAssociation",
-        {
-            "SubnetId" : getReference(subnetId),
-            "NetworkAclId" : getReference(networkACLId)
-        },
-        []
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::SubnetNetworkAclAssociation"
+        properties=
+            {
+                "SubnetId" : getReference(subnetId),
+                "NetworkAclId" : getReference(networkACLId)
+            }
+        outputs={}
     /]
 [/#macro]
 
+[#macro createVPCEndpoint
+            mode,
+            id,
+            vpcId,
+            service,
+            routeTableIds=[]
+            statements=[]
+]
 
-
+    [#local routeTableRefs = [] ]
+    [#list asArray(routeTableIds) as routeTableId]
+        [#local routeTableRefs += [getReference(routeTableId)] ]
+    [/#list]
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::EC2::VPCEndpoint"
+        properties=
+            {
+                "RouteTableIds" : routeTableRefs,
+                "ServiceName" :
+                    formatDomainName(
+                        "com.amazonaws",
+                        region,
+                        service),
+                "VpcId" : getReference(vpcId)
+            } +
+            statements?has_content?then(
+                getPolicyDocument(statements),
+                {}
+            )
+        outputs={}
+    /]
+[/#macro]

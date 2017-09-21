@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 
@@ -75,30 +76,22 @@ while getopts ":d:e:hl:n:o:r:s:u" opt; do
             UPDATE_SEGMENT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${SEGMENT}") ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${SEGMENT}") ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
 # Ensure we are in the root of the product tree
-if [[ ! ("product" =~ ${LOCATION}) ]]; then
-    echo -e "\nWe don't appear to be in the product directory. Are we in the right place?" >&2
-    exit
-fi
+checkInProductDirectory
 
 # Create the directories for the segment
 SEGMENT_SOLUTIONS_DIR="${SOLUTIONS_DIR}/${SEGMENT}"
@@ -114,23 +107,19 @@ mkdir -p ${SEGMENT_CREDENTIALS_DIR}
 # Check whether the segment profile is already in place
 SEGMENT_PROFILE=${SEGMENT_SOLUTIONS_DIR}/segment.json
 if [[ -f ${SEGMENT_PROFILE} ]]; then
-    if [[ "${UPDATE_SEGMENT}" != "true" ]]; then
-        echo -e "\nSegment profile already exists. Maybe try using update option?" >&2
-        exit
-    fi
+    [[ "${UPDATE_SEGMENT}" != "true" ]] && \
+        fatal "Segment profile already exists. Maybe try using update option?"
 else
-    if [[ (-z "${EID}") && (-z "${SID}") ]]; then
-        echo -e "\nOne of EID and SID required for segment creation" >&2
-        exit
-    fi
+    [[ (-z "${EID}") && (-z "${SID}") ]] && \
+        fatal "One of EID and SID required for segment creation"
+
     echo "{\"Segment\":{}}" > ${SEGMENT_PROFILE}
     EID=${EID:-${SID}}
     SID=${SID:-${EID}}
     ENVIRONMENT_TITLE=$(jq -r ".Environments[\"${EID}\"].Title | select(.!=null)" < ${COMPOSITE_BLUEPRINT})
-    if [[ -z "${ENVIRONMENT_TITLE}" ]]; then 
-        echo -e "\nEnvironment not defined in masterData.json. Was SID or EID provided?" >&2
-        exit
-    fi
+    [[ -z "${ENVIRONMENT_TITLE}" ]] && \
+        fatal "Environment not defined in masterData.json. Was SID or EID provided?"
+
     TITLE=${TITLE:-$ENVIRONMENT_TITLE}
 fi
 
@@ -158,13 +147,9 @@ jq --indent 4 \
 --arg CERTIFICATE_ID "${CERTIFICATE_ID}" \
 "${FILTER}" < ${SEGMENT_PROFILE} > ${SEGMENT_SOLUTIONS_DIR}/temp_segment.json
 RESULT=$?
+[[ ${RESULT} -ne 0 ]] && fatal "\nError creating segment profile"
 
-if [[ ${RESULT} -eq 0 ]]; then
-    mv ${SEGMENT_SOLUTIONS_DIR}/temp_segment.json ${SEGMENT_SOLUTIONS_DIR}/segment.json
-else
-    echo -e "\nError creating segment profile" >&2
-    exit
-fi
+mv ${SEGMENT_SOLUTIONS_DIR}/temp_segment.json ${SEGMENT_SOLUTIONS_DIR}/segment.json
 
 # Provide an empty credentials profile for the segment
 if [[ ! -f ${SEGMENT_CREDENTIALS_DIR}/credentials.json ]]; then

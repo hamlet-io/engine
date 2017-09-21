@@ -5,66 +5,54 @@
 #
 # This script is designed to be sourced into other scripts
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
+. ${GENERATION_DIR}/common.sh
 
 # If the context has already been determined, there is nothing to do
 if [[ -n "${GENERATION_CONTEXT_DEFINED}" ]]; then return 0; fi
 export GENERATION_CONTEXT_DEFINED="true"
 GENERATION_CONTEXT_DEFINED_LOCAL="true"
 
-# Utility functions
-. ${GENERATION_DIR}/common.sh
-
-[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\n--- starting setContext.sh ---\n"
+debug "--- starting setContext.sh ---\n"
 
 # If no files match a glob, return nothing
-# Many of the file existence for loops in this script rely on this setting
+# Much of the logic in this script relies on this setting
 shopt -s nullglob
 
 # Generate the list of files constituting the composites based on the contents
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
 pushd "$(pwd)" >/dev/null
-TEMPLATE_COMPOSITES=("ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" "POLICY" "CONTAINER" "ID" "NAME" "RESOURCE")
+TEMPLATE_COMPOSITES=(
+    "ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" \
+    "POLICY" "CONTAINER" "ID" "NAME" "RESOURCE")
 BLUEPRINT_ARRAY=()
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     # define the array holding the list of composite fragment filenames
     declare -a "${COMPOSITE}_ARRAY"
 
     # Check for composite start fragment
-    for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/*start.ftl; do
-        eval "${COMPOSITE}_ARRAY+=(\"${FRAGMENT}\")"
-    done
+    addToArray "${COMPOSITE}_ARRAY" "${GENERATION_DIR}"/templates/"${COMPOSITE,,}"/start*.ftl
     
     # If no composite specific start fragment, use a generic one
-    eval "FRAGMENT_COUNT=\"\${#${COMPOSITE}_ARRAY[@]}\""
-    if [[ "${FRAGMENT_COUNT}" -eq 0 ]]; then
-        eval "${COMPOSITE}_ARRAY+=(\"${GENERATION_DIR}/templates/start.ftl\")"
-    fi
-
+    $(inArray "${COMPOSITE}_ARRAY" "start.ftl") || \
+        addToArray "${COMPOSITE}_ARRAY" "${GENERATION_DIR}"/templates/start.ftl
 done
 
 if [[ (-f "segment.json") || (-f "container.json") ]]; then
     # segment directory
     export LOCATION="${LOCATION:-segment}"
     export SEGMENT_DIR="$(pwd)"
-    export SEGMENT="$(basename $(pwd))"
+    export SEGMENT="$(fileName "$(pwd)")"
 
-    if [[ -f "segment.json" ]]; then
-        BLUEPRINT_ARRAY=("${SEGMENT_DIR}/segment.json" "${BLUEPRINT_ARRAY[@]}")
-    fi
-    if [[ -f "container.json" ]]; then
-        BLUEPRINT_ARRAY=("${SEGMENT_DIR}/container.json" "${BLUEPRINT_ARRAY[@]}")
-    fi
-    if [[ -f "solution.json" ]]; then
-        BLUEPRINT_ARRAY=("${SEGMENT_DIR}/solution.json" "${BLUEPRINT_ARRAY[@]}")
-    fi
+    addToArrayHead "BLUEPRINT_ARRAY" \
+        "${SEGMENT_DIR}"/segment*.json \
+        "${SEGMENT_DIR}"/container*.json \
+        "${SEGMENT_DIR}"/solution*.json
 
     # Segment based composite fragments
     for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-        for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
-            eval "${COMPOSITE}_ARRAY+=(\"${SEGMENT_DIR}/${FRAGMENT}\")"
-        done
+        addToArray "${COMPOSITE}_ARRAY" "${SEGMENT_DIR}"/"${COMPOSITE,,}"_*.ftl
     done
 
     cd ..    
@@ -72,16 +60,13 @@ if [[ (-f "segment.json") || (-f "container.json") ]]; then
     # solutions directory
     # only add files if not already present
     export SOLUTIONS_DIR="$(pwd)"
-    if [[ (-f "solution.json") && (!("${BLUEPRINT_ARRAY}" =~ solution.json)) ]]; then
-        BLUEPRINT_ARRAY=("${SOLUTIONS_DIR}/solution.json" "${BLUEPRINT_ARRAY[@]}")
-    fi
+    $(inArray "BLUEPRINT_ARRAY" "solution.json") || \
+        addToArrayHead "BLUEPRINT_ARRAY" "${SOLUTIONS_DIR}"/solution*.json
     
     for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
         for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
-            eval "[[ \"\${${COMPOSITE}_ARRAY[*]}\" =~ ${FRAGMENT} ]]"
-            if [[ $? -ne 0 ]]; then
-                eval "${COMPOSITE}_ARRAY+=(\"${SOLUTIONS_DIR}/${FRAGMENT}\")"
-            fi
+            $(inArray "${COMPOSITE}_ARRAY" "${FRAGMENT}") || \
+                addToArray "${COMPOSITE}_ARRAY" "${SOLUTIONS_DIR}/${FRAGMENT}"
         done
     done
 
@@ -95,7 +80,7 @@ if [[ -f "account.json" ]]; then
     # An account directory may also have no product information e.g.
     # in the case of production environments in dedicated accounts.
     export LOCATION="${LOCATION:-account}"
-    export GENERATION_DATA_DIR="$(cd ../..;pwd)"
+    export GENERATION_DATA_DIR="$(findGen3RootDir)"
 fi
 
 if [[ -f "product.json" ]]; then
@@ -106,25 +91,21 @@ if [[ -f "product.json" ]]; then
         export LOCATION="${LOCATION:-product}"
     fi
     export PRODUCT_DIR="$(pwd)"
-    export PRODUCT="$(basename $(pwd))"
+    export PRODUCT="$(fileName "$(pwd)")"
 
-    for DOMAIN_FILE in ${PRODUCT_DIR}/domains*.json; do
-        BLUEPRINT_ARRAY=("${DOMAIN_FILE}" "${BLUEPRINT_ARRAY[@]}")
-    done
-    
-    for IPADDRESSGROUPS_FILE in ${PRODUCT_DIR}/ipaddressgroups*.json; do
-        BLUEPRINT_ARRAY=("${IPADDRESSGROUPS_FILE}" "${BLUEPRINT_ARRAY[@]}")
-    done
+    addToArrayHead "BLUEPRINT_ARRAY" \
+        "${PRODUCT_DIR}"/domains*.json \
+        "${PRODUCT_DIR}"/ipaddressgroups*.json \
+        "${PRODUCT_DIR}"/countrygroups*.json \
+        "${PRODUCT_DIR}"/product.json
 
-    BLUEPRINT_ARRAY=("${PRODUCT_DIR}/product.json" "${BLUEPRINT_ARRAY[@]}")
-
-    export GENERATION_DATA_DIR="$(cd ../..;pwd)"
+    export GENERATION_DATA_DIR="$(findGen3RootDir)"
 fi
 
 if [[ -f "integrator.json" ]]; then
     export LOCATION="${LOCATION:-integrator}"
     export GENERATION_DATA_DIR="$(pwd)"
-    export INTEGRATOR="$(basename $(pwd))"
+    export INTEGRATOR="$(fileName "$(pwd)")"
 fi
 
 if [[ (-d config) && (-d infrastructure) ]]; then
@@ -132,105 +113,78 @@ if [[ (-d config) && (-d infrastructure) ]]; then
     export GENERATION_DATA_DIR="$(pwd)"
 fi
 
-if [[ -z "${GENERATION_DATA_DIR}" ]]; then
-    echo -e "\nCan't locate the root of the directory tree. Are we in the right place?" >&2
-    exit
-fi
+[[ -z "${GENERATION_DATA_DIR}" ]] && \
+    fatalLocation "Can't locate the root of the directory tree."
 
-# root directory
-cd "${GENERATION_DATA_DIR}"
-export ACCOUNT="$(basename $(pwd))"
+# Back to where we started
 popd >/dev/null
 
-export CONFIG_DIR="${GENERATION_DATA_DIR}/config"
-export INFRASTRUCTURE_DIR="${GENERATION_DATA_DIR}/infrastructure"
-export TENANT_DIR="${CONFIG_DIR}/${ACCOUNT}"
-export ACCOUNT_DIR="${CONFIG_DIR}/${ACCOUNT}"
-export ACCOUNT_CREDENTIALS_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/credentials"
-export ACCOUNT_APPSETTINGS_DIR="${ACCOUNT_DIR}/appsettings"
-export ACCOUNT_CREDENTIALS="${ACCOUNT_CREDENTIALS_DIR}/credentials.json"
-    
-if [[ -f "${ACCOUNT_DIR}/account.json" ]]; then
-    BLUEPRINT_ARRAY=("${ACCOUNT_DIR}/account.json" "${BLUEPRINT_ARRAY[@]}")
-fi
+# Analyse directory structure
+findGen3Dirs "${GENERATION_DATA_DIR}" "${PRODUCT}" "${SEGMENT}" || exit
 
-for DOMAIN_FILE in ${TENANT_DIR}/domains*.json; do
-    BLUEPRINT_ARRAY=("${DOMAIN_FILE}" "${BLUEPRINT_ARRAY[@]}")
-done
-
-for IPADDRESSGROUPS_FILE in ${TENANT_DIR}/ipaddressgroups*.json; do
-    BLUEPRINT_ARRAY=("${IPADDRESSGROUPS_FILE}" "${BLUEPRINT_ARRAY[@]}")
-done
-
-if [[ -f "${TENANT_DIR}/tenant.json" ]]; then
-    BLUEPRINT_ARRAY=("${TENANT_DIR}/tenant.json" "${BLUEPRINT_ARRAY[@]}")
-fi
+addToArrayHead "BLUEPRINT_ARRAY" \
+    "${ACCOUNT_DIR}"/account*.json \
+    "${TENANT_DIR}"/domains*.json \
+    "${TENANT_DIR}"/ipaddressgroups*.json \
+    "${TENANT_DIR}"/tenant.json
 
 # Build the composite solution ( aka blueprint)
-[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\nBLUEPRINT=${BLUEPRINT_ARRAY[*]}"
+debug "BLUEPRINT=${BLUEPRINT_ARRAY[*]}"
 export COMPOSITE_BLUEPRINT="${CONFIG_DIR}/composite_blueprint.json"
-if [[ "${#BLUEPRINT_ARRAY[@]}" -gt 0 ]]; then
-    GENERATION_MASTER_DATA_DIR="${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"
-    ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${GENERATION_MASTER_DATA_DIR}/masterData.json" "${BLUEPRINT_ARRAY[@]}"
+if [[ ! $(arrayIsEmpty "BLUEPRINT_ARRAY") ]]; then
+    addToArrayHead "BLUEPRINT_ARRAY" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"/masterData.json
+    ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${BLUEPRINT_ARRAY[@]}"
 else
     echo "{}" > ${COMPOSITE_BLUEPRINT}
 fi
     
 # Extract key settings from the composite solution
 # Ignore values generated by addition of default Id/Name attribute values
-export TID=${TID:-$(jq -r '.Tenant.Id | select(.!="Tenant") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
-export TENANT=${TENANT:-$(jq -r '.Tenant.Name | select(.!="Tenant") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
-export AID=${AID:-$(jq -r '.Account.Id | select(.!="Account") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
-export AWSID=${AWSID:-$(jq -r '.Account.AWSId | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
-export ACCOUNT_REGION=${ACCOUNT_REGION:-$(jq -r '.Account.Region | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
-export PID=${PID:-$(jq -r '.Product.Id | select(.!="Product") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
-export PRODUCT_REGION=${PRODUCT_REGION:-$(jq -r '.Product.Region | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
-export SID=${SID:-$(jq -r '.Segment.Id | select(.!="Segment") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export TID=${TID:-$(runJQ -r '.Tenant.Id | select(.!="Tenant") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export TENANT=${TENANT:-$(runJQ -r '.Tenant.Name | select(.!="Tenant") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export AID=${AID:-$(runJQ -r '.Account.Id | select(.!="Account") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export AWSID=${AWSID:-$(runJQ -r '.Account.AWSId | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export ACCOUNT_REGION=${ACCOUNT_REGION:-$(runJQ -r '.Account.Region | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export PID=${PID:-$(runJQ -r '.Product.Id | select(.!="Product") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export PRODUCT_REGION=${PRODUCT_REGION:-$(runJQ -r '.Product.Region | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export SID=${SID:-$(runJQ -r '.Segment.Id | select(.!="Segment") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
 export REGION="${REGION:-$PRODUCT_REGION}"
 
 # Perform a few consistency checks
-if [[ -z "${REGION}" ]]; then
-    echo -e "\nThe region must be defined in the Product blueprint section. Nothing to do." >&2
-    exit
-fi
-BLUEPRINT_ACCOUNT=$(jq -r '.Account.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
-BLUEPRINT_PRODUCT=$(jq -r '.Product.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
-BLUEPRINT_SEGMENT=$(jq -r '.Segment.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
-if [[ (-n "${ACCOUNT}") &&
-        ("${BLUEPRINT_ACCOUNT}" != "Account") &&
-        ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]]; then
-    echo -e "\nBlueprint account of ${BLUEPRINT_ACCOUNT} doesn't match expected value of ${ACCOUNT}" >&2
-    exit
-fi
-if [[ (-n "${PRODUCT}") &&
-        ("${BLUEPRINT_PRODUCT}" != "Product") &&
-        ("${PRODUCT}" != "${BLUEPRINT_PRODUCT}") ]]; then
-    echo -e "\nBlueprint product of ${BLUEPRINT_PRODUCT} doesn't match expected value of ${PRODUCT}" >&2
-    exit
-fi
-if [[ (-n "${SEGMENT}") &&
-        ("${BLUEPRINT_SEGMENT}" != "Segment") &&
-        ("${SEGMENT}" != "${BLUEPRINT_SEGMENT}") ]]; then
-    echo -e "\nBlueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}" >&2
-    exit
-fi
+[[ -z "${REGION}" ]] && fatalCantProceed "The region must be defined in the Product blueprint section."
+
+BLUEPRINT_ACCOUNT=$(runJQ -r '.Account.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
+BLUEPRINT_PRODUCT=$(runJQ -r '.Product.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
+BLUEPRINT_SEGMENT=$(runJQ -r '.Segment.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
+[[ (-n "${ACCOUNT}") &&
+    ("${BLUEPRINT_ACCOUNT}" != "Account") &&
+    ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]] && \
+        fatalCantProceed "Blueprint account of ${BLUEPRINT_ACCOUNT} doesn't match expected value of ${ACCOUNT}"
+
+[[ (-n "${PRODUCT}") &&
+    ("${BLUEPRINT_PRODUCT}" != "Product") &&
+    ("${PRODUCT}" != "${BLUEPRINT_PRODUCT}") ]] && \
+        fatalCantProceed "Blueprint product of ${BLUEPRINT_PRODUCT} doesn't match expected value of ${PRODUCT}"
+
+[[ (-n "${SEGMENT}") &&
+    ("${BLUEPRINT_SEGMENT}" != "Segment") &&
+    ("${SEGMENT}" != "${BLUEPRINT_SEGMENT}") ]] && \
+        fatalCantProceed "Blueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}"
 
 # Add default composite fragments including end fragment
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/${COMPOSITE,,}_*.ftl; do
-        eval "[[ \"x\${${COMPOSITE}_ARRAY[*]}\" =~ x\$(basename ${FRAGMENT}) ]]"
-        if [[ $? -ne 0 ]]; then
-            eval "${COMPOSITE}_ARRAY+=(\"${FRAGMENT}\")"
-        fi
+            $(inArray "${COMPOSITE}_ARRAY" $(fileName "${FRAGMENT}")) || \
+                addToArray "${COMPOSITE}_ARRAY" "${FRAGMENT}"
     done
     for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/*end.ftl; do
-        eval "${COMPOSITE}_ARRAY+=(\"${FRAGMENT}\")"
+        addToArray "${COMPOSITE}_ARRAY" "${FRAGMENT}"
     done
 done
 
 # create the template composites
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-    [[ -n "${GENERATION_DEBUG}" ]] && eval "echo -e \"\\n${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}\""
+    debug $(eval "echo \"${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}\"")
     eval "export COMPOSITE_${COMPOSITE}=\${CONFIG_DIR}/composite_${COMPOSITE,,}.ftl"
     eval "cat \"\${${COMPOSITE}_ARRAY[@]}\" > \${COMPOSITE_${COMPOSITE}}"
 done
@@ -239,118 +193,88 @@ done
 APPSETTINGS_ARRAY=()
 CREDENTIALS_ARRAY=()
 if [[ -n "${PRODUCT}" ]]; then
-    export SOLUTIONS_DIR="${CONFIG_DIR}/${PRODUCT}/solutions"
-    export APPSETTINGS_DIR="${CONFIG_DIR}/${PRODUCT}/appsettings"
-    export CREDENTIALS_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials"
     
     # deployment unit level appsettings
     if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
         # Confirm it is an application deployment unit
         . ${GENERATION_DIR}/validateDeploymentUnit.sh
         if [[ "${IS_APPLICATION_UNIT}" == "true" ]]; then
-        
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/appsettings.json" ]]; then
-                APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
-            fi
-            if [[ -f "${CREDENTIALS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/credentials.json" ]]; then
-                CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
-            fi
 
             export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
+
             # Legacy naming to support products using the term "slice" or "unit" instead of "deployment_unit"
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref" ]]; then
-                export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/slice.ref")
-            fi
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref" ]]; then
-                export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/unit.ref")
-            fi
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/deployment_unit.ref" ]]; then
-                export BUILD_DEPLOYMENT_UNIT=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${DEPLOYMENT_UNIT}/deployment_unit.ref")
-            fi
+            fileContentsInEnv "BUILD_DEPLOYMENT_UNIT" \
+                "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/deployment_unit*.ref \
+                "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/unit*.ref \
+                "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/slice*.ref
             
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/appsettings.json" ]]; then
-                APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
-            fi            
-            if [[ -f "${CREDENTIALS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/credentials.json" ]]; then
-                CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
-            fi
+            addToArrayHead "APPSETTINGS_ARRAY" \
+                "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/appsettings*.json \
+                "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/appsettings*.json
 
-            if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/build.json" ]]; then
-                export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/build.json")
-            else
-                if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/build.ref" ]]; then
-                    export BUILD_REFERENCE=$(cat "${APPSETTINGS_DIR}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/build.ref")
-                fi
-            fi
+            addToArrayHead "CREDENTIALS_ARRAY" \
+                "${SEGMENT_CREDENTIALS_DIR}/${DEPLOYMENT_UNIT}"/credentials*.json \
+                "${SEGMENT_CREDENTIALS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/credentials*.json
+
+            fileContentsInEnv "BUILD_REFERENCE" \
+                "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.json \
+                "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.ref
         fi
     fi
     
-    # segment level appsettings/credentials
-    if [[ (-n "${SEGMENT}") ]]; then
-        if [[ -f "${APPSETTINGS_DIR}/${SEGMENT}/appsettings.json" ]]; then
-            APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/${SEGMENT}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
-        fi
+    # segment/product/account level appsettings/credentials
+    addToArrayHead "APPSETTINGS_ARRAY" \
+        "${SEGMENT_APPSETTINGS_DIR}"/appsettings*.json \
+        "${PRODUCT_APPSETTINGS_DIR}"/appsettings*.json \
+        "${ACCOUNT_APPSETTINGS_DIR}"/appsettings*.json
 
-        if [[ -f "${CREDENTIALS_DIR}/${SEGMENT}/credentials.json" ]]; then
-            CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/${SEGMENT}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
-        fi
-    fi
-    
-    # product level appsettings
-    if [[ -f "${APPSETTINGS_DIR}/appsettings.json" ]]; then
-        APPSETTINGS_ARRAY=("${APPSETTINGS_DIR}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
-    fi
-
-    # product level credentials
-    if [[ -f "${CREDENTIALS_DIR}/credentials.json" ]]; then
-        CREDENTIALS_ARRAY=("${CREDENTIALS_DIR}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
-    fi
-
-    # account level appsettings
-    if [[ -f "${ACCOUNT_APPSETTINGS_DIR}/appsettings.json" ]]; then
-        APPSETTINGS_ARRAY=("${ACCOUNT_APPSETTINGS_DIR}/appsettings.json" "${APPSETTINGS_ARRAY[@]}")
-    fi
+    addToArrayHead "CREDENTIALS_ARRAY" \
+        "${SEGMENT_CREDENTIALS_DIR}"/credentials*.json \
+        "${PRODUCT_CREDENTIALS_DIR}"/credentials*.json \
+        "${ACCOUNT_CREDENTIALS_DIR}"/credentials*.json
 fi
 
 # Build the composite appsettings
-[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\nAPPSETTINGS=${APPSETTINGS_ARRAY[*]}"
+debug "APPSETTINGS=${APPSETTINGS_ARRAY[*]}"
 export COMPOSITE_APPSETTINGS="${CONFIG_DIR}/composite_appsettings.json"
-if [[ "${#APPSETTINGS_ARRAY[@]}" -gt 0 ]]; then
+$(arrayIsEmpty "APPSETTINGS_ARRAY") && \
+    echo "{}" > ${COMPOSITE_APPSETTINGS} || \
     ${GENERATION_DIR}/manageJSON.sh -c -o ${COMPOSITE_APPSETTINGS} "${APPSETTINGS_ARRAY[@]}"
-else
-    echo "{}" > ${COMPOSITE_APPSETTINGS}
-fi    
-
-# Check for account level credentials
-if [[ -f "${ACCOUNT_CREDENTIALS_DIR}/credentials.json" ]]; then
-    CREDENTIALS_ARRAY=("${ACCOUNT_CREDENTIALS_DIR}/credentials.json" "${CREDENTIALS_ARRAY[@]}")
-fi
 
 # Build the composite credentials
-[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\nCREDENTIALS=${CREDENTIALS_ARRAY[*]}"
+debug "CREDENTIALS=${CREDENTIALS_ARRAY[*]}"
 export COMPOSITE_CREDENTIALS="${INFRASTRUCTURE_DIR}/composite_credentials.json"
-if [[ "${#CREDENTIALS_ARRAY[@]}" -gt 0 ]]; then
+$(arrayIsEmpty "CREDENTIALS_ARRAY") && \
+    echo "{\"Credentials\" : {}}" > ${COMPOSITE_CREDENTIALS} || \
     ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
-else
-    echo "{\"Credentials\" : {}}" > ${COMPOSITE_CREDENTIALS}
-fi    
 
 # Create the composite stack outputs
 STACK_ARRAY=()
-if [[ (-n "${ACCOUNT}") && (-d "${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf") ]]; then
-    STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf/acc*-stack.json)
-fi
-if [[ (-n "${PRODUCT}") && (-n "${REGION}") && (-d "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf") ]]; then
-    STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf/product*-${REGION}-stack.json)
-fi
-if [[ (-n "${SEGMENT}") && (-n "${REGION}") && (-d "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf") ]]; then
-    STACK_ARRAY+=(${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf/*-${REGION}-stack.json)
-fi
+[[ (-n "${ACCOUNT}") ]] && \
+    addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${ACCOUNT}"/aws/cf/acc*-stack.json
+[[ (-n "${PRODUCT}") && (-n "${REGION}") ]] && \
+    addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${PRODUCT}"/aws/cf/product*-${REGION}-stack.json
+[[ (-n "${SEGMENT}") && (-n "${REGION}") ]] && \
+    addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}"/cf/*-"${REGION}"-stack.json
 
-[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\nSTACK_OUTPUTS=${STACK_ARRAY[*]}"
+debug "STACK_OUTPUTS=${STACK_ARRAY[*]}"
 export COMPOSITE_STACK_OUTPUTS="${INFRASTRUCTURE_DIR}/composite_stack_outputs.json"
-if [[ "${#STACK_ARRAY[@]}" -gt 0 ]]; then
-    ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) | .[]]" -o ${COMPOSITE_STACK_OUTPUTS} "${STACK_ARRAY[@]}"
+if [[ $(arraySize "STACK_ARRAY") -ne 0 ]]; then
+
+    # Add default account, region and deployment unit
+    MODIFIED_STACK_ARRAY=()
+    for F in "${STACK_ARRAY[@]}"; do
+        MODIFIED_STACK_OUTPUT="temp_${F##*/}"
+        parseStackFilename "${F}"
+        runJQ -f ${GENERATION_DIR}/formatOutputs.jq \
+            --arg Account "${STACK_ACCOUNT:-${AWSID}}" \
+            --arg Region "${STACK_REGION}" \
+            --arg Level "${STACK_LEVEL}" \
+            --arg DeploymentUnit "${STACK_DEPLOYMENT_UNIT}" \
+            < ${F} > "${MODIFIED_STACK_OUTPUT}"
+        MODIFIED_STACK_ARRAY+=("${MODIFIED_STACK_OUTPUT}")
+    done
+    ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o ${COMPOSITE_STACK_OUTPUTS} "${MODIFIED_STACK_ARRAY[@]}"
 else
     echo "[]" > ${COMPOSITE_STACK_OUTPUTS}
 fi
@@ -408,6 +332,6 @@ else
     export FILE_RM="rm"
 fi
 
-[[ -n "${GENERATION_DEBUG}" ]] && echo -e "\n--- finished setContext.sh ---\n"
+debug "--- finished setContext.sh ---\n"
 
 

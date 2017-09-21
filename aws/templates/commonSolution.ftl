@@ -2,33 +2,46 @@
 
 [#-- Macros --]
 
-[#macro createBlockDevices storageProfile]
-    [#if (storageProfile.Volumes)?? ]
-        "BlockDeviceMappings" : [
-            [#list storageProfile.Volumes?values as volume]
-                [#if volume?is_hash]
-                    {
-                        "DeviceName" : "${volume.Device}",
-                        "Ebs" : {
-                            "DeleteOnTermination" : true,
-                            "Encrypted" : false,
-                            "VolumeSize" : "${volume.Size}",
-                            "VolumeType" : "gp2"
+[#function getBlockDevices storageProfile]
+    [#if (storageProfile.Volumes)?has_content]
+        [#local ebsVolumes = [] ]
+        [#list storageProfile.Volumes?values as volume]
+            [#if volume?is_hash]
+                [#local ebsVolumes +=
+                    [
+                        {
+                            "DeviceName" : volume.Device,
+                            "Ebs" : {
+                                "DeleteOnTermination" : true,
+                                "Encrypted" : false,
+                                "VolumeSize" : volume.Size,
+                                "VolumeType" : "gp2"
+                            }
                         }
-                    },
-                [/#if]
-            [/#list]
+                    ]
+                ]
+            [/#if]
+        [/#list]
+        [#return
             {
-                "DeviceName" : "/dev/sdc",
-                "VirtualName" : "ephemeral0"
-            },
-            {
-                "DeviceName" : "/dev/sdt",
-                "VirtualName" : "ephemeral1"
+                "BlockDeviceMappings" :
+                    ebsVolumes + 
+                    [
+                        {
+                            "DeviceName" : "/dev/sdc",
+                            "VirtualName" : "ephemeral0"
+                        },
+                        {
+                            "DeviceName" : "/dev/sdt",
+                            "VirtualName" : "ephemeral1"
+                        }
+                    ]
             }
-        ],
+        ]
+    [#else]
+        [#return {} ]
     [/#if]
-[/#macro]
+[/#function]
 
 [#macro createComponentLogGroup tier component]
     [#local componentLogGroupId = formatComponentLogGroupId(tier, component)]

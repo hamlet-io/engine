@@ -2,21 +2,25 @@
 
 [#-- Resources --]
 
+[#assign WAF_IPSET_RESOURCE_TYPE = "wafIpSet" ]
+[#assign WAF_RULE_RESOURCE_TYPE = "wafRule" ]
+[#assign WAF_ACL_RESOURCE_TYPE = "wafAcl" ]
+
 [#function formatWAFIPSetId group]
     [#return formatAccountResourceId(
-                "wafIpSet",
+                WAF_IPSET_RESOURCE_TYPE,
                 group)]
 [/#function]
 
 [#function formatWAFRuleId ids...]
     [#return formatResourceId(
-                "wafRule",
+                WAF_RULE_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentWAFRuleId resourceId extensions...]
     [#return formatDependentResourceId(
-                "wafRule",
+                WAF_RULE_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
@@ -25,3 +29,17 @@
     [#return formatDependentWAFRuleId(
                 formatWAFIPSetId(group))]
 [/#function]
+
+[#function formatWAFAclId ids...]
+    [#return formatResourceId(
+                WAF_ACL_RESOURCE_TYPE,
+                ids)]
+[/#function]
+
+[#function formatDependentWAFAclId resourceId extensions...]
+    [#return formatDependentResourceId(
+                WAF_ACL_RESOURCE_TYPE,
+                resourceId,
+                extensions)]
+[/#function]
+

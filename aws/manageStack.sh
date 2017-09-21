@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 STACK_INITIATE_DEFAULT="true"
@@ -94,12 +95,10 @@ while getopts ":dhimn:r:s:t:u:w:yz:" opt; do
             DEPLOYMENT_UNIT_SUBSET="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -116,10 +115,7 @@ STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
 
 pushd ${CF_DIR} > /dev/null 2>&1
 
-if [[ ! -f "$TEMPLATE" ]]; then
-    echo -e "\n\"${TEMPLATE}\" not found. Are we in the correct place in the directory tree?" >&2
-    exit
-fi
+[[ ! -f "$TEMPLATE" ]] && fatalLocation "\"${TEMPLATE}\" not found."
 
 # Assume all good
 RESULT=0
@@ -144,10 +140,7 @@ fi
 if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
         delete)
-            if [[ -n "${DRYRUN}" ]]; then
-                echo -e "\nDryrun not applicable when deleting a stack" >&2
-                exit
-            fi
+            [[ -n "${DRYRUN}" ]] && fatal "Dryrun not applicable when deleting a stack"
 
             aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
 
@@ -165,10 +158,8 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
                 STACK_OPERATION="create"
             fi
 
-            if [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]]; then
-                echo -e "\nDryrun not applicable when creating a stack" >&2
-                exit
-            fi
+            [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]] && \
+                fatal "Dryrun not applicable when creating a stack"
 
             # Initiate the required operation
             if [[ -n "${DRYRUN}" ]]; then
@@ -191,8 +182,7 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
             ;;
 
         *)
-            echo -e "\n\"${STACK_OPERATION}\" is not one of the known stack operations." >&2
-            exit
+            fatal "\"${STACK_OPERATION}\" is not one of the known stack operations."
             ;;
     esac
 fi

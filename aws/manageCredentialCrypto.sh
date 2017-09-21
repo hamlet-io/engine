@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 
@@ -66,12 +67,10 @@ while getopts ":e:f:hi:n:s:vy:" opt; do
             CREDENTIAL_TYPE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -79,9 +78,8 @@ done
 CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${CREDENTIAL_NAME}") || (-z "${CREDENTIAL_TYPE}") ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
+[[ (-z "${CREDENTIAL_NAME}") ||
+    (-z "${CREDENTIAL_TYPE}") ]] && fatalMandatory
 fi
 
 # Define JSON paths
@@ -119,10 +117,7 @@ for ATTRIBUTE in ID SECRET EMAIL; do
     if [[ -n "${!VAR_NAME}" ]]; then
         ${GENERATION_DIR}/manageCrypto.sh ${!VAR_ENCRYPT} -t "${!VAR_NAME}" -p "${!VAR_PATH}" -u -q
         RESULT=$?
-        if [[ "${RESULT}" -ne 0 ]]; then
-            echo -e "\nFailed to update credential ${ATTRIBUTE}" >&2
-            exit
-        fi
+        [[ "${RESULT}" -ne 0 ]] && fatal "Failed to update credential ${ATTRIBUTE}"
     fi
 done
 

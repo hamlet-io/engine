@@ -8,6 +8,10 @@
     [#return concatenate(names, "-")]
 [/#function]
 
+[#function formatDomainName parts...]
+    [#return concatenate(parts, ".")]
+[/#function]
+
 [#function formatPath absolute names...]
     [#return
         absolute?then("/","") +

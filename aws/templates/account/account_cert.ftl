@@ -1,28 +1,13 @@
 [#-- Generate certificate --]
 [#if deploymentUnit?contains("cert")]
-    [@checkIfResourcesCreated /]
-    [#switch accountListMode]
-        [#case "definition"]
-            "certificate" : {
-                "Type" : "AWS::CertificateManager::Certificate",
-                "Properties" : {
-                    "DomainName" : "*.${accountDomain}",
-                    "DomainValidationOptions" : [
-                        {
-                            "DomainName" : "*.${accountDomain}",
-                            "ValidationDomain" : "${accountDomainValidation}"
-                        }
-                    ]
-                }
-            }
-            [#break]
-        
-        [#case "outputs"]
-            "${formatId("certificate", accountDomainCertificateId)}" : {
-                "Value" : { "Ref" : "certificate" }
-            }
-            [#break]
+    [#assign certificateId = formatCertificateId(accountDomainCertificateId)]
 
-    [/#switch]        
-    [@resourcesCreated /]
+    [@createCertificate
+        mode=accountListMode
+        id="certificate"
+        domain=formatDomainName("*",accountDomain)
+        validationDomain=(domains.Validation)!""
+        outputId=certificateId
+    /]
+
 [/#if]

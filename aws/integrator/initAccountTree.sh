@@ -1,8 +1,9 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+if [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
-    
+. ${GENERATION_DIR}/common.sh
+
 # Defaults
 
 function usage() {
@@ -50,54 +51,40 @@ while getopts ":a:ht:u" opt; do
       UPDATE_TREE="true"
        ;;
     \?)
-      echo -e "\nInvalid option: -${OPTARG}" >&2
-      exit
+      fatalOption
       ;;
     :)
-      echo -e "\nOption -${OPTARG} requires an argument" >&2
-      exit
+      fatalOptionArgument
       ;;
    esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${TENANT}") ||
-      (-z "${ACCOUNT}") ]]; then
-  echo -e "\nInsufficient arguments" >&2
-  exit
-fi
+[[ (-z "${TENANT}") ||
+    (-z "${ACCOUNT}") ]] && fatalMandatory
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
-if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
-    exit
-fi
+[[ ! -f "${INTEGRATOR_PROFILE}" ]] && \
+    fatalLocation "We don't appear to be in the root of the integrator tree."
 
 # Ensure the tenant/account already exists
 TENANT_DIR="$(pwd)/tenants/${TENANT}"
 TENANT_ACCOUNT_DIR="${TENANT_DIR}/accounts/${ACCOUNT}"
-if [[ ! -d "${TENANT_ACCOUNT_DIR}" ]]; then
-    echo -e "\nThe account doesn't appear to exist in the integrator tree. Nothing to do." >&2
-    exit
-fi
+[[ ! -d "${TENANT_ACCOUNT_DIR}" ]] && \
+    fatalCantProceed "The account doesn't appear to exist in the integrator tree."
 
 # Ensure the account tree exists
 ACCOUNT_DIR="$(cd ../${ACCOUNT} && pwd)"
-if [[ ! -d "${ACCOUNT_DIR}" ]]; then
-    echo -e "\nThe account tree doesn't appear to exist at the same level as the integrator tree. Nothing to do." >&2
-    exit
-fi
+[[ ! -d "${ACCOUNT_DIR}" ]] && \
+    fatalCantProceed "The account tree doesn't appear to exist at the same level as the integrator tree."
 
 # Check whether the tree is already in place
 CONFIG_DIR="${ACCOUNT_DIR}/config/${ACCOUNT}"
 INFRASTRUCTURE_DIR="${ACCOUNT_DIR}/infrastructure/${ACCOUNT}"
-if [[ (-e "${CONFIG_DIR}/account.json") ]]; then
-    if [[ ("${UPDATE_TREE}" != "true") ]]; then
-        echo -e "\nAccount tree already exists. Maybe try using the update option?" >&2
-        exit
-    fi
-fi
+[[ (-e "${CONFIG_DIR}/account.json") &&
+    ("${UPDATE_TREE}" != "true") ]] && \
+    fatal "Account tree already exists. Maybe try using the update option?"
 
 # Populate the config tree
 mkdir -p ${CONFIG_DIR}
@@ -128,13 +115,9 @@ FILTER=". | .Docker.Registry=\"${AWS_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com\""
 jq --indent 4 \
 "${FILTER}" < ${ACCOUNT_APPSETTINGS} > temp_appsettings.json
 RESULT=$?
+[[ ${RESULT} -ne 0 ]] && fatal "\nError creating account appsettings"
 
-if [[ ${RESULT} -eq 0 ]]; then
-    mv temp_appsettings.json appsettings.json
-else
-    echo -e "\nError creating account appsettings" >&2
-    exit
-fi
+mv temp_appsettings.json appsettings.json
 
 # Populate the infrastructure tree
 mkdir -p ${INFRASTRUCTURE_DIR}

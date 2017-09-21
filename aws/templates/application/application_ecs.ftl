@@ -411,12 +411,14 @@
                                                                     targetGroup)]
                                         [#if isPartOfCurrentDeploymentUnit(targetGroupId)]
                                             [@createTargetGroup
-                                                applicationListMode
-                                                lbTier
-                                                lbComponent
-                                                ports[lbPort]
-                                                ports[port.Id]
-                                                targetGroup /]
+                                                mode=applicationListMode
+                                                id=targetGroupId
+                                                name=targetGroup
+                                                tier=lbTier
+                                                component=lbComponent
+                                                source=ports[lbPort]
+                                                destination=ports[port.Id]
+                                            /]
                                             [#switch applicationListMode]
                                                 [#case "definition"]
                                                     [@checkIfResourcesCreated /]

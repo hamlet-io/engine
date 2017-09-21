@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 CONFIGURATION_REFERENCE_DEFAULT="unassigned"
@@ -81,12 +82,10 @@ while getopts ":b:c:hq:r:s:t:u:z:" opt; do
             DEPLOYMENT_UNIT_SUBSET="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -99,11 +98,8 @@ REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
 . ${GENERATION_DIR}/validateDeploymentUnit.sh 
 
 # Ensure other mandatory arguments have been provided
-if [[ (-z "${REQUEST_REFERENCE}") ||
-        (-z "${CONFIGURATION_REFERENCE}")]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${REQUEST_REFERENCE}") ||
+    (-z "${CONFIGURATION_REFERENCE}") ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
@@ -111,16 +107,12 @@ fi
 # Ensure we are in the right place
 case $TYPE in
     account|product)
-        if [[ ! ("${TYPE}" =~ ${LOCATION}) ]]; then
-            echo "Current directory doesn't match requested type \"${TYPE}\". Are we in the right place?" >&2
-            exit
-        fi
+        [[ ! ("${TYPE}" =~ ${LOCATION}) ]] && \
+            fatalLocation "Current directory doesn't match requested type \"${TYPE}\"."
         ;;
     solution|segment|application)
-        if [[ ! ("segment" =~ ${LOCATION}) ]]; then
-            echo "Current directory doesn't match requested type \"${TYPE}\". Are we in the right place?" >&2
-            exit
-        fi
+        [[ ! ("segment" =~ ${LOCATION}) ]] && \
+            fatalLocation "Current directory doesn't match requested type \"${TYPE}\"."
         ;;
 esac
 
@@ -208,8 +200,7 @@ case $TYPE in
         ;;
 
     *)
-        echo -e "\n\"${TYPE}\" is not one of the known stack types (account, product, segment, solution, application). Nothing to do." >&2
-        exit
+        fatalCantProceed "\"${TYPE}\" is not one of the known stack types (account, product, segment, solution, application)."
         ;;
 esac
 

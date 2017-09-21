@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 
@@ -70,28 +71,21 @@ while getopts ":d:hl:n:o:r:t:u" opt; do
             UPDATE_TENANT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${TENANT}") ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${TENANT}") ]] && fatalMandatory
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
-if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
-    exit
-fi
+[[ ! -f "${INTEGRATOR_PROFILE}" ]] && \
+    fatalLocation "We don't appear to be in the root of the integrator tree."
 
 # Create the directory for the tenant
 TENANT_DIR="$(pwd)/tenants/${TENANT}"
@@ -100,10 +94,8 @@ mkdir -p ${TENANT_DIR}
 # Check whether the tenant profile is already in place
 TENANT_PROFILE=${TENANT_DIR}/tenant.json
 if [[ -f ${TENANT_PROFILE} ]]; then
-    if [[ "${UPDATE_TENANT}" != "true" ]]; then
-        echo -e "\nTenant profile already exists. Maybe try using update option?" >&2
-        exit
-    fi
+    [[ "${UPDATE_TENANT}" != "true" ]] && \
+        fatal "Tenant profile already exists. Maybe try using update option?"
 else
     jq 'del(.Integrator)' ${INTEGRATOR_PROFILE} > ${TENANT_PROFILE}
     INTEGRATOR_DOMAIN=$(jq -r '.Integrator.Domain.Stem | select(.!=null)' ${INTEGRATOR_PROFILE})
@@ -138,13 +130,9 @@ jq --indent 4 \
 --arg IP_ADDRESS_BLOCKS "${IP_ADDRESS_BLOCKS}" \
 "${FILTER}" < ${TENANT_PROFILE} > ${TENANT_DIR}/temp_tenant.json
 RESULT=$?
+[[ ${RESULT} -ne 0 ]] && fatal "Error creating tenant profile"
 
-if [[ ${RESULT} -eq 0 ]]; then
-    mv ${TENANT_DIR}/temp_tenant.json ${TENANT_DIR}/tenant.json
-else
-    echo -e "\nError creating tenant profile" >&2
-    exit
-fi
+mv ${TENANT_DIR}/temp_tenant.json ${TENANT_DIR}/tenant.json
 
 # Provide an empty credentials profile for the tenant
 if [[ ! -f ${TENANT_DIR}/credentials.json ]]; then

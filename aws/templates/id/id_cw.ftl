@@ -2,22 +2,24 @@
 
 [#-- Resources --]
 
+[#assign LOG_GROUP_RESOURCE_TYPE = "lg" ]
+
 [#function formatLogGroupId ids...]
     [#return formatResourceId(
-                "lg",
+                LOG_GROUP_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentLogGroupId resourceId extensions...]
     [#return formatDependentResourceId(
-                "lg",
+                LOG_GROUP_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatComponentLogGroupId tier component extensions...]
     [#return formatComponentResourceId(
-                "lg",
+                LOG_GROUP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]

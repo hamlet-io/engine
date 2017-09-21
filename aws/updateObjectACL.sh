@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 ACL_DEFAULT="private"
@@ -58,12 +59,10 @@ while getopts ":a:b:dhp:" opt; do
             PREFIX="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -74,10 +73,7 @@ PREFIX="${PREFIX:-${PREFIX_DEFAULT}}"
 DISPLAY_ACLS="${DISPLAY_ACLS:-${DISPLAY_ACLS_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
-if [[ "${BUCKET}"  == "" ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ -z "${BUCKET}" ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh

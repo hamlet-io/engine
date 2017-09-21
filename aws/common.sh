@@ -4,39 +4,269 @@
 #
 # This script is designed to be sourced into other scripts
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+# -- Error handling  --
+
+function message() {
+    local LEVEL="${1}"; shift
+    echo -e "\n(${LEVEL})" "$@"
+}
+
+function locationMessage() {
+    echo "$@" "Are we in the right place?"
+}
+
+function cantProceedMessage() {
+    echo "$@" "Nothing to do."
+}
+
+function debug() {
+    [[ -n "${GENERATION_DEBUG}" ]] && message "Debug" "$@"
+}
+
+function trace() {
+    message "Trace" "$@"
+}
+
+function info() {
+    message "Info" "$@"
+}
+
+function error() {
+    message "Error" "$@" >&2
+}
+
+function fatal() {
+    message "Fatal" "$@" >&2
+    exit
+}
+
+function fatalOption() {
+    fatal "Invalid option: \"-${1:-${OPTARG}}\""
+}
+
+function fatalOptionArgument() {
+    fatal "Option \"-${1:-${OPTARG}}\" requires an argument"
+}
+
+function fatalCantProceed() {
+    fatal $(cantProceedMessage "$@" )
+}
+
+function fatalLocation() {
+    fatal $(locationMessage "$@")
+}
+
+function fatalDirectory() {
+    fatalLocation "We don't appear to be in the ${1} directory."
+}
+
+function fatalMandatory() {
+    fatal "Mandatory arguments missing. Check usage via -h option."
+}
+
+# -- String manipulation --
+
+function join() {
+    local IFS="$1"; shift
+    echo -n "$*"
+}
+
+function contains() {
+#    echo [[ "${1}" =~ ${2} ]]
+    [[ "${1}" =~ ${2} ]]
+}
+
+# -- File manipulation --
+function formatPath() {
+    join "/" "$@"
+}
+
+function filePath() {
+    echo "${1%/*}"
+}
+
+function fileName() {
+    echo "${1##*/}"
+}
+
+function fileBase() {
+    local name=$(fileName "$@")
+    echo "${name%.*}"
+}
+
+function fileExtension() {
+    local name="$(fileName "$@")"
+    echo "${name##*.}"
+}
+
+function fileContents() {
+    [[ -f "${1}" ]] && cat "${1}"
+}
+
+function fileContentsInEnv() {
+    local ENV="${1}"; shift
+    local CONTENTS=
+    
+    for F in "$@"; do
+        CONTENTS="$(fileContents "${FILE}")"
+        eval "export ${ENV}=\"${CONTENTS}\""
+        break
+    done
+}
+
+function findAncestorDir() {
+    local ANCESTOR="${1}"; shift
+    local CURRENT="${1:-$(pwd)}"
+
+    while [[ -n "${CURRENT}" ]]; do
+        if [[ "$(fileName "${CURRENT}")" == "${ANCESTOR}" ]]; then
+            echo -n "${CURRENT}"
+            return 0
+        fi
+        CURRENT="$(filePath "${CURRENT}")"
+    done
+    return 1
+}
+
+function findSubDir() {
+    local MARKER="${1}"
+    shift
+    local ROOT_DIR="${1:-$(pwd)}"
+
+
+    local NULLGLOB=$(shopt -p nullglob)
+    local GLOBSTAR=$(shopt -p globstar)
+    
+    shopt -s nullglob globstar
+    MATCHES=("${ROOT_DIR}"/**/${MARKER})
+
+    ${NULLGLOB}
+    ${GLOBSTAR}
+
+    if [[ $(arrayIsEmpty "MATCHES") ]]; then
+        return 1
+    fi
+    
+    [[ -f "${MATCHES[0]}" ]] && \
+        echo -n "$(filePath "${MATCHES[0]}")" || \
+        echo -n "${MATCHES[0]}"
+    return 0
+}
+
+# -- Array manipulation --
+
+function inArray() {
+    local ARRAY="${1}"; shift
+    local PATTERN="${1}"
+
+    eval "contains \"\${${ARRAY}[*]}\" \"${PATTERN}\""
+}
+
+function arraySize() {
+    local ARRAY="${1}"
+
+    eval "echo \"\${#${ARRAY}[@]}\""
+}
+
+function arrayIsEmpty() {
+    local ARRAY="${1}"
+
+    [[ $(arraySize "${ARRAY}") -eq 0 ]]
+}
+
+function addToArrayWithPrefix() {
+    local ARRAY="${1}"; shift
+    local PREFIX="${1}"; shift
+    
+    for ARG in "$@"; do
+        if [[ -n "${ARG}" ]]; then
+            eval "${ARRAY}+=(\"${PREFIX}${ARG}\")"
+        fi
+    done
+}
+
+function addToArray() {
+    local ARRAY="${1}"; shift
+    
+    addToArrayWithPrefix "${ARRAY}" "" "$@"
+}
+    
+function addToArrayHeadWithPrefix() {
+    local ARRAY="${1}"; shift
+    local PREFIX="${1}"; shift
+    
+    for ARG in "$@"; do
+        if [[ -n "${ARG}" ]]; then
+            eval "${ARRAY}=(\"${PREFIX}${ARG}\" \"\${${ARRAY}[@]}\")"
+        fi
+    done
+}
+
+function addToArrayHead() {
+    local ARRAY="${1}"; shift
+    
+    addToArrayHeadWithPrefix "${ARRAY}" "" "$@"
+}
+    
+# -- JSON manipulation --
+
+function runJQ() {
+    local RETURN_VALUE
+
+    # TODO: remove once path length limitations in jq are fixed
+    JQ_TEMP="./temp_jq_${RANDOM}"
+    mkdir -p "${JQ_TEMP}"
+    local JQ_ARGS=()
+    local JQ_ARG_INDEX=0
+    for ARG in "$@"; do
+        if [[ -f "${ARG}" ]]; then
+            local JQ_TEMP_FILE="${JQ_TEMP}/temp_${JQ_ARG_INDEX}"
+            cp "${ARG}" "${JQ_TEMP_FILE}" > /dev/null
+            JQ_ARGS+=("${JQ_TEMP_FILE}")
+        else
+            JQ_ARGS+=("${ARG}")
+        fi
+        ((JQ_ARG_INDEX++))
+    done
+
+    # TODO: Add -L once path length limitations fixed
+    jq "${JQ_ARGS[@]}"
+    RETURN_VALUE=$?
+    
+    if [[ ! -n "${GENERATION_DEBUG}" ]]; then 
+        rm -rf ./temp_jq
+    fi
+    return ${RETURN_VALUE}
+}
+
+function getJSONValue() {
+    local JSON_FILE="${1}"; shift
+    local VALUE
+    
+    for PATTERN in "$@"; do
+        VALUE=$(runJQ -r "${PATTERN} | select (.!=null)" < "${STACK_FILE}")
+        [[ -n "${VALUE}" ]] && echo "${VALUE}" && return 0
+    done
+    return 1
+}
 
 # -- S3 --
 
-function getBucketName() {
-    local key="${1}"
-
-    BUCKET=$(jq -r ".[] | select(.OutputKey==\"${key}\") | .OutputValue | select(.!=null)" < ${COMPOSITE_STACK_OUTPUTS})
-}
-
-function getOperationsBucket() {
-    getBucketName "s3XsegmentXops"
-}
-
-function getCodeBucket() {
-    getBucketName "s3XaccountXcode"
-}
-
 function isBucketAccessible() {
-    local region="${1}"
-    local bucket="${2}"
-    local prefix="${3}"
+    local region="${1}"; shift
+    local bucket="${1}"; shift
+    local prefix="${1}"
 
     aws --region ${1} s3 ls "s3://${2}/${3}${3:+/}" > temp_bucket_access.txt
     return $?
 }
 
 function syncFilesToBucket() {
-    local region="${1}"
-    local bucket="${2}"
-    local prefix="${3}"
-    local filesArrayName="${4}[@]"
-    local dryrunOrDelete="${5} ${6}"
+    local region="${1}"; shift
+    local bucket="${1}"; shift
+    local prefix="${1}"; shift
+    local filesArrayName="${1}[@]"; shift
+    local dryrunOrDelete="${1} ${2}"
 
     local filesArray=("${!filesArrayName}")
     local tempDir="./temp_copyfiles"
@@ -82,14 +312,177 @@ function syncCMDBFilesToOperationsBucket() {
     SYNC_FILES_ARRAY+=(${sourceBaseDir}/${SEGMENT}/${DEPLOYMENT_UNIT}/asFile/*)
     SYNC_FILES_ARRAY+=(${sourceBaseDir}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/asFile/*)
 
-    getOperationsBucket
-    syncFilesToBucket ${REGION} ${BUCKET} "${prefix}/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}" "SYNC_FILES_ARRAY" ${dryrun} --delete
+    syncFilesToBucket ${REGION} $(getOperationsBucket) "${prefix}/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}" "SYNC_FILES_ARRAY" ${dryrun} --delete
 }
 
 function deleteCMDBFilesFromOperationsBucket() {
     local prefix="${1}"
     local dryrun="${2}"
         
-    getOperationsBucket
-    deleteTreeFromBucket ${REGION} ${BUCKET}  "${prefix}/${PRODUCT}/${SEGMENT}${DEPLOYMENT_UNIT}" ${dryrun}
+    deleteTreeFromBucket ${REGION} $(getOperationsBucket)  "${prefix}/${PRODUCT}/${SEGMENT}${DEPLOYMENT_UNIT}" ${dryrun}
 }
+
+# -- Composites --
+
+function parseStackFilename() {
+    
+    # Parse stack name for key values
+    # Account is not yet part of the stack filename
+    contains $(fileName "${1}") "([a-z0-9]+)-(.+)-([a-z]{2}-[a-z]+-[1-9])-stack.json"
+    STACK_LEVEL="${BASH_REMATCH[1]}"
+    STACK_ACCOUNT=""
+    STACK_REGION="${BASH_REMATCH[3]}"
+    STACK_DEPLOYMENT_UNIT="${BASH_REMATCH[2]}"
+}
+
+function getCompositeStackOutput() {
+    local STACK_FILE="${1}"; shift
+    local PATTERNS=()
+    
+    for KEY in "$@"; do
+        PATTERNS+=(".[] | .${KEY} ")
+    done
+    getJSONValue "${STACK_FILE}" "${PATTERNS[@]}"
+}
+
+function getBucketName() {
+    getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "$@"
+}
+
+function getOperationsBucket() {
+    getBucketName "s3XsegmentXops"
+}
+
+function getCodeBucket() {
+    getBucketName "s3XaccountXcode"
+}
+
+function getCmk() {
+    local LEVEL="${1}"; shift
+
+    getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "cmkX${LEVEL}" "cmkX${LEVEL}Xcmk"
+}
+
+function getBluePrintParameter() {   
+    getJSONValue "${COMPOSITE_BLUEPRINT}" "$@"
+}
+
+
+# -- GEN3 directory structure --
+
+function findGen3RootDir() {
+    local CURRENT="${1}"
+
+    local CONFIG_ROOT_DIR="$(filePath "$(findAncestorDir config "${CURRENT}")")"
+    local INFRASTRUCTURE_ROOT_DIR="$(filePath "$(findAncestorDir infrastructure "${CURRENT}")")"
+    local ROOT_DIR="${CONFIG_ROOT_DIR:-${INFRASTRUCTURE_ROOT_DIR}}"
+        
+    if [[ (-d "${ROOT_DIR}/config") && (-d "${ROOT_DIR}/infrastructure") ]]; then
+        echo -n "${ROOT_DIR}"
+        return 0
+    fi
+    return 1
+}
+
+function findGen3ProductDir() {
+    local ROOT_DIR="${1}"; shift
+    local PRODUCT="${1}"
+    
+    findSubDir "${PRODUCT}/product.json" "${ROOT_DIR}" 
+}
+
+function findGen3SegmentDir() {
+    local ROOT_DIR="${1}"; shift
+    local PRODUCT="${1}"; shift
+    local SEGMENT="${1}"
+    
+    local PRODUCT_DIR="$(findGen3ProductDir "${ROOT_DIR}" "${PRODUCT}")"
+    [[ -z "${PRODUCT_DIR}" ]] && return 1
+    
+    findSubDir "solutions/${SEGMENT}/segment.json" "${PRODUCT_DIR}" ||
+    findSubDir "solutions/${SEGMENT}/container.json" "${PRODUCT_DIR}"
+}
+
+function getGen3Env() {
+    local ENV="${1}"; shift
+    local PREFIX="${1}"
+    
+    local ENV_NAME="${PREFIX}${ENV}"
+    echo "${!ENV_NAME}"
+}
+
+function checkGen3Dir() {
+    local ENV="${1}"; shift
+    local PREFIX="${1}"; shift
+
+    local ENV_NAME="${PREFIX}${ENV}"
+    for DIR in "$@"; do
+        if [[ -d "${DIR}" ]]; then
+            eval "export ${ENV_NAME}=${DIR}"
+            return 0
+        fi
+    done
+
+    error $(locationMessage "Can't locate ${ENV} directory.")
+    return 1
+}
+
+function findGen3Dirs() {
+    local ROOT_DIR="${1}"; shift
+    local PRODUCT="${1}"; shift
+    local SEGMENT="${1}"; shift
+    local PREFIX="${1}"; shift
+    
+    export ACCOUNT="$(fileName "${ROOT_DIR}")"
+    checkGen3Dir "CONFIG_DIR" "${PREFIX}" \
+        "${ROOT_DIR}/config" || return 1
+    checkGen3Dir "INFRASTRUCTURE_DIR" "${PREFIX}" \
+        "${ROOT_DIR}/infrastructure" || return 1
+
+    checkGen3Dir "TENANT_DIR" "${PREFIX}" \
+        "$(findSubDir "tenant.json" "${ROOT_DIR}")" || return 1
+    checkGen3Dir "ACCOUNT_DIR" "${PREFIX}" \
+        "$(findSubDir "${ACCOUNT}/account.json" "${ROOT_DIR}")" || return 1
+    checkGen3Dir "ACCOUNT_INFRASTRUCTURE_DIR" "${PREFIX}" \
+        "$(findSubDir "${ACCOUNT}" "${ROOT_DIR}/infrastructure")" || return 1
+    eval "export ${PREFIX}ACCOUNT_APPSETTINGS_DIR=$(getGen3Env "ACCOUNT_DIR" "${PREFIX}")/appsettings"
+    eval "export ${PREFIX}ACCOUNT_CREDENTIALS_DIR=$(getGen3Env "ACCOUNT_INFRASTRUCTURE_DIR" "${PREFIX}")/credentials"
+
+    if [[ -n "${PRODUCT}" ]]; then
+        checkGen3Dir "PRODUCT_DIR" "${PREFIX}" \
+            "$(findGen3ProductDir "${ROOT_DIR}" "${PRODUCT}")" || return 1
+        checkGen3Dir "PRODUCT_INFRASTRUCTURE_DIR" "${PREFIX}" \
+            "$(findSubDir "${PRODUCT}" "${ROOT_DIR}/infrastructure")" || return 1
+        eval "export ${PREFIX}PRODUCT_APPSETTINGS_DIR=$(getGen3Env "PRODUCT_DIR" "${PREFIX}")/appsettings"
+        eval "export ${PREFIX}PRODUCT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_INFRASTRUCTURE_DIR" "${PREFIX}")/credentials"
+        if [[ -n "${SEGMENT}" ]]; then
+            checkGen3Dir "SEGMENT_DIR"  "${PREFIX}" \
+                "$(findGen3SegmentDir "${ROOT_DIR}" "${PRODUCT}" "${SEGMENT}")" || return 1
+            eval "export ${PREFIX}SEGMENT_APPSETTINGS_DIR=$(getGen3Env "PRODUCT_APPSETTINGS_DIR" "${PREFIX}")/${SEGMENT}"
+            eval "export ${PREFIX}SEGMENT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_CREDENTIALS_DIR" "${PREFIX}")/${SEGMENT}"
+        fi
+    fi
+}
+
+function checkInRootDirectory() {
+    [[ ! ("root" =~ "${1:-$LOCATION}}") ]] && fatalDirectory "root"
+}
+
+function checkInSegmentDirectory() {
+    [[ ! ("segment" =~ "${1:-$LOCATION}}") ]] && fatalDirectory "segment"
+}
+
+function checkInProductDirectory() {
+    [[ ! ("product" =~ "${1:-$LOCATION}}") ]] && fatalDirectory "product"
+}
+
+function checkInAccountDirectory() {
+    [[ ! ("account" =~ "${1:-$LOCATION}}") ]] && fatalDirectory "account"
+}
+
+function fatalProductOrSegmentDirectory() {
+    fatalDirectory "product or segment"
+}
+
+
+

@@ -1,4 +1,16 @@
 [#ftl]
+
+[#macro policyStatements statements]
+    [#if (!containerListMode??) ||
+        (containerListMode == "policy")]
+        [#list statements as statement]
+            [#if statementCount > 0],[/#if]
+            [@toJSON statement /]
+            [#assign statementCount += 1]
+        [/#list]
+    [/#if]
+[/#macro]
+
 [#macro policyHeader name id="" roles="" type="Policy"]
     [#if (!containerListMode??) ||
         (containerListMode == "policy")]
@@ -10,14 +22,10 @@
                 "Properties" : {
                 [#if roles?has_content]
                     "Roles" : [
-                        [#if roles?is_sequence]
-                            [#list roles as role]
-                                { "Ref" : "${role}" }
-                                [#sep],[/#sep]
-                            [/#list]
-                        [#else]
-                            { "Ref" : "${roles}" }
-                        [/#if]
+                        [#list asArray(roles) as role]
+                            { "Ref" : "${role}" }
+                            [#sep],[/#sep]
+                        [/#list]
                     ],
                 [/#if]
             [@resourcesCreated /]
@@ -48,56 +56,7 @@
         [/#if]
         }
     [/#if]
-    [#assign policyCount += 1]
-[/#macro]
-
-[#macro policyStatement actions resources="*" effect="Allow" principals="" conditions=""]
-    [#if (!containerListMode??) ||
-        (containerListMode == "policy")]
-        [#if statementCount > 0],[/#if]
-        {
-            [#if principals?has_content]
-                "Principal" :
-                    [#if principals?is_sequence]
-                        [
-                            [#list principals as principal]
-                                "${principal}"
-                                [#sep],[/#sep]
-                            [/#list]
-                        ]
-                    [#else]
-                        "${principals}"
-                    [/#if],
-            [/#if]
-            [#if conditions?has_content && conditions?is_hash]
-                "Condition" : [@toJSON conditions /],
-            [/#if]
-            "Action" :
-                [#if actions?is_sequence]
-                    [
-                        [#list actions as action]
-                            "${action}"
-                            [#sep],[/#sep]
-                        [/#list]
-                    ]
-                [#else]
-                    "${actions}"
-                [/#if],
-            "Resource" :
-                [#if resources?is_sequence]
-                    [
-                        [#list resources as resource]
-                            "${resource}"
-                            [#sep],[/#sep]
-                        [/#list]
-                    ]
-                [#else]
-                    "${resources}"
-                [/#if],
-            "Effect" : "${effect}"
-        }
-        [#assign statementCount += 1]
-    [/#if]
+    [#assign policyCount = policyCount!0 + 1 ]
 [/#macro]
 
 [#macro roleHeader

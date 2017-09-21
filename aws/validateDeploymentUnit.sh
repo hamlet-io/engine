@@ -8,7 +8,7 @@
 # If type is not defined, it just sets the flags to indicate 
 # whether the provided unit is defined at each type level
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 
 # Expected arguments
 CHECK_UNIT="${DEPLOYMENT_UNIT}"
@@ -19,20 +19,15 @@ CHECK_UNIT="${CHECK_UNIT,,}"
 CHECK_TYPE="${CHECK_TYPE,,}"
 
 # Ensure arguments have been provided
-if [[ -z "${CHECK_UNIT}" ]]; then
-    echo -e "\nNo deployment unit provided" >&2
-    exit
-fi
+[[ -z "${CHECK_UNIT}" ]] && fatal "No deployment unit provided"
 
 # Known types
 TYPES=("account" "product" "application" "solution" "segment")
 
 # Ensure type is kwown
-if [[ (-n "${CHECK_TYPE}") &&
-        (! $(grep -w "${CHECK_TYPE}" <<< "${TYPES[*]}")) ]]; then
-    echo -e "\n${CHECK_TYPE} is not a known type - select from ${TYPES[*]}" >&2
-    exit
-fi
+[[ (-n "${CHECK_TYPE}") &&
+    (! $(grep -w "${CHECK_TYPE}" <<< "${TYPES[*]}")) ]] && \
+    fatal "${CHECK_TYPE} is not a known type - select from ${TYPES[*]}"
 
 # Default deployment units for each type
 ACCOUNT_UNITS_ARRAY=("s3" "cert" "roles" "apigateway" "waf")
@@ -65,10 +60,7 @@ done
 if [[ (-n "${CHECK_TYPE}") ]]; then
     UNITS_ARRAY_VAR="${CHECK_TYPE^^}_UNITS_ARRAY"
     eval "grep -iw \"${CHECK_UNIT}\" <<< \"\${${UNITS_ARRAY_VAR}[*]}\" >/dev/null 2>&1"
-    if [[ $? -ne 0 ]]; then
-        echo -e "\nUnknown deployment unit ${CHECK_UNIT} of ${CHECK_TYPE} type" >&2
-        exit
-    fi
+    [[ $? -ne 0 ]] && fatal "Unknown deployment unit ${CHECK_UNIT} of ${CHECK_TYPE} type"
 fi
 
 # All good

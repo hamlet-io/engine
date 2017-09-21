@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 STORAGE_PROFILE_DEFAULT="default"
@@ -61,12 +62,10 @@ while getopts ":d:hp:s:t:" opt; do
             COMPONENT_TYPE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -77,13 +76,10 @@ STORAGE_DEVICE="${STORAGE_DEVICE:-$STORAGE_DEVICE_DEFAULT}"
 STORAGE_SIZE="${STORAGE_SIZE:-$STORAGE_SIZE_DEFAULT}"
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${STORAGE_PROFILE}") ||
-      (-z "${COMPONENT_TYPE}") ||
-      (-z "${STORAGE_DEVICE}") ||
-      (-z "${STORAGE_SIZE}") ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${STORAGE_PROFILE}") ||
+  (-z "${COMPONENT_TYPE}") ||
+  (-z "${STORAGE_DEVICE}") ||
+  (-z "${STORAGE_SIZE}") ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
@@ -95,16 +91,12 @@ else
     if [[ ("segment" =~ "${LOCATION}") ]]; then
         TARGET_FILE="./segment.json"
     else
-        echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
-        exit
+        fatalProductOrSegmentDirectory
     fi
 fi
 
 # Check whether the target exists
-if [[ ! -f "${TARGET_FILE}" ]]; then
-    echo -e "\nSolution or segment profile not found. Maybe try adding solution/segment first?" >&2
-    exit
-fi
+[[ ! -f "${TARGET_FILE}" ]] && fatal "Solution or segment profile not found. Maybe try adding solution/segment first?"
 
 # Update the target file
 FILTER=".Storage[\"${STORAGE_PROFILE}\"][\"${COMPONENT_TYPE}\"].Volumes[0].Device=\"/dev/${STORAGE_DEVICE}\""

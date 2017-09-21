@@ -2,9 +2,14 @@
 
 [#-- Resources --]
 
+[#assign RDS_RESOURCE_TYPE = "rds" ]
+[#assign RDS_SUBNET_GROUP_RESOURCE_TYPE = "rdsSubnetGroup" ]
+[#assign RDS_PARAMETER_GROUP_RESOURCE_TYPE = "rdsParameterGroup" ]
+[#assign RDS_OPTION_GROUP_RESOURCE_TYPE = "rdsOptionGroup" ]
+
 [#function formatRDSId tier component extensions...]
     [#return formatComponentResourceId(
-                "rds",
+                RDS_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -12,7 +17,7 @@
 
 [#function formatRDSSubnetGroupId tier component extensions...]
     [#return formatComponentResourceId(
-                "rdsSubnetGroup",
+                RDS_SUBNET_GROUP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -20,7 +25,7 @@
 
 [#function formatRDSParameterGroupId tier component extensions...]
     [#return formatComponentResourceId(
-                "rdsParameterGroup",
+                RDS_PARAMETER_GROUP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -28,7 +33,7 @@
 
 [#function formatRDSOptionGroupId tier component extensions...]
     [#return formatComponentResourceId(
-                "rdsOptionGroup",
+                RDS_OPTION_GROUP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -47,26 +52,4 @@
 [#function formatRDSDatabaseNameId resourceId]
     [#return formatDatabaseNameAttributeId(resourceId)]
 [/#function]
-
-[#-- Outputs --]
-
-[#macro outputRDSDns resourceId]
-    [@outputAtt
-        formatRDSDnsId(resourceId)
-        resourceId
-        "Endpoint.Address" /]
-[/#macro]
-
-[#macro outputRDSPort resourceId]
-    [@outputAtt
-        formatRDSPortId(resourceId)
-        resourceId
-        "Endpoint.Port" /]
-[/#macro]
-
-[#macro outputRDSDatabaseName resourceId value]
-    [@outputValue
-        formatRDSDatabaseNameId(resourceId)
-        value /]
-[/#macro]
 

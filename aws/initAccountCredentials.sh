@@ -1,6 +1,7 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 AINDEX_DEFAULT="01"
@@ -48,22 +49,17 @@ while getopts ":hi:o:" opt; do
       TID="${OPTARG}"
       ;;
     \?)
-      echo -e "\nInvalid option: -${OPTARG}" >&2
-      exit
+      fatalOption
       ;;
     :)
-      echo -e "\nOption -${OPTARG} requires an argument" >&2
-      exit
+      fatalOptionArgument
       ;;
    esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ "${TID}"  == "" ||
-      "${AINDEX}" == "" ]]; then
-  echo -e "\nInsufficient arguments" >&2
-  exit
-fi
+[[ (-z "${TID}") ||
+    (-z "${AINDEX}") ]] && fatalMandatory
 
 AID="${TID}${AINDEX}"
 
@@ -77,15 +73,11 @@ PRODUCT_DIR="${CREDS_DIR}/${AID}"
 ALM_DIR="${PRODUCT_DIR}/alm"
 DOCKER_DIR="${ALM_DIR}/docker"
 
-if [[ "${AID}" != "${ROOT}" ]]; then
-    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
-    exit
-fi
+[[ "${AID}" != "${ROOT}" ]] && \
+    fatalCantProceed "The provided AID (${AID}) doesn't match the root directory (${ROOT})."
 
-if [[ -e ${PRODUCT_DIR} ]]; then
-    echo -e "\nLooks like this script has already been run. Don't want to overwrite passwords. Nothing to do." >&2
-    exit
-fi
+[[ -e ${PRODUCT_DIR} ]] && \
+    fatalCantProceed "Looks like this script has already been run. Don't want to overwrite passwords."
 
 # Generate initial passwords
 ROOTPASSWORD="$(curl -s 'https://www.random.org/passwords/?num=1&len=20&format=plain&rnd=new')"

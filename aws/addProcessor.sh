@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 PROCESSOR_PROFILE_DEFAULT="default"
@@ -53,12 +54,10 @@ while getopts ":hi:p:t:" opt; do
             COMPONENT_TYPE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -67,12 +66,9 @@ PROCESSOR_PROFILE="${PROCESSOR_PROFILE:-$PROCESSOR_PROFILE_DEFAULT}"
 COMPONENT_TYPE="${COMPONENT_TYPE:-${COMPONENT_TYPE_VALUES[0]}}"
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${PROCESSOR_PROFILE}") ||
-      (-z "${COMPONENT_TYPE}") ||
-      (-z "${PROCESSOR_INSTANCE}") ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${PROCESSOR_PROFILE}") ||
+    (-z "${COMPONENT_TYPE}") ||
+    (-z "${PROCESSOR_INSTANCE}") ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
@@ -84,22 +80,17 @@ else
     if [[ ("segment" =~ "${LOCATION}") ]]; then
         TARGET_FILE="./segment.json"
     else
-        echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
-        exit
+        fatalProductOrSegmentDirectory
     fi
 fi
 
 # Check whether the target exists
-if [[ ! -f "${TARGET_FILE}" ]]; then
-    echo -e "\nSolution or segment profile not found. Maybe try adding solution/segment first?" >&2
-    exit
-fi
+[[ ! -f "${TARGET_FILE}" ]] && fatal "Solution or segment profile not found. Maybe try adding solution/segment first?"
 
 # Update the target file
 FILTER=".Processors[\"${PROCESSOR_PROFILE}\"][\"${COMPONENT_TYPE}\"].Processor=\"${PROCESSOR_INSTANCE}\""
 jq --indent 4 "${FILTER}" < "${TARGET_FILE}" > ./temp_profile.json
 RESULT=$?
-if [[ "${RESULT}" -eq 0 ]]; then
-    mv ./temp_profile.json "${TARGET_FILE}"
-fi
+[[ "${RESULT}" -eq 0 ]] && mv ./temp_profile.json "${TARGET_FILE}"
+
 

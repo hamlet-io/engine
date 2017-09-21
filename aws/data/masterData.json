@@ -759,9 +759,32 @@
         "mgmt": {
             "Title": "Management Tier",
             "Name": "management",
-            "Description": "Supports vpn based host access and internet access for internal hosts",
+            "Description": "Supports ssh based host access and internet access for internal hosts",
             "RouteTable": "external",
-            "NetworkACL": "open"
+            "NetworkACL": "open",
+            "Components" : {
+                "seg-cert" : {
+                    "DeploymentUnits" : ["cert"]
+                },
+                "seg-cmk" : {
+                    "DeploymentUnits" : ["cmk"]
+                },
+                "seg-dns" : {
+                    "DeploymentUnits" : ["dns"]
+                },
+                "seg-s3" : {
+                    "DeploymentUnits" : ["s3"]
+                },
+                "seg-vpc" : {
+                    "DeploymentUnits" : ["vpc"]
+                },
+                "ssh-ssh" : {
+                    "DeploymentUnits" : ["ssh"]
+                },
+                "nat-nat" : {
+                    "DeploymentUnits" : ["nat"]
+                }
+            }
         },
         "shared": {
             "Title": "Shared Tier",

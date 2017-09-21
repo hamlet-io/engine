@@ -2,9 +2,11 @@
 
 [#-- Resources --]
 
+[#assign CF_RESOURCE_TYPE = "cf" ]
+
 [#function formatDependentCFDistributionId resourceId extensions...]
     [#return formatDependentResourceId(
-                "cf",
+                CF_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]

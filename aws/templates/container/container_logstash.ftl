@@ -1,111 +1,55 @@
 [#case "logstash"]
-    [#switch containerListMode]
-        [#case "definition"]
-            "Name" : "${tier.Name + "-" + component.Name + "-" + container.Name}",
-            "Image" : "${getRegistryEndPoint("docker")}/logstash${dockerTag}",
-            "Environment" : [
-                [@standardEnvironmentVariables /]
-                {
-                    "Name" : "LOGS",
-                    "Value" : "${logsBucket}"
-                },
-                {
-                    "Name" : "REGION",
-                    "Value" : "${regionId}"
-                },
-                {
-                    "Name" : "PRODUCT",
-                    "Value" : "${productId}"
-                },
-                {
-                    "Name" : "CONTAINER",
-                    "Value" : "${containerId}"
-                },
-                [#assign esConfiguration = configurationObject.ElasticSearch]
-                {
-                    "Name" : "ES",
-                    "Value" : "${esConfiguration.EndPoint}"
-                },
-                [#if esConfiguration.MaximumIndexAge??]
-                    {
-                        "Name" : "INDEX_AGE",
-                        "Value" : "${esConfiguration.MaximumIndexAge}"
-                    }
-                [/#if]
-            ],
-            "MountPoints": [
-                {
-                    "SourceVolume": "logstash",
-                    "ContainerPath": "/product/logstash",
-                    "ReadOnly": false
-                }
-            ],
-            "Essential" : true,
-            [#break]
+    [#assign esConfiguration = configurationObject.ElasticSearch]
 
-        [#case "volumeCount"]
-            [#assign volumeCount += 1]
-            [#break]
+    [@containerBasicAttributes
+        name=containerName
+        mode=containerListMode
+        image="logstash" + dockerTag
+    /]
 
-        [#case "volumes"]
-            [#if volumeCount > 0],[/#if]
-            {
-                "Host": {
-                    "SourcePath": "/product/logstash"
-                },
-                "Name": "logstash"
-            }
-            [#assign volumeCount += 1]
-            [#break]
+    [@standardEnvironmentVariables
+        containerListTarget containerListMode /]
+        
+    [@environmentVariable
+        "LOGS" logsBucket
+        containerListTarget containerListMode /]
 
-        [#case "policyCount"]
-            [#assign policyCount += 1]
-            [#break]
+    [@environmentVariable
+        "REGION" regionId
+        containerListTarget containerListMode /]
 
-        [#case "policy"]
-            "policyX${tier.Id}X${component.Id}X${task.Id}X${container.Id}": {
-                "Type": "AWS::IAM::Policy",
-                "Properties": {
-                    "PolicyDocument" : {
-                        "Version": "2012-10-17",
-                        "Statement": [
-                            {
-                                "Resource": [
-                                    "arn:aws:s3:::${operationsBucket}"
-                                ],
-                                "Action": [
-                                    "s3:List*"
-                                ],
-                                "Effect": "Allow"
-                            },
-                            {
-                                "Resource": [
-                                    "arn:aws:s3:::${operationsBucket}/AWSLogs/*"
-                                ],
-                                "Action": [
-                                   "s3:GetObject"
-                                ],
-                                "Effect": "Allow"
-                            },
-                            {
-                                "Resource": [
-                                    "arn:aws:s3:::${operationsBucket}/DOCKERLogs/*"
-                                ],
-                                "Action": [
-                                   "s3:GetObject",
-                                   "s3:DeleteObject"
-                                ],
-                                "Effect": "Allow"
-                            }
-                        ]
-                    },
-                    "PolicyName" : "${tier.Name + "-" + component.Name + "-" + task.Name + "-" + container.Name}",
-                    "Roles" : [
-                        { "Ref" : "roleX${tier.Id}X${component.Id}X${task.Id}" }
-                    ]
-                }
-            },
-            [#break]
+    [@environmentVariable
+        "PRODUCT" productId
+        containerListTarget containerListMode /]
 
-    [/#switch]
+    [@environmentVariable
+        "CONTAINER" containerId
+        containerListTarget containerListMode /]
+
+    [@environmentVariable
+        "ES" esConfiguration.EndPoint
+        containerListTarget containerListMode /]
+
+    [#if esConfiguration.MaximumIndexAge?has_content]
+        [@environmentVariable
+            "INDEX_AGE" esConfiguration.MaximumIndexAge
+            containerListTarget containerListMode /]
+    [/#if]
+    
+    [@containerVolume
+            name="logstash"
+            containerPath="/product/logstash"
+            hostPath="/product/logstash" /]
+
+    [@createPolicy
+        mode=containerListMode
+        id=containerListPolicyId
+        name=containerListPolicyName
+        statements=
+            getS3ListBucketStatement(operationsBucket) +
+            getS3ReadStatement(operationsBucket, "AWSLogs") +
+            getS3ConsumeStatement(operationsBucket, "DOCKERLogs")
+        roles=containerListRole
+    /]
+
     [#break]

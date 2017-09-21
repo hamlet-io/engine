@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 
@@ -49,12 +50,10 @@ while getopts ":hqxy" opt; do
             DRYRUN="--dryrun"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -62,65 +61,51 @@ done
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
-if [[ ! ("account" =~ ${LOCATION}) ]]; then
-    echo -e "\nNeed to be in the account directory. Nothing to do." >&2
-    exit
-fi
+checkInAccountDirectory
 
 # Locate the bucket names
 CODE_BUCKET=$(jq -r ".[] | select(.OutputKey==\"s3XaccountXcode\") | .OutputValue | select(.!=null)" < ${COMPOSITE_STACK_OUTPUTS})
 CREDENTIALS_BUCKET=$(jq -r ".[] | select(.OutputKey==\"s3XaccountXcredentials\") | .OutputValue | select(.!=null)" < ${COMPOSITE_STACK_OUTPUTS})
 
-if [[ (-z "${CODE_BUCKET}") ||
-        (-z "${CREDENTIALS_BUCKET}") ||
-        (-z "${ACCOUNT_REGION}") ]]; then
-    echo -e "\nBuckets don't appear to have been created. Maybe create the Account stack first?" >&2
-    exit
-fi
+[[ (-z "${CODE_BUCKET}") ||
+    (-z "${CREDENTIALS_BUCKET}") ||
+    (-z "${ACCOUNT_REGION}") ]] && \
+    fatal "Buckets don't appear to have been created. Maybe create the Account stack first?"
+
 pushd ${ACCOUNT_DIR}  > /dev/null 2>&1
 
 # Confirm access to the code bucket
 if [[ "${CHECK}" == "true" ]]; then
     aws --region ${ACCOUNT_REGION} s3 ls s3://${CODE_BUCKET}/ > temp_code_access.txt
     RESULT=$?
-    if [[ "$RESULT" -ne 0 ]]; then
-        echo -e "\nCan't access the code bucket. Does the service role for the server include access to the \"${ACCOUNT}\" code bucket? If windows, is a profile matching the account been set up? Nothing to do." >&2
-        exit
-    fi
+    [[ "$RESULT" -ne 0 ]] && \
+        fatal "Can't access the code bucket. Does the service role for the server include access to the \"${ACCOUNT}\" code bucket? If windows, is a profile matching the account been set up?"
 fi
 
 if [[ -d ${GENERATION_STARTUP_DIR} ]]; then
     cd ${GENERATION_STARTUP_DIR}
     aws --region ${ACCOUNT_REGION} s3 sync ${DRYRUN} ${DELETE} --exclude=".git*" bootstrap/ s3://${CODE_BUCKET}/bootstrap/
     RESULT=$?
-    if [[ "$RESULT" -ne 0 ]]; then
-        echo -e "\nCan't update the code bucket" >&2
-        exit
-    fi
+    [[ "$RESULT" -ne 0 ]] && fatal "Can't update the code bucket"
+
 else
-    echo -e "\nStartup directory not found" >&2
-    exit
+    fatal "Startup directory not found"
 fi
 
 # Confirm access to the credentials bucket
 if [[ "${CHECK}" == "true" ]]; then
     aws --region ${ACCOUNT_REGION} s3 ls s3://${CREDENTIALS_BUCKET}/ > temp_credential_access.txt
     RESULT=$?
-    if [[ "$RESULT" -ne 0 ]]; then
-        echo -e "\nCan't access the credentials bucket. Does the service role for the server include access to the \"${ACCOUNT}\" credentials bucket? If windows, is a profile matching the account been set up? Nothing to do." >&2
-        exit
-    fi
+    [[ "$RESULT" -ne 0 ]] && \
+        fatal "Can't access the credentials bucket. Does the service role for the server include access to the \"${ACCOUNT}\" credentials bucket? If windows, is a profile matching the account been set up?"
 fi
 
 if [[ -d ${ACCOUNT_CREDENTIALS_DIR}/alm/docker ]]; then
     cd ${ACCOUNT_CREDENTIALS_DIR}/alm/docker
     aws --region ${ACCOUNT_REGION} s3 sync ${DRYRUN} ${DELETE} . s3://${CREDENTIALS_BUCKET}/${ACCOUNT}/alm/docker/
     RESULT=$?
-    if [[ "$RESULT" -ne 0 ]]; then
-        echo -e "\nCan't update the code bucket" >&2
-        exit
-    fi
+    [[ "$RESULT" -ne 0 ]] && fatal "Can't update the code bucket"
 else
-    echo -e "\nDocker directory not found - ignoring docker credentials"
+    info "Docker directory not found - ignoring docker credentials"
 fi
 

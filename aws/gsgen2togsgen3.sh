@@ -1,6 +1,8 @@
 #!/bin/bash
 
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 
@@ -43,30 +45,23 @@ while getopts ":a:hl:p:r:s:t:" opt; do
             PID="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ "${AID}" == "" ||
-      "${PID}"  == "" ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${AID}") ||
+    (-z "${PID}") ]] && fatalMandatory
 
 AID_DIR="$(basename $(cd ..;pwd))"
 CURRENT_DIR="$(basename $(pwd))"
 
-if [[ "${AID}" != "${AID_DIR}" ]]; then
-    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
-    exit
-fi
+[[ "${AID}" != "${AID_DIR}" ]] && \
+    fatal "The provided AID (${AID}) doesn't match the root directory (${ROOT})."
 
 # If in a repo, save the results of the rearrangement
 if [[ -d .git ]]; then

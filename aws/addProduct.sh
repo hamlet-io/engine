@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 
@@ -67,30 +68,22 @@ while getopts ":d:hl:n:o:p:r:u" opt; do
             UPDATE_PRODUCT="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${PRODUCT}") ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${PRODUCT}") ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
 # Ensure we are in the root of the account tree
-if [[ "${LOCATION}" != "root" ]]; then
-    echo -e "\nWe don't appear to be in the root of the account tree. Are we in the right place?" >&2
-    exit
-fi
+checkInRootDirectory
 
 # Create the directories for the product
 PRODUCT_DIR="${GENERATION_DATA_DIR}/config/${PRODUCT}"
@@ -108,10 +101,8 @@ mkdir -p ${CREDENTIALS_DIR}
 # Check whether the product profile is already in place
 PRODUCT_PROFILE=${PRODUCT_DIR}/product.json
 if [[ -f ${PRODUCT_PROFILE} ]]; then
-    if [[ "${UPDATE_PRODUCT}" != "true" ]]; then
-        echo -e "\nProduct profile already exists. Maybe try using update option?" >&2
-        exit
-    fi
+    [[ "${UPDATE_PRODUCT}" != "true" ]] && \
+        fatal "Product profile already exists. Maybe try using update option?"
 else
     echo "{\"Product\":{}}" > ${PRODUCT_PROFILE}
     PID="${PID:-${PRODUCT}}"
@@ -139,13 +130,9 @@ jq --indent 4 \
 --arg CERTIFICATE_ID "${CERTIFICATE_ID}" \
 "${FILTER}" < ${PRODUCT_PROFILE} > ${PRODUCT_DIR}/temp_product.json
 RESULT=$?
+[[ ${RESULT} -ne 0 ]] && fatal "Error creating product profile"
 
-if [[ ${RESULT} -eq 0 ]]; then
-    mv ${PRODUCT_DIR}/temp_product.json ${PRODUCT_DIR}/product.json
-else
-    echo -e "\nError creating product profile" >&2
-    exit
-fi
+mv ${PRODUCT_DIR}/temp_product.json ${PRODUCT_DIR}/product.json
 
 # Provide an empty credentials profile for the product
 if [[ ! -f ${CREDENTIALS_DIR}/credentials.json ]]; then

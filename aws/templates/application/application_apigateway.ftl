@@ -3,171 +3,29 @@
 [#if componentType == "apigateway"]
     [#assign apigateway = component.APIGateway]
 
-    [#assign apigatewayInstances=[] ]    
-    [#if apigateway.Versions??]
-        [#list apigateway.Versions?values as version]
-            [#if deploymentRequired(version, deploymentUnit)]  
-                [#if version.Instances??]
-                    [#list version.Instances?values as apigatewayInstance]
-                        [#if deploymentRequired(apigatewayInstance, deploymentUnit)]
-                            [#assign apigatewayInstances += [apigatewayInstance +
-                                    {
-                                        "Internal" : {
-                                            "IdExtensions" : [
-                                                version.Id,
-                                                (apigatewayInstance.Id == "default")?
-                                                    string(
-                                                        "",
-                                                        apigatewayInstance.Id)],
-                                            "NameExtensions" : [
-                                                version.Name,
-                                                (apigatewayInstance.Id == "default")?
-                                                    string(
-                                                        "",
-                                                        apigatewayInstance.Name)],
-                                            "VersionId" : version.Id,
-                                            "StageName" : version.Name,
-                                            "InstanceIdRef" : apigatewayInstance.Id,
-                                            "WAF" : {
-                                                "IsConfigured" :
-                                                    (apigatewayInstance.WAF?? ||
-                                                        version.WAF?? ||
-                                                        apigateway.WAF??) &&
-                                                    ipAddressGroupsUsage["waf"]?has_content,
-                                                "IPAddressGroups" :
-                                                    (apigatewayInstance.WAF.IPAddressGroups) !
-                                                    (version.WAF.IPAddressGroups) !
-                                                    apigateway.WAF.IPAddressGroups !
-                                                    [],
-                                                "Default" :
-                                                    (apigatewayInstance.WAF.Default) !
-                                                    (version.WAF.Default) !
-                                                    (apigateway.WAF.Default) !
-                                                    "",
-                                                "RuleDefault" :
-                                                    (apigatewayInstance.WAF.RuleDefault) !
-                                                    (version.WAF.RuleDefault) !
-                                                    (apigateway.WAF.RuleDefault) !
-                                                    ""
-                                            },
-                                            "CloudFront" : {
-                                                "IsConfigured" :
-                                                    apigatewayInstance.CloudFront?? ||
-                                                    version.CloudFront?? ||
-                                                    apigateway.CloudFront??,
-                                                "AssumeSNI" :
-                                                    (apigatewayInstance.CloudFront.AssumeSNI) !
-                                                    (version.CloudFront.AssumeSNI) !
-                                                    (apigateway.CloudFront.AssumeSNI)!
-                                                    true,
-                                                "EnableLogging" :
-                                                    (apigatewayInstance.CloudFront.EnableLogging) !
-                                                    (version.CloudFront.EnableLogging) !
-                                                    (apigateway.CloudFront.EnableLogging)!
-                                                    true
-                                            },
-                                            "DNS" : {
-                                                "IsConfigured" :
-                                                    apigatewayInstance.DNS?? ||
-                                                        version.DNS?? ||
-                                                        apigateway.DNS??,
-                                                "Host" :
-                                                    formatName(
-                                                        (apigatewayInstance.Id == "default")?
-                                                            string(
-                                                                "",
-                                                                apigatewayInstance.Name),
-                                                        ((apigatewayInstance.DNS.Host) !
-                                                            (version.DNS.Host) !
-                                                            (apigateway.DNS.Host)!
-                                                            ""))
-                                            }
-                                        }
-                                    }
-                                ] 
-                            ]
-                        [/#if]
-                    [/#list]
-                [#else]
-                    [#assign apigatewayInstances += [version +
-                            {
-                                "Internal" : {
-                                    "IdExtensions" : [version.Id],
-                                    "NameExtensions" : [version.Name],
-                                    "VersionId" : version.Id,
-                                    "StageName" : version.Name,
-                                    "InstanceIdRef" : version.Id,
-                                    "WAF" : {
-                                        "IsConfigured" :
-                                            (version.WAF?? ||
-                                                apigateway.WAF??) &&
-                                            ipAddressGroupsUsage["waf"]?has_content,
-                                        "IPAddressGroups" :
-                                            (version.WAF.IPAddressGroups) !
-                                            (apigateway.WAF.IPAddressGroups) !
-                                            [],
-                                        "Default" :
-                                            (version.WAF.Default) !
-                                            (apigateway.WAF.Default) !
-                                            "",
-                                        "RuleDefault" :
-                                            (version.WAF.RuleDefault) !
-                                            (apigateway.WAF.RuleDefault) !
-                                            ""
-                                    },
-                                    "CloudFront" : {
-                                        "IsConfigured" :
-                                            version.CloudFront?? ||
-                                            apigateway.CloudFront??,
-                                        "AssumeSNI" :
-                                            (version.CloudFront.AssumeSNI) !
-                                            (apigateway.CloudFront.AssumeSNI) !
-                                            true,
-                                        "EnableLogging" :
-                                            (version.CloudFront.EnableLogging) !
-                                            (apigateway.CloudFront.EnableLogging)!
-                                            true
-
-                                    },
-                                    "DNS" : {
-                                        "IsConfigured" :
-                                            version.DNS?? ||
-                                                apigateway.DNS??,
-                                        "Host" :
-                                            (version.DNS.Host) !
-                                            (apigateway.DNS.Host)!
-                                            ""
-                                    }
-                                }
-                            }
-                        ] 
-                    ]
-                [/#if]
-            [/#if]
-        [/#list]
-    [/#if]
-    
     [#-- Non-repeating text to ensure deploy happens every time --]
     [#assign noise = random.nextLong()?string.computer?replace("-","X")]
-    [#list apigatewayInstances as apigatewayInstance]
+
+    [#list getComponentOccurrences(component, deploymentUnit) as occurrence]
+
         [#assign apiId    = formatAPIGatewayId(
                                 tier,
                                 component,
-                                apigatewayInstance)]
+                                occurrence)]
         [#assign apiName  = formatComponentFullName(
                                 tier,
                                 component,
-                                apigatewayInstance)]
+                                occurrence)]
         [#assign deployId = formatAPIGatewayDeployId(
                                 tier,
                                 component,
-                                apigatewayInstance,
+                                occurrence,
                                 noise)]
         [#assign stageId  = formatAPIGatewayStageId(
                                 tier,
                                 component,
-                                apigatewayInstance)]
-        [#assign stageName = apigatewayInstance.Internal.StageName]
+                                occurrence)]
+        [#assign stageName = occurrence.VersionName]
         [#assign stageDimensions =
             [
                 {
@@ -180,6 +38,82 @@
                 }
             ]
         ]
+        [#assign stageVariables = {} ]
+        [#list occurrence.Links?values as link]
+            [#if link?is_hash]
+                [#assign targetComponent = getComponent(link.Tier, link.Component)]
+                [#if targetComponent?has_content]
+                    [#list getComponentOccurrences(targetComponent) as targetOccurrence]
+                        [#if (targetOccurrence.VersionId == occurrence.VersionId) &&
+                                (targetOccurrence.InstanceId == occurrence.InstanceId)]
+                            [#switch getComponentType(targetComponent)]
+                                [#case "alb"]
+                                    [#assign stageVariables +=
+                                        {
+                                            link.Name?upper_case + "_DOCKER" :
+                                            getExistingReference(
+                                                formatALBId(
+                                                    link.Tier,
+                                                    link.Component,
+                                                    targetOccurrence),
+                                                DNS_ATTRIBUTE_TYPE)
+                                        }
+                                    ]
+                                    [#break]
+
+                                [#case "lambda"]
+                                    [#list targetOccurrence.Functions?values as fn]
+                                        [#if fn?is_hash]
+                                            [#assign fnName =
+                                                formatLambdaFunctionName(
+                                                    getTier(link.Tier),
+                                                    targetComponent,
+                                                    targetOccurrence,
+                                                    fn)]
+                                            [#assign stageVariables +=
+                                                {
+                                                    link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA" : fnName
+                                                }
+                                            ]
+                                            [@cfTemplate
+                                                mode=applicationListMode
+                                                id=
+                                                    formatAPIGatewayLambdaPermissionId(
+                                                        tier,
+                                                        component,
+                                                        link,
+                                                        fn,
+                                                        occurrence)
+                                                type="AWS::Lambda::Permission"
+                                                properties=
+                                                    {
+                                                        "Action" : "lambda:InvokeFunction",
+                                                        "FunctionName" : fnName,
+                                                        "Principal" : "apigateway.amazonaws.com",
+                                                        "SourceArn" :
+                                                            formatRegionalArn(
+                                                                "execute-api",
+                                                                formatTypedArnResource(
+                                                                    getReference(apiId),
+                                                                    stageName + "/*",
+                                                                    "/"
+                                                                )
+                                                            )
+                                                    }
+                                                outputs={}
+                                                dependencies=stageId
+                                            /]
+                                        [/#if]
+                                    [/#list]
+                                    [#break]
+                            [/#switch]
+                            [#break] 
+                        [/#if]
+                    [/#list]
+                [/#if]
+            [/#if]
+        [/#list]
+
         [#assign logGroup =
             {
                 "Fn::Join" : [
@@ -199,207 +133,99 @@
         [#assign invalidAlarmName = formatComponentAlarmName(
                                         tier,
                                         component,
-                                        apigatewayInstance,
+                                        occurrence,
                                         "invalid")]
+        [#assign domainId  = formatDependentAPIGatewayDomainId(apiId)]
         [#assign basePathMappingId  = formatDependentAPIGatewayBasePathMappingId(stageId)]
-        [#assign dns = concatenate(
-                        [
+        [#assign dns = formatDomainName(
                             formatName(
-                                apigatewayInstance.Internal.DNS.Host,
+                                occurrence.InstanceName,
+                                occurrence.DNS.Host,
                                 segmentDomainQualifier),
-                            segmentDomain
-                        ],
-                        ".")]
+                            segmentDomain) ]
 
         [#assign cfId  = formatDependentCFDistributionId(
                                 apiId)]
         [#assign cfName  = formatComponentCFDistributionName(
                                 tier,
                                 component,
-                                apigatewayInstance)]
-        [#assign wafAclId  = formatDependentWAFRuleId(
+                                occurrence)]
+        [#assign cfOriginId = "apigateway" ]
+        [#assign wafAclId  = formatDependentWAFAclId(
                                 apiId)]
-        [#assign wafAclName  = formatComponentWAFRuleName(
+        [#assign wafAclName  = formatComponentWAFAclName(
                                 tier,
                                 component,
-                                apigatewayInstance)]
+                                occurrence)]
         [#assign usagePlanId  = formatDependentAPIGatewayUsagePlanId(cfId)]
         [#assign usagePlanName = formatComponentUsagePlanName(
                                 tier,
                                 component,
-                                apigatewayInstance)]
+                                occurrence)]
 
         [#if deploymentSubsetRequired("apigateway", true) && isPartOfCurrentDeploymentUnit(apiId)]
-            [#switch applicationListMode]
-                [#case "definition"]
-                    [@checkIfResourcesCreated /]
-                    "${apiId}" : {
-                        "Type" : "AWS::ApiGateway::RestApi",
-                        "Properties" : {
-                            "BodyS3Location" : {
-                                "Bucket" : "${getRegistryEndPoint("swagger")}",
-                                "Key" : "${formatRelativePath(
-                                            getRegistryPrefix("swagger"),
-                                            productName,
-                                            buildDeploymentUnit,
-                                            buildCommit,
-                                            "swagger-" +
-                                                region +
-                                                "-" +
-                                                accountObject.AWSId +
-                                                ".json")}"
-                            },
-                            "Name" : "${apiName}"
-                        }
-                    },
-                    "${deployId}" : {
-                        "Type": "AWS::ApiGateway::Deployment",
-                        "Properties": {
-                            "RestApiId": { "Ref" : "${apiId}" },
-                            "StageName": "default"
+            [@cfTemplate
+                mode=applicationListMode
+                id=apiId
+                type="AWS::ApiGateway::RestApi"
+                properties= 
+                    {
+                        "BodyS3Location" : {
+                            "Bucket" : getRegistryEndPoint("swagger"),
+                            "Key" : formatRelativePath(
+                                        getRegistryPrefix("swagger"),
+                                        productName,
+                                        buildDeploymentUnit,
+                                        buildCommit,
+                                        "swagger-" +
+                                            region +
+                                            "-" +
+                                            accountObject.AWSId +
+                                            ".json")
                         },
-                        "DependsOn" : "${apiId}"
-                    },
-                    "${stageId}" : {
-                        "Type" : "AWS::ApiGateway::Stage",
-                        "Properties" : {
-                            "DeploymentId" : { "Ref" : "${deployId}" },
-                            "RestApiId" : { "Ref" : "${apiId}" },
-                            "MethodSettings": [
-                                {
-                                  "HttpMethod": "*",
-                                  "ResourcePath": "/*",
-                                  "LoggingLevel": "INFO",
-                                  "DataTraceEnabled": true
-                                }
-                            ],
-                            "StageName" : "${stageName}"
-                            [#if apigatewayInstance.Links?has_content]
-                                ,"Variables" : {
-                                    [#assign linkCount = 0]
-                                    [#list apigatewayInstance.Links?values as link]
-                                        [#if link?is_hash]
-                                            [#if getComponent(link.Tier, link.Component)??]
-                                                [#assign targetTier = getTier(link.Tier)]
-                                                [#assign targetComponent = getComponent(link.Tier, link.Component)]
-                                                [#assign targetComponentType = getComponentType(targetComponent)]
-                                                [#if (targetComponentType == "alb") || (targetComponentType == "elb")]
-                                                    [#if linkCount > 0],[/#if]
-                                                    [#assign stageVariable = link.Name?upper_case + "_DOCKER" ]
-                                                    [@environmentVariable stageVariable
-                                                        getKey(formatALBDNSId(
-                                                                targetTier,
-                                                                targetComponent))
-                                                        "apigateway" /]
-                                                    [#assign linkCount += 1]
-                                                [/#if]
-                                                [#if targetComponentType == "lambda"]
-                                                    [#assign lambdaInstance = targetComponent.Lambda ]
-                                                    [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
-                                                    [#if targetComponent.Lambda.Versions?? ]
-                                                        [#assign lambdaInstance = targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId] ]
-                                                        [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
-                                                        [#if targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
-                                                            [#assign lambdaInstance = targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceIdRef] ]
-                                                            [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
-                                                        [/#if]
-                                                    [/#if]
-    
-                                                    [#if lambdaFunctions?is_hash]
-                                                        [#list lambdaFunctions?values as fn]
-                                                            [#if fn?is_hash]
-                                                                [#if linkCount > 0],[/#if]
-                                                                [#assign stageVariable = link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA"]
-                                                                [#assign fnName = formatLambdaFunctionName(
-                                                                                            targetTier,
-                                                                                            targetComponent,
-                                                                                            apigatewayInstance,
-                                                                                            fn)]
-                                                                [@environmentVariable stageVariable fnName "apigateway" /]
-                                                                [#assign linkCount += 1]
-                                                            [/#if]
-                                                        [/#list]
-                                                    [/#if]
-                                                [/#if]
-                                            [/#if]
-                                        [/#if]
-                                    [/#list]
-                                }
-                            [/#if]
-                        },
-                        "DependsOn" : "${deployId}"
+                        "Name" : apiName
                     }
-                    [#-- Include access to lambda functions if required --]
-                    [#if apigatewayInstance.Links?has_content ]
-                        [#list apigatewayInstance.Links?values as link]
-                            [#if link?is_hash]
-                                [#if getComponent(link.Tier, link.Component)??]
-                                    [#assign targetTier = getTier(link.Tier)]
-                                    [#assign targetComponent = getComponent(link.Tier, link.Component)]
-                                    [#assign targetComponentType = getComponentType(targetComponent)]
-                                    [#if targetComponentType == "lambda"]
-                                        [#assign lambdaInstance = targetComponent.Lambda ]
-                                        [#assign lambdaFunctions = (lambdaInstance.Functions)!"unknown" ]
-                                        [#if targetComponent.Lambda.Versions?? ]
-                                            [#assign lambdaInstance = targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId] ]
-                                            [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
-                                            [#if targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances??]
-                                                [#assign lambdaInstance = targetComponent.Lambda.Versions[apigatewayInstance.Internal.VersionId].Instances[apigatewayInstance.Internal.InstanceIdRef] ]
-                                                [#assign lambdaFunctions = (lambdaInstance.Functions)!lambdaFunctions ]
-                                            [/#if]
-                                        [/#if]
-    
-                                        [#if lambdaFunctions?is_hash]
-                                            [#list lambdaFunctions?values as fn]
-                                                [#if fn?is_hash]
-                                                    [#assign fnName = formatLambdaFunctionName(
-                                                                                targetTier,
-                                                                                targetComponent,
-                                                                                apigatewayInstance,
-                                                                                fn)]
-                                                    ,"${formatAPIGatewayLambdaPermissionId(
-                                                            tier,
-                                                            component,
-                                                            link,
-                                                            fn,
-                                                            apigatewayInstance)}" : {
-                                                        "Type" : "AWS::Lambda::Permission",
-                                                        "Properties" : {
-                                                            "Action" : "lambda:InvokeFunction",
-                                                            "FunctionName" : "${fnName}",
-                                                            "Principal" : "apigateway.amazonaws.com",
-                                                            "SourceArn" : {
-                                                                "Fn::Join" : [
-                                                                    "",
-                                                                    [
-                                                                        "arn:aws:execute-api:",
-                                                                        "${regionId}", ":",
-                                                                        {"Ref" : "AWS::AccountId"}, ":",                    
-                                                                        { "Ref" : "${apiId}" },
-                                                                        "/${stageName}/*"
-                                                                    ]
-                                                                ]
-                                                            }
-                                                        },
-                                                        "DependsOn" : "${stageId}"
-                                                    }
-                                                [/#if]
-                                            [/#list]
-                                        [/#if]
-                                    [/#if]
-                                [/#if]
-                            [/#if]
-                        [/#list]
-                    [/#if]
-                    [@resourcesCreated/]
-                    [#break]
-    
-                [#case "outputs"]
-                    [@output apiId /]
-                    [@outputRoot apiId /]
-                    [#break]
-    
-            [/#switch]
+                outputs=APIGATEWAY_OUTPUT_MAPPINGS
+            /]
+            [@cfTemplate
+                mode=applicationListMode
+                id=deployId
+                type="AWS::ApiGateway::Deployment"
+                properties= 
+                    {
+                        "RestApiId": getReference(apiId),
+                        "StageName": "default"
+                    }
+                outputs={}
+                dependencies=apiId                       
+            /]
+            [@cfTemplate
+                mode=applicationListMode
+                id=stageId
+                type="AWS::ApiGateway::Stage"
+                properties= 
+                    {
+                        "DeploymentId" : getReference(deployId),
+                        "RestApiId" : getReference(apiId),
+                        "MethodSettings": [
+                            {
+                              "HttpMethod": "*",
+                              "ResourcePath": "/*",
+                              "LoggingLevel": "INFO",
+                              "DataTraceEnabled": true
+                            }
+                        ],
+                        "StageName" : stageName                         
+                    } +
+                    stageVariables?has_content?then(
+                        {
+                            "Variables" : stageVariables
+                        },
+                        {}
+                    )
+                outputs={}
+                dependencies=deployId                       
+            /]
             [@createSegmentCountLogMetric
                     applicationListMode,
                     invalidLogMetricId,
@@ -421,158 +247,101 @@
                 dependencies=[invalidLogMetricId]
             /]
                     
-            [#if apigatewayInstance.Internal.CloudFront.IsConfigured]
-                [#switch applicationListMode]
-                    [#case "definition"]
-                        [@checkIfResourcesCreated /]
-                        "${cfId}" : {
-                            "Type" : "AWS::CloudFront::Distribution",
-                            "Properties" : {
-                                "DistributionConfig" : {
-                                    [#if apigatewayInstance.Internal.DNS.IsConfigured ]
-                                        "Aliases" : [
-                                            "${dns}"
-                                        ],
-                                    [/#if]
-                                    "Comment" : "${cfName}",
-                                    "DefaultCacheBehavior" : {
-                                        "AllowedMethods" : [
-                                            "DELETE",
-                                            "GET",
-                                            "HEAD",
-                                            "OPTIONS",
-                                            "PATCH",
-                                            "POST",
-                                            "PUT"
-                                        ],
-                                        "CachedMethods" : [
-                                            "GET",
-                                            "HEAD"
-                                        ],
-                                        "Compress" : false,
-                                        "DefaultTTL" : 0,
-                                        "ForwardedValues" : {
-                                            "Cookies" : {
-                                                "Forward" : "all"
-                                            },
-                                            "Headers" : [
-                                                "Accept",
-                                                "Accept-Charset",
-                                                "Accept-Datetime",
-                                                "Accept-Language",
-                                                "Authorization",
-                                                "Origin",
-                                                "Referer"
-                                            ],
-                                            "QueryString" : true
-                                        },
-                                        "MaxTTL" : 0,
-                                        "MinTTL" : 0,
-                                        "SmoothStreaming" : false,
-                                        "TargetOriginId" : "apigateway",
-                                        "ViewerProtocolPolicy" : "redirect-to-https"
-                                    },
-                                    "Enabled" : true,
-                                    "HttpVersion" : "http2",
-                                    [#if apigatewayInstance.Internal.CloudFront.EnableLogging]
-                                        "Logging" : {
-                                            "Bucket" : "${operationsBucket + ".s3.amazonaws.com"}",
-                                            "IncludeCookies" : false,
-                                            "Prefix" : "${"CLOUDFRONTLogs" +
-                                                          formatComponentAbsoluteFullPath(
-                                                            tier,
-                                                            component,
-                                                            apigatewayInstance)}"
-                                        },
-                                    [/#if]
-                                    "Origins" : [
-                                        {
-                                            "CustomOriginConfig" : {
-                                                "OriginProtocolPolicy" : "https-only",
-                                                "OriginSSLProtocols" : ["TLSv1.2"]
-                                            },
-                                            "DomainName" : {
-                                                "Fn::Join" : [
-                                                        ".",
-                                                        [
-                                                            [@createReference apiId/],
-                                                            "execute-api.${regionId}.amazonaws.com"
-                                                        ]
-                                                ]
-                                            },
-                                            "Id" : "apigateway",
-                                            "OriginCustomHeaders" : [
-                                                {
-                                                  "HeaderName" : "x-api-key",
-                                                  "HeaderValue" : "${credentialsObject.APIGateway.API.AccessKey}"
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                    [#-- TODO : Pick up Certificate ARN dynamically --]
-                                    [#if apigatewayInstance.Internal.DNS.IsConfigured ]
-                                        ,"ViewerCertificate" : {
-                                            "AcmCertificateArn" : {
-                                                "Fn::Join" : [
-                                                        "",
-                                                        [
-                                                            "arn:aws:acm:us-east-1:",
-                                                            {"Ref" : "AWS::AccountId"},
-                                                            ":certificate/",
-                                                            "${appSettingsObject.CertificateId}"
-                                                        ]
-                                                ]
-                                            },
-                                            "MinimumProtocolVersion" : "TLSv1",
-                                            "SslSupportMethod" :
-                                                "${apigatewayInstance.Internal.CloudFront.AssumeSNI?then(
-                                                    "sni-only",
-                                                    "vip")}"
-                                        }
-                                    [/#if]
-                                    [#if apigatewayInstance.Internal.WAF.IsConfigured]
-                                        ,"WebACLId" : [@createReference wafAclId /]
-                                    [/#if]
+            [#if occurrence.CloudFrontIsConfigured]
+                [#assign origin =
+                    getCFAPIGatewayOrigin(
+                        cfOriginId,
+                        apiId,
+                        getCFHTTPHeader("x-api-key",credentialsObject.APIGateway.API.AccessKey)
+                    )
+                ]
+                [#assign defaultCacheBehaviour = getCFAPIGatewayCacheBehaviour(origin) ]
+                [#assign restrictions = {} ]
+                [#if occurrence.CloudFront.CountryGroups?has_content]
+                    [#list asArray(occurrence.CloudFront.CountryGroups) as countryGroup]
+                        [#assign group = (countryGroups[countryGroup])!{}]
+                        [#if group.Locations?has_content]
+                            [#assign restrictions +=
+                                getCFGeoRestriction(group.Locations, group.Blacklist!false) ]
+                            [#break]
+                        [/#if]
+                    [/#list]
+                [/#if]
+                [@createCFDistribution
+                    mode=applicationListMode
+                    id=cfId
+                    dependencies=stageId     
+                    aliases=
+                        occurrence.DNSIsConfigured?then(
+                            [dns],
+                            []
+                        )
+                    certificate=
+                        occurrence.DNSIsConfigured?then(
+                            getCFCertificate(
+                                appSettingsObject.CertificateId,
+                                occurrence.CloudFront.AssumeSNI
+                            ),
+                            {}
+                    )
+                    comment=cfName
+                    defaultCacheBehaviour=defaultCacheBehaviour
+                    logging=
+                        occurrence.CloudFront.EnableLogging?then(
+                            getCFLogging(
+                                operationsBucket,
+                                formatComponentAbsoluteFullPath(
+                                    tier,
+                                    component,
+                                    occurrence
+                                )
+                            ),
+                            {}
+                        )
+                    origins=origin
+                    restrictions=
+                        occurrence.CloudFront.CountryGroups?has_content?then(
+                            restrictions,
+                            {}
+                        )
+                    wafAclId=
+                        (occurrence.WAFIsConfigured &&
+                            ipAddressGroupsUsage["waf"]?has_content)?then(
+                            wafAclId,
+                            ""
+                        )
+                /]
+                [@cfTemplate
+                    mode=applicationListMode
+                    id=usagePlanId
+                    type="AWS::ApiGateway::UsagePlan"
+                    properties= 
+                        {
+                            "ApiStages" : [
+                                {
+                                  "ApiId" : getReference(apiId),
+                                  "Stage" : stageName
                                 }
-                            },
-                            "DependsOn" : "${stageId}"
-                        },
-                        "${usagePlanId}" : {
-                            "Type" : "AWS::ApiGateway::UsagePlan",
-                            "Properties" : {
-                                "ApiStages" : [
-                                    {
-                                      "ApiId" : [@createReference apiId /],
-                                      "Stage" : "${stageName}"
-                                    }
-                                ],
-                                "UsagePlanName" : "${usagePlanName}"
-                            },
-                            "DependsOn" : "${stageId}"
+                            ],
+                            "UsagePlanName" : usagePlanName
                         }
-                        [@resourcesCreated /]
-                        [#break]
-    
-                    [#case "outputs"]
-                        [@output cfId /]
-                        [@outputCFDns cfId /]
-                        [@output usagePlanId /]
-                        [#break]
-    
-                [/#switch]
-    
-                [#if apigatewayInstance.Internal.WAF.IsConfigured]
-                    [#assign wafGroups = []]
+                    outputs={}
+                    dependencies=stageId                       
+                /]
+
+                [#if occurrence.WAFIsConfigured &&
+                        ipAddressGroupsUsage["waf"]?has_content ]
+                    [#assign wafGroups = [] ]
                     [#assign wafRuleDefault = 
-                                apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
-                                    apigatewayInstance.Internal.WAF.RuleDefault,
+                                occurrence.WAF.RuleDefault?has_content?then(
+                                    occurrence.WAF.RuleDefault,
                                     "ALLOW")]
                     [#assign wafDefault = 
-                                apigatewayInstance.Internal.WAF.Default?has_content?then(
-                                    apigatewayInstance.Internal.WAF.Default,
+                                occurrence.WAF.Default?has_content?then(
+                                    occurrence.WAF.Default,
                                     "BLOCK")]
-                    [#if apigatewayInstance.Internal.WAF.IPAddressGroups?has_content]
-                        [#list apigatewayInstance.Internal.WAF.IPAddressGroups as group]
+                    [#if occurrence.WAF.IPAddressGroups?has_content]
+                        [#list occurrence.WAF.IPAddressGroups as group]
                             [#assign groupId = group?is_hash?then(
                                             group.Id,
                                             group)]
@@ -580,12 +349,12 @@
                                 [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
                                 [#if usageGroup.IsOpen]
                                     [#assign wafRuleDefault = 
-                                        apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
-                                            apigatewayInstance.Internal.WAF.RuleDefault,
+                                        occurrence.WAF.RuleDefault?has_content?then(
+                                            occurrence.WAF.RuleDefault,
                                             "COUNT")]
                                     [#assign wafDefault = 
-                                            apigatewayInstance.Internal.WAF.Default?has_content?then(
-                                                apigatewayInstance.Internal.WAF.Default,
+                                            occurrence.WAF.Default?has_content?then(
+                                                occurrence.WAF.Default,
                                                 "ALLOW")]
                                 [/#if]
                                 [#if usageGroup.CIDR?has_content]
@@ -601,12 +370,12 @@
                         [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
                             [#if usageGroup.IsOpen]
                                 [#assign wafRuleDefault = 
-                                    apigatewayInstance.Internal.WAF.RuleDefault?has_content?then(
-                                        apigatewayInstance.Internal.WAF.RuleDefault,
+                                    occurrence.WAF.RuleDefault?has_content?then(
+                                        occurrence.WAF.RuleDefault,
                                         "COUNT")]
                                 [#assign wafDefault = 
-                                        apigatewayInstance.Internal.WAF.Default?has_content?then(
-                                            apigatewayInstance.Internal.WAF.Default,
+                                        occurrence.WAF.Default?has_content?then(
+                                            occurrence.WAF.Default,
                                             "ALLOW")]
                             [/#if]
                             [#if usageGroup.CIDR?has_content]
@@ -634,27 +403,32 @@
                         wafRules /]
                 [/#if]
             [#else]
-                [#-- Disable this for now until we can create the domain via --]
-                [#-- formation as well --]
-                [#if apigatewayInstance.Internal.DNS.IsConfigured && false]
-                    [#switch applicationListMode]
-                        [#case "definition"]
-                            [@checkIfResourcesCreated /]
-                            "${basePathMappingId}" : {
-                                "Type" : "AWS::ApiGateway::BasePathMapping",
-                                "Properties" : {
-                                    "DomainName" : "${dns}",
-                                    "RestApiId" : [@createReference apiId /],
-                                    "Stage" : "${stageName}"
-                                }
+                [#if occurrence.DNSIsConfigured]
+                    [#-- TODO: fix fetching of certificate Arn --]
+                    [@cfTemplate
+                        mode=applicationListMode
+                        id=domainId
+                        type="AWS::ApiGateway::DomainName"
+                        properties= 
+                            {
+                                "CertificateArn": "",
+                                "DomainName" : dns
                             }
-                            [@resourcesCreated /]
-                            [#break]
-        
-                        [#case "outputs"]
-                            [#break]
-        
-                    [/#switch]
+                        outputs={}
+                    /]
+                    [@cfTemplate
+                        mode=applicationListMode
+                        id=basePathMappingId
+                        type="AWS::ApiGateway::BasePathMapping"
+                        properties= 
+                            {
+                                "DomainName" : dns,
+                                "RestApiId" : getReference(apiId),
+                                "Stage" : stageName
+                            }
+                        outputs={}
+                        dependencies=domainId
+                    /]
                 [/#if]
             [/#if]
         [/#if]
@@ -707,7 +481,7 @@
                     [#assign dashboardRows +=
                         [
                             {
-                                "Title" : formatName(apigatewayInstance),
+                                "Title" : formatName(occurrence),
                                 "Widgets" : widgets
                             }
                         ]

@@ -2,22 +2,25 @@
 
 [#-- Resources --]
 
+[#assign POLICY_RESOURCE_TYPE="policy" ]
+[#assign ROLE_RESOURCE_TYPE="role" ]
+
 [#function formatPolicyId ids...]
     [#return formatResourceId(
-                "policy",
+                POLICY_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentPolicyId resourceId extensions...]
     [#return formatDependentResourceId(
-                "policy",
+                POLICY_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatComponentPolicyId tier component extensions...]
     [#return formatComponentResourceId(
-                "policy",
+                POLICY_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -25,30 +28,28 @@
 
 [#function formatRoleId ids...]
     [#return formatResourceId(
-                "role",
+                ROLE_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentRoleId resourceId extensions...]
     [#return formatDependentResourceId(
-                "role",
+                ROLE_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatAccountRoleId type extensions...]
     [#return formatAccountResourceId(
-                "role",
+                ROLE_RESOURCE_TYPE,
                 type,
                 extensions)]
 [/#function]
 
 [#function formatComponentRoleId tier component extensions...]
     [#return formatComponentResourceId(
-                "role",
+                ROLE_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
 [/#function]
-
-[#-- Attributes --]

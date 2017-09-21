@@ -10,29 +10,11 @@
     [#assign certDomain = acm.Domain?has_content?then(
                             acm.Domain,
                             segmentDomain)]
-    [#switch solutionListMode]
-        [#case "definition"]
-            [@checkIfResourcesCreated /]
-            "${certId}" : {
-                "Type" : "AWS::CertificateManager::Certificate",
-                "Properties" : {
-                    "DomainName" : "${certDomain}"
-                    [#if (tenantObject.Domain.Validation)??]
-                        ,"DomainValidationOptions" : [
-                            {
-                                "DomainName" : "${certDomain}",
-                                "ValidationDomain" : "${domains.Validation}"
-                            }
-                        ]
-                    [/#if]
-                }
-            }
-            [@resourcesCreated /]
-            [#break]
-
-        [#case "outputs"]
-            [@output certId /]
-            [#break]
-
-    [/#switch]
+                            
+    [@createCertificate
+        mode=solutionListMode
+        id=certId
+        domain=certDomain
+        validationdomain=(domains.Validation)!""
+    /]
 [/#if]

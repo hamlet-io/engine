@@ -110,12 +110,28 @@
     [/#if]
 [/#macro]
 
-[#macro containerBasicAttributes name image="" essential=true]
-    "Name" : "${name}",
-    "Image" : "${getRegistryEndPoint("docker")}/${image?has_content?then(
-                    image,
-                    productName + "/" + buildDeploymentUnit + "-" + buildCommit)}",
-    "Essential" : ${essential?c},
+[#macro containerBasicAttributes name image="" essential=true mode=""]
+    [#switch mode]
+        [#case "definition"]
+        [#case ""]
+            "Name" : "${name}",
+            "Image" : "${getRegistryEndPoint("docker")}/${image?has_content?then(
+                            image,
+                            productName + "/" + buildDeploymentUnit + "-" + buildCommit)}",
+            "Essential" : ${essential?c},
+            [#break]
+    [/#switch]
+[/#macro]
+
+[#macro containerExtraHosts hosts mode]
+    [#switch mode]
+        [#case "definition"]
+        [#case ""]
+            [#if hosts?has_content]
+                "ExtraHosts" : [@toJSON hosts /],
+            [/#if]
+            [#break]
+    [/#switch]
 [/#macro]
 
 [#macro containerVolume name containerPath hostPath="" readonly=false]
@@ -158,15 +174,25 @@
 
     [#-- Create a role under which the task will run and attach required policies --]
     [#if isPartOfCurrentDeploymentUnit(containerListRole)]
+        [@createRole
+            mode=applicationListMode
+            id=containerListRole
+            trustedServices=["ecs-tasks.amazonaws.com"]
+        /]
+        
         [#switch applicationListMode]
             [#case "definition"]
-                [@role containerListRole, ["ecs-tasks.amazonaws.com" ] /]
                 [#assign containerListMode = "policy"]
                 [#list task.Containers?values as container]
                     [#if container?is_hash]
                         [#assign containerId = formatContainerId(
                                                 task,
                                                 container)]
+                        [#assign containerName = formatContainerName(
+                                                   tier,
+                                                   component,
+                                                   task,
+                                                   container)]
                         [#assign containerRunMode = getContainerMode(container)]
                         [#assign containerListPolicyId = formatDependentPolicyId(
                                                             taskId,
@@ -188,12 +214,6 @@
                     [/#if]
                 [/#list]
                 [#break]
-    
-            [#case "outputs"]
-                [@output containerListRole /]
-                [@outputArn containerListRole /]
-                [#break]
-    
         [/#switch]
     [/#if]
 

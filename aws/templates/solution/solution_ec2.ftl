@@ -24,313 +24,282 @@
         [/#if]
     [/#list]    
     
-    [@createComponentSecurityGroup solutionListMode tier component "" "" ingressRules /]
+    [@createComponentSecurityGroup
+        mode=solutionListMode
+        tier=tier
+        component=component
+        ingressRules=ingressRules
+     /]
     
-    [#switch solutionListMode]
-        [#case "definition"]
-
-            [@roleHeader
-                ec2RoleId,
-                ["ec2.amazonaws.com" ]
-            /]
-                [@policyHeader
+    [@createRole
+        mode=solutionListMode
+        id=ec2RoleId
+        trustedServices=["ec2.amazonaws.com" ]
+        policies=
+            [
+                getPolicyDocument(
+                    getS3ListStatement(codeBucket) +
+                        getS3ReadStatement(codeBucket) +
+                        getS3ListStatement(operationsBucket) +
+                        getS3WriteStatement(operationsBucket, "DOCKERLogs") +
+                        getS3WriteStatement(operationsBucket, "Backups"),
                     formatComponentShortName(
                         tier,
                         component,
-                        "basic") /]
-                    [@s3ListStatement codeBucket /]
-                    [@s3ReadStatement codeBucket /]
-                    [@s3ListStatement operationsBucket /]
-                    [@s3WriteStatement operationsBucket "DOCKERLogs" /]
-                    [@s3WriteStatement operationsBucket "Backups" /]
-                [@policyFooter /]
-            [@roleFooter /]
-
-            [@checkIfResourcesCreated /]
-            "${ec2InstanceProfileId}" : {
-                "Type" : "AWS::IAM::InstanceProfile",
-                "Properties" : {
-                    "Path" : "/",
-                    "Roles" : [
-                        { "Ref" : "${ec2RoleId}" }
-                    ]
-                }
+                        "basic"))
+            ]
+    /]
+    
+    [@cfTemplate
+        mode=solutionListMode
+        id=ec2InstanceProfileId
+        type="AWS::IAM::InstanceProfile"
+        properties=
+            {
+                "Path" : "/",
+                "Roles" : [getReference(ec2RoleId)]
             }
-            [@resourcesCreated /]
+        outputs={}
+    /]
 
-            [#list zones as zone]
-                [#if multiAZ || (zones[0].Id = zone.Id)]
-                    [#assign ec2InstanceId =
-                                formatEC2InstanceId(
+    [#list zones as zone]
+        [#if multiAZ || (zones[0].Id = zone.Id)]
+            [#assign ec2InstanceId =
+                        formatEC2InstanceId(
+                            tier,
+                            component,
+                            zone)]
+            [#assign ec2ENIId = 
+                        formatEC2ENIId(
+                            tier,
+                            component,
+                            zone,
+                            "eth0")]
+            [#assign ec2EIPId = formatComponentEIPId(
                                     tier,
                                     component,
                                     zone)]
-                    [#assign ec2ENIId = 
-                                formatEC2ENIId(
-                                    tier,
-                                    component,
-                                    zone,
-                                    "eth0")]
-                    [#assign ec2EIPId = formatComponentEIPId(
-                                            tier,
-                                            component,
-                                            zone)]
-                    [#-- Support backwards compatability with existing installs --] 
-                    [#if !(getKey(ec2EIPId)?has_content)]
-                        [#assign ec2EIPId = formatComponentEIPId(
-                                                tier,
-                                                component,
-                                                zone
-                                                "eth0")]
-                    [/#if]
+            [#-- Support backwards compatability with existing installs --] 
+            [#if !(getKey(ec2EIPId)?has_content)]
+                [#assign ec2EIPId = formatComponentEIPId(
+                                        tier,
+                                        component,
+                                        zone
+                                        "eth0")]
+            [/#if]
 
-                    [#assign ec2EIPAssociationId = 
-                                formatComponentEIPAssociationId(
-                                    tier,
-                                    component,
-                                    zone,
-                                    "eth0")]
+            [#assign ec2EIPAssociationId = 
+                        formatComponentEIPAssociationId(
+                            tier,
+                            component,
+                            zone,
+                            "eth0")]
 
-                    [@checkIfResourcesCreated /]
-                    "${ec2InstanceId}": {
-                        "Type": "AWS::EC2::Instance",
-                        "Metadata": {
-                            "AWS::CloudFormation::Init": {
-                                "configSets" : {
-                                    "ec2" : ["dirs", "bootstrap", "puppet"]
-                                },
-                                "dirs": {
-                                    "commands": {
-                                        "01Directories" : {
-                                            "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
-                                            "ignoreErrors" : "false"
-                                        }
+            [#assign processorProfile = getProcessor(tier, component, "EC2")]
+            [#assign storageProfile = getStorage(tier, component, "EC2")]
+
+            [@cfTemplate
+                mode=solutionListMode
+                id=ec2InstanceId
+                type="AWS::EC2::Instance"
+                metadata=
+                    {
+                        "AWS::CloudFormation::Init": {
+                            "configSets" : {
+                                "ec2" : ["dirs", "bootstrap", "puppet"]
+                            },
+                            "dirs": {
+                                "commands": {
+                                    "01Directories" : {
+                                        "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
+                                        "ignoreErrors" : "false"
+                                    }
+                                }
+                            },
+                            "bootstrap": {
+                                "packages" : {
+                                    "yum" : {
+                                        "aws-cli" : []
                                     }
                                 },
-                                "bootstrap": {
-                                    "packages" : {
-                                        "yum" : {
-                                            "aws-cli" : []
-                                        }
-                                    },
-                                    "files" : {
-                                        "/etc/codeontap/facts.sh" : {
-                                            "content" : {
-                                                "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "#!/bin/bash\n",
-                                                        "echo \"cot:request=${requestReference}\"\n",
-                                                        "echo \"cot:configuration=${configurationReference}\"\n",
-                                                        "echo \"cot:accountRegion=${accountRegionId}\"\n",
-                                                        "echo \"cot:tenant=${tenantId}\"\n",
-                                                        "echo \"cot:account=${accountId}\"\n",
-                                                        "echo \"cot:product=${productId}\"\n",
-                                                        "echo \"cot:region=${regionId}\"\n",
-                                                        "echo \"cot:segment=${segmentId}\"\n",
-                                                        "echo \"cot:environment=${environmentId}\"\n",
-                                                        "echo \"cot:tier=${tierId}\"\n",
-                                                        "echo \"cot:component=${componentId}\"\n",
-                                                        "echo \"cot:zone=${zone.Id}\"\n",
-                                                        "echo \"cot:name=${formatName(ec2FullName, zone)}\"\n",
-                                                        "echo \"cot:role=${component.Role}\"\n",
-                                                        "echo \"cot:credentials=${credentialsBucket}\"\n",
-                                                        "echo \"cot:code=${codeBucket}\"\n",
-                                                        "echo \"cot:logs=${operationsBucket}\"\n",
-                                                        "echo \"cot:backup=${dataBucket}\"\n"
-                                                    ]
+                                "files" : {
+                                    "/etc/codeontap/facts.sh" : {
+                                        "content" : {
+                                            "Fn::Join" : [
+                                                "",
+                                                [
+                                                    "#!/bin/bash\\n",
+                                                    "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
+                                                    "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
+                                                    "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
+                                                    "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
+                                                    "echo \\\"cot:account="       + accountId              + "\\\"\\n",
+                                                    "echo \\\"cot:product="       + productId              + "\\\"\\n",
+                                                    "echo \\\"cot:region="        + regionId               + "\\\"\\n",
+                                                    "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
+                                                    "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
+                                                    "echo \\\"cot:tier="          + tierId                 + "\\\"\\n",
+                                                    "echo \\\"cot:component="     + componentId            + "\\\"\\n",
+                                                    "echo \\\"cot:zone="          + zone.Id                + "\\\"\\n",
+                                                    "echo \\\"cot:name="          + formatName(ec2FullName, zone) + "\\\"\\n",
+                                                    "echo \\\"cot:role="          + component.Role         + "\\\"\\n",
+                                                    "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
+                                                    "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
+                                                    "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
+                                                    "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
                                                 ]
-                                            },
-                                            "mode" : "000755"
+                                            ]
                                         },
-                                        "/opt/codeontap/bootstrap/fetch.sh" : {
-                                            "content" : {
-                                                "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "#!/bin/bash -ex\n",
-                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
-                                                        "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion= | cut -d '=' -f 2)\n",
-                                                        "CODE=$(/etc/codeontap/facts.sh | grep cot:code= | cut -d '=' -f 2)\n",
-                                                        "aws --region ${r"${REGION}"} s3 sync s3://${r"${CODE}"}/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0755 /opt/codeontap/bootstrap/*.sh\n"
-                                                    ]
-                                                ]
-                                            },
-                                            "mode" : "000755"
-                                        }
+                                        "mode" : "000755"
                                     },
-                                    "commands": {
-                                        "01Fetch" : {
-                                            "command" : "/opt/codeontap/bootstrap/fetch.sh",
-                                            "ignoreErrors" : "false"
+                                    "/opt/codeontap/bootstrap/fetch.sh" : {
+                                        "content" : {
+                                            "Fn::Join" : [
+                                                "",
+                                                [
+                                                    "#!/bin/bash -ex\\n",
+                                                    "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
+                                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
+                                                    "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
+                                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
+                                                ]
+                                            ]
                                         },
-                                        "02Initialise" : {
-                                            "command" : "/opt/codeontap/bootstrap/init.sh",
-                                            "ignoreErrors" : "false"
-                                        }
-                                        [#if ec2.LoadBalanced]
-                                            ,"03RegisterWithLB" : {
-                                                "command" : "/opt/codeontap/bootstrap/register.sh",
-                                                "env" : {
-                                                    "LOAD_BALANCER" : { "Ref" : "${ec2ELBId}" }
-                                                },
-                                                "ignoreErrors" : "false"
-                                            }
-                                        [/#if]
+                                        "mode" : "000755"
                                     }
                                 },
-                                "puppet": {
-                                    "commands": {
-                                        "01SetupPuppet" : {
-                                            "command" : "/opt/codeontap/bootstrap/puppet.sh",
+                                "commands": {
+                                    "01Fetch" : {
+                                        "command" : "/opt/codeontap/bootstrap/fetch.sh",
+                                        "ignoreErrors" : "false"
+                                    },
+                                    "02Initialise" : {
+                                        "command" : "/opt/codeontap/bootstrap/init.sh",
+                                        "ignoreErrors" : "false"
+                                    }
+                                } +
+                                ec2.LoadBalanced?then(
+                                    {
+                                        "03RegisterWithLB" : {
+                                            "command" : "/opt/codeontap/bootstrap/register.sh",
+                                            "env" : {
+                                                "LOAD_BALANCER" : getReference(ec2ELBId)
+                                            },
                                             "ignoreErrors" : "false"
                                         }
+                                    },
+                                    {}
+                                )
+                            },
+                            "puppet": {
+                                "commands": {
+                                    "01SetupPuppet" : {
+                                        "command" : "/opt/codeontap/bootstrap/puppet.sh",
+                                        "ignoreErrors" : "false"
                                     }
                                 }
                             }
-                        },
-                        [#assign processorProfile = getProcessor(tier, component, "EC2")]
-                        [#assign storageProfile = getStorage(tier, component, "EC2")]
-                        "Properties": {
-                            [@createBlockDevices storageProfile=storageProfile /]
-                            "DisableApiTermination" : false,
-                            "EbsOptimized" : false,
-                            "IamInstanceProfile" : { "Ref" : "${ec2InstanceProfileId}" },
-                            "ImageId": "${regionObject.AMIs.Centos.EC2}",
-                            "InstanceInitiatedShutdownBehavior" : "stop",
-                            "InstanceType": "${processorProfile.Processor}",
-                            "KeyName": "${productName + sshPerSegment?string("-" + segmentName,"")}",
-                            "Monitoring" : false,
-                            "NetworkInterfaces" : [
-                                {
-                                    "DeviceIndex" : "0",
-                                    "NetworkInterfaceId" : { "Ref" : "${ec2ENIId}" }
-                                }
-                            ],
-                            "Tags" : [
-                                { "Key" : "cot:request", "Value" : "${requestReference}" },
-                                { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                                { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                                { "Key" : "cot:account", "Value" : "${accountId}" },
-                                { "Key" : "cot:product", "Value" : "${productId}" },
-                                { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                                { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                                { "Key" : "cot:category", "Value" : "${categoryId}" },
-                                { "Key" : "cot:tier", "Value" : "${tierId}" },
-                                { "Key" : "cot:component", "Value" : "${componentId}" },
-                                { "Key" : "cot:zone", "Value" : "${zone.Id}" },
-                                { "Key" : "Name", "Value" : "${formatComponentFullName(
-                                                                tier,
-                                                                component,
-                                                                zone)}" }
-                            ],
-                            "UserData" : {
-                                "Fn::Base64" : {
-                                    "Fn::Join" : [
-                                        "",
-                                        [
-                                            "#!/bin/bash -ex\n",
-                                            "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
-                                            "yum install -y aws-cfn-bootstrap\n",
-                                            "# Remainder of configuration via metadata\n",
-                                            "/opt/aws/bin/cfn-init -v",
-                                            "         --stack ", { "Ref" : "AWS::StackName" },
-                                            "         --resource ${ec2InstanceId}",
-                                            "         --region ${regionId} --configsets ec2\n"
-                                        ]
-                                    ]
-                                }
-                            }
-                        },
-                        "DependsOn" : [
-                            "${ec2ENIId}"
-                            [#if ec2.LoadBalanced]
-                                ,"${ec2ELBId}"
-                            [/#if]
-                            [#if fixedIP]
-                                ,"${ec2EIPAssociationId}"
-                            [/#if]
-                        ]
-                    },
-                    "${ec2ENIId}" : {
-                        "Type" : "AWS::EC2::NetworkInterface",
-                        "Properties" : {
-                            "Description" : "eth0",
-                            "SubnetId" : "${getKey(formatSubnetId(tier, zone))}",
-                            "SourceDestCheck" : true,
-                            "GroupSet" : [
-                                {"Ref" : "${ec2SecurityGroupId}"}
-                                [#if sshFromProxySecurityGroup?has_content]
-                                    , "${sshFromProxySecurityGroup}"
-                                [/#if]
-                            ],
-                            "Tags" : [
-                                { "Key" : "cot:request", "Value" : "${requestReference}" },
-                                { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                                { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                                { "Key" : "cot:account", "Value" : "${accountId}" },
-                                { "Key" : "cot:product", "Value" : "${productId}" },
-                                { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                                { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                                { "Key" : "cot:category", "Value" : "${categoryId}" },
-                                { "Key" : "cot:tier", "Value" : "${tierId}" },
-                                { "Key" : "cot:component", "Value" : "${componentId}" },
-                                { "Key" : "cot:zone", "Value" : "${zone.Id}" },
-                                { "Key" : "Name", "Value" : "${formatComponentFullName(
-                                                                tier,
-                                                                component,
-                                                                zone,
-                                                                "eth0")}" }
-                            ]
                         }
                     }
-                    [#if fixedIP]
-                        ,"${ec2EIPId}": {
-                            "DependsOn" : "${ec2ENIId}",
-                            "Type" : "AWS::EC2::EIP",
-                            "Properties" : {
-                                "Domain" : "vpc"
+                properties=    
+                    getBlockDevices(storageProfile) +
+                    {
+                        "DisableApiTermination" : false,
+                        "EbsOptimized" : false,
+                        "IamInstanceProfile" : { "Ref" : ec2InstanceProfileId },
+                        "ImageId": regionObject.AMIs.Centos.EC2,
+                        "InstanceInitiatedShutdownBehavior" : "stop",
+                        "InstanceType": processorProfile.Processor,
+                        "KeyName": productName + sshPerSegment?then("-" + segmentName,""),
+                        "Monitoring" : false,
+                        "NetworkInterfaces" : [
+                            {
+                                "DeviceIndex" : "0",
+                                "NetworkInterfaceId" : getReference(ec2ENIId)
+                            }
+                        ],
+                        "UserData" : {
+                            "Fn::Base64" : {
+                                "Fn::Join" : [
+                                    "",
+                                    [
+                                        "#!/bin/bash -ex\\n",
+                                        "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
+                                        "yum install -y aws-cfn-bootstrap\\n",
+                                        "# Remainder of configuration via metadata\\n",
+                                        "/opt/aws/bin/cfn-init -v",
+                                        "         --stack ", { "Ref" : "AWS::StackName" },
+                                        "         --resource ", ec2InstanceId,
+                                        "         --region ", regionId, " --configsets ec2\\n"
+                                    ]
+                                ]
                             }
                         }
-                        ,"${ec2EIPAssociationId}": {
-                            "DependsOn" : "${ec2EIPId}",
-                            "Type" : "AWS::EC2::EIPAssociation",
-                            "Properties" : {
-                                "AllocationId" : { "Fn::GetAtt" : ["${ec2EIPId}", "AllocationId"] },
-                                "NetworkInterfaceId" : { "Ref" : "${ec2ENIId}" }
-                            }
-                        }
-                    [/#if]
-                [/#if]
-            [/#list]
-            [@resourcesCreated /]
-            [#break]
+                    }
+                tags=
+                    getCfTemplateCoreTags(
+                        formatComponentFullName(tier, component, zone),
+                        tier,
+                        component,
+                        zone)
+                outputs={}
+                dependencies=
+                    [ec2ENIId] +
+                    ec2.LoadBalanced?then(
+                        [ec2ELBId],
+                        []
+                    ) + 
+                    fixedIP?then(
+                        [ec2EIPAssociationId],
+                        []
+                    )
+            /]
 
-        [#case "outputs"]
-            [@output ec2RoleId /]
-            [@outputArn ec2RoleId /]
+            [@cfTemplate
+                mode=solutionListMode
+                id=ec2ENIId
+                type="AWS::EC2::NetworkInterface"
+                properties=
+                    {
+                        "Description" : "eth0",
+                        "SubnetId" : getReference(formatSubnetId(tier, zone)),
+                        "SourceDestCheck" : true,
+                        "GroupSet" :
+                            [getReference(ec2SecurityGroupId)] +
+                            sshFromProxySecurityGroup?has_content?then(
+                                [sshFromProxySecurityGroup],
+                                []
+                            )
+                    }
+                tags=
+                    getCfTemplateCoreTags(
+                        formatComponentFullName(tier, component, zone, "eth0"),
+                        tier,
+                        component,
+                        zone)
+                outputs={}
+            /]
+            
             [#if fixedIP]
-                [#list zones as zone]
-                    [#if multiAZ || (zones[0].Id = zone.Id)]
-                        [#assign ec2EIPId = formatComponentEIPId(
-                                                tier,
-                                                component,
-                                                zone)]
-                        [#-- Support backwards compatability with existing installs --] 
-                        [#if !(getKey(ec2EIPId)?has_content)]
-                            [#assign ec2EIPId = formatComponentEIPId(
-                                                    tier,
-                                                    component,
-                                                    zone
-                                                    "eth0")]
-                        [/#if]
-
-                        [@outputIPAddress ec2EIPId /]
-                        [@outputAllocation ec2EIPId /]
-                    [/#if]
-                [/#list]
+                [@createEIP
+                    mode=solutionListMode
+                    id=ec2EIPId
+                    dependences=[ec2ENIId]
+                /]
+                
+                [@cfTemplate
+                    mode=solutionListMode
+                    id=ec2EIPAssociationId
+                    type="AWS::EC2::EIPAssociation"
+                    properties=
+                        {
+                            "AllocationId" : getReference(ec2EIPId, ALLOCATION_ATTRIBUTE_TYPE),
+                            "NetworkInterfaceId" : getReference(ec2ENIId)
+                        }
+                    dependences=[ec2EIPId]
+                    outputs={}
+                /]
             [/#if]
-            [#break]
-
-    [/#switch]
+        [/#if]
+    [/#list]
 [/#if]

@@ -10,7 +10,11 @@
     [#assign ecsLaunchConfigId = formatEC2LaunchConfigId(tier, component)]
     [#assign ecsSecurityGroupId = formatComponentSecurityGroupId(tier, component)]
 
-    [@createComponentSecurityGroup solutionListMode tier component /]
+    [@createComponentSecurityGroup
+        mode=solutionListMode
+        tier=tier
+        component=component /]
+        
     [@createComponentLogGroup tier component/]
 
     [#assign processorProfile = getProcessor(tier, component, "ECS")]
@@ -22,274 +26,263 @@
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
     [#assign defaultLogDriver = ecs.LogDriver!"awslogs"]
     
-    [#switch solutionListMode]
-        [#case "definition"]
-            [@checkIfResourcesCreated /]
-            "${ecsId}" : {
-                "Type" : "AWS::ECS::Cluster"
+    [@cfTemplate
+        mode=solutionListMode
+        id=ecsId
+        type="AWS::ECS::Cluster"
+    /]
+    
+    [@createRole
+        mode=solutionListMode
+        id=ecsRoleId
+        trustedServices=["ec2.amazonaws.com" ]
+        managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
+        policies=
+            [
+                getPolicyDocument(
+                    getS3ListStatement(codeBucket) +
+                        getS3ReadStatement(credentialsBucket, accountId + "/alm/docker") +
+                        fixedIP?then(
+                            getIPAddressUpdateStatement(),
+                            []
+                        ) +                            
+                        getS3ReadStatement(codeBucket) +
+                        getS3ListStatement(operationsBucket) +
+                        getS3WriteStatement(operationsBucket, getSegmentBackupsFilePrefix()) +
+                        getS3WriteStatement(operationsBucket, "DOCKERLogs"),
+                    formatName(tierId, componentId, "docker"))
+            ]
+    /]
+
+    [@cfTemplate
+        mode=solutionListMode
+        id=ecsInstanceProfileId
+        type="AWS::IAM::InstanceProfile"
+        properties=
+            {
+                "Path" : "/",
+                "Roles" : [getReference(ecsRoleId)]
             }
-            [@resourcesCreated /]
+        outputs={}
+    /]
 
-            [@roleHeader
-                ecsRoleId,
-                ["ec2.amazonaws.com" ],
-                ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
+    [@createRole
+        mode=solutionListMode
+        id=ecsServiceRoleId
+        trustedServices=["ecs.amazonaws.com" ]
+        managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
+    /]
+
+    [#assign allocationIds = [] ]
+    [#if fixedIP]
+        [#list 1..maxSize as index]
+            [@createEIP
+                mode=solutionListMode
+                id=formatComponentEIPId(tier, component, index)
             /]
-                [@policyHeader formatName(tierId, componentId, "docker") /]
-                    [@s3ReadStatement credentialsBucket accountId + "/alm/docker" /]
-                    [#if fixedIP]
-                        [@IPAddressUpdateStatement /]
-                    [/#if]
-                    [@s3ListStatement codeBucket /]
-                    [@s3ReadStatement codeBucket /]
-                    [@s3ListStatement operationsBucket /]
-                    [@s3WriteStatement operationsBucket getSegmentBackupsFilePrefix() /]
-                    [@s3WriteStatement operationsBucket "DOCKERLogs" /]
-                [@policyFooter /]
-            [@roleFooter /]
+            [#assign allocationIds +=
+                [
+                    getReference(formatComponentEIPId(tier, component, index), ALLOCATION_ATTRIBUTE_TYPE)
+                ]
+            ]
+        [/#list]
+    [/#if]
 
-            [@checkIfResourcesCreated /]
-            "${ecsInstanceProfileId}" : {
-                "Type" : "AWS::IAM::InstanceProfile",
-                "Properties" : {
-                    "Path" : "/",
-                    "Roles" : [ { "Ref" : "${ecsRoleId}" } ]
-                }
-            }
-            [@resourcesCreated /]
-
-            [@role
-                ecsServiceRoleId,
-                ["ecs.amazonaws.com" ],
-                ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
-            /]
-
-            [#if fixedIP]
-                [#list 1..maxSize as index]
-                    [@checkIfResourcesCreated /]
-                    "${formatComponentEIPId(tier, component, index)}": {
-                        "Type" : "AWS::EC2::EIP",
-                        "Properties" : {
-                            "Domain" : "vpc"
+    [@cfTemplate
+        mode=solutionListMode
+        id=ecsAutoScaleGroupId
+        type="AWS::AutoScaling::AutoScalingGroup"
+        metadata=
+            {
+                "AWS::CloudFormation::Init": {
+                    "configSets" : {
+                        "ecs" : ["dirs", "bootstrap", "ecs"]
+                    },
+                    "dirs": {
+                        "commands": {
+                            "01Directories" : {
+                                "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
+                                "ignoreErrors" : "false"
+                            }
                         }
-                    }
-                    [@resourcesCreated /]
-                [/#list]
-            [/#if]
-
-            [@checkIfResourcesCreated /]
-            "${ecsAutoScaleGroupId}": {
-                "Type": "AWS::AutoScaling::AutoScalingGroup",
-                "Metadata": {
-                    "AWS::CloudFormation::Init": {
-                        "configSets" : {
-                            "ecs" : ["dirs", "bootstrap", "ecs"]
-                        },
-                        "dirs": {
-                            "commands": {
-                                "01Directories" : {
-                                    "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
-                                    "ignoreErrors" : "false"
-                                }
+                    },
+                    "bootstrap": {
+                        "packages" : {
+                            "yum" : {
+                                "aws-cli" : []
                             }
                         },
-                        "bootstrap": {
-                            "packages" : {
-                                "yum" : {
-                                    "aws-cli" : []
-                                }
-                            },
-                            "files" : {
-                                "/etc/codeontap/facts.sh" : {
-                                    "content" : {
-                                        "Fn::Join" : [
-                                            "",
-                                            [
-                                                "#!/bin/bash\n",
-                                                "echo \"cot:request=${requestReference}\"\n",
-                                                "echo \"cot:configuration=${configurationReference}\"\n",
-                                                "echo \"cot:accountRegion=${accountRegionId}\"\n",
-                                                "echo \"cot:tenant=${tenantId}\"\n",
-                                                "echo \"cot:account=${accountId}\"\n",
-                                                "echo \"cot:product=${productId}\"\n",
-                                                "echo \"cot:region=${regionId}\"\n",
-                                                "echo \"cot:segment=${segmentId}\"\n",
-                                                "echo \"cot:environment=${environmentId}\"\n",
-                                                "echo \"cot:tier=${tierId}\"\n",
-                                                "echo \"cot:component=${componentId}\"\n",
-                                                "echo \"cot:role=${component.Role}\"\n",
-                                                "echo \"cot:credentials=${credentialsBucket}\"\n",
-                                                "echo \"cot:code=${codeBucket}\"\n",
-                                                "echo \"cot:logs=${operationsBucket}\"\n",
-                                                "echo \"cot:backup=${dataBucket}\"\n"
-                                            ]
+                        "files" : {
+                            "/etc/codeontap/facts.sh" : {
+                                "content" : {
+                                    "Fn::Join" : [
+                                        "",
+                                        [
+                                            "#!/bin/bash\\n",
+                                            "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
+                                            "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
+                                            "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
+                                            "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
+                                            "echo \\\"cot:account="       + accountId              + "\\\"\\n",
+                                            "echo \\\"cot:product="       + productId              + "\\\"\\n",
+                                            "echo \\\"cot:region="        + regionId               + "\\\"\\n",
+                                            "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
+                                            "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
+                                            "echo \\\"cot:tier="          + tierId                 + "\\\"\\n",
+                                            "echo \\\"cot:component="     + componentId            + "\\\"\\n",
+                                            "echo \\\"cot:role="          + component.Role         + "\\\"\\n",
+                                            "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
+                                            "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
+                                            "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
+                                            "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
                                         ]
-                                    },
-                                    "mode" : "000755"
+                                    ]
                                 },
-                                "/opt/codeontap/bootstrap/fetch.sh" : {
-                                    "content" : {
-                                        "Fn::Join" : [
-                                            "",
-                                            [
-                                                "#!/bin/bash -ex\n",
-                                                "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
-                                                "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion= | cut -d '=' -f 2)\n",
-                                                "CODE=$(/etc/codeontap/facts.sh | grep cot:code= | cut -d '=' -f 2)\n",
-                                                "aws --region ${r"${REGION}"} s3 sync s3://${r"${CODE}"}/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0755 /opt/codeontap/bootstrap/*.sh\n"
-                                            ]
-                                        ]
-                                    },
-                                    "mode" : "000755"
-                                }
+                                "mode" : "000755"
                             },
-                            "commands": {
-                                "01Fetch" : {
-                                    "command" : "/opt/codeontap/bootstrap/fetch.sh",
-                                    "ignoreErrors" : "false"
+                            "/opt/codeontap/bootstrap/fetch.sh" : {
+                                "content" : {
+                                    "Fn::Join" : [
+                                        "",
+                                        [
+                                            "#!/bin/bash -ex\\n",
+                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
+                                            "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
+                                            "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
+                                            "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
+                                        ]
+                                    ]
                                 },
-                                "02Initialise" : {
-                                    "command" : "/opt/codeontap/bootstrap/init.sh",
-                                    "ignoreErrors" : "false"
-                                }
-                                [#if fixedIP]
-                                    ,"03AssignIP" : {
-                                        "command" : "/opt/codeontap/bootstrap/eip.sh",
-                                        "env" : {
-                                            "EIP_ALLOCID" : {
-                                                "Fn::Join" : [
-                                                    " ",
-                                                    [
-                                                        [#list 1..maxSize as index]
-                                                            { "Fn::GetAtt" : [
-                                                                "${formatComponentEIPId(
-                                                                    tier,
-                                                                    component,
-                                                                    index)}",
-                                                                "AllocationId"] }
-                                                            [#if index != maxSize],[/#if]
-                                                        [/#list]
-                                                    ]
-                                                ]
-                                            }
-                                        },
-                                        "ignoreErrors" : "false"
-                                    }
-                                [/#if]
+                                "mode" : "000755"
                             }
                         },
-                        "ecs": {
-                            "commands": {
-                                [#if defaultLogDriver == "fluentd"]
+                        "commands": {
+                            "01Fetch" : {
+                                "command" : "/opt/codeontap/bootstrap/fetch.sh",
+                                "ignoreErrors" : "false"
+                            },
+                            "02Initialise" : {
+                                "command" : "/opt/codeontap/bootstrap/init.sh",
+                                "ignoreErrors" : "false"
+                            }
+                        } +
+                        allocationIds?has_content?then(
+                            {
+                                "03AssignIP" : {
+                                    "command" : "/opt/codeontap/bootstrap/eip.sh",
+                                    "env" : {
+                                        "EIP_ALLOCID" : {
+                                            "Fn::Join" : [
+                                                " ",
+                                                allocationIds
+                                            ]
+                                        }
+                                    },
+                                    "ignoreErrors" : "false"
+                                }
+                            },
+                            {}
+                        )
+                    },
+                    "ecs": {
+                        "commands":
+                            (defaultLogDriver == "fluentd")?then(
+                                {
                                     "01Fluentd" : {
                                         "command" : "/opt/codeontap/bootstrap/fluentd.sh",
                                         "ignoreErrors" : "false"
-                                    },
-                                [/#if]
+                                    }
+                                },
+                                {}
+                            ) +
+                            {
                                 "02ConfigureCluster" : {
                                     "command" : "/opt/codeontap/bootstrap/ecs.sh",
                                     "env" : {
-                                        "ECS_CLUSTER" : { "Ref" : "${ecsId}" },
-                                        "ECS_LOG_DRIVER" : "${defaultLogDriver}"
+                                        "ECS_CLUSTER" : getReference(ecsId),
+                                        "ECS_LOG_DRIVER" : defaultLogDriver
                                     },
                                     "ignoreErrors" : "false"
                                 }
                             }
-                        }
-                    }
-                },
-                "Properties": {
-                    "Cooldown" : "30",
-                    "LaunchConfigurationName": {"Ref": "${ecsLaunchConfigId}"},
-                    [#if multiAZ]
-                        "MinSize": "${processorProfile.MinPerZone * zones?size}",
-                        "MaxSize": "${maxSize}",
-                        "DesiredCapacity": "${processorProfile.DesiredPerZone * zones?size}",
-                        "VPCZoneIdentifier": [
-                            [#list zones as zone]
-                                "${getKey(formatSubnetId(tier, zone))}"
-                                [#if !(zones?last.Id == zone.Id)],[/#if]
-                            [/#list]
-                        ],
-                    [#else]
-                        "MinSize": "${processorProfile.MinPerZone}",
-                        "MaxSize": "${maxSize}",
-                        "DesiredCapacity": "${processorProfile.DesiredPerZone}",
-                        "VPCZoneIdentifier" : ["${getKey(formatSubnetId(tier, zones[0]))}"],
-                    [/#if]
-                    "Tags" : [
-                        { "Key" : "cot:request", "Value" : "${requestReference}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:configuration", "Value" : "${configurationReference}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:tenant", "Value" : "${tenantId}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:account", "Value" : "${accountId}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:product", "Value" : "${productId}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:segment", "Value" : "${segmentId}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:environment", "Value" : "${environmentId}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:category", "Value" : "${categoryId}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:tier", "Value" : "${tierId}", "PropagateAtLaunch" : "True" },
-                        { "Key" : "cot:component", "Value" : "${componentId}", "PropagateAtLaunch" : "True"},
-                        { "Key" : "Name", "Value" : "${ecsFullName}", "PropagateAtLaunch" : "True" }
-                    ]
-                }
-            },
-
-            "${ecsLaunchConfigId}": {
-                "Type": "AWS::AutoScaling::LaunchConfiguration",
-                "Properties": {
-                    "KeyName": "${productName + sshPerSegment?string("-" + segmentName,"")}",
-                    "ImageId": "${regionObject.AMIs.Centos.ECS}",
-                    "InstanceType": "${processorProfile.Processor}",
-                    [@createBlockDevices storageProfile=storageProfile /]
-                    "SecurityGroups" : [
-                                        {"Ref" : "${ecsSecurityGroupId}"}
-                                        [#if sshFromProxySecurityGroup?has_content], "${sshFromProxySecurityGroup}"[/#if] 
-                    ],
-                    "IamInstanceProfile" : { "Ref" : "${ecsInstanceProfileId}" },
-                    "AssociatePublicIpAddress" : ${(tier.RouteTable == "external")?string("true","false")},
-                    [#if (processorProfile.ConfigSet)??]
-                        [#assign configSet = processorProfile.ConfigSet]
-                    [#else]
-                        [#assign configSet = "ecs"]
-                    [/#if]
-                    "UserData" : {
-                        "Fn::Base64" : {
-                            "Fn::Join" : [
-                                "",
-                                [
-                                    "#!/bin/bash -ex\n",
-                                    "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
-                                    "yum install -y aws-cfn-bootstrap\n",
-                                    "# Remainder of configuration via metadata\n",
-                                    "/opt/aws/bin/cfn-init -v",
-                                    "         --stack ", { "Ref" : "AWS::StackName" },
-                                    "         --resource ${ecsAutoScaleGroupId}",
-                                    "         --region ${regionId} --configsets ${configSet}\n"
-                                ]
-                            ]
-                        }
                     }
                 }
             }
-            [@resourcesCreated /]
-            [#break]
+        properties=
+            {
+                "Cooldown" : "30",
+                "LaunchConfigurationName": getReference(ecsLaunchConfigId)
+            } +
+            multiAZ?then(
+                {
+                    "MinSize": processorProfile.MinPerZone * zones?size,
+                    "MaxSize": maxSize,
+                    "DesiredCapacity": processorProfile.DesiredPerZone * zones?size,
+                    "VPCZoneIdentifier": getSubnets(tier)
+                },
+                {
+                    "MinSize": processorProfile.MinPerZone,
+                    "MaxSize": maxSize,
+                    "DesiredCapacity": processorProfile.DesiredPerZone,
+                    "VPCZoneIdentifier" : getSubnets(tier)[0..0]
+                }
+            )
+        tags=
+            getCfTemplateCoreTags(
+                ecsFullName,
+                tier,
+                component,
+                "",
+                true)
+        outputs={}
+    /]
+            
+    [#if (processorProfile.ConfigSet)?has_content]
+        [#assign configSet = processorProfile.ConfigSet]
+    [#else]
+        [#assign configSet = "ecs"]
+    [/#if]
 
-        [#case "outputs"]
-            [@output ecsId /]
-            [@output ecsRoleId /]
-            [@outputArn ecsRoleId /]
-            [@output ecsServiceRoleId /]
-            [@outputArn ecsServiceRoleId /]
-            [#if fixedIP]
-                [#list 1..maxSize as index]
-                    [#assign ecsEIPId = formatComponentEIPId(
-                                            tier,
-                                            component,
-                                            index)]
-                    [@outputIPAddress ecsEIPId /]
-                    [@outputAllocation ecsEIPId /]
-                [/#list]
-            [/#if]
-            [#break]
-
-    [/#switch]
+    [@cfTemplate
+        mode=solutionListMode
+        id=ecsLaunchConfigId
+        type="AWS::AutoScaling::LaunchConfiguration"
+        properties=
+            getBlockDevices(storageProfile) +
+            {
+                "KeyName": productName + sshPerSegment?then("-" + segmentName,""),
+                "ImageId": regionObject.AMIs.Centos.ECS,
+                "InstanceType": processorProfile.Processor,
+                "SecurityGroups" : 
+                    [
+                        getReference(ecsSecurityGroupId)
+                    ] +
+                    sshFromProxySecurityGroup?has_content?then(
+                        [
+                            sshFromProxySecurityGroup
+                        ],
+                        []
+                    ),
+                "IamInstanceProfile" : getReference(ecsInstanceProfileId),
+                "AssociatePublicIpAddress" : (tier.RouteTable == "external"),
+                "UserData" : {
+                    "Fn::Base64" : {
+                        "Fn::Join" : [
+                            "",
+                            [
+                                "#!/bin/bash -ex\\n",
+                                "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
+                                "yum install -y aws-cfn-bootstrap\\n",
+                                "# Remainder of configuration via metadata\\n",
+                                "/opt/aws/bin/cfn-init -v",
+                                "         --stack ", { "Ref" : "AWS::StackName" },
+                                "         --resource ", ecsAutoScaleGroupId,
+                                "         --region ", regionId, " --configsets ", configSet, "\\n"
+                            ]
+                        ]
+                    }
+                }
+            }
+        outputs={}
+    /]
 [/#if]

@@ -3,6 +3,29 @@
         (componentType == "cache")]
     [#assign cache = component.Cache!component.ElastiCache]
     [#assign engine = cache.Engine]
+        [#switch engine]
+            [#case "memcached"]
+                [#assign engineVersion =
+                    cache.EngineVersion?has_content?then(
+                        cache.EngineVersion,
+                        "1.4.24"
+                    )
+                ]
+                [#assign familyVersionIndex = engineVersion?last_index_of(".") - 1]
+                [#assign family = "memcached" + engineVersion[0..familyVersionIndex]]
+                [#break]
+
+            [#case "redis"]
+                [#assign engineVersion =
+                    cache.EngineVersion?has_content?then(
+                        cache.EngineVersion,
+                        "2.8.24"
+                    )
+                ]
+                [#assign familyVersionIndex = engineVersion?last_index_of(".") - 1]
+                [#assign family = "redis" + engineVersion[0..familyVersionIndex]]
+                [#break]
+        [/#switch]
 
     [#assign cacheId = formatCacheId(
                         tier,
@@ -17,133 +40,97 @@
                                             cacheSecurityGroupId, 
                                             ports[cache.Port].Port?c)]
 
+    [#assign processorProfile = getProcessor(tier, component, "ElastiCache")]
+    [#assign countPerZone = processorProfile.CountPerZone]
+    [#assign awsZones = [] ]
+    [#list zones as zone]
+        [#list 1..countPerZone as i]
+            [#assign awsZones += [zone.AWSZone] ]
+        [/#list]
+    [/#list]
+
     [@createDependentSecurityGroup
-        solutionListMode
-        tier
-        component
-        cacheId
-        cacheFullName/]
+        mode=solutionListMode
+        tier=tier
+        component=component
+        resourceId=cacheId
+        resourceName=cacheFullName
+    /]
 
-    [#switch solutionListMode]
-        [#case "definition"]
-            [#switch engine]
-                [#case "memcached"]
-                    [#if cache.EngineVersion??]
-                        [#assign engineVersion = cache.EngineVersion]
-                    [#else]
-                        [#assign engineVersion = "1.4.24"]
-                    [/#if]
-                    [#assign familyVersionIndex = engineVersion?last_index_of(".") - 1]
-                    [#assign family = "memcached" + engineVersion[0..familyVersionIndex]]
-                    [#break]
+    [@createSecurityGroupIngress
+        mode=solutionListMode
+        id=cacheSecurityGroupIngressId
+        port=cache.Port
+        cidr="0.0.0.0"
+        groupId=cacheSecurityGroupId
+    /]
 
-                [#case "redis"]
-                    [#if cache.EngineVersion??]
-                        [#assign engineVersion = cache.EngineVersion]
-                    [#else]
-                        [#assign engineVersion = "2.8.24"]
-                    [/#if]
-                    [#assign familyVersionIndex = engineVersion?last_index_of(".") - 1]
-                    [#assign family = "redis" + engineVersion[0..familyVersionIndex]]
-                    [#break]
-            [/#switch]
-            [@checkIfResourcesCreated /]
-            "${cacheSecurityGroupIngressId}" : {
-                "Type" : "AWS::EC2::SecurityGroupIngress",
+    [@cfTemplate
+        mode=solutionListMode
+        id=cacheSubnetGroupId
+        type="AWS::ElastiCache::SubnetGroup"
+        properties=
+            {
+                "Description" : cacheFullName,
+                "SubnetIds" : getSubnets(tier)
+            }
+        outputs={}
+    /]
+    
+    [@cfTemplate
+        mode=solutionListMode
+        id=cacheParameterGroupId
+        type="AWS::ElastiCache::ParameterGroup"
+        properties=
+            {
+                "CacheParameterGroupFamily" : family,
+                "Description" : cacheFullName,
                 "Properties" : {
-                    "GroupId": {"Ref" : "${cacheSecurityGroupId}"},
-                    "IpProtocol": "${ports[cache.Port].IPProtocol}",
-                    "FromPort": "${ports[cache.Port].Port?c}",
-                    "ToPort": "${ports[cache.Port].Port?c}",
-                    "CidrIp": "0.0.0.0/0"
-                }
-            },
-            "${cacheSubnetGroupId}" : {
-                "Type" : "AWS::ElastiCache::SubnetGroup",
-                "Properties" : {
-                    "Description" : "${cacheFullName}",
-                    "SubnetIds" : [
-                        [#list zones as zone]
-                            "${getKey(formatSubnetId(tier, zone))}"
-                            [#if !(zones?last.Id == zone.Id)],[/#if]
-                        [/#list]
-                    ]
-                }
-            },
-            "${cacheParameterGroupId}" : {
-                "Type" : "AWS::ElastiCache::ParameterGroup",
-                "Properties" : {
-                    "CacheParameterGroupFamily" : "${family}",
-                    "Description" : "${cacheFullName}",
-                    "Properties" : {
-                    }
-                }
-            },
-            [#assign processorProfile = getProcessor(tier, component, "ElastiCache")]
-            "${cacheId}":{
-                "Type":"AWS::ElastiCache::CacheCluster",
-                "Properties":{
-                    "Engine": "${cache.Engine}",
-                    "EngineVersion": "${engineVersion}",
-                    "CacheNodeType" : "${processorProfile.Processor}",
-                    "Port" : ${ports[cache.Port].Port?c},
-                    "CacheParameterGroupName": { "Ref" : "${cacheParameterGroupId}" },
-                    "CacheSubnetGroupName": { "Ref" : "${cacheSubnetGroupId}" },
-                    [#if multiAZ]
-                        "AZMode": "cross-az",
-                        "PreferredAvailabilityZones" : [
-                            [#assign countPerZone = processorProfile.CountPerZone]
-                            [#assign cacheZoneCount = 0]
-                            [#list zones as zone]
-                                [#list 1..countPerZone as i]
-                                    [#if cacheZoneCount > 0],[/#if]
-                                    "${zone.AWSZone}"
-                                    [#assign cacheZoneCount += 1]
-                                [/#list]
-                        [/#list]
-                        ],
-                        "NumCacheNodes" : "${processorProfile.CountPerZone * zones?size}",
-                    [#else]
-                        "AZMode": "single-az",
-                        "PreferredAvailabilityZone" : "${zones[0].AWSZone}",
-                        "NumCacheNodes" : "${processorProfile.CountPerZone}",
-                    [/#if]
-                    [#if (cache.SnapshotRetentionLimit)??]
-                        "SnapshotRetentionLimit" : ${cache.SnapshotRetentionLimit}
-                    [/#if]
-                    "VpcSecurityGroupIds":[
-                        { "Ref" : "${cacheSecurityGroupId}" }
-                    ],
-                    "Tags" : [
-                        { "Key" : "cot:request", "Value" : "${requestReference}" },
-                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                        { "Key" : "cot:account", "Value" : "${accountId}" },
-                        { "Key" : "cot:product", "Value" : "${productId}" },
-                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                        { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tierId}" },
-                        { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${cacheFullName}" }
-                    ]
                 }
             }
-            [@resourcesCreated /]
-            [#break]
+        outputs={}
+    /]
 
-        [#case "outputs"]
-            [#switch engine]
-                [#case "memcached"]
-                    [@outputMemcachedDns cacheId /]
-                    [@outputMemcachedPort cacheId /]
-                [#break]
-                [#case "redis"]
-                    [@outputRedisDns cacheId /]
-                    [@outputRedisPort cacheId /]
-                    [#break]
-            [/#switch]
-            [#break]
-
-    [/#switch]
+    [@cfTemplate
+        mode=solutionListMode
+        id=cacheId
+        type="AWS::ElastiCache::CacheCluster"
+        properties=
+            {
+                "Engine": engine,
+                "EngineVersion": engineVersion,
+                "CacheNodeType" : processorProfile.Processor,
+                "Port" : ports[cache.Port].Port,
+                "CacheParameterGroupName": getReference(cacheParameterGroupId),
+                "CacheSubnetGroupName": getReference(cacheSubnetGroupId),
+                "VpcSecurityGroupIds":[getReference(cacheSecurityGroupId)]
+            } +
+            multiAZ?then(
+                {
+                    "AZMode": "cross-az",
+                    "PreferredAvailabilityZones" : awsZones,
+                    "NumCacheNodes" : processorProfile.CountPerZone * zones?size
+                },
+                {
+                    "AZMode": "single-az",
+                    "PreferredAvailabilityZone" : awsZones[0],
+                    "NumCacheNodes" : processorProfile.CountPerZone
+                }
+            ) +
+            (cache.SnapshotRetentionLimit)?has_content?then(
+                {
+                    "SnapshotRetentionLimit" : cache.SnapshotRetentionLimit
+                },
+                {}
+            )
+        tags=
+            getCfTemplateCoreTags(
+                cacheFullName,
+                tier,
+                component)
+        outputs=engine?switch(
+            "memcached", MEMCACHED_OUTPUT_MAPPINGS,
+            "redis", REDIS_OUTPUT_MAPPINGS,
+            {})
+    /]
 [/#if]

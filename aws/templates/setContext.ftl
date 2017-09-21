@@ -16,9 +16,9 @@
 [#if appsettings??]
     [#assign appSettingsObject = appsettings?eval]
 [/#if]
-[#assign stackOutputsObject = []]
+[#assign stackOutputsList = [] ]
 [#if stackOutputs??]
-    [#assign stackOutputsObject = stackOutputs?eval]
+    [#assign stackOutputsList = stackOutputs?eval]
 [/#if]
 
 [#-- Reference data --]
@@ -115,6 +115,9 @@
 [#-- IsOpen flag is for legacy builds, where the default was for access to be open --]
 [#assign ipAddressGroups = (blueprintObject.IPAddressGroups)!{"IsOpen" : true}]
 
+[#-- Country Groups --]
+[#assign countryGroups = (blueprintObject.CountryGroups)!{}]
+
 [#-- Segments --]
 [#assign segments = (blueprintObject.Segments)!{}]
 [#assign segmentObject = (blueprintObject.Segment)!(segments[segment])!{}]
@@ -131,37 +134,37 @@
                             ((segmentObject.SSH.Active)!false)]
     [#assign sshPerSegment = (segmentObject.SSH.PerSegment)!segmentObject.SSHPerSegment!true]
     [#assign sshStandalone = ((segmentObject.SSH.Standalone)!false) || natHosted ]
-    [#assign operationsBucket = "unknown"]
+    [#assign operationsBucket = ""]
     [#assign operationsBucketSegment = "segment"]
     [#assign operationsBucketType = "ops"]
-    [#if getKey(formatSegmentS3Id("ops"))?has_content]
+    [#if getExistingReference(formatSegmentS3Id("ops"))?has_content]
         [#assign operationsBucket = getKey(formatSegmentS3Id("ops"))]        
     [/#if]
-    [#if getKey(formatSegmentS3Id("operations"))?has_content]
+    [#if getExistingReference(formatSegmentS3Id("operations"))?has_content]
         [#assign operationsBucket = getKey(formatSegmentS3Id("operations"))]        
         [#assign operationsBucketType = "operations"]
     [/#if]
-    [#if getKey(formatSegmentS3Id("logs"))?has_content]
+    [#if getExistingReference(formatSegmentS3Id("logs"))?has_content]
         [#assign operationsBucket = getKey(formatSegmentS3Id("logs"))]        
         [#assign operationsBucketType = "logs"]
     [/#if]
-    [#if getKey(formatContainerS3Id("logs"))?has_content]
+    [#if getExistingReference(formatContainerS3Id("logs"))?has_content]
         [#assign operationsBucket = getKey(formatContainerS3Id("logs"))]        
         [#assign operationsBucketSegment = "container"]
         [#assign operationsBucketType = "logs"]
     [/#if]
 
-    [#assign dataBucket = "unknown"]
+    [#assign dataBucket = ""]
     [#assign dataBucketSegment = "segment"]
     [#assign dataBucketType = "data"]
-    [#if getKey(formatSegmentS3Id("data"))?has_content]
+    [#if getExistingReference(formatSegmentS3Id("data"))?has_content]
         [#assign dataBucket = getKey(formatSegmentS3Id("data"))]        
     [/#if]
-    [#if getKey(formatSegmentS3Id("backups"))?has_content]
+    [#if getExistingReference(formatSegmentS3Id("backups"))?has_content]
         [#assign dataBucket = getKey(formatSegmentS3Id("backups"))]        
         [#assign dataBucketType = "backups"]
     [/#if]
-    [#if getKey(formatContainerS3Id("backups"))?has_content]
+    [#if getExistingReference(formatContainerS3Id("backups"))?has_content]
         [#assign dataBucket = getKey(formatContainerS3Id("backups"))]        
         [#assign dataBucketSegment = "container"]
         [#assign dataBucketType = "backups"]
@@ -169,7 +172,7 @@
     [#assign segmentDomain = getKey(formatSegmentDomainId())]
     [#assign segmentDomainQualifier = getKey(formatSegmentDomainQualifierId())]
     [#assign certificateId = getKey(formatSegmentDomainCertificateId())]
-    [#assign vpc = getKey(formatVPCId())]
+    [#assign vpc = getExistingReference(formatVPCId())]
     [#assign sshFromProxySecurityGroup = getKey(formatSSHFromProxySecurityGroupId())]
     [#if segmentObject.Environment??]
         [#assign environmentId = segmentObject.Environment]
@@ -203,13 +206,11 @@
 [/#if]
 
 [#-- Required tiers --]
-[#assign tiers = []]
+[#assign tiers = [] ]
 [#list segmentObject.Tiers.Order as tierId]
     [#if isTier(tierId)]
         [#assign tier = getTier(tierId)]
-        [#if tier.Components??
-            || ((tier.Required)!false)
-            || (tierId == "mgmt")]
+        [#if tier.Components?has_content || ((tier.Required)!false)]
             [#assign tiers += [tier + 
                 {
                     "Index" : tierId?index,
@@ -220,7 +221,7 @@
 [/#list]
 
 [#-- Required zones --]
-[#assign zones = []]
+[#assign zones = [] ]
 [#list segmentObject.Zones.Order as zoneId]
     [#if regions[region].Zones[zoneId]??]
         [#assign zone = regions[region].Zones[zoneId]]
@@ -228,6 +229,22 @@
             {"Index" : zoneId?index}]]
     [/#if]
 [/#list]
+
+[#function getSubnets tier asReferences=true]
+    [#local result = [] ]
+    [#list zones as zone]
+        [#local subnetId = formatSubnetId(tier, zone)]
+        [#local result += 
+            [
+                asReferences?then(
+                    getReference(subnetId),
+                    subnetId
+                )
+            ]
+        ]
+    [/#list]
+    [#return result]
+[/#function]
 
 [#-- Annotate IPAddressGroups --]
 [#assign ipAddressGroupsUsage = { "DefaultUsageList" : ["es", "ssh", "http", "https", "waf"]}]
@@ -241,9 +258,7 @@
                         (entryValue.IsOpen!false))]
                 [#assign isOpen = (entryValue.IsOpen)!false]
                 [#assign cidrList = entryValue.CIDR?has_content?then(
-                        entryValue.CIDR?is_sequence?then(
-                            entryValue.CIDR,
-                            [entryValue.CIDR]),
+                        asArray(entryValue.CIDR),
                         [])]
                 [#assign newCIDR = []]
                 [#list cidrList as CIDRBlock]
@@ -254,9 +269,7 @@
                     [/#if]
                 [/#list]
                 [#assign newUsage = (entryValue.Usage)?has_content?then(
-                    entryValue.Usage?is_sequence?then(
-                        entryValue.Usage,
-                        [entryValue.Usage]),
+                    asArray(entryValue.Usage),
                     ipAddressGroupsUsage.DefaultUsageList)]
                 [#assign newValue = entryValue +
                     {

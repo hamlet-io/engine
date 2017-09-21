@@ -1,6 +1,7 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 ALMSIZE_DEFAULT="small"
@@ -102,24 +103,19 @@ while getopts ":d:e:hi:m:n:o:r:s:t:y:" opt; do
       ALMTYPE="${OPTARG}"
       ;;
     \?)
-      echo -e "\nInvalid option: -${OPTARG}" >&2
-      exit
+      fatalOption
       ;;
     :)
-      echo -e "\nOption -${OPTARG} requires an argument" >&2
-      exit
+      fatalOptionArgument
       ;;
    esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ "${TITLE}"  == "" || 
-      "${NAME}"  == "" ||
-      "${TID}"  == "" ||
-      "${OAINDEX}" == "" ]]; then
-  echo -e "\nInsufficient arguments" >&2
-  exit
-fi
+[[ (-z "${TITLE}") || 
+    (-z "${NAME}") ||
+    (-z "${TID}") ||
+    (-z "${OAINDEX}") ]] && fatalMandatory
 
 AID="${TID}${OAINDEX}"
 
@@ -132,10 +128,7 @@ SOLUTIONS_DIR="${GENERATION_DATA_DIR}/config/solutions"
 PRODUCT_DIR="${SOLUTIONS_DIR}/${AID}"
 ALM_DIR="${PRODUCT_DIR}/alm"
 
-if [[ "${AID}" != "${ROOT}" ]]; then
-    echo -e "\nThe provided AID (${AID}) doesn't match the root directory (${ROOT}). Nothing to do." >&2
-    exit
-fi
+[[ "${AID}" != "${ROOT}" ]] && fatalCantProceed "The provided AID (${AID}) doesn't match the root directory (${ROOT})."
 
 # Generate the tenant profile
 TEMPLATE="tenant.ftl"

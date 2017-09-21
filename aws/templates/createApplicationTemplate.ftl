@@ -13,6 +13,7 @@
     "Outputs" : {
         [#assign applicationListMode="outputs"]
         [#include "componentList.ftl"]
+        [@cfTemplateGlobalOutputs "outputs" "application" /]
     }
 }
 

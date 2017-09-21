@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 DELAY_DEFAULT=30
@@ -62,30 +63,22 @@ while getopts ":d:fhi:rt:" opt; do
             TIER="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
 
 # Ensure mandatory arguments have been provided
-if [[ "${COMPONENT}"  == "" ]]; then
-  echo -e "\nInsufficient arguments" >&2
-  exit
-fi
+[[ -z "${COMPONENT}" ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
 # Ensure we are in the right place
-if [[ "${LOCATION}" != "segment" ]]; then
-    echo -e "\nWe don't appear to be in the right directory. Nothing to do" >&2
-    exit
-fi
+checkInSegmentDirectory
 
 FAILOVER_OPTION="--no-force-failover"
 if [[ "${FORCE_FAILOVER}" == "true" ]]; then

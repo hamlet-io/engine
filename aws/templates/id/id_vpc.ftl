@@ -32,15 +32,11 @@
             component
             resourceId
             extensions...]
-    [#local legacyId = formatComponentSecurityGroupId(
-                        tier,
-                        component,
-                        extensions)]
-    [#return getKey(legacyId)?has_content?then(
-                legacyId,
-                formatDependentSecurityGroupId(
-                    resourceId,
-                    extensions))]
+    [#return
+        migrateToResourceId(
+            formatDependentSecurityGroupId(resourceId, extensions),
+            formatComponentSecurityGroupId(tier, component, extensions)
+        )]
 [/#function]
 
 [#function formatSecurityGroupIngressId ids...]
@@ -69,32 +65,27 @@
 [/#function]
 
 [#function formatSSHFromProxySecurityGroupId ]
-    [#local legacyId = formatComponentSecurityGroupId(
-                        "mgmt",
-                        "nat")]
-    [#return getKey(legacyId)?has_content?then(
-                legacyId,
-                formatComponentSecurityGroupId(
-                        "all",
-                        "ssh"))]
+    [#return
+        migrateToResourceId(
+            formatComponentSecurityGroupId("all", "ssh"),
+            formatComponentSecurityGroupId("mgmt", "nat")
+        )]
 [/#function]
 
 [#function formatVPCId]
-    [#local legacyId = formatSegmentResourceId(
-                "vpc",
-                "vpc")]
-    [#return getKey(legacyId)?has_content?then(
-                legacyId,
-                formatSegmentResourceId("vpc"))]
+    [#return
+        migrateToResourceId(
+            formatSegmentResourceId("vpc"),
+            formatSegmentResourceId("vpc", "vpc")
+        )]
 [/#function]
 
 [#function formatVPCIGWId]
-    [#local legacyId = formatSegmentResourceId(
-                "igw",
-                "igw")]
-    [#return getKey(legacyId)?has_content?then(
-                legacyId,
-                formatSegmentResourceId("igw"))]
+    [#return
+        migrateToResourceId(
+            formatSegmentResourceId("igw"),
+            formatSegmentResourceId("igw", "igw")
+        )]
 [/#function]
 
 [#function formatVPCFlowLogsId extensions...]
@@ -106,21 +97,21 @@
 
 [#-- Legacy functions reflecting inconsistencies in template id naming --]
 [#function formatVPCTemplateId]
-    [#local legacyId = formatSegmentResourceId(
+    [#return
+        getExistingReference(
+            formatSegmentResourceId("vpc", "vpc"))?has_content?then(
                 "vpc",
-                "vpc")]
-    [#return getKey(legacyId)?has_content?then(
-                "vpc",
-                formatSegmentResourceId("vpc"))]
+                formatSegmentResourceId("vpc")
+            )]
 [/#function]
 
 [#function formatVPCIGWTemplateId]
-    [#local legacyId = formatSegmentResourceId(
+    [#return
+        getExistingReference(
+            formatSegmentResourceId("igw", "igw"))?has_content?then(
                 "igw",
-                "igw")]
-    [#return getKey(legacyId)?has_content?then(
-                "igw",
-                formatSegmentResourceId("igw"))]
+                formatSegmentResourceId("igw")
+            )]
 [/#function]
 
 [#function formatSubnetId tier zone]
@@ -180,6 +171,12 @@
             zone)]
 [/#function]
 
-[#-- Attributes --]
+[#function formatVPCEndPointId service extensions...]
+    [#return formatSegmentResourceId(
+        "vpcEndPoint",
+        service,
+        extensions)]
+[/#function]
+
 
 

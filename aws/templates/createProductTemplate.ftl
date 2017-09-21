@@ -49,5 +49,6 @@
         [@noResourcesCreated /]
         [#assign productListMode="outputs"]
         [#include productList]
+        [@cfTemplateGlobalOutputs "outputs" "product" /]
     }
 }

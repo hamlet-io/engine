@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 
@@ -113,12 +114,10 @@ while getopts ":a:bdef:hk:np:qt:uv" opt; do
             CRYPTO_VISIBLE="true"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -140,22 +139,22 @@ if [[ (-z "${KEYID}") && (-n "${ALIAS}") ]]; then
     KEYID="alias/${ALIAS}"
 fi
 if [[ "segment" =~ ${LOCATION} ]]; then
-    KEYID=${KEYID:-$(jq -r '.[] | select(.OutputKey=="cmkXsegmentXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})}
-    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials/${SEGMENT}/${CRYPTO_FILE}"); fi
-    FILES+=("${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials/${SEGMENT}/${CRYPTO_FILENAME_DEFAULT}")
+    KEYID=$(getCmk "segment")
+    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${SEGMENT_CREDENTIALS_DIR}/${CRYPTO_FILE}"); fi
+    FILES+=("${SEGMENT_CREDENTIALS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ "product" =~ ${LOCATION} ]]; then
-    KEYID=${KEYID:-$(jq -r '.[] | select(.OutputKey=="cmkXproductXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})}
-    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials/${CRYPTO_FILE}"); fi
-    FILES+=("${INFRASTRUCTURE_DIR}/${PRODUCT}/credentials/${CRYPTO_FILENAME_DEFAULT}")
+    KEYID=$(getCmk "product")
+    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${PRODUCT_CREDENTIALS_DIR}/${CRYPTO_FILE}"); fi
+    FILES+=("${PRODUCT_CREDENTIALS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ "account" =~ ${LOCATION} ]]; then
-    KEYID=${KEYID:-$(jq -r '.[] | select(.OutputKey=="cmkXaccountXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})}
-    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${INFRASTRUCTURE_DIR}/${ACCOUNT}/credentials/${CRYPTO_FILENAME_DEFAULT}"); fi
-    FILES+=("${INFRASTRUCTURE_DIR}/${ACCOUNT}/credentials/${CRYPTO_FILENAME_DEFAULT}")
+    KEYID=$(getCmk "account")
+    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${ACCOUNT_CREDENTIALS_DIR}/${CRYPTO_FILENAME_DEFAULT}"); fi
+    FILES+=("${ACCOUNT_CREDENTIALS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ ("root" =~ ${LOCATION}) || ("integrator" =~ ${LOCATION}) ]]; then
-    KEYID=${KEYID:-$(jq -r '.[] | select(.OutputKey=="cmkXaccountXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})}
+    KEYID=$(getCmk "account")
 fi
 
 # Try and locate  file 
@@ -168,39 +167,27 @@ done
 
 # Ensure mandatory arguments have been provided
 if [[ (-n "${JSON_PATH}") ]]; then
-    if [[ -z "${TARGET_FILE}" ]]; then
-        echo -e "\nCan't locate target file" >&2
-        exit
-    fi
+    [[ -z "${TARGET_FILE}" ]] && fatal "Can't locate target file"
+
     # Default cipherdata to that in the element
     JSON_TEXT=$(jq -r "${JSON_PATH} | select (.!=null)" < "${TARGET_FILE}")
     CRYPTO_TEXT="${CRYPTO_TEXT:-$JSON_TEXT}"
 
-    if [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]]; then
-        echo -e "\nNothing to encrypt" >&2
-        exit
-    fi
+    [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]] && \
+        fatal "Nothing to encrypt"
 else    
     if [[ -z "${CRYPTO_TEXT}" ]]; then
-        if [[ -z "${CRYPTO_FILE}" ]]; then
-            echo -e "\nInsufficient arguments" >&2
-            exit
-        else
-            if [[ -z "${TARGET_FILE}" ]]; then
-                echo -e "\nCan't locate file based on provided path" >&2
-                exit
-            fi
-        fi
+        [[ -z "${CRYPTO_FILE}" ]] && insufficientArgumentsError
+        [[ -z "${TARGET_FILE}" ]] && fatalError "Can't locate file based on provided path"
+
         # Default cipherdata to the file contents
         FILE_TEXT=$( cat "${TARGET_FILE}")
         CRYPTO_TEXT="${CRYPTO_TEXT:-$FILE_TEXT}"
     fi
 fi
     
-if [[ ("${CRYPTO_OPERATION}" == "encrypt") && (-z "${KEYID}") ]]; then
-    echo -e "\nNo key material available" >&2
-    exit
-fi
+[[ ("${CRYPTO_OPERATION}" == "encrypt") && (-z "${KEYID}") ]] && \
+    fatal "No key material available"
 
 # Strip any explicit indication of base64 encoding
 if [[ $(grep "^base64:" <<< "${CRYPTO_TEXT}") ]]; then
@@ -219,8 +206,7 @@ if [[ (-n "${CRYPTO_DECODE}") ]]; then
     if [[ "${RESULT}" -eq 0 ]]; then
         dos2unix < ./ciphertext.src | base64 -d  > ./ciphertext.bin
     else
-        echo -e "\nInput doesn't appear to be base64 encoded" >&2
-        exit
+        fatalError "Input doesn't appear to be base64 encoded"
     fi
 else
     mv ./ciphertext.src ./ciphertext.bin

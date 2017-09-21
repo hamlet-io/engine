@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 CERTIFICATE_OPERATION_LIST="list"
 CERTIFICATE_OPERATION_DELETE="delete"
@@ -77,12 +78,10 @@ while getopts ":c:hi:p:qr:v:dl" opt; do
             CERTIFICATE_PRIVATE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -96,24 +95,19 @@ case ${CERTIFICATE_OPERATION} in
     ${CERTIFICATE_OPERATION_LIST})
         ;;
     ${CERTIFICATE_OPERATION_DELETE})
-        if [[ (-z "${CERTIFICATE_ID}") ]]; then
-          echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation" >&2
-          exit
-        fi
+        [[ (-z "${CERTIFICATE_ID}") ]] && \
+            fatal "Insufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
         ;;
     ${CERTIFICATE_OPERATION_UPLOAD})
-        if [[ (-z "${CERTIFICATE_ID}") ||
-              (-z "${CERTIFICATE_PUBLIC}") ||
-              (-z "${CERTIFICATE_PRIVATE}") ||
-              (-z "${CERTIFICATE_CHAIN}") ||
-              (-z "${REGION}") ]]; then
-          echo -e "\nInsufficient arguments for \"${CERTIFICATE_OPERATION}\" operation" >&2
-          exit
-        fi
+        [[ (-z "${CERTIFICATE_ID}") ||
+            (-z "${CERTIFICATE_PUBLIC}") ||
+            (-z "${CERTIFICATE_PRIVATE}") ||
+            (-z "${CERTIFICATE_CHAIN}") ||
+            (-z "${REGION}") ]] && \
+            fatal "Insufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
         ;;
     *)
-        echo -e "\n\"${CERTIFICATE_OPERATION}\" is not one of the known certificate operations." >&2
-        exit
+        fatal "\"${CERTIFICATE_OPERATION}\" is not one of the known certificate operations."
         ;;
 esac
 

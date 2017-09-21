@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '[[ -z ${GENERATION_DEBUG} ]] && rm -rf temp_*; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 INTEGRATIONS_FILE_DEFAULT="apigw.json"
@@ -55,12 +56,10 @@ while getopts ":hi:o:s:" opt; do
             SWAGGER_FILE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -69,12 +68,9 @@ done
 INTEGRATIONS_FILE="${INTEGRATIONS_FILE:-${INTEGRATIONS_FILE_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${SWAGGER_FILE}") ||
-        (-z "${EXTENDED_SWAGGER_FILE}") ||
-        (-z "${INTEGRATIONS_FILE}") ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${SWAGGER_FILE}") ||
+    (-z "${EXTENDED_SWAGGER_FILE}") ||
+    (-z "${INTEGRATIONS_FILE}") ]] && fatalMandatory
 
 # Determine the base of the resulting files
 EXTENDED_SWAGGER_FILE_PATH="${EXTENDED_SWAGGER_FILE%/*}"

@@ -1,5 +1,22 @@
 [#-- DNS --]
 
+[#-- Names --]
+[#function formatHostDomainName host parts style=""]
+    [#local result =
+        formatDomainName(
+            formatName(host),
+            parts
+        )]
+    [#switch style]
+        [#case "hyphenated"]
+            [#return result?replace(".", "-")]
+            [#break]
+        [#default]
+            [#return result]
+    [/#switch]
+
+[/#function]
+
 [#-- Resources --]
 
 [#function formatDomainId ids...]
@@ -16,15 +33,16 @@
 [/#function]
 
 [#function formatSegmentDomainId extensions...]
-    [#local legacyId = formatSegmentResourceId(
+    [#return 
+        migrateToResourceId(
+            formatSegmentResourceId(
+                "domain",
+                extensions),
+            formatSegmentResourceId(
                 "domain",
                 "domain",
-                extensions)]
-    [#return getKey(legacyId)?has_content?then(
-                legacyId,
-                formatSegmentResourceId(
-                    "domain",
-                    extensions))]
+                extensions)
+        )]
 [/#function]
 
 [#function formatComponentDomainId tier component extensions...]
@@ -36,15 +54,22 @@
 [/#function]
 
 [#function formatAccountDomainId extensions...]
-    [#local legacyId = formatAccountResourceId(
+    [#return 
+        migrateToResourceId(
+            formatAccountResourceId(
+                "domain",
+                extensions),
+            formatAccountResourceId(
                 "domain",
                 "domain",
+                extensions)
+        )]
+[/#function]
+
+[#function formatSegmentDNSZoneId extensions...]
+    [#return formatSegmentResourceId(
+                "dnszone",
                 extensions)]
-    [#return getKey(legacyId)?has_content?then(
-                legacyId,
-                formatAccountResourceId(
-                    "domain",
-                    extensions))]
 [/#function]
 
 [#-- Attributes --]
@@ -74,25 +99,25 @@
 [/#function]
 
 [#function formatSegmentDomainQualifierId extensions...]
-    [#local legacyId = formatQualifierAttributeId(
-                            formatSegmentResourceId(
-                                "domain",
-                                extensions))]
-    [#return getKey(legacyId)?has_content?then(
-                legacyId,
-                formatQualifierAttributeId(
-                    formatSegmentDomainId(extensions)))]
+    [#return 
+        migrateToResourceId(
+            formatQualifierAttributeId(formatSegmentDomainId(extensions)),
+            formatQualifierAttributeId(
+                formatSegmentResourceId(
+                    "domain",
+                    extensions))
+        )]
 [/#function]
 
 [#function formatSegmentDomainCertificateId extensions...]
-    [#local legacyId = formatCertificateAttributeId(
-                            formatSegmentResourceId(
-                                "domain",
-                                extensions))]
-    [#return getKey(legacyId)?has_content?then(
-                legacyId,
-                formatCertificateAttributeId(
-                    formatSegmentDomainId(extensions)))]
+    [#return 
+        migrateToResourceId(
+            formatCertificateAttributeId(formatSegmentDomainId(extensions)),
+            formatCertificateAttributeId(
+                formatSegmentResourceId(
+                    "domain",
+                            extensions))
+        )]
 [/#function]
 
 [#function formatComponentDomainQualifierId tier component extensions...]

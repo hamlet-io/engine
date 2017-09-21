@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 
@@ -35,44 +36,34 @@ while getopts ":hn:" opt; do
             usage
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
 
-# Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
 # Process the relevant directory
-INFRASTRUCTURE_DIR="${GENERATION_DATA_DIR}/infrastructure/${PRODUCT}"
-CREDENTIALS_DIR="${INFRASTRUCTURE_DIR}/credentials"
 if [[ "product" =~ ${LOCATION} ]]; then
     SSH_ID="${PRODUCT}"
-    KEYID=$(jq -r '.[] | select(.OutputKey=="cmkXproductXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})
+    KEYID=$(getCmk "product")
+    CREDENTIALS_DIR="${PRODUCT_CREDENTIALS_DIR}"
 elif [[ "segment" =~ ${LOCATION} ]]; then
-    CREDENTIALS_DIR="${CREDENTIALS_DIR}/${SEGMENT}"
     SSH_ID="${PRODUCT}-${SEGMENT}"
-    KEYID=$(jq -r '.[] | select(.OutputKey=="cmkXsegmentXcmk") | .OutputValue | select (.!=null)' < ${COMPOSITE_STACK_OUTPUTS})
-    SSHPERSEGMENT=$(jq -r '.Segment.SSHPerSegment | select (.!=null)' < ${COMPOSITE_BLUEPRINT})
-    if [[ "${SSHPERSEGMENT}" != "true" ]]; then
-        echo -e "\nAn SSH key is not required for this segment. Check the SSHPerSegment setting if unsure" >&2
-        exit
-    fi
+    KEYID=$(getCmk "segment")
+    CREDENTIALS_DIR="${SEGMENT_CREDENTIALS_DIR}"
+    SSH_PER_SEGMENT=$(getBluePrintParameter ".Segment.SSH.PerSegment" ".Segment.SSHPerSegment")
+    [[ "${SSH_PER_SEGMENT}" != "true" ]] && \
+        fatalCantProceed "An SSH key is not required for this segment. Check the SSH PerSegment setting if unsure."
 else
-    echo -e "\nWe don't appear to be in the product or segment directory. Are we in the right place?" >&2
-    exit
+    fatalDirectoryProductOrSegment
 fi
 
-# Ensure we've create a cmk to encrypt the SSH private key
-if [[ -z "${KEYID}" ]]; then
-    echo -e "\nNo cmk defined to encrypt the SSH private key. Create the cmk deployment unit before running this script again" >&2
-    exit
-fi
+# Ensure we've got a cmk to encrypt the SSH private key
+[[ -z "${KEYID}" ]] && fatal "No cmk defined to encrypt the SSH private key. Create the cmk deployment unit before running this script again"
 
 # Create an SSH certificate at the product level
 mkdir -p "${CREDENTIALS_DIR}"

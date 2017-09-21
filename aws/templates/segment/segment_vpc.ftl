@@ -1,6 +1,15 @@
-[#-- Define VPC --]
-[#if deploymentUnit?contains("vpc")]
-    [#assign vpcId = formatVPCTemplateId() ]
+[#-- VPC --]
+
+[#-- SSH and NAT should now be configured as separate deployment units but  --]
+[#-- the code supports legacy installations where they were part of the vpc --]
+[#-- TODO: Remove extra checks on ssh and nat when all legacy instances are --]
+[#-- retired --]
+
+[#-- TODO: change to formatVPCId() when all legacy installations are retired --]
+[#assign vpcId = formatVPCTemplateId() ]
+
+[#if componentType == "vpc"]
+    [#-- TODO: change to formatVPCIGWId() when all legacy installations are retired --]
     [#assign igwId = formatVPCIGWTemplateId() ]
 
     [#assign topicId = formatSegmentSNSTopicId() ]
@@ -11,71 +20,73 @@
     [#assign flowLogsAllLogGroupId = formatDependentLogGroupId(vpcId, "all") ]
     [#assign flowLogsAllLogGroupName = formatSegmentLogGroupName("vpcflowlogs", "all") ]
 
-    [#assign mgmtTier = getTier("mgmt")]
-    [#assign sshFromProxySecurityGroupId = formatSSHFromProxySecurityGroupId()]
-    [#assign sshToProxySecurityGroupId = formatComponentSecurityGroupId(mgmtTier, "ssh")]
-    [#assign allToNATSecurityGroupId = formatComponentSecurityGroupId(mgmtTier, "nat", "all")]
+    [#if deploymentSubsetRequired("iam", true) &&
+            isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
+        [@createRole
+            mode=segmentListMode
+            id=flowLogsRoleId                               
+            trustedServices=["vpc-flow-logs.amazonaws.com"]
+            policies=
+                [
+                    getPolicyDocument(
+                        getCloudWatchLogsProduceStatement(),
+                        formatName("vpcflowlogs"))
+                ]
+        /]        
+    [/#if]
 
-    [#if deploymentSubsetRequired("flowlogs", true) && isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
-        [#switch segmentListMode]
-            [#case "definition"]
-                [@checkIfResourcesCreated /]
-                [@roleHeader flowLogsRoleId, ["vpc-flow-logs.amazonaws.com"] /]
-                    [@policyHeader formatName("vpcflowlogs") /]
-                        [@cloudWatchLogsProduceStatement /]
-                    [@policyFooter /]
-                [@roleFooter /]
-                [@resourcesCreated /]
-                [#break]
-        
-            [#case "outputs"]
-                [@output flowLogsRoleId /]
-                [@outputArn flowLogsRoleId /]
-                [#break]
-        
-        [/#switch]
+    [#if deploymentSubsetRequired("flowlogs", true) &&
+            isPartOfCurrentDeploymentUnit(flowLogsAllLogGroupId)]
         [@createVPCLogGroup
-            segmentListMode,
-            flowLogsAllLogGroupId,
-            flowLogsAllLogGroupName,
-            (segmentObject.Operations.FlowLogs.Expiration) !
-                (segmentObject.Operations.Expiration) !
-            (environmentObject.Operations.FlowLogs.Expiration) !
-                (environmentObject.Operations.Expiration) ! 7 /]
+            mode=segmentListMode
+            id=flowLogsAllLogGroupId
+            name=flowLogsAllLogGroupName
+            retention=((segmentObject.Operations.FlowLogs.Expiration) !
+                        (segmentObject.Operations.Expiration) !
+                        (environmentObject.Operations.FlowLogs.Expiration) !
+                        (environmentObject.Operations.Expiration) ! 7)
+        /]
     [/#if]
         
     [#if deploymentSubsetRequired("vpc", true)]
         [#if (segmentObject.Operations.FlowLogs.Enabled)!
                 (environmentObject.Operations.FlowLogs.Enabled)! false]
             [@createVPCFlowLog
-                segmentListMode,
-                flowLogsAllId,
-                vpcId,
-                flowLogsRoleId,
-                flowLogsAllLogGroupName,
-                "ALL" /]
+                mode=segmentListMode
+                id=flowLogsAllId
+                vpcId=vpcId
+                roleId=flowLogsRoleId
+                logGroupName=flowLogsAllLogGroupName
+                trafficType="ALL"
+            /]
         [/#if]
             
-        [@createSegmentSNSTopic segmentListMode topicId /]
+        [@createSegmentSNSTopic
+            mode=segmentListMode
+            id=topicId
+        /]
 
         [@createVPC 
-            segmentListMode
-            vpcId,
-            formatVPCName(),
-            segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask,
-            dnsSupport,
-            dnsHostnames /]
+            mode=segmentListMode
+            id=vpcId
+            name=formatVPCName()
+            cidr=segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask
+            dnsSupport=dnsSupport
+            dnsHostnames=dnsHostnames
+        /]
 
         [#if internetAccess]
             [@createIGW
-                segmentListMode
-                igwId
-                formatIGWName() /]
+                mode=segmentListMode
+                id=igwId
+                name=formatIGWName()
+            /]
             [@createIGWAttachment
-                segmentListMode
-                formatId("igw","attachment")
-                vpcId
-                igwId /]
+                mode=segmentListMode
+                id=formatId("igw","attachment")
+                vpcId=vpcId
+                igwId=igwId
+            /]
         [/#if]
         
         [#-- Define route tables --]
@@ -88,26 +99,51 @@
                 [#if !solutionRouteTables?seq_contains(routeTableId)]
                     [#assign solutionRouteTables += [routeTableId]]
                     [@createRouteTable
-                        segmentListMode,
-                        routeTableId,
-                        routeTableName,
-                        vpcId,
-                        natPerAZ?then(zone,"")
+                        mode=segmentListMode
+                        id=routeTableId
+                        name=routeTableName
+                        vpcId=vpcId
+                        zone=natPerAZ?then(zone,"")
                     /]
                     [#list routeTable.Routes?values as route]
                         [#if route?is_hash]
-                            [@createRoute
-                                segmentListMode,
-                                formatRouteId(routeTableId, route),
-                                routeTableId,
-                                route + {"IgwId" : igwId, "CIDR" : "0.0.0.0/0"}
-                            /]
+                            [#switch route.Type!""]
+                                [#case "gateway"]
+                                    [#if internetAccess]
+                                        [@createRoute
+                                            mode=segmentListMode
+                                            id=formatRouteId(routeTableId, route)
+                                            routeTableId=routeTableId
+                                            route=
+                                                route + 
+                                                {
+                                                    "IgwId" : igwId,
+                                                    "CIDR" : "0.0.0.0/0"
+                                                }
+                                        /]
+                                    [/#if]
+                                    [#break]
+                            [/#switch]
                         [/#if]
                     [/#list]
                 [/#if]
             [/#list]
         [/#list]
- 
+
+        [#-- Define the VPC endpoints --]
+        [#-- They are free so seems logical to always create them --]
+        [#-- For now we use the default (open) policy that comes  --]
+        [#-- by default with the endpoint                         --]
+        [#list ["s3", "dynamodb"] as service]
+            [@createVPCEndpoint
+                mode=segmentListMode
+                id=formatVPCEndPointId(service)
+                vpcId=vpcId
+                service=service
+                routeTableIds=solutionRouteTables
+            /]
+        [/#list]
+        
         [#-- Define network ACLs --]
         [#assign solutionNetworkACLs = []]
         [#list tiers as tier]
@@ -117,10 +153,10 @@
             [#if !solutionNetworkACLs?seq_contains(networkACLId)]
                 [#assign solutionNetworkACLs += [networkACLId]]
                 [@createNetworkACL
-                    segmentListMode,
-                    networkACLId,
-                    networkACLName,
-                    vpcId
+                    mode=segmentListMode
+                    id=networkACLId
+                    name=networkACLName
+                    vpcId=vpcId
                 /]
                 [#list ["Inbound", "Outbound"] as direction]
                     [#if networkACL.Rules[direction]??]
@@ -132,11 +168,11 @@
                                                 (direction=="Outbound"),
                                                 rule)]
                                 [@createNetworkACLEntry
-                                    segmentListMode,
-                                    networkACLEntryId,
-                                    networkACLId,
-                                    (direction=="Outbound"),
-                                    rule
+                                    mode=segmentListMode
+                                    id=networkACLEntryId
+                                    networkACLId=networkACLId
+                                    outbound=(direction=="Outbound")
+                                    rule=rule
                                 /]
                             [/#if]
                         [/#list]
@@ -158,526 +194,45 @@
                 [#assign routeTableAssociationId = formatRouteTableAssociationId(subnetId)]
                 [#assign networkACLAssociationId = formatNetworkACLAssociationId(subnetId)]
                 [@createSubnet
-                    segmentListMode,
-                    subnetId,
-                    subnetName,
-                    vpcId,
-                    tier,
-                    zone,
-                    baseAddress[0] + "." + baseAddress[1] + "." + (subnetAddress/256)?int + "." + subnetAddress%256 + "/" + subnetMask,
-                    routeTable.Private!false
+                    mode=segmentListMode
+                    id=subnetId
+                    name=subnetName
+                    vpcId=vpcId
+                    tier=tier
+                    zone=zone
+                    cidr=baseAddress[0] + "." + baseAddress[1] + "." + (subnetAddress/256)?int + "." + subnetAddress%256 + "/" + subnetMask
+                    private=routeTable.Private!false
                 /]
                 [@createRouteTableAssociation
-                    segmentListMode,
-                    routeTableAssociationId,
-                    subnetId,
-                    routeTableId
+                    mode=segmentListMode
+                    id=routeTableAssociationId
+                    subnetId=subnetId
+                    routeTableId=routeTableId
                 /]
                 [@createNetworkACLAssociation
-                    segmentListMode,
-                    networkACLAssociationId,
-                    subnetId,
-                    networkACLId
+                    mode=segmentListMode
+                    id=networkACLAssociationId
+                    subnetId=subnetId
+                    networkACLId=networkACLId
                 /]
             [/#list]
         [/#list]
-                            
-        [#if sshEnabled]
-            [@createSecurityGroup
-                segmentListMode,
-                mgmtTier,
-                "ssh",
-                sshToProxySecurityGroupId,
-                formatName(productName, segmentName, mgmtTier, "ssh"),
-                "Security Group for inbound SSH to the SSH Proxy",
-                [
-                    {
-                        "Port" : "ssh",
-                        "CIDR" : (sshActive || sshStandalone)?then(
-                                    getUsageCIDRs(
-                                        "ssh",
-                                        (segmentObject.SSH.IPAddressGroups)!
-                                            segmentObject.IPAddressGroups![]),
-                                    [])
-                    }
-                ]
-            /]
 
-            [@createSecurityGroup
-                segmentListMode,
-                "all",
-                "ssh",
-                sshFromProxySecurityGroupId,
-                formatName(productName, segmentName, "all", "ssh"),
-                "Security Group for SSH access from the SSH Proxy",
-                [
-                    {
-                        "Port" : "ssh",
-                        "CIDR" : [sshToProxySecurityGroupId]
-                    }
-                ]
-            /]
-            
-            [#if sshStandalone]
-                [#assign roleId = formatId("role", mgmtTier, "ssh")]
-                [#assign instanceProfileId = formatId("instanceProfile", mgmtTier, "ssh")]
-                [#switch segmentListMode]
-                    [#case "definition"]
-                        [@roleHeader roleId, ["ec2.amazonaws.com" ] /]
-                            [@policyHeader formatName(mgmtTier.Id, "ssh") /]
-                                [@IPAddressUpdateStatement /]
-                                [@s3ListStatement codeBucket /]
-                                [@s3ReadStatement codeBucket /]
-                            [@policyFooter /]
-                        [@roleFooter /]
-                        [#break]
-                [/#switch]
-
-                [@cfTemplate
-                    segmentListMode,
-                    instanceProfileId,
-                    "AWS::IAM::InstanceProfile",
-                    {
-                        "Path" : "/",
-                        "Roles" : [ 
-                            { "Ref" : roleId }
-                        ]
-                    },
-                    []
-                /]
-                
-                [#assign mgmtSubnetIds = []]
-                [#assign mgmtSubnetRefs = []]
-                [#list zones as zone]
-                    [#assign subnetId = formatSubnetId(mgmtTier, zone)]
-                    [#assign mgmtSubnetIds += [subnetId]]
-                    [#assign mgmtSubnetRefs += [getReference(subnetId)]]
-                [/#list]
-                
-                [#assign asgId = formatId("asg", mgmtTier, "ssh")]
-                [#assign launchConfigId = formatId("launchConfig", mgmtTier, "ssh")]
-
-                [@cfTemplate
-                    mode=segmentListMode
-                    id=asgId
-                    type="AWS::AutoScaling::AutoScalingGroup"
-                    dependencies=mgmtSubnetIds
-                    metadata={
-                        "AWS::CloudFormation::Init": {
-                            "configSets" : {
-                                "ssh" : ["dirs", "bootstrap", "ssh"]
-                            },
-                            "dirs": {
-                                "commands": {
-                                    "01Directories" : {
-                                        "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
-                                        "ignoreErrors" : "false"
-                                    }
-                                }
-                            },
-                            "bootstrap": {
-                                "packages" : {
-                                    "yum" : {
-                                        "aws-cli" : []
-                                    }
-                                },  
-                                "files" : {
-                                    "/etc/codeontap/facts.sh" : {
-                                        "content" : { 
-                                            "Fn::Join" : [
-                                                "", 
-                                                [
-                                                    "#!/bin/bash\\n",
-                                                    "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
-                                                    "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
-                                                    "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
-                                                    "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
-                                                    "echo \\\"cot:account="       + accountId              + "\\\"\\n",
-                                                    "echo \\\"cot:product="       + productId              + "\\\"\\n",
-                                                    "echo \\\"cot:region="        + regionId               + "\\\"\\n",
-                                                    "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
-                                                    "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
-                                                    "echo \\\"cot:tier="          + mgmtTier.Id            + "\\\"\\n",
-                                                    "echo \\\"cot:component="     + "ssh"                  + "\\\"\\n",
-                                                    "echo \\\"cot:role="          + "ssh"                  + "\\\"\\n",
-                                                    "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
-                                                    "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
-                                                    "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
-                                                    "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
-                                                ]
-                                            ]
-                                        },
-                                        "mode" : "000755"
-                                    },
-                                    "/opt/codeontap/bootstrap/fetch.sh" : {
-                                        "content" : { 
-                                            "Fn::Join" : [
-                                                "", 
-                                                [
-                                                    "#!/bin/bash -ex\\n",
-                                                    "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
-                                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
-                                                    "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
-                                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
-                                                ]
-                                            ]
-                                        },
-                                        "mode" : "000755"
-                                    }
-                                },
-                                "commands": {
-                                    "01Fetch" : {
-                                        "command" : "/opt/codeontap/bootstrap/fetch.sh",
-                                        "ignoreErrors" : "false"
-                                    },
-                                    "02Initialise" : {
-                                        "command" : "/opt/codeontap/bootstrap/init.sh",
-                                        "ignoreErrors" : "false"
-                                    }
-                                }
-                            },
-                            "ssh": {
-                                "commands": {
-                                    "01ExecuteAllocateEIPScript" : {
-                                        "command" : "/opt/codeontap/bootstrap/eip.sh",
-                                        "env" : { 
-                                            [#-- Normally assume eip defined in a separate template to the vpc --]
-                                            "EIP_ALLOCID" : getKey(formatComponentEIPAllocationId(mgmtTier, "ssh"))
-                                        },
-                                        "ignoreErrors" : "false"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    properties={
-                        "Cooldown" : "30",
-                        "LaunchConfigurationName": {"Ref": launchConfigId },
-                        "MinSize": sshActive?then("1","0"),
-                        "MaxSize": sshActive?then("1","0"),
-                        "VPCZoneIdentifier": mgmtSubnetRefs
-                    }
-                    tags=cfTemplateCoreTags(
-                            formatComponentFullName(mgmtTier, "ssh"),
-                            mgmtTier,
-                            "ssh",
-                            "",
-                            true)
-                /]
-            
-                [#assign component = { "Id" : ""}]
-                [#assign processorProfile = getProcessor(mgmtTier, component, "SSH")]
-                [@cfTemplate
-                    mode=segmentListMode
-                    id=launchConfigId
-                    type="AWS::AutoScaling::LaunchConfiguration"
-                    properties={
-                        "KeyName": productName + sshPerSegment?string("-" + segmentName,""),
-                        "ImageId": regionObject.AMIs.Centos.EC2,
-                        "InstanceType": processorProfile.Processor,
-                        "SecurityGroups" :
-                            [
-                                { "Ref": sshToProxySecurityGroupId }
-                            ],
-                        "IamInstanceProfile" : { "Ref" : instanceProfileId },
-                        "AssociatePublicIpAddress": true,
-                        "UserData": {
-                            "Fn::Base64": { 
-                                "Fn::Join": [ 
-                                    "", 
-                                    [
-                                        "#!/bin/bash -ex\\n",
-                                        "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
-                                        "yum install -y aws-cfn-bootstrap\\n",
-                                        "# Remainder of configuration via metadata\\n",
-                                        "/opt/aws/bin/cfn-init -v",
-                                        " --stack ", { "Ref" : "AWS::StackName" },
-                                        " --resource " + asgId,
-                                        " --region " + regionId + " --configsets ssh\\n"
-                                    ]
-                                ]
-                            }
-                        }
-                    }
-                    outputs=[]
-                /]
-            [/#if]
-        [/#if]
-
-        [#if natEnabled]
-            [#if natHosted]
-                [#list zones as zone]
-                    [#if natPerAZ || zone?is_first]
-                        [#assign natGatewayId = formatNATGatewayId(mgmtTier, zone)]
-                        [@createNATGateway
-                            segmentListMode,
-                            natGatewayId,
-                            formatSubnetId(mgmtTier, zone),
-                            formatComponentEIPId(mgmtTier, "nat", zone)
-                        /]
-                        [#assign updatedRouteTables = []]
-                        [#list tiers as tier]
-                            [#assign routeTable = routeTables[tier.RouteTable]]
-                            [#if routeTable.Private!false]
-                                [#assign routeTableId = formatRouteTableId(routeTable,natPerAZ?string(zone.Id,""))]
-                                [#if !updatedRouteTables?seq_contains(routeTableId)]
-                                    [#assign updatedRouteTables += [routeTableId]]
-                                    [@createRoute
-                                        segmentListMode,
-                                        formatRouteId(routeTableId, "natgateway"),
-                                        routeTableId,
-                                        {
-                                            "Type" : "nat",
-                                            "CIDR" : "0.0.0.0/0",
-                                            "NatId" : natGatewayId
-                                        }
-                                    /]
-                                [/#if]
-                            [/#if]
-                        [/#list]
-                    [/#if]
-                [/#list]
-            [#else]
-                [#assign roleId = formatId("role", mgmtTier, "nat")]
-                [#assign instanceProfileId = formatId("instanceProfile", mgmtTier, "nat")]
-                [#switch segmentListMode]
-                    [#case "definition"]
-                        [@roleHeader roleId, ["ec2.amazonaws.com" ] /]
-                            [@policyHeader formatName(mgmtTier.Id, "nat") /]
-                                [@IPAddressUpdateStatement /]
-                                [@subnetReadStatement /]
-                                [@routeAllStatement /]
-                                [@instanceUpdateStatement /]
-                                [@s3ListStatement codeBucket /]
-                                [@s3ReadStatement codeBucket /]
-                            [@policyFooter /]
-                        [@roleFooter /]
-                        [#break]
-                [/#switch]
-
-                [@cfTemplate
-                    segmentListMode,
-                    instanceProfileId,
-                    "AWS::IAM::InstanceProfile",
-                    {
-                        "Path" : "/",
-                        "Roles" : [ 
-                            { "Ref" : roleId }
-                        ]
-                    },
-                    []
-                /]
-                [@createSecurityGroup
-                    segmentListMode,
-                    mgmtTier,
-                    "nat",
-                    allToNATSecurityGroupId,
-                    formatName(productName, segmentName, mgmtTier, "nat"),
-                    "Security Group for outbound traffic to the NAT",
-                    [
-                        {
-                            "Port" : "all",
-                            "CIDR" : [segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask]
-                        }
-                    ]
-                /]
-                        
-                [#list zones as zone]
-                    [#if natPerAZ || zone?is_first]
-                        [#assign asgId = formatId("asg", mgmtTier, "nat", zone)]
-                        [#assign launchConfigId = formatId("launchConfig", mgmtTier, "nat", zone)]
-                        [#assign natCommands =
-                            {
-                                "01ExecuteRouteUpdateScript" : {
-                                    "command" : "/opt/codeontap/bootstrap/nat.sh",
-                                    "ignoreErrors" : "false"
-                                }
-                            }]
-                        [#if deploymentUnit?contains("eip")]
-                            [#assign natCommands +=
-                                {
-                                    "02ExecuteAllocateEIPScript" : {
-                                        "command" : "/opt/codeontap/bootstrap/eip.sh",
-                                        "env" : { 
-                                            [#-- Legacy code to support definition of eip and vpc in one template (deploymentUnit = "eipvpc" or "eips3vpc" depending on how S3 to be defined)  --]
-                                            "EIP_ALLOCID" : { "Fn::GetAtt" : [formatComponentEIPId(mgmtTier, "nat", zone), "AllocationId"] }
-                                        },
-                                        "ignoreErrors" : "false"
-                                    }
-                                }]
-                        [#else]
-                            [#assign eipAllocationId = getKey(formatComponentEIPAllocationId(mgmtTier, "nat", zone))]
-                            [#if eipAllocationId?has_content]
-                                [#assign natCommands +=
-                                    {
-                                        "02ExecuteAllocateEIPScript" : {
-                                            "command" : "/opt/codeontap/bootstrap/eip.sh",
-                                            "env" : { 
-                                                [#-- Normally assume eip defined in a separate template to the vpc --]
-                                                "EIP_ALLOCID" : eipAllocationId
-                                            },
-                                            "ignoreErrors" : "false"
-                                        }
-                                    }]
-                            [/#if]
-                        [/#if]
-
-                        [@cfTemplate
-                            mode=segmentListMode
-                            id=asgId
-                            type="AWS::AutoScaling::AutoScalingGroup"
-                            dependencies=[ formatSubnetId(mgmtTier, zone) ]
-                            metadata={
-                                "AWS::CloudFormation::Init": {
-                                    "configSets" : {
-                                        "nat" : ["dirs", "bootstrap", "nat"]
-                                    },
-                                    "dirs": {
-                                        "commands": {
-                                            "01Directories" : {
-                                                "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
-                                                "ignoreErrors" : "false"
-                                            }
-                                        }
-                                    },
-                                    "bootstrap": {
-                                        "packages" : {
-                                            "yum" : {
-                                                "aws-cli" : []
-                                            }
-                                        },  
-                                        "files" : {
-                                            "/etc/codeontap/facts.sh" : {
-                                                "content" : { 
-                                                    "Fn::Join" : [
-                                                        "", 
-                                                        [
-                                                            "#!/bin/bash\\n",
-                                                            "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
-                                                            "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
-                                                            "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
-                                                            "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
-                                                            "echo \\\"cot:account="       + accountId              + "\\\"\\n",
-                                                            "echo \\\"cot:product="       + productId              + "\\\"\\n",
-                                                            "echo \\\"cot:region="        + regionId               + "\\\"\\n",
-                                                            "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
-                                                            "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
-                                                            "echo \\\"cot:tier="          + mgmtTier.Id            + "\\\"\\n",
-                                                            "echo \\\"cot:component="     + "nat"                  + "\\\"\\n",
-                                                            "echo \\\"cot:zone="          + zone.Id                + "\\\"\\n",
-                                                            "echo \\\"cot:role="          + "nat"                  + "\\\"\\n",
-                                                            "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
-                                                            "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
-                                                            "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
-                                                            "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
-                                                        ]
-                                                    ]
-                                                },
-                                                "mode" : "000755"
-                                            },
-                                            "/opt/codeontap/bootstrap/fetch.sh" : {
-                                                "content" : { 
-                                                    "Fn::Join" : [
-                                                        "", 
-                                                        [
-                                                            "#!/bin/bash -ex\\n",
-                                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
-                                                            "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
-                                                            "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
-                                                            "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
-                                                        ]
-                                                    ]
-                                                },
-                                                "mode" : "000755"
-                                            }
-                                        },
-                                        "commands": {
-                                            "01Fetch" : {
-                                                "command" : "/opt/codeontap/bootstrap/fetch.sh",
-                                                "ignoreErrors" : "false"
-                                            },
-                                            "02Initialise" : {
-                                                "command" : "/opt/codeontap/bootstrap/init.sh",
-                                                "ignoreErrors" : "false"
-                                            }
-                                        }
-                                    },
-                                    "nat": {
-                                        "commands": natCommands
-                                    }
-                                }
-                            }
-                            properties={
-                                "Cooldown" : "30",
-                                "LaunchConfigurationName": {"Ref": launchConfigId },
-                                "MinSize": "1",
-                                "MaxSize": "1",
-                                "VPCZoneIdentifier": [ 
-                                    { "Ref" : formatSubnetId(mgmtTier, zone)}
-                                ]
-                            }
-                            tags=cfTemplateCoreTags(
-                                    formatComponentFullName(mgmtTier, "nat", zone),
-                                    mgmtTier,
-                                    "nat",
-                                    zone,
-                                    true)
-                        /]
-                    
-                        [#assign component = { "Id" : ""}]
-                        [#assign processorProfile = getProcessor(mgmtTier, component, "NAT")]
-                        [@cfTemplate
-                            mode=segmentListMode
-                            id=launchConfigId
-                            type="AWS::AutoScaling::LaunchConfiguration"
-                            properties={
-                                "KeyName": productName + sshPerSegment?string("-" + segmentName,""),
-                                "ImageId": regionObject.AMIs.Centos.NAT,
-                                "InstanceType": processorProfile.Processor,
-                                "SecurityGroups" : (sshEnabled && !sshStandalone)?then(
-                                                        [
-                                                            { "Ref": sshToProxySecurityGroupId },
-                                                            { "Ref": allToNATSecurityGroupId }
-                                                        ],
-                                                        [
-                                                            { "Ref": allToNATSecurityGroupId }
-                                                        ]
-                                                    ),
-                                "IamInstanceProfile" : { "Ref" : instanceProfileId },
-                                "AssociatePublicIpAddress": true,
-                                "UserData": {
-                                    "Fn::Base64": { 
-                                        "Fn::Join": [ 
-                                            "", 
-                                            [
-                                                "#!/bin/bash -ex\\n",
-                                                "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
-                                                "yum install -y aws-cfn-bootstrap\\n",
-                                                "# Remainder of configuration via metadata\\n",
-                                                "/opt/aws/bin/cfn-init -v",
-                                                " --stack ", { "Ref" : "AWS::StackName" },
-                                                " --resource " + asgId,
-                                                " --region " + regionId + " --configsets nat\\n"
-                                            ]
-                                        ]
-                                    }
-                                }
-                            }
-                            outputs=[]
-                        /]
-                    [/#if]
-                [/#list]
-            [/#if]
-        [/#if]
-
-        [#switch segmentListMode]
-            [#case "outputs"]
-                [@outputValue formatId("domain", "segment", "domain") segmentDomain /]
-                [@outputValue formatId("domain", "segment", "qualifier") segmentDomainQualifier /]
-                [@outputValue formatId("domain", "segment", "certificate") segmentDomainCertificateId /]
-                [#break]
-    
-        [/#switch]       
+        [@cfTemplateOutput
+            mode=segmentListMode
+            id=formatId("domain", "segment", "domain")
+            value=segmentDomain
+        /]
+        [@cfTemplateOutput
+            mode=segmentListMode
+            id=formatId("domain", "segment", "qualifier")
+            value=segmentDomainQualifier
+        /]
+        [@cfTemplateOutput
+            mode=segmentListMode
+            id=formatId("domain", "segment", "certificate")
+            value=segmentDomainCertificateId
+        /]
     [/#if]
 
     [#if deploymentSubsetRequired("dashboard")]
@@ -806,13 +361,578 @@
             [/#list]
         [/#list]
         [@createDashboard
-            segmentListMode,
-            dashboardId,
-            formatSegmentFullName(),
-            {
-                "widgets" : dashboardWidgets
-            } 
+            mode=segmentListMode
+            id=dashboardId
+            name=formatSegmentFullName()
+            body=
+                {
+                    "widgets" : dashboardWidgets
+                } 
         /]
     [/#if]
 [/#if]
+
+[#-- SSH --]
+
+[#assign sshFromProxySecurityGroupId = formatSSHFromProxySecurityGroupId()]
+[#assign sshInVpc = getExistingReference(sshFromProxySecurityGroupId, "", "", "vpc")?has_content ]
+[#assign sshComponent =
+    sshInVpc?then(
+        {
+            "Id" : "ssh",
+            "Name" : "ssh"
+        },
+        component
+    )
+]
+[#assign sshToProxySecurityGroupId = formatComponentSecurityGroupId(tier, sshComponent)]
+
+[#if sshEnabled &&
+    (
+        (componentType == "ssh") || 
+        ((componentType == "vpc") && sshInVpc)
+    )]
+
+    [#assign roleId = formatComponentRoleId(tier, sshComponent)]
+
+    [#if deploymentSubsetRequired("iam", true) &&
+            isPartOfCurrentDeploymentUnit(roleId) &&
+            sshStandalone]
+        [@createRole
+            mode=segmentListMode
+            id=roleId
+            trustedServices=["ec2.amazonaws.com" ]
+            policies=
+                [
+                    getPolicyDocument(
+                        getIPAddressUpdateStatement() +
+                            getS3ListStatement(codeBucket) +
+                            getS3ReadStatement(codeBucket),
+                        formatName(tier, sshComponent))
+                ]
+        /]
+    [/#if]
+
+    [#assign eipId = formatComponentEIPId(tier, sshComponent)]
+    
+    [#if deploymentSubsetRequired("eip", true) &&
+            isPartOfCurrentDeploymentUnit(eipId) &&
+            sshStandalone]
+        [@createEIP
+            mode=segmentListMode
+            id=eipId
+        /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("ssh", true)]
+        [@createSecurityGroup
+            mode=segmentListMode
+            tier=tier
+            component=sshComponent
+            id=sshToProxySecurityGroupId
+            name=formatName(productName, segmentName, tier, sshComponent)
+            description="Security Group for inbound SSH to the SSH Proxy"
+            ingressRules=
+                [
+                    {
+                        "Port" : "ssh",
+                        "CIDR" : 
+                            (sshActive || sshStandalone)?then(
+                                getUsageCIDRs(
+                                    "ssh",
+                                    (segmentObject.SSH.IPAddressGroups)!
+                                        segmentObject.IPAddressGroups![]),
+                                []
+                            )
+                    }
+                ]
+        /]
+    
+        [@createSecurityGroup
+            mode=segmentListMode
+            tier="all"
+            component=sshComponent
+            id=sshFromProxySecurityGroupId
+            name=formatName(productName, segmentName, "all", sshComponent)
+            description="Security Group for SSH access from the SSH Proxy"
+            ingressRules=
+                [
+                    {
+                        "Port" : "ssh",
+                        "CIDR" : [sshToProxySecurityGroupId]
+                    }
+                ]
+        /]
+        
+        [#if sshStandalone]
+            [#assign instanceProfileId = formatEC2InstanceProfileId(tier, sshComponent)]
+
+            [@cfTemplate
+                mode=segmentListMode
+                id=instanceProfileId
+                type="AWS::IAM::InstanceProfile"
+                properties=
+                    {
+                        "Path" : "/",
+                        "Roles" : [ getReference(roleId) ]
+                    }
+                outputs={}
+            /]
+            
+            [#assign asgId = formatEC2AutoScaleGroupId(tier, sshComponent)]
+            [#assign launchConfigId = formatEC2LaunchConfigId(tier, sshComponent)]
+    
+            [@cfTemplate
+                mode=segmentListMode
+                id=asgId
+                type="AWS::AutoScaling::AutoScalingGroup"
+                dependencies=getLocalReferences(getSubnets(tier, false))
+                metadata=
+                    {
+                        "AWS::CloudFormation::Init": {
+                            "configSets" : {
+                                "ssh" : ["dirs", "bootstrap", "ssh"]
+                            },
+                            "dirs": {
+                                "commands": {
+                                    "01Directories" : {
+                                        "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
+                                        "ignoreErrors" : "false"
+                                    }
+                                }
+                            },
+                            "bootstrap": {
+                                "packages" : {
+                                    "yum" : {
+                                        "aws-cli" : []
+                                    }
+                                },  
+                                "files" : {
+                                    "/etc/codeontap/facts.sh" : {
+                                        "content" : { 
+                                            "Fn::Join" : [
+                                                "", 
+                                                [
+                                                    "#!/bin/bash\\n",
+                                                    "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
+                                                    "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
+                                                    "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
+                                                    "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
+                                                    "echo \\\"cot:account="       + accountId              + "\\\"\\n",
+                                                    "echo \\\"cot:product="       + productId              + "\\\"\\n",
+                                                    "echo \\\"cot:region="        + regionId               + "\\\"\\n",
+                                                    "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
+                                                    "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
+                                                    "echo \\\"cot:tier="          + tier.Id            + "\\\"\\n",
+                                                    "echo \\\"cot:component="     + "ssh"                  + "\\\"\\n",
+                                                    "echo \\\"cot:role="          + "ssh"                  + "\\\"\\n",
+                                                    "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
+                                                    "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
+                                                    "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
+                                                    "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
+                                                ]
+                                            ]
+                                        },
+                                        "mode" : "000755"
+                                    },
+                                    "/opt/codeontap/bootstrap/fetch.sh" : {
+                                        "content" : { 
+                                            "Fn::Join" : [
+                                                "", 
+                                                [
+                                                    "#!/bin/bash -ex\\n",
+                                                    "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
+                                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
+                                                    "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
+                                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
+                                                ]
+                                            ]
+                                        },
+                                        "mode" : "000755"
+                                    }
+                                },
+                                "commands": {
+                                    "01Fetch" : {
+                                        "command" : "/opt/codeontap/bootstrap/fetch.sh",
+                                        "ignoreErrors" : "false"
+                                    },
+                                    "02Initialise" : {
+                                        "command" : "/opt/codeontap/bootstrap/init.sh",
+                                        "ignoreErrors" : "false"
+                                    }
+                                }
+                            },
+                            "ssh": {
+                                "commands": {
+                                    "01ExecuteAllocateEIPScript" : {
+                                        "command" : "/opt/codeontap/bootstrap/eip.sh",
+                                        "env" : { 
+                                            "EIP_ALLOCID" :
+                                                getReference(
+                                                    eipId,
+                                                    ALLOCATION_ATTRIBUTE_TYPE
+                                                )
+                                        },
+                                        "ignoreErrors" : "false"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                properties=
+                    {
+                        "Cooldown" : "30",
+                        "LaunchConfigurationName": {"Ref": launchConfigId },
+                        "MinSize": sshActive?then("1","0"),
+                        "MaxSize": sshActive?then("1","0"),
+                        "VPCZoneIdentifier": getSubnets(tier)
+                    }
+                tags=
+                    getCfTemplateCoreTags(
+                        formatComponentFullName(tier, sshComponent),
+                        tier,
+                        sshComponent,
+                        "",
+                        true)
+            /]
+        
+            [#assign processorProfile = getProcessor(tier, sshComponent, "SSH")]
+            [@cfTemplate
+                mode=segmentListMode
+                id=launchConfigId
+                type="AWS::AutoScaling::LaunchConfiguration"
+                properties=
+                    {
+                        "KeyName": productName + sshPerSegment?string("-" + segmentName,""),
+                        "ImageId": regionObject.AMIs.Centos.EC2,
+                        "InstanceType": processorProfile.Processor,
+                        "SecurityGroups" : [ getReference(sshToProxySecurityGroupId) ],
+                        "IamInstanceProfile" : getReference(instanceProfileId),
+                        "AssociatePublicIpAddress": true,
+                        "UserData":
+                            {
+                                "Fn::Base64": { 
+                                    "Fn::Join": [ 
+                                        "", 
+                                        [
+                                            "#!/bin/bash -ex\\n",
+                                            "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
+                                            "yum install -y aws-cfn-bootstrap\\n",
+                                            "# Remainder of configuration via metadata\\n",
+                                            "/opt/aws/bin/cfn-init -v",
+                                            " --stack ", { "Ref" : "AWS::StackName" },
+                                            " --resource " + asgId,
+                                            " --region " + regionId + " --configsets ssh\\n"
+                                        ]
+                                    ]
+                                }
+                            }
+                    }
+                outputs={}
+            /]
+        [/#if]
+    [/#if]
+[/#if]
+
+[#-- NAT --]
+
+[#assign allToNATSecurityGroupId = formatComponentSecurityGroupId(tier, "nat", "all")]
+
+[#assign natInVpc =
+    (getExistingReference(allToNATSecurityGroupId, "", "", "vpc")?has_content) ||
+    (getExistingReference(formatNATGatewayId(tier, zones[0]), "", "", "vpc")?has_content)
+]
+
+[#if natEnabled &&
+    (
+        (componentType == "nat") || 
+        ((componentType == "vpc") && natInVpc)
+    )]
+
+    [#assign natComponent =
+        natInVpc?then(
+            {
+                "Id" : "nat",
+                "Name" : "nat"
+            },
+            component
+        )
+    ]
+
+    [#assign roleId = formatComponentRoleId(tier, natComponent)]
+    
+    [#if deploymentSubsetRequired("iam", true) &&
+            isPartOfCurrentDeploymentUnit(roleId) &&
+            (!natHosted)]
+        [@createRole
+            mode=segmentListMode
+            id=roleId
+            trustedServices=["ec2.amazonaws.com" ]
+            policies=
+                [
+                    getPolicyDocument(
+                        getIPAddressUpdateStatement() +
+                            getSubnetReadStatement() +
+                            getRouteAllStatement() +
+                            getInstanceUpdateStatement() +
+                            getS3ListStatement(codeBucket) +
+                            getS3ReadStatement(codeBucket),
+                        formatName(tier, natComponent))
+                ]
+        /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("eip", true)]
+        [#list zones as zone]
+            [#if natPerAZ || zone?is_first]
+                [#assign eipId = formatComponentEIPId(tier, natComponent, zone)]
+                [#if isPartOfCurrentDeploymentUnit(eipId)]
+                    [@createEIP
+                        mode=segmentListMode
+                        id=eipId
+                    /]
+                [/#if]
+            [/#if]
+        [/#list]
+    [/#if]
+
+    [#if deploymentSubsetRequired("nat", true)]
+        [#if !natHosted]
+            [#assign instanceProfileId = formatEC2InstanceProfileId(tier, natComponent)]
+    
+            [@cfTemplate
+                mode=segmentListMode
+                id=instanceProfileId
+                type="AWS::IAM::InstanceProfile"
+                properties=
+                    {
+                        "Path" : "/",
+                        "Roles" : [ getReference(roleId) ]
+                    }
+                outputs={}
+            /]
+    
+            [@createSecurityGroup
+                mode=segmentListMode
+                tier=tier
+                component=natComponent
+                id=allToNATSecurityGroupId
+                name=formatName(productName, segmentName, tier, natComponent)
+                description="Security Group for outbound traffic to the NAT"
+                ingressRules=
+                    [
+                        {
+                            "Port" : "all",
+                            "CIDR" : [segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask]
+                        }
+                    ]
+            /]
+        [/#if]
+        [#list zones as zone]
+            [#if natPerAZ || zone?is_first]
+                [#assign eipId = formatComponentEIPId(tier, natComponent, zone)]
+                [#if natHosted]
+                    [#assign natGatewayId = formatNATGatewayId(tier, zone)]
+                    [@createNATGateway
+                        mode=segmentListMode
+                        id=natGatewayId
+                        subnetId=formatSubnetId(tier, zone)
+                        eipId=eipId
+                    /]
+                    [#assign updatedRouteTables = []]
+                    [#list tiers as tier]
+                        [#assign routeTable = routeTables[tier.RouteTable]]
+                        [#if routeTable.Private!false]
+                            [#assign routeTableId = formatRouteTableId(routeTable,natPerAZ?string(zone.Id,""))]
+                            [#if !updatedRouteTables?seq_contains(routeTableId)]
+                                [#assign updatedRouteTables += [routeTableId]]
+                                [@createRoute
+                                    mode=segmentListMode
+                                    id=formatRouteId(routeTableId, "natgateway")
+                                    routeTableId=routeTableId
+                                    route=
+                                        {
+                                            "Type" : "nat",
+                                            "CIDR" : "0.0.0.0/0",
+                                            "NatId" : natGatewayId
+                                        }
+                                /]
+                            [/#if]
+                        [/#if]
+                    [/#list]
+                [#else]
+                    [#assign asgId = formatEC2AutoScaleGroupId(tier, natComponent, zone)]
+                    [#assign launchConfigId = formatEC2LaunchConfigId(tier, natComponent, zone)]
+    
+                    [#assign natCommands =
+                        {
+                            "01ExecuteRouteUpdateScript" : {
+                                "command" : "/opt/codeontap/bootstrap/nat.sh",
+                                "ignoreErrors" : "false"
+                            },
+                            "02ExecuteAllocateEIPScript" : {
+                                "command" : "/opt/codeontap/bootstrap/eip.sh",
+                                "env" : { 
+                                    "EIP_ALLOCID" :
+                                        getReference(
+                                            eipId,
+                                            ALLOCATION_ATTRIBUTE_TYPE
+                                        )
+                                },
+                                "ignoreErrors" : "false"
+                            }
+                        }
+                    ]
+    
+                    [@cfTemplate
+                        mode=segmentListMode
+                        id=asgId
+                        type="AWS::AutoScaling::AutoScalingGroup"
+                        dependencies=getLocalReferences(formatSubnetId(tier, zone))
+                        metadata=
+                            {
+                                "AWS::CloudFormation::Init": {
+                                    "configSets" : {
+                                        "nat" : ["dirs", "bootstrap", "nat"]
+                                    },
+                                    "dirs": {
+                                        "commands": {
+                                            "01Directories" : {
+                                                "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
+                                                "ignoreErrors" : "false"
+                                            }
+                                        }
+                                    },
+                                    "bootstrap": {
+                                        "packages" : {
+                                            "yum" : {
+                                                "aws-cli" : []
+                                            }
+                                        },  
+                                        "files" : {
+                                            "/etc/codeontap/facts.sh" : {
+                                                "content" : { 
+                                                    "Fn::Join" : [
+                                                        "", 
+                                                        [
+                                                            "#!/bin/bash\\n",
+                                                            "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
+                                                            "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
+                                                            "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
+                                                            "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
+                                                            "echo \\\"cot:account="       + accountId              + "\\\"\\n",
+                                                            "echo \\\"cot:product="       + productId              + "\\\"\\n",
+                                                            "echo \\\"cot:region="        + regionId               + "\\\"\\n",
+                                                            "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
+                                                            "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
+                                                            "echo \\\"cot:tier="          + tier.Id            + "\\\"\\n",
+                                                            "echo \\\"cot:component="     + "nat"                  + "\\\"\\n",
+                                                            "echo \\\"cot:zone="          + zone.Id                + "\\\"\\n",
+                                                            "echo \\\"cot:role="          + "nat"                  + "\\\"\\n",
+                                                            "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
+                                                            "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
+                                                            "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
+                                                            "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
+                                                        ]
+                                                    ]
+                                                },
+                                                "mode" : "000755"
+                                            },
+                                            "/opt/codeontap/bootstrap/fetch.sh" : {
+                                                "content" : { 
+                                                    "Fn::Join" : [
+                                                        "", 
+                                                        [
+                                                            "#!/bin/bash -ex\\n",
+                                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
+                                                            "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
+                                                            "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
+                                                            "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
+                                                        ]
+                                                    ]
+                                                },
+                                                "mode" : "000755"
+                                            }
+                                        },
+                                        "commands": {
+                                            "01Fetch" : {
+                                                "command" : "/opt/codeontap/bootstrap/fetch.sh",
+                                                "ignoreErrors" : "false"
+                                            },
+                                            "02Initialise" : {
+                                                "command" : "/opt/codeontap/bootstrap/init.sh",
+                                                "ignoreErrors" : "false"
+                                            }
+                                        }
+                                    },
+                                    "nat": {
+                                        "commands": natCommands
+                                    }
+                                }
+                            }
+                        properties=
+                            {
+                                "Cooldown" : "30",
+                                "LaunchConfigurationName": getReference(launchConfigId),
+                                "MinSize": "1",
+                                "MaxSize": "1",
+                                "VPCZoneIdentifier": [ getReference(formatSubnetId(tier, zone)) ]
+                            }
+                        tags=
+                            getCfTemplateCoreTags(
+                                formatComponentFullName(tier, netComponent, zone),
+                                tier,
+                                netComponent,
+                                zone,
+                                true)
+                    /]
+                
+                    [#assign processorProfile = getProcessor(tier, natComponent, "NAT")]
+                    [@cfTemplate
+                        mode=segmentListMode
+                        id=launchConfigId
+                        type="AWS::AutoScaling::LaunchConfiguration"
+                        properties=
+                            {
+                                "KeyName": productName + sshPerSegment?string("-" + segmentName,""),
+                                "ImageId": regionObject.AMIs.Centos.NAT,
+                                "InstanceType": processorProfile.Processor,
+                                "SecurityGroups" : (sshEnabled && !sshStandalone)?then(
+                                                        [
+                                                            getReference(sshToProxySecurityGroupId),
+                                                            getReference(allToNATSecurityGroupId)
+                                                        ],
+                                                        [
+                                                            getReference(allToNATSecurityGroupId)
+                                                        ]
+                                                    ),
+                                "IamInstanceProfile" : getReference(instanceProfileId),
+                                "AssociatePublicIpAddress": true,
+                                "UserData": {
+                                    "Fn::Base64": { 
+                                        "Fn::Join": [ 
+                                            "", 
+                                            [
+                                                "#!/bin/bash -ex\\n",
+                                                "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
+                                                "yum install -y aws-cfn-bootstrap\\n",
+                                                "# Remainder of configuration via metadata\\n",
+                                                "/opt/aws/bin/cfn-init -v",
+                                                " --stack ", { "Ref" : "AWS::StackName" },
+                                                " --resource " + asgId,
+                                                " --region " + regionId + " --configsets nat\\n"
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        outputs={}
+                    /]
+                [/#if]
+            [/#if]
+        [/#list]
+    [/#if]
+[/#if]
+
+
 

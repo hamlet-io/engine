@@ -2,22 +2,25 @@
 
 [#-- Resources --]
 
+[#assign EIP_RESOURCE_TYPE = "eip" ]
+[#assign EIP_ASSOCIATION_RESOURCE_TYPE = "eipAssoc" ]
+
 [#function formatEIPId ids...]
     [#return formatResourceId(
-                "eip",
+                EIP_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentEIPId resourceId extensions...]
     [#return formatDependentResourceId(
-                "eip",
+                EIP_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatComponentEIPId tier component extensions...]
     [#return formatComponentResourceId(
-                "eip",
+                EIP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -25,7 +28,7 @@
 
 [#function formatComponentEIPAssociationId tier component extensions...]
     [#return formatComponentResourceId(
-                "eipAssoc",
+                EIP_ASSOCIATION_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]

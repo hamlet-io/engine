@@ -2,172 +2,102 @@
 [#if componentType == "alb"]
     [#assign alb = component.ALB]
 
-    [#assign albId = formatALBId(tier, component)]
-    [#assign albFullName = componentFullName]
-    [#assign albShortFullName = componentShortFullName]
+    [#list getComponentOccurrences(component, deploymentUnit) as occurrence]
 
-    [#assign albSecurityGroupId = formatALBSecurityGroupId(tier, component)]
-    [@createComponentSecurityGroup solutionListMode tier component /]
-    [#list alb.PortMappings as mapping]
-        [#assign source = ports[portMappings[mapping].Source]]
-        [#assign destination = ports[portMappings[mapping].Destination]]
-        [@createTargetGroup solutionListMode tier component source destination "default" /]
-    [/#list]
+        [#assign albId = formatALBId(tier, component, occurrence)]
+    
+        [#assign albSecurityGroupId = formatALBSecurityGroupId(tier, component, occurrence)]
+        [@createComponentSecurityGroup
+            mode=solutionListMode
+            tier=tier
+            component=component
+            extensions=occurrence
+        /]
+        [#list occurrence.PortMappings as mapping]
+            [#assign sourceMapping =
+                        mapping?is_hash?then(
+                            mapping.Mapping,
+                            mapping)]
+            [#assign source = portMappings[sourceMapping].Source]
+            [#assign sourcePort = ports[source] ]                    
+            [#assign destinationPort = ports[portMappings[mapping].Destination]]
+            
+            [#assign albTargetGroupId =
+                        formatALBTargetGroupId(
+                            tier,
+                            component,
+                            sourcePort,
+                            "default",
+                            occurrence)]
+            [@createTargetGroup
+                mode=solutionListMode
+                id=albTargetGroupId
+                name="default"
+                tier=tier
+                component=component
+                source=sourcePort
+                destination=destinationPort
+                extensions=occurrence
+            /]
+                    
+            [#assign sourceIPAddressGroups =
+                        mapping?is_hash?then(
+                            mapping.IPAddressGroups!occurrence.IPAddressGroups,
+                            occurrence.IPAddressGroups)]
+                            
+            [#assign albListenerSecurityGroupIngressId =
+                        formatALBListenerSecurityGroupIngressId(
+                            albSecurityGroupId,
+                            sourcePort)]
 
-    [#switch solutionListMode]
-        [#case "definition"]
-            [#list alb.PortMappings as mapping]
-                
-                [#assign sourceMapping =
-                            mapping?is_hash?then(
-                                mapping.Mapping,
-                                mapping)]
-                [#assign source = portMappings[sourceMapping].Source]
-                [#assign sourcePort = ports[source]]
-                [#assign sourceIPAddressGroups =
-                            mapping?is_hash?then(
-                                mapping.IPAddressGroups!alb.IPAddressGroups![],
-                                alb.IPAddressGroups![])]
-                [#assign albListenerId =
-                            formatALBListenerId(
-                                tier,
-                                component,
-                                sourcePort)]
-                [#assign albListenerSecurityGroupIngressId =
-                            formatALBListenerSecurityGroupIngressId(
-                                tier,
-                                component,
-                                sourcePort)]
-                [#assign albTargetGroupId =
-                            formatALBTargetGroupId(
-                                tier,
-                                component,
-                                sourcePort,
-                                "default")]
-                [@createSecurityGroupIngress
-                    solutionListMode,
-                    albListenerSecurityGroupIngressId,
-                    source,
+            [#assign cidr=
                     getUsageCIDRs(
                         source,
-                        sourceIPAddressGroups),
-                    albSecurityGroupId
-                /]
-                [@checkIfResourcesCreated /]
-                "${albListenerId}" : {
-                    "Type" : "AWS::ElasticLoadBalancingV2::Listener",
-                    "Properties" : {
-                        [#if (sourcePort.Certificate)?has_content]
-                            "Certificates" : [
-                                {
-                                    [#assign certificateFound = false]
-                                    "CertificateArn" :
-                                        [#if (alb.DNS[mapping])??]
-                                            [#assign certificateLink = alb.DNS[mapping]]
-                                            [#assign mappingCertificateId = formatComponentCertificateId(
-                                                                                certificateLink.Tier,
-                                                                                certificateLink.Component)]
-                                            [#if getKey(mappingCertificateId)?has_content]
-                                                "${getKeyByRegion(region, mappingCertificateId)}"
-                                                [#assign certificateFound = true]
-                                            [/#if]
-                                        [/#if]
-                                        [#if !certificateFound]
-                                            [#assign acmCertificateId = formatCertificateId(
-                                                                            certificateId)]
-                                            [#if getKeyByRegion(region, acmCertificateId)?has_content]
-                                                "${getKeyByRegion(region, acmCertificateId)}"
-                                            [#else]
-                                                {
-                                                    "Fn::Join" : [
-                                                        "",
-                                                        [
-                                                            "arn:aws:iam::",
-                                                            {"Ref" : "AWS::AccountId"},
-                                                            ":server-certificate/ssl/${certificateId}/${certificateId}-ssl"
-                                                        ]
-                                                    ]
-                                                }
-                                            [/#if]
-                                        [/#if]
-                                }
-                            ],
-                            "SslPolicy" : "ELBSecurityPolicy-TLS-1-2-2017-01",
-                        [/#if]
-                        "DefaultActions" : [
-                            {
-                              "TargetGroupArn" : { "Ref" : "${albTargetGroupId}" },
-                              "Type" : "forward"
-                            }
-                        ],
-                        "LoadBalancerArn" : { "Ref" : "${albId}" },
-                        "Port" : ${sourcePort.Port?c},
-                        "Protocol" : "${sourcePort.Protocol}"
-                    }
-                }
-                [@resourcesCreated /]
-            [/#list]
-
-            [@checkIfResourcesCreated /]
-            "${albId}" : {
-                "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
-                "Properties" : {
-                    [#if (alb.Logs)?? && alb.Logs]
-                        "LoadBalancerAttributes" : [
-                            {
-                                "Key" : "access_logs.s3.enabled",
-                                "Value" : true
-                            },
-                            {
-                                "Key" : "access_logs.s3.bucket",
-                                "Value" : "${operationsBucket}"
-                            },
-                            {
-                                "Key" : "access_logs.s3.prefix",
-                                "Value" : ""
-                            }
-                        ],
-                    [/#if]
-                    "Subnets" : [
-                        [#list zones as zone]
-                            "${getKey(formatSubnetId(
-                                        tier,
-                                        zone))}"
-                            [#sep],[/#sep]
-                        [/#list]
-                    ],
-                    "Scheme" : "${(tier.RouteTable == "external")?string("internet-facing","internal")}",
-                    "SecurityGroups":[ {"Ref" : "${albSecurityGroupId}"} ],
-                    "Name" : "${albShortFullName}",
-                    "Tags" : [
-                        { "Key" : "cot:request", "Value" : "${requestReference}" },
-                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                        { "Key" : "cot:account", "Value" : "${accountId}" },
-                        { "Key" : "cot:product", "Value" : "${productId}" },
-                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                        { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tierId}" },
-                        { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${albFullName}" }
-                    ]
-                }
-            }
-            [@resourcesCreated /]
-            [#break]
-
-        [#case "outputs"]
-            [@output albId /]
-            [@outputLBDns albId /]
-            [#list alb.PortMappings as mapping]
-                [#assign source = ports[portMappings[mapping].Source]]
-                [#assign albListenerId = formatALBListenerId(
-                                                    tier,
-                                                    component,
-                                                    source)]
-                [@output albListenerId /]
-            [/#list]
-            [#break]
-    [/#switch]
+                        sourceIPAddressGroups) ]
+            [#-- Internal ILBs may not have explicit IP Address Groups --]
+            [#assign cidr =
+                cidr?has_content?then(
+                    cidr,
+                    (tier.RouteTable == "external")?then(
+                        [],
+                        segmentObject.CIDR.Address + "/" +segmentObject.CIDR.Mask
+                    )) ]
+                        
+            [@createSecurityGroupIngress
+                mode=solutionListMode
+                id=albListenerSecurityGroupIngressId
+                port=source
+                cidr=cidr
+                groupId=albSecurityGroupId
+            /]
+                    
+            [#assign albListenerId =
+                        formatALBListenerId(
+                            tier,
+                            component,
+                            sourcePort,
+                            occurrence)]
+                            
+            [@createALBListener
+                mode=solutionListMode
+                id=albListenerId
+                port=sourcePort
+                albId=albId
+                defaultTargetGroupId=albTargetGroupId
+                certificateLink=(occurrence.DNS[sourceMapping])!{}
+            /]
+        [/#list]
+    
+        [@createALB
+            mode=solutionListMode
+            id=albId
+            name=formatComponentFullName(tier, component, occurrence) 
+            shortName=formatComponentShortFullName(tier, component, occurrence)
+            tier=tier
+            component=component
+            securityGroups=[getReference(albSecurityGroupId)]
+            logs=occurrence.Logs
+            bucket=operationsBucket
+        /]
+    [/#list]
 [/#if]

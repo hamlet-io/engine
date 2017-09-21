@@ -1,49 +1,85 @@
 [#-- EC2 --]
 
-[#macro autoScaleGroupReadStatement ]
-    [@policyStatement
+[#function getAutoScaleGroupReadStatement ]
+    [#return
         [
-            "autoscaling:DescribeAutoScalingInstances",
-            "ec2:DescribeInstances"
+            getPolicyStatement(
+                [
+                    "autoscaling:DescribeAutoScalingInstances",
+                    "ec2:DescribeInstances"
+                ])
         ]
-    /]
+    ]
+[/#function]
+
+[#macro autoScaleGroupReadStatement ]
+    [@policyStatements getAutoScaleGroupReadStatement() /]
 [/#macro]
+
+[#function getIPAddressUpdateStatement ]
+    [#return
+        [
+            getPolicyStatement(
+                [
+                    "ec2:DescribeAddresses",
+                    "ec2:AssociateAddress"
+                ])
+        ]
+    ]
+[/#function]
 
 [#macro IPAddressUpdateStatement ]
-    [@policyStatement
-        [
-            "ec2:DescribeAddresses",
-            "ec2:AssociateAddress"
-        ]
-    /]
+    [@policyStatements getIPAddressUpdateStatement() /]
 [/#macro]
+
+[#function getRouteAllStatement ]
+    [#return
+        [
+            getPolicyStatement(
+                [
+                    "ec2:DescribeRouteTables",
+                    "ec2:CreateRoute",
+                    "ec2:ReplaceRoute"
+                ])
+        ]
+    ]
+[/#function]
 
 [#macro routeAllStatement ]
-    [@policyStatement
-        [
-            "ec2:DescribeRouteTables",
-            "ec2:CreateRoute",
-            "ec2:ReplaceRoute"
-        ]
-    /]
+    [@policyStatements getRouteAllStatement() /]
 [/#macro]
+
+[#function getSubnetReadStatement ]
+    [#return
+        [
+            getPolicyStatement(
+                [
+                    "ec2:DescribeSubnets",
+                    "ec2:DescribeRouteTables",
+                    "ec2:CreateRoute",
+                    "ec2:ReplaceRoute"
+                ])
+        ]
+    ]
+[/#function]
 
 [#macro subnetReadStatement ]
-    [@policyStatement
-        [
-            "ec2:DescribeSubnets",
-            "ec2:DescribeRouteTables",
-            "ec2:CreateRoute",
-            "ec2:ReplaceRoute"
-        ]
-    /]
+    [@policyStatements getSubnetReadStatement() /]
 [/#macro]
 
-[#macro instanceUpdateStatement ]
-    [@policyStatement
+[#function getInstanceUpdateStatement ]
+    [#return
         [
-            "ec2:DescribeInstances",
-            "ec2:ModifyInstanceAttribute"
+            getPolicyStatement(
+                [
+                    "ec2:DescribeInstances",
+                    "ec2:ModifyInstanceAttribute"
+                ])
         ]
-    /]
+    ]
+[/#function]
+
+[#macro instanceUpdateStatement ]
+    [@policyStatements getInstanceUpdateStatement() /]
 [/#macro]
+

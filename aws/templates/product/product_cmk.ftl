@@ -1,53 +1,32 @@
 [#-- KMS CMK --]
 [#if deploymentUnit?contains("cmk")]
-    [@checkIfResourcesCreated /]
-    [#switch productListMode]
-        [#case "definition"]
-            "cmk" : {
-                "Type" : "AWS::KMS::Key",
-                "Properties" : {
-                    "Description" : "${productName}",
-                    "Enabled" : true,
-                    "EnableKeyRotation" : ${(rotateKeys)?string("true","false")},
-                    "KeyPolicy" : {
-                        "Version": "2012-10-17",
-                        "Statement": [
-                            {
-                                "Effect": "Allow",
-                                "Principal": {
-                                    "AWS": {
-                                        "Fn::Join": [
-                                            "",
-                                            [
-                                                "arn:aws:iam::",
-                                                { "Ref" : "AWS::AccountId" },
-                                                ":root"
-                                            ]
-                                        ]
-                                    }
-                                },
-                                "Action": [ "kms:*" ],
-                                "Resource": "*"
-                            }
-                        ]
-                    }
-                }
-            },
-            "${formatId("alias", "cmk")}" : {
-                "Type" : "AWS::KMS::Alias",
-                "Properties" : {
-                    "AliasName" : "alias/${productName}",
-                    "TargetKeyId" : { "Fn::GetAtt" : ["cmk", "Arn"] }
-                }
-            }
-            [#break]
-        [#case "outputs"]
-            "${formatId("cmk", "product", "cmk")}" : {
-                "Value" : { "Ref" : "cmk" }
-            }
-            [#break]
+    [#-- TODO: Get rid of inconsistent id usage --]
+    [#assign cmkId = formatProductCMKTemplateId()]
+    [#assign cmkAliasId = formatProductCMKAliasId(cmkId)]
 
-    [/#switch]
-    [@resourcesCreated /]
+    [@createCMK
+        mode=productListMode
+        id=cmkId
+        description=productName
+        statements=
+            [
+                getPolicyStatement(
+                    "kms:*",
+                    "*",
+                    { 
+                        "AWS": formatAccountPrincipalArn()
+                    }
+                )
+            ]
+        outputId=formatProductCMKId()
+    /]
+    
+    [@createCMKAlias
+        mode=productListMode
+        id=cmkAliasId
+        name="alias/" + productName
+        cmkId=cmkId
+    /]
+
 [/#if]
 

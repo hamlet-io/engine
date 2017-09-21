@@ -1,93 +1,84 @@
 [#-- CloudWatch --]
 
+[#assign LOG_GROUP_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : { 
+            "Attribute" : "Arn"
+        }
+    }
+]
+[#assign outputMappings +=
+    {
+        LOG_GROUP_RESOURCE_TYPE : LOG_GROUP_OUTPUT_MAPPINGS
+    }
+]
+
 [#macro createLogGroup mode id name retention=0]
-    [#switch mode]
-        [#case "definition"]
-            [@checkIfResourcesCreated /]
-            "${id}" : {
-                "Type" : "AWS::Logs::LogGroup",
-                "Properties" : {
-                    "LogGroupName" : "${name}"
-                    [#if retention > 0]
-                        ,"RetentionInDays" : ${retention}
-                    [#else]
-                        [#if operationsExpiration?is_number]
-                            ,"RetentionInDays" : ${operationsExpiration}
-                        [/#if]
-                    [/#if]
-                }
-            }
-            [@resourcesCreated /]
-            [#break]
-
-        [#case "outputs"]
-            [@output id /]
-            [@outputArn id /]
-            [#break]
-
-    [/#switch]
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::Logs::LogGroup"
+        properties=
+            {
+                "LogGroupName" : name
+            } +
+            (retention > 0)?then(
+                {
+                    "RetentionInDays" : retention
+                },
+                (operationsExpiration?is_number)?then(
+                    {
+                        "RetentionInDays" : operationsExpiration
+                    },
+                    {}
+                )
+            )
+        outputs=LOG_GROUP_OUTPUT_MAPPINGS
+    /]
 [/#macro]
 
-[#macro createLogMetric mode id name logGroup filter namespace value dependencies]
-    [#switch mode]
-        [#case "definition"]
-            [@checkIfResourcesCreated /]
-            "${id}" : {
-                "Type" : "AWS::Logs::MetricFilter",
-                "Properties" : {
-                    "FilterPattern" : "${filter}",
-                    "LogGroupName" : [@toJSON logGroup /],
-                    "MetricTransformations": [
-                        {
-                            "MetricName": "${name}",
-                            "MetricValue": "${value}",
-                            "MetricNamespace": "${namespace}"
-                        }
-                    ]
-                }
-                [#if dependencies?has_content]
-                    ,"DependsOn" : [
-                        [#list dependencies as dependency]
-                            "${dependency}"
-                            [#sep],[/#sep]
-                        [/#list]
-                    ]
-                [/#if]
+[#macro createLogMetric mode id name logGroup filter namespace value dependencies=""]
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::Logs::MetricFilter"
+        properties=
+            {
+                "FilterPattern" : filter,
+                "LogGroupName" : logGroup,
+                "MetricTransformations": [
+                    {
+                        "MetricName": name,
+                        "MetricValue": value,
+                        "MetricNamespace": namespace
+                    }
+                ]
             }
-            [@resourcesCreated /]
-            [#break]
-
-        [#case "outputs"]
-            [@output id /]
-            [#break]
-
-    [/#switch]
+        dependencies=dependencies
+    /]
 [/#macro]
 
 [#macro createDashboard mode id name body ]
-    [#switch mode]
-        [#case "definition"]
-            [@checkIfResourcesCreated /]
-            "${id}" : {
-                "Type" : "AWS::CloudWatch::Dashboard",
-                "Properties" : {
-                    "DashboardName" : "${name}",
-                    "DashboardBody" : "[@toJSON body true /]"
-                }
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::CloudWatch::Dashboard"
+        properties=
+            {
+                "DashboardName" : name,
+                "DashboardBody" : getJSON(body)?json_string
             }
-            [@resourcesCreated /]
-            [#break]
-
-        [#case "outputs"]
-            [@output id /]
-            [#break]
-
-    [/#switch]
+    /]
 [/#macro]
 
 [#macro createCountAlarm mode id name
             actions
-            metric namespace dimensions=[]
+            metric
+            namespace
+            dimensions=[]
             description=""
             threshold=1
             statistic="Sum"
@@ -97,66 +88,39 @@
             missingData="notBreaching"
             reportOK=false
             dependencies=""]
-    [#switch mode]
-        [#case "definition"]
-            [@checkIfResourcesCreated /]
-            "${id}" : {
-                "Type" : "AWS::CloudWatch::Alarm",
-                "Properties" : {
-                    "ActionsEnabled" : true,
-                    "AlarmActions" : [
-                        [#list actions as action]
-                            [@toJSON action /]
-                            [#sep],[/#sep]
-                        [/#list]
-                    ],
-                    "AlarmDescription" : "${description?has_content?then(description,name)}",
-                    "AlarmName" : "${name}",
-                    "ComparisonOperator" : "${operator}",
-                    [#if dimensions?has_content]
-                        "Dimensions" : [
-                            [#list dimensions as dimension]
-                                {
-                                    "Name" : "${dimension.Name}",
-                                    "Value" : [@toJSON dimension.Value /]
-                                }
-                                [#sep],[/#sep]
-                            [/#list]
-                        ],
-                    [/#if]
-                    "EvaluationPeriods" : ${evaluationPeriods},
-                    "MetricName" : "${metric}",
-                    "Namespace" : "${namespace}",
-                    [#if reportOK]
-                        "OKActions" : [
-                            [#list actions as action]
-                                "${action}"
-                                [#sep],[/#sep]
-                            [/#list]
-                        ]
-                    [/#if]
-                    "Period" : ${period},
-                    "Statistic" : "${statistic}",
-                    "Threshold" : ${threshold},
-                    "TreatMissingData" : "${missingData}",
-                    "Unit" : "Count"
-                }
-                [#if dependencies?has_content]
-                    ,"DependsOn" : [
-                        [#list dependencies as dependency]
-                            "${dependency}"
-                            [#sep],[/#sep]
-                        [/#list]
-                    ]
-                [/#if]
-            }
-            [@resourcesCreated /]
-            [#break]
-
-        [#case "outputs"]
-            [@output id /]
-            [#break]
-
-    [/#switch]
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::CloudWatch::Alarm"
+        properties=
+            {
+                "ActionsEnabled" : true,
+                "AlarmActions" : actions,
+                "AlarmDescription" : description?has_content?then(description,name),
+                "AlarmName" : name,
+                "ComparisonOperator" : operator,
+                "EvaluationPeriods" : evaluationPeriods,
+                "MetricName" : metric,
+                "Namespace" : namespace,
+                "Period" : period,
+                "Statistic" : statistic,
+                "Threshold" : threshold,
+                "TreatMissingData" : missingData,
+                "Unit" : "Count"
+            } +
+            dimensions?has_content?then(
+                {
+                    "Dimensions" : dimensions
+                },
+                {}
+            ) +
+            reportOK?then(
+                {
+                    "OKActions" : actions
+                },
+                {}
+            )
+        dependencies=dependencies
+    /]
 [/#macro]
 

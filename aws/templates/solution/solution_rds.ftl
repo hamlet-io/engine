@@ -1,8 +1,30 @@
 [#-- RDS --]
 [#if componentType == "rds"]
     [#assign db = component.RDS]
-    [#assign engine = db.Engine]
     
+    [#assign engine = db.Engine]
+    [#switch engine]
+        [#case "mysql"]
+            [#assign engineVersion =
+                db.EngineVersion?has_content?then(
+                    db.EngineVersion,
+                    "5.6"
+                )
+            ]
+            [#assign family = "mysql" + engineVersion]
+        [#break]
+
+        [#case "postgres"]
+            [#assign engineVersion =
+                db.EngineVersion?has_content?then(
+                    db.EngineVersion,
+                    "9.4"
+                )
+            ]
+            [#assign family = "postgres" + engineVersion]
+            [#break]
+    [/#switch]
+
     [#assign rdsId = formatRDSId(tier, component)]
     [#assign rdsFullName = componentFullName]
     [#assign rdsSubnetGroupId = formatRDSSubnetGroupId(tier, component)]
@@ -21,164 +43,121 @@
                                             rdsSecurityGroupId, 
                                             ports[db.Port].Port?c)]
 
+    [#assign processorProfile = getProcessor(tier, component, "RDS")]
+
     [@createDependentComponentSecurityGroup
-        solutionListMode
-        tier
-        component
-        rdsId
-        rdsFullName/]
+        mode=solutionListMode
+        tier=tier
+        component=component
+        resourceId=rdsId
+        resourceName=rdsFullName
+    /]
+        
+    [@createSecurityGroupIngress
+        mode=solutionListMode
+        id=rdsSecurityGroupIngressId
+        port=db.Port
+        cidr="0.0.0.0"
+        groupId=rdsSecurityGroupId
+    /]
     
-    [#switch solutionListMode]
-        [#case "definition"]
-            [#switch engine]
-                [#case "mysql"]
-                    [#if db.EngineVersion??]
-                        [#assign engineVersion = db.EngineVersion]
-                    [#else]
-                        [#assign engineVersion = "5.6"]
-                    [/#if]
-                    [#assign family = "mysql" + engineVersion]
-                [#break]
-    
-                [#case "postgres"]
-                    [#if db.EngineVersion??]
-                        [#assign engineVersion = db.EngineVersion]
-                    [#else]
-                        [#assign engineVersion = "9.4"]
-                    [/#if]
-                    [#assign family = "postgres" + engineVersion]
-                    [#break]
-            [/#switch]
-            [@checkIfResourcesCreated /]
-            "${rdsSecurityGroupIngressId}" : {
-                "Type" : "AWS::EC2::SecurityGroupIngress",
-                "Properties" : {
-                    "GroupId": {"Ref" : "${rdsSecurityGroupId}"},
-                    "IpProtocol": "${ports[db.Port].IPProtocol}",
-                    "FromPort": "${ports[db.Port].Port?c}",
-                    "ToPort": "${ports[db.Port].Port?c}",
-                    "CidrIp": "0.0.0.0/0"
-                }
-            },
-            "${rdsSubnetGroupId}" : {
-                "Type" : "AWS::RDS::DBSubnetGroup",
-                "Properties" : {
-                    "DBSubnetGroupDescription" : "${rdsFullName}",
-                    "SubnetIds" : [
-                        [#list zones as zone]
-                            "${getKey(formatSubnetId(tier, zone))}"
-                            [#if !(zones?last.Id == zone.Id)],[/#if]
-                        [/#list]
-                    ],
-                    "Tags" : [
-                        { "Key" : "cot:request", "Value" : "${requestReference}" },
-                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                        { "Key" : "cot:account", "Value" : "${accountId}" },
-                        { "Key" : "cot:product", "Value" : "${productId}" },
-                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                        { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tierId}" },
-                        { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${rdsFullName}" }
-                    ]
-                }
-            },
-            "${rdsParameterGroupId}" : {
-                "Type" : "AWS::RDS::DBParameterGroup",
-                "Properties" : {
-                    "Family" : "${family}",
-                    "Description" : "${rdsFullName}",
-                    "Parameters" : {
-                    },
-                    "Tags" : [
-                        { "Key" : "cot:request", "Value" : "${requestReference}" },
-                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                        { "Key" : "cot:account", "Value" : "${accountId}" },
-                        { "Key" : "cot:product", "Value" : "${productId}" },
-                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                        { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tierId}" },
-                        { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${rdsFullName}" }
-                    ]
-                }
-            },
-            "${rdsOptionGroupId}" : {
-                "Type" : "AWS::RDS::OptionGroup",
-                "Properties" : {
-                    "EngineName": "${engine}",
-                    "MajorEngineVersion": "${engineVersion}",
-                    "OptionGroupDescription" : "${rdsFullName}",
-                    "OptionConfigurations" : [
-                    ],
-                    "Tags" : [
-                        { "Key" : "cot:request", "Value" : "${requestReference}" },
-                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                        { "Key" : "cot:account", "Value" : "${accountId}" },
-                        { "Key" : "cot:product", "Value" : "${productId}" },
-                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                        { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tierId}" },
-                        { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${rdsFullName}" }
-                    ]
-                }
-            },
-            [#assign processorProfile = getProcessor(tier, component, "RDS")]
-            "${rdsId}":{
-                "Type":"AWS::RDS::DBInstance",
-                "Properties":{
-                    "Engine": "${engine}",
-                    "EngineVersion": "${engineVersion}",
-                    "DBInstanceClass" : "${processorProfile.Processor}",
-                    "AllocatedStorage": "${db.Size}",
-                    "StorageType" : "gp2",
-                    "Port" : "${ports[db.Port].Port?c}",
-                    "MasterUsername": "${rdsUsername}",
-                    "MasterUserPassword": "${rdsPassword}",
-                    "BackupRetentionPeriod" : "${db.Backup.RetentionPeriod}",
-                    "DBInstanceIdentifier": "${rdsFullName}",
-                    "DBName": "${productName}",
-                    "DBSubnetGroupName": { "Ref" : "${rdsSubnetGroupId}" },
-                    "DBParameterGroupName": { "Ref" : "${rdsParameterGroupId}" },
-                    "OptionGroupName": { "Ref" : "${rdsOptionGroupId}" },
-                    [#if multiAZ]
-                        "MultiAZ": true,
-                    [#else]
-                        "AvailabilityZone" : "${zones[0].AWSZone}",
-                    [/#if]
-                    "VPCSecurityGroups":[
-                        { "Ref" : "${rdsSecurityGroupId}" }
-                    ],
-                    "Tags" : [
-                        { "Key" : "cot:request", "Value" : "${requestReference}" },
-                        { "Key" : "cot:configuration", "Value" : "${configurationReference}" },
-                        { "Key" : "cot:tenant", "Value" : "${tenantId}" },
-                        { "Key" : "cot:account", "Value" : "${accountId}" },
-                        { "Key" : "cot:product", "Value" : "${productId}" },
-                        { "Key" : "cot:segment", "Value" : "${segmentId}" },
-                        { "Key" : "cot:environment", "Value" : "${environmentId}" },
-                        { "Key" : "cot:category", "Value" : "${categoryId}" },
-                        { "Key" : "cot:tier", "Value" : "${tierId}" },
-                        { "Key" : "cot:component", "Value" : "${componentId}" },
-                        { "Key" : "Name", "Value" : "${rdsFullName}" }
-                    ]
+    [@cfTemplate
+        mode=solutionListMode
+        id=rdsSubnetGroupId
+        type="AWS::RDS::DBSubnetGroup"
+        properties=
+            {
+                "DBSubnetGroupDescription" : rdsFullName,
+                "SubnetIds" : getSubnets(tier)
+            }
+        tags=
+            getCfTemplateCoreTags(
+                rdsFullName,
+                tier,
+                component)
+        outputs={}
+    /]
+
+    [@cfTemplate
+        mode=solutionListMode
+        id=rdsParameterGroupId
+        type="AWS::RDS::DBParameterGroup"
+        properties=
+            {
+                "Family" : family,
+                "Description" : rdsFullName,
+                "Parameters" : {
                 }
             }
-            [@resourcesCreated /]
-            [#break]
+        tags=
+            getCfTemplateCoreTags(
+                rdsFullName,
+                tier,
+                component)
+        outputs={}
+    /]
 
-        [#case "outputs"]
-            [@outputRDSDns rdsId /]
-            [@outputRDSPort rdsId /]
-            [@outputRDSDatabaseName rdsId productName /]
-            [#break]
+    [@cfTemplate
+        mode=solutionListMode
+        id=rdsOptionGroupId
+        type="AWS::RDS::OptionGroup"
+        properties=
+            {
+                "EngineName": engine,
+                "MajorEngineVersion": engineVersion,
+                "OptionGroupDescription" : rdsFullName,
+                "OptionConfigurations" : [
+                ]
+            }
+        tags=
+            getCfTemplateCoreTags(
+                rdsFullName,
+                tier,
+                component)
+        outputs={}
+    /]
 
-    [/#switch]
+    [@cfTemplate
+        mode=solutionListMode
+        id=rdsId
+        type="AWS::RDS::DBInstance"
+        properties=
+            {
+                "Engine": engine,
+                "EngineVersion": engineVersion,
+                "DBInstanceClass" : processorProfile.Processor,
+                "AllocatedStorage": db.Size,
+                "StorageType" : "gp2",
+                "Port" : ports[db.Port].Port,
+                "MasterUsername": rdsUsername,
+                "MasterUserPassword": rdsPassword,
+                "BackupRetentionPeriod" : db.Backup.RetentionPeriod,
+                "DBInstanceIdentifier": rdsFullName,
+                "DBName": productName,
+                "DBSubnetGroupName": getReference(rdsSubnetGroupId),
+                "DBParameterGroupName": getReference(rdsParameterGroupId),
+                "OptionGroupName": getReference(rdsOptionGroupId),
+                "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
+            } +
+            multiAZ?then(
+                {
+                    "MultiAZ": true
+                },
+                {
+                    "AvailabilityZone" : zones[0].AWSZone
+                }
+            )
+        tags=
+            getCfTemplateCoreTags(
+                rdsFullName,
+                tier,
+                component)
+        outputs=
+            RDS_OUTPUT_MAPPINGS +
+            {
+                DATABASENAME_ATTRIBUTE_TYPE : { 
+                    "Value" : productName
+                }
+            }
+    /]
 [/#if]

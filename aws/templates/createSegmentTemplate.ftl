@@ -49,11 +49,11 @@
 [#assign segmentDomainCertificateId = segmentDomainCertificateId?replace("-","X")]
 
 [#-- Bucket names - may already exist --]
-[#if operationsBucket == "unknown"]
-    [#assign operationsBucket = formatName(operationsBucketType, segmentDomainQualifier) + "." + segmentDomain]
+[#if ! operationsBucket?has_content]
+    [#assign operationsBucket = formatSegmentFullName(operationsBucketType, vpc?remove_beginning("vpc-"))]
 [/#if]
-[#if dataBucket == "unknown"]
-    [#assign dataBucket = formatName(dataBucketType, segmentDomainQualifier) + "." + segmentDomain]
+[#if ! dataBucket?has_content]
+    [#assign dataBucket = formatSegmentFullName(dataBucketType, vpc?remove_beginning("vpc-"))]
 [/#if]
 
 [#-- Segment --]
@@ -74,21 +74,29 @@
     [#assign applicationListMode="dashboard"]
     [#assign solutionListMode="dashboard"]
     [#include "componentList.ftl"]
+    [#assign allDeploymentUnits = false]
+[/#if]
+
+[#if deploymentUnit == "eip"]
+    [#-- Collect up all the eip subsets --]
+    [#assign allDeploymentUnits = true]
+    [#assign deploymentUnitSubset = "eip"]
+    [#assign ignoreDeploymentUnitSubsetInOutputs = true]
 [/#if]
 
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
-    [#include "templateMetadata.ftl" ],
+    [#include "templateMetadata.ftl"],
+    [#assign compositeLists=[segmentList]]
     "Resources" : {
-        [@noResourcesCreated /]
         [#assign segmentListMode="definition"]
-        [#include segmentList]
+        [#include "componentList.ftl"]
     },
-    "Outputs" : 
-    {
-        [@noResourcesCreated /]
+    
+    "Outputs" : {
         [#assign segmentListMode="outputs"]
-        [#include segmentList]
+        [#include "componentList.ftl"]
+        [@cfTemplateGlobalOutputs "outputs" "segment" /]
     }
 }
 

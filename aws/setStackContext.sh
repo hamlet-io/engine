@@ -4,30 +4,23 @@
 #
 # This script is designed to be sourced into other scripts
 
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${TYPE}") || \
-        ((-z "${DEPLOYMENT_UNIT}") && (! ("${TYPE}" =~ product ))) ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${TYPE}") ||
+    ((-z "${DEPLOYMENT_UNIT}") && (! ("${TYPE}" =~ product ))) ]] && fatalMandatory
 
 # Set up the context
 . ${GENERATION_DIR}/setContext.sh
 
 case $TYPE in
     account|product)
-        if [[ ! ("${TYPE}" =~ ${LOCATION} ) ]]; then
-            echo -e "\nCurrent directory doesn't match requested type \"${TYPE}\". Are we in the right place?" >&2
-            exit
-        fi
+        [[ ! ("${TYPE}" =~ ${LOCATION} ) ]] && \
+            fatalLocation "Current directory doesn't match requested type \"${TYPE}\"."
         ;;
     solution|segment|application)
-        if [[ ! ("segment" =~ ${LOCATION} ) ]]; then
-            echo -e "\nCurrent directory doesn't match requested type \"${TYPE}\". Are we in the right place?" >&2
-            exit
-        fi
+        [[ ! ("segment" =~ ${LOCATION} ) ]] && \
+            fatalLocation "Current directory doesn't match requested type \"${TYPE}\"."
         ;;
 esac
 
@@ -139,9 +132,7 @@ case $TYPE in
         ;;
 
     *)
-        echo -e "\n\"$TYPE\" is not one of the known stack types (account, product, segment, solution, application). Nothing to do." >&2
-        exit
-        exit
+        fatal "\"$TYPE\" is not one of the known stack types (account, product, segment, solution, application)"
         ;;
 esac
 

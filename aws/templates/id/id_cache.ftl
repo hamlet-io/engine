@@ -2,9 +2,11 @@
 
 [#-- Resources --]
 
+[#assign CACHE_RESOURCE_TYPE = "cache" ]
+
 [#function formatCacheId tier component extensions...]
     [#return formatComponentResourceId(
-                "cache",
+                CACHE_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -35,34 +37,3 @@
 [#function formatCachePortId resourceId]
     [#return formatPortAttributeId(resourceId)]
 [/#function]
-
-[#-- Outputs --]
-
-[#macro outputMemcachedDns resourceId]
-    [@outputAtt
-        formatCacheDnsId(resourceId)
-        resourceId
-        "ConfigurationEndpoint.Address" /]
-[/#macro]
-
-[#macro outputMemcachedPort resourceId]
-    [@outputAtt
-        formatCachePortId(resourceId)
-        resourceId
-        "ConfigurationEndpoint.Port" /]
-[/#macro]
-
-[#macro outputRedisDns resourceId]
-    [@outputAtt
-        formatCacheDnsId(resourceId)
-        resourceId
-        "RedisEndpoint.Address" /]
-[/#macro]
-
-[#macro outputRedisPort resourceId]
-    [@outputAtt
-        formatCachePortId(resourceId)
-        resourceId
-        "RedisEndpoint.Port" /]
-[/#macro]
-

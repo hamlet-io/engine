@@ -1,7 +1,8 @@
 #!/bin/bash
                                                                                         
-if [[ -n "${GENERATION_DEBUG}" ]]; then set ${GENERATION_DEBUG}; fi
+[[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+. ${GENERATION_DIR}/common.sh
 
 # Defaults
 CREDENTIAL_NAME_DEFAULT="root+aws"
@@ -72,12 +73,10 @@ while getopts ":a:e:hi:n:s:t:y:" opt; do
             export CREDENTIAL_TYPE="${OPTARG}"
             ;;
         \?)
-            echo -e "\nInvalid option: -${OPTARG}" >&2
-            exit
+            fatalOption
             ;;
         :)
-            echo -e "\nOption -${OPTARG} requires an argument" >&2
-            exit
+            fatalOptionArgument
             ;;
     esac
 done
@@ -93,17 +92,14 @@ export CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 
 # Ensure mandatory arguments have been provided
-if [[ (-z "${TENANT}") || (-z "${CREDENTIAL_NAME}") || (-z "${CREDENTIAL_TYPE}") ]]; then
-    echo -e "\nInsufficient arguments" >&2
-    exit
-fi
+[[ (-z "${TENANT}") ||
+    (-z "${CREDENTIAL_NAME}") ||
+    (-z "${CREDENTIAL_TYPE}") ]] && fatalMandatory
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
-if [[ ! -f "${INTEGRATOR_PROFILE}" ]]; then
-    echo -e "\nWe don't appear to be in the root of the integrator tree. Are we in the right place?" >&2
-    exit
-fi
+[[ ! -f "${INTEGRATOR_PROFILE}" ]] && \
+    fatalLocation "We don't appear to be in the root of the integrator tree."
 
 # Manage the credentials
 ${GENERATION_DIR}/manageCredentialCrypto.sh -f "${CRYPTO_FILE_PATH}" -v

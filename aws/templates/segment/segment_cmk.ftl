@@ -1,57 +1,32 @@
-[#-- KMS CMK --]
-[#if deploymentUnit?contains("cmk")]
-    [@checkIfResourcesCreated /]
-    [#switch segmentListMode]
-        [#case "definition"]
-            "cmk" : {
-                "Type" : "AWS::KMS::Key",
-                "Properties" : {
-                    "Description" : "${formatName(productName,segmentName)}",
-                    "Enabled" : true,
-                    "EnableKeyRotation" : ${(rotateKeys)?string("true","false")},
-                    "KeyPolicy" : {
-                        "Version": "2012-10-17",
-                        "Statement": [ 
-                            {
-                                "Effect": "Allow",
-                                "Principal": { 
-                                    "AWS": { 
-                                        "Fn::Join": [
-                                            "", 
-                                            [
-                                                "arn:aws:iam::",
-                                                { "Ref" : "AWS::AccountId" },
-                                                ":root"
-                                            ]
-                                        ]
-                                    }
-                                },
-                                "Action": [ "kms:*" ],
-                                "Resource": "*"
-                            }
-                        ]
+[#-- KMS --]
+[#if (componentType == "cmk") &&
+        deploymentSubsetRequired("cmk", true)]
+    [#-- TODO: Get rid of inconsistent id usage --]
+    [#assign cmkId = formatSegmentCMKTemplateId()]
+    [#assign cmkAliasId = formatSegmentCMKAliasId(cmkId)]
+
+    [@createCMK
+        mode=segmentListMode
+        id=cmkId
+        description=formatName(productName,segmentName)
+        statements=
+            [
+                getPolicyStatement(
+                    "kms:*",
+                    "*",
+                    { 
+                        "AWS": formatAccountPrincipalArn()
                     }
-                }
-            },
-            "aliasXcmk" : {
-                "Type" : "AWS::KMS::Alias",
-                "Properties" : {
-                    "AliasName" : "${formatName("alias/"+productName, segmentName)}",
-                    "TargetKeyId" : { "Fn::GetAtt" : ["cmk", "Arn"] }
-                }
-            }
-            [#break]
-
-        [#case "outputs"]
-            "${formatId("cmk", "segment", "cmk")}" : {
-                "Value" : { "Ref" : "cmk" }
-            },
-            "${formatId("cmk", "segment", "cmk", "arn")}" : {
-                "Value" : { "Fn::GetAtt" : ["cmk", "Arn"] }
-            }
-            [#break]
-
-    [/#switch]
-    [@resourcesCreated /]
+                )
+            ]
+        outputId=formatSegmentCMKId()
+    /]
+    
+    [@createCMKAlias
+        mode=segmentListMode
+        id=cmkAliasId
+        name=formatName("alias/" + productName, segmentName)
+        cmkId=cmkId
+    /]
 [/#if]
 

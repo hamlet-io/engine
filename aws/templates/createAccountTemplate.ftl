@@ -50,5 +50,6 @@
         [@noResourcesCreated /]
         [#assign accountListMode="outputs"]
         [#include accountList]
+        [@cfTemplateGlobalOutputs "outputs" "account" /]
     }
 }

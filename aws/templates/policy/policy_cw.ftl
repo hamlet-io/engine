@@ -1,13 +1,21 @@
 [#-- Cloud Watch --]
 
-[#macro cloudWatchLogsProduceStatement ]
-    [@policyStatement
+[#function getCloudWatchLogsProduceStatement ]
+    [#return
         [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents",
-            "logs:DescribeLogGroups",
-            "logs:DescribeLogStreams"
+            getPolicyStatement(
+                [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "logs:DescribeLogGroups",
+                    "logs:DescribeLogStreams"
+                ])
         ]
-    /]
+    ]
+[/#function]
+
+[#macro cloudWatchLogsProduceStatement ]
+    [@policyStatements getCloudWatchLogsProduceStatement() /]
 [/#macro]
+

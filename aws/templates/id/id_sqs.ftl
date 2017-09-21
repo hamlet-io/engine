@@ -2,15 +2,17 @@
 
 [#-- Resources --]
 
+[#assign SQS_RESOURCE_TYPE = "sqs" ]
+
 [#function formatSQSId ids...]
     [#return formatResourceId(
-                "sqs",
+                SQS_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatComponentSQSId tier component extensions...]
     [#return formatComponentResourceId(
-                "sqs",
+                SQS_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]

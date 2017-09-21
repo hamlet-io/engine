@@ -2,9 +2,11 @@
 
 [#-- Resources --]
 
+[#assign ES_RESOURCE_TYPE = "es" ]
+
 [#function formatElasticSearchId tier component extensions...]
     [#return formatComponentResourceId(
-                "es",
+                ES_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -15,21 +17,3 @@
 [#function formatElasticSearchDnsId resourceId]
     [#return formatDnsAttributeId(resourceId)]
 [/#function]
-
-[#-- Outputs --]
-
-[#macro outputElasticSearchArn resourceId]
-    [@outputAtt
-        formatArnAttributeId(resourceId)
-        resourceId
-        "DomainArn" /]
-[/#macro]
-
-[#macro outputElasticSearchUrl resourceId]
-    [@outputAtt
-        formatDnsAttributeId(resourceId)
-        resourceId
-        "DomainEndpoint" /]
-[/#macro]
-
-

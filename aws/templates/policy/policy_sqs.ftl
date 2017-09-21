@@ -1,96 +1,108 @@
 [#-- SQS --]
 
-[#macro sqsPolicyHeader id]
-    [@policyHeader id "" "QueuePolicy" /]
-[/#macro]
-
-[#macro sqsPolicyFooter queueIds]
-                ]
-            },
-            "Queues" :
-                [#if queueIds?is_sequence]
-                    [
-                        [#list queueIds as queue]
-                            { "Ref" : "${getKey(
-                                            formatUrlAttributeId(
-                                                queue))}" }
-                            [#if queueIds?last != queue],[/#if]
-                        [/#list]
-                    ]
-                [#else]
-                    { "Ref" : "${getKey(
-                                    formatUrlAttributeId(
-                                        queueIds))}" }
-                [/#if]
-        }
-    }
-[/#macro]
+[#function getSqsStatement actions id principals="" conditions=""]
+    [#return
+        [
+            getPolicyStatement(
+                actions,
+                getArnReference(id),
+                principals,
+                conditions)
+        ]
+    ]
+[/#function]
 
 [#macro sqsStatement actions id principals="" conditions=""]
-    [@policyStatement 
-        actions
-        getKey(formatArnAttributeId(id))
-        "Allow"
-        principals
-        conditions
-    /]
+    [@policyStatements getSqsStatement(actions, id, principals, conditions) /]
 [/#macro]
+
+[#function getSqsAdminStatement id]
+    [#return
+        getSqsStatement(
+            "sqs:*",
+            id)]
+[/#function]
 
 [#macro sqsAdminStatement id]
-    [@sqsStatement "sqs:*" id /]
+    [@policyStatements getSqsAdminStatement(id) /]
 [/#macro]
+
+[#function getSqsAllStatement id]
+    [#return
+        getSqsStatement(
+            [
+                "sqs:SendMessage*",
+                "sqs:ReceiveMessage*",
+                "sqs:ChangeMessage*",
+                "sqs:DeleteMessage*",
+                "sqs:Get*",
+                "sqs:List*"
+            ],
+            id)]
+[/#function]
 
 [#macro sqsAllStatement id]
-    [@sqsStatement
-        [
-            "sqs:SendMessage*",
-            "sqs:ReceiveMessage*",
-            "sqs:ChangeMessage*",
-            "sqs:DeleteMessage*",
-            "sqs:Get*",
-            "sqs:List*"
-        ]
-        id
-    /]
+    [@policyStatements getSqsAllStatement(id) /]
 [/#macro]
+
+[#function getSqsProduceStatement id]
+    [#return
+        getSqsStatement(
+            [
+                "sqs:SendMessage*",
+                "sqs:Get*",
+                "sqs:List*"
+            ],
+            id)]
+[/#function]
 
 [#macro sqsProduceStatement id]
-    [@sqsStatement
-        [
-            "sqs:SendMessage*",
-            "sqs:Get*",
-            "sqs:List*"
-        ]
-        id
-    /]
+    [@policyStatements getSqsProduceStatement(id) /]
 [/#macro]
+
+[#function getSqsConsumeStatement id]
+    [#return
+        getSqsStatement(
+            [
+                "sqs:ReceiveMessage*",
+                "sqs:ChangeMessage*",
+                "sqs:DeleteMessage*",
+                "sqs:Get*",
+                "sqs:List*"
+            ],
+            id)]
+[/#function]
 
 [#macro sqsConsumeStatement id]
-    [@sqsStatement
-        [
-            "sqs:ReceiveMessage*",
-            "sqs:ChangeMessage*",
-            "sqs:DeleteMessage*",
-            "sqs:Get*",
-            "sqs:List*"
-        ]
-        id
-    /]
+    [@policyStatements getSqsConsumeStatement(id) /]
 [/#macro]
+
+[#function getSqsWriteStatement id]
+    [#return
+        getSqsStatement(
+            "sqs:SendMessage*",
+            id)]
+[/#function]
 
 [#macro sqsWriteStatement id]
-    [@sqsStatement "sqs:SendMessage*" id /]
+    [@policyStatements getSqsWriteStatement(id) /]
 [/#macro]
 
+[#function getSqsS3WriteStatement id]
+    [#return
+        getSqsStatement(
+            "sqs:SendMessage*",
+            id,
+            "*",
+            {
+                "ArnLike" : {
+                    "aws:sourceArn" : "arn:aws:s3:::*"
+                }
+            })]
+[/#function]
+
 [#macro sqsS3WriteStatement id]
-    [@sqsWriteStatement
-        id
-        "*"
-        {
-            "ArnLike" : {
-                "aws:sourceArn" : "arn:aws:s3:::*"
-            }
-        }
-    /]
+    [@policyStatements getSqsS3WriteStatement(id) /]
 [/#macro]
+
 
