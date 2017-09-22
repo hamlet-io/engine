@@ -209,13 +209,13 @@ if [[ -n "${PRODUCT}" ]]; then
                 "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/unit*.ref \
                 "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/slice*.ref
             
-            addToArrayHead "APPSETTINGS_ARRAY" \
-                "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/appsettings*.json \
-                "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/appsettings*.json
+            addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/appsettings*.json
+            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] && \
+                addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/appsettings*.json
 
-            addToArrayHead "CREDENTIALS_ARRAY" \
-                "${SEGMENT_CREDENTIALS_DIR}/${DEPLOYMENT_UNIT}"/credentials*.json \
-                "${SEGMENT_CREDENTIALS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/credentials*.json
+            addToArrayHead "CREDENTIALS_ARRAY" "${SEGMENT_CREDENTIALS_DIR}/${DEPLOYMENT_UNIT}"/credentials*.json
+            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] && \
+                addToArrayHead "CREDENTIALS_ARRAY"  "${SEGMENT_CREDENTIALS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/credentials*.json
 
             fileContentsInEnv "BUILD_REFERENCE" \
                 "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.json \
