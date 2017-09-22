@@ -95,6 +95,9 @@
             [#assign containerId = formatContainerId(
                                     lambdaInstance,
                                     {"Id" : lambda.Container })]
+            [#assign containerName= ""]
+            [#assign containerListPolicyId = ""]
+            [#assign containerListPolicyName = ""]
 
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(containerListRole)]
                 [#switch applicationListMode]
