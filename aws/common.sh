@@ -109,12 +109,10 @@ function fileContents() {
 
 function fileContentsInEnv() {
     local ENV="${1}"; shift
-    local CONTENTS=
 
     for F in "$@"; do
         if [[ -f "${F}" ]]; then
-            CONTENTS="$(fileContents "${F}")"
-            eval "export ${ENV}=\"${CONTENTS}\""
+             declare -gx "${ENV}=$(fileContents "${F}")"
             break
         fi
     done
@@ -421,7 +419,7 @@ function checkGen3Dir() {
     local GEN3_ENV_NAME="${GEN3_PREFIX}${GEN3_ENV}"
     for DIR in "$@"; do
         if [[ -d "${DIR}" ]]; then
-            eval "export ${GEN3_ENV_NAME}=${DIR}"
+            declare -gx "${GEN3_ENV_NAME}=${DIR}"
             return 0
         fi
     done
