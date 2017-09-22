@@ -73,6 +73,16 @@
     [/#switch]
 [/#macro]
 
+[#macro environmentVariables variables=[] format="docker" mode=""]
+    [#list asArray(variables) as variable]
+        [@environmentVariable
+            name=variable.Name
+            value=variable.Value
+            format=format
+            mode = mode /]
+    [/#list]
+[/#macro]
+
 [#macro standardEnvironmentVariables format="docker" mode=""]
     [@environmentVariable "TEMPLATE_TIMESTAMP" "${.now?iso_utc}" format mode /]
     [#if !mode?has_content],[/#if]
@@ -110,15 +120,19 @@
     [/#if]
 [/#macro]
 
-[#macro containerBasicAttributes name image="" essential=true mode=""]
+[#macro containerBasicAttributes name image="" essential=true format="docker" mode="" ]
     [#switch mode]
         [#case "definition"]
         [#case ""]
-            "Name" : "${name}",
-            "Image" : "${getRegistryEndPoint("docker")}/${image?has_content?then(
-                            image,
-                            productName + "/" + buildDeploymentUnit + "-" + buildCommit)}",
-            "Essential" : ${essential?c},
+            [#switch format]
+                [#case "docker"]
+                    "Name" : "${name}",
+                    "Image" : "${getRegistryEndPoint("docker")}/${image?has_content?then(
+                                    image,
+                                    productName + "/" + buildDeploymentUnit + "-" + buildCommit)}",
+                    "Essential" : ${essential?c},
+                    [#break]
+            [/#switch]
             [#break]
     [/#switch]
 [/#macro]
@@ -215,6 +229,10 @@
                 [/#list]
                 [#break]
         [/#switch]
+    [#else]
+        [#-- Needed to ensure policy macro works in non-policy list modes --]
+        [#assign containerListPolicyId = ""]
+        [#assign containerListPolicyName = ""]
     [/#if]
 
     [#if !iamOnly]
