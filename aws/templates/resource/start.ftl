@@ -211,9 +211,17 @@
     [#return getReference(resourceId, ARN_ATTRIBUTE_TYPE) ]
 [/#function]
 
+[#macro createArnReference resourceId]
+    [@toJSON getArnReference(resourceId) /]
+[/#macro]
+
 [#function getUrlReference resourceId]
     [#return getReference(resourceId, URL_ATTRIBUTE_TYPE) ]
 [/#function]
+
+[#macro createUrlReference resourceId]
+    [@toJSON getUrlReference(resourceId) /]
+[/#macro]
 
 [#macro noResourcesCreated]
     [#assign resourceCount = 0]
