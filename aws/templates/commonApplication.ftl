@@ -73,11 +73,11 @@
     [/#switch]
 [/#macro]
 
-[#macro environmentVariables variables=[] format="docker" mode=""]
-    [#list asArray(variables) as variable]
+[#macro environmentVariables variables={} format="docker" mode=""]
+    [#list variables as name, value]
         [@environmentVariable
-            name=variable.Name
-            value=variable.Value
+            name=name
+            value=value
             format=format
             mode = mode /]
     [/#list]
