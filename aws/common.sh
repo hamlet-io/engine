@@ -419,7 +419,7 @@ function checkGen3Dir() {
     local GEN3_ENV_NAME="${GEN3_PREFIX}${GEN3_ENV}"
     for DIR in "$@"; do
         if [[ -d "${DIR}" ]]; then
-            eval "export ${GEN3_ENV_NAME}=${DIR}"
+            declare -gx "${GEN3_ENV_NAME}=${DIR}"
             return 0
         fi
     done
