@@ -2,7 +2,7 @@
 "Metadata" : {
     "RequestReference" : "${requestReference}",
     [#if accountObject.CostCentre?has_content]
-        "CostCentre" : "${accountObject.CostCentre},
+        "CostCentre" : "${accountObject.CostCentre}",
     [/#if]
     "ConfigurationReference" : "${configurationReference}",
     "Prepared" : "${.now?iso_utc}"
