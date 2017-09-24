@@ -2,7 +2,7 @@
 [#if componentType == "alb"]
     [#assign alb = component.ALB]
 
-    [#list getComponentOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, deploymentUnit) as occurrence]
 
         [#assign albId = formatALBId(tier, component, occurrence)]
     

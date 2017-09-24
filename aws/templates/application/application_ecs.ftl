@@ -14,176 +14,40 @@
                     tier,
                     component)]
 
-    [#assign serviceInstances=[] ]
-    [#if ecs.Services??]
-        [#list ecs.Services?values as service]
-            [#if deploymentRequired(service, deploymentUnit)]
-                [#if service.Versions??]
-                    [#list service.Versions?values as version]
-                        [#if deploymentRequired(version, deploymentUnit)]
-                            [#if version.Instances??]
-                                [#list version.Instances?values as serviceInstance]
-                                    [#if deploymentRequired(serviceInstance, deploymentUnit)]
-                                        [#assign serviceInstances += [serviceInstance +
-                                            {
-                                                "Internal" : {
-                                                    "IdExtensions" : [
-                                                        getTaskId(service),
-                                                        version.Id,
-                                                        (serviceInstance.Id == "default")?
-                                                            string(
-                                                                "",
-                                                                serviceInstance.Id)],
-                                                    "HostIdExtensions" : [
-                                                        version.Id,
-                                                        (serviceInstance.Id == "default")?
-                                                            string(
-                                                                "",
-                                                                serviceInstance.Id)],
-                                                    "NameExtensions" : [
-                                                        getTaskName(service),
-                                                        version.Id,
-                                                        (serviceInstance.Name == "default")?
-                                                            string(
-                                                                "",
-                                                                serviceInstance.Name)],
-                                                    "StageName" : version.Id,
-                                                    "DesiredCount" : serviceInstance.DesiredCount!
-                                                                        version.DesiredCount!
-                                                                        service.DesiredCount!-1
-                                                }
-                                            }
-                                        ] ]
-                                    [/#if]
-                                [/#list]
-                            [#else]
-                                [#assign serviceInstances += [version +
-                                    {
-                                        "Internal" : {
-                                            "IdExtensions" : [
-                                                getTaskId(service),
-                                                version.Id],
-                                            "HostIdExtensions" : [
-                                                version.Id],
-                                            "NameExtensions" : [
-                                                getTaskName(service),
-                                                version.Id],
-                                            "StageName" : version.Id,
-                                            "DesiredCount" : version.DesiredCount!
-                                                                service.DesiredCount!-1
-                                        }
-                                    }
-                                ] ]
-                            [/#if]
-                        [/#if]
-                    [/#list]
-                [#else]
-                    [#assign serviceInstances += [service +
-                        {
-                            "Internal" : {
-                                "IdExtensions" : [
-                                    getTaskId(service)],
-                                "HostIdExtensions" : [],
-                                "NameExtensions" : [
-                                    getTaskName(service)],
-                                "StageName" : "",
-                                "DesiredCount" : service.DesiredCount!-1
-                            }
-                        }
-                    ]]
-                [/#if]
-            [/#if]
-        [/#list]
-    [/#if]
+    [#assign serviceOccurrences=[] ]
+    [#list (ecs.Services!{})?values as service]
+        [#assign serviceOccurrences += getOccurrences(service, deploymentUnit, "service") ]
+    [/#list]
+    
+    [#assign taskOccurrences=[] ]
+    [#list (ecs.Tasks!{})?values as task]
+        [#assign taskOccurrences += getOccurrences(service, deploymentUnit, "task") ]
+    [/#list]
 
-    [#assign taskInstances=[] ]
-    [#if ecs.Tasks??]
-        [#list ecs.Tasks?values as task]
-            [#if deploymentRequired(task, deploymentUnit)]
-                [#if task.Versions??]
-                    [#list task.Versions?values as version]
-                        [#if deploymentRequired(version, deploymentUnit)]
-                            [#if version.Instances??]
-                                [#list version.Instances?values as taskInstance]
-                                    [#if deploymentRequired(taskInstance, deploymentUnit)]
-                                        [#assign taskInstances += [taskInstance +
-                                            {
-                                                "Internal" : {
-                                                    "IdExtensions" : [
-                                                        getTaskId(task),
-                                                        version.Id,
-                                                        (taskInstance.Id == "default")?
-                                                            string(
-                                                                "",
-                                                                taskInstance.Id)],
-                                                    "HostIdExtensions" : [
-                                                        version.Id,
-                                                        (taskInstance.Id == "default")?
-                                                            string(
-                                                                "",
-                                                                taskInstance.Id)],
-                                                    "NameExtensions" : [
-                                                        getTaskName(task),
-                                                        version.Name,
-                                                        (taskInstance.Name == "default")?
-                                                            string(
-                                                                "",
-                                                                taskInstance.Name)],
-                                                    "StageName" : version.Id
-                                                }
-                                            }
-                                        ] ]
-                                    [/#if]
-                                [/#list]
-                            [#else]
-                                [#assign taskInstances += [version +
-                                    {
-                                        "Internal" : {
-                                            "IdExtensions" : [
-                                                getTaskId(task),
-                                                version.Id],
-                                            "HostIdExtensions" : [
-                                                version.Id],
-                                            "NameExtensions" : [
-                                                getTaskName(task),
-                                                version.Name],
-                                            "StageName" : version.Id
-                                        }
-                                    }
-                                ] ]
-                            [/#if]
-                        [/#if]
-                    [/#list]
-                [#else]
-                    [#assign taskInstances += [task +
-                        {
-                            "Internal" : {
-                                "IdExtensions" : [
-                                    getTaskId(task)],
-                                "HostIdExtensions" : [],
-                                "NameExtensions" : [
-                                    getTaskName(task)],
-                                "StageName" : ""
-                            }
-                        }
-                    ]]
-                [/#if]
-            [/#if]
-        [/#list]
-    [/#if]
-
-    [#list serviceInstances as serviceInstance]
+    [#list serviceOccurrences as occurrence]
         [#assign serviceDependencies = []]
         [#assign serviceId = formatECSServiceId(
                                 tier,
                                 component,
-                                serviceInstance)]
+                                occurrence)]
         [#assign taskId    = formatECSTaskId(
                                 tier,
                                 component,
-                                serviceInstance)]
+                                occurrence)]
+                                
+        [#if occurrence.UseTaskRole]
+            [#assign roleId = formatDependentRoleId(taskId) ]
+        [#else]
+            [#assign roleId = formatDependentRoleId(taskId) ]
+        [/#if]
 
-        [@createTask tier component serviceInstance deploymentSubsetRequired("iam") /]
+        [@createECSTask
+            mode=applicationListMode
+            id=taskId
+            containers=getTaskContainers(tier, component, occurrence)
+            role=roleId
+        /]
+            getcomponent serviceInstance deploymentSubsetRequired("iam") /]
         [#if deploymentSubsetRequired("ecs", true)]
             [#switch applicationListMode]
                 [#case "definition"]
