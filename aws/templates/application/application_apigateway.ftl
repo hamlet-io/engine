@@ -6,7 +6,7 @@
     [#-- Non-repeating text to ensure deploy happens every time --]
     [#assign noise = random.nextLong()?string.computer?replace("-","X")]
 
-    [#list getComponentOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, deploymentUnit) as occurrence]
 
         [#assign apiId    = formatAPIGatewayId(
                                 tier,
@@ -43,7 +43,7 @@
             [#if link?is_hash]
                 [#assign targetComponent = getComponent(link.Tier, link.Component)]
                 [#if targetComponent?has_content]
-                    [#list getComponentOccurrences(targetComponent) as targetOccurrence]
+                    [#list getOccurrences(targetComponent) as targetOccurrence]
                         [#if (targetOccurrence.VersionId == occurrence.VersionId) &&
                                 (targetOccurrence.InstanceId == occurrence.InstanceId)]
                             [#switch getComponentType(targetComponent)]

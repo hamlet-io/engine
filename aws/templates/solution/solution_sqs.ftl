@@ -2,7 +2,7 @@
 [#if componentType == "sqs"]
     [#assign sqs = component.SQS]
 
-    [#list getComponentOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, deploymentUnit) as occurrence]
     
         [#assign sqsId = formatComponentSQSId(
                             tier,

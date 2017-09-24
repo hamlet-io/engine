@@ -3,7 +3,7 @@
 [#if componentType == "s3"]
     [#assign s3 = component.S3]
 
-    [#list getComponentOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, deploymentUnit) as occurrence]
 
         [#assign s3Id = formatComponentS3Id(
                             tier,

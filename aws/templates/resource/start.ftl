@@ -322,6 +322,16 @@
     ]
 [/#function]
 
+[#function getLocalOutputs outputs=[]]
+    [#local result = [] ]
+    [#list asArray(outputs) as output]
+        [#if output?is_hash && output.Ref?has_content]
+            [#local result += output]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
 [#macro cfTemplateOutput mode id value]
     [#switch mode]
         [#case "outputs"]

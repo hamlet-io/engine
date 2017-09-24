@@ -53,7 +53,7 @@
 [#function formatContainerId host container]
     [#return formatName(
                 getContainerId(container),
-                concatenate(host.Internal.HostIdExtensions,"-"))]
+                concatenate(host.Internal.OccurrenceIdExtensions,"-"))]
 [/#function]
 
 [#function formatContainerSecurityGroupIngressId resourceId container portRange]
