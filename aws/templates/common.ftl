@@ -393,6 +393,20 @@
             ],
         "lambda" :
             [
+                "RunTime",
+                "Container",
+                {
+                    "Name" : "MemorySize",
+                    "Default" : 0
+                },
+                {
+                    "Name" : "Timeout",
+                    "Default" : 0
+                },
+                {
+                    "Name" : "VPCAccess",
+                    "Default" : true
+                },
                 {
                     "Name" : "Functions",
                     "Default" : {}

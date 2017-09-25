@@ -1,6 +1,5 @@
 [#-- ALB --]
 [#if componentType == "alb"]
-    [#assign alb = component.ALB]
 
     [#list getOccurrences(component, deploymentUnit) as occurrence]
 
