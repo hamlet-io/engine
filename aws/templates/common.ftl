@@ -395,6 +395,7 @@
             [
                 "RunTime",
                 "Container",
+                "Handler",
                 {
                     "Name" : "MemorySize",
                     "Default" : 0
@@ -410,6 +411,10 @@
                 {
                     "Name" : "Functions",
                     "Default" : {}
+                },
+                {
+                    "Name" : "UseSegmentKey",
+                    "Default" : false
                 }
             ],
         "s3" : 
