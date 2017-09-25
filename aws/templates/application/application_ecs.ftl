@@ -1,18 +1,9 @@
 [#if componentType == "ecs"]
     [#assign ecs = component.ECS]
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
-    [#assign ecsId = 
-                formatECSId(
-                    tier,
-                    component)]
-    [#assign ecsSecurityGroupId =
-                formatECSSecurityGroupId(
-                    tier,
-                    component)]
-    [#assign ecsServiceRoleId = 
-                formatECSServiceRoleId(
-                    tier,
-                    component)]
+    [#assign ecsId = formatECSId(tier, component)]
+    [#assign ecsSecurityGroupId = formatECSSecurityGroupId(tier, component)]
+    [#assign ecsServiceRoleId = formatECSServiceRoleId(tier, component)]
 
     [#assign serviceOccurrences=[] ]
     [#list (ecs.Services!{})?values as service]
@@ -30,23 +21,57 @@
                                 tier,
                                 component,
                                 occurrence)]
+    [/#list]
+    
+    [#list (serviceOccurrences + taskOccurrences) as occurrence]
         [#assign taskId    = formatECSTaskId(
                                 tier,
                                 component,
                                 occurrence)]
                                 
+        [#assign containers = getTaskContainers(tier, component, occurrence) ]
+
         [#if occurrence.UseTaskRole]
             [#assign roleId = formatDependentRoleId(taskId) ]
+            [#if deploymentSubsetRequired("iam") && isPartOfCurrentDeploymentUnit(roleId)]
+                [@createRole 
+                    mode=applicationListMode
+                    id=roleId
+                    trustedServices=["ecs-tasks.amazonaws.com"]
+                /]
+                
+                [#list containers as container]
+                    [#if container.Policy?has_content]
+                        [@createPolicy
+                            mode=applicationListMode
+                            id=formatDependentPolicyId(taskId, container.Id)]
+                            name=container.Name
+                            statements=container.Policy
+                            role=roleId
+                        /]
+                    [/#if]
+                [/#list]
+            [/#if]
         [#else]
-            [#assign roleId = formatDependentRoleId(taskId) ]
+            [#assign roleId = "" ]
         [/#if]
 
-        [@createECSTask
-            mode=applicationListMode
-            id=taskId
-            containers=getTaskContainers(tier, component, occurrence)
-            role=roleId
-        /]
+        [#if deploymentSubsetRequired("ecs", true)]
+            [@createECSTask
+                mode=applicationListMode
+                id=taskId
+                containers=containers
+                role=roleId
+            /]
+            
+            [#list occurrence.Containers as container]
+                [#assign containerListMode = applicationListMode]
+                [#assign containerId = formatContainerFragmentId(occurrence, container)]
+                [#include containerList]
+            [/#list]
+        [/#if]
+    [/#list]
+    
             getcomponent serviceInstance deploymentSubsetRequired("iam") /]
         [#if deploymentSubsetRequired("ecs", true)]
             [#switch applicationListMode]

@@ -5,7 +5,7 @@
 [#-- Recursively concatenate sequence of non-empty strings with a separator --]
 [#function concatenate args separator]
     [#local content = []]
-    [#list args as arg]
+    [#list asArray(args) as arg]
         [#local argValue = arg]
         [#if argValue?is_sequence]
             [#local argValue = concatenate(argValue, separator)]
