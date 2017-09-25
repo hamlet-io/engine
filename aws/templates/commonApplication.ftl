@@ -333,6 +333,46 @@
     [#return containers]
 [/#function]
     
+[#function getLambdaContainer lambda container]
+    
+    [#local currentContainer = 
+        {
+            "Id" : getContainerId(container),
+            "Name" : getContainerName(container),
+            "Environment" :
+                {
+                    "TEMPLATE_TIMESTAMP" .now?iso_utc,
+                    "ENVIRONMENT" : environmentName,
+                    "REQUEST_REFERENCE" : requestReference,
+                    "CONFIGURATION_REFERENCE" : configurationReference,
+                    "APPDATA_BUCKET" : dataBucket,
+                    "APPDATA_PREFIX" : getAppDataFilePrefix(),
+                    "OPSDATA_BUCKET" : operationsBucket,
+                    "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
+                    "CREDENTIALS_PREFIX" : getCredentialsFilePrefix(),
+                    "APP_RUN_MODE" : getContainerMode(container),
+                } +
+                buildCommit?has_content?then(
+                    {
+                        "BUILD_REFERENCE" : buildCommit
+                    },
+                    {}
+                ) +
+                appReference?has_content?then(
+                    {
+                        "APP_REFERENCE" : appReference
+                    }
+        }
+    ]
+
+    [#-- Add in container specifics including override of defaults --]
+    [#assign containerListMode = "model"]
+    [#assign containerId = formatContainerFragmentId(lambda, container)]
+    [#include containerList]
+    
+    [#return currentContainer]
+[/#function]
+
 [#-- Initialisation --]
 
 [#if buildReference?has_content]

@@ -188,7 +188,7 @@
                         [#assign policyId = formatDependentPolicyId(taskId, container.Id)]
                         [@createPolicy
                             mode=applicationListMode
-                            id=policyId]
+                            id=policyId
                             name=container.Name
                             statements=container.Policy
                             role=roleId
