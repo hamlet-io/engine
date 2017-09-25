@@ -117,6 +117,7 @@
         [#if container?is_hash]
 
             [#local portMappings = [] ]
+            [#local loadBalancers = [] ]
             [#list (container.Ports!{})?values as port]
                 [#if port?is_hash]
                     [#local portMappings +=
@@ -175,8 +176,8 @@
 
             [#assign currentContainer = 
                 {
-                    "Id" : formatContainerId(task, container),
-                    "Name" : formatContainerName(tier, component, task, container),
+                    "Id" : getContainerId(container),
+                    "Name" : getContainerName(container),
                     "Image" :
                         formatRelativePath(
                             getRegistryEndPoint("docker"),
@@ -240,6 +241,7 @@
 
             [#-- Add in container specifics including override of defaults --]
             [#assign containerListMode = "model"]
+            [#assign containerId = formatContainerFragmentId(task, container)]
             [#include containerList]
             
             [#local containers += { currentContainer.Id : currentContainer }]

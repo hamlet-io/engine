@@ -50,7 +50,7 @@
 
 [#-- Resources --]
 
-[#function formatContainerId host container]
+[#function formatContainerFragmentId host container]
     [#return formatName(
                 getContainerId(container),
                 concatenate(host.Internal.OccurrenceIdExtensions,"-"))]
