@@ -44,8 +44,8 @@
                 [#assign targetComponent = getComponent(link.Tier, link.Component)]
                 [#if targetComponent?has_content]
                     [#list getOccurrences(targetComponent) as targetOccurrence]
-                        [#if (targetOccurrence.VersionId == occurrence.VersionId) &&
-                                (targetOccurrence.InstanceId == occurrence.InstanceId)]
+                        [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
+                                (targetOccurrence.VersionId == occurrence.VersionId)]
                             [#switch getComponentType(targetComponent)]
                                 [#case "alb"]
                                     [#assign stageVariables +=

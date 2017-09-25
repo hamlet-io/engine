@@ -21,6 +21,147 @@
                                 tier,
                                 component,
                                 occurrence)]
+        [#assign taskId    = formatECSTaskId(
+                                tier,
+                                component,
+                                occurrence)]
+        
+        [#if deploymentSubsetRequired("ecs", true)]
+
+            [#assign containers = getTaskContainers(tier, component, occurrence) ]
+
+            [#assign loadBalancers = [] ]
+            [#assign dependencies = [] ]
+            [#list containers?values as container]
+                [#list container.PortMappings![] as portMapping]
+                    [#if portMapping.LoadBalancer?has_content]
+                        [#assign loadBalancer = portMapping.LoadBalancer]
+                        [#assign loadBalancerId = 
+                            loadBalancer.TargetGroup?has_content?then(
+                                formatALBTargetGroupId(
+                                    loadBalancer.Tier,
+                                    loadBalancer.Component,
+                                    ports[loadBalancer.Port],
+                                    loadBalancer.TargetGroup,
+                                    loadBalancer.Instance,
+                                    loadBalancer.Version
+                                ),
+                                formatELBId(
+                                    loadBalancer.Tier,
+                                    loadBalancer.Component,
+                                    loadBalancer.Instance,
+                                    loadBalancer.Version
+                                )
+                            )
+                        ]
+                        [#assign loadBalancers +=
+                            [
+                                {
+                                    "ContainerName" : Container.Name,
+                                    "ContainerPort" : ports[portMapping.ContainerPort].Port
+                                } +
+                                loadBalancer.TargetGroup?has_content?then(
+                                    {
+                                        "TargetGroupArn" :
+                                            getReference(loadBalancerId, ARN_ATTRIBUTE_TYPE)
+                                    },
+                                    {
+                                        "LoadBalancerName" :
+                                            getReference(loadBalancerId)
+                                    }
+                                )
+                            ]
+                        ]
+                        [#assign dependencies += [loadBalancerId] ]
+
+                        [#assign loadBalancerSecurityGroupId = 
+                                    formatComponentSecurityGroupId(
+                                        loadBalancer.Tier,
+                                        loadBalancer.Component,
+                                        loadBalancer.Instance,
+                                        loadBalancer.Version) ]
+                                        
+                        [@createSecurityGroupIngress
+                            mode=applicationListMode
+                            id=
+                                formatContainerSecurityGroupIngressId(
+                                    ecsSecurityGroupId,
+                                    container,
+                                    (portMapping.DynamicHostPort?then(
+                                        "dynamic",
+                                        ports[portMapping.HostPort].Port
+                                    )
+                                )
+                            port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
+                            cidr="0.0.0.0/0"
+                            groupId=ecsSecurityGroupId
+                        /]
+
+                        [#if (loadBalancer.TargetGroup?has_content) &&
+                                isPartOfCurrentDeploymentUnit(loadBalancerId)]
+
+                            [@createTargetGroup
+                                mode=applicationListMode
+                                id=loadBalancerId
+                                name=loadBalancer.TargetGroup
+                                tier=loadBalancer.Tier
+                                component=loadBalancer.Component
+                                source=ports[loadBalancer.Port]
+                                destination=ports[portMapping.HostPort]
+                            /]
+                            [#assign listenerId = 
+                                formatALBListenerId(
+                                    loadBalancer.Tier,
+                                    loadBalancer.Component,
+                                    ports[loadBalancer.Port],
+                                    loadBalancer.TargetGroup,
+                                    loadBalancer.Instance,
+                                    loadBalancer.Version
+                                )]
+                            [@createListenerRule
+                                mode=applicationListMode
+                                id=
+                                    formatALBListenerRuleId(
+                                        loadBalancer.Tier,
+                                        loadBalancer.Component,
+                                        ports[loadBalancer.Port],
+                                        loadBalancer.TargetGroup,
+                                        loadBalancer.Instance,
+                                        loadBalancer.Version
+                                    )
+                                listenerId=
+                                    formatALBListenerId(
+                                        loadBalancer.Tier,
+                                        loadBalancer.Component,
+                                        ports[loadBalancer.Port],
+                                        loadBalancer.Instance,
+                                        loadBalancer.Version
+                                    )
+                                actions=getListenerRuleForwardAction(loadBalancerId)
+                                conditions=getListenerRulePathCondition(loadBalancer.Path)
+                                priority=loadBalancer.Priority!100
+                                dependencies=loadBalancerId
+                            /]
+                        [/#if]    
+                    [/#if]
+                [/#list]
+            [/#list]
+
+            [@createECSService
+                mode=applicationListMode
+                id=serviceId
+                ecsId=ecsId
+                desiredCount=
+                    (occurrence.DesiredCount >= 0)?then(
+                        occurrence.DesiredCount,
+                        multiAZ?then(zones?size,1
+                    )
+                taskId=taskId
+                loadBalancers=loadBalancers
+                roleId=ecsServiceRoleId
+                dependencies=dependencies
+            /]
+        [/#if]
     [/#list]
     
     [#list (serviceOccurrences + taskOccurrences) as occurrence]
@@ -30,6 +171,8 @@
                                 occurrence)]
                                 
         [#assign containers = getTaskContainers(tier, component, occurrence) ]
+
+        [#assign dependencies = [] ]
 
         [#if occurrence.UseTaskRole]
             [#assign roleId = formatDependentRoleId(taskId) ]
@@ -42,13 +185,15 @@
                 
                 [#list containers as container]
                     [#if container.Policy?has_content]
+                        [#assign policyId = formatDependentPolicyId(taskId, container.Id)]
                         [@createPolicy
                             mode=applicationListMode
-                            id=formatDependentPolicyId(taskId, container.Id)]
+                            id=policyId]
                             name=container.Name
                             statements=container.Policy
                             role=roleId
                         /]
+                        [#assign dependencies += [policyId]
                     [/#if]
                 [/#list]
             [/#if]
@@ -62,331 +207,16 @@
                 id=taskId
                 containers=containers
                 role=roleId
+                dependencies=dependencies
             /]
-            
-            [#list occurrence.Containers as container]
+
+            [#-- Pick any extra macros in the container fragments --]
+            [#list (occurrence.Containers!{})?values as container]
                 [#assign containerListMode = applicationListMode]
                 [#assign containerId = formatContainerFragmentId(occurrence, container)]
-                [#include containerList]
+                [#include containerList?ensure_starts_with("/")]
             [/#list]
-        [/#if]
-    [/#list]
-    
-            getcomponent serviceInstance deploymentSubsetRequired("iam") /]
-        [#if deploymentSubsetRequired("ecs", true)]
-            [#switch applicationListMode]
-                [#case "definition"]
-                    [@checkIfResourcesCreated /]
-                    "${serviceId}" : {
-                        "Type" : "AWS::ECS::Service",
-                        "Properties" : {
-                            "Cluster" : "${getKey(ecsId)}",
-                            [#if serviceInstance.Internal.DesiredCount > 0 ]
-                                [#assign desiredCount = serviceInstance.Internal.DesiredCount ]
-                            [#else]
-                                [#assign desiredCount = multiAZ?then(zones?size,1)]
-                            [/#if]
-                            "DeploymentConfiguration" : {
-                                [#if desiredCount > 1]
-                                    "MaximumPercent" : 100,
-                                    "MinimumHealthyPercent" : 50
-                                [#else]
-                                    "MaximumPercent" : 100,
-                                    "MinimumHealthyPercent" : 0
-                                [/#if]
-                            },
-                            "DesiredCount" : "${desiredCount}",
-                            [#assign portCount = 0]
-                            [#list serviceInstance.Containers?values as container]
-                                [#if container?is_hash && container.Ports??]
-                                    [#list container.Ports?values as port]
-                                        [#if port?is_hash && (port.ELB?? || port.LB??)]
-                                            [#assign portCount += 1]
-                                            [#break]
-                                        [/#if]
-                                    [/#list]
-                                [/#if]
-                            [/#list]
-                            [#if portCount != 0]
-                                "LoadBalancers" : [
-                                    [#assign portCount = 0]
-                                    [#list serviceInstance.Containers?values as container]
-                                        [#if container?is_hash && container.Ports??]
-                                            [#list container.Ports?values as port]
-                                                [#if port?is_hash && (port.ELB?? || port.LB??)]
-                                                    [#if portCount > 0],[/#if]
-                                                    {
-                                                        [#if port.LB??]
-                                                            [#assign lb = port.LB]
-                                                            [#assign lbTier = getTier(lb.Tier)]
-                                                            [#assign lbComponent = getComponent(lb.Tier, lb.Component)]
-                                                            [#assign lbPort = port.Id]
-                                                            [#if lb.PortMapping??]
-                                                                [#assign lbPort = portMappings[lb.PortMapping].Source]
-                                                            [/#if]
-                                                            [#if lb.Port??]
-                                                                [#assign lbPort = lb.Port]
-                                                            [/#if]
-                                                            [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.StageName]
-                                                            [#if targetGroup != ""]
-                                                                [#assign targetGroupId = formatALBTargetGroupId(
-                                                                                            lbTier,
-                                                                                            lbComponent,
-                                                                                            ports[lbPort],
-                                                                                            targetGroup)]
-                                                                "TargetGroupArn" : [@createReference targetGroupId /],
-                                                                [#if isPartOfCurrentDeploymentUnit(targetGroupId)]
-                                                                    [#assign serviceDependencies += [formatALBListenerRuleId(
-                                                                                                        lbTier,
-                                                                                                        lbComponent,
-                                                                                                        ports[lbPort],
-                                                                                                        targetGroup)]]
-                                                                [/#if]
-                                                            [#else]
-                                                                "LoadBalancerName" : "${getKey(formatALBId(
-                                                                                                lbTier,
-                                                                                                lbComponent))}",
-                                                            [/#if]
-                                                        [#else]
-                                                            "LoadBalancerName" : "${getKey(formatELBId(
-                                                                                            getTier("elb"),
-                                                                                            getComponent("elb", port.ELB)))}",
-                                                        [/#if]
-                                                        "ContainerName" : "${formatContainerName(
-                                                                                tier,
-                                                                                component,
-                                                                                serviceInstance,
-                                                                                container) }",
-                                                        [#if port.Container??]
-                                                            "ContainerPort" : ${ports[port.Container].Port?c}
-                                                        [#else]
-                                                            "ContainerPort" : ${ports[port.Id].Port?c}
-                                                        [/#if]
-                                                    }
-                                                    [#assign portCount += 1]
-                                                [/#if]
-                                            [/#list]
-                                        [/#if]
-                                    [/#list]
-                                ],
-                                "Role" : "${getKey(ecsServiceRoleId)}",
-                            [/#if]
-                            "TaskDefinition" : { "Ref" : "${taskId}" }
-                        }
-                        [#if serviceDependencies?size > 0 ]
-                            ,"DependsOn" : [
-                                [#list serviceDependencies as dependency]
-                                    "${dependency}"
-                                    [#if !(dependency == serviceDependencies?last)],[/#if]
-                                [/#list]
-                            ]
-                        [/#if]
-                    }
-                    [@resourcesCreated /]
-                    [#break]
-    
-                [#case "outputs"]
-                    [@output serviceId /]
-                    [#break]
-    
-            [/#switch]
-                                
-            [#-- Supplemental definitions for the containers --]
-            [#switch applicationListMode]
-                [#case "definition"]
-                    [#assign containerListMode = "supplementalCount"]
-                    [#assign supplementalCount = 0]
-                    [#list serviceInstance.Containers?values as container]
-                        [#if container?is_hash]
-                            [#assign containerId = formatContainerId(
-                                                    serviceInstance,
-                                                    container)]
-                            [#include containerList?ensure_starts_with("/")]
-                        [/#if]
-                    [/#list]
-                
-                    [#if (supplementalCount > 0)]
-                        [@checkIfResourcesCreated /]
-                        [#assign containerListMode = "supplemental"]
-                        [#assign supplementalCount = 0]
-                        [#list serviceInstance.Containers?values as container]
-                            [#if container?is_hash]
-                                [#assign containerId = formatContainerId(
-                                                        serviceInstance,
-                                                        container)]
-                                [#include containerList?ensure_starts_with("/")]
-                            [/#if]
-                        [/#list]
-                        [@resourcesCreated /]
-                    [/#if]
-                    [#break]
-    
-            [/#switch]
-                    
-            [#list serviceInstance.Containers?values as container]
-                [#if container?is_hash]
-                    [#if container.Ports??]
-                        [#list container.Ports?values as port]
-                            [#if port?is_hash]
-                                [#assign useDynamicHostPort = port.DynamicHostPort?? && port.DynamicHostPort]
-                                [#if useDynamicHostPort]
-                                    [#assign portRange = "dynamic"]
-                                [#else]
-                                    [#assign portRange = ports[port.Id].Port?c]
-                                [/#if]
-    
-                                [#assign fromSG = (port.ELB?? || port.LB??) &&
-                                    (((port.LB.fromSGOnly)?? && port.LB.fromSGOnly) || fixedIP)]
-    
-                                [#if fromSG]
-                                    [#if port.ELB??]
-                                        [#assign elbSG = getKey(formatComponentSecurityGroupId(
-                                                                  getTier("elb"), 
-                                                                  getComponent("elb", port.ELB)))]
-                                    [#else]
-                                        [#assign elbSG = getKey(formatComponentSecurityGroupId(
-                                                                  getTier(port.LB.Tier), 
-                                                                  getComponent(port.LB.Tier, port.LB.Component)))]
-                                    [/#if]
-                                [/#if]
-    
-                                [#switch applicationListMode]
-                                    [#case "definition"]
-                                        [@checkIfResourcesCreated /]
-                                        [#-- Security Group ingress for the container ports --]
-                                        "${formatContainerSecurityGroupIngressId(
-                                                ecsSecurityGroupId,
-                                                container,
-                                                portRange)}" : {
-                                            "Type" : "AWS::EC2::SecurityGroupIngress",
-                                            "Properties" : {
-                                                "GroupId": "${getKey(ecsSecurityGroupId)}",
-                                                "IpProtocol": "${ports[port.Id].IPProtocol}",
-                                                [#if useDynamicHostPort]
-                                                    "FromPort": "32768",
-                                                    "ToPort": "65535",
-                                                [#else]
-                                                    "FromPort": "${ports[port.Id].Port?c}",
-                                                    "ToPort": "${ports[port.Id].Port?c}",
-                                                [/#if]
-                                                [#if fromSG]
-                                                    "SourceSecurityGroupId": "${elbSG}"
-                                                [#else]
-                                                    "CidrIp": "0.0.0.0/0"
-                                                [/#if]
-                                            }
-                                        }
-                                        [@resourcesCreated /]
-                                        [#break]
-                                [/#switch]
-                                
-                                [#if port.LB??]
-                                    [#assign lb = port.LB]
-                                    [#assign lbTier = getTier(lb.Tier)]
-                                    [#assign lbComponent = getComponent(lb.Tier, lb.Component)]
-                                    [#assign lbPort = port.Id]
-                                    [#if lb.PortMapping??]
-                                        [#assign lbPort = portMappings[lb.PortMapping].Source]
-                                    [/#if]
-                                    [#if lb.Port??]
-                                        [#assign lbPort = lb.Port]
-                                    [/#if]
-                                    [#assign targetGroup = lb.TargetGroup!serviceInstance.Internal.StageName]
-                                    [#if targetGroup != ""]
-                                        [#assign targetGroupId = formatALBTargetGroupId(
-                                                                    lbTier,
-                                                                    lbComponent,
-                                                                    ports[lbPort],
-                                                                    targetGroup)]
-                                        [#if isPartOfCurrentDeploymentUnit(targetGroupId)]
-                                            [@createTargetGroup
-                                                mode=applicationListMode
-                                                id=targetGroupId
-                                                name=targetGroup
-                                                tier=lbTier
-                                                component=lbComponent
-                                                source=ports[lbPort]
-                                                destination=ports[port.Id]
-                                            /]
-                                            [#switch applicationListMode]
-                                                [#case "definition"]
-                                                    [@checkIfResourcesCreated /]
-                                                    "${formatALBListenerRuleId(
-                                                            lbTier,
-                                                            lbComponent,
-                                                            ports[lbPort],
-                                                            targetGroup)}" : {
-                                                        "DependsOn" : [
-                                                            "${targetGroupId}"
-                                                        ],
-                                                        "Type" : "AWS::ElasticLoadBalancingV2::ListenerRule",
-                                                        "Properties" : {
-                                                            "Priority" : ${lb.Priority},
-                                                            "Actions" : [
-                                                                {
-                                                                    "Type": "forward",
-                                                                    "TargetGroupArn": { "Ref": "${targetGroupId}" }
-                                                                }
-                                                            ],
-                                                            "Conditions": [
-                                                                {
-                                                                    "Field": "path-pattern",
-                                                                    "Values": [ "${lb.Path!"/" + serviceInstance.Internal.StageName + "/*"}" ]
-                                                                }
-                                                            ],
-                                                            "ListenerArn" : "${getKey(formatALBListenerId(
-                                                                                        lbTier,
-                                                                                        lbComponent,
-                                                                                        ports[lbPort]))}"
-                                                        }
-                                                    }
-                                                    [@resourcesCreated /]
-                                                    [#break]
-                                            [/#switch]
-                                        [/#if]
-                                    [/#if]
-                                [/#if]
-                            [/#if]
-                        [/#list]
-                    [/#if]
-                [/#if]
-            [/#list]
-        [/#if]
-    [/#list]
-
-    [#list taskInstances as taskInstance]
-        [@createTask tier component taskInstance deploymentSubsetRequired("iam")/]
-        [#if deploymentSubsetRequired("ecs", true)]
-            [#switch applicationListMode]
-                [#case "definition"]
-                    [#assign containerListMode = "supplementalCount"]
-                    [#assign supplementalCount = 0]
-                    [#list taskInstance.Containers?values as container]
-                        [#if container?is_hash]
-                            [#assign containerId = formatContainerId(
-                                                    taskInstance,
-                                                    container)]
-                            [#include containerList?ensure_starts_with("/")]
-                        [/#if]
-                    [/#list]
-                        
-                    [#if (supplementalCount > 0)]
-                        [@checkIfResourcesCreated /]
-                        [#assign containerListMode = "supplemental"]
-                        [#assign supplementalCount = 0]
-                        [#list taskInstance.Containers?values as container]
-                            [#if container?is_hash]
-                                [#assign containerId = formatContainerId(
-                                                        taskInstance,
-                                                        container)]
-                                [#include containerList?ensure_starts_with("/")]
-                            [/#if]
-                        [/#list]
-                        [@resourcesCreated /]
-                    [/#if]
-                    [#break]
-    
-            [/#switch]
         [/#if]
     [/#list]
 [/#if]
+

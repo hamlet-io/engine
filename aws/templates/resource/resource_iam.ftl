@@ -80,22 +80,6 @@
     ]
 [/#function]
 
-[#function getPolicyRoles roles]
-    [#local result = []]
-    [#list asArray(roles) as role]
-        [#local result += [getReference(role)] ]
-    [/#list]
-    [#return result]
-[/#function]
-
-[#function getPolicyQueues queues]
-    [#local result = []]
-    [#list asArray(queues) as queue]
-        [#local result += [getUrlReference(queue)] ]
-    [/#list]
-    [#return result]
-[/#function]
-
 [#macro createPolicy mode id name statements roles="" users="" groups="" dependencies=[] ]
     [#local effectiveMode = mode]
     [#if containerListMode?has_content]
@@ -120,7 +104,7 @@
             getPolicyDocument(statements, name) +
             roles?has_content?then(
                 {
-                    "Roles" : getPolicyRoles(roles)
+                    "Roles" : getReferences(roles)
                 },
                 {}
             )
@@ -137,7 +121,7 @@
         type="AWS::SQS::QueuePolicy"
         properties=
             {
-                "Queues" : getPolicyQueues(queues)
+                "Queues" : getReferences(queues, URL_ATTRIBUTE_TYPE)
             } +
             getPolicyDocument(statements)
         outputs={}

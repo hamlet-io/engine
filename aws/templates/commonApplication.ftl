@@ -111,28 +111,111 @@
 
 [#function getTaskContainers tier component task]
     
-    [#local containers = {} ]
+    [#local containers = [] ]
 
     [#list (task.Containers!{})?values as container]
         [#if container?is_hash]
 
             [#local portMappings = [] ]
-            [#local loadBalancers = [] ]
             [#list (container.Ports!{})?values as port]
                 [#if port?is_hash]
+                    [#local targetLoadBalancer = {}]
+                    [#local targetTierId = (port.LB.Tier)!(port.ELB?has_content?then("elb", "")]
+                    [#local targetComponentId = port.LB.Component!(port.ELB?has_content?then(port.ELB, "")]
+                    [#local targetGroup = ""]
+                    [#local targetPath = port.LB.Path!""]
+                    
+                    [#if targetTierId?has_content && targetComponentId?has_Content]
+                        [#-- Work out which occurrence to use --]
+                        [#local targetComponent =
+                            getComponent(
+                                targetTierId,
+                                targetComponentId,
+                                port.ELB?has_content?then("elb", "alb"))]
+                        [#local instanceAndVersionMatch = {}]
+                        [#local instanceMatch = {}]
+                        [#if targetComponent?has_content]
+                            [#list getOccurrences(targetComponent) as targetOccurrence]
+                                [#if task.InstanceId == targetOccurrence.InstanceId]
+                                    [#if task.VersionId == targetOccurrence.VersionId]
+                                        [#local instanceAndVersionMatch = targetOccurrence]
+                                    [#else]
+                                        [#if (task.VersionId?has_content) &&
+                                                (!(targetOccurrence.VersionId?has_content))]                                              
+                                            [#local instanceMatch = targetOccurrence]
+                                        [/#if]
+                                    [/#if]
+                                [/#if]
+                            [/#list]
+                        [/#if]
+                        [#if instanceAndVersionMatch?has_content]
+                            [#local targetLoadBalancer = instanceAndVersionMatch]
+                            [#local targetGroup = loadBalancer.TargetGroup!"default"]
+                        [#else]
+                            [#if instanceMatch?has_content && (getComponentType(targetComponent) == "alb")]
+                                [#local targetLoadBalancer = instanceMatch]
+                                [#local targetGroup = task.VersionId]
+                                [#local targetPath =
+                                    "/" + task.VersionId + 
+                                    (port.LB.Path)?has_content?then(
+                                        port.LB.Path,
+                                        "/*"
+                                    )
+                                ]
+                            [/#if]
+                        [/#if]
+                            
+                        [#local targetPort =
+                            (port.LB.Port)?has_content?then(
+                                port.LB.Port,
+                                (port.LB.PortMapping)?has_content?then(
+                                    portMappings[lb.PortMapping].Source,
+                                    port.Id
+                                )
+                            )]
+                    [/#if]
+
                     [#local portMappings +=
                         {
                             "ContainerPort" :
                                 port.Container?then(
-                                    ports[port.Container].Port,
-                                    ports[port.Id].Port
+                                    port.Container,
+                                    port.Id
                                 ),
-                            "HostPort" :
-                                port.DynamicHostPort!false)?then(
-                                    0,
-                                    ports[port.Id].Port
-                                )
-                        }
+                            "HostPort" : port.Id,
+                            "DynamicHostPort" : port.DynamicHostPort!false
+                        } +
+                        targetLoadBalancer?has_content?then(
+                            {
+                                "LoadBalancer" :
+                                    {
+                                        "Tier" : targetTierId,
+                                        "Component" : targetComponentId,
+                                        "Instance" : targetLoadBalancer.InstanceId,
+                                        "Version" : targetLoadBalancer.VersionId
+                                    } +
+                                    targetGroup?has_content?then(
+                                        {
+                                            "TargetGroup" : targetGroup,
+                                            "Port" : targetPort
+                                        } +
+                                        (port.LB.Priority)?has_content?then(
+                                            {
+                                                "Priority" : port.LB.Priority
+                                            },
+                                            {}
+                                        ) +
+                                        targetPath?has_content?then(
+                                            {
+                                                "Path" : targetPath
+                                            },
+                                            {}
+                                        ),
+                                        {}
+                                    ) 
+                            },
+                            {}
+                        )
                     ]
                 [/#if]
             [/#list]
@@ -167,7 +250,7 @@
                     "awslogs",
                     {
                         "awslogs-group":
-                            getReference(formatComponentLogGroupId(tier component)),
+                            getReference(formatComponentLogGroupId(tier, component)),
                         "awslogs-region": regionId,
                         "awslogs-stream-prefix": formatName(task)
                     },
@@ -244,510 +327,12 @@
             [#assign containerId = formatContainerFragmentId(task, container)]
             [#include containerList]
             
-            [#local containers += { currentContainer.Id : currentContainer }]
+            [#local containers += [currentContainer] ]
         [/#if]
     [/#list]
     [#return containers]
 [/#function]
     
-[#macro createTaskRole]
-    [#assign taskId = formatECSTaskId(tier component task)]
-    [#assign taskLogGroupId = formatComponentLogGroupId(tier component)]
-    
-    [#-- Set up context for processing the list of containers --]
-    [#assign containerListTarget = "docker"]
-    [#assign containerListRole = formatDependentRoleId(taskId)]
-
-    [#-- Create a role under which the task will run and attach required policies --]
-    [#if isPartOfCurrentDeploymentUnit(containerListRole)]
-        [@createRole 
-            mode=applicationListMode
-            id=containerListRole
-            trustedServices=["ecs-tasks.amazonaws.com"]
-        /]
-        
-        [#switch applicationListMode]
-            [#case "definition"]
-                [#assign containerListMode = "policy"]
-                [#list task.Containers?values as container]
-                    [#if container?is_hash]
-                        [#assign containerId = formatContainerId(
-                                                task,
-                                                container)]
-                        [#assign containerName = formatContainerName(
-                                                   tier,
-                                                   component,
-                                                   task,
-                                                   container)]
-                        [#assign containerRunMode = getContainerMode(container)]
-                        [#assign containerListPolicyId = formatDependentPolicyId(
-                                                            taskId,
-                                                            getContainerId(container))]
-                        [#assign containerListPolicyName = formatContainerPolicyName(
-                                                            tier,
-                                                            component,
-                                                            task,
-                                                            container)]
-                        [#include containerList]
-                    [/#if]
-                [/#list]
-                [#break]
-        [/#switch]
-    [#else]
-        [#-- Needed to ensure policy macro works in non-policy list modes --]
-        [#assign containerListPolicyId = ""]
-        [#assign containerListPolicyName = ""]
-    [/#if]
-
-    [#if !iamOnly]
-        [#switch applicationListMode]
-            [#case "definition"]
-                [@checkIfResourcesCreated /]
-                "${taskId}" : {
-                    "Type" : "AWS::ECS::TaskDefinition",
-                    "Properties" : {
-                        "ContainerDefinitions" : [
-                            [#assign containerCount = 0]
-                            [#list task.Containers?values as container]
-                                [#if container?is_hash]
-                                    [#assign dockerTag = ""]
-                                    [#if container.Version??]
-                                        [#assign dockerTag = ":" + container.Version]
-                                    [/#if]
-                                    formatRelativePath(
-                                        getRegistryEndPoint("docker"),
-                                        image?has_content?then(
-                                            image,
-                                            formatRelativePath(
-                                                productName,
-                                                buildDeploymentUnit,
-                                                buildCommit
-                                            )
-                                        )
-                                    )
-                                    [#if containerCount > 0],[/#if]
-                                    {
-                                        [#assign containerId = formatContainerId(
-                                                                task,
-                                                                container)]
-                                        [#assign containerName = formatContainerName(
-                                                                   tier,
-                                                                   component,
-                                                                   task,
-                                                                   container)]
-                                        [#assign containerRunMode = getContainerMode(container)]
-                                        [#assign containerListMode = "definition"]
-                                        [#include containerList]
-                                        [#assign containerListMode = "environmentCount"]
-                                        [#assign environmentCount = 0]
-                                        [#include containerList]
-                                        [#if environmentCount > 0]
-                                            "Environment" : [
-                                                [#assign environmentCount = 0]
-                                                [#assign containerListMode = "environment"]
-                                                [#include containerList]
-                                            ],
-                                        [/#if]
-                                        [#assign containerListMode = "mountPointCount"]
-                                        [#assign mountPointCount = 0]
-                                        [#include containerList]
-                                        [#if mountPointCount > 0]
-                                            "MountPoints" : [
-                                                [#assign mountPointCount = 0]
-                                                [#assign containerListMode = "mountPoints"]
-                                                [#include containerList]
-                                            ],
-                                        [/#if]
-                                        "MemoryReservation" : ${container.Memory?c},
-                                        [#if container.MaximumMemory?has_content]
-                                            "Memory" : ${container.MaximumMemory?c},
-                                        [/#if]
-                                        "Cpu" : ${container.Cpu?c},                            
-                                        [#if container.Ports??]
-                                            "PortMappings" : [
-                                                [#assign portCount = 0]
-                                                [#list container.Ports?values as port]
-                                                    [#if port?is_hash]
-                                                        [#if portCount > 0],[/#if]
-                                                        {
-                                                            [#if port.Container??]
-                                                                "ContainerPort" : ${ports[port.Container].Port?c},
-                                                            [#else]
-                                                                "ContainerPort" : ${ports[port.Id].Port?c},
-                                                            [/#if]
-                                                            [#if port.DynamicHostPort?? && port.DynamicHostPort]
-                                                                "HostPort" : 0
-                                                            [#else]
-                                                                "HostPort" : ${ports[port.Id].Port?c}
-                                                            [/#if]
-                                                        }
-                                                        [#assign portCount += 1]
-                                                    [/#if]
-                                                [/#list]
-                                            ],
-                                        [/#if]
-                                        "LogConfiguration" : {
-                                            [#assign logDriver =
-                                                (container.LogDriver)!
-                                                (appSettingsObject.Docker.LogDriver)!
-                                                (
-                                                    (   (appSettingsObject.Docker.LocalLogging)?? && 
-                                                            appSettingsObject.Docker.LocalLogging
-                                                        ) || 
-                                                        (container.LocalLogging?? && container.LocalLogging)
-                                                    )?then(
-                                                        "json-file",
-                                                        "awslogs"
-                                                )
-                                            ]
-                                            "LogDriver": "${logDriver}"
-                                            [#switch logDriver]
-                                                [#case "fluentd"]
-                                                        ,"Options" : { 
-                                                            "tag" : "docker.${productId}.${segmentId}.${tier.Id}.${component.Id}.${container.Id}"
-                                                        }
-                                                    [#break]
-                                                [#case "awslogs"]
-                                                        ,"Options" : { 
-                                                            "awslogs-group": "${getKey(taskLogGroupId)}",
-                                                            "awslogs-region": "${regionId}",
-                                                            "awslogs-stream-prefix": "${formatName(task)}"
-                                                        }
-                                                    [#break]
-                                            [/#switch]
-                                        }
-                                    }
-                                    [#assign containerCount += 1]
-                                [/#if]
-                            [/#list]
-                        ]
-                        [#assign containerListMode = "volumeCount"]
-                        [#assign volumeCount = 0]
-                        [#list task.Containers?values as container]
-                            [#if container?is_hash]
-                                [#assign containerId = formatContainerId(
-                                                        task,
-                                                        container)]
-                                [#assign containerRunMode = getContainerMode(container)]
-                                [#include containerList]
-                            [/#if]
-                        [/#list]
-                        [#if volumeCount > 0]
-                            ,"Volumes" : [
-                                [#assign containerListMode = "volumes"]
-                                [#assign volumeCount = 0]
-                                [#list task.Containers?values as container]
-                                    [#if container?is_hash]
-                                        [#assign containerId = formatContainerId(
-                                                                task,
-                                                                container)]
-                                        [#assign containerRunMode = getContainerMode(container)]
-                                        [#include containerList]
-                                    [/#if]
-                                [/#list]
-                            ]
-                        [/#if]
-                        ,"TaskRoleArn" : [@createArnReference containerListRole /]
-                    }
-                    [#if isPartOfCurrentDeploymentUnit(containerListRole)]
-                        [#-- Check if policies required for the task role --]
-                        [#assign containerListMode = "policyCount"]
-                        [#assign policyCount = 0]
-                        [#assign containerListPolicyId = ""]
-                        [#assign containerListPolicyName = ""]
-                        [#list task.Containers?values as container]
-                            [#if container?is_hash]
-                                [#assign containerId = formatContainerId(
-                                                        task,
-                                                        container)]
-                                [#assign containerRunMode = getContainerMode(container)]
-                                [#include containerList]
-                            [/#if]
-                        [/#list]
-
-                        [#if (policyCount > 0)]
-                            ,"DependsOn" : [
-                                [#-- Generate the list of policies in this template --]
-                                [#-- They need to exist before the task can start --]
-                                [#assign containerListMode = "policyList"]
-                                [#assign policyCount = 0]
-                                [#assign containerListPolicyName = ""]
-                                [#list task.Containers?values as container]
-                                    [#if container?is_hash]
-                                        [#assign containerListPolicyId = formatDependentPolicyId(
-                                                                            taskId,
-                                                                            getContainerId(container))]
-                                        [#assign containerId = formatContainerId(
-                                                                task,
-                                                                container)]
-                                        [#assign containerRunMode = getContainerMode(container)]
-                                        [#include containerList]
-                                    [/#if]
-                                [/#list]
-                            ]
-                        [/#if]
-                    [/#if]
-                }
-                [@resourcesCreated /]
-                [#break]
-    
-                [#case "outputs"]
-                    [@output taskId /]
-                [#break]
-    
-        [/#switch]
-    [/#if]
-[/#macro]
-
-[#macro createTask tier component task iamOnly]
-    [#assign taskId = formatECSTaskId(tier component task)]
-    [#assign taskLogGroupId = formatComponentLogGroupId(tier component)]
-    
-    [#-- Set up context for processing the list of containers --]
-    [#assign containerListTarget = "docker"]
-    [#assign containerListRole = formatDependentRoleId(taskId)]
-
-    [#-- Create a role under which the task will run and attach required policies --]
-    [#if isPartOfCurrentDeploymentUnit(containerListRole)]
-        [@createRole
-            mode=applicationListMode
-            id=containerListRole
-            trustedServices=["ecs-tasks.amazonaws.com"]
-        /]
-        
-        [#switch applicationListMode]
-            [#case "definition"]
-                [#assign containerListMode = "policy"]
-                [#list task.Containers?values as container]
-                    [#if container?is_hash]
-                        [#assign containerId = formatContainerId(
-                                                task,
-                                                container)]
-                        [#assign containerName = formatContainerName(
-                                                   tier,
-                                                   component,
-                                                   task,
-                                                   container)]
-                        [#assign containerRunMode = getContainerMode(container)]
-                        [#assign containerListPolicyId = formatDependentPolicyId(
-                                                            taskId,
-                                                            getContainerId(container))]
-                        [#assign containerListPolicyName = formatContainerPolicyName(
-                                                            tier,
-                                                            component,
-                                                            task,
-                                                            container)]
-                        [#include containerList]
-                    [/#if]
-                [/#list]
-                [#break]
-        [/#switch]
-    [#else]
-        [#-- Needed to ensure policy macro works in non-policy list modes --]
-        [#assign containerListPolicyId = ""]
-        [#assign containerListPolicyName = ""]
-    [/#if]
-
-    [#if !iamOnly]
-        [#switch applicationListMode]
-            [#case "definition"]
-                [@checkIfResourcesCreated /]
-                "${taskId}" : {
-                    "Type" : "AWS::ECS::TaskDefinition",
-                    "Properties" : {
-                        "ContainerDefinitions" : [
-                            [#assign containerCount = 0]
-                            [#list task.Containers?values as container]
-                                [#if container?is_hash]
-                                    [#assign dockerTag = ""]
-                                    [#if container.Version??]
-                                        [#assign dockerTag = ":" + container.Version]
-                                    [/#if]
-                                    formatRelativePath(
-                                        getRegistryEndPoint("docker"),
-                                        image?has_content?then(
-                                            image,
-                                            formatRelativePath(
-                                                productName,
-                                                buildDeploymentUnit,
-                                                buildCommit
-                                            )
-                                        )
-                                    )
-                                    [#if containerCount > 0],[/#if]
-                                    {
-                                        [#assign containerId = formatContainerId(
-                                                                task,
-                                                                container)]
-                                        [#assign containerName = formatContainerName(
-                                                                   tier,
-                                                                   component,
-                                                                   task,
-                                                                   container)]
-                                        [#assign containerRunMode = getContainerMode(container)]
-                                        [#assign containerListMode = "definition"]
-                                        [#include containerList]
-                                        [#assign containerListMode = "environmentCount"]
-                                        [#assign environmentCount = 0]
-                                        [#include containerList]
-                                        [#if environmentCount > 0]
-                                            "Environment" : [
-                                                [#assign environmentCount = 0]
-                                                [#assign containerListMode = "environment"]
-                                                [#include containerList]
-                                            ],
-                                        [/#if]
-                                        [#assign containerListMode = "mountPointCount"]
-                                        [#assign mountPointCount = 0]
-                                        [#include containerList]
-                                        [#if mountPointCount > 0]
-                                            "MountPoints" : [
-                                                [#assign mountPointCount = 0]
-                                                [#assign containerListMode = "mountPoints"]
-                                                [#include containerList]
-                                            ],
-                                        [/#if]
-                                        "MemoryReservation" : ${container.Memory?c},
-                                        [#if container.MaximumMemory?has_content]
-                                            "Memory" : ${container.MaximumMemory?c},
-                                        [/#if]
-                                        "Cpu" : ${container.Cpu?c},                            
-                                        [#if container.Ports??]
-                                            "PortMappings" : [
-                                                [#assign portCount = 0]
-                                                [#list container.Ports?values as port]
-                                                    [#if port?is_hash]
-                                                        [#if portCount > 0],[/#if]
-                                                        {
-                                                            [#if port.Container??]
-                                                                "ContainerPort" : ${ports[port.Container].Port?c},
-                                                            [#else]
-                                                                "ContainerPort" : ${ports[port.Id].Port?c},
-                                                            [/#if]
-                                                            [#if port.DynamicHostPort?? && port.DynamicHostPort]
-                                                                "HostPort" : 0
-                                                            [#else]
-                                                                "HostPort" : ${ports[port.Id].Port?c}
-                                                            [/#if]
-                                                        }
-                                                        [#assign portCount += 1]
-                                                    [/#if]
-                                                [/#list]
-                                            ],
-                                        [/#if]
-                                        "LogConfiguration" : {
-                                            [#assign logDriver =
-                                                (container.LogDriver)!
-                                                (appSettingsObject.Docker.LogDriver)!
-                                                (
-                                                    (   (appSettingsObject.Docker.LocalLogging)?? && 
-                                                            appSettingsObject.Docker.LocalLogging
-                                                        ) || 
-                                                        (container.LocalLogging?? && container.LocalLogging)
-                                                    )?then(
-                                                        "json-file",
-                                                        "awslogs"
-                                                )
-                                            ]
-                                            "LogDriver": "${logDriver}"
-                                            [#switch logDriver]
-                                                [#case "fluentd"]
-                                                        ,"Options" : { 
-                                                            "tag" : "docker.${productId}.${segmentId}.${tier.Id}.${component.Id}.${container.Id}"
-                                                        }
-                                                    [#break]
-                                                [#case "awslogs"]
-                                                        ,"Options" : { 
-                                                            "awslogs-group": "${getKey(taskLogGroupId)}",
-                                                            "awslogs-region": "${regionId}",
-                                                            "awslogs-stream-prefix": "${formatName(task)}"
-                                                        }
-                                                    [#break]
-                                            [/#switch]
-                                        }
-                                    }
-                                    [#assign containerCount += 1]
-                                [/#if]
-                            [/#list]
-                        ]
-                        [#assign containerListMode = "volumeCount"]
-                        [#assign volumeCount = 0]
-                        [#list task.Containers?values as container]
-                            [#if container?is_hash]
-                                [#assign containerId = formatContainerId(
-                                                        task,
-                                                        container)]
-                                [#assign containerRunMode = getContainerMode(container)]
-                                [#include containerList]
-                            [/#if]
-                        [/#list]
-                        [#if volumeCount > 0]
-                            ,"Volumes" : [
-                                [#assign containerListMode = "volumes"]
-                                [#assign volumeCount = 0]
-                                [#list task.Containers?values as container]
-                                    [#if container?is_hash]
-                                        [#assign containerId = formatContainerId(
-                                                                task,
-                                                                container)]
-                                        [#assign containerRunMode = getContainerMode(container)]
-                                        [#include containerList]
-                                    [/#if]
-                                [/#list]
-                            ]
-                        [/#if]
-                        ,"TaskRoleArn" : [@createArnReference containerListRole /]
-                    }
-                    [#if isPartOfCurrentDeploymentUnit(containerListRole)]
-                        [#-- Check if policies required for the task role --]
-                        [#assign containerListMode = "policyCount"]
-                        [#assign policyCount = 0]
-                        [#assign containerListPolicyId = ""]
-                        [#assign containerListPolicyName = ""]
-                        [#list task.Containers?values as container]
-                            [#if container?is_hash]
-                                [#assign containerId = formatContainerId(
-                                                        task,
-                                                        container)]
-                                [#assign containerRunMode = getContainerMode(container)]
-                                [#include containerList]
-                            [/#if]
-                        [/#list]
-
-                        [#if (policyCount > 0)]
-                            ,"DependsOn" : [
-                                [#-- Generate the list of policies in this template --]
-                                [#-- They need to exist before the task can start --]
-                                [#assign containerListMode = "policyList"]
-                                [#assign policyCount = 0]
-                                [#assign containerListPolicyName = ""]
-                                [#list task.Containers?values as container]
-                                    [#if container?is_hash]
-                                        [#assign containerListPolicyId = formatDependentPolicyId(
-                                                                            taskId,
-                                                                            getContainerId(container))]
-                                        [#assign containerId = formatContainerId(
-                                                                task,
-                                                                container)]
-                                        [#assign containerRunMode = getContainerMode(container)]
-                                        [#include containerList]
-                                    [/#if]
-                                [/#list]
-                            ]
-                        [/#if]
-                    [/#if]
-                }
-                [@resourcesCreated /]
-                [#break]
-    
-                [#case "outputs"]
-                    [@output taskId /]
-                [#break]
-    
-        [/#switch]
-    [/#if]
-[/#macro]
-
 [#-- Initialisation --]
 
 [#if buildReference?has_content]
