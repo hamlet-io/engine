@@ -193,16 +193,6 @@
     ]
 [/#function]
 
-[#function getLocalReferences ids ]
-    [#local result = [] ]
-    [#list asArray(ids) as id]
-        [#if getReference(id)?is_hash]
-            [#local result += [id] ]
-        [/#if]
-    [/#list]
-    [#return result]
-[/#function]
-
 [#macro createReference resourceId attributeType=""]
     [@toJSON getReference(resourceId, attributeType) /]
 [/#macro]
@@ -322,16 +312,6 @@
     ]
 [/#function]
 
-[#function getLocalOutputs outputs=[]]
-    [#local result = [] ]
-    [#list asArray(outputs) as output]
-        [#if output?is_hash && output.Ref?has_content]
-            [#local result += output]
-        [/#if]
-    [/#list]
-    [#return result]
-[/#function]
-
 [#macro cfTemplateOutput mode id value]
     [#switch mode]
         [#case "outputs"]
@@ -370,6 +350,14 @@
             dependencies=[]
             metadata={}
             deletionPolicy=""]
+
+    [#local localDependencies = [] ]
+    [#list asArray(dependencies) as resourceId]
+        [#if isLocalReference(resourceId)]
+            [#local localDependencies += [resourceId] ]
+        [/#if]
+    [/#list]
+
     [#switch mode]
         [#case "definition"]
             [@checkIfResourcesCreated /]
@@ -390,8 +378,8 @@
                         [/#if]
                     }
                 [/#if]
-                [#if dependencies?has_content]
-                    ,"DependsOn" : [@toJSON dependencies /]
+                [#if localDependencies?has_content]
+                    ,"DependsOn" : [@toJSON localDependencies /]
                 [/#if]
                 [#if deletionPolicy?has_content]
                     ,"DeletionPolicy" : [@toJSON deletionPolicy /]

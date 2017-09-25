@@ -53,7 +53,8 @@
 [#function formatContainerFragmentId host container]
     [#return formatName(
                 getContainerId(container),
-                concatenate(host.Internal.OccurrenceIdExtensions,"-"))]
+                host.InstanceId,
+                host.VersionId)]
 [/#function]
 
 [#function formatContainerSecurityGroupIngressId resourceId container portRange]

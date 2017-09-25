@@ -4,17 +4,31 @@
     [#local rules = [] ]
     [#list asArray(cidr) as cidrBlock]
         [#local rule =
-            {
-                "IpProtocol": ports[port]?has_content?then(
-                                    ports[port].IPProtocol,
-                                    -1),
-                "FromPort": ports[port]?has_content?then(
-                                    ports[port].Port,
-                                    1),
-                "ToPort": ports[port]?has_content?then(
-                                    ports[port].Port,
-                                    65535)
-            }
+            port?is_number?then(
+                (port == 0)?then(
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 32768,
+                        "ToPort" : 65535
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": port,
+                        "ToPort" : port
+                    }
+                ),                    
+                {
+                    "IpProtocol": ports[port]?has_content?then(
+                                        ports[port].IPProtocol,
+                                        -1),
+                    "FromPort": ports[port]?has_content?then(
+                                        ports[port].Port,
+                                        1),
+                    "ToPort": ports[port]?has_content?then(
+                                        ports[port].Port,
+                                        65535)
+                }
+            )
         ]
 
         [#if groupId?has_content]

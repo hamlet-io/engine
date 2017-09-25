@@ -28,7 +28,7 @@
             {
                 "Subnets" : getSubnets(tier),
                 "Scheme" : (tier.RouteTable == "external")?then("internet-facing","internal"),
-                "SecurityGroups": securityGroups,
+                "SecurityGroups": getReferences(securityGroups),
                 "Name" : shortName
             } +
             logs?then(
@@ -173,5 +173,42 @@
                     name),
                 tier,
                 component)
+    /]
+[/#macro]
+
+[#function getListenerRuleForwardAction targetGroupId]
+    [#return
+        [
+            {
+                "Type": "forward",
+                "TargetGroupArn": getReference(targetGroupId)
+            }
+        ]
+    ]
+[/#function]
+
+[#function getListenerRulePathCondition paths]
+    [#return
+        [
+            {
+                "Field": "path-pattern",
+                "Values": asArray(paths)
+            }
+        ]
+    ]
+[/#function]
+
+[#macro createListenerRule mode id listenerId actions=[] conditions=[] priority=100 dependencies=""]
+    [@cfTemplate
+        mode=mode
+        id=id
+        type="AWS::ElasticLoadBalancingV2::ListenerRule"
+        properties=
+            {
+                "Priority" : priority,
+                "Actions" : actions,
+                "Conditions": conditions
+                "ListenerArn" : getReference(listenerId, ARN_ATTRIBUTE_TYPE)
+        dependencies=dependencies
     /]
 [/#macro]

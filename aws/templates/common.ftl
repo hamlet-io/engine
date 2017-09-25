@@ -204,31 +204,7 @@
 [#-- Get the type for a component --]
 [#function getComponentType component]
     [#local idParts = component.Id?split("-")]
-    [#if idParts[1]??]
-        [#return idParts[1]?lower_case]
-    [#else]
-        [#list component?keys as key]
-            [#switch key]
-                [#case "Id"]
-                [#case "Name"]
-                [#case "Title"]
-                [#case "Description"]
-                [#case "DeploymentUnits"]
-                [#case "MultiAZ"]
-                    [#break]
-
-                [#default]
-                    [#return key?lower_case]
-                    [#break]
-            [/#switch]
-        [/#list]
-    [/#if]
-[/#function]
-
-[#-- Get the type for a component --]
-[#function getComponentType component]
-    [#local idParts = component.Id?split("-")]
-    [#if idParts[1]??]
+    [#if idParts[1]?has_content]
         [#return idParts[1]?lower_case]
     [#else]
         [#list component?keys as key]
@@ -287,15 +263,15 @@
 [/#function]
 
 [#-- Get the type specific attributes of versions/instances of a component --]
-[#function getOccurrenceAttributes attributes=[] root={} version={} instance={} ]
+[#function getOccurrenceAttributes attributes=[] root={} instance={} version={} ]
     [#local result = {} ]
     [#list asArray(attributes) as attribute]
         [#local attributeName = attribute?is_hash?then(attribute.Name, attribute) ]
         [#local children = attribute?is_hash?then(attribute.Children![], []) ]
         [#local attributeDefault = attribute?is_hash?then(attribute.Default!"","") ]
         [#local isConfigured =
-                    instance[attributeName]?? ||
                     version[attributeName]?? ||
+                    instance[attributeName]?? ||
                     root[attributeName]?? ]
         [#local result +=
             {
@@ -309,11 +285,11 @@
                         getOccurrenceAttributes(
                             children,
                             root[attributeName]!{},
-                            version[attributeName]!{},
-                            instance[attributeName]!{}
+                            instance[attributeName]!{},
+                            version[attributeName]!{}
                         ),
-                        instance[attributeName]!
-                            version[attributeName]!
+                        version[attributeName]!
+                            instance[attributeName]!
                             root[attributeName]!
                             attributeDefault
                     )
@@ -323,8 +299,8 @@
     [#return result ] 
 [/#function]
 
-[#-- A "default" version/instance doesn't need extensions --]
-[#function getOccurrenceIdExtension occurrence]
+[#-- treat the value "default" for version/instance as the same as blank --]
+[#function getOccurrenceId occurrence]
     [#return
         (occurrence.Id == "default")?then(
             "",
@@ -333,9 +309,9 @@
     ]
 [/#function]
 
-[#function getOccurrenceNameExtension occurrence]
+[#function getOccurrenceName occurrence]
     [#return
-        getOccurrenceIdExtension(occurrence)?has_content?then(
+        getOccurrenceId(occurrence)?has_content?then(
             occurrence.Name,
             ""
         )
@@ -470,43 +446,38 @@
     [#if type?hasContent}
         [#local typeObject = root]
         [#local attributes = componentAttributes[type]![] ]
-        [#local typeIdExtensions = [root.Id] ]
-        [#local typeNameExtensions = [root.Name] ]
+        [#local typeId = [root.Id] ]
+        [#local typeName = [root.Name] ]
     [#else]
         [#local typeObject = getComponentTypeObject(root)]
         [#local attributes = componentAttributes[getComponentType(root)]![] ]
-        [#local typeIdExtensions = [] ]
-        [#local typeNameExtensions = [] ]
+        [#local typeId = [] ]
+        [#local typeName = [] ]
     [/#if]
     [#local occurrences=[] ]
-    [#if typeObject.Versions?has_content]
-        [#list typeObject.Versions?values as version]
-            [#if version?is_hash && deploymentRequired(version, deploymentUnit)]
-                [#local versionIdExtension = getOccurrenceIdExtension(version)]
-                [#local versionNameExtension = getOccurrenceNameExtension(version)]
-                [#if version.Instances?has_content]
-                    [#list version.Instances?values as instance]
-                        [#if instance?is_hash && deploymentRequired(instance, deploymentUnit)]
-                            [#local instanceIdExtension = getOccurrenceIdExtension(instance)]
-                            [#local instanceNameExtension = getOccurrenceNameExtension(instance)]
+    [#if typeObject.Instances?has_content]
+        [#list typeObject.Instances?values as instance]
+            [#if instance?is_hash && deploymentRequired(instance, deploymentUnit)]
+                [#local instanceId = getOccurrenceId(instance)]
+                [#local instanceName = getOccurrenceName(instance)]
+                [#if instance.Versions?has_content]
+                    [#list instance.Versions?values as version]
+                        [#if version?is_hash && deploymentRequired(version, deploymentUnit)]
+                            [#local versionId = getOccurrenceId(version)]
+                            [#local versionName = getOccurrenceName(version)]
                             [#local occurrences +=
                                 [
                                     {
-                                        "Root" : typeObject,
-                                        "Version" : version,
-                                        "Instance" : instance,
-                                        "VersionId" : version.Id,
-                                        "VersionName" : versionNameExtension,
-                                        "InstanceId" : instance.Id,
-                                        "InstanceName" : instanceNameExtension,
+                                        "InstanceId" : instanceId,
+                                        "InstanceName" : instanceName,
+                                        "VersionId" : versionId,
+                                        "VersionName" : versionName,
                                         "Internal" : {
-                                            "OccurrenceIdExtensions" : [versionIdExtension, instanceIdExtension],
-                                            "OccurrenceNameExtensions" : [versionNameExtension, instanceNameExtension],
-                                            "IdExtensions" : typeIdExtensions + [versionIdExtension, instanceIdExtension],
-                                            "NameExtensions" : typeNameExtensions + [versionNameExtension, instanceNameExtension]
+                                            "IdExtensions" : typeId + [instanceId, versionId],
+                                            "NameExtensions" : typeName + [instanceName, versionName]
                                         }
                                     } +
-                                    getOccurrenceAttributes(attributes, typeObject, version, instance)
+                                    getOccurrenceAttributes(attributes, typeObject, instance, version)
                                 ]
                             ]
                         [/#if]
@@ -515,50 +486,40 @@
                     [#local occurrences +=
                         [
                             {
-                                "Root" : typeObject,
-                                "Version" : version,
-                                "Instance" : {},
-                                "VersionId" : version.Id,
-                                "VersionName" : versionNameExtension,
-                                "InstanceId" : "",
-                                "InstanceName" : "",
+                                "InstanceId" : instanceId,
+                                "InstanceName" : instanceName,
+                                "VersionId" : "",
+                                "VersionName" : "",
                                 "Internal" : {
-                                    "OccurrenceIdExtensions" : [versionIdExtension],
-                                    "OccurrenceNameExtensions" : [versionNameExtension],
-                                    "IdExtensions" : typeIdExtensions + [versionIdExtension],
-                                    "NameExtensions" : typeNameExtensions + [versionNameExtension]
+                                    "IdExtensions" : typeId + [instanceId],
+                                    "NameExtensions" : typeName + [instanceName]
                                 }
                             } +
-                            getOccurrenceAttributes(attributes, typeObject, version)
+                            getOccurrenceAttributes(attributes, typeObject, instance)
                         ]
                     ]
                 [/#if]
             [/#if]
         [/#list]
     [#else]
-        [#if typeObject.Instances?has_content]
-            [#list typeObject.Instances?values as instance]
-                [#if instance?is_hash && deploymentRequired(instance, deploymentUnit)]
-                    [#local instanceIdExtension = getOccurrenceIdExtension(instance)]
-                    [#local instanceNameExtension = getOccurrenceNameExtension(instance)]
+        [#if typeObject.Versions?has_content]
+            [#list typeObject.Versions?values as version]
+                [#if version?is_hash && deploymentRequired(version, deploymentUnit)]
+                    [#local versionId = getOccurrenceId(version)]
+                    [#local versionName = getOccurrenceName(version)]
                     [#local occurrences +=
                         [
                             {
-                                "Root" : typeObject,
-                                "Version" : {},
-                                "Instance" : instance,
-                                "VersionId" : "",
-                                "VersionName" : "",
-                                "InstanceId" : instance.Id,
-                                "InstanceName" : instanceNameExtension,
+                                "InstanceId" : "",
+                                "InstanceName" : "",
+                                "VersionId" : versionId,
+                                "VersionName" : versionName,
                                 "Internal" : {
-                                    "OccurrenceIdExtensions" : [instanceIdExtension],
-                                    "OccurrenceNameExtensions" : [instanceNameExtension],
-                                    "IdExtensions" : typeIdExtensions + [instanceIdExtension],
-                                    "NameExtensions" : typeNameExtensions + [instanceNameExtension]
+                                    "IdExtensions" : typeId + [versionId],
+                                    "NameExtensions" : typeName + [versionName]
                                 }
                             } +
-                            getOccurrenceAttributes(attributes, typeObject, {}, instance)
+                            getOccurrenceAttributes(attributes, typeObject, {}, version)
                         ]
                     ]
                 [/#if]
@@ -567,18 +528,13 @@
             [#local occurrences +=
                 [
                     {
-                        "Root" : typeObject,
-                        "Version" : {},
-                        "Instance" : {},
-                        "VersionId" : "",
-                        "VersionName" : "",
                         "InstanceId" : "",
                         "InstanceName" : "",
+                        "VersionId" : "",
+                        "VersionName" : "",
                         "Internal" : {
-                            "OccurrenceIdExtensions" : [],
-                            "OccurrenceNameExtensions" : [],
-                            "IdExtensions" : typeIdExtensions,
-                            "NameExtensions" : typeNameExtensions
+                            "IdExtensions" : typeId,
+                            "NameExtensions" : typeName
                         }
                     } +
                     getOccurrenceAttributes(attributes, typeObject)
