@@ -173,7 +173,7 @@
 
         [#if occurrence.UseTaskRole]
             [#assign roleId = formatDependentRoleId(taskId) ]
-            [#if deploymentSubsetRequired("iam") && isPartOfCurrentDeploymentUnit(roleId)]
+            [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                 [@createRole 
                     mode=applicationListMode
                     id=roleId

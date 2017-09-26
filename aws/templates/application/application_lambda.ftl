@@ -32,7 +32,7 @@
                             "OPSDATA_BUCKET" : operationsBucket,
                             "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
                             "CREDENTIALS_PREFIX" : getCredentialsFilePrefix(),
-                            "APP_RUN_MODE" : getContainerMode(container)
+                            "APP_RUN_MODE" : "WEB"
                         } +
                         buildCommit?has_content?then(
                             {
@@ -45,17 +45,26 @@
                                 "APP_REFERENCE" : appReference
                             },
                             {}
+                        ),
+                    "S3Bucket" : getRegistryEndPoint("lambda"),
+                    "S3Key" : 
+                        formatRelativePath(
+                            getRegistryPrefix("lambda") + productName,
+                            buildDeploymentUnit,
+                            buildCommit,
+                            "lambda.zip"
                         )
+
                 }
             ]
         
             [#-- Add in container specifics including override of defaults --]
             [#assign containerListMode = "model"]
             [#assign containerId = formatContainerFragmentId(occurrence, currentContainer)]
-            [#include containerList]
+            [#include containerList?ensure_starts_with("/")]
     
             [#assign roleId = formatDependentRoleId(lambdaId)]
-            [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(containerListRole)]
+            [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                 [#-- Create a role under which the function will run and attach required policies --]
                 [#-- The role is mandatory though there may be no policies attached to it --]
                 [@createRole 
@@ -108,72 +117,33 @@
                                 occurrence,
                                 fn)]
                                 
-                        [#assign handler = fn.Handler!occurrence.Handler]
-                        [#assign runTime = fn.RunTime!occurrence.RunTime]
-                        [#assign memorySize = fn.MemorySize!occurrence.MemorySize]
-                        [#assign timeout = fn.Timeout!occurrence.Timeout]
-                        [#assign useSegmentKey = fn.UseSegmentKey!occurrence.UseSegmentKey]
-                        [@cfTemplate
+                        [@createLambdaFunction
                             mode=applicationListMode
                             id=lambdaFunctionId
-                            type="AWS::Lambda::Function"
-                            properties=
+                            container=currentContainer +
                                 {
-                                    "Code" : {
-                                        "S3Bucket" : getRegistryEndPoint("lambda"),
-                                        "S3Key" : 
-                                            formatRelativePath(
-                                                getRegistryPrefix("lambda") + productName,
-                                                buildDeploymentUnit,
-                                                buildCommit,
-                                                "lambda.zip"
-                                            )
-                                    },                                            
-                                    "FunctionName" : lambdaFunctionName,
-                                    "Description" : lambdaFunctionName,
-                                    "Handler" : handler,
-                                    "Role" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
-                                    "Runtime" : runTime
-                                } + 
-                                currentContainer.Environment?then(
-                                    {
-                                        "Environment" : currentContainer.Environment
-                                    },
-                                    {}
-                                ) +
-                                (memorySize > 0)?then(
-                                    {
-                                        "MemorySize" : memorySize
-                                    },
-                                    {}
-                                ) +
-                                (time > 0)?then(
-                                    {
-                                        "Timeout" : timeout
-                                    },
-                                    {}
-                                ) +
-                                useSegmentKey?then(
-                                    {
-                                        "KmsKeyArn" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
-                                    },
-                                    {}
-                                ) + 
+                                    "Handler" : fn.Handler!occurrence.Handler,
+                                    "RunTime" : fn.RunTime!occurrence.RunTime,
+                                    "MemorySize" : fn.MemorySize!occurrence.MemorySize,
+                                    "Timeout" : fn.Timeout!occurrence.Timeout,
+                                    "UseSegmentKey" : fn.UseSegmentKey!occurrence.UseSegmentKey,
+                                    "Name" : lambdaFunctionName,
+                                    "Description" : lambdaFunctionName
+                                }
+                            roleId=roleId
+                            securityGroupIds=
                                 (vpc?has_content && occurrence.VPCAccess)?then(
-                                    {
-                                        "VpcConfig" : {
-                                            "SecurityGroupIds" : [ 
-                                                getReference(formatDependentSecurityGroupId(lambdaId))
-                                            ],
-                                            "SubnetIds" : getSubnets(tier)
-                                        }
-                                    },
-                                    {}
+                                    formatDependentSecurityGroupId(lambdaId),
+                                    ""
                                 )
                             dependencies=roleId
                         /]
                     [/#if]
                 [/#list]
+                
+                [#-- Pick any extra macros in the container fragment --]
+                [#assign containerListMode = applicationListMode]
+                [#include containerList?ensure_starts_with("/")]
             [/#if]
         [/#if]
     [/#list]
