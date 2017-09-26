@@ -213,7 +213,7 @@
         type="AWS::EC2::FlowLog"
         properties=
             {
-                "DeliverLogsPermissionArn" : getArnReference(roleId),
+                "DeliverLogsPermissionArn" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
                 "LogGroupName" : logGroupName,
                 "ResourceId" : getReference(resourceId),
                 "ResourceType" : resourceType,

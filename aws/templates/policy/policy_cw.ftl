@@ -1,6 +1,6 @@
 [#-- Cloud Watch --]
 
-[#function getCloudWatchLogsProduceStatement ]
+[#function cwLogsProducePermission ]
     [#return
         [
             getPolicyStatement(
@@ -14,8 +14,4 @@
         ]
     ]
 [/#function]
-
-[#macro cloudWatchLogsProduceStatement ]
-    [@policyStatements getCloudWatchLogsProduceStatement() /]
-[/#macro]
 

@@ -28,7 +28,7 @@
         id=s3OperationsPolicyId
         bucket=operationsBucket
         statements=
-            getS3WriteStatement(
+            s3WritePermission(
                 operationsBucket,
                 "AWSLogs",
                 "*",
@@ -36,18 +36,18 @@
                     "AWS": "arn:aws:iam::" + regionObject.Accounts["ELB"] + ":root"
                 }
             ) +
-            getS3ReadBucketACLStatement(
+            s3ReadBucketACLPermission(
                 operationsBucket,
                 { "Service": "logs." + regionId + ".amazonaws.com" }
             ) +
-            getS3WriteStatement(
+            s3WritePermission(
                 operationsBucket,
                 "",
                 "*",
                 { "Service": "logs." + regionId + ".amazonaws.com" },
                 { "StringEquals": { "s3:x-amz-acl": "bucket-owner-full-control" } }
             )
-        dependencies=[ s3OperationsId ]
+        dependencies=s3OperationsId
     /]
     
     [@createS3Bucket

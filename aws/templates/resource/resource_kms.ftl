@@ -26,10 +26,7 @@
                 "Description" : description,
                 "Enabled" : true,
                 "EnableKeyRotation" : rotateKeys,
-                "KeyPolicy" : {
-                    "Version": "2012-10-17",
-                    "Statement": statements
-                }
+                "KeyPolicy" : getPolicyDocumentContent(statements)
             }
         outputs=CMK_OUTPUT_MAPPINGS
         outputId=outputId
@@ -45,7 +42,7 @@
         properties=
             {
                 "AliasName" : name,
-                "TargetKeyId" : getArnReference(cmkId)
+                "TargetKeyId" : getReference(cmkId, ARN_ATTRIBUTE_TYPE)
             }
         outputs={}
     /]

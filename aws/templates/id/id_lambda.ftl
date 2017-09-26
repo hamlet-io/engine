@@ -1,7 +1,5 @@
 [#-- Lambda --]
 
-[#-- Resources --]
-
 [#function formatLambdaId tier component extensions...]
     [#return formatComponentResourceId(
                 "lambda",
@@ -18,5 +16,3 @@
                 extensions,
                 fn)]
 [/#function]
-
-[#-- Attributes --]

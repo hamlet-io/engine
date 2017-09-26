@@ -55,25 +55,41 @@
 
 [#macro Variable name value]
     [#if (containerListMode!"") == "model"]
-        [#assign currentContainer += {"Environment" : { name : value }} ]
+        [#assign currentContainer +=
+            {
+                "Environment" : (currentContainer.Environment!{}) + { name : value }
+            }
+        ]
     [/#if]
 [/#macro]
 
 [#macro Variables variables={}]
     [#if ((containerListMode!"") == "model") && variables?is_hash]
-        [#assign currentContainer += {"Environment" : variables} ]
+        [#assign currentContainer +=
+            {
+                "Environment" : (currentContainer.Environment!{}) + variables
+            }
+        ]
     [/#if]
 [/#macro]
 
 [#macro Host name value]
     [#if (containerListMode!"") == "model"]
-        [#assign currentContainer += {"Hosts" : { name : value }} ]
+        [#assign currentContainer +=
+            {
+                "Hosts" : (currentContainer.Hosts!{}) + { name : value }
+            }
+        ]
     [/#if]
 [/#macro]
 
 [#macro Hosts hosts]
     [#if ((containerListMode!"") == "model") && hosts?is_hash]
-        [#assign currentContainer += { "Hosts" : hosts } ]
+        [#assign currentContainer +=
+            {
+                "Hosts" : (currentContainer.Hosts!{}) + hosts
+            }
+        ]
     [/#if]
 [/#macro]
 
@@ -81,13 +97,15 @@
     [#if (containerListMode!"") == "model"]
         [#assign currentContainer +=
             {
-                "Volumes" : {
-                    name : {
-                        "ContainerPath" : containerPath,
-                        "HostPath" : hostPath,
-                        "ReadOnly" : readOnly
+                "Volumes" :
+                    (currentContainer.Volumes!{}) + 
+                    {
+                        name : {
+                            "ContainerPath" : containerPath,
+                            "HostPath" : hostPath,
+                            "ReadOnly" : readOnly
+                        }
                     }
-                }
             }
         ]
     [/#if]
@@ -95,7 +113,11 @@
 
 [#macro Volumes volumes]
     [#if ((containerListMode!"") == "model") && volumes?is_hash]
-        [#assign currentContainer += { "Volumes" : volumes } ]
+        [#assign currentContainer +=
+            {
+                "Volumes" : (currentContainer.Volumes!{}) + volumes
+            }
+        ]
     [/#if]
 [/#macro]
 
@@ -119,19 +141,20 @@
             [#local portMappings = [] ]
             [#list (container.Ports!{})?values as port]
                 [#if port?is_hash]
-                    [#local targetLoadBalancer = {}]
-                    [#local targetTierId = (port.LB.Tier)!(port.ELB?has_content?then("elb", "")]
-                    [#local targetComponentId = port.LB.Component!(port.ELB?has_content?then(port.ELB, "")]
+                    [#local targetLoadBalancer = {} ]
+                    [#local targetTierId = (port.LB.Tier)!port.ELB?has_content?then("elb", "") ]
+                    [#local targetComponentId = port.LB.Component!port.ELB?has_content?then(port.ELB, "") ]
                     [#local targetGroup = ""]
-                    [#local targetPath = port.LB.Path!""]
+                    [#local targetPath = (port.LB.Path)!""]
+                    [#local targetType = port.ELB?has_content?then("elb", "alb")]
                     
-                    [#if targetTierId?has_content && targetComponentId?has_Content]
+                    [#if targetTierId?has_content && targetComponentId?has_content]
                         [#-- Work out which occurrence to use --]
                         [#local targetComponent =
                             getComponent(
                                 targetTierId,
                                 targetComponentId,
-                                port.ELB?has_content?then("elb", "alb"))]
+                                targetType)]
                         [#local instanceAndVersionMatch = {}]
                         [#local instanceMatch = {}]
                         [#if targetComponent?has_content]
@@ -150,9 +173,11 @@
                         [/#if]
                         [#if instanceAndVersionMatch?has_content]
                             [#local targetLoadBalancer = instanceAndVersionMatch]
-                            [#local targetGroup = loadBalancer.TargetGroup!"default"]
+                            [#if (targetType == "alb") && (!(targetGroup?has_content))]
+                                [#local targetGroup = "default"]
+                            [/#if]
                         [#else]
-                            [#if instanceMatch?has_content && (getComponentType(targetComponent) == "alb")]
+                            [#if instanceMatch?has_content && (targetType == "alb")]
                                 [#local targetLoadBalancer = instanceMatch]
                                 [#local targetGroup = task.VersionId]
                                 [#local targetPath =
@@ -176,46 +201,48 @@
                     [/#if]
 
                     [#local portMappings +=
-                        {
-                            "ContainerPort" :
-                                port.Container?then(
-                                    port.Container,
-                                    port.Id
-                                ),
-                            "HostPort" : port.Id,
-                            "DynamicHostPort" : port.DynamicHostPort!false
-                        } +
-                        targetLoadBalancer?has_content?then(
+                        [
                             {
-                                "LoadBalancer" :
-                                    {
-                                        "Tier" : targetTierId,
-                                        "Component" : targetComponentId,
-                                        "Instance" : targetLoadBalancer.InstanceId,
-                                        "Version" : targetLoadBalancer.VersionId
-                                    } +
-                                    targetGroup?has_content?then(
+                                "ContainerPort" :
+                                    port.Container?has_content?then(
+                                        port.Container,
+                                        port.Id
+                                    ),
+                                "HostPort" : port.Id,
+                                "DynamicHostPort" : port.DynamicHostPort!false
+                            } +
+                            targetLoadBalancer?has_content?then(
+                                {
+                                    "LoadBalancer" :
                                         {
-                                            "TargetGroup" : targetGroup,
-                                            "Port" : targetPort
+                                            "Tier" : targetTierId,
+                                            "Component" : targetComponentId,
+                                            "Instance" : targetLoadBalancer.InstanceId,
+                                            "Version" : targetLoadBalancer.VersionId
                                         } +
-                                        (port.LB.Priority)?has_content?then(
+                                        targetGroup?has_content?then(
                                             {
-                                                "Priority" : port.LB.Priority
-                                            },
+                                                "TargetGroup" : targetGroup,
+                                                "Port" : targetPort
+                                            } +
+                                            (port.LB.Priority)?has_content?then(
+                                                {
+                                                    "Priority" : port.LB.Priority
+                                                },
+                                                {}
+                                            ) +
+                                            targetPath?has_content?then(
+                                                {
+                                                    "Path" : targetPath
+                                                },
+                                                {}
+                                            ),
                                             {}
-                                        ) +
-                                        targetPath?has_content?then(
-                                            {
-                                                "Path" : targetPath
-                                            },
-                                            {}
-                                        ),
-                                        {}
-                                    ) 
-                            },
-                            {}
-                        )
+                                        ) 
+                                },
+                                {}
+                            )
+                        ]
                     ]
                 [/#if]
             [/#list]
@@ -224,7 +251,7 @@
                 (container.LogDriver)!
                 (appSettingsObject.Docker.LogDriver)!
                 (
-                    (appSettingsObject.Docker.LocalLogging)!false) ||
+                    ((appSettingsObject.Docker.LocalLogging)!false) ||
                     (container.LocalLogging!false)
                 )?then(
                     "json-file",
@@ -232,7 +259,7 @@
                 )]
                 
             [#local logOptions = 
-                container.LogDriver?switch(
+                logDriver?switch(
                     "fluentd", 
                     {
                         "tag" : concatenate(
@@ -261,20 +288,23 @@
                 {
                     "Id" : getContainerId(container),
                     "Name" : getContainerName(container),
+                    "Essential" : true,
                     "Image" :
                         formatRelativePath(
                             getRegistryEndPoint("docker"),
                             productName,
-                            buildDeploymentUnit,
-                            buildCommit
+                            formatName(
+                                buildDeploymentUnit,
+                                buildCommit
+                            )
                         ),
                     "MemoryReservation" : container.Memory,
                     "LogDriver" : logDriver,
-                    "LogOptions" :logOptions,
+                    "LogOptions" : logOptions,
                     "Environment" :
                         {
-                            "TEMPLATE_TIMESTAMP" .now?iso_utc,
-                            "AWS_REGION": regionId,
+                            "TEMPLATE_TIMESTAMP" : .now?iso_utc,
+                            "AWS_REGION" : regionId,
                             "ENVIRONMENT" : environmentName,
                             "REQUEST_REFERENCE" : requestReference,
                             "CONFIGURATION_REFERENCE" : configurationReference,
@@ -283,7 +313,7 @@
                             "OPSDATA_BUCKET" : operationsBucket,
                             "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
                             "CREDENTIALS_PREFIX" : getCredentialsFilePrefix(),
-                            "APP_RUN_MODE" : getContainerMode(container),
+                            "APP_RUN_MODE" : getContainerMode(container)
                         } +
                         buildCommit?has_content?then(
                             {
@@ -294,7 +324,9 @@
                         appReference?has_content?then(
                             {
                                 "APP_REFERENCE" : appReference
-                            }
+                            },
+                            {}
+                        )
                 } +
                 container.Version?has_content?then(
                     {

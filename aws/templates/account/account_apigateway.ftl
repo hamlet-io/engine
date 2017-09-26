@@ -16,7 +16,7 @@
         type="AWS::ApiGateway::Account"
         properties=
             {
-                "CloudWatchRoleArn" : getArnReference(cloudWatchRoleId)
+                "CloudWatchRoleArn" : getReference(cloudWatchRoleId, ARN_ATTRIBUTE_TYPE)
             }
         outputs={}
     /]

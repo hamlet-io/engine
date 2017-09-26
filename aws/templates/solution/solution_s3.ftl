@@ -33,7 +33,7 @@
                     mode=solutionListMode
                     id=sqsPolicyId
                     queues=sqsId
-                    statements=getSqsWriteStatement(sqsId)
+                    statements=sqsWritePermission(sqsId)
                 /]
             [/#if]
         [/#list]
@@ -42,8 +42,8 @@
             mode=solutionListMode
             id=s3Id
             name=
-                getKey(s3Id)?has_content?then(
-                    getKey(s3Id),
+                getExistingReference(s3Id)?has_content?then(
+                    getExistingReference(s3Id),
                     formatHostDomainName(
                         [
                             (s3.Name != "S3")?then(s3.Name, componentName),

@@ -38,11 +38,11 @@
         policies=
             [
                 getPolicyDocument(
-                    getS3ListStatement(codeBucket) +
-                        getS3ReadStatement(codeBucket) +
-                        getS3ListStatement(operationsBucket) +
-                        getS3WriteStatement(operationsBucket, "DOCKERLogs") +
-                        getS3WriteStatement(operationsBucket, "Backups"),
+                    s3ListPermission(codeBucket) +
+                        s3ReadPermission(codeBucket) +
+                        s3ListPermission(operationsBucket) +
+                        s3WritePermission(operationsBucket, "DOCKERLogs") +
+                        s3WritePermission(operationsBucket, "Backups"),
                     formatComponentShortName(
                         tier,
                         component,
@@ -80,7 +80,7 @@
                                     component,
                                     zone)]
             [#-- Support backwards compatability with existing installs --] 
-            [#if !(getKey(ec2EIPId)?has_content)]
+            [#if !(getExistingReference(ec2EIPId)?has_content)]
                 [#assign ec2EIPId = formatComponentEIPId(
                                         tier,
                                         component,

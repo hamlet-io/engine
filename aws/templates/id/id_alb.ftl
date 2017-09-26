@@ -1,8 +1,9 @@
 [#-- ALB --]
 
-[#-- Resources --]
-
 [#assign ALB_RESOURCE_TYPE = "alb" ]
+[#assign ALB_LISTENER_RESOURCE_TYPE = "listener" ]
+[#assign ALB_LISTENER_RULE_RESOURCE_TYPE = "listenerRule" ]
+[#assign ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
 
 [#function formatALBId tier component extensions...]
     [#return formatComponentResourceId(
@@ -14,7 +15,7 @@
 
 [#function formatALBListenerId tier component source extensions...]
     [#return formatComponentResourceId(
-                "listener",
+                ALB_LISTENER_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions,
@@ -23,7 +24,7 @@
 
 [#function formatALBListenerRuleId tier component source name extensions...]
     [#return formatComponentResourceId(
-                "listenerRule", 
+                ALB_LISTENER_RULE_RESOURCE_TYPE, 
                 tier,
                 component,
                 extensions,
@@ -33,7 +34,7 @@
 
 [#function formatALBTargetGroupId tier component source name extensions...]
     [#return formatComponentResourceId(
-                "tg",
+                ALB_TARGET_GROUP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions,
@@ -52,14 +53,4 @@
     [#return formatDependentSecurityGroupIngressId(
                 resourceId,
                 source.Port)]
-[/#function]
-
-[#-- Attributes --]
-
-[#function formatALBDnsId tier component extensions...]
-    [#return formatDnsAttributeId(
-                formatALBId(
-                    tier,
-                    component,
-                    extensions))]
 [/#function]

@@ -5,29 +5,21 @@
         [
             getPolicyStatement(
                 actions,
-                getArnReference(id),
+                getReference(id, ARN_ATTRIBUTE_TYPE),
                 principals,
                 conditions)
         ]
     ]
 [/#function]
 
-[#macro sqsStatement actions id principals="" conditions=""]
-    [@policyStatements getSqsStatement(actions, id, principals, conditions) /]
-[/#macro]
-
-[#function getSqsAdminStatement id]
+[#function sqsAdminPermission id]
     [#return
         getSqsStatement(
             "sqs:*",
             id)]
 [/#function]
 
-[#macro sqsAdminStatement id]
-    [@policyStatements getSqsAdminStatement(id) /]
-[/#macro]
-
-[#function getSqsAllStatement id]
+[#function sqsAllPermission id]
     [#return
         getSqsStatement(
             [
@@ -41,11 +33,7 @@
             id)]
 [/#function]
 
-[#macro sqsAllStatement id]
-    [@policyStatements getSqsAllStatement(id) /]
-[/#macro]
-
-[#function getSqsProduceStatement id]
+[#function sqsProducePermission id]
     [#return
         getSqsStatement(
             [
@@ -56,11 +44,7 @@
             id)]
 [/#function]
 
-[#macro sqsProduceStatement id]
-    [@policyStatements getSqsProduceStatement(id) /]
-[/#macro]
-
-[#function getSqsConsumeStatement id]
+[#function sqsConsumePermission id]
     [#return
         getSqsStatement(
             [
@@ -73,22 +57,14 @@
             id)]
 [/#function]
 
-[#macro sqsConsumeStatement id]
-    [@policyStatements getSqsConsumeStatement(id) /]
-[/#macro]
-
-[#function getSqsWriteStatement id]
+[#function sqsWritePermission id]
     [#return
         getSqsStatement(
             "sqs:SendMessage*",
             id)]
 [/#function]
 
-[#macro sqsWriteStatement id]
-    [@policyStatements getSqsWriteStatement(id) /]
-[/#macro]
-
-[#function getSqsS3WriteStatement id]
+[#function sqsS3WritePermission id]
     [#return
         getSqsStatement(
             "sqs:SendMessage*",
@@ -100,9 +76,5 @@
                 }
             })]
 [/#function]
-
-[#macro sqsS3WriteStatement id]
-    [@policyStatements getSqsS3WriteStatement(id) /]
-[/#macro]
 
 

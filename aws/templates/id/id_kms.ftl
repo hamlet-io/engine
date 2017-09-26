@@ -3,8 +3,6 @@
 [#assign CMK_RESOURCE_TYPE = "cmk" ]
 [#assign CMK_ALIAS_RESOURCE_TYPE = "cmkalias" ]
 
-[#-- Resources --]
-
 [#function formatSegmentCMKId ]
     [#return
         migrateToResourceId(
@@ -45,12 +43,5 @@
 
 [#function formatProductCMKAliasId cmkId]
     [#return formatDependentResourceId(CMK_ALIAS_RESOURCE_TYPE, cmkId)]
-[/#function]
-
-[#-- Attributes --]
-
-[#function formatSegmentCMKArnId ]
-    [#return formatArnAttributeId(
-                formatSegmentCMKId())]
 [/#function]
 

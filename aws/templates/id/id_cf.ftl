@@ -1,7 +1,5 @@
 [#-- CloudFront --]
 
-[#-- Resources --]
-
 [#assign CF_RESOURCE_TYPE = "cf" ]
 
 [#function formatDependentCFDistributionId resourceId extensions...]

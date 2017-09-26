@@ -1,7 +1,5 @@
 [#-- CloudWatch --]
 
-[#-- Resources --]
-
 [#assign LOG_GROUP_RESOURCE_TYPE = "lg" ]
 
 [#function formatLogGroupId ids...]

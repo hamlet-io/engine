@@ -1,17 +1,16 @@
 [#-- CMK --]
 
-[#function getCmkDecryptStatement id]
+[#function cmkDecryptPermission id]
     [#return
         [
             getPolicyStatement(
                 "kms:Decrypt",
-                getReference(id))
+                getReference(id, ARN_ATTRIBUTE_TYPE))
         ]
     ]
 [/#function]
 
-[#macro cmkDecryptStatement id]
-    [@policyStatements getCmkDecryptStatement(id) /]
-[/#macro]
-
+[#function credentialsDecryptPermission]
+    [#return cmkDecryptPermission(formatSegmentCMKId())]
+[/#function]
 

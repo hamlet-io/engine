@@ -1,7 +1,5 @@
 [#-- RDS --]
 
-[#-- Resources --]
-
 [#assign RDS_RESOURCE_TYPE = "rds" ]
 [#assign RDS_SUBNET_GROUP_RESOURCE_TYPE = "rdsSubnetGroup" ]
 [#assign RDS_PARAMETER_GROUP_RESOURCE_TYPE = "rdsParameterGroup" ]
@@ -38,18 +36,3 @@
                 component,
                 extensions)]
 [/#function]
-
-[#-- Attributes --]
-
-[#function formatRDSDnsId resourceId]
-    [#return formatDnsAttributeId(resourceId)]
-[/#function]
-
-[#function formatRDSPortId resourceId]
-    [#return formatPortAttributeId(resourceId)]
-[/#function]
-
-[#function formatRDSDatabaseNameId resourceId]
-    [#return formatDatabaseNameAttributeId(resourceId)]
-[/#function]
-

@@ -1,7 +1,5 @@
 [#-- SNS --]
 
-[#-- Resources --]
-
 [#assign SNS_TOPIC_RESOURCE_TYPE = "snstopic"]
 [#assign SNS_SUBSCRIPTION_RESOURCE_TYPE = "snssub"]
 

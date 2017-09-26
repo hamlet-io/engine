@@ -1,6 +1,4 @@
-[#-- Policy --]
-
-[#-- Resources --]
+[#-- IAM --]
 
 [#assign POLICY_RESOURCE_TYPE="policy" ]
 [#assign ROLE_RESOURCE_TYPE="role" ]

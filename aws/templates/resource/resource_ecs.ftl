@@ -4,7 +4,7 @@
 
     [#local definitions = [] ]
     [#local volumes = [] ]
-    [#list containers?values as container]
+    [#list containers as container]
         [#local mountPoints = [] ]
         [#list (container.Volumes!{}) as name,volume]
             [#local mountPoints +=
@@ -37,8 +37,8 @@
             [#local portMappings +=
                 [
                     {
-                        "ContainerPort" : portMapping.ContainerPort,
-                        "HostPort" : portMapping.HostPort
+                        "ContainerPort" : ports[portMapping.ContainerPort].Port,
+                        "HostPort" : portMapping.DynamicHostPort?then(0, ports[portMapping.HostPort].Port)
                     }
                 ]
             ]
@@ -66,64 +66,64 @@
             ]
         [/#list]
         [#local definitions +=
-            {
-                "Name" : container.Name,
-                "Image : container.Image +
-                            container.Version?has_content?then(
-                                ":" + container.Version,
-                                ""
-                            ),
-                "Essential" : container.Essential,
-                "MemoryReservation" : container.Memory,
-                "LogConfiguration" : 
-                    {
-                        "LogDriver" : container.LogDriver
-                    } + 
-                    container.LogOptions?has_content?then(
+            [
+                {
+                    "Name" : container.Name,
+                    "Image" : container.Image +
+                                container.Version?has_content?then(
+                                    ":" + container.Version,
+                                    ""
+                                ),
+                    "Essential" : container.Essential,
+                    "MemoryReservation" : container.MemoryReservation,
+                    "LogConfiguration" : 
                         {
-                            "Options" : container.LogOptions
-                        },
-                        {}
-                    )
-                }
-            } +
-            environment?has_content?then(
-                {
-                    "Environment" : environment
-                },
-                {}
-            ) +
-            mountPoints?has_content?then(
-                {
-                    "MountPoints" : mountPoints
-                },
-                {}
-            ) +
-            extraHosts?has_content?then(
-                {
-                    "ExtraHosts" : extraHosts
-                },
-                {}
-            ) +
-            container.MaximumMemory?has_content?then(
-                {
-                    "Memory" : container.MaximumMemory
-                },
-                {}
-            ) +
-            container.Cpu?has_content?then(
-                {
-                    "Cpu" : container.Cpu
-                },
-                {}
-            ) +
-            portMappings?has_content?then(
-                {
-                    "PortMappings" : portMappings
-                },
-                {}
-            )
-                
+                            "LogDriver" : container.LogDriver
+                        } + 
+                        container.LogOptions?has_content?then(
+                            {
+                                "Options" : container.LogOptions
+                            },
+                            {}
+                        )
+                } +
+                environment?has_content?then(
+                    {
+                        "Environment" : environment
+                    },
+                    {}
+                ) +
+                mountPoints?has_content?then(
+                    {
+                        "MountPoints" : mountPoints
+                    },
+                    {}
+                ) +
+                extraHosts?has_content?then(
+                    {
+                        "ExtraHosts" : extraHosts
+                    },
+                    {}
+                ) +
+                container.MaximumMemory?has_content?then(
+                    {
+                        "Memory" : container.MaximumMemory
+                    },
+                    {}
+                ) +
+                container.Cpu?has_content?then(
+                    {
+                        "Cpu" : container.Cpu
+                    },
+                    {}
+                ) +
+                portMappings?has_content?then(
+                    {
+                        "PortMappings" : portMappings
+                    },
+                    {}
+                )
+            ]
         ]
     [/#list]
 

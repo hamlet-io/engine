@@ -152,7 +152,7 @@
         type="AWS::S3::BucketPolicy"
         properties=
             {
-                "Bucket" : (getKey(bucket)?has_content)?then(getKey(bucket),bucket)
+                "Bucket" : (getExistingReference(bucket)?has_content)?then(getExistingReference(bucket),bucket)
             } +
             getPolicyDocument(statements)
         outputs={}

@@ -1,7 +1,5 @@
 [#-- VPC --]
 
-[#-- Resources --]
-
 [#function formatSecurityGroupId ids...]
     [#return formatResourceId(
                 "securityGroup",
