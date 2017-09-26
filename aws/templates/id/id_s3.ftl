@@ -1,7 +1,5 @@
 [#-- S3 --]
 
-[#-- Resources --]
-
 [#assign S3_RESOURCE_TYPE = "s3" ]
 [#assign BUCKET_POLICY_RESOURCE_TYPE="bucketpolicy" ]
 
@@ -34,6 +32,13 @@
                 extensions)]
 [/#function]
 
+[#function formatProductS3Id type extensions...]
+    [#return formatProductResourceId(
+                S3_RESOURCE_TYPE,
+                type,
+                extensions)]
+[/#function]
+
 [#function formatAccountS3Id type extensions...]
     [#return formatAccountResourceId(
                 S3_RESOURCE_TYPE,
@@ -58,41 +63,4 @@
     [#return formatDependentPolicyId(
                 s3Id,
                 queue)]
-[/#function]
-
-[#-- Attributes --]
-
-[#function formatS3UrlId ids...]
-    [#return formatUrlAttributeId(
-                formatS3Id(ids))]
-[/#function]
-
-[#-- TODO: Remove when use of "container" is removed --]
-[#function formatContainerS3UrlId type extensions...]
-    [#return formatUrlAttributeId(
-                formatContainerS3Id(
-                    type,
-                    extensions))]
-[/#function]
-
-[#function formatSegmentS3UrlId type extensions...]
-    [#return formatUrlAttributeId(
-                formatSegmentS3Id(
-                    type,
-                    extensions))]
-[/#function]
-
-[#function formatComponentS3UrlId tier component extensions...]
-    [#return formatUrlAttributeId(
-                formatComponentS3Id(
-                    tier,
-                    component,
-                    extensions))]
-[/#function]
-
-[#function formatAccountS3UrlId type extensions...]
-    [#return formatUrlAttributeId(
-                formatAccountS3Id(
-                    type,
-                    extensions))]
 [/#function]

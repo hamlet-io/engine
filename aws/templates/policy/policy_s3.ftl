@@ -6,7 +6,7 @@
             getPolicyStatement(
                 actions,
                 "arn:aws:s3:::" + 
-                    (getKey(bucket)?has_content)?then(getKey(bucket),bucket) +
+                    (getExistingReference(bucket)?has_content)?then(getExistingReference(bucket),bucket) +
                     key?has_content?then("/" + key, "") +
                     object?has_content?then("/" + object, ""),
                 principals,
@@ -15,11 +15,7 @@
     ]
 [/#function]
 
-[#macro s3Statement actions bucket key="" object="" principals="" conditions=""]
-    [@policyStatements getS3Statement(actions, bucket, key, object, principals, conditions) /]
-[/#macro]
-
-[#function getS3ReadStatement bucket key="" object="*" principals="" conditions=""]
+[#function s3ReadPermission bucket key="" object="*" principals="" conditions=""]
     [#return
         getS3Statement(
             "s3:GetObject*",
@@ -30,13 +26,9 @@
             conditions)]
 [/#function]
 
-[#macro s3ReadStatement bucket key="" object="*" principals="" conditions=""]
-    [@policyStatements getS3ReadStatement(bucket, key, object, principals, conditions) /]
-[/#macro]
-
-[#function getS3ReadBucketStatement bucket key="" object="*" principals={"AWS":"*"} conditions=""]
+[#function s3ReadBucketPermission bucket key="" object="*" principals={"AWS":"*"} conditions=""]
     [#return
-        getS3ReadStatement(
+        s3ReadPermission(
             bucket,
             key,
             object,
@@ -44,11 +36,7 @@
             conditions)]
 [/#function]
 
-[#macro s3ReadBucketStatement bucket key="" object="*" principals={"AWS":"*"} conditions=""]
-    [@policyStatements getS3ReadBucketStatement(bucket, key, object, principals, conditions) /]
-[/#macro]
-
-[#function getS3ConsumeStatement bucket key="" object="*" principals="" conditions=""]
+[#function s3ConsumePermission bucket key="" object="*" principals="" conditions=""]
     [#return
         getS3Statement(
             [
@@ -62,11 +50,7 @@
             conditions)]
 [/#function]
 
-[#macro s3ConsumeStatement bucket key="" object="*" principals="" conditions=""]
-    [@policyStatements getS3ConsumeStatement(bucket, key, object, principals, conditions) /]
-[/#macro]
-
-[#function getS3WriteStatement bucket key="" object="*" principals="" conditions=""]
+[#function s3WritePermission bucket key="" object="*" principals="" conditions=""]
     [#return
         getS3Statement(
             "s3:PutObject*",
@@ -77,11 +61,7 @@
             conditions)]
 [/#function]
 
-[#macro s3WriteStatement bucket key="" object="*" principals="" conditions=""]
-    [@policyStatements getS3WriteStatement(bucket,key, object, principals, conditions) /]
-[/#macro]
-
-[#function getS3ListStatement bucket key="" object="" principals="" conditions=""]
+[#function s3ListPermission bucket key="" object="" principals="" conditions=""]
     [#return
         getS3Statement(
             "s3:List*",
@@ -92,11 +72,7 @@
             conditions)]
 [/#function]
 
-[#macro s3ListStatement bucket key="" object="" principals="" conditions=""]
-    [@policyStatements getS3ListStatement(bucket, key, object, principals, conditions) /]
-[/#macro]
-
-[#function getS3ListBucketStatement bucket]
+[#function s3ListBucketPermission bucket]
     [#return
         getS3Statement(
             [
@@ -106,11 +82,7 @@
             bucket)]
 [/#function]
 
-[#macro s3ListBucketStatement bucket]
-    [@policyStatements getS3ListBucketStatement(bucket) /]
-[/#macro]
-
-[#function getS3AllStatement bucket key="" object="*" principals="" conditions=""]
+[#function s3AllPermission bucket key="" object="*" principals="" conditions=""]
     [#return
         getS3Statement(
             [
@@ -128,11 +100,7 @@
             conditions)]
 [/#function]
 
-[#macro s3AllStatement bucket key="" object="*" principals="" conditions=""]
-    [@policyStatements getS3AllStatement(bucket, key, object, principals, conditions) /]
-[/#macro]
-
-[#function getS3ReadBucketACLStatement bucket principals="" conditions=""]
+[#function s3ReadBucketACLPermission bucket principals="" conditions=""]
     [#return
         getS3Statement(
             "s3:GetBucketAcl",

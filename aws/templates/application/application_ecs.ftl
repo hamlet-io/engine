@@ -7,12 +7,16 @@
 
     [#assign serviceOccurrences=[] ]
     [#list (ecs.Services!{})?values as service]
-        [#assign serviceOccurrences += getOccurrences(service, deploymentUnit, "service") ]
+        [#if service?is_hash]
+            [#assign serviceOccurrences += getOccurrences(service, deploymentUnit, "service") ]
+        [/#if]
     [/#list]
-    
+
     [#assign taskOccurrences=[] ]
     [#list (ecs.Tasks!{})?values as task]
-        [#assign taskOccurrences += getOccurrences(service, deploymentUnit, "task") ]
+        [#if task?is_hash]
+            [#assign taskOccurrences += getOccurrences(service, deploymentUnit, "task") ]
+        [/#if]
     [/#list]
 
     [#list serviceOccurrences as occurrence]
@@ -32,7 +36,7 @@
 
             [#assign loadBalancers = [] ]
             [#assign dependencies = [] ]
-            [#list containers?values as container]
+            [#list containers as container]
                 [#list container.PortMappings![] as portMapping]
                     [#if portMapping.LoadBalancer?has_content]
                         [#assign loadBalancer = portMapping.LoadBalancer]
@@ -57,7 +61,7 @@
                         [#assign loadBalancers +=
                             [
                                 {
-                                    "ContainerName" : Container.Name,
+                                    "ContainerName" : container.Name,
                                     "ContainerPort" : ports[portMapping.ContainerPort].Port
                                 } +
                                 loadBalancer.TargetGroup?has_content?then(
@@ -87,7 +91,7 @@
                                 formatContainerSecurityGroupIngressId(
                                     ecsSecurityGroupId,
                                     container,
-                                    (portMapping.DynamicHostPort?then(
+                                    portMapping.DynamicHostPort?then(
                                         "dynamic",
                                         ports[portMapping.HostPort].Port
                                     )
@@ -109,8 +113,8 @@
                                 source=ports[loadBalancer.Port]
                                 destination=ports[portMapping.HostPort]
                             /]
-                            [#assign listenerId = 
-                                formatALBListenerId(
+                            [#assign listenerRuleId = 
+                                formatALBListenerRuleId(
                                     loadBalancer.Tier,
                                     loadBalancer.Component,
                                     ports[loadBalancer.Port],
@@ -120,15 +124,7 @@
                                 )]
                             [@createListenerRule
                                 mode=applicationListMode
-                                id=
-                                    formatALBListenerRuleId(
-                                        loadBalancer.Tier,
-                                        loadBalancer.Component,
-                                        ports[loadBalancer.Port],
-                                        loadBalancer.TargetGroup,
-                                        loadBalancer.Instance,
-                                        loadBalancer.Version
-                                    )
+                                id=listenerRuleId
                                 listenerId=
                                     formatALBListenerId(
                                         loadBalancer.Tier,
@@ -142,6 +138,7 @@
                                 priority=loadBalancer.Priority!100
                                 dependencies=loadBalancerId
                             /]
+                        [#assign dependencies += [listenerRuleId] ]
                         [/#if]    
                     [/#if]
                 [/#list]
@@ -154,7 +151,7 @@
                 desiredCount=
                     (occurrence.DesiredCount >= 0)?then(
                         occurrence.DesiredCount,
-                        multiAZ?then(zones?size,1
+                        multiAZ?then(zones?size,1)
                     )
                 taskId=taskId
                 loadBalancers=loadBalancers
@@ -193,7 +190,7 @@
                             statements=container.Policy
                             role=roleId
                         /]
-                        [#assign dependencies += [policyId]
+                        [#assign dependencies += [policyId] ]
                     [/#if]
                 [/#list]
             [/#if]

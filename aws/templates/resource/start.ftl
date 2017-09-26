@@ -104,13 +104,6 @@
     ]
 [/#function]
 
-[#-- Include resource with explict region that matches the current region --]
-[#-- Note that region can still be provided in the args, in which case --]
-[#-- check against current region will fail --]
-[#function getKey args...]
-    [#return getStackOutput(formatId(args)) ]
-[/#function]
-
 [#-- Is a resource part of a deployment unit --]
 [#function isPartOfDeploymentUnit resourceId deploymentUnit deploymentUnitSubset]
     [#local resourceObject = getStackOutputObject(resourceId)]
@@ -193,25 +186,13 @@
     ]
 [/#function]
 
-[#macro createReference resourceId attributeType=""]
-    [@toJSON getReference(resourceId, attributeType) /]
-[/#macro]
-
-[#function getArnReference resourceId]
-    [#return getReference(resourceId, ARN_ATTRIBUTE_TYPE) ]
+[#function getReferences resourceIds attributeType="" inRegion=""]
+    [#local result = [] ]
+    [#list asArray(resourceIds) as resourceId]
+        [#local result += [getReference(resourceId, attributeType, inRegion)] ]
+    [/#list]
+    [#return result]
 [/#function]
-
-[#macro createArnReference resourceId]
-    [@toJSON getArnReference(resourceId) /]
-[/#macro]
-
-[#function getUrlReference resourceId]
-    [#return getReference(resourceId, URL_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#macro createUrlReference resourceId]
-    [@toJSON getUrlReference(resourceId) /]
-[/#macro]
 
 [#macro noResourcesCreated]
     [#assign resourceCount = 0]
@@ -353,7 +334,7 @@
 
     [#local localDependencies = [] ]
     [#list asArray(dependencies) as resourceId]
-        [#if isLocalReference(resourceId)]
+        [#if getReference(resourceId)?is_hash]
             [#local localDependencies += [resourceId] ]
         [/#if]
     [/#list]

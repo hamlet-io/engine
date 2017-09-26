@@ -39,7 +39,7 @@
 
         [#switch solutionListMode]
             [#case "dashboard"]
-                [#if getKey(sqsId)?has_content]
+                [#if getExistingReference(sqsId)?has_content]
                     [#assign widgets =
                         [
                             {

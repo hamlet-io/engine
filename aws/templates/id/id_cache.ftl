@@ -1,7 +1,5 @@
 [#-- ElastiCache --]
 
-[#-- Resources --]
-
 [#assign CACHE_RESOURCE_TYPE = "cache" ]
 
 [#function formatCacheId tier component extensions...]
@@ -26,14 +24,4 @@
                 tier,
                 component,
                 extensions)]
-[/#function]
-
-[#-- Attributes --]
-
-[#function formatCacheDnsId resourceId]
-    [#return formatDnsAttributeId(resourceId)]
-[/#function]
-
-[#function formatCachePortId resourceId]
-    [#return formatPortAttributeId(resourceId)]
 [/#function]

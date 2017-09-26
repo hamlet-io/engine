@@ -1,6 +1,6 @@
 [#-- EC2 --]
 
-[#function getAutoScaleGroupReadStatement ]
+[#function ec2AutoScaleGroupReadPermission ]
     [#return
         [
             getPolicyStatement(
@@ -12,11 +12,7 @@
     ]
 [/#function]
 
-[#macro autoScaleGroupReadStatement ]
-    [@policyStatements getAutoScaleGroupReadStatement() /]
-[/#macro]
-
-[#function getIPAddressUpdateStatement ]
+[#function ec2IPAddressUpdatePermission ]
     [#return
         [
             getPolicyStatement(
@@ -28,11 +24,7 @@
     ]
 [/#function]
 
-[#macro IPAddressUpdateStatement ]
-    [@policyStatements getIPAddressUpdateStatement() /]
-[/#macro]
-
-[#function getRouteAllStatement ]
+[#function ec2RouteAllPermission ]
     [#return
         [
             getPolicyStatement(
@@ -45,11 +37,7 @@
     ]
 [/#function]
 
-[#macro routeAllStatement ]
-    [@policyStatements getRouteAllStatement() /]
-[/#macro]
-
-[#function getSubnetReadStatement ]
+[#function ec2SubnetReadPermission ]
     [#return
         [
             getPolicyStatement(
@@ -63,11 +51,7 @@
     ]
 [/#function]
 
-[#macro subnetReadStatement ]
-    [@policyStatements getSubnetReadStatement() /]
-[/#macro]
-
-[#function getInstanceUpdateStatement ]
+[#function ec2InstanceUpdatePermission ]
     [#return
         [
             getPolicyStatement(
@@ -79,7 +63,4 @@
     ]
 [/#function]
 
-[#macro instanceUpdateStatement ]
-    [@policyStatements getInstanceUpdateStatement() /]
-[/#macro]
 

@@ -434,7 +434,7 @@
         [/#if]
         [#switch applicationListMode]
             [#case "dashboard"]
-                [#if getKey(apiId)?has_content]
+                [#if getExistingReference(apiId)?has_content]
                     [#assign widgets =
                         [
                             {
@@ -462,7 +462,7 @@
                             }
                         ]
                     ]
-                    [#if getKey(invalidLogMetricId)?has_content]
+                    [#if getExistingReference(invalidLogMetricId)?has_content]
                         [#assign widgets +=
                             [
                                 {

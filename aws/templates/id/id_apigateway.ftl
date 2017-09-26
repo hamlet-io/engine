@@ -1,7 +1,5 @@
 [#-- API Gateway --]
 
-[#-- Resources --]
-
 [#assign APIGATEWAY_RESOURCE_TYPE = "api" ]
 
 [#function formatAPIGatewayId tier component extensions...]
@@ -65,6 +63,4 @@
                 link,
                 fn)]
 [/#function]
-
-[#-- Attributes --]
 

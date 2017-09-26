@@ -1,7 +1,5 @@
 [#-- Web Application Firewall --]
 
-[#-- Resources --]
-
 [#assign WAF_IPSET_RESOURCE_TYPE = "wafIpSet" ]
 [#assign WAF_RULE_RESOURCE_TYPE = "wafRule" ]
 [#assign WAF_ACL_RESOURCE_TYPE = "wafAcl" ]

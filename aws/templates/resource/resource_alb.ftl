@@ -13,9 +13,49 @@
         }
     }
 ]
+
+[#assign ALB_LISTENER_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
+        }
+    }
+]
+
+[#assign ALB_LISTENER_RULE_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
+        }
+    }
+]
+
+[#assign ALB_TARGET_GROUP_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
+        },
+        NAME_ATTRIBUTE_TYPE : { 
+            "Attribute" : "TargetGroupFullName"
+        }
+    }
+]
+
 [#assign outputMappings +=
     {
-        ALB_RESOURCE_TYPE : ALB_OUTPUT_MAPPINGS
+        ALB_RESOURCE_TYPE : ALB_OUTPUT_MAPPINGS,
+        ALB_LISTENER_RESOURCE_TYPE : ALB_LISTENER_OUTPUT_MAPPINGS,
+        ALB_LISTENER_RULE_RESOURCE_TYPE : ALB_LISTENER_RULE_OUTPUT_MAPPINGS,
+        ALB_TARGET_GROUP_RESOURCE_TYPE : ALB_TARGET_GROUP_OUTPUT_MAPPINGS
     }
 ]
 
@@ -130,6 +170,7 @@
                 },
                 {}
             )
+        outputs=ALB_LISTENER_OUTPUT_MAPPINGS
     /]
 [/#macro]
 
@@ -173,6 +214,7 @@
                     name),
                 tier,
                 component)
+        outputs=ALB_TARGET_GROUP_OUTPUT_MAPPINGS
     /]
 [/#macro]
 
@@ -207,8 +249,10 @@
             {
                 "Priority" : priority,
                 "Actions" : actions,
-                "Conditions": conditions
+                "Conditions": conditions,
                 "ListenerArn" : getReference(listenerId, ARN_ATTRIBUTE_TYPE)
+            }
+        outputs=ALB_LISTENER_RULE_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]
 [/#macro]

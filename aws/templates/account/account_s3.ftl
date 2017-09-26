@@ -25,12 +25,13 @@
         [#-- TODO: Should be using formatAccountS3Id() not formatS3Id() --]
         [#-- TODO: Remove alternate id parameter below when TODO addressed --]
         
+        [#assign existingName = getExistingReference(formatAccountS3Id(bucket))]
         [@createS3bucket
             mode=accountListMode
             id=formatS3Id(bucket)
             name=
-                getKey("s3", "account", bucket)?has_content?then(
-                    getKey("s3", "account", bucket),
+                existingName?has_content?then(
+                    existingName,
                     formatHostDomainName(
                         [
                             bucket,

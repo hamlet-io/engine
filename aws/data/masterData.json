@@ -1149,6 +1149,9 @@
             "Standalone" : false,
             "IPAddressGroups" : []
         },
+        "S3" : {
+            "IncludeTenant" : false
+        },
         "SSHPerSegment" : true,
         "RotateKey" : true,
         "Tiers" : {

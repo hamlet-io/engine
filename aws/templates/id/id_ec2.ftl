@@ -1,7 +1,5 @@
 [#-- EC2 --]
 
-[#-- Resources --]
-
 [#function formatEC2InstanceId tier component extensions...]
     [#return formatComponentResourceId(
                 "ec2Instance",

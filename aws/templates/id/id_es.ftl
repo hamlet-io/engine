@@ -1,7 +1,5 @@
 [#-- ElasticSearch --]
 
-[#-- Resources --]
-
 [#assign ES_RESOURCE_TYPE = "es" ]
 
 [#function formatElasticSearchId tier component extensions...]
@@ -10,10 +8,4 @@
                 tier,
                 component,
                 extensions)]
-[/#function]
-
-[#-- Attributes --]
-
-[#function formatElasticSearchDnsId resourceId]
-    [#return formatDnsAttributeId(resourceId)]
 [/#function]

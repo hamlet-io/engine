@@ -12,18 +12,18 @@
                                     component,
                                     occurrence)]
 
-            [#containerId =
+            [#assign containerId =
                 occurrence.Container?has_content?then(
                     occurrence.Container,
                     getComponentId(component)                            
-                ) 
-            [#local currentContainer = 
+                ) ]
+            [#assign currentContainer = 
                 {
                     "Id" : containerId,
                     "Name" : containerId,
                     "Environment" :
                         {
-                            "TEMPLATE_TIMESTAMP" .now?iso_utc,
+                            "TEMPLATE_TIMESTAMP" : .now?iso_utc,
                             "ENVIRONMENT" : environmentName,
                             "REQUEST_REFERENCE" : requestReference,
                             "CONFIGURATION_REFERENCE" : configurationReference,
@@ -32,7 +32,7 @@
                             "OPSDATA_BUCKET" : operationsBucket,
                             "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
                             "CREDENTIALS_PREFIX" : getCredentialsFilePrefix(),
-                            "APP_RUN_MODE" : getContainerMode(container),
+                            "APP_RUN_MODE" : getContainerMode(container)
                         } +
                         buildCommit?has_content?then(
                             {
@@ -43,7 +43,9 @@
                         appReference?has_content?then(
                             {
                                 "APP_REFERENCE" : appReference
-                            }
+                            },
+                            {}
+                        )
                 }
             ]
         
@@ -106,6 +108,8 @@
                                 occurrence,
                                 fn)]
                                 
+                        [#assign handler = fn.Handler!occurrence.Handler]
+                        [#assign runTime = fn.RunTime!occurrence.RunTime]
                         [#assign memorySize = fn.MemorySize!occurrence.MemorySize]
                         [#assign timeout = fn.Timeout!occurrence.Timeout]
                         [#assign useSegmentKey = fn.UseSegmentKey!occurrence.UseSegmentKey]
@@ -127,15 +131,14 @@
                                     },                                            
                                     "FunctionName" : lambdaFunctionName,
                                     "Description" : lambdaFunctionName,
-                                    "Handler" : fn.Handler!occurrence.Handler,
+                                    "Handler" : handler,
                                     "Role" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
-                                    "Runtime" : fn.RunTime!occurrence.RunTime
-                                    }
+                                    "Runtime" : runTime
                                 } + 
                                 currentContainer.Environment?then(
                                     {
                                         "Environment" : currentContainer.Environment
-                                    } +
+                                    },
                                     {}
                                 ) +
                                 (memorySize > 0)?then(
@@ -152,7 +155,7 @@
                                 ) +
                                 useSegmentKey?then(
                                     {
-                                        "KmsKeyArn" : getReference(formatSegmentCMKArnId())
+                                        "KmsKeyArn" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
                                     },
                                     {}
                                 ) + 

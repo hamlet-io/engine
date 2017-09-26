@@ -1,7 +1,5 @@
 [#-- Certificate --]
 
-[#-- Resources --]
-
 [#function formatCertificateId ids...]
     [#return formatResourceId(
                 "certificate",
@@ -22,5 +20,3 @@
                 component,
                 extensions)]
 [/#function]
-
-[#-- Attributes --]

@@ -40,16 +40,16 @@
         policies=
             [
                 getPolicyDocument(
-                    getS3ListStatement(codeBucket) +
-                        getS3ReadStatement(credentialsBucket, accountId + "/alm/docker") +
+                    s3ListPermission(codeBucket) +
+                        s3ReadPermission(credentialsBucket, accountId + "/alm/docker") +
                         fixedIP?then(
-                            getIPAddressUpdateStatement(),
+                            ec2IPAddressUpdatePermission(),
                             []
                         ) +                            
-                        getS3ReadStatement(codeBucket) +
-                        getS3ListStatement(operationsBucket) +
-                        getS3WriteStatement(operationsBucket, getSegmentBackupsFilePrefix()) +
-                        getS3WriteStatement(operationsBucket, "DOCKERLogs"),
+                        s3ReadPermission(codeBucket) +
+                        s3ListPermission(operationsBucket) +
+                        s3WritePermission(operationsBucket, getSegmentBackupsFilePrefix()) +
+                        s3WritePermission(operationsBucket, "DOCKERLogs"),
                     formatName(tierId, componentId, "docker"))
             ]
     /]

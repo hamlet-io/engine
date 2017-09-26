@@ -94,7 +94,7 @@
             shortName=formatComponentShortFullName(tier, component, occurrence)
             tier=tier
             component=component
-            securityGroups=[getReference(albSecurityGroupId)]
+            securityGroups=albSecurityGroupId
             logs=occurrence.Logs
             bucket=operationsBucket
         /]

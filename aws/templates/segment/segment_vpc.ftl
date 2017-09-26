@@ -29,7 +29,7 @@
             policies=
                 [
                     getPolicyDocument(
-                        getCloudWatchLogsProduceStatement(),
+                        cwLogsProducePermission(),
                         formatName("vpcflowlogs"))
                 ]
         /]        
@@ -405,9 +405,9 @@
             policies=
                 [
                     getPolicyDocument(
-                        getIPAddressUpdateStatement() +
-                            getS3ListStatement(codeBucket) +
-                            getS3ReadStatement(codeBucket),
+                        ec2IPAddressUpdatePermission() +
+                            s3ListPermission(codeBucket) +
+                            s3ReadPermission(codeBucket),
                         formatName(tier, sshComponent))
                 ]
         /]
@@ -486,7 +486,7 @@
                 mode=segmentListMode
                 id=asgId
                 type="AWS::AutoScaling::AutoScalingGroup"
-                dependencies=getLocalReferences(getSubnets(tier, false))
+                dependencies=getSubnets(tier, false)
                 metadata=
                     {
                         "AWS::CloudFormation::Init": {
@@ -671,12 +671,12 @@
             policies=
                 [
                     getPolicyDocument(
-                        getIPAddressUpdateStatement() +
-                            getSubnetReadStatement() +
-                            getRouteAllStatement() +
-                            getInstanceUpdateStatement() +
-                            getS3ListStatement(codeBucket) +
-                            getS3ReadStatement(codeBucket),
+                        ec2IPAddressUpdatePermission() +
+                            ec2SubnetReadPermission() +
+                            ec2RouteAllPermission() +
+                            ec2InstanceUpdatePermission() +
+                            s3ListPermission(codeBucket) +
+                            s3ReadPermission(codeBucket),
                         formatName(tier, natComponent))
                 ]
         /]
@@ -788,7 +788,7 @@
                         mode=segmentListMode
                         id=asgId
                         type="AWS::AutoScaling::AutoScalingGroup"
-                        dependencies=getLocalReferences(formatSubnetId(tier, zone))
+                        dependencies=formatSubnetId(tier, zone)
                         metadata=
                             {
                                 "AWS::CloudFormation::Init": {

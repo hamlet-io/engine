@@ -129,41 +129,6 @@
             attributeType) ]
 [/#function]
 
-[#function formatArnAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            ARN_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatUrlAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            URL_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatDnsAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            DNS_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatIPAddressAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            IP_ADDRESS_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatAllocationAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            ALLOCATION_ATTRIBUTE_TYPE) ]
-[/#function]
-
 [#function formatCertificateAttributeId resourceId]
     [#return
         formatAttributeId(
@@ -178,44 +143,3 @@
             QUALIFIER_ATTRIBUTE_TYPE) ]
 [/#function]
 
-[#function formatRootAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            ROOT_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatPortAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            PORT_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatUsernameAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            USERNAME_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatPasswordAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            PASSWORD_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatDatabaseNameAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            DATABASENAME_ATTRIBUTE_TYPE) ]
-[/#function]
-
-[#function formatTopicNameAttributeId resourceId]
-    [#return
-        formatAttributeId(
-            resourceId,
-            TOPICNAME_ATTRIBUTE_TYPE) ]
-[/#function]

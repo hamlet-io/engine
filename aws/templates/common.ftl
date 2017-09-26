@@ -167,7 +167,11 @@
 
 [#-- Get the name for a tier --]
 [#function getTierName tier]
-    [#return tier.Name]
+    [#if tier?is_hash]
+        [#return tier.Name]
+    [#else]
+        [#return getTier(tier).Name]
+    [/#if]
 [/#function]
 
 [#-- Zones --]
@@ -437,7 +441,7 @@
                     "Name" : "UseTaskRole",
                     "Default" : true
                 }
-            ]
+            ],
         "sqs" : 
             [
                 "DelaySeconds",
@@ -462,7 +466,7 @@
 
 [#-- Get the occurrences of versions/instances --]
 [#function getOccurrences root deploymentUnit="" type=""]
-    [#if type?hasContent}
+    [#if type?has_content]
         [#local typeObject = root]
         [#local attributes = componentAttributes[type]![] ]
         [#local typeId = [root.Id] ]
@@ -544,21 +548,23 @@
                 [/#if]
             [/#list]
         [#else]
-            [#local occurrences +=
-                [
-                    {
-                        "InstanceId" : "",
-                        "InstanceName" : "",
-                        "VersionId" : "",
-                        "VersionName" : "",
-                        "Internal" : {
-                            "IdExtensions" : typeId,
-                            "NameExtensions" : typeName
-                        }
-                    } +
-                    getOccurrenceAttributes(attributes, typeObject)
+            [#if deploymentRequired(root, deploymentUnit)]
+                [#local occurrences +=
+                    [
+                        {
+                            "InstanceId" : "",
+                            "InstanceName" : "",
+                            "VersionId" : "",
+                            "VersionName" : "",
+                            "Internal" : {
+                                "IdExtensions" : typeId,
+                                "NameExtensions" : typeName
+                            }
+                        } +
+                        getOccurrenceAttributes(attributes, typeObject)
+                    ]
                 ]
-            ]
+            [/#if]
         [/#if]
     [/#if]
     [#return occurrences ]
@@ -669,39 +675,3 @@
         )
     ]
 [/#function]
-
-[#-- Outputs generation --]
-[#macro outputValue outputId value]
-    [@checkIfResourcesCreated /]
-    "${outputId}" : {
-        "Value" : [@toJSON value /]
-    }
-    [@resourcesCreated /]
-[/#macro]
-
-[#macro output resourceId outputId=""]
-    [@outputValue
-        outputId?has_content?then(outputId,resourceId),
-        {
-            "Ref" : resourceId
-        }
-    /]
-[/#macro]
-
-[#macro outputAtt outputId resourceId attributeType]
-    [@outputValue
-        outputId,
-        {
-            "Fn::GetAtt" : [resourceId, attributeType] 
-        }
-    /]
-[/#macro]
-
-
-[#macro outputArn resourceId]
-    [@outputAtt
-        formatArnAttributeId(resourceId)
-        resourceId
-        "Arn"
-    /]
-[/#macro]
