@@ -1,6 +1,7 @@
 [#-- CloudWatch --]
 
 [#assign LOG_GROUP_RESOURCE_TYPE = "lg" ]
+[#assign DASHBOARD_RESOURCE_TYPE = "dashboard" ]
 
 [#function formatLogGroupId ids...]
     [#return formatResourceId(
@@ -38,7 +39,7 @@
 
 [#function formatSegmentCWDashboardId extensions...]
     [#return formatSegmentResourceId(
-                "cwdashboard",
+                DASHBOARD_RESOURCE_TYPE,
                 extensions)]
 [/#function]
 

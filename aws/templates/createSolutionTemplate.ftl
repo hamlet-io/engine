@@ -1,4 +1,5 @@
 [#ftl]
+[#level = "solution"]
 [#include "setContext.ftl"]
 
 {
@@ -13,6 +14,6 @@
     "Outputs" : {
         [#assign solutionListMode="outputs"]
         [#include "componentList.ftl"]
-        [@cfTemplateGlobalOutputs "outputs" "solution" /]
+        [@cfTemplateGlobalOutputs /]
     }
 }

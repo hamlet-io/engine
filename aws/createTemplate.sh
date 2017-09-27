@@ -13,17 +13,18 @@ function usage() {
 
 Create a CloudFormation (CF) template
 
-Usage: $(basename $0) -t TYPE -u DEPLOYMENT_UNIT -b BUILD_DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
+Usage: $(basename $0) -l LEVEL -u DEPLOYMENT_UNIT -b BUILD_DEPLOYMENT_UNIT -c CONFIGURATION_REFERENCE -q REQUEST_REFERENCE -r REGION
 
 where
 
 (m) -b BUILD_DEPLOYMENT_UNIT   is the deployment unit defining the build reference
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
     -h                         shows this text
+(m) -l LEVEL                   is the template level - "account", "product", "segment", "solution", "application"
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (d) -s DEPLOYMENT_UNIT         same as -u
-(m) -t TYPE                    is the template type - "account", "product", "segment", "solution" or "application"
+(d) -t LEVEL                   same as -l
 (m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required 
 
@@ -36,13 +37,13 @@ REQUEST_REFERENCE       = "${REQUEST_REFERENCE_DEFAULT}"
 
 NOTES:
 
-1. You must be in the directory specific to the type
-2. REGION is only relevant for the "product" type
-3. DEPLOYMENT_UNIT may be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" type
-4. DEPLOYMENT_UNIT may be one of "cmk", "cert", "sns" or "shared" for the "product" type
-5. DEPLOYMENT_UNIT may be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" type
-6. Stack for DEPLOYMENT_UNIT of "eip" or "s3" must be created before stack for "vpc" for the "segment" type
-7. Stack for DEPLOYMENT_UNIT of "vpc" must be created before stack for "dns" for the "segment" type
+1. You must be in the directory specific to the level
+2. REGION is only relevant for the "product" level
+3. DEPLOYMENT_UNIT may be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
+4. DEPLOYMENT_UNIT may be one of "cmk", "cert", "sns" or "shared" for the "product" level
+5. DEPLOYMENT_UNIT may be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" level
+6. Stack for DEPLOYMENT_UNIT of "eip" or "s3" must be created before stack for "vpc" for the "segment" level
+7. Stack for DEPLOYMENT_UNIT of "vpc" must be created before stack for "dns" for the "segment" level
 8. To support legacy configurations, the DEPLOYMENT_UNIT combinations "eipvpc" and "eips3vpc" 
    are also supported but for new products, individual templates for each deployment unit 
    should be created
@@ -52,7 +53,7 @@ EOF
 }
 
 # Parse options
-while getopts ":b:c:hq:r:s:t:u:z:" opt; do
+while getopts ":b:c:hl:q:r:s:t:u:z:" opt; do
     case $opt in
         b)
             BUILD_DEPLOYMENT_UNIT="${OPTARG}"
@@ -62,6 +63,9 @@ while getopts ":b:c:hq:r:s:t:u:z:" opt; do
             ;;
         h)
             usage
+            ;;
+        l)
+            LEVEL="${OPTARG}"
             ;;
         q)
             REQUEST_REFERENCE="${OPTARG}"
@@ -73,7 +77,7 @@ while getopts ":b:c:hq:r:s:t:u:z:" opt; do
             DEPLOYMENT_UNIT="${OPTARG}"
             ;;
         t)
-            TYPE="${OPTARG}"
+            LEVEL="${OPTARG}"
             ;;
         u)
             DEPLOYMENT_UNIT="${OPTARG}"
@@ -94,7 +98,7 @@ done
 CONFIGURATION_REFERENCE="${CONFIGURATION_REFERENCE:-${CONFIGURATION_REFERENCE_DEFAULT}}"
 REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
 
-# Check type and deployment unit
+# Check level and deployment unit
 . ${GENERATION_DIR}/validateDeploymentUnit.sh 
 
 # Ensure other mandatory arguments have been provided
@@ -105,30 +109,30 @@ REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
 . "${GENERATION_DIR}/setContext.sh"
 
 # Ensure we are in the right place
-case $TYPE in
+case $LEVEL in
     account|product)
-        [[ ! ("${TYPE}" =~ ${LOCATION}) ]] && \
-            fatalLocation "Current directory doesn't match requested type \"${TYPE}\"."
+        [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] && \
+            fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
         ;;
-    solution|segment|application)
+    solution|segment|application|multiple)
         [[ ! ("segment" =~ ${LOCATION}) ]] && \
-            fatalLocation "Current directory doesn't match requested type \"${TYPE}\"."
+            fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
         ;;
 esac
 
-# Set up the type specific template information
+# Set up the level specific template information
 TEMPLATE_DIR="${GENERATION_DIR}/templates"
-TEMPLATE="create${TYPE^}Template.ftl"
+TEMPLATE="create${LEVEL^}Template.ftl"
 TEMPLATE_COMPOSITES=("POLICY" "ID" "NAME" "RESOURCE")
 
 # Determine the template name
-TYPE_PREFIX="$TYPE-"
+LEVEL_PREFIX="$LEVEL-"
 DEPLOYMENT_UNIT_PREFIX="${DEPLOYMENT_UNIT}-"
 REGION_PREFIX="${REGION}-"
 if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
     DEPLOYMENT_UNIT_SUBSET_PREFIX="${DEPLOYMENT_UNIT_SUBSET,,}-"
 fi
-case $TYPE in
+case $LEVEL in
     account)
         CF_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf"
         REGION_PREFIX="${ACCOUNT_REGION}-"
@@ -136,7 +140,7 @@ case $TYPE in
 
         # LEGACY: Support stacks created before deployment units added to account
         if [[ "${DEPLOYMENT_UNIT}" =~ s3 ]]; then
-            if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
+            if [[ -f "${CF_DIR}/${LEVEL_PREFIX}${REGION_PREFIX}template.json" ]]; then
                 DEPLOYMENT_UNIT_PREFIX=""
             fi
         fi
@@ -148,7 +152,7 @@ case $TYPE in
 
         # LEGACY: Support stacks created before deployment units added to product
         if [[ "${DEPLOYMENT_UNIT}" =~ cmk ]]; then
-            if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
+            if [[ -f "${CF_DIR}/${LEVEL_PREFIX}${REGION_PREFIX}template.json" ]]; then
                 DEPLOYMENT_UNIT_PREFIX=""
             fi
         fi
@@ -156,38 +160,38 @@ case $TYPE in
 
     solution)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
-        TYPE_PREFIX="soln-"
+        LEVEL_PREFIX="soln-"
         TEMPLATE_COMPOSITES+=("SOLUTION" )
 
         if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
-            TYPE_PREFIX="solution-"
+            LEVEL_PREFIX="solution-"
             DEPLOYMENT_UNIT_PREFIX=""
         fi
         ;;
 
     segment)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
-        TYPE_PREFIX="seg-"
+        LEVEL_PREFIX="seg-"
         TEMPLATE_COMPOSITES+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
 
         # LEGACY: Support old formats for existing stacks so they can be updated 
         if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
             if [[ -f "${CF_DIR}/cont-${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json" ]]; then
-                TYPE_PREFIX="cont-"
+                LEVEL_PREFIX="cont-"
             fi
             if [[ -f "${CF_DIR}/container-${REGION}-template.json" ]]; then
-                TYPE_PREFIX="container-"
+                LEVEL_PREFIX="container-"
                 DEPLOYMENT_UNIT_PREFIX=""
             fi
             if [[ -f "${CF_DIR}/${SEGMENT}-container-template.json" ]]; then
-                TYPE_PREFIX="${SEGMENT}-container-"
+                LEVEL_PREFIX="${SEGMENT}-container-"
                 DEPLOYMENT_UNIT_PREFIX=""
                 REGION_PREFIX=""
             fi
         fi
         # "cmk" now used instead of "key"
         if [[ "${DEPLOYMENT_UNIT}" == "cmk" ]]; then
-            if [[ -f "${CF_DIR}/${TYPE_PREFIX}key-${REGION_PREFIX}template.json" ]]; then
+            if [[ -f "${CF_DIR}/${LEVEL_PREFIX}key-${REGION_PREFIX}template.json" ]]; then
                 DEPLOYMENT_UNIT_PREFIX="key-"
             fi
         fi
@@ -195,18 +199,24 @@ case $TYPE in
 
     application)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
-        TYPE_PREFIX="app-"
+        LEVEL_PREFIX="app-"
         TEMPLATE_COMPOSITES+=("APPLICATION" "CONTAINER" )
         ;;
 
+    multiple)
+        CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
+        LEVEL_PREFIX="multi-"
+        TEMPLATE_COMPOSITES+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER")
+        ;;
+
     *)
-        fatalCantProceed "\"${TYPE}\" is not one of the known stack types (account, product, segment, solution, application)."
+        fatalCantProceed "\"${LEVEL}\" is not one of the known stack levels."
         ;;
 esac
 
 # Generate the template filename
-OUTPUT="${CF_DIR}/${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
-TEMP_OUTPUT="${CF_DIR}/temp_${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
+OUTPUT="${CF_DIR}/${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
+TEMP_OUTPUT="${CF_DIR}/temp_${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
 
 # Ensure the aws tree for the templates exists
 if [[ ! -d ${CF_DIR} ]]; then mkdir -p ${CF_DIR}; fi

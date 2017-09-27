@@ -3,6 +3,13 @@
 # Based on current directory location and existing environment,
 # define additional environment variables to facilitate automation
 #
+# Key variables are
+# INTEGRATOR
+# TENANT
+# PRODUCT
+# ACCOUNT
+# SEGMENT
+#
 # This script is designed to be sourced into other scripts
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
@@ -22,7 +29,6 @@ shopt -s nullglob
 # Generate the list of files constituting the composites based on the contents
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
-pushd "$(pwd)" >/dev/null
 TEMPLATE_COMPOSITES=(
     "ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" \
     "POLICY" "CONTAINER" "ID" "NAME" "RESOURCE")
@@ -38,6 +44,9 @@ for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     $(inArray "${COMPOSITE}_ARRAY" "start.ftl") || \
         addToArray "${COMPOSITE}_ARRAY" "${GENERATION_DIR}"/templates/start.ftl
 done
+
+# Check if the current directory gives any clue to the context
+pushd "$(pwd)" >/dev/null
 
 if [[ (-f "segment.json") || (-f "container.json") ]]; then
     # segment directory
@@ -195,9 +204,9 @@ APPSETTINGS_ARRAY=()
 CREDENTIALS_ARRAY=()
 if [[ -n "${PRODUCT}" ]]; then
     
-    # deployment unit level appsettings
+    # deployment unit specific appsettings
     if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
-        # Confirm it is an application deployment unit
+        # Confirm it is an application level deployment unit
         . ${GENERATION_DIR}/validateDeploymentUnit.sh
         if [[ "${IS_APPLICATION_UNIT}" == "true" ]]; then
 
@@ -223,7 +232,7 @@ if [[ -n "${PRODUCT}" ]]; then
         fi
     fi
     
-    # segment/product/account level appsettings/credentials
+    # segment/product/account specific appsettings/credentials
     addToArrayHead "APPSETTINGS_ARRAY" \
         "${SEGMENT_APPSETTINGS_DIR}"/appsettings*.json \
         "${PRODUCT_APPSETTINGS_DIR}"/appsettings*.json \
@@ -262,7 +271,7 @@ debug "STACK_OUTPUTS=${STACK_ARRAY[*]}"
 export COMPOSITE_STACK_OUTPUTS="${INFRASTRUCTURE_DIR}/composite_stack_outputs.json"
 if [[ $(arraySize "STACK_ARRAY") -ne 0 ]]; then
 
-    # Add default account, region and deployment unit
+    # Add default account, region, stack level and deployment unit
     MODIFIED_STACK_ARRAY=()
     for F in "${STACK_ARRAY[@]}"; do
         MODIFIED_STACK_OUTPUT="temp_${F##*/}"
