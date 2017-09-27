@@ -7,8 +7,8 @@
 # -- Error handling  --
 
 function message() {
-    local LEVEL="${1}"; shift
-    echo -e "\n(${LEVEL})" "$@"
+    local SEVERITY="${1}"; shift
+    echo -e "\n(${SEVERITY})" "$@"
 }
 
 function locationMessage() {

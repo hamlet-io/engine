@@ -305,7 +305,7 @@
     [/#switch]
 [/#macro]
 
-[#macro cfTemplateGlobalOutputs mode level]
+[#macro cfTemplateGlobalOutputs mode="outputs" ]
     [@cfTemplateOutput mode "Account" { "Ref" : "AWS::AccountId" } /]
     [@cfTemplateOutput mode "Region" { "Ref" : "AWS::Region" } /]
     [@cfTemplateOutput mode "Level" level /]

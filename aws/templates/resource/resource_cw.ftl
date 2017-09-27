@@ -61,7 +61,155 @@
     /]
 [/#macro]
 
-[#macro createDashboard mode id name body ]
+[#assign DASHBOARD_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        NAME_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
+        }
+    }
+]
+[#assign outputMappings +=
+    {
+        DASHBOARD_RESOURCE_TYPE : DASHBOARD_OUTPUT_MAPPINGS
+    }
+]
+
+[#macro createDashboard mode id name components ]
+
+    [#local dashboardWidgets = [] ]
+    [#local defaultTitleHeight = 1]
+    [#local defaultWidgetHeight = 3]
+    [#local defaultWidgetWidth = 3]
+    [#local dashboardY = 0]
+    [#list asArray(components) as component]
+        [#local dashboardWidgets +=
+            [
+                {
+                    "type" : "text",
+                    "x" : 0,
+                    "y" : dashboardY,
+                    "width" : 24,
+                    "height" : defaultTitleHeight,
+                    "properties" : {
+                        "markdown" : component.Title
+                    }                    
+                }
+            ]
+        ]
+        [#local dashboardY += defaultTitleHeight]
+        [#list component.Rows as row]
+            [#local dashboardX = 0]
+            [#if row.Title?has_content]
+                [#local dashboardWidgets +=
+                    [
+                        {
+                            "type" : "text",
+                            "x" : dashboardX,
+                            "y" : dashboardY,
+                            "width" : defaultWidgetWidth,
+                            "height" : defaultTitleHeight,
+                            "properties" : {
+                                "markdown" : row.Title
+                            }                    
+                        }
+                    ]
+                ]
+                [#local dashboardX += defaultWidgetWidth]
+            [/#if]
+            [#local maxWidgetHeight = 0]
+            [#list row.Widgets as widget]
+                [#local widgetMetrics = []]
+                [#list widget.Metrics as widgetMetric]
+                    [#local widgetMetricObject =
+                        [
+                            widgetMetric.Namespace,
+                            widgetMetric.Metric
+                        ]
+                    ]
+                    [#if widgetMetric.Dimensions?has_content]
+                        [#list widgetMetric.Dimensions as dimension]
+                            [#local widgetMetricObject +=
+                                [
+                                    dimension.Name,
+                                    dimension.Value
+                                ]
+                            ]
+                        [/#list]
+                    [/#if]
+                    [#local renderingObject = {}]
+                    [#if widgetMetric.Statistic?has_content]
+                        [#local renderingObject += 
+                            {
+                                "stat" : widgetMetric.Statistic
+                            }
+                        ]
+                    [/#if]
+                    [#if widgetMetric.Period?has_content]
+                        [#local renderingObject += 
+                            {
+                                "period" : widgetMetric.Period
+                            }
+                        ]
+                    [/#if]
+                    [#if widgetMetric.Label?has_content]
+                        [#local renderingObject += 
+                            {
+                                "label" : widgetMetric.Period
+                            }
+                        ]
+                    [/#if]
+                    [#if renderingObject?has_content]
+                        [#local widgetMetricObject += [renderingObject]]
+                    [/#if]
+                    [#local widgetMetrics += [widgetMetricObject]]
+                [/#list]
+                [#local widgetWidth = widget.Width ! defaultWidgetWidth]
+                [#local widgetHeight = widget.Height ! defaultWidgetHeight]
+                [#local maxWidgetHeight = (widgetHeight > maxWidgetHeight)?then(
+                            widgetHeight,
+                            maxWidgetHeight)]
+                [#local widgetProperties =
+                    {
+                        "metrics" : widgetMetrics,
+                        "region" : region,
+                        "stat" : "Sum",
+                        "period": 300,
+                        "view" : widget.asGraph?has_content?then(
+                                        widget.asGraph?then(
+                                            "timeSeries",
+                                            "singleValue"),
+                                        "singleValue"),
+                        "stacked" : widget.stacked ! false
+                    }                    
+                ]
+                [#if widget.Title?has_content]
+                    [#local widgetProperties +=
+                        {
+                            "title" : widget.Title
+                        }
+                    ]
+                [/#if]
+                [#local dashboardWidgets +=
+                    [
+                        {
+                            "type" : "metric",
+                            "x" : dashboardX,
+                            "y" : dashboardY,
+                            "width" : widgetWidth,
+                            "height" : widgetHeight,
+                            "properties" : widgetProperties
+                        }
+                    ]
+                ]
+                [#local dashboardX += widgetWidth]
+            [/#list]
+            [#local dashboardY += maxWidgetHeight]
+        [/#list]
+    [/#list]
+
     [@cfTemplate
         mode=mode
         id=id
@@ -69,8 +217,14 @@
         properties=
             {
                 "DashboardName" : name,
-                "DashboardBody" : getJSON(body)?json_string
+                "DashboardBody" :
+                    getJSON(
+                        {
+                            "widgets" : dashboardWidgets
+                        }
+                    )?json_string
             }
+        outputs=DASHBOARD_OUTPUT_MAPPINGS
     /]
 [/#macro]
 

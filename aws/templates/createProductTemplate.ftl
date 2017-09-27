@@ -1,4 +1,5 @@
 [#ftl]
+[#level = "product"]
 [#include "setContext.ftl" ]
 
 [#-- Initialisation --]
@@ -49,6 +50,6 @@
         [@noResourcesCreated /]
         [#assign productListMode="outputs"]
         [#include productList]
-        [@cfTemplateGlobalOutputs "outputs" "product" /]
+        [@cfTemplateGlobalOutputs /]
     }
 }

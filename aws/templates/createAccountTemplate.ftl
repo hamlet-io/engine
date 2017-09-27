@@ -1,4 +1,5 @@
 [#ftl]
+[#level = "account"]
 [#include "setContext.ftl" ]
 
 [#-- Initialisation --]
@@ -50,6 +51,6 @@
         [@noResourcesCreated /]
         [#assign accountListMode="outputs"]
         [#include accountList]
-        [@cfTemplateGlobalOutputs "outputs" "account" /]
+        [@cfTemplateGlobalOutputs /]
     }
 }

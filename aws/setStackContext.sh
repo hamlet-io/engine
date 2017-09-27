@@ -7,37 +7,37 @@
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 
 # Ensure mandatory arguments have been provided
-[[ (-z "${TYPE}") ||
-    ((-z "${DEPLOYMENT_UNIT}") && (! ("${TYPE}" =~ product ))) ]] && fatalMandatory
+[[ (-z "${LEVEL}") ||
+    ((-z "${DEPLOYMENT_UNIT}") && (! ("${LEVEL}" =~ product ))) ]] && fatalMandatory
 
 # Set up the context
 . "${GENERATION_DIR}/setContext.sh"
 
-case $TYPE in
+case $LEVEL in
     account|product)
-        [[ ! ("${TYPE}" =~ ${LOCATION} ) ]] && \
-            fatalLocation "Current directory doesn't match requested type \"${TYPE}\"."
+        [[ ! ("${LEVEL}" =~ ${LOCATION} ) ]] && \
+            fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
         ;;
-    solution|segment|application)
+    solution|segment|application|multiple)
         [[ ! ("segment" =~ ${LOCATION} ) ]] && \
-            fatalLocation "Current directory doesn't match requested type \"${TYPE}\"."
+            fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
         ;;
 esac
 
 
 # Determine the details of the template to be created
 PRODUCT_PREFIX="${PRODUCT}"
-TYPE_PREFIX="${TYPE}-"
+LEVEL_PREFIX="${LEVEL}-"
 DEPLOYMENT_UNIT_PREFIX="${DEPLOYMENT_UNIT}-"
 REGION_PREFIX="${REGION}-"
 SEGMENT_SUFFIX="-${SEGMENT}"
-TYPE_SUFFIX="-${TYPE}"
+LEVEL_SUFFIX="-${LEVEL}"
 DEPLOYMENT_UNIT_SUFFIX="-${DEPLOYMENT_UNIT}"
 if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
     DEPLOYMENT_UNIT_SUBSET_PREFIX="${DEPLOYMENT_UNIT_SUBSET,,}-"
     DEPLOYMENT_UNIT_SUBSET_SUFFIX="-${DEPLOYMENT_UNIT_SUBSET,,}"
 fi
-case $TYPE in
+case $LEVEL in
     account)
         CF_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf"
         PRODUCT_PREFIX="${ACCOUNT}"
@@ -47,21 +47,21 @@ case $TYPE in
 
         # LEGACY: Support stacks created before deployment units added to account
         if [[ "${DEPLOYMENT_UNIT}" =~ s3 ]]; then
-            if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
+            if [[ -f "${CF_DIR}/${LEVEL_PREFIX}${REGION_PREFIX}template.json" ]]; then
                 DEPLOYMENT_UNIT_PREFIX=""
                 DEPLOYMENT_UNIT_SUFFIX=""
             fi
         fi
         
         # Simplify stack naming if stack doesn't already exist
-        if [[ ! -f "${CF_DIR}/${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json" ]]; then
+        if [[ ! -f "${CF_DIR}/${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json" ]]; then
             PRODUCT_PREFIX=""
-            TYPE_SUFFIX="${TYPE}"
+            LEVEL_SUFFIX="${LEVEL}"
         else
-            EXISTING_STACK_NAME=$(jq -r ".Stacks[0].StackName" <  "${CF_DIR}/${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json")
+            EXISTING_STACK_NAME=$(jq -r ".Stacks[0].StackName" <  "${CF_DIR}/${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json")
             if [[ ! ("${EXISTING_STACK_NAME%%-*}" == "${ACCOUNT}") ]]; then 
                 PRODUCT_PREFIX=""
-                TYPE_SUFFIX="${TYPE}"
+                LEVEL_SUFFIX="${LEVEL}"
             fi
         fi
         ;;
@@ -72,7 +72,7 @@ case $TYPE in
 
         # LEGACY: Support stacks created before deployment units added to product
         if [[ "${DEPLOYMENT_UNIT}" =~ cmk ]]; then
-            if [[ -f "${CF_DIR}/${TYPE_PREFIX}${REGION_PREFIX}template.json" ]]; then
+            if [[ -f "${CF_DIR}/${LEVEL_PREFIX}${REGION_PREFIX}template.json" ]]; then
                 DEPLOYMENT_UNIT_PREFIX=""
                 DEPLOYMENT_UNIT_SUFFIX=""
             fi
@@ -81,11 +81,11 @@ case $TYPE in
 
     solution)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
-        TYPE_PREFIX="soln-"
-        TYPE_SUFFIX="-soln"
+        LEVEL_PREFIX="soln-"
+        LEVEL_SUFFIX="-soln"
         if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
-            TYPE_PREFIX="solution-"
-            TYPE_SUFFIX="-solution"
+            LEVEL_PREFIX="solution-"
+            LEVEL_SUFFIX="-solution"
             DEPLOYMENT_UNIT_PREFIX=""
             DEPLOYMENT_UNIT_SUFFIX=""
         fi
@@ -93,24 +93,24 @@ case $TYPE in
 
     segment)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
-        TYPE_PREFIX="seg-"
-        TYPE_SUFFIX="-seg"
+        LEVEL_PREFIX="seg-"
+        LEVEL_SUFFIX="-seg"
 
         # LEGACY: Support old formats for existing stacks so they can be updated 
         if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
             if [[ -f "${CF_DIR}/cont-${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json" ]]; then
-                TYPE_PREFIX="cont-"
-                TYPE_SUFFIX="-cont"
+                LEVEL_PREFIX="cont-"
+                LEVEL_SUFFIX="-cont"
             fi
             if [[ -f "${CF_DIR}/container-${REGION}-template.json" ]]; then
-                TYPE_PREFIX="container-"
-                TYPE_SUFFIX="-container"
+                LEVEL_PREFIX="container-"
+                LEVEL_SUFFIX="-container"
                 DEPLOYMENT_UNIT_PREFIX=""
                 DEPLOYMENT_UNIT_SUFFIX=""
             fi
             if [[ -f "${CF_DIR}/${SEGMENT}-container-template.json" ]]; then
-                TYPE_PREFIX="${SEGMENT}-container-"
-                TYPE_SUFFIX="-container"
+                LEVEL_PREFIX="${SEGMENT}-container-"
+                LEVEL_SUFFIX="-container"
                 DEPLOYMENT_UNIT_PREFIX=""
                 DEPLOYMENT_UNIT_SUFFIX=""
                 REGION_PREFIX=""
@@ -118,7 +118,7 @@ case $TYPE in
         fi
         # "cmk" now used instead of "key"
         if [[ "${DEPLOYMENT_UNIT}" == "cmk" ]]; then
-            if [[ -f "${CF_DIR}/${TYPE_PREFIX}key-${REGION_PREFIX}template.json" ]]; then
+            if [[ -f "${CF_DIR}/${LEVEL_PREFIX}key-${REGION_PREFIX}template.json" ]]; then
                 DEPLOYMENT_UNIT_PREFIX="key-"
                 DEPLOYMENT_UNIT_SUFFIX="-key"
             fi
@@ -127,16 +127,22 @@ case $TYPE in
 
     application)
         CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
-        TYPE_PREFIX="app-"
-        TYPE_SUFFIX="-app"
+        LEVEL_PREFIX="app-"
+        LEVEL_SUFFIX="-app"
+        ;;
+
+    multiple)
+        CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
+        LEVEL_PREFIX="multi-"
+        LEVEL_SUFFIX="-multi"
         ;;
 
     *)
-        fatal "\"$TYPE\" is not one of the known stack types (account, product, segment, solution, application)"
+        fatalCantProceed "\"$LEVEL\" is not one of the known stack levels."
         ;;
 esac
 
-STACK_NAME="${STACK_NAME:-${PRODUCT_PREFIX}${SEGMENT_SUFFIX}${TYPE_SUFFIX}${DEPLOYMENT_UNIT_SUFFIX}${DEPLOYMENT_UNIT_SUBSET_SUFFIX}}"
-TEMPLATE="${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
-STACK="${TYPE_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}stack.json"
+STACK_NAME="${STACK_NAME:-${PRODUCT_PREFIX}${SEGMENT_SUFFIX}${LEVEL_SUFFIX}${DEPLOYMENT_UNIT_SUFFIX}${DEPLOYMENT_UNIT_SUBSET_SUFFIX}}"
+TEMPLATE="${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
+STACK="${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}stack.json"
 

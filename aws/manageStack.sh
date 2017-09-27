@@ -15,18 +15,19 @@ function usage() {
 
 Manage a CloudFormation stack
 
-Usage: $(basename $0) -t TYPE -u DEPLOYMENT_UNIT -i -m -w STACK_WAIT -r REGION -n STACK_NAME -y -d
+Usage: $(basename $0) -l LEVEL -u DEPLOYMENT_UNIT -i -m -w STACK_WAIT -r REGION -n STACK_NAME -y -d
 
 where
 
 (o) -d (STACK_OPERATION=delete) to delete the stack
     -h                          shows this text
 (o) -i (STACK_MONITOR=false)    initiates but does not monitor the stack operation
+(m) -l LEVEL                    is the stack level - "account", "product", "segment", "solution", "application" or "multiple"
 (o) -m (STACK_INITIATE=false)   monitors but does not initiate the stack operation
 (o) -n STACK_NAME               to override standard stack naming
 (o) -r REGION                   is the AWS region identifier for the region in which the stack should be managed
 (d) -s DEPLOYMENT_UNIT          same as -u
-(m) -t TYPE                     is the stack type - "account", "product", "segment", "solution" or "application"
+(d) -t LEVEL                    same as -l
 (m) -u DEPLOYMENT_UNIT          is the deployment unit used to determine the stack template
 (o) -w STACK_WAIT               is the interval between checking the progress of the stack operation
 (o) -y (DRYRUN=--dryrun)        for a dryrun - show what will happen without actually updating the strack
@@ -42,8 +43,8 @@ STACK_OPERATION = ${STACK_OPERATION_DEFAULT}
 STACK_WAIT      = ${STACK_WAIT_DEFAULT} seconds
 
 NOTES:
-1. You must be in the correct directory corresponding to the requested stack type
-2. REGION is only relevant for the "product" type, where multiple product stacks are necessary
+1. You must be in the correct directory corresponding to the requested stack level
+2. REGION is only relevant for the "product" level, where multiple product stacks are necessary
    if the product uses resources in multiple regions
 3. "segment" is now used in preference to "container" to avoid confusion with docker
 4. If stack doesn't exist in AWS, the update operation will create the stack
@@ -56,7 +57,7 @@ EOF
 }
 
 # Parse options
-while getopts ":dhimn:r:s:t:u:w:yz:" opt; do
+while getopts ":dhil:mn:r:s:t:u:w:yz:" opt; do
     case $opt in
         d)
             STACK_OPERATION=delete
@@ -66,6 +67,9 @@ while getopts ":dhimn:r:s:t:u:w:yz:" opt; do
             ;;
         i)
             STACK_MONITOR=false
+            ;;
+        l)
+            LEVEL="${OPTARG}"
             ;;
         m)
             STACK_INITIATE=false
@@ -80,7 +84,7 @@ while getopts ":dhimn:r:s:t:u:w:yz:" opt; do
             DEPLOYMENT_UNIT="${OPTARG}"
             ;;
         t)
-            TYPE="${OPTARG}"
+            LEVEL="${OPTARG}"
             ;;
         u)
             DEPLOYMENT_UNIT="${OPTARG}"
@@ -123,7 +127,7 @@ RESULT=0
 # Update any file base configuration
 # Do this before stack in case it needs any of the files
 # to be present in the bucket e.g. swagger file
-if [[ "${TYPE}" == "application" ]]; then
+if [[ "${LEVEL}" == "application" ]]; then
     case ${STACK_OPERATION} in
         delete)
             deleteCMDBFilesFromOperationsBucket "appsettings"

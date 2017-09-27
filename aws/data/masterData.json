@@ -778,6 +778,9 @@
                 "seg-vpc" : {
                     "DeploymentUnits" : ["vpc"]
                 },
+                "seg-dashboard" : {
+                    "DeploymentUnits" : ["dashboard"]
+                },
                 "ssh-ssh" : {
                     "DeploymentUnits" : ["ssh"]
                 },

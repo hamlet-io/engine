@@ -1,4 +1,5 @@
 [#ftl]
+[#level = "segment"]
 [#include "setContext.ftl" ]
 
 [#-- Functions --]
@@ -72,21 +73,10 @@
 [#assign dnsHostnames = segmentObject.DNSHostnames]
 [#assign rotateKeys = (segmentObject.RotateKeys)!true]
 
-[#-- Handle segment dashboard generation --]
-[#if deploymentSubsetRequired("dashboard")]
-    [#assign allDeploymentUnits = true]
-    [#assign dashboardComponents = []]
-    [#assign compositeLists=[applicationList, solutionList]]
-    [#assign applicationListMode="dashboard"]
-    [#assign solutionListMode="dashboard"]
-    [#include "componentList.ftl"]
-    [#assign allDeploymentUnits = false]
-[/#if]
-
 [#if deploymentUnit == "eip"]
     [#-- Collect up all the eip subsets --]
     [#assign allDeploymentUnits = true]
-    [#assign deploymentUnitSubset = "eip"]
+    [#assign deploymentUnitSubset = deploymentUnit]
     [#assign ignoreDeploymentUnitSubsetInOutputs = true]
 [/#if]
 
@@ -102,7 +92,7 @@
     "Outputs" : {
         [#assign segmentListMode="outputs"]
         [#include "componentList.ftl"]
-        [@cfTemplateGlobalOutputs "outputs" "segment" /]
+        [@cfTemplateGlobalOutputs /]
     }
 }
 
