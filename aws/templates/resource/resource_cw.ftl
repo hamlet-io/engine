@@ -17,7 +17,7 @@
 ]
 
 [#macro createLogGroup mode id name retention=0]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::Logs::LogGroup"
@@ -25,23 +25,14 @@
             {
                 "LogGroupName" : name
             } +
-            (retention > 0)?then(
-                {
-                    "RetentionInDays" : retention
-                },
-                (operationsExpiration?is_number)?then(
-                    {
-                        "RetentionInDays" : operationsExpiration
-                    },
-                    {}
-                )
-            )
+            attributeIfTrue("RetentionInDays", retention > 0, retention) +
+            attributeIfTrue("RetentionInDays", retention <= 0, operationsExpiration)
         outputs=LOG_GROUP_OUTPUT_MAPPINGS
     /]
 [/#macro]
 
 [#macro createLogMetric mode id name logGroup filter namespace value dependencies=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::Logs::MetricFilter"
@@ -210,7 +201,7 @@
         [/#list]
     [/#list]
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::CloudWatch::Dashboard"
@@ -242,7 +233,7 @@
             missingData="notBreaching"
             reportOK=false
             dependencies=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::CloudWatch::Alarm"
@@ -262,18 +253,8 @@
                 "TreatMissingData" : missingData,
                 "Unit" : "Count"
             } +
-            dimensions?has_content?then(
-                {
-                    "Dimensions" : dimensions
-                },
-                {}
-            ) +
-            reportOK?then(
-                {
-                    "OKActions" : actions
-                },
-                {}
-            )
+            attributeIfContent("Dimensions", dimensions) +
+            attributeIfTrue("OKActions", reportOK, actions)
         dependencies=dependencies
     /]
 [/#macro]

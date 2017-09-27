@@ -65,7 +65,7 @@
         groupId=cacheSecurityGroupId
     /]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=cacheSubnetGroupId
         type="AWS::ElastiCache::SubnetGroup"
@@ -77,7 +77,7 @@
         outputs={}
     /]
     
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=cacheParameterGroupId
         type="AWS::ElastiCache::ParameterGroup"
@@ -91,7 +91,7 @@
         outputs={}
     /]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=cacheId
         type="AWS::ElastiCache::CacheCluster"
@@ -117,12 +117,7 @@
                     "NumCacheNodes" : processorProfile.CountPerZone
                 }
             ) +
-            (cache.SnapshotRetentionLimit)?has_content?then(
-                {
-                    "SnapshotRetentionLimit" : cache.SnapshotRetentionLimit
-                },
-                {}
-            )
+            attributeIfContent("SnapshotRetentionLimit", cache.SnapshotRetentionLimit!""))
         tags=
             getCfTemplateCoreTags(
                 cacheFullName,

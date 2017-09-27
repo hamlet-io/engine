@@ -194,18 +194,6 @@
     [#return result]
 [/#function]
 
-[#macro noResourcesCreated]
-    [#assign resourceCount = 0]
-[/#macro]
-
-[#macro resourcesCreated count=1]
-    [#assign resourceCount += count]
-[/#macro]
-
-[#macro checkIfResourcesCreated]
-    [#if resourceCount > 0],[/#if]
-[/#macro]
-
 [#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false]
     [#local result = 
         [
@@ -293,34 +281,32 @@
     ]
 [/#function]
 
-[#macro cfTemplateOutput mode id value]
+[#macro cfOutput mode id value resourceId=""]
     [#switch mode]
         [#case "outputs"]
-            [@checkIfResourcesCreated /]
-            "${id}" : {
-                "Value" : [@toJSON value /]
-            }
-            [@resourcesCreated /]
+            [#local output =
+                {
+                    id : { "Value" : value }
+                }
+            ]
+            [#assign templateOutputs += output]
+            [#if resourceId?has_content && componentTemplates??]
+                [#local resourceOutputs = (componentTemplates[resourceId].Outputs)!{}]
+                [#assign componentTemplates +=
+                    {
+                        resourceId : 
+                            ((componentTemplates[resourceId])!{}) +
+                            {
+                                "Outputs" : resourceOutputs + output
+                            }
+                    }
+                ]
+            [/#if]
             [#break]
     [/#switch]
 [/#macro]
 
-[#macro cfTemplateGlobalOutputs mode="outputs" ]
-    [@cfTemplateOutput mode "Account" { "Ref" : "AWS::AccountId" } /]
-    [@cfTemplateOutput mode "Region" { "Ref" : "AWS::Region" } /]
-    [@cfTemplateOutput mode "Level" level /]
-    [@cfTemplateOutput mode "DeploymentUnit"
-                        deploymentUnit + 
-                        (
-                            (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
-                            (deploymentUnitSubset?has_content)
-                        )?then(
-                            "-" + deploymentUnitSubset?lower_case,
-                            ""
-                        ) /]
-[/#macro]
-
-[#macro cfTemplate
+[#macro cfResource
             mode
             id 
             type 
@@ -341,47 +327,49 @@
 
     [#switch mode]
         [#case "definition"]
-            [@checkIfResourcesCreated /]
-            "${id}": {
-                "Type" : "${type}"
-                [#if metadata?has_content]
-                    ,"Metadata" : [@toJSON metadata /]
-                [/#if]
-                [#if properties?has_content || tags?has_content]
-                    ,"Properties" : {
-                        [#list properties as key,value]
-                            "${key}" : [@toJSON value /]
-                            [#sep],[/#sep]
-                        [/#list]
-                        [#if tags?has_content]
-                            [#if properties?has_content],[/#if]
-                            "Tags" : [@toJSON tags /]
-                        [/#if]
+            [#local definition =
+                {
+                    id : 
+                        {
+                            "Type" : type
+                        } +
+                        attributeIfContent("Metadata", metadata) +
+                        attributeIfTrue(
+                            "Properties",
+                            properties?has_content || tags?has_content,
+                            properties + attributeIfContent("Tags", tags)) +
+                        attributeIfContent("DependsOn", localDependencies) + 
+                        attributeIfContent("DeletionPolicy", deletionPolicy)
+                }
+            ]
+            [#assign templateResources += definition]
+            [#if componentTemplates??]
+                [#assign componentTemplates +=
+                    {
+                        id : 
+                            ((componentTemplates[id])!{}) +
+                            {
+                                "Definition" : definition
+                            }
                     }
-                [/#if]
-                [#if localDependencies?has_content]
-                    ,"DependsOn" : [@toJSON localDependencies /]
-                [/#if]
-                [#if deletionPolicy?has_content]
-                    ,"DeletionPolicy" : [@toJSON deletionPolicy /]
-                [/#if]
-            }
-            [@resourcesCreated /]        
+                ]
+            [/#if]
             [#break]
 
         [#case "outputs"]
             [#assign oId = outputId?has_content?then(outputId, id)]
             [#list outputs as type,value]
                 [#if type == REFERENCE_ATTRIBUTE_TYPE]
-                    [@cfTemplateOutput
+                    [@cfOutput
                         mode,
                         oId,
                         {
                             "Ref" : id
-                        }
+                        },
+                        id
                     /]
                 [#else]
-                    [@cfTemplateOutput
+                    [@cfOutput
                         mode,
                         formatAttributeId(oId, type),
                         ((value.UseRef)!false)?then(
@@ -394,11 +382,111 @@
                                     "Fn::GetAtt" : [id, value.Attribute] 
                                 }
                             )
-                        )                                    
+                        ),
+                        id
                     /]
                 [/#if]
             [/#list]
             [#break]
 
     [/#switch]
+[/#macro]
+
+[#macro includeCompositeLists compositeLists=[] ]
+    [#list tiers as tier]
+        [#assign tierId = tier.Id]
+        [#assign tierName = tier.Name]
+        [#if tier.Components??]
+            [#list tier.Components?values as component]
+                [#if deploymentRequired(component, deploymentUnit)]
+                    [#assign componentTemplates = {} ]
+                    [#assign componentId = getComponentId(component)]
+                    [#assign componentName = getComponentName(component)]
+                    [#assign componentType = getComponentType(component)]
+                    [#assign componentIdStem = formatComponentId(tier, component)]
+                    [#assign componentShortName = formatComponentShortName(tier, component)]
+                    [#assign componentShortNameWithType = formatComponentShortNameWithType(tier, component)]
+                    [#assign componentShortFullName = formatComponentShortFullName(tier, component)]
+                    [#assign componentFullName = formatComponentFullName(tier, component)]
+                    [#assign dashboardRows = []]
+                    [#assign multiAZ = component.MultiAZ!solnMultiAZ]
+                    [#list asArray(compositeLists) as compositeList]
+                        [#include compositeList?ensure_starts_with("/")]
+                    [/#list]
+                    [#if dashboardRows?has_content]
+                        [#assign dashboardComponents += [
+                                {
+                                    "Title" : component.Title?has_content?then(
+                                                component.Title,
+                                                formatComponentName(tier, component)),
+                                    "Rows" : dashboardRows
+                                }
+                            ]
+                        ]
+                    [/#if]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+[/#macro]
+
+[#macro cfTemplate level include="" compositeLists=[]]
+    
+    [#-- Resources --]
+    [#assign templateResources = {} ]
+    [#assign segmentListMode = "definition"]
+    [#assign solutionListMode = "definition"]
+    [#assign applicationListMode = "definition"]
+    [#assign productListMode = "definition"]
+    [#assign accountListMode = "definition"]
+    [#if include?has_content]
+        [#include include]
+    [#else]
+        [@includeCompositeLists asArray(compositeLists) /]
+    [/#if]
+
+    [#-- Outputs --]
+    [#assign templateOutputs={} ]
+    [#assign segmentListMode="outputs"]
+    [#assign solutionListMode="outputs"]
+    [#assign applicationListMode="outputs"]
+    [#assign productListMode = "outputs"]
+    [#assign accountListMode = "outputs"]
+    [#if include?has_content]
+        [#include include]
+    [#else]
+        [@includeCompositeLists asArray(compositeLists) /]
+    [/#if]
+    
+    [@toJSON
+        {
+            "AWSTemplateFormatVersion" : "2010-09-09",
+            "Metadata" :
+                {
+                    "Prepared" : .now?iso_utc,
+                    "RequestReference" : requestReference,
+                    "ConfigurationReference" : configurationReference
+                } +
+                attributeIfContent("CostCentre", accountObject.CostCentre!"") +
+                attributeIfContent("BuildReference", buildCommit!"") +
+                attributeIfContent("AppReference", appReference!""),
+            "Resources" : templateResources,
+            "Outputs" :
+                templateOutputs +
+                {
+                    "Account" : { "Ref" : "AWS::AccountId" },
+                    "Region" : { "Ref" : "AWS::Region" },
+                    "Level" : level,
+                    "DeploymentUnit" :
+                        deploymentUnit + 
+                        (
+                            (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
+                            (deploymentUnitSubset?has_content)
+                        )?then(
+                            "-" + deploymentUnitSubset?lower_case,
+                            ""
+                        )
+                }
+        }
+    /]
 [/#macro]

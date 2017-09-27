@@ -75,7 +75,7 @@
                                                     link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA" : fnName
                                                 }
                                             ]
-                                            [@cfTemplate
+                                            [@cfResource
                                                 mode=applicationListMode
                                                 id=
                                                     formatAPIGatewayLambdaPermissionId(
@@ -164,7 +164,7 @@
                                 occurrence)]
 
         [#if deploymentSubsetRequired("apigateway", true) && isPartOfCurrentDeploymentUnit(apiId)]
-            [@cfTemplate
+            [@cfResource
                 mode=applicationListMode
                 id=apiId
                 type="AWS::ApiGateway::RestApi"
@@ -187,7 +187,7 @@
                     }
                 outputs=APIGATEWAY_OUTPUT_MAPPINGS
             /]
-            [@cfTemplate
+            [@cfResource
                 mode=applicationListMode
                 id=deployId
                 type="AWS::ApiGateway::Deployment"
@@ -199,7 +199,7 @@
                 outputs={}
                 dependencies=apiId                       
             /]
-            [@cfTemplate
+            [@cfResource
                 mode=applicationListMode
                 id=stageId
                 type="AWS::ApiGateway::Stage"
@@ -217,12 +217,7 @@
                         ],
                         "StageName" : stageName                         
                     } +
-                    stageVariables?has_content?then(
-                        {
-                            "Variables" : stageVariables
-                        },
-                        {}
-                    )
+                    attributeIfContent("Variables", stageVariables)
                 outputs={}
                 dependencies=deployId                       
             /]
@@ -276,42 +271,33 @@
                             [dns],
                             []
                         )
-                    certificate=
-                        occurrence.DNSIsConfigured?then(
-                            getCFCertificate(
-                                appSettingsObject.CertificateId,
-                                occurrence.CloudFront.AssumeSNI
-                            ),
-                            {}
-                    )
+                    certificate=valueIfTrue(
+                        getCFCertificate(
+                            appSettingsObject.CertificateId,
+                            occurrence.CloudFront.AssumeSNI),
+                        occurrence.DNSIsConfigured)
                     comment=cfName
                     defaultCacheBehaviour=defaultCacheBehaviour
-                    logging=
-                        occurrence.CloudFront.EnableLogging?then(
-                            getCFLogging(
-                                operationsBucket,
-                                formatComponentAbsoluteFullPath(
-                                    tier,
-                                    component,
-                                    occurrence
-                                )
-                            ),
-                            {}
-                        )
+                    logging=valueIfTrue(
+                        getCFLogging(
+                            operationsBucket,
+                            formatComponentAbsoluteFullPath(
+                                tier,
+                                component,
+                                occurrence
+                            )
+                        ),
+                        occurrence.CloudFront.EnableLogging)
                     origins=origin
-                    restrictions=
-                        occurrence.CloudFront.CountryGroups?has_content?then(
-                            restrictions,
-                            {}
-                        )
-                    wafAclId=
+                    restrictions=valueIfTrue(
+                        restrictions,
+                        occurrence.CloudFront.CountryGroups)
+                    wafAclId=valueIfTrue(
+                        wafAclId,
                         (occurrence.WAFIsConfigured &&
-                            ipAddressGroupsUsage["waf"]?has_content)?then(
-                            wafAclId,
-                            ""
-                        )
+                            ipAddressGroupsUsage["waf"]?has_content))
                 /]
-                [@cfTemplate
+                [@cfResource
                     mode=applicationListMode
                     id=usagePlanId
                     type="AWS::ApiGateway::UsagePlan"
@@ -405,7 +391,7 @@
             [#else]
                 [#if occurrence.DNSIsConfigured]
                     [#-- TODO: fix fetching of certificate Arn --]
-                    [@cfTemplate
+                    [@cfResource
                         mode=applicationListMode
                         id=domainId
                         type="AWS::ApiGateway::DomainName"
@@ -416,7 +402,7 @@
                             }
                         outputs={}
                     /]
-                    [@cfTemplate
+                    [@cfResource
                         mode=applicationListMode
                         id=basePathMappingId
                         type="AWS::ApiGateway::BasePathMapping"

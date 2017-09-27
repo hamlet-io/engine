@@ -61,7 +61,7 @@
         groupId=rdsSecurityGroupId
     /]
     
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=rdsSubnetGroupId
         type="AWS::RDS::DBSubnetGroup"
@@ -78,7 +78,7 @@
         outputs={}
     /]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=rdsParameterGroupId
         type="AWS::RDS::DBParameterGroup"
@@ -97,7 +97,7 @@
         outputs={}
     /]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=rdsOptionGroupId
         type="AWS::RDS::OptionGroup"
@@ -117,7 +117,7 @@
         outputs={}
     /]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=rdsId
         type="AWS::RDS::DBInstance"

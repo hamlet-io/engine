@@ -2,7 +2,7 @@
 
 [#macro createCertificate mode id domain validationDomain="" outputId=""]
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::CertificateManager::Certificate"
@@ -10,17 +10,16 @@
             {
                 "DomainName" : domain
             } +
-            validationDomain?has_content?then(
-                {
-                    "DomainValidationOptions" : [
-                        {
-                            "DomainName" : domain,
-                            "ValidationDomain" : validationDomain
-                        }
-                    ]
-                },
-                {}
-            )
+            attributeIfContent(
+                "DomainValidationOptions",
+                validationDomain,
+                [
+                    {
+                        "DomainName" : domain,
+                        "ValidationDomain" : validationDomain
+                    }
+                ]
+                )
         outputId=outputId
     /]
 

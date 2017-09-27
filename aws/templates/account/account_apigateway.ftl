@@ -10,7 +10,7 @@
         managedArns=["arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"]
     /]
     
-    [@cfTemplate
+    [@cfResource
         mode=accountListMode
         id=apiAccountId
         type="AWS::ApiGateway::Account"

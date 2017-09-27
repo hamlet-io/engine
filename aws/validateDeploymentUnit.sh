@@ -46,9 +46,9 @@ for L in "${LEVELS[@]}"; do
     
     eval "grep -iw \"${CHECK_UNIT}\" <<< \"\${${UNITS_ARRAY_VAR}[*]}\" >/dev/null 2>&1"
     if [[ $? -eq 0 ]]; then
-        eval "export IS_${T^^}_UNIT=true"
+        eval "export IS_${L^^}_UNIT=true"
     else
-        eval "export IS_${T^^}_UNIT=false"
+        eval "export IS_${L^^}_UNIT=false"
     fi
 done
 

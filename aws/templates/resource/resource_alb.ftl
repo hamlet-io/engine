@@ -60,7 +60,7 @@
 ]
 
 [#macro createALB mode id name shortName tier component securityGroups logs=false bucket=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::ElasticLoadBalancingV2::LoadBalancer"
@@ -71,25 +71,23 @@
                 "SecurityGroups": getReferences(securityGroups),
                 "Name" : shortName
             } +
-            logs?then(
-                {
-                    "LoadBalancerAttributes" : [
-                        {
-                            "Key" : "access_logs.s3.enabled",
-                            "Value" : true
-                        },
-                        {
-                            "Key" : "access_logs.s3.bucket",
-                            "Value" : bucket
-                        },
-                        {
-                            "Key" : "access_logs.s3.prefix",
-                            "Value" : ""
-                        }
-                    ]
-                },
-                {}
-            ) 
+            attributeIfContent(
+                "LoadBalancerAttributes",
+                logs,
+                [
+                    {
+                        "Key" : "access_logs.s3.enabled",
+                        "Value" : true
+                    },
+                    {
+                        "Key" : "access_logs.s3.bucket",
+                        "Value" : bucket
+                    },
+                    {
+                        "Key" : "access_logs.s3.prefix",
+                        "Value" : ""
+                    }
+                ]) 
         tags=getCfTemplateCoreTags(name, tier, component)
         outputs=ALB_OUTPUT_MAPPINGS
     /]
@@ -126,7 +124,7 @@
         ]
     [/#if]
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::ElasticLoadBalancingV2::Listener"
@@ -142,7 +140,7 @@
                 "Port" : port.Port,
                 "Protocol" : port.Protocol
             } +
-            port.Certificate?has_content?then(
+            valueIfContent(
                 {
                     "Certificates" : [
                         {
@@ -168,14 +166,13 @@
                     ],
                     "SslPolicy" : "ELBSecurityPolicy-TLS-1-2-2017-01"
                 },
-                {}
-            )
+                port.Certificate!"")
         outputs=ALB_LISTENER_OUTPUT_MAPPINGS
     /]
 [/#macro]
 
 [#macro createTargetGroup mode id name tier component source destination extensions=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::ElasticLoadBalancingV2::TargetGroup"
@@ -198,12 +195,11 @@
                     }
                 ]
             } +
-            (destination.HealthCheck.SuccessCodes)?has_content?then(
+            valueIfContent(
                 {
-                    "Matcher" : { "HttpCode" : destination.HealthCheck.SuccessCodes }
+                    "Matcher" : { "HttpCode" : (destination.HealthCheck.SuccessCodes)!"" }
                 },
-                {}
-            )
+                (destination.HealthCheck.SuccessCodes)!"")
         tags=
             getCfTemplateCoreTags(
                 formatComponentFullName(
@@ -241,7 +237,7 @@
 [/#function]
 
 [#macro createListenerRule mode id listenerId actions=[] conditions=[] priority=100 dependencies=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::ElasticLoadBalancingV2::ListenerRule"

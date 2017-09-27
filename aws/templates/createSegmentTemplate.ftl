@@ -1,10 +1,5 @@
 [#ftl]
-[#level = "segment"]
 [#include "setContext.ftl" ]
-
-[#-- Functions --]
-
-[#-- Macros --]
 
 [#-- Initialisation --]
 
@@ -49,30 +44,6 @@
 [/#switch]
 [#assign segmentDomainCertificateId = segmentDomainCertificateId?replace("-","X")]
 
-[#-- Bucket names - may already exist --]
-[#if ! operationsBucket?has_content]
-    [#assign operationsBucket = formatSegmentFullName(operationsBucketType, vpc?remove_beginning("vpc-"))]
-    [#if ((segmentObject.S3.IncludeTenant)!false) && tenantObject?has_content]
-        [#assign operationsBucket = formatName(tenantObject, operationsBucket) ]
-    [/#if]
-[/#if]
-[#if ! dataBucket?has_content]
-    [#assign dataBucket = formatSegmentFullName(dataBucketType, vpc?remove_beginning("vpc-"))]
-    [#if ((segmentObject.S3.IncludeTenant)!false) && tenantObject?has_content]
-        [#assign dataBucket = formatName(tenantObject, dataBucket) ]
-    [/#if]
-[/#if]
-
-[#-- Segment --]
-[#assign baseAddress = segmentObject.CIDR.Address?split(".")]
-[#assign addressOffset = baseAddress[2]?number*256 + baseAddress[3]?number]
-[#assign addressesPerTier = powersOf2[getPowerOf2(powersOf2[32 - segmentObject.CIDR.Mask]/(segmentObject.Tiers.Order?size))]]
-[#assign addressesPerZone = powersOf2[getPowerOf2(addressesPerTier / (segmentObject.Zones.Order?size))]]
-[#assign subnetMask = 32 - powersOf2?seq_index_of(addressesPerZone)]
-[#assign dnsSupport = segmentObject.DNSSupport]
-[#assign dnsHostnames = segmentObject.DNSHostnames]
-[#assign rotateKeys = (segmentObject.RotateKeys)!true]
-
 [#if deploymentUnit == "eip"]
     [#-- Collect up all the eip subsets --]
     [#assign allDeploymentUnits = true]
@@ -80,20 +51,8 @@
     [#assign ignoreDeploymentUnitSubsetInOutputs = true]
 [/#if]
 
-{
-    "AWSTemplateFormatVersion" : "2010-09-09",
-    [#include "templateMetadata.ftl"],
-    [#assign compositeLists=[segmentList]]
-    "Resources" : {
-        [#assign segmentListMode="definition"]
-        [#include "componentList.ftl"]
-    },
-    
-    "Outputs" : {
-        [#assign segmentListMode="outputs"]
-        [#include "componentList.ftl"]
-        [@cfTemplateGlobalOutputs /]
-    }
-}
+[@cfTemplate
+    level="segment"
+    compositeLists=segmentList /]
 
 

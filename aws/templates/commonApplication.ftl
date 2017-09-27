@@ -37,18 +37,8 @@
             {
                 "Essential" : essential
             } +
-            name?has_content?then(
-                {
-                    "Name" : name
-                },
-                {}
-            ) + 
-            image?has_content?then(
-                {    
-                    "Image" : formatRelativePath(getRegistryEndPoint("docker"), image)
-                },
-                {}
-            )
+            attributeIfContent("Name", name) +
+            attributeIfContent("Image", image, formatRelativePath(getRegistryEndPoint("docker"), image))
         ]
     [/#if]
 [/#macro]
@@ -211,7 +201,7 @@
                                 "HostPort" : port.Id,
                                 "DynamicHostPort" : port.DynamicHostPort!false
                             } +
-                            targetLoadBalancer?has_content?then(
+                            valueIfContent(
                                 {
                                     "LoadBalancer" :
                                         {
@@ -220,27 +210,17 @@
                                             "Instance" : targetLoadBalancer.InstanceId,
                                             "Version" : targetLoadBalancer.VersionId
                                         } +
-                                        targetGroup?has_content?then(
-                                            {
-                                                "TargetGroup" : targetGroup,
-                                                "Port" : targetPort
-                                            } +
-                                            (port.LB.Priority)?has_content?then(
+                                        valueIfContent(
                                                 {
-                                                    "Priority" : port.LB.Priority
-                                                },
-                                                {}
-                                            ) +
-                                            targetPath?has_content?then(
-                                                {
-                                                    "Path" : targetPath
-                                                },
-                                                {}
-                                            ),
-                                            {}
-                                        ) 
+                                                    "TargetGroup" : targetGroup,
+                                                    "Port" : targetPort
+                                                } +
+                                                attributeIfContent("Priority",(port.LB.Priority)!"") +
+                                                attributeIfContent("Path", targetPath),
+                                            targetGroup
+                                        )
                                 },
-                                {}
+                                targetLoadBalancer
                             )
                         ]
                     ]
@@ -315,43 +295,13 @@
                             "CREDENTIALS_PREFIX" : getCredentialsFilePrefix(),
                             "APP_RUN_MODE" : getContainerMode(container)
                         } +
-                        buildCommit?has_content?then(
-                            {
-                                "BUILD_REFERENCE" : buildCommit
-                            },
-                            {}
-                        ) +
-                        appReference?has_content?then(
-                            {
-                                "APP_REFERENCE" : appReference
-                            },
-                            {}
-                        )
+                        attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
+                        attributeIfContent("APP_REFERENCE", appReference!"")
                 } +
-                container.Version?has_content?then(
-                    {
-                        "Version" : container.Version
-                    },
-                    {}
-                ) +
-                container.Cpu?has_content?then(
-                    {
-                        "Cpu" : container.Cpu
-                    },
-                    {}
-                ) +
-                container.MaximumMemory?has_content?then(
-                    {
-                        "MaximumMemory" : container.MaximumMemory
-                    },
-                    {}
-                ) +
-                portMappings?has_content?then(
-                    {
-                        "PortMappings" : portMappings
-                    },
-                    {}
-                )
+                attributeIfContent("Version", container.Version!"") +
+                attributeIfContent("Cpu", container.Cpu!"") +
+                attributeIfContent("MaximumMemory", container.MaximumMemory!"") +
+                attributeIfContent("PortMappings", portMappings)
             ]
 
             [#-- Add in container specifics including override of defaults --]

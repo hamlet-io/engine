@@ -1,5 +1,4 @@
 [#ftl]
-[#level = "account"]
 [#include "setContext.ftl" ]
 
 [#-- Initialisation --]
@@ -38,19 +37,6 @@
 [/#if]
 [#assign categoryId = "account"]
 
-{
-    "AWSTemplateFormatVersion" : "2010-09-09",
-    [#include "templateMetadata.ftl"],
-    "Resources" : {
-        [@noResourcesCreated /]
-        [#assign accountListMode="definition"]
-        [#include accountList]
-    },
-    "Outputs" : 
-    {
-        [@noResourcesCreated /]
-        [#assign accountListMode="outputs"]
-        [#include accountList]
-        [@cfTemplateGlobalOutputs /]
-    }
-}
+[@cfTemplate
+    level="account"
+    include=accountList /]

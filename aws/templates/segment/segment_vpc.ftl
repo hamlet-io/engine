@@ -218,17 +218,17 @@
             [/#list]
         [/#list]
 
-        [@cfTemplateOutput
+        [@cfOutput
             mode=segmentListMode
             id=formatId("domain", "segment", "domain")
             value=segmentDomain
         /]
-        [@cfTemplateOutput
+        [@cfOutput
             mode=segmentListMode
             id=formatId("domain", "segment", "qualifier")
             value=segmentDomainQualifier
         /]
-        [@cfTemplateOutput
+        [@cfOutput
             mode=segmentListMode
             id=formatId("domain", "segment", "certificate")
             value=segmentDomainCertificateId
@@ -332,7 +332,7 @@
         [#if sshStandalone]
             [#assign instanceProfileId = formatEC2InstanceProfileId(tier, sshComponent)]
 
-            [@cfTemplate
+            [@cfResource
                 mode=segmentListMode
                 id=instanceProfileId
                 type="AWS::IAM::InstanceProfile"
@@ -347,7 +347,7 @@
             [#assign asgId = formatEC2AutoScaleGroupId(tier, sshComponent)]
             [#assign launchConfigId = formatEC2LaunchConfigId(tier, sshComponent)]
     
-            [@cfTemplate
+            [@cfResource
                 mode=segmentListMode
                 id=asgId
                 type="AWS::AutoScaling::AutoScalingGroup"
@@ -462,7 +462,7 @@
             /]
         
             [#assign processorProfile = getProcessor(tier, sshComponent, "SSH")]
-            [@cfTemplate
+            [@cfResource
                 mode=segmentListMode
                 id=launchConfigId
                 type="AWS::AutoScaling::LaunchConfiguration"
@@ -565,7 +565,7 @@
         [#if !natHosted]
             [#assign instanceProfileId = formatEC2InstanceProfileId(tier, natComponent)]
     
-            [@cfTemplate
+            [@cfResource
                 mode=segmentListMode
                 id=instanceProfileId
                 type="AWS::IAM::InstanceProfile"
@@ -649,7 +649,7 @@
                         }
                     ]
     
-                    [@cfTemplate
+                    [@cfResource
                         mode=segmentListMode
                         id=asgId
                         type="AWS::AutoScaling::AutoScalingGroup"
@@ -753,7 +753,7 @@
                     /]
                 
                     [#assign processorProfile = getProcessor(tier, natComponent, "NAT")]
-                    [@cfTemplate
+                    [@cfResource
                         mode=segmentListMode
                         id=launchConfigId
                         type="AWS::AutoScaling::LaunchConfiguration"

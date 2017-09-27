@@ -6,14 +6,9 @@
             {
                 "Status" : enabled?then("Enabled","Disabled")
             } +
-            prefix?has_content?then(
-                {"Prefix" : prefix},
-                {}
-            ) +
-            days?is_number?then(
-                {"ExpirationInDays" : days},
-                {"ExpirationDate" : days}
-            )
+            attributeIfContent("Prefix", prefix) +
+            attributeIfTrue("ExpirationInDays", days?is_number, days) +
+            attributeIfTrue("ExpirationDate", !(days?is_number), days)
         ]
     ]
 [/#function]
@@ -55,7 +50,7 @@
 ]
 
 [#macro createS3Bucket mode id name tier="" component="" lifecycleRules=[] sqsNotifications=[] dependencies="" outputId=""]
-    [@cfTemplate 
+    [@cfResource 
         mode=mode
         id=id
         type="AWS::S3::Bucket"
@@ -63,22 +58,18 @@
             {
                 "BucketName" : name
             } +
-            lifecycleRules?has_content?then(
+            attributeIfContent(
+                "LifecycleConfiguration",
+                lifecycleRules,
                 {
-                    "LifecycleConfiguration" : {
-                        "Rules" : lifecycleRules
-                    }
-                },
-                {}
-            ) +
-            sqsNotifications?has_content?then(
+                    "Rules" : lifecycleRules
+                }) +
+            attributeIfContent(
+                "NotificationConfiguration",
+                sqsNotifications,
                 {
-                    "NotificationConfiguration" : {
-                        "QueueConfigurations" : sqsNotifications
-                    }
-                },
-                {}
-            )
+                    "QueueConfigurations" : sqsNotifications
+                })
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
         outputId=outputId

@@ -11,24 +11,9 @@
                     "Deny"
                 )
         } +
-        sid?has_content?then(
-            {
-                "Sid" : sid
-            },
-            {}
-        ) +
-        principals?has_content?then(
-            {
-                "Principal" : principals
-            },
-            {}
-        ) +
-        conditions?has_content?then(
-            {
-                "Condition" : conditions
-            },
-            {}
-        )
+        attributeIfContent("Sid", sid) +
+        attributeIfContent("Principal", principals) +
+        attributeIfContent("Condition", conditions)
     ]
 [/#function]
 
@@ -38,12 +23,7 @@
             "Statement": asArray(statements),
             "Version": version
         } +
-        id?has_content?then(
-            {
-                "Id" : id
-            },
-            {}
-        )
+        attributeIfContent("Id", id)
     ]
 [/#function]
 
@@ -52,12 +32,7 @@
         {
             "PolicyDocument" : getPolicyDocumentContent(statements)
         }+
-        name?has_content?then(
-            {
-                "PolicyName" : name
-            },
-            {}
-        )
+        attributeIfContent("PolicyName", name)
     ]
 [/#function]
 
@@ -81,41 +56,20 @@
 [/#function]
 
 [#macro createPolicy mode id name statements roles="" users="" groups="" dependencies=[] ]
-    [#local effectiveMode = mode]
-    [#if containerListMode?has_content]
-        [#switch mode]
-            [#case "policy"]
-                [#local effectiveMode = "definition"]
-                [#break]
-            [#case "policyList"]
-                [#if policyCount > 0],[/#if]
-                "${id}"
-                [#break]
-            [#case "definition"]
-                [#local effectiveMode = ""]
-                [#break]
-        [/#switch]
-    [/#if]
-    [@cfTemplate
-        mode=effectiveMode
+    [@cfResource
+        mode=mode
         id=id
         type="AWS::IAM::Policy"
         properties=
             getPolicyDocument(statements, name) +
-            roles?has_content?then(
-                {
-                    "Roles" : getReferences(roles)
-                },
-                {}
-            )
+            attributeIfContent("Roles", roles, getReferences(roles))
         outputs={}
         dependencies=dependencies
     /]
-    [#assign policyCount = policyCount!0 + 1 ]
 [/#macro]
 
 [#macro createSQSPolicy mode id queues statements dependencies=[] ]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::SQS::QueuePolicy"
@@ -127,27 +81,11 @@
         outputs={}
         dependencies=dependencies
     /]
-    [#assign policyCount = policyCount!0 + 1]
 [/#macro]
 
 [#macro createBucketPolicy mode id bucket statements dependencies=[] ]
-    [#local effectiveMode = mode]
-    [#if containerListMode?has_content]
-        [#switch mode]
-            [#case "policy"]
-                [#local effectiveMode = "definition"]
-                [#break]
-            [#case "policyList"]
-                [#if policyCount > 0],[/#if]
-                "${id}"
-                [#break]
-            [#case "definition"]
-                [#local effectiveMode = ""]
-                [#break]
-        [/#switch]
-    [/#if]
-    [@cfTemplate
-        mode=effectiveMode
+    [@cfResource
+        mode=mode
         id=id
         type="AWS::S3::BucketPolicy"
         properties=
@@ -199,78 +137,39 @@
         ]
     [/#list]
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::IAM::Role"
         properties=
-            (trustedServices?has_content || trustedAccountArns?has_content)?then(
+            attributeIfTrue(
+                "AssumeRolePolicyDocument",
+                trustedServices?has_content || trustedAccountArns?has_content,
                 {
-                    "AssumeRolePolicyDocument" : {
-                        "Version": "2012-10-17",
-                        "Statement": [
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal":
+                                attributeIfContent("Service", trustedServices) +
+                                attributeIfContent("AWS", trustedAccountArns),
+                            "Action": [ "sts:AssumeRole" ]
+                        } +
+                        attributeIfTrue(
+                            "Condition",
+                            multiFactor,
                             {
-                                "Effect": "Allow",
-                                "Principal":
-                                    trustedServices?has_content?then(
-                                        {
-                                            "Service": trustedServices
-                                        },
-                                        {}
-                                    ) +
-                                    trustedAccountArns?has_content?then(
-                                        {
-                                            "AWS": trustedAccountArns
-                                        },
-                                        {}
-                                    ),
-                                "Action": [ "sts:AssumeRole" ]
-                            } +
-                            multiFactor?then(
-                                {
-                                    "Condition": {
-                                        "Bool": {
-                                          "aws:MultiFactorAuthPresent": "true"
-                                        }
-                                    }
-                                },
-                                {}
-                            ) + 
-                            condition?has_content?then(
-                                {
-                                    "Condition": condition    
-                                },
-                                {}
-                            )
-                        ]
-                    }
-                },
-                {}
-            ) +
-            managedArns?has_content?then(
-                {
-                    "ManagedPolicyArns" : managedArns
-                },
-                {}
-            ) +
-            path?has_content?then(
-                {
-                    "Path": path
-                },
-                {}
-            ) +
-            name?has_content?then(
-                {
-                    "RoleName": name
-                },
-                {}
-            ) + 
-            policies?has_content?then(
-                {
-                    "Policies": policies
-                },
-                {}
-            )
+                                "Bool": {
+                                  "aws:MultiFactorAuthPresent": "true"
+                                }
+                            }) + 
+                        attributeIfContent("Condition", condition)
+                    ]
+                }) +
+            attributeIfContent("ManagedPolicyArns", managedArns) +
+            attributeIfContent("Path", path) +
+            attributeIfContent("RoleName", name) +
+            attributeIfContent("Policies", policies)
         outputs=ROLE_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]

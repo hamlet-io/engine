@@ -50,7 +50,7 @@
             ]
     /]
     
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=ec2InstanceProfileId
         type="AWS::IAM::InstanceProfile"
@@ -98,7 +98,7 @@
             [#assign processorProfile = getProcessor(tier, component, "EC2")]
             [#assign storageProfile = getStorage(tier, component, "EC2")]
 
-            [@cfTemplate
+            [@cfResource
                 mode=solutionListMode
                 id=ec2InstanceId
                 type="AWS::EC2::Instance"
@@ -178,18 +178,16 @@
                                         "ignoreErrors" : "false"
                                     }
                                 } +
-                                ec2.LoadBalanced?then(
+                                attributeIfTrue(
+                                    "03RegisterWithLB",
+                                    ec2.LoadBalanced,
                                     {
-                                        "03RegisterWithLB" : {
-                                            "command" : "/opt/codeontap/bootstrap/register.sh",
-                                            "env" : {
-                                                "LOAD_BALANCER" : getReference(ec2ELBId)
-                                            },
-                                            "ignoreErrors" : "false"
-                                        }
-                                    },
-                                    {}
-                                )
+                                        "command" : "/opt/codeontap/bootstrap/register.sh",
+                                        "env" : {
+                                            "LOAD_BALANCER" : getReference(ec2ELBId)
+                                        },
+                                        "ignoreErrors" : "false"
+                                    })
                             },
                             "puppet": {
                                 "commands": {
@@ -255,7 +253,7 @@
                     )
             /]
 
-            [@cfTemplate
+            [@cfResource
                 mode=solutionListMode
                 id=ec2ENIId
                 type="AWS::EC2::NetworkInterface"
@@ -287,7 +285,7 @@
                     dependences=[ec2ENIId]
                 /]
                 
-                [@cfTemplate
+                [@cfResource
                     mode=solutionListMode
                     id=ec2EIPAssociationId
                     type="AWS::EC2::EIPAssociation"
