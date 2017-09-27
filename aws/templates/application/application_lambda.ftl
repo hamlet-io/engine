@@ -34,18 +34,8 @@
                             "CREDENTIALS_PREFIX" : getCredentialsFilePrefix(),
                             "APP_RUN_MODE" : "WEB"
                         } +
-                        buildCommit?has_content?then(
-                            {
-                                "BUILD_REFERENCE" : buildCommit
-                            },
-                            {}
-                        ) +
-                        appReference?has_content?then(
-                            {
-                                "APP_REFERENCE" : appReference
-                            },
-                            {}
-                        ),
+                        attributeIfContent("BUILD_REFERENCE", buildCommit) +
+                        attributeIfContent("APP_REFERENCE", appReference),
                     "S3Bucket" : getRegistryEndPoint("lambda"),
                     "S3Key" : 
                         formatRelativePath(

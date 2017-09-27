@@ -65,7 +65,7 @@
     
     [#-- Legacy naming --]
     [#-- TODO: Remove --]
-    [@cfTemplateOutput
+    [@cfOutput
         mode=segmentListMode
         id=formatId("s3", operationsBucketSegment, operationsBucketType)
         value=
@@ -73,7 +73,7 @@
                 "Ref" : formatId("s3", operationsBucketType)
             }
     /]
-    [@cfTemplateOutput
+    [@cfOutput
         mode=segmentListMode
         id=formatId("s3", dataBucketSegment, dataBucketType)
         value=

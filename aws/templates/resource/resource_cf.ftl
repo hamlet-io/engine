@@ -26,12 +26,7 @@
                     "OriginAccessIdentity" : accessId
                 }
             } + 
-            path?has_content?then(
-                {
-                    "OriginPath" : path
-                },
-                {}
-            )
+            attributeIfContent("OriginPath", path)
         ]
     ]
 [/#function]
@@ -60,18 +55,8 @@
                 "Id" : id,
                 "CustomOriginConfig" : httpConfig
             } + 
-            asArray(headers)?has_content?then(
-                {
-                    "OriginCustomHeaders" : asArray(headers)
-                },
-                {}
-            ) +            
-            path?has_content?then(
-                {
-                    "OriginPath" : path
-                },
-                {}
-            )
+            attributeIfContent("OriginCustomHeaders", asArray(headers)) +
+            attributeIfContent("OriginPath", path)
         ]
     ]
 [/#function]
@@ -116,70 +101,20 @@
                     {
                         "QueryString" : forwarded.QueryString
                     } + 
-                    forwarded.Cookies?has_content?then(
-                        {
-                            "Cookies" : forwarded.Cookies
-                        },
-                        {}
-                    ) +
-                    forwarded.Headers?has_content?then(
-                        {
-                            "Headers" : forwarded.Headers
-                        },
-                        {}
-                    ) +
-                    forwarded.QueryStringCacheKeys?has_content?then(
-                        {
-                            "QueryStringCacheKeys" : forwarded.QueryStringCacheKeys
-                        },
-                        {}
-                    ),
+                    attributeIfContent("Cookies", forwarded.Cookies!"") +
+                    attributeIfContent("Headers", forwarded.Headers!"") +
+                    attributeIfContent("QueryStringCacheKeys", forwarded.QueryStringCacheKeys!""),
                 "SmoothStreaming" : smoothStreaming,
                 "TargetOriginId" : asString(origin, "Id"),
                 "ViewerProtocolPolicy" : viewerProtocolPolicy
             } + 
-            path?has_content?then(
-                {
-                    "PathPattern" : path
-                },
-                {}
-            ) + 
-            methods.Allowed?has_content?then(
-                {
-                    "AllowedMethods" : asArray(methods.Allowed)
-                },
-                {}
-            ) + 
-            methods.Cached?has_content?then(
-                {
-                    "CachedMethods" : asArray(methods.Cached)
-                },
-                {}
-            ) +
-            ttl.Default?has_content?then(
-                {
-                    "DefaultTTL" : ttl.Default
-                },
-                {}
-            ) +
-            ttl.Max?has_content?then(
-                {
-                    "MaxTTL" : ttl.Max
-                },
-                {}
-            ) +
-            ttl.Min?has_content?then(
-                {
-                    "MinTTL" : ttl.Min
-                },
-                {}
-            ) +
-            trustedSigners?has_content?then(
-                {
-                    "trustedSigners" : asArray(trustedSigners)
-                },
-                {}
-            )
+            attributeIfContent("PathPattern", path) +
+            attributeIfContent("AllowedMethods", methods.Allowed![], asArray(methods.Allowed![])) +
+            attributeIfContent("CachedMethods", methods.Cached![], asArray(methods.Cached![])) +
+            attributeIfContent("DefaultTTL", ttl.Default!"") +
+            attributeIfContent("MaxTTL", ttl.Max!"") +
+            attributeIfContent("MinTTL", ttl.Min!"") +
+            attributeIfContent("TrustedSigners", trustedSigners![], asArray(trustedSigners![]))
         ]
     ]
 [/#function]
@@ -264,11 +199,11 @@
 
 [#function getCFGeoRestriction locations blacklist=false]
     [#return
-        locations?has_content?then(
+        valueIfContent(
             {
                 "GeoRestriction" : {
                     "Locations" :
-                        asArray(locations),
+                        asArray(locations![]),
                     "RestrictionType" :
                         blacklist?then(
                             "blacklist",
@@ -276,7 +211,7 @@
                         )
                 }
             },
-            {}
+            locations![]
         )
     ]
 [/#function]
@@ -297,89 +232,29 @@
     restrictions={}
     wafAclId=""
 ]
-    [@cfTemplate 
+    [@cfResource 
         mode=mode
         id=id
         type="AWS::CloudFront::Distribution"
         properties=
             {
                 "DistributionConfig" :
-                    aliases?has_content?then(
-                        {
-                            "Aliases" : aliases
-                        },
-                        {}
-                    ) +
-                    cacheBehaviours?has_content?then(
-                        {
-                            "CacheBehaviors" : cacheBehaviours
-                        },
-                        {}
-                    ) +
-                    comment?has_content?then(
-                        {
-                            "Comment" : comment
-                        },
-                        {}
-                    ) +
-                    customErrorResponses?has_content?then(
-                        {
-                            "CustomErrorResponses" : aliases
-                        },
-                        {}
-                    ) +
-                    defaultCacheBehaviour?has_content?then(
-                        {
-                            "DefaultCacheBehavior" : asArray(defaultCacheBehaviour)[0]
-                        },
-                        {}
-                    ) +
-                    defaultRootObject?has_content?then(
-                        {
-                            "DefaultRootObject" : defaultRootObject
-                        },
-                        {}
-                    ) +
                     {
                         "Enabled" : isEnabled,
                         "HttpVersion" : httpVersion
                     } +
-                    logging?has_content?then(
-                        {
-                            "Logging" : logging
-                        },
-                        {}
-                    ) +
-                    origins?has_content?then(
-                        {
-                            "Origins" : origins
-                        },
-                        {}
-                    ) +
-                    priceClass?has_content?then(
-                        {
-                            "PriceClass" : priceClass
-                        },
-                        {}
-                    ) +
-                    restrictions?has_content?then(
-                        {
-                            "Restrictions" : restrictions
-                        },
-                        {}
-                    ) +
-                    certificate?has_content?then(
-                        {
-                            "ViewerCertificate" : certificate
-                        },
-                        {}
-                    ) +
-                    wafAcl?has_content?then(
-                        {
-                            "WebACLId" : getReference(wafAcl)
-                        },
-                        {}
-                    )
+                    attributeIfContent("Aliases", aliases) +
+                    attributeIfContent("CacheBehaviors", cacheBehaviours) +
+                    attributeIfContent("Comment", comment) +
+                    attributeIfContent("CustomErrorResponses", customErrorResponses) +
+                    attributeIfContent("DefaultCacheBehavior", defaultCacheBehaviour, asArray(defaultCacheBehaviour)[0]) +
+                    attributeIfContent("DefaultRootObject", defaultRootObject) +
+                    attributeIfContent("Logging", logging) +
+                    attributeIfContent("Origins", origins) +
+                    attributeIfContent("PriceClass", priceClass) +
+                    attributeIfContent("Restrictions", restrictions) +
+                    attributeIfContent("ViewerCertificate", certificate) +
+                    attributeIfContent("WebACLId", getReference(wafAcl))
             }
         outputs=CF_OUTPUT_MAPPINGS
         dependencies=dependencies

@@ -33,34 +33,31 @@
                     "InstancePort" : destination.Port,
                     "InstanceProtocol" : destination.Protocol
                 } +
-                (source.Certificate)?has_content?then(
-                    {
-                        "SSLCertificateId" :
-                            getExistingReference(formatCertificateId(certificateId))?has_content?then(
-                                getExistingReference(formatCertificateId(certificateId)),
-                                {
-                                    "Fn::Join" : [
-                                        "",
-                                        [
-                                            "arn:aws:iam::",
-                                            {"Ref" : "AWS::AccountId"},
-                                            ":server-certificate/ssl/"
-                                            certificateId,
-                                            "/",
-                                            certificateId,
-                                            "-ssl"
-                                        ]
-                                    ]
-                                }
-                            )
-                    },
-                    {}
-                )
+                attributeIfTrue(
+                    "SSLCertificateId",
+                    source.Certificate!false,
+                    getExistingReference(formatCertificateId(certificateId))?has_content?then(
+                        getExistingReference(formatCertificateId(certificateId)),
+                        {
+                            "Fn::Join" : [
+                                "",
+                                [
+                                    "arn:aws:iam::",
+                                    {"Ref" : "AWS::AccountId"},
+                                    ":server-certificate/ssl/"
+                                    certificateId,
+                                    "/",
+                                    certificateId,
+                                    "-ssl"
+                                ]
+                            ]
+                        }
+                    ))
             ]
         ]
     [/#list]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=elbId
         type="AWS::ElasticLoadBalancing::LoadBalancer"

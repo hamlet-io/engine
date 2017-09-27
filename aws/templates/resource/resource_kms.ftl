@@ -17,7 +17,7 @@
 ]
 
 [#macro createCMK mode id description statements rotateKeys=true outputId=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::KMS::Key"
@@ -35,7 +35,7 @@
 
 [#macro createCMKAlias mode id name cmkId]
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::KMS::Alias"

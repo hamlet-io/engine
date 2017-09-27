@@ -69,7 +69,7 @@
     [#list cidrs as cidrBlock]
         [#switch mode]
             [#case "definition"]
-                [@cfTemplate
+                [@cfResource
                     mode=mode
                     id=
                         formatId(
@@ -117,7 +117,7 @@
         ]
     [/#if]
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::SecurityGroup"
@@ -207,7 +207,7 @@
             resourceId
             resourceType
             trafficType]
-    [@cfTemplate 
+    [@cfResource 
         mode=mode
         id=id
         type="AWS::EC2::FlowLog"
@@ -229,7 +229,7 @@
             cidr
             dnsSupport
             dnsHostnames]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::VPC"
@@ -248,7 +248,7 @@
             mode
             id
             name]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::InternetGateway"
@@ -262,7 +262,7 @@
             id
             vpcId
             igwId]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::VPCGatewayAttachment"
@@ -298,7 +298,7 @@
             mode
             id
             dependencies=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::EIP"
@@ -316,7 +316,7 @@
             id,
             subnetId,
             eipId]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::NatGateway"
@@ -334,7 +334,7 @@
             name,
             vpcId,
             zone=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::RouteTable"
@@ -385,7 +385,7 @@
             [#break]
         
     [/#switch]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::Route"
@@ -399,7 +399,7 @@
             id,
             name,
             vpcId]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::NetworkAcl"
@@ -464,7 +464,7 @@
             ]
             [#break]
     [/#switch]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::NetworkAclEntry"
@@ -501,7 +501,7 @@
             []
         ) 
     ]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::Subnet"
@@ -523,7 +523,7 @@
             subnetId,
             routeTableId]
             
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::SubnetRouteTableAssociation"
@@ -542,7 +542,7 @@
             subnetId,
             networkACLId]
             
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::SubnetNetworkAclAssociation"
@@ -568,7 +568,7 @@
     [#list asArray(routeTableIds) as routeTableId]
         [#local routeTableRefs += [getReference(routeTableId)] ]
     [/#list]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::VPCEndpoint"
@@ -582,10 +582,7 @@
                         service),
                 "VpcId" : getReference(vpcId)
             } +
-            statements?has_content?then(
-                getPolicyDocument(statements),
-                {}
-            )
+            valueIfContent(getPolicyDocument(statements), statements)
         outputs={}
     /]
 [/#macro]

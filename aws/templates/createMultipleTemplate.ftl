@@ -1,5 +1,4 @@
 [#ftl]
-[#level = "multiple"]
 [#include "setContext.ftl" ]
 
 [#-- Ignore filtering based on deployment unit --]
@@ -20,7 +19,9 @@
         [#assign segmentListMode="dashboard"]
         [#assign solutionListMode="dashboard"]
         [#assign applicationListMode="dashboard"]
-        [#include "componentList.ftl"]
+        [@includeCompositeLists
+            level="multiple"
+            compositeLists=compositeLists /]
         
         [#-- Reset to create the dashboard resource --]
         [#assign compositeLists=[segmentList]
@@ -35,23 +36,6 @@
         [#break]
 [/#switch]
 
-{
-    "AWSTemplateFormatVersion" : "2010-09-09",
-    [#include "templateMetadata.ftl"],
-    "Resources" : {
-        [#assign segmentListMode="definition"]
-        [#assign solutionListMode="definition"]
-        [#assign applicationListMode="definition"]
-        [#include "componentList.ftl"]
-    },
-    
-    "Outputs" : {
-        [#assign segmentListMode="outputs"]
-        [#assign solutionListMode="outputs"]
-        [#assign applicationListMode="outputs"]
-        [#include "componentList.ftl"]
-        [@cfTemplateGlobalOutputs /]
-    }
-}
-
-
+[@cfTemplate
+    level="multiple"
+    compositeLists=compositeLists /]

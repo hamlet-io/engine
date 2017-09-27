@@ -35,7 +35,7 @@
         ]
     [/#list]
     
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::WAF::IPSet"
@@ -61,7 +61,7 @@
         ]
     [/#list]
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::WAF::Rule"
@@ -90,7 +90,7 @@
         ]
     [/#list]
     
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::WAF::WebACL"

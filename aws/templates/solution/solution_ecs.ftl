@@ -26,7 +26,7 @@
     [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
     [#assign defaultLogDriver = ecs.LogDriver!"awslogs"]
     
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=ecsId
         type="AWS::ECS::Cluster"
@@ -54,7 +54,7 @@
             ]
     /]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=ecsInstanceProfileId
         type="AWS::IAM::InstanceProfile"
@@ -88,7 +88,7 @@
         [/#list]
     [/#if]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=ecsAutoScaleGroupId
         type="AWS::AutoScaling::AutoScalingGroup"
@@ -166,35 +166,31 @@
                                 "ignoreErrors" : "false"
                             }
                         } +
-                        allocationIds?has_content?then(
+                        attributeIfContent(
+                            "03AssignIP",
+                            allocationIds,
                             {
-                                "03AssignIP" : {
-                                    "command" : "/opt/codeontap/bootstrap/eip.sh",
-                                    "env" : {
-                                        "EIP_ALLOCID" : {
-                                            "Fn::Join" : [
-                                                " ",
-                                                allocationIds
-                                            ]
-                                        }
-                                    },
-                                    "ignoreErrors" : "false"
-                                }
-                            },
-                            {}
-                        )
+                                "command" : "/opt/codeontap/bootstrap/eip.sh",
+                                "env" : {
+                                    "EIP_ALLOCID" : {
+                                        "Fn::Join" : [
+                                            " ",
+                                            allocationIds
+                                        ]
+                                    }
+                                },
+                                "ignoreErrors" : "false"
+                            })
                     },
                     "ecs": {
                         "commands":
-                            (defaultLogDriver == "fluentd")?then(
+                            attributeIfTrue(
+                                "01Fluentd"
+                                defaultLogDriver == "fluentd",
                                 {
-                                    "01Fluentd" : {
-                                        "command" : "/opt/codeontap/bootstrap/fluentd.sh",
-                                        "ignoreErrors" : "false"
-                                    }
-                                },
-                                {}
-                            ) +
+                                    "command" : "/opt/codeontap/bootstrap/fluentd.sh",
+                                    "ignoreErrors" : "false"
+                                }) +
                             {
                                 "02ConfigureCluster" : {
                                     "command" : "/opt/codeontap/bootstrap/ecs.sh",
@@ -243,7 +239,7 @@
         [#assign configSet = "ecs"]
     [/#if]
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=ecsLaunchConfigId
         type="AWS::AutoScaling::LaunchConfiguration"

@@ -6,7 +6,7 @@
 [#function concatenate args separator]
     [#local content = []]
     [#list asArray(args) as arg]
-        [#local argValue = arg]
+        [#local argValue = arg!"CHECK_CONCATENATE"]
         [#if argValue?is_sequence]
             [#local argValue = concatenate(argValue, separator)]
         [/#if]f
@@ -656,6 +656,29 @@
         
 [#function asArray arg]
     [#return arg?is_sequence?then(arg, [arg])]
+[/#function]
+
+[#function valueIfTrue value condition]
+    [#return condition?then(value, {}) ]
+[/#function]
+
+[#function valueIfContent value content]
+    [#return valueIfTrue(value, content?has_content) ]
+[/#function]
+
+[#function attributeIfTrue attribute condition value]
+    [#return valueIfTrue({attribute : value}, condition) ]
+[/#function]
+
+[#function attributeIfContent attribute content value={}]
+    [#return attributeIfTrue(
+        attribute,
+        content?has_content,
+        value?has_content?then(value,content)) ]
+[/#function]
+
+[#function if arg value]
+    [#return arg?then(value, {}) ]
 [/#function]
 
 [#function asString arg attribute]

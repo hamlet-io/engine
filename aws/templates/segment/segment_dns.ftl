@@ -1,7 +1,7 @@
 [#-- Private DNS zone --]
 [#if componentType == "dns" &&
         deploymentSubsetRequired("dns", true)]
-    [@cfTemplate
+    [@cfResource
         mode=segmentListMode
         id=formatSegmentDNSZoneId()
         type="AWS::Route53::HostedZone"

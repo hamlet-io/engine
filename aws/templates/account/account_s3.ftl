@@ -1,19 +1,19 @@
 [#-- Standard set of buckets for an account --]
 [#if deploymentUnit?contains("s3")]
 
-    [@cfTemplateOutput
+    [@cfOutput
         mode=accountListMode
         id=formatAccountDomainId()
         value=accountDomain
     /]
         
-    [@cfTemplateOutput
+    [@cfOutput
         mode=accountListMode
         id=formatAccountDomainQualifierId()
         value=accountDomainQualifier
     /]
 
-    [@cfTemplateOutput
+    [@cfOutput
         mode=accountListMode
         id=formatAccountDomainCertificateId()
         value=accountDomainCertificateId

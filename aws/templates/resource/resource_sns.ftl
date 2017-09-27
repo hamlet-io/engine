@@ -1,7 +1,7 @@
 [#-- SNS --]
 
 [#macro createSNSSubscription mode topicId endPoint protocol extensions...]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=formatDependentSNSSubscriptionId(topicId, extensions)
         type="AWS::SNS::Subscription"
@@ -34,7 +34,7 @@
 ]
 
 [#macro createSNSTopic mode id displayName topicName=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::SNS::Topic"

@@ -1,5 +1,4 @@
 [#ftl]
-[#level = "product"]
 [#include "setContext.ftl" ]
 
 [#-- Initialisation --]
@@ -37,19 +36,6 @@
 [#-- Product --]
 [#assign rotateKeys = (productObject.RotateKeys)!true]
 
-{
-    "AWSTemplateFormatVersion" : "2010-09-09",
-    [#include "templateMetadata.ftl"],
-    "Resources" : {
-        [@noResourcesCreated /]
-        [#assign productListMode="definition"]
-        [#include productList]
-    },
-
-    "Outputs" : {
-        [@noResourcesCreated /]
-        [#assign productListMode="outputs"]
-        [#include productList]
-        [@cfTemplateGlobalOutputs /]
-    }
-}
+[@cfTemplate
+    level="product"
+    include=productList/]

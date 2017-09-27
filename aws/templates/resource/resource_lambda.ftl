@@ -18,7 +18,7 @@
 ]
 
 [#macro createLambdaFunction mode id container roleId securityGroupIds=[] dependencies=""]
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::Lambda::Function"
@@ -34,39 +34,20 @@
                 "Role" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
                 "Runtime" : container.RunTime
             } + 
-            container.Environment?has_content?then(
+            attributeIfContent("Environment", container.Environment!{}) +
+            attributeIfTrue("MemorySize", container.MemorySize > 0, container.MemorySize) +
+            attributeIfTrue("Timeout", container.Timeout > 0, container.Timeout) +
+            attributeIfTrue(
+                "KmsKeyArn",
+                container.UseSegmentKey!false,
+                getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)) + 
+            attributeIfContent(
+                "VpcConfig",
+                securityGroupIds,
                 {
-                    "Environment" : container.Environment
-                },
-                {}
-            ) +
-            (container.MemorySize > 0)?then(
-                {
-                    "MemorySize" : container.MemorySize
-                },
-                {}
-            ) +
-            (container.Timeout > 0)?then(
-                {
-                    "Timeout" : container.Timeout
-                },
-                {}
-            ) +
-            container.UseSegmentKey?then(
-                {
-                    "KmsKeyArn" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
-                },
-                {}
-            ) + 
-            securityGroupIds?has_content?then(
-                {
-                    "VpcConfig" : {
-                        "SecurityGroupIds" : getReferences(securityGroupIds),
-                        "SubnetIds" : getSubnets(tier)
-                    }
-                },
-                {}
-            )
+                    "SecurityGroupIds" : getReferences(securityGroupIds),
+                    "SubnetIds" : getSubnets(tier)
+                })
         outputs=LAMBDA_FUNCTION_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]

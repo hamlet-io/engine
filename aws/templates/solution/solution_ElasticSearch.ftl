@@ -52,7 +52,7 @@
     [#-- "DomainName" : "${productName}-${segmentId}-${tierId}-${componentId}", --]
 
 
-    [@cfTemplate
+    [@cfResource
         mode=solutionListMode
         id=esId
         type="AWS::Elasticsearch::Domain"
@@ -66,14 +66,12 @@
                             {
                                 "AWS": "*"
                             },
-                            esCIDRs?has_content?then(
+                            attributeIfContent(
+                                "IpAddress",
+                                esCIDRs,
                                 {
-                                    "IpAddress": {
-                                        "aws:SourceIp": esCIDRs
-                                    }
-                                },
-                                {}
-                            )
+                                    "aws:SourceIp": esCIDRs
+                                })
                         )
                     ),
                 "ElasticsearchVersion" :
@@ -102,41 +100,21 @@
                         }
                     )
             } + 
-            esAdvancedOptions?has_content?then(
+            attributeIfContent("AdvancedOptions", esAdvancedOptions) +
+            attributeIfContent("SnapshotOptions", (es.Snapshot.Hour)!"", es.Snapshot.Hour) +
+            attributeIfContent(
+                "EBSOptions",
+                volume,
                 {
-                    "AdvancedOptions" : esAdvancedOptions
-                },
-                {}
-            ) +
-            (es.Snapshot.Hour)?has_content?then(
-                {
-                    "SnapshotOptions" : {
-                        "AutomatedSnapshotStartHour" : es.Snapshot.Hour
-                    }
-                },
-                {}
-            ) +
-            volume?has_content?then(
-                {
-                    "EBSOptions" :
-                        {
-                            "EBSEnabled" : true,
-                            "VolumeSize" : volume.Size,
-                            "VolumeType" :
-                                volume.Type?has_content?then(
-                                    volume.Type,
-                                    "gp2"
-                                )
-                        } +
-                        volume.Iops?has_content?then(
-                            {
-                                "Iops" : volume.Iops
-                            },
-                            {}
+                    "EBSEnabled" : true,
+                    "VolumeSize" : volume.Size,
+                    "VolumeType" :
+                        volume.Type?has_content?then(
+                            volume.Type,
+                            "gp2"
                         )
-                },
-                {}
-            )
+                } +
+                attributeIfContent("Iops", volume.Iops!""))
         tags=
             getCfTemplateCoreTags(
                 "",

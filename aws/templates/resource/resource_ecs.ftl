@@ -21,14 +21,10 @@
                     {
                         "Name" : name
                     } +
-                    volume.HostPath?has_content?then(
-                        {
-                            "Host" : {
-                                "SourcePath" : volume.HostPath
-                            }
-                        },
-                        {}
-                    )
+                    attributeIfTrue(
+                        "Host",
+                        volume.HostPath!"",
+                        {"SourcePath" : volume.HostPath!""})
                 ]
             ]
         [/#list]
@@ -80,54 +76,19 @@
                         {
                             "LogDriver" : container.LogDriver
                         } + 
-                        container.LogOptions?has_content?then(
-                            {
-                                "Options" : container.LogOptions
-                            },
-                            {}
-                        )
+                        attributeIfContent("Options", container.LogOptions!{})
                 } +
-                environment?has_content?then(
-                    {
-                        "Environment" : environment
-                    },
-                    {}
-                ) +
-                mountPoints?has_content?then(
-                    {
-                        "MountPoints" : mountPoints
-                    },
-                    {}
-                ) +
-                extraHosts?has_content?then(
-                    {
-                        "ExtraHosts" : extraHosts
-                    },
-                    {}
-                ) +
-                container.MaximumMemory?has_content?then(
-                    {
-                        "Memory" : container.MaximumMemory
-                    },
-                    {}
-                ) +
-                container.Cpu?has_content?then(
-                    {
-                        "Cpu" : container.Cpu
-                    },
-                    {}
-                ) +
-                portMappings?has_content?then(
-                    {
-                        "PortMappings" : portMappings
-                    },
-                    {}
-                )
+                attributeIfContent("Environment", environment) +
+                attributeIfContent("MountPoints", mountPoints) +
+                attributeIfContent("ExtraHosts", extraHosts) +
+                attributeIfContent("Memory", container.MaximumMemory!"") +
+                attributeIfContent("Cpu", container.Cpu!"") +
+                attributeIfContent("PortMappings", portMappings)
             ]
         ]
     [/#list]
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::ECS::TaskDefinition"
@@ -135,18 +96,8 @@
             {
                 "ContainerDefinitions" : definitions
             } + 
-            volumes?has_content?then(
-                {
-                    "Volumes" : volumes
-                },
-                {}
-            ) +
-            role?has_content?then(
-                {
-                    "TaskRoleArn" : getReference(role, ARN_ATTRIBUTE_TYPE)
-                },
-                {}
-            )
+            attributeIfContent("Volumes", volumes) +
+            attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE))
         dependencies=dependencies
     /]
 [/#macro]
@@ -154,14 +105,16 @@
 [#macro createECSService mode id ecsId desiredCount taskId loadBalancers roleId="" dependencies=""]
 
 
-    [@cfTemplate
+    [@cfResource
         mode=mode
         id=id
         type="AWS::ECS::Service"
         properties=
             {
                 "Cluster" : getExistingReference(ecsId),
-                "DeploymentConfiguration" : 
+                "DesiredCount" : desiredCount,
+                "TaskDefinition" : getReference(taskId),
+                "DeploymentConfiguration" :
                     (desiredCount > 1)?then(
                         {
                             "MaximumPercent" : 100,
@@ -170,18 +123,14 @@
                         {
                             "MaximumPercent" : 100,
                             "MinimumHealthyPercent" : 0
-                        }
-                    ),
-                "DesiredCount" : desiredCount,
-                "TaskDefinition" : getReference(taskId)
-            } +
-            loadBalancers?has_content?then(
+                        })
+            } + 
+            valueIfContent(
                 {
-                    "LoadBalancers" : loadBalancers,
+                    "LoadBalancers" : loadBalancers![],
                     "Role" : getReference(roleId)
                 },
-                {}
-            )
+                loadBalancers![])
         dependencies=dependencies
     /]
 [/#macro]

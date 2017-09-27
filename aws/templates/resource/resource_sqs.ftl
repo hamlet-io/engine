@@ -23,7 +23,7 @@
 ]
 
 [#macro createSQSQueue mode id name delay="" maximumSize="" retention="" receiveWait="" visibilityTimout="" dependencies=""]
-    [@cfTemplate 
+    [@cfResource 
         mode=mode
         id=id
         type="AWS::SQS::Queue"
@@ -31,36 +31,11 @@
             {
                 "QueueName" : name
             } +
-            delay?has_content?then(
-                {
-                    "DelaySeconds" : delay
-                },
-                {}
-            ) +
-            maximumSize?has_content?then(
-                {
-                    "MaximumMessageSize" : maximumSize
-                },
-                {}
-            ) +
-            retention?has_content?then(
-                {
-                    "MessageRetentionPeriod" : retention
-                },
-                {}
-            ) +
-            receiveWait?has_content?then(
-                {
-                    "ReceiveMessageWaitTimeSeconds" : receiveWait
-                },
-                {}
-            ) +
-            visibilityTimout?has_content?then(
-                {
-                    "VisibilityTimeout" : visibilityTimout
-                },
-                {}
-            )
+            attributeIfContent("DelaySeconds", delay) +
+            attributeIfContent("MaximumMessageSize", maximumSize) +
+            attributeIfContent("MessageRetentionPeriod", retention) +
+            attributeIfContent("ReceiveMessageWaitTimeSeconds", receiveWait) +
+            attributeIfContent("VisibilityTimeout", visibilityTimout)
         outputs=SQS_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]
