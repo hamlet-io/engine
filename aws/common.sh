@@ -252,7 +252,7 @@ function getJSONValue() {
     local VALUE
 
     for PATTERN in "$@"; do
-        VALUE=$(runJQ -r "${PATTERN} | select (.!=null)" < "${STACK_FILE}")
+        VALUE=$(runJQ -r "${PATTERN} | select (.!=null)" < "${JSON_FILE}")
         [[ -n "${VALUE}" ]] && echo "${VALUE}" && return 0
     done
     return 1
