@@ -57,7 +57,14 @@ function fatalCantProceed() {
 }
 
 function fatalLocation() {
+    local NULLGLOB=$(shopt -p nullglob)
+    local GLOBSTAR=$(shopt -p globstar)
+
+    shopt -u nullglob globstar
     fatal $(locationMessage "$@")
+
+    ${NULLGLOB}
+    ${GLOBSTAR}
 }
 
 function fatalDirectory() {
