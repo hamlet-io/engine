@@ -80,7 +80,6 @@ CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 # Ensure mandatory arguments have been provided
 [[ (-z "${CREDENTIAL_NAME}") ||
     (-z "${CREDENTIAL_TYPE}") ]] && fatalMandatory
-fi
 
 # Define JSON paths
 PATH_BASE="Credentials[\"${CREDENTIAL_NAME}\"].${CREDENTIAL_TYPE}"
