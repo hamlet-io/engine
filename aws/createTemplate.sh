@@ -20,7 +20,7 @@ where
 (m) -b BUILD_DEPLOYMENT_UNIT   is the deployment unit defining the build reference
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
     -h                         shows this text
-(m) -l LEVEL                   is the template level - "account", "product", "segment", "solution", "application"
+(m) -l LEVEL                   is the template level - "account", "product", "segment", "solution", "application" or "multiple"
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (d) -s DEPLOYMENT_UNIT         same as -u
