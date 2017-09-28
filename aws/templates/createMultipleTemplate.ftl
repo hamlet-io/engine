@@ -5,7 +5,7 @@
 [#assign allDeploymentUnits = true]
 
 [#-- Generate resources across multiple levels --]
-[#assign compositeLists=[segmentList, solutionsList, applicationList]
+[#assign compositeLists=[segmentList, solutionList, applicationList] ]
 
 [#-- Special processing --]
 [#switch deploymentUnit]
@@ -24,7 +24,7 @@
             compositeLists=compositeLists /]
         
         [#-- Reset to create the dashboard resource --]
-        [#assign compositeLists=[segmentList]
+        [#assign compositeLists=[segmentList] ]
         [#assign deploymentUnitSubset = ""]
         [#assign allDeploymentUnits = false]
         [#break]
