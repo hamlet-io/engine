@@ -117,7 +117,7 @@
                     "NumCacheNodes" : processorProfile.CountPerZone
                 }
             ) +
-            attributeIfContent("SnapshotRetentionLimit", cache.SnapshotRetentionLimit!""))
+            attributeIfContent("SnapshotRetentionLimit", cache.SnapshotRetentionLimit!"")
         tags=
             getCfTemplateCoreTags(
                 cacheFullName,
