@@ -474,18 +474,21 @@
             "Outputs" :
                 templateOutputs +
                 {
-                    "Account" : { "Ref" : "AWS::AccountId" },
-                    "Region" : { "Ref" : "AWS::Region" },
-                    "Level" : level,
-                    "DeploymentUnit" :
-                        deploymentUnit + 
-                        (
-                            (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
-                            (deploymentUnitSubset?has_content)
-                        )?then(
-                            "-" + deploymentUnitSubset?lower_case,
-                            ""
-                        )
+                    "Account" :{"Value" : { "Ref" : "AWS::AccountId" }},
+                    "Region" : {"Value" : { "Ref" : "AWS::Region" }},
+                    "Level" : {"Value" : level},
+                    "DeploymentUnit" : 
+                        {
+                            "Value" :
+                                deploymentUnit + 
+                                (
+                                    (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
+                                    (deploymentUnitSubset?has_content)
+                                )?then(
+                                    "-" + deploymentUnitSubset?lower_case,
+                                    ""
+                                )
+                        }
                 }
         }
     /]
