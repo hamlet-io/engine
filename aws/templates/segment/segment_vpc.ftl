@@ -35,7 +35,7 @@
         /]        
     [/#if]
 
-    [#if deploymentSubsetRequired("flowlogs", true) &&
+    [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(flowLogsAllLogGroupId)]
         [@createVPCLogGroup
             mode=segmentListMode
