@@ -1,6 +1,6 @@
 [#-- ElasticSearch --]
-[#if componentType == "elasticsearch" ||
-        (componentType == "es")]
+[#if (componentType == "elasticsearch" ||
+        (componentType == "es")) && deploymentSubsetRequired("es", true)]
     [#assign es = component.ES!component.ElasticSearch]
     [#assign esId = formatElasticSearchId(
                         tier,

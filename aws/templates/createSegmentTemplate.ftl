@@ -44,12 +44,17 @@
 [/#switch]
 [#assign segmentDomainCertificateId = segmentDomainCertificateId?replace("-","X")]
 
-[#if deploymentUnit == "eip"]
-    [#-- Collect up all the eip subsets --]
-    [#assign allDeploymentUnits = true]
-    [#assign deploymentUnitSubset = deploymentUnit]
-    [#assign ignoreDeploymentUnitSubsetInOutputs = true]
-[/#if]
+
+[#-- Special processing --]
+[#switch deploymentUnit]
+    [#case "eip"]
+    [#case "iam"]
+    [#case "lg"]
+        [#assign allDeploymentUnits = true]
+        [#assign deploymentUnitSubset = deploymentUnit]
+        [#assign ignoreDeploymentUnitSubsetInOutputs = true]
+        [#break]
+[/#switch]
 
 [@cfTemplate
     level="segment"

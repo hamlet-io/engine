@@ -1,6 +1,8 @@
 [#-- ElastiCache --]
-[#if (componentType == "elasticache") ||
-        (componentType == "cache")]
+[#if ((componentType == "elasticache") ||
+        (componentType == "cache")) && 
+        deploymentSubsetRequired("cache", true)]
+
     [#assign cache = component.Cache!component.ElastiCache]
     [#assign engine = cache.Engine]
         [#switch engine]

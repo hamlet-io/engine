@@ -30,7 +30,7 @@ where
 (d) -t LEVEL                    same as -l
 (m) -u DEPLOYMENT_UNIT          is the deployment unit used to determine the stack template
 (o) -w STACK_WAIT               is the interval between checking the progress of the stack operation
-(o) -y (DRYRUN=--dryrun)        for a dryrun - show what will happen without actually updating the strack
+(o) -y (DRYRUN=--dryrun)        for a dryrun - show what will happen without actually updating the stack
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required 
 
 (m) mandatory, (o) optional, (d) deprecated

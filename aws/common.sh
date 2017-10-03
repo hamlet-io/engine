@@ -410,8 +410,7 @@ function findGen3ProductDir() {
     local GEN3_ROOT_DIR="${1}"; shift
     local GEN3_PRODUCT="${1:=${PRODUCT}}"
 
-    findDir
-    "${GEN3_PRODUCT}/product.json" "${GEN3_ROOT_DIR}"
+    findDir "${GEN3_PRODUCT}/product.json" "${GEN3_ROOT_DIR}"
 }
 
 function findGen3SegmentDir() {

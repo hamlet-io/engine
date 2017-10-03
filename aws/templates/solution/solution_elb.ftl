@@ -1,5 +1,5 @@
 [#-- ELB --]
-[#if componentType == "elb"]
+[#if (componentType == "elb") && deploymentSubsetRequired("elb", true)]
     [#assign elb = component.ELB]
 
     [#assign elbId = formatELBId(tier, component)]

@@ -1,6 +1,6 @@
 [#-- S3 --]
 
-[#if componentType == "s3"]
+[#if (componentType == "s3") && deploymentSubsetRequired("s3", true)]
     [#assign s3 = component.S3]
 
     [#list getOccurrences(component, deploymentUnit) as occurrence]

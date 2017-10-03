@@ -273,7 +273,7 @@
                         ec2IPAddressUpdatePermission() +
                             s3ListPermission(codeBucket) +
                             s3ReadPermission(codeBucket),
-                        formatName(tier, sshComponent))
+                        "ssh")
                 ]
         /]
     [/#if]
@@ -295,7 +295,7 @@
             tier=tier
             component=sshComponent
             id=sshToProxySecurityGroupId
-            name=formatName(productName, segmentName, tier, sshComponent)
+            name=formatSegmentFullName(tier, sshComponent)
             description="Security Group for inbound SSH to the SSH Proxy"
             ingressRules=
                 [
@@ -318,7 +318,7 @@
             tier="all"
             component=sshComponent
             id=sshFromProxySecurityGroupId
-            name=formatName(productName, segmentName, "all", sshComponent)
+            name=formatSegmentFullName("all", sshComponent)
             description="Security Group for SSH access from the SSH Proxy"
             ingressRules=
                 [
@@ -542,7 +542,7 @@
                             ec2InstanceUpdatePermission() +
                             s3ListPermission(codeBucket) +
                             s3ReadPermission(codeBucket),
-                        formatName(tier, natComponent))
+                        "nat")
                 ]
         /]
     [/#if]
@@ -582,7 +582,7 @@
                 tier=tier
                 component=natComponent
                 id=allToNATSecurityGroupId
-                name=formatName(productName, segmentName, tier, natComponent)
+                name=formatSegmentFullName(tier, natComponent)
                 description="Security Group for outbound traffic to the NAT"
                 ingressRules=
                     [
@@ -601,6 +601,10 @@
                     [@createNATGateway
                         mode=segmentListMode
                         id=natGatewayId
+                        name=formatComponentFullName(tier, natComponent, zone)
+                        tier=tier
+                        component=natComponent
+                        zone=zone
                         subnetId=formatSubnetId(tier, zone)
                         eipId=eipId
                     /]

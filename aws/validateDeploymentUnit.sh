@@ -30,7 +30,7 @@ ACCOUNT_UNITS_ARRAY=("s3" "cert" "roles" "apigateway" "waf")
 PRODUCT_UNITS_ARRAY=("s3" "sns" "cert" "cmk")
 APPLICATION_UNITS_ARRAY=(${CHECK_UNIT})
 SOLUTION_UNITS_ARRAY=(${CHECK_UNIT})
-SEGMENT_UNITS_ARRAY=("eip" "s3 " "cmk" "cert" "vpc" "dns" "eipvpc" "eips3vpc")
+SEGMENT_UNITS_ARRAY=("iam" "lg" "eip" "s3" "cmk" "cert" "vpc" "nat" "ssh" "dns" "eipvpc" "eips3vpc")
 MULTIPLE_UNITS_ARRAY=("iam" "dashboard")
 
 # Apply explicit unit lists and check for presence of unit

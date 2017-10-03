@@ -1,5 +1,5 @@
 [#-- SQS --]
-[#if componentType == "sqs"]
+[#if (componentType == "sqs") && deploymentSubsetRequired("sqs", true)]
     [#assign sqs = component.SQS]
 
     [#list getOccurrences(component, deploymentUnit) as occurrence]

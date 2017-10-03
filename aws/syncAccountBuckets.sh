@@ -64,8 +64,8 @@ done
 checkInAccountDirectory
 
 # Locate the bucket names
-CODE_BUCKET=$(jq -r ".[] | select(.OutputKey==\"s3XaccountXcode\") | .OutputValue | select(.!=null)" < ${COMPOSITE_STACK_OUTPUTS})
-CREDENTIALS_BUCKET=$(jq -r ".[] | select(.OutputKey==\"s3XaccountXcredentials\") | .OutputValue | select(.!=null)" < ${COMPOSITE_STACK_OUTPUTS})
+CODE_BUCKET=$(getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "s3XaccountXcode")
+CREDENTIALS_BUCKET=$(getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "s3XaccountXcredentials")
 
 [[ (-z "${CODE_BUCKET}") ||
     (-z "${CREDENTIALS_BUCKET}") ||
