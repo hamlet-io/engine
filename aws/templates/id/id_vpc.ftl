@@ -1,5 +1,7 @@
 [#-- VPC --]
 
+[#assign VPC_ROUTE_TABLE_RESOURCE_TYPE = "routeTable" ]
+
 [#function formatSecurityGroupId ids...]
     [#return formatResourceId(
                 "securityGroup",
@@ -137,7 +139,7 @@
 
 [#function formatRouteTableId ids...]
     [#return formatResourceId(
-            "routeTable",
+            VPC_ROUTE_TABLE_RESOURCE_TYPE,
             ids)]
 [/#function]
 
@@ -174,6 +176,58 @@
         "vpcEndPoint",
         service,
         extensions)]
+[/#function]
+
+[#function formatS3OperationsId]
+    [#return
+        migrateToResourceId(
+            formatSegmentS3Id("ops"),
+            formatSegmentS3Id("operations"),
+            formatSegmentS3Id("logs"),
+            formatContainerS3Id("logs")
+        )]
+[/#function]
+
+[#function formatS3DataId]
+    [#return
+        migrateToResourceId(
+            formatSegmentS3Id("data"),
+            formatSegmentS3Id("backups"),
+            formatContainerS3Id("backups")
+        )]
+[/#function]
+
+[#function formatS3OperationsTemplateId]
+    [#if getExistingReference(formatSegmentS3Id("ops", "template"))?has_content]
+        [#return getExistingReference(formatSegmentS3Id("ops", "template"))]
+    [/#if]
+    [#if getExistingReference(formatSegmentS3Id("ops"))?has_content]
+        [#return formatS3Id("ops")]
+    [/#if]
+    [#if getExistingReference(formatSegmentS3Id("operations", "template"))?has_content]
+        [#return formatS3Id("operations")]
+    [/#if]
+    [#if
+        getExistingReference(formatSegmentS3Id("logs", "template"))?has_content ||
+        getExistingReference(formatContainerS3Id("logs", "template"))?has_content]
+        [#return formatS3Id("logs")]
+    [/#if]
+    [#return formatSegmentS3Id("ops")]
+[/#function]
+
+[#function formatS3DataTemplateId]
+    [#if getExistingReference(formatSegmentS3Id("data", "template"))?has_content]
+        [#return getExistingReference(formatSegmentS3Id("data", "template"))]
+    [/#if]
+    [#if getExistingReference(formatSegmentS3Id("data"))?has_content]
+        [#return formatS3Id("data")]
+    [/#if]
+    [#if
+        getExistingReference(formatSegmentS3Id("backups", "template"))?has_content ||
+        getExistingReference(formatContainerS3Id("backups", "template"))?has_content]
+        [#return formatS3Id("backups")]
+    [/#if]
+    [#return formatSegmentS3Id("data")]
 [/#function]
 
 

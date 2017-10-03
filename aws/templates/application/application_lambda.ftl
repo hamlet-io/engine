@@ -69,13 +69,13 @@
                 /]
                 
                 [#if currentContainer.Policy?has_content]
-                    [#assign policyId = formatDependentPolicyId(lambda, currentContainer)]
+                    [#assign policyId = formatDependentPolicyId(lambdaId, currentContainer)]
                     [@createPolicy
                         mode=applicationListMode
                         id=policyId
                         name=currentContainer.Name
                         statements=currentContainer.Policy
-                        role=roleId
+                        roles=roleId
                     /]
                 [/#if]
             [/#if]

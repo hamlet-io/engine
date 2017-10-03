@@ -182,13 +182,13 @@
                 
                 [#list containers as container]
                     [#if container.Policy?has_content]
-                        [#assign policyId = formatDependentPolicyId(taskId, container.Id)]
+                        [#assign policyId = formatDependentPolicyId(taskId, container.Id) ]
                         [@createPolicy
                             mode=applicationListMode
                             id=policyId
                             name=container.Name
                             statements=container.Policy
-                            role=roleId
+                            roles=roleId
                         /]
                         [#assign dependencies += [policyId] ]
                     [/#if]

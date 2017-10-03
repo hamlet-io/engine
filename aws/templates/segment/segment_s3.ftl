@@ -3,15 +3,17 @@
 [#if componentType == "s3" &&
         deploymentSubsetRequired("s3", true)]
 
-    [#-- TODO: Should be using formatSegmentS3Id() not formatS3Id() --]
-    [#-- TODO: Can then remove alternate ids for the buckets --]
-    [#assign s3OperationsId = formatS3Id(operationsBucketType)]
-    [#assign s3DataId = formatS3Id(dataBucketType)]
-    [#assign s3OperationsPolicyId = formatDependentBucketPolicyId(s3OperationsId)]
+    [#assign s3OperationsId = formatS3OperationsId()]
+    [#assign s3DataId = formatS3DataId()]
+
+    [#-- TODO Remove "Template" variants once legacy naming not longer being used --]
+    [#assign s3OperationsTemplateId = formatS3OperationsTemplateId()]
+    [#assign s3OperationsPolicyTemplateId = formatDependentBucketPolicyId(s3OperationsTemplateId)]
+    [#assign s3DataTemplateId = formatS3DataTemplateId()]
 
     [@createS3Bucket
         mode=segmentListMode
-        id=s3OperationsId
+        id=s3OperationsTemplateId
         name=operationsBucket
         lifecycleRules=
             operationsExpiration?is_number?then(
@@ -20,12 +22,12 @@
                     getS3LifecycleExpirationRule(operationsExpiration, "DOCKERLogs"),
                 []
             )
-        outputId=formatSegmentS3Id("ops")
+        outputId=s3OperationsId
     /]
     
     [@createBucketPolicy
         mode=segmentListMode
-        id=s3OperationsPolicyId
+        id=s3OperationsPolicyTemplateId
         bucket=operationsBucket
         statements=
             s3WritePermission(
@@ -47,19 +49,19 @@
                 { "Service": "logs." + regionId + ".amazonaws.com" },
                 { "StringEquals": { "s3:x-amz-acl": "bucket-owner-full-control" } }
             )
-        dependencies=s3OperationsId
+        dependencies=s3OperationsTemplateId
     /]
     
     [@createS3Bucket
         mode=segmentListMode
-        id=s3DataId
+        id=s3DataTemplateId
         name=dataBucket
         lifecycleRules=
             dataExpiration?is_number?then(
                 getS3LifecycleExpirationRule(dataExpiration),
                 []
             )
-        outputId=formatSegmentS3Id("data")
+        outputId=s3DataId
     /]
     
     
@@ -67,19 +69,33 @@
     [#-- TODO: Remove --]
     [@cfOutput
         mode=segmentListMode
-        id=formatId("s3", operationsBucketSegment, operationsBucketType)
-        value=
-            {
-                "Ref" : formatId("s3", operationsBucketType)
-            }
+        id=formatSegmentS3Id("ops", "template")
+        value=s3OperationsTemplateId
     /]
     [@cfOutput
         mode=segmentListMode
-        id=formatId("s3", dataBucketSegment, dataBucketType)
-        value=
-            {
-                "Ref" : formatId("s3", dataBucketType)
-            }
+        id=formatSegmentS3Id("data", "template")
+        value=s3DataTemplateId
     /]
+    [#if s3OperationsId != s3OperationsTemplateId ]
+        [@cfOutput
+            mode=segmentListMode
+            id=formatSegmentS3Id("ops")
+            value=
+                {
+                    "Ref" : s3OperationsTemplateId
+                }
+        /]
+    [/#if]
+    [#if s3DataId != s3DataTemplateId ]
+        [@cfOutput
+            mode=segmentListMode
+            id=formatSegmentS3Id("data")
+            value=
+                {
+                    "Ref" : s3DataTemplateId
+                }
+        /]
+    [/#if]
 [/#if]
 

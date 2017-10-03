@@ -1,5 +1,6 @@
 [#-- RDS --]
-[#if componentType == "rds"]
+[#if (componentType == "rds") && deploymentSubsetRequired("rds", true)]
+
     [#assign db = component.RDS]
     
     [#assign engine = db.Engine]

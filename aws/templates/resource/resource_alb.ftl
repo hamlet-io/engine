@@ -71,7 +71,7 @@
                 "SecurityGroups": getReferences(securityGroups),
                 "Name" : shortName
             } +
-            attributeIfContent(
+            attributeIfTrue(
                 "LoadBalancerAttributes",
                 logs,
                 [

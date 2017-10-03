@@ -42,17 +42,3 @@
         [#return {} ]
     [/#if]
 [/#function]
-
-[#macro createComponentLogGroup tier component]
-    [#local componentLogGroupId = formatComponentLogGroupId(tier, component)]
-    [#if isPartOfCurrentDeploymentUnit(componentLogGroupId)]
-        [@createLogGroup 
-            solutionListMode
-            componentLogGroupId
-            formatComponentLogGroupName(
-                tier,
-                component)
-        /]
-    [/#if]
-[/#macro]
-

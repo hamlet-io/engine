@@ -1,5 +1,5 @@
 [#-- ALB --]
-[#if componentType == "alb"]
+[#if (componentType == "alb") && deploymentSubsetRequired("alb", true)]
 
     [#list getOccurrences(component, deploymentUnit) as occurrence]
 

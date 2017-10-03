@@ -153,6 +153,9 @@
 [/#function]
 
 [#function getReference resourceId attributeType="" inRegion=""]
+    [#if !(resourceId?has_content)]
+        [#return ""]
+    [/#if]
     [#if resourceId?is_hash]
         [#return
             {

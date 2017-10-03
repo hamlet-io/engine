@@ -314,6 +314,10 @@
 [#macro createNATGateway
             mode,
             id,
+            name,
+            tier,
+            component,
+            zone,
             subnetId,
             eipId]
     [@cfResource
@@ -325,6 +329,8 @@
                 "AllocationId" : getReference(eipId, ALLOCATION_ATTRIBUTE_TYPE),
                 "SubnetId" : getReference(subnetId)
             }
+        tags=getCfTemplateCoreTags(name, tier, component, zone)
+
     /]
 [/#macro]
 
@@ -343,7 +349,6 @@
                 "VpcId" : getReference(vpcId)
             }
         tags=getCfTemplateCoreTags(name,"","",zone)
-        outputs={}
     /]
 [/#macro]
 

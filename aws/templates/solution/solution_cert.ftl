@@ -1,5 +1,5 @@
 [#-- Certificate --]
-[#if componentType == "cert"]
+[#if (componentType == "cert") && deploymentSubsetRequired("cert", true)]
     [#assign acm = component.Cert]
     [#assign certId = formatComponentCertificateId(
                         region,
