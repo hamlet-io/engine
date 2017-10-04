@@ -289,9 +289,9 @@
                         ),
                         occurrence.CloudFront.EnableLogging)
                     origins=origin
-                    restrictions=valueIfTrue(
+                    restrictions=valueIfContent(
                         restrictions,
-                        occurrence.CloudFront.CountryGroups)
+                        restrictions)
                     wafAclId=valueIfTrue(
                         wafAclId,
                         (occurrence.WAFIsConfigured &&
