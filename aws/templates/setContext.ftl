@@ -141,7 +141,7 @@
         (environmentObject.Operations.Expiration)!
         ""]
 
-    [#assign dataBucket = getExistingReference(formatS3OperationsId())]
+    [#assign dataBucket = getExistingReference(formatS3DataId())]
     [#if ! dataBucket?has_content]
         [#assign dataBucket = formatSegmentFullName("data", vpc?remove_beginning("vpc-"))]
         [#if ((segmentObject.S3.IncludeTenant)!false) && tenantObject?has_content]
