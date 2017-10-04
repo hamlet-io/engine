@@ -105,12 +105,12 @@ function fileContents() {
 
 function fileContentsInEnv() {
     local ENV="${1}"; shift
-    local CONTENTS=
-    
+
     for F in "$@"; do
-        CONTENTS="$(fileContents "${F}")"
-        eval "export ${ENV}=\"${CONTENTS}\""
-        break
+        if [[ -f "${F}" ]]; then
+             declare -gx "${ENV}=$(fileContents "${F}")"
+            break
+        fi
     done
 }
 
