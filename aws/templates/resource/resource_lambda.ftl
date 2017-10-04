@@ -34,7 +34,7 @@
                 "Role" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
                 "Runtime" : container.RunTime
             } + 
-            attributeIfContent("Environment", container.Environment!{}) +
+            attributeIfContent("Environment", container.Environment!{}, {"Variables" : container.Environment}) +
             attributeIfTrue("MemorySize", container.MemorySize > 0, container.MemorySize) +
             attributeIfTrue("Timeout", container.Timeout > 0, container.Timeout) +
             attributeIfTrue(
