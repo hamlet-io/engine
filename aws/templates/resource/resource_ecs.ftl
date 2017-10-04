@@ -29,7 +29,7 @@
             ]
         [/#list]
         [#local portMappings = [] ]
-        [#list (container.PortMappings!{}) as portMapping]
+        [#list (container.PortMappings![]) as portMapping]
             [#local portMappings +=
                 [
                     {

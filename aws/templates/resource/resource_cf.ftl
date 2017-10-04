@@ -254,7 +254,7 @@
                     attributeIfContent("PriceClass", priceClass) +
                     attributeIfContent("Restrictions", restrictions) +
                     attributeIfContent("ViewerCertificate", certificate) +
-                    attributeIfContent("WebACLId", getReference(wafAcl))
+                    attributeIfContent("WebACLId", getReference(wafAclId))
             }
         outputs=CF_OUTPUT_MAPPINGS
         dependencies=dependencies
