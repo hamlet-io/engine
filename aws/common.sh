@@ -108,7 +108,7 @@ function fileContentsInEnv() {
     local CONTENTS=
     
     for F in "$@"; do
-        CONTENTS="$(fileContents "${FILE}")"
+        CONTENTS="$(fileContents "${F}")"
         eval "export ${ENV}=\"${CONTENTS}\""
         break
     done
