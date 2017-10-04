@@ -41,13 +41,13 @@
 [/#function]
 
 [#function getCFHTTPOrigin id domain
+        headers=[]
+        path=""
         httpConfig=
             {
                 "OriginProtocolPolicy" : "https-only",
                 "OriginSSLProtocols" : ["TLSv1.2"]
-            }
-        headers=[]
-        path="" ]
+            }]
     [#return
         [
             {
