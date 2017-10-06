@@ -6,7 +6,7 @@
 [#function concatenate args separator]
     [#local content = []]
     [#list asArray(args) as arg]
-        [#local argValue = arg!"CHECK_CONCATENATE"]
+        [#local argValue = arg!"ERROR_INVALID_ARG_TO_CONCATENATE"]
         [#if argValue?is_sequence]
             [#local argValue = concatenate(argValue, separator)]
         [/#if]f
@@ -442,6 +442,50 @@
                     "Default" : true
                 }
             ],
+        "spa" :
+            [
+                {
+                    "Name" : "WAF",
+                    "Children" : [
+                        {
+                            "Name" : "IPAddressGroups",
+                            "Default" : []
+                        },
+                        {
+                            "Name" : "Default"
+                        },
+                        {
+                            "Name" : "RuleDefault"
+                        }
+                    ]
+                },
+                {
+                    "Name" : "CloudFront",
+                    "Children" : [
+                        {
+                            "Name" : "AssumeSNI",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "EnableLogging",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "CountryGroups",
+                            "Default" : []
+                        }
+                    ]
+                },
+                {
+                    "Name" : "DNS",
+                    "Children" : [
+                        {
+                            "Name" : "Host",
+                            "Default" : ""
+                        }
+                    ]
+                }
+            ],
         "sqs" : 
             [
                 "DelaySeconds",
@@ -658,12 +702,12 @@
     [#return arg?is_sequence?then(arg, [arg])]
 [/#function]
 
-[#function valueIfTrue value condition]
-    [#return condition?then(value, {}) ]
+[#function valueIfTrue value condition otherwise={}]
+    [#return condition?then(value, otherwise) ]
 [/#function]
 
-[#function valueIfContent value content]
-    [#return valueIfTrue(value, content?has_content) ]
+[#function valueIfContent value content otherwise={}]
+    [#return valueIfTrue(value, content?has_content, otherwise) ]
 [/#function]
 
 [#function attributeIfTrue attribute condition value]

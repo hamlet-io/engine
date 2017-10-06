@@ -1,8 +1,8 @@
 [#-- API Gateway --]
 
-[#if componentType == "apigateway"]
+[#if (componentType == "apigateway")]
     [#assign apigateway = component.APIGateway]
-
+                                     
     [#-- Non-repeating text to ensure deploy happens every time --]
     [#assign noise = random.nextLong()?string.computer?replace("-","X")]
 
@@ -139,8 +139,8 @@
         [#assign basePathMappingId  = formatDependentAPIGatewayBasePathMappingId(stageId)]
         [#assign dns = formatDomainName(
                             formatName(
-                                occurrence.InstanceName,
                                 occurrence.DNS.Host,
+                                occurrence.InstanceName,
                                 segmentDomainQualifier),
                             segmentDomain) ]
 
@@ -163,7 +163,7 @@
                                 component,
                                 occurrence)]
 
-        [#if deploymentSubsetRequired("apigateway", true) && isPartOfCurrentDeploymentUnit(apiId)]
+        [#if deploymentSubsetRequired("apigateway", true)]
             [@cfResource
                 mode=applicationListMode
                 id=apiId
@@ -381,12 +381,12 @@
                         ]
                     [/#list]
                     [@createWAFAcl 
-                        applicationListMode
-                        wafAclId
-                        wafAclName
-                        wafAclName
-                        wafDefault
-                        wafRules /]
+                        mode=applicationListMode
+                        id=wafAclId
+                        name=wafAclName
+                        metric=wafAclName
+                        default=wafDefault
+                        rules=wafRules /]
                 [/#if]
             [#else]
                 [#if occurrence.DNSIsConfigured]

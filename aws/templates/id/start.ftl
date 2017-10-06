@@ -110,6 +110,7 @@
 [#assign NAME_ATTRIBUTE_TYPE = "name" ]
 [#assign IP_ADDRESS_ATTRIBUTE_TYPE = "ip" ]
 [#assign ALLOCATION_ATTRIBUTE_TYPE = "id" ]
+[#assign CANONICAL_ID_ATTRIBUTE_TYPE = "canonicalid" ]
 [#assign CERTIFICATE_ATTRIBUTE_TYPE = "certificate" ]
 [#assign QUALIFIER_ATTRIBUTE_TYPE = "qualifier" ]
 [#assign ROOT_ATTRIBUTE_TYPE = "root" ]

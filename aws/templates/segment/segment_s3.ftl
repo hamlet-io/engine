@@ -24,7 +24,12 @@
             )
         outputId=s3OperationsId
     /]
-    
+
+    [#-- TODO: when Cloud Formation supports it, create an access identity for the segment --]
+    [#-- For now, create it via the console and save in a manual stack --]
+    [#assign cfAccess =
+        getExistingReference(formatDependentCFAccessId(s3OperationsId), CANONICAL_ID_ATTRIBUTE_TYPE)]
+            
     [@createBucketPolicy
         mode=segmentListMode
         id=s3OperationsPolicyTemplateId
@@ -48,6 +53,18 @@
                 "*",
                 { "Service": "logs." + regionId + ".amazonaws.com" },
                 { "StringEquals": { "s3:x-amz-acl": "bucket-owner-full-control" } }
+            ) +
+            valueIfContent(
+                s3ReadPermission(
+                    operationsBucket,
+                    formatSegmentPrefixPath("appsettings"),
+                    "*",
+                    {
+                        "CanonicalUser": cfAccess
+                    }
+                )
+                cfAccess,
+                []
             )
         dependencies=s3OperationsTemplateId
     /]

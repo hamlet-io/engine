@@ -26,7 +26,7 @@
                 "LogGroupName" : name
             } +
             attributeIfTrue("RetentionInDays", retention > 0, retention) +
-            attributeIfTrue("RetentionInDays", retention <= 0, operationsExpiration)
+            attributeIfTrue("RetentionInDays", (retention <= 0) && operationsExpiration?has_content, operationsExpiration)
         outputs=LOG_GROUP_OUTPUT_MAPPINGS
     /]
 [/#macro]

@@ -10,9 +10,23 @@
         }
     }
 ]
+
+[#-- Not yet defined by cloud formation --]
+[#assign CF_ACCESS_ID_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        CANONICAL_ID_ATTRIBUTE_TYPE : { 
+            "Attribute" : "S3CanonicalUserId"
+        }
+    }
+]
+
 [#assign outputMappings +=
     {
-        CF_RESOURCE_TYPE : CF_OUTPUT_MAPPINGS
+        CF_RESOURCE_TYPE : CF_OUTPUT_MAPPINGS,
+        CF_ACCESS_ID_RESOURCE_TYPE : CF_ACCESS_ID_OUTPUT_MAPPINGS
     }
 ]
 
@@ -23,7 +37,7 @@
                 "DomainName" : bucket + ".s3.amazonaws.com",
                 "Id" : id,
                 "S3OriginConfig" : {
-                    "OriginAccessIdentity" : accessId
+                    "OriginAccessIdentity" : "origin-access-identity/cloudfront/" + accessId
                 }
             } + 
             attributeIfContent("OriginPath", path)
@@ -111,9 +125,9 @@
             attributeIfContent("PathPattern", path) +
             attributeIfContent("AllowedMethods", methods.Allowed![], asArray(methods.Allowed![])) +
             attributeIfContent("CachedMethods", methods.Cached![], asArray(methods.Cached![])) +
-            attributeIfContent("DefaultTTL", ttl.Default!"") +
-            attributeIfContent("MaxTTL", ttl.Max!"") +
-            attributeIfContent("MinTTL", ttl.Min!"") +
+            attributeIfContent("DefaultTTL", (ttl.Default)!"") +
+            attributeIfContent("MaxTTL", (ttl.Max)!"") +
+            attributeIfContent("MinTTL", (ttl.Min)!"") +
             attributeIfContent("TrustedSigners", trustedSigners![], asArray(trustedSigners![]))
         ]
     ]
@@ -157,6 +171,35 @@
                     "Origin",
                     "Referer"
                 ],
+                "QueryString" : true
+            }
+        )
+    ]
+[/#function]
+
+[#function getCFSPACacheBehaviour origin path=""]
+    [#return
+        getCFCacheBehaviour(
+            origin,
+            path,
+            {
+                "AllowedMethods" : [
+                    "GET",
+                    "HEAD",
+                    "OPTIONS"
+                ],
+                "CachedMethods" : [
+                    "GET",
+                    "HEAD"
+                ]
+            },
+            {
+                "Default" : 600
+            },
+            {
+                "Cookies" : {
+                    "Forward" : "all"
+                },
                 "QueryString" : true
             }
         )
