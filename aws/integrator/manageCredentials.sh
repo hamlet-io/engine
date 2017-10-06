@@ -98,7 +98,7 @@ export CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
-[[ ! -f "${INTEGRATOR_PROFILE}" ]] && \
+[[ ! -f "${INTEGRATOR_PROFILE}" ]] &&
     fatalLocation "We don't appear to be in the root of the integrator tree."
 
 # Manage the credentials

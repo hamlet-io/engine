@@ -22,7 +22,7 @@ LEVELS=("account" "product" "application" "solution" "segment" "multiple")
 
 # Ensure level is kwown
 [[ (-n "${CHECK_LEVEL}") &&
-    (! $(grep -w "${CHECK_LEVEL}" <<< "${LEVELS[*]}")) ]] && \
+    (! $(grep -w "${CHECK_LEVEL}" <<< "${LEVELS[*]}")) ]] &&
     fatal "${CHECK_LEVEL} is not a known stack level - select from ${LEVELS[*]}"
 
 # Default deployment units for each level

@@ -65,25 +65,25 @@ done
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
-[[ ! -f "${INTEGRATOR_PROFILE}" ]] && \
+[[ ! -f "${INTEGRATOR_PROFILE}" ]] &&
     fatalLocation "We don't appear to be in the root of the integrator tree."
 
 # Ensure the tenant/account already exists
 TENANT_DIR="$(pwd)/tenants/${TENANT}"
 TENANT_ACCOUNT_DIR="${TENANT_DIR}/accounts/${ACCOUNT}"
-[[ ! -d "${TENANT_ACCOUNT_DIR}" ]] && \
+[[ ! -d "${TENANT_ACCOUNT_DIR}" ]] &&
     fatalCantProceed "The account doesn't appear to exist in the integrator tree."
 
 # Ensure the account tree exists
 ACCOUNT_DIR="$(cd ../${ACCOUNT} && pwd)"
-[[ ! -d "${ACCOUNT_DIR}" ]] && \
+[[ ! -d "${ACCOUNT_DIR}" ]] &&
     fatalCantProceed "The account tree doesn't appear to exist at the same level as the integrator tree."
 
 # Check whether the tree is already in place
 CONFIG_DIR="${ACCOUNT_DIR}/config/${ACCOUNT}"
 INFRASTRUCTURE_DIR="${ACCOUNT_DIR}/infrastructure/${ACCOUNT}"
 [[ (-e "${CONFIG_DIR}/account.json") &&
-    ("${UPDATE_TREE}" != "true") ]] && \
+    ("${UPDATE_TREE}" != "true") ]] &&
     fatal "Account tree already exists. Maybe try using the update option?"
 
 # Populate the config tree

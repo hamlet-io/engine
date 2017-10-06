@@ -107,17 +107,17 @@ mkdir -p ${SEGMENT_CREDENTIALS_DIR}
 # Check whether the segment profile is already in place
 SEGMENT_PROFILE=${SEGMENT_SOLUTIONS_DIR}/segment.json
 if [[ -f ${SEGMENT_PROFILE} ]]; then
-    [[ "${UPDATE_SEGMENT}" != "true" ]] && \
+    [[ "${UPDATE_SEGMENT}" != "true" ]] &&
         fatal "Segment profile already exists. Maybe try using update option?"
 else
-    [[ (-z "${EID}") && (-z "${SID}") ]] && \
+    [[ (-z "${EID}") && (-z "${SID}") ]] &&
         fatal "One of EID and SID required for segment creation"
 
     echo "{\"Segment\":{}}" > ${SEGMENT_PROFILE}
     EID=${EID:-${SID}}
     SID=${SID:-${EID}}
     ENVIRONMENT_TITLE=$(jq -r ".Environments[\"${EID}\"].Title | select(.!=null)" < ${COMPOSITE_BLUEPRINT})
-    [[ -z "${ENVIRONMENT_TITLE}" ]] && \
+    [[ -z "${ENVIRONMENT_TITLE}" ]] &&
         fatal "Environment not defined in masterData.json. Was SID or EID provided?"
 
     TITLE=${TITLE:-$ENVIRONMENT_TITLE}

@@ -157,8 +157,8 @@ function findDir() {
 
     [[ $(arrayIsEmpty "MATCHES") ]] && return 1
 
-    [[ -f "${MATCHES[0]}" ]] && \
-        echo -n "$(filePath "${MATCHES[0]}")" || \
+    [[ -f "${MATCHES[0]}" ]] &&
+        echo -n "$(filePath "${MATCHES[0]}")" ||
         echo -n "${MATCHES[0]}"
     return 0
 }

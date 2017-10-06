@@ -60,7 +60,7 @@ done
 AID_DIR="$(basename $(cd ..;pwd))"
 CURRENT_DIR="$(basename $(pwd))"
 
-[[ "${AID}" != "${AID_DIR}" ]] && \
+[[ "${AID}" != "${AID_DIR}" ]] &&
     fatal "The provided AID (${AID}) doesn't match the root directory (${ROOT})."
 
 # If in a repo, save the results of the rearrangement

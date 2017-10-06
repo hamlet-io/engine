@@ -111,11 +111,11 @@ REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
 # Ensure we are in the right place
 case $LEVEL in
     account|product)
-        [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] && \
+        [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] &&
             fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
         ;;
     solution|segment|application|multiple)
-        [[ ! ("segment" =~ ${LOCATION}) ]] && \
+        [[ ! ("segment" =~ ${LOCATION}) ]] &&
             fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
         ;;
 esac
