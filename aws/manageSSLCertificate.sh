@@ -95,7 +95,7 @@ case ${CERTIFICATE_OPERATION} in
     ${CERTIFICATE_OPERATION_LIST})
         ;;
     ${CERTIFICATE_OPERATION_DELETE})
-        [[ (-z "${CERTIFICATE_ID}") ]] && \
+        [[ (-z "${CERTIFICATE_ID}") ]] &&
             fatal "Insufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
         ;;
     ${CERTIFICATE_OPERATION_UPLOAD})
@@ -103,7 +103,7 @@ case ${CERTIFICATE_OPERATION} in
             (-z "${CERTIFICATE_PUBLIC}") ||
             (-z "${CERTIFICATE_PRIVATE}") ||
             (-z "${CERTIFICATE_CHAIN}") ||
-            (-z "${REGION}") ]] && \
+            (-z "${REGION}") ]] &&
             fatal "Insufficient arguments for \"${CERTIFICATE_OPERATION}\" operation"
         ;;
     *)

@@ -95,7 +95,7 @@ done
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
-[[ ! -f "${INTEGRATOR_PROFILE}" ]] && \
+[[ ! -f "${INTEGRATOR_PROFILE}" ]] &&
     fatalLocation "We don't appear to be in the root of the integrator tree."
 
 # Ensure the tenant already exists
@@ -128,7 +128,7 @@ fi
 ACCOUNT_PROFILE=${ACCOUNT_DIR}/account.json
 if [[ -f ${ACCOUNT_PROFILE} ]]; then
     [[ ("${UPDATE_ACCOUNT}" != "true") &&
-        (-z "${LAST_SHELF_ACCOUNT}") ]] && \
+        (-z "${LAST_SHELF_ACCOUNT}") ]] &&
         fatal "Account profile already exists. Maybe try using update option?"
 else
     echo "{\"Account\":{}}" > ${ACCOUNT_PROFILE}

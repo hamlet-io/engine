@@ -101,7 +101,7 @@ mkdir -p ${CREDENTIALS_DIR}
 # Check whether the product profile is already in place
 PRODUCT_PROFILE=${PRODUCT_DIR}/product.json
 if [[ -f ${PRODUCT_PROFILE} ]]; then
-    [[ "${UPDATE_PRODUCT}" != "true" ]] && \
+    [[ "${UPDATE_PRODUCT}" != "true" ]] &&
         fatal "Product profile already exists. Maybe try using update option?"
 else
     echo "{\"Product\":{}}" > ${PRODUCT_PROFILE}

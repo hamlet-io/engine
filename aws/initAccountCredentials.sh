@@ -73,10 +73,10 @@ PRODUCT_DIR="${CREDS_DIR}/${AID}"
 ALM_DIR="${PRODUCT_DIR}/alm"
 DOCKER_DIR="${ALM_DIR}/docker"
 
-[[ "${AID}" != "${ROOT}" ]] && \
+[[ "${AID}" != "${ROOT}" ]] &&
     fatalCantProceed "The provided AID (${AID}) doesn't match the root directory (${ROOT})."
 
-[[ -e ${PRODUCT_DIR} ]] && \
+[[ -e ${PRODUCT_DIR} ]] &&
     fatalCantProceed "Looks like this script has already been run. Don't want to overwrite passwords."
 
 # Generate initial passwords

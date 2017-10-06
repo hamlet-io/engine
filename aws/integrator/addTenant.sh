@@ -84,7 +84,7 @@ done
 
 # Ensure we are in the integrator tree
 INTEGRATOR_PROFILE=integrator.json
-[[ ! -f "${INTEGRATOR_PROFILE}" ]] && \
+[[ ! -f "${INTEGRATOR_PROFILE}" ]] &&
     fatalLocation "We don't appear to be in the root of the integrator tree."
 
 # Create the directory for the tenant
@@ -94,7 +94,7 @@ mkdir -p ${TENANT_DIR}
 # Check whether the tenant profile is already in place
 TENANT_PROFILE=${TENANT_DIR}/tenant.json
 if [[ -f ${TENANT_PROFILE} ]]; then
-    [[ "${UPDATE_TENANT}" != "true" ]] && \
+    [[ "${UPDATE_TENANT}" != "true" ]] &&
         fatal "Tenant profile already exists. Maybe try using update option?"
 else
     jq 'del(.Integrator)' ${INTEGRATOR_PROFILE} > ${TENANT_PROFILE}

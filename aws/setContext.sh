@@ -41,7 +41,7 @@ for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     addToArray "${COMPOSITE}_ARRAY" "${GENERATION_DIR}"/templates/"${COMPOSITE,,}"/start*.ftl
     
     # If no composite specific start fragment, use a generic one
-    $(inArray "${COMPOSITE}_ARRAY" "start.ftl") || \
+    $(inArray "${COMPOSITE}_ARRAY" "start.ftl") ||
         addToArray "${COMPOSITE}_ARRAY" "${GENERATION_DIR}"/templates/start.ftl
 done
 
@@ -69,12 +69,12 @@ if [[ (-f "segment.json") || (-f "container.json") ]]; then
     # solutions directory
     # only add files if not already present
     export SOLUTIONS_DIR="$(pwd)"
-    $(inArray "BLUEPRINT_ARRAY" "solution.json") || \
+    $(inArray "BLUEPRINT_ARRAY" "solution.json") ||
         addToArrayHead "BLUEPRINT_ARRAY" "${SOLUTIONS_DIR}"/solution*.json
     
     for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
         for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
-            $(inArray "${COMPOSITE}_ARRAY" "${FRAGMENT}") || \
+            $(inArray "${COMPOSITE}_ARRAY" "${FRAGMENT}") ||
                 addToArray "${COMPOSITE}_ARRAY" "${SOLUTIONS_DIR}/${FRAGMENT}"
         done
     done
@@ -122,7 +122,7 @@ if [[ (-d config) && (-d infrastructure) ]]; then
     export GENERATION_DATA_DIR="$(pwd)"
 fi
 
-[[ -z "${GENERATION_DATA_DIR}" ]] && \
+[[ -z "${GENERATION_DATA_DIR}" ]] &&
     fatalLocation "Can't locate the root of the directory tree."
 
 # Back to where we started
@@ -168,23 +168,23 @@ BLUEPRINT_PRODUCT=$(runJQ -r '.Product.Name | select(.!=null)' < ${COMPOSITE_BLU
 BLUEPRINT_SEGMENT=$(runJQ -r '.Segment.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
 [[ (-n "${ACCOUNT}") &&
     ("${BLUEPRINT_ACCOUNT}" != "Account") &&
-    ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]] && \
+    ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]] &&
         fatalCantProceed "Blueprint account of ${BLUEPRINT_ACCOUNT} doesn't match expected value of ${ACCOUNT}"
 
 [[ (-n "${PRODUCT}") &&
     ("${BLUEPRINT_PRODUCT}" != "Product") &&
-    ("${PRODUCT}" != "${BLUEPRINT_PRODUCT}") ]] && \
+    ("${PRODUCT}" != "${BLUEPRINT_PRODUCT}") ]] &&
         fatalCantProceed "Blueprint product of ${BLUEPRINT_PRODUCT} doesn't match expected value of ${PRODUCT}"
 
 [[ (-n "${SEGMENT}") &&
     ("${BLUEPRINT_SEGMENT}" != "Segment") &&
-    ("${SEGMENT}" != "${BLUEPRINT_SEGMENT}") ]] && \
+    ("${SEGMENT}" != "${BLUEPRINT_SEGMENT}") ]] &&
         fatalCantProceed "Blueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}"
 
 # Add default composite fragments including end fragment
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/${COMPOSITE,,}_*.ftl; do
-            $(inArray "${COMPOSITE}_ARRAY" $(fileName "${FRAGMENT}")) || \
+            $(inArray "${COMPOSITE}_ARRAY" $(fileName "${FRAGMENT}")) ||
                 addToArray "${COMPOSITE}_ARRAY" "${FRAGMENT}"
     done
     for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/*end.ftl; do
@@ -219,11 +219,11 @@ if [[ -n "${PRODUCT}" ]]; then
                 "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/slice*.ref
             
             addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/appsettings*.json
-            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] && \
+            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
                 addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/appsettings*.json
 
             addToArrayHead "CREDENTIALS_ARRAY" "${SEGMENT_CREDENTIALS_DIR}/${DEPLOYMENT_UNIT}"/credentials*.json
-            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] && \
+            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
                 addToArrayHead "CREDENTIALS_ARRAY"  "${SEGMENT_CREDENTIALS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/credentials*.json
 
             fileContentsInEnv "BUILD_REFERENCE" \
@@ -247,24 +247,24 @@ fi
 # Build the composite appsettings
 debug "APPSETTINGS=${APPSETTINGS_ARRAY[*]}"
 export COMPOSITE_APPSETTINGS="${CONFIG_DIR}/composite_appsettings.json"
-$(arrayIsEmpty "APPSETTINGS_ARRAY") && \
-    echo "{}" > ${COMPOSITE_APPSETTINGS} || \
+$(arrayIsEmpty "APPSETTINGS_ARRAY") &&
+    echo "{}" > ${COMPOSITE_APPSETTINGS} ||
     ${GENERATION_DIR}/manageJSON.sh -c -o ${COMPOSITE_APPSETTINGS} "${APPSETTINGS_ARRAY[@]}"
 
 # Build the composite credentials
 debug "CREDENTIALS=${CREDENTIALS_ARRAY[*]}"
 export COMPOSITE_CREDENTIALS="${INFRASTRUCTURE_DIR}/composite_credentials.json"
-$(arrayIsEmpty "CREDENTIALS_ARRAY") && \
-    echo "{\"Credentials\" : {}}" > ${COMPOSITE_CREDENTIALS} || \
+$(arrayIsEmpty "CREDENTIALS_ARRAY") &&
+    echo "{\"Credentials\" : {}}" > ${COMPOSITE_CREDENTIALS} ||
     ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
 
 # Create the composite stack outputs
 STACK_ARRAY=()
-[[ (-n "${ACCOUNT}") ]] && \
+[[ (-n "${ACCOUNT}") ]] &&
     addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${ACCOUNT}"/aws/cf/acc*-stack.json
-[[ (-n "${PRODUCT}") && (-n "${REGION}") ]] && \
+[[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
     addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${PRODUCT}"/aws/cf/product*-${REGION}-stack.json
-[[ (-n "${SEGMENT}") && (-n "${REGION}") ]] && \
+[[ (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
     addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}"/cf/*-"${REGION}"-stack.json
 
 debug "STACK_OUTPUTS=${STACK_ARRAY[*]}"

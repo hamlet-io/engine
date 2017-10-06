@@ -56,14 +56,15 @@ elif [[ "segment" =~ ${LOCATION} ]]; then
     KEYID=$(getCmk "segment")
     CREDENTIALS_DIR="${SEGMENT_CREDENTIALS_DIR}"
     SSH_PER_SEGMENT=$(getBluePrintParameter ".Segment.SSH.PerSegment" ".Segment.SSHPerSegment")
-    [[ "${SSH_PER_SEGMENT}" != "true" ]] && \
+    [[ "${SSH_PER_SEGMENT}" != "true" ]] &&
         fatalCantProceed "An SSH key is not required for this segment. Check the SSH PerSegment setting if unsure."
 else
     fatalDirectoryProductOrSegment
 fi
 
 # Ensure we've got a cmk to encrypt the SSH private key
-[[ -z "${KEYID}" ]] && fatal "No cmk defined to encrypt the SSH private key. Create the cmk deployment unit before running this script again"
+[[ -z "${KEYID}" ]] &&
+    fatal "No cmk defined to encrypt the SSH private key. Create the cmk deployment unit before running this script again"
 
 # Create an SSH certificate at the product level
 mkdir -p "${CREDENTIALS_DIR}"

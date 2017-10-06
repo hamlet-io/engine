@@ -74,7 +74,7 @@ fi
 
 # Check whether the solution profile is already in place
 SOLUTION_FILE="${TARGET_DIR}/solution.json"
-[[ (-f "${SOLUTION_FILE}") && ("${UPDATE_SOLUTION}" != "true") ]] && \
+[[ (-f "${SOLUTION_FILE}") && ("${UPDATE_SOLUTION}" != "true") ]] &&
     fatal "Solution profile already exists. Maybe try using update option?"
 
 # Copy across the solution pattern

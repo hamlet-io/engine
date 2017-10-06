@@ -162,7 +162,7 @@ if [[ "${STACK_INITIATE}" = "true" ]]; then
                 STACK_OPERATION="create"
             fi
 
-            [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]] && \
+            [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]] &&
                 fatal "Dryrun not applicable when creating a stack"
 
             # Initiate the required operation

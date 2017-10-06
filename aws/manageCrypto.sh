@@ -173,7 +173,7 @@ if [[ (-n "${JSON_PATH}") ]]; then
     JSON_TEXT=$(jq -r "${JSON_PATH} | select (.!=null)" < "${TARGET_FILE}")
     CRYPTO_TEXT="${CRYPTO_TEXT:-$JSON_TEXT}"
 
-    [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]] && \
+    [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]] &&
         fatal "Nothing to encrypt"
 else    
     if [[ -z "${CRYPTO_TEXT}" ]]; then
@@ -186,7 +186,7 @@ else
     fi
 fi
     
-[[ ("${CRYPTO_OPERATION}" == "encrypt") && (-z "${KEYID}") ]] && \
+[[ ("${CRYPTO_OPERATION}" == "encrypt") && (-z "${KEYID}") ]] &&
     fatal "No key material available"
 
 # Strip any explicit indication of base64 encoding

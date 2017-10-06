@@ -69,7 +69,7 @@ CREDENTIALS_BUCKET=$(getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "s3Xac
 
 [[ (-z "${CODE_BUCKET}") ||
     (-z "${CREDENTIALS_BUCKET}") ||
-    (-z "${ACCOUNT_REGION}") ]] && \
+    (-z "${ACCOUNT_REGION}") ]] &&
     fatal "Buckets don't appear to have been created. Maybe create the Account stack first?"
 
 pushd ${ACCOUNT_DIR}  > /dev/null 2>&1
@@ -78,7 +78,7 @@ pushd ${ACCOUNT_DIR}  > /dev/null 2>&1
 if [[ "${CHECK}" == "true" ]]; then
     aws --region ${ACCOUNT_REGION} s3 ls s3://${CODE_BUCKET}/ > temp_code_access.txt
     RESULT=$?
-    [[ "$RESULT" -ne 0 ]] && \
+    [[ "$RESULT" -ne 0 ]] &&
         fatal "Can't access the code bucket. Does the service role for the server include access to the \"${ACCOUNT}\" code bucket? If windows, is a profile matching the account been set up?"
 fi
 
@@ -96,7 +96,7 @@ fi
 if [[ "${CHECK}" == "true" ]]; then
     aws --region ${ACCOUNT_REGION} s3 ls s3://${CREDENTIALS_BUCKET}/ > temp_credential_access.txt
     RESULT=$?
-    [[ "$RESULT" -ne 0 ]] && \
+    [[ "$RESULT" -ne 0 ]] &&
         fatal "Can't access the credentials bucket. Does the service role for the server include access to the \"${ACCOUNT}\" credentials bucket? If windows, is a profile matching the account been set up?"
 fi
 
