@@ -136,10 +136,6 @@
             [#assign operationsBucket = formatName(tenantObject, operationsBucket) ]
         [/#if]
     [/#if]
-    [#assign operationsExpiration =
-        (segmentObject.Operations.Expiration)!
-        (environmentObject.Operations.Expiration)!
-        ""]
 
     [#assign dataBucket = getExistingReference(formatS3DataId())]
     [#if ! dataBucket?has_content]
@@ -148,10 +144,6 @@
             [#assign dataBucket = formatName(tenantObject, dataBucket) ]
         [/#if]
     [/#if]
-    [#assign dataExpiration =
-        (segmentObject.Data.Expiration)!
-        (environmentObject.Data.Expiration)!
-        ""]
 
     [#assign segmentDomain = getExistingReference(formatSegmentDomainId())]
     [#assign segmentDomainQualifier = getExistingReference(formatSegmentDomainQualifierId())]
@@ -165,6 +157,12 @@
         [#assign categoryObject = categories[categoryId]]
     [/#if]
 
+    [#assign operationsExpiration =
+        (segmentObject.Operations.Expiration)!
+        (environmentObject.Operations.Expiration)!""]
+    [#assign dataExpiration =
+        (segmentObject.Data.Expiration)!
+        (environmentObject.Data.Expiration)!""]
 [/#if]
 
 [#-- Solution --]
