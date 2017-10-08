@@ -77,6 +77,7 @@
                 occurrence.DNSIsConfigured)
             comment=cfName
             defaultCacheBehaviour=spaCacheBehaviour
+            defaultRootObject="index.html"
             logging=valueIfTrue(
                 getCFLogging(
                     operationsBucket,
