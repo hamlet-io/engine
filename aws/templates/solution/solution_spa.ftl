@@ -45,7 +45,7 @@
                 "config",
                 operationsBucket,
                 cfAccess,
-                formatAbsolutePath(getAppSettingsFilePrefix(), "config"))]
+                formatAbsolutePath(getAppSettingsFilePrefix()))]
 
         [#assign spaCacheBehaviour = getCFSPACacheBehaviour(spaOrigin) ]
         [#assign configCacheBehaviour = getCFSPACacheBehaviour(configOrigin, "/config/*") ]
