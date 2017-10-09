@@ -139,7 +139,7 @@
             origin,
             "",
             {
-                "AllowedMethods" : [
+                "Allowed" : [
                     "DELETE",
                     "GET",
                     "HEAD",
@@ -148,7 +148,7 @@
                     "POST",
                     "PUT"
                 ],
-                "CachedMethods" : [
+                "Cached" : [
                     "GET",
                     "HEAD"
                 ]
@@ -183,12 +183,12 @@
             origin,
             path,
             {
-                "AllowedMethods" : [
+                "Allowed" : [
                     "GET",
                     "HEAD",
                     "OPTIONS"
                 ],
-                "CachedMethods" : [
+                "Cached" : [
                     "GET",
                     "HEAD"
                 ]
