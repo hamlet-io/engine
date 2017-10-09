@@ -285,7 +285,7 @@
                     [@createEIP
                         mode=solutionListMode
                         id=ec2EIPId
-                        dependences=[ec2ENIId]
+                        dependencies=[ec2ENIId]
                     /]
                     
                     [@cfResource
@@ -297,7 +297,7 @@
                                 "AllocationId" : getReference(ec2EIPId, ALLOCATION_ATTRIBUTE_TYPE),
                                 "NetworkInterfaceId" : getReference(ec2ENIId)
                             }
-                        dependences=[ec2EIPId]
+                        dependencies=[ec2EIPId]
                         outputs={}
                     /]
                 [/#if]
