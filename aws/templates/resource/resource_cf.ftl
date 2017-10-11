@@ -177,7 +177,7 @@
     ]
 [/#function]
 
-[#function getCFSPACacheBehaviour origin path=""]
+[#function getCFSPACacheBehaviour origin path="" ttl={"Default" : 600}]
     [#return
         getCFCacheBehaviour(
             origin,
@@ -193,9 +193,7 @@
                     "HEAD"
                 ]
             },
-            {
-                "Default" : 600
-            },
+            ttl,
             {
                 "Cookies" : {
                     "Forward" : "all"
