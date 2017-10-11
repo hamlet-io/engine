@@ -48,7 +48,7 @@
                 formatAbsolutePath(getAppSettingsFilePrefix()))]
 
         [#assign spaCacheBehaviour = getCFSPACacheBehaviour(spaOrigin) ]
-        [#assign configCacheBehaviour = getCFSPACacheBehaviour(configOrigin, "/config/*") ]
+        [#assign configCacheBehaviour = getCFSPACacheBehaviour(configOrigin, "/config/*", {"Default" : 60}) ]
                    
         [#assign restrictions = {} ]
         [#if occurrence.CloudFront.CountryGroups?has_content]
