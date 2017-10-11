@@ -163,6 +163,28 @@ function findDir() {
     return 0
 }
 
+function findFile() {
+
+    local RESTORE_NULLGLOB=$(shopt -p nullglob)
+    local RESTORE_GLOBSTAR=$(shopt -p globstar)
+    shopt -s nullglob globstar
+
+    MATCHES=($@)
+
+    ${RESTORE_NULLGLOB}
+    ${RESTORE_GLOBSTAR}
+
+    for MATCH in "${MATCHES[@]}"; do
+        if [[ -f "${MATCH}" ]]; then
+            echo -n "${MATCH}"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+
 # -- Array manipulation --
 
 function inArray() {
