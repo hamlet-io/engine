@@ -31,7 +31,7 @@ function info() {
     message "Info" "$@"
 }
 
-function warn() {
+function warning() {
     message "Warning" "$@"
 }
 
