@@ -126,6 +126,16 @@
                                     formatDependentSecurityGroupId(lambdaId),
                                     ""
                                 )
+                            securityGroupIds=
+                                (vpc?has_content && occurrence.VPCAccess)?then(
+                                    formatDependentSecurityGroupId(lambdaId),
+                                    []
+                                )
+                            subnetIds=
+                                (vpc?has_content && occurrence.VPCAccess)?then(
+                                    getSubnets(tier, false),
+                                    []
+                                )
                             dependencies=roleId
                         /]
                     [/#if]
