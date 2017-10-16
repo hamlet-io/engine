@@ -17,7 +17,7 @@
     }
 ]
 
-[#macro createLambdaFunction mode id container roleId securityGroupIds=[] dependencies=""]
+[#macro createLambdaFunction mode id container roleId securityGroupIds=[] subnetIds=[] dependencies=""]
     [@cfResource
         mode=mode
         id=id
@@ -46,7 +46,7 @@
                 securityGroupIds,
                 {
                     "SecurityGroupIds" : getReferences(securityGroupIds),
-                    "SubnetIds" : getSubnets(tier)
+                    "SubnetIds" : getReferences(subnetIds)
                 })
         outputs=LAMBDA_FUNCTION_OUTPUT_MAPPINGS
         dependencies=dependencies
