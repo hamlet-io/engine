@@ -100,7 +100,11 @@ if [[ -f "product.json" ]]; then
         export LOCATION="${LOCATION:-product}"
     fi
     export PRODUCT_DIR="$(pwd)"
-    export PRODUCT="$(fileName "$(pwd)")"
+    if [[ $(fileName "${PRODUCT_DIR}") == "config" ]]; then
+        export PRODUCT=$(fileName "$(pwd)/..")
+    else
+        export PRODUCT=$(fileName "$(pwd)")
+    fi
 
     addToArrayHead "BLUEPRINT_ARRAY" \
         "${PRODUCT_DIR}"/domains*.json \
@@ -117,7 +121,8 @@ if [[ -f "integrator.json" ]]; then
     export INTEGRATOR="$(fileName "$(pwd)")"
 fi
 
-if [[ (-d config) && (-d infrastructure) ]]; then
+if [[ (-f "root.json") ||
+        ((-d config) && (-d infrastructure)) ]]; then
     export LOCATION="${LOCATION:-root}"
     export GENERATION_DATA_DIR="$(pwd)"
 fi
@@ -125,11 +130,14 @@ fi
 [[ -z "${GENERATION_DATA_DIR}" ]] &&
     fatalLocation "Can't locate the root of the directory tree."
 
+cd "${GENERATION_DATA_DIR}"
+[[ (-d config) && (-d infrastructure) ]] &&
+    export ACCOUNT="$(fileName "${GENERATION_DATA_DIR}")"
+
 # Back to where we started
 popd >/dev/null
 
 # Analyse directory structure
-export ACCOUNT="$(fileName "${GENERATION_DATA_DIR}")"
 findGen3Dirs "${GENERATION_DATA_DIR}" || exit
 
 addToArrayHead "BLUEPRINT_ARRAY" \
@@ -140,7 +148,7 @@ addToArrayHead "BLUEPRINT_ARRAY" \
 
 # Build the composite solution ( aka blueprint)
 debug "BLUEPRINT=${BLUEPRINT_ARRAY[*]}"
-export COMPOSITE_BLUEPRINT="${CONFIG_DIR}/composite_blueprint.json"
+export COMPOSITE_BLUEPRINT="${ROOT_DIR}/composite_blueprint.json"
 if [[ ! $(arrayIsEmpty "BLUEPRINT_ARRAY") ]]; then
     addToArrayHead "BLUEPRINT_ARRAY" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"/masterData.json
     ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${BLUEPRINT_ARRAY[@]}"
@@ -195,7 +203,7 @@ done
 # create the template composites
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     debug $(eval "echo \"${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}\"")
-    eval "export COMPOSITE_${COMPOSITE}=\${CONFIG_DIR}/composite_${COMPOSITE,,}.ftl"
+    eval "export COMPOSITE_${COMPOSITE}=\${ROOT_DIR}/composite_${COMPOSITE,,}.ftl"
     eval "cat \"\${${COMPOSITE}_ARRAY[@]}\" > \${COMPOSITE_${COMPOSITE}}"
 done
 
@@ -246,14 +254,14 @@ fi
 
 # Build the composite appsettings
 debug "APPSETTINGS=${APPSETTINGS_ARRAY[*]}"
-export COMPOSITE_APPSETTINGS="${CONFIG_DIR}/composite_appsettings.json"
+export COMPOSITE_APPSETTINGS="${ROOT_DIR}/composite_appsettings.json"
 $(arrayIsEmpty "APPSETTINGS_ARRAY") &&
     echo "{}" > ${COMPOSITE_APPSETTINGS} ||
     ${GENERATION_DIR}/manageJSON.sh -c -o ${COMPOSITE_APPSETTINGS} "${APPSETTINGS_ARRAY[@]}"
 
 # Build the composite credentials
 debug "CREDENTIALS=${CREDENTIALS_ARRAY[*]}"
-export COMPOSITE_CREDENTIALS="${INFRASTRUCTURE_DIR}/composite_credentials.json"
+export COMPOSITE_CREDENTIALS="${ROOT_DIR}/composite_credentials.json"
 $(arrayIsEmpty "CREDENTIALS_ARRAY") &&
     echo "{\"Credentials\" : {}}" > ${COMPOSITE_CREDENTIALS} ||
     ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
@@ -261,14 +269,14 @@ $(arrayIsEmpty "CREDENTIALS_ARRAY") &&
 # Create the composite stack outputs
 STACK_ARRAY=()
 [[ (-n "${ACCOUNT}") ]] &&
-    addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${ACCOUNT}"/aws/cf/acc*-stack.json
+    addToArray "STACK_ARRAY" "${ACCOUNT_INFRASTRUCTURE_DIR}"/aws/cf/acc*-stack.json
 [[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
-    addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${PRODUCT}"/aws/cf/product*-${REGION}-stack.json
+    addToArray "STACK_ARRAY" "${PRODUCT_INFRASTRUCTURE_DIR}"/aws/cf/product*-${REGION}-stack.json
 [[ (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-    addToArray "STACK_ARRAY" "${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}"/cf/*-"${REGION}"-stack.json
+    addToArray "STACK_ARRAY" "${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}"/cf/*-"${REGION}"-stack.json
 
 debug "STACK_OUTPUTS=${STACK_ARRAY[*]}"
-export COMPOSITE_STACK_OUTPUTS="${INFRASTRUCTURE_DIR}/composite_stack_outputs.json"
+export COMPOSITE_STACK_OUTPUTS="${ROOT_DIR}/composite_stack_outputs.json"
 if [[ $(arraySize "STACK_ARRAY") -ne 0 ]]; then
 
     # Add default account, region, stack level and deployment unit

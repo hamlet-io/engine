@@ -75,6 +75,25 @@ function fatalMandatory() {
     fatal "Mandatory arguments missing. Check usage via -h option."
 }
 
+function cleanup() {
+    local ROOT_DIR="${1:-.}"
+
+    find ${ROOT_DIR} -name "composite_*" -delete
+    find ${ROOT_DIR} -name "STATUS.txt" -delete
+    find ${ROOT_DIR} -name "stripped_*" -delete
+    find ${ROOT_DIR} -name "ciphertext*" -delete
+    find ${ROOT_DIR} -name "temp_*" -type f -delete
+
+    # Handle cleanup of temporary directories
+    TEMP_DIRS=($(find ${ROOT_DIR} -name "temp_*" -type d))
+    for TEMP_DIR in "${TEMP_DIRS[@]}"; do
+        # Subdir may already have been deleted by parent temporary directory
+        if [[ -e "${TEMP_DIR}" ]]; then
+            rm -rf "${TEMP_DIR}"
+        fi
+    done
+}
+
 # -- String manipulation --
 
 function join() {
@@ -130,7 +149,9 @@ function findAncestorDir() {
     local CURRENT="${1:-$(pwd)}"
 
     while [[ -n "${CURRENT}" ]]; do
-        if [[ "$(fileName "${CURRENT}")" == "${ANCESTOR}" ]]; then
+        # Ancestor can either be a directory or a marker file
+        if [[ ("$(fileName "${CURRENT}")" == "${ANCESTOR}") ||
+                ( -f "${CURRENT}/${ANCESTOR}" ) ]]; then
             echo -n "${CURRENT}"
             return 0
         fi
@@ -140,27 +161,26 @@ function findAncestorDir() {
 }
 
 function findDir() {
-    local MARKER="${1}"; shift
     local ROOT_DIR="${1}"; shift
-    local SUBDIRS_ONLY="${1}"
 
     local RESTORE_NULLGLOB=$(shopt -p nullglob)
     local RESTORE_GLOBSTAR=$(shopt -p globstar)
+    local MATCHES=()
     shopt -s nullglob globstar
-
-    [[ -n "${SUBDIRS_ONLY}" ]] &&
-        MATCHES=("${ROOT_DIR}"/*/**/${MARKER}) ||
-        MATCHES=("${ROOT_DIR}"/**/${MARKER})
+    
+    for PATTERN in "$@"; do
+        MATCHES+=("${ROOT_DIR}"/**/${PATTERN})
+    done
 
     ${RESTORE_NULLGLOB}
     ${RESTORE_GLOBSTAR}
 
-    [[ $(arrayIsEmpty "MATCHES") ]] && return 1
+    for MATCH in "${MATCHES[@]}"; do
+        [[ -f "${MATCH}" ]] && echo -n "$(filePath "${MATCH}")" && return 0
+        [[ -d "${MATCH}" ]] && echo -n "${MATCH}" && return 0
+    done
 
-    [[ -f "${MATCHES[0]}" ]] &&
-        echo -n "$(filePath "${MATCHES[0]}")" ||
-        echo -n "${MATCHES[0]}"
-    return 0
+    return 1
 }
 
 function findFile() {
@@ -169,21 +189,17 @@ function findFile() {
     local RESTORE_GLOBSTAR=$(shopt -p globstar)
     shopt -s nullglob globstar
 
-    MATCHES=($@)
+    local MATCHES=($@)
 
     ${RESTORE_NULLGLOB}
     ${RESTORE_GLOBSTAR}
 
     for MATCH in "${MATCHES[@]}"; do
-        if [[ -f "${MATCH}" ]]; then
-            echo -n "${MATCH}"
-            return 0
-        fi
+        [[ -f "${MATCH}" ]] && echo -n "${MATCH}" && return 0
     done
 
     return 1
 }
-
 
 # -- Array manipulation --
 
@@ -282,13 +298,14 @@ function getJSONValue() {
     return 1
 }
 
-function addJSONParentObjects() {
+function addJSONAncestorObjects() {
     local JSON_FILE="${1}"; shift
-    local PARENTS=("$@")
+    local ANCESTORS=("$@")
 
+    # Reverse the order of the ancestors
     local PATTERN="."
-    for (( INDEX=${#PARENTS[@]}-1 ; INDEX >= 0 ; INDEX-- )) ; do
-        PATTERN="{\"${PARENTS[INDEX]}\" : ${PATTERN} }"
+    for (( INDEX=${#ANCESTORS[@]}-1 ; INDEX >= 0 ; INDEX-- )) ; do
+        PATTERN="{\"${ANCESTORS[INDEX]}\" : ${PATTERN} }"
     done
 
     runJQ "${PATTERN}" < "${JSON_FILE}"
@@ -417,22 +434,64 @@ function getBluePrintParameter() {
 function findGen3RootDir() {
     local CURRENT="${1}"; shift
 
+    # First check for an explicitly marked root
+    local MARKED_ROOT_DIR="$(filePath "$(findAncestorDir root.json "${CURRENT}")")"
+    [[ -n "${MARKED_ROOT_DIR}" ]] && echo -n "${MARKED_ROOT_DIR}" && return 0
+
+    # Now look for the first dir containing both a config and infrastructure directory
     local CONFIG_ROOT_DIR="$(filePath "$(findAncestorDir config "${CURRENT}")")"
     local INFRASTRUCTURE_ROOT_DIR="$(filePath "$(findAncestorDir infrastructure "${CURRENT}")")"
     local ROOT_DIR="${CONFIG_ROOT_DIR:-${INFRASTRUCTURE_ROOT_DIR}}"
 
-    if [[ (-d "${ROOT_DIR}/config") && (-d "${ROOT_DIR}/infrastructure") ]]; then
-        echo -n "${ROOT_DIR}"
-        return 0
-    fi
+    [[ (-d "${ROOT_DIR}/config") && (-d "${ROOT_DIR}/infrastructure") ]] && echo -n "${ROOT_DIR}" && return 0
+
     return 1
+}
+
+function findGen3TenantDir() {
+    local GEN3_ROOT_DIR="${1}"; shift
+    local GEN3_TENANT="${1}"; shift
+
+    findDir "${GEN3_ROOT_DIR}" \
+                "${GEN3_TENANT}/tenant.json" \
+                "${GEN3_TENANT}/config/tenant.json" \
+                "tenant.json"
+}
+
+function findGen3AccountDir() {
+    local GEN3_ROOT_DIR="${1}"; shift
+    local GEN3_ACCOUNT="${1}"; shift
+
+    findDir "${GEN3_ROOT_DIR}" \
+                "${GEN3_ACCOUNT}/account.json" \
+                "${GEN3_ACCOUNT}/config/account.json"
+}
+
+function findGen3AccountInfrastructureDir() {
+    local GEN3_ROOT_DIR="${1}"; shift
+    local GEN3_ACCOUNT="${1}"; shift
+
+    findDir "${GEN3_ROOT_DIR}" \
+                "infrastructure/**/${GEN3_ACCOUNT}" \
+                "${GEN3_ACCOUNT}/infrastructure"
 }
 
 function findGen3ProductDir() {
     local GEN3_ROOT_DIR="${1}"; shift
-    local GEN3_PRODUCT="${1:=${PRODUCT}}"
+    local GEN3_PRODUCT="${1}"; shift
 
-    findDir "${GEN3_PRODUCT}/product.json" "${GEN3_ROOT_DIR}"
+    findDir "${GEN3_ROOT_DIR}" \
+                "${GEN3_PRODUCT}/product.json" \
+                "${GEN3_PRODUCT}/config/product.json"
+}
+
+function findGen3ProductInfrastructureDir() {
+    local GEN3_ROOT_DIR="${1}"; shift
+    local GEN3_PRODUCT="${1}"; shift
+
+    findDir "${GEN3_ROOT_DIR}" \
+                "infrastructure/**/${GEN3_PRODUCT}" \
+                "${GEN3_PRODUCT}/infrastructure"
 }
 
 function findGen3SegmentDir() {
@@ -443,8 +502,9 @@ function findGen3SegmentDir() {
     local GEN3_PRODUCT_DIR="$(findGen3ProductDir "${GEN3_ROOT_DIR}" "${GEN3_PRODUCT}")"
     [[ -z "${GEN3_PRODUCT_DIR}" ]] && return 1
 
-    findDir "solutions/${GEN3_SEGMENT}/segment.json"   "${GEN3_PRODUCT_DIR}" ||
-    findDir "solutions/${GEN3_SEGMENT}/container.json" "${GEN3_PRODUCT_DIR}"
+    findDir "${GEN3_PRODUCT_DIR}" \
+        "solutions/${GEN3_SEGMENT}/segment.json" \
+        "solutions/${GEN3_SEGMENT}/container.json"
 }
 
 function getGen3Env() {
@@ -455,7 +515,7 @@ function getGen3Env() {
     echo "${!GEN3_ENV_NAME}"
 }
 
-function checkGen3Dir() {
+function setGen3DirEnv() {
     local GEN3_ENV="${1}"; shift
     local GEN3_PREFIX="${1}"; shift
 
@@ -473,36 +533,41 @@ function checkGen3Dir() {
 
 function findGen3Dirs() {
     local GEN3_ROOT_DIR="${1}"; shift
+    local GEN3_TENANT="${1:-${TENANT}}"; shift
     local GEN3_ACCOUNT="${1:-${ACCOUNT}}"; shift
     local GEN3_PRODUCT="${1:-${PRODUCT}}"; shift     
     local GEN3_SEGMENT="${1:-${SEGMENT}}"; shift
     local GEN3_PREFIX="${1}"; shift
 
-    checkGen3Dir "CONFIG_DIR" "${GEN3_PREFIX}" \
-        "${GEN3_ROOT_DIR}/config" || return 1
-    checkGen3Dir "INFRASTRUCTURE_DIR" "${GEN3_PREFIX}" \
-        "${GEN3_ROOT_DIR}/infrastructure" || return 1
+    setGen3DirEnv "ROOT_DIR" "${GEN3_PREFIX}" "${GEN3_ROOT_DIR}"
+        
+    setGen3DirEnv "TENANT_DIR" "${GEN3_PREFIX}" \
+        "$(findGen3TenantDir "${GEN3_ROOT_DIR}" "${GEN3_TENANT}" )" || return 1
 
-    checkGen3Dir "TENANT_DIR" "${GEN3_PREFIX}" \
-        "$(findDir "tenant.json" "${GEN3_ROOT_DIR}")" || return 1
-    checkGen3Dir "ACCOUNT_DIR" "${GEN3_PREFIX}" \
-        "$(findDir "${GEN3_ACCOUNT}/account.json" "${GEN3_ROOT_DIR}")" || return 1
-    checkGen3Dir "ACCOUNT_INFRASTRUCTURE_DIR" "${GEN3_PREFIX}" \
-        "$(findDir "${GEN3_ACCOUNT}" "${GEN3_ROOT_DIR}/infrastructure")" || return 1
+    setGen3DirEnv "ACCOUNT_DIR" "${GEN3_PREFIX}" \
+        "$(findGen3AccountDir "${GEN3_ROOT_DIR}" "${GEN3_ACCOUNT}" )" || return 1
+
+    setGen3DirEnv "ACCOUNT_INFRASTRUCTURE_DIR" "${GEN3_PREFIX}" \
+        "$(findGen3AccountInfrastructureDir "${GEN3_ROOT_DIR}" "${GEN3_ACCOUNT}" )" || return 1
+
     eval "export ${GEN3_PREFIX}ACCOUNT_APPSETTINGS_DIR=$(getGen3Env "ACCOUNT_DIR" "${GEN3_PREFIX}")/appsettings"
     eval "export ${GEN3_PREFIX}ACCOUNT_CREDENTIALS_DIR=$(getGen3Env "ACCOUNT_INFRASTRUCTURE_DIR" "${GEN3_PREFIX}")/credentials"
 
     if [[ -n "${GEN3_PRODUCT}" ]]; then
-        checkGen3Dir "PRODUCT_DIR" "${GEN3_PREFIX}" \
+        setGen3DirEnv "PRODUCT_DIR" "${GEN3_PREFIX}" \
             "$(findGen3ProductDir "${GEN3_ROOT_DIR}" "${GEN3_PRODUCT}")" || return 1
-        checkGen3Dir "PRODUCT_INFRASTRUCTURE_DIR" "${GEN3_PREFIX}" \
-            "$(findDir "${GEN3_PRODUCT}" "${GEN3_ROOT_DIR}/infrastructure")" || return 1
+
+        setGen3DirEnv "PRODUCT_INFRASTRUCTURE_DIR" "${GEN3_PREFIX}" \
+            "$(findGen3ProductInfrastructureDir "${GEN3_ROOT_DIR}" "${GEN3_PRODUCT}")" || return 1
+
         eval "export ${GEN3_PREFIX}PRODUCT_APPSETTINGS_DIR=$(getGen3Env "PRODUCT_DIR" "${GEN3_PREFIX}")/appsettings"
         eval "export ${GEN3_PREFIX}PRODUCT_SOLUTIONS_DIR=$(getGen3Env "PRODUCT_DIR" "${GEN3_PREFIX}")/solutions"
         eval "export ${GEN3_PREFIX}PRODUCT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_INFRASTRUCTURE_DIR" "${GEN3_PREFIX}")/credentials"
+
         if [[ -n "${GEN3_SEGMENT}" ]]; then
-            checkGen3Dir "SEGMENT_DIR"  "${GEN3_PREFIX}" \
+            setGen3DirEnv "SEGMENT_DIR"  "${GEN3_PREFIX}" \
                 "$(findGen3SegmentDir "${GEN3_ROOT_DIR}" "${GEN3_PRODUCT}" "${GEN3_SEGMENT}")" || return 1
+
             eval "export ${GEN3_PREFIX}SEGMENT_APPSETTINGS_DIR=$(getGen3Env "PRODUCT_APPSETTINGS_DIR" "${GEN3_PREFIX}")/${GEN3_SEGMENT}"
             eval "export ${GEN3_PREFIX}SEGMENT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_CREDENTIALS_DIR" "${GEN3_PREFIX}")/${GEN3_SEGMENT}"
         fi
@@ -513,16 +578,16 @@ function checkInRootDirectory() {
     [[ ! ("root" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "root"
 }
 
-function checkInSegmentDirectory() {
-    [[ ! ("segment" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "segment"
+function checkInAccountDirectory() {
+    [[ ! ("account" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "account"
 }
 
 function checkInProductDirectory() {
     [[ ! ("product" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "product"
 }
 
-function checkInAccountDirectory() {
-    [[ ! ("account" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "account"
+function checkInSegmentDirectory() {
+    [[ ! ("segment" =~ "${1:-${LOCATION}}") ]] && fatalDirectory "segment"
 }
 
 function fatalProductOrSegmentDirectory() {
@@ -539,7 +604,7 @@ function buildAppSettings () {
     
     for FILE in "${ROOT_DIR}"/${FILE_PATTERN}; do
         echo Processing ${FILE} to "$(filePath "${FILE}")/temp_$(fileName "${FILE}")"
-        addJSONParentObjects "${FILE}" "${PARENTS[@]}" > "$(filePath "${FILE}")/temp_$(fileName "${FILE}")"
+        addJSONAncestorObjects "${FILE}" "${PARENTS[@]}" > "$(filePath "${FILE}")/temp_$(fileName "${FILE}")"
     done
 
     ${NULLGLOB}
