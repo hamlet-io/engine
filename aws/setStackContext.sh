@@ -39,7 +39,7 @@ if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
 fi
 case $LEVEL in
     account)
-        CF_DIR="${INFRASTRUCTURE_DIR}/${ACCOUNT}/aws/cf"
+        CF_DIR="${ACCOUNT_INFRASTRUCTURE_DIR}/aws/cf"
         PRODUCT_PREFIX="${ACCOUNT}"
         REGION="${ACCOUNT_REGION}"
         REGION_PREFIX="${ACCOUNT_REGION}-"
@@ -67,7 +67,7 @@ case $LEVEL in
         ;;
 
     product)
-        CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/cf"
+        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/cf"
         SEGMENT_SUFFIX=""
 
         # LEGACY: Support stacks created before deployment units added to product
@@ -80,7 +80,7 @@ case $LEVEL in
         ;;
 
     solution)
-        CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
+        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
         LEVEL_PREFIX="soln-"
         LEVEL_SUFFIX="-soln"
         if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
@@ -92,7 +92,7 @@ case $LEVEL in
         ;;
 
     segment)
-        CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
+        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
         LEVEL_PREFIX="seg-"
         LEVEL_SUFFIX="-seg"
 
@@ -126,13 +126,13 @@ case $LEVEL in
         ;;
 
     application)
-        CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
+        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
         LEVEL_PREFIX="app-"
         LEVEL_SUFFIX="-app"
         ;;
 
     multiple)
-        CF_DIR="${INFRASTRUCTURE_DIR}/${PRODUCT}/aws/${SEGMENT}/cf"
+        CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
         LEVEL_PREFIX="multi-"
         LEVEL_SUFFIX="-multi"
         ;;
