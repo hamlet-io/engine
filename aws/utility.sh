@@ -63,13 +63,13 @@ function fatal() {
 }
 
 function fatalOption() {
-  local option="${1:-${OPTARG}"
+  local option="${1:-${OPTARG}}"
 
   fatal "Invalid option: \"-${option}\""
 }
 
 function fatalOptionArgument() {
-  local option="${1:-${OPTARG}"
+  local option="${1:-${OPTARG}}"
 
   fatal "Option \"-${option}\" requires an argument"
 }
@@ -96,7 +96,7 @@ function fatalLocation() {
 function fatalDirectory() {
   local name="$1"; shift
 
-  fatalLocation "We don't appear to be in the ${name} directory."
+  fatalLocation "We don\'t appear to be in the ${name} directory."
 }
 
 function fatalMandatory() {
@@ -279,7 +279,7 @@ function reverseArray() {
 
   result=()
   for (( index=${#array[@]}-1 ; index>=0 ; index-- )) ; do
-    result +=("${array[index]}")
+    result+=("${array[index]}")
   done
   
   [[ -z "${target}" ]] && array=("${result[@]}")

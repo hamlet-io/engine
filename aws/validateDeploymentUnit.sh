@@ -42,16 +42,16 @@ for L in "${LEVELS[@]}"; do
     if [[ -n "${UNITS_SOURCE}" ]]; then
         IFS=", " read -ra UNITS_ARRAY <<< "${UNITS_SOURCE}"
     fi
-   
-    [[ grep -iw "${CHECK_UNIT}" <<< "${UNITS_ARRAY[*]}" >/dev/null 2>&1 ]] &&
-        declare -x IS_${L^^}_UNIT=true ||
-        declare -x IS_${L^^}_UNIT=false
+
+    grep -iw "${CHECK_UNIT}" <<< "${UNITS_ARRAY[*]}" >/dev/null 2>&1 &&
+      declare -x IS_${L^^}_UNIT=true ||
+      declare -x IS_${L^^}_UNIT=false
 done
 
 # Check level if provided
 # Confirm provided unit is valid
 if [[ (-n "${CHECK_LEVEL}") ]]; then
-    local -n IS_UNIT="${CHECK_LEVEL^^}_UNIT"
+    declare -n IS_UNIT="IS_${CHECK_LEVEL^^}_UNIT"
     [[ "${IS_UNIT}" != "true" ]] && fatal "Unknown deployment unit ${CHECK_UNIT} for ${CHECK_LEVEL} stack level"
 fi
 
