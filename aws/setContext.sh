@@ -204,7 +204,11 @@ done
 # create the template composites
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     COMPOSITE_FILE="${ROOT_DIR}/composite_${COMPOSITE,,}.ftl"
-    declare -n COMPOSITE_ARRAY="${COMPOSITE}_ARRAY"
+    if [[ $(namedef_supported) ]]; then
+      declare -n COMPOSITE_ARRAY="${COMPOSITE}_ARRAY"
+    else
+      eval "declare COMPOSITE_ARRAY=(\"\${${COMPOSITE}_ARRAY[@]}\")"
+    fi
     declare -x COMPOSITE_${COMPOSITE}="${COMPOSITE_FILE}"
     debug "${COMPOSITE}=${COMPOSITE_ARRAY[*]}"
     cat "${COMPOSITE_ARRAY[@]}" > "${COMPOSITE_FILE}"
