@@ -37,27 +37,22 @@ MULTIPLE_UNITS_ARRAY=("iam" "dashboard")
 # Allow them to be separated by commas or spaces in line with the separator
 # definitions in setContext.sh for the automation framework
 for L in "${LEVELS[@]}"; do
-    UNITS_SOURCE="${L^^}_UNITS"
-    UNITS_ARRAY_VAR="${UNITS_SOURCE}_ARRAY"
-    if [[ -n "${!UNITS_SOURCE}" ]]; then
-        eval "${UNITS_ARRAY_VAR}=\$(IFS=', '; echo \"\${${UNITS_SOURCE}[*]}\")"
+    declare -n UNITS_SOURCE="${L^^}_UNITS"
+    declare -n UNITS_ARRAY="${L^^}_UNITS_ARRAY"
+    if [[ -n "${UNITS_SOURCE}" ]]; then
+        IFS=", " read -ra UNITS_ARRAY <<< "${UNITS_SOURCE}"
     fi
-
-    
-    eval "grep -iw \"${CHECK_UNIT}\" <<< \"\${${UNITS_ARRAY_VAR}[*]}\" >/dev/null 2>&1"
-    if [[ $? -eq 0 ]]; then
-        eval "export IS_${L^^}_UNIT=true"
-    else
-        eval "export IS_${L^^}_UNIT=false"
-    fi
+   
+    [[ grep -iw "${CHECK_UNIT}" <<< "${UNITS_ARRAY[*]}" >/dev/null 2>&1 ]] &&
+        declare -x IS_${L^^}_UNIT=true ||
+        declare -x IS_${L^^}_UNIT=false
 done
 
 # Check level if provided
 # Confirm provided unit is valid
 if [[ (-n "${CHECK_LEVEL}") ]]; then
-    UNITS_ARRAY_VAR="${CHECK_LEVEL^^}_UNITS_ARRAY"
-    eval "grep -iw \"${CHECK_UNIT}\" <<< \"\${${UNITS_ARRAY_VAR}[*]}\" >/dev/null 2>&1"
-    [[ $? -ne 0 ]] && fatal "Unknown deployment unit ${CHECK_UNIT} for ${CHECK_LEVEL} stack level"
+    local -n IS_UNIT="${CHECK_LEVEL^^}_UNIT"
+    [[ "${IS_UNIT}" != "true" ]] && fatal "Unknown deployment unit ${CHECK_UNIT} for ${CHECK_LEVEL} stack level"
 fi
 
 # All good
