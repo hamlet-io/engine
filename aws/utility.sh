@@ -260,7 +260,7 @@ function cleanup() {
 # -- Array manipulation --
 
 function inArray() {
-  if [[ namedef_supported]]; then
+  if [[ namedef_supported ]]; then
     local -n array="$1"; shift
   else
     local array_name="$1";
@@ -272,7 +272,7 @@ function inArray() {
 }
 
 function arraySize() {
-  if [[ namedef_supported]]; then
+  if [[ namedef_supported ]]; then
     local -n array="$1"; shift
   else
     local array_name="$1";
@@ -289,7 +289,7 @@ function arrayIsEmpty() {
 }
 
 function reverseArray() {
-  if [[ namedef_supported]]; then
+  if [[ namedef_supported ]]; then
     local -n array="$1"; shift
   else
     local array_name="$1";
@@ -298,7 +298,7 @@ function reverseArray() {
   local target="$1"; shift
 
   if [[ -n "${target}" ]]; then
-    if [[ namedef_supported]]; then
+    if [[ namedef_supported ]]; then
       local -n result="${target}"
     else
       local result=()
@@ -326,7 +326,7 @@ function reverseArray() {
 }
 
 function addToArrayWithPrefix() {
-  if [[ namedef_supported]]; then
+  if [[ namedef_supported ]]; then
     local -n array="$1"; shift
   else
     local array_name="$1";
@@ -352,7 +352,7 @@ function addToArray() {
 }
 
 function addToArrayHeadWithPrefix() {
-  if [[ namedef_supported]]; then
+  if [[ namedef_supported ]]; then
     local -n array="$1"; shift
   else
     local array_name="$1";
@@ -446,7 +446,7 @@ function syncFilesToBucket() {
   local region="$1"; shift
   local bucket="$1"; shift
   local prefix="$1"; shift
-  if [[ namedef_supported]]; then
+  if [[ namedef_supported ]]; then
     local -n files="$1"; shift
   else
     eval "local files=(\"\${${1}[@]}\")"; shift
