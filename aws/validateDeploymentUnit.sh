@@ -37,8 +37,13 @@ MULTIPLE_UNITS_ARRAY=("iam" "dashboard")
 # Allow them to be separated by commas or spaces in line with the separator
 # definitions in setContext.sh for the automation framework
 for L in "${LEVELS[@]}"; do
-    declare -n UNITS_SOURCE="${L^^}_UNITS"
-    declare -n UNITS_ARRAY="${L^^}_UNITS_ARRAY"
+    if [[ $(namedef_supported) ]]; then
+      declare -n UNITS_SOURCE="${L^^}_UNITS"
+      declare -n UNITS_ARRAY="${L^^}_UNITS_ARRAY"
+    else
+      eval "declare UNITS_SOURCE=(\"\${${L^^}_UNITS[@]}\")"
+      eval "declare UNITS_ARRAY=(\"\${${L^^}_UNITS_ARRAY[@]}\")"
+    fi
     if [[ -n "${UNITS_SOURCE}" ]]; then
         IFS=", " read -ra UNITS_ARRAY <<< "${UNITS_SOURCE}"
     fi
@@ -51,7 +56,11 @@ done
 # Check level if provided
 # Confirm provided unit is valid
 if [[ (-n "${CHECK_LEVEL}") ]]; then
-    declare -n IS_UNIT="IS_${CHECK_LEVEL^^}_UNIT"
+    if [[ $(namedef_supported) ]]; then
+      declare -n IS_UNIT="IS_${CHECK_LEVEL^^}_UNIT"
+    else
+      eval "declare IS_UNIT=\"\${IS_${CHECK_LEVEL^^}_UNIT}\""
+    fi
     [[ "${IS_UNIT}" != "true" ]] && fatal "Unknown deployment unit ${CHECK_UNIT} for ${CHECK_LEVEL} stack level"
 fi
 
