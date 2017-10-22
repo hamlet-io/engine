@@ -4,6 +4,7 @@
 # define additional environment variables to facilitate automation
 #
 # Key variables are
+# AGGREGATOR
 # INTEGRATOR
 # TENANT
 # PRODUCT
@@ -202,9 +203,11 @@ done
 
 # create the template composites
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-    debug $(eval "echo \"${COMPOSITE}=\${${COMPOSITE}_ARRAY[*]}\"")
-    eval "export COMPOSITE_${COMPOSITE}=\${ROOT_DIR}/composite_${COMPOSITE,,}.ftl"
-    eval "cat \"\${${COMPOSITE}_ARRAY[@]}\" > \${COMPOSITE_${COMPOSITE}}"
+    COMPOSITE_FILE="${ROOT_DIR}/composite_${COMPOSITE,,}.ftl"
+    declare -n COMPOSITE_ARRAY="${COMPOSITE}_ARRAY"
+    declare -x COMPOSITE_${COMPOSITE}="${COMPOSITE_FILE}"
+    debug "${COMPOSITE}=${COMPOSITE_ARRAY[*]}"
+    cat "${COMPOSITE_ARRAY[@]}" > "${COMPOSITE_FILE}"
 done
 
 # Product specific context if the product is known
