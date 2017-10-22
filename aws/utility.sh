@@ -4,6 +4,13 @@
 #
 # This script is designed to be sourced into other scripts
 
+# -- Detect is namedef support available
+function namedef_supported() {
+  [[ "${BASH_VERSION}" =~ ([^.]+)\.([^.]+)\.(.+) ]] || return 1
+
+  [[ (${BASH_REMATCH[1]} -ge 4) && (${BASH_REMATCH[2]} -ge 3) ]]
+}
+
 # -- Error handling  --
 
 function message() {
@@ -253,40 +260,78 @@ function cleanup() {
 # -- Array manipulation --
 
 function inArray() {
-  local -n array="$1"; shift
+  if [[ namedef_supported]]; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1";
+    eval "local array=(\"\${${array_name}[@]}\")"; shift
+  fi
   local pattern="$1"
 
   contains "${array[*]}" "${pattern}"
 }
 
 function arraySize() {
-  local -n array="$1"; shift
+  if [[ namedef_supported]]; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1";
+    eval "local array=(\"\${${array_name}[@]}\")"; shift
+  fi
 
   echo -n "${#array[@]}"
 }
 
 function arrayIsEmpty() {
-  local array="$1"; shift
+  local array="$1";
 
   [[ $(arraySize "${array}") -eq 0 ]]
 }
 
 function reverseArray() {
-  local -n array="$1"; shift
+  if [[ namedef_supported]]; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1";
+    eval "local array=(\"\${${array_name}[@]}\")"; shift
+  fi
   local target="$1"; shift
 
-  [[ -n "${target}" ]] && local -n result="${target}" || local result=() 
+  if [[ -n "${target}" ]]; then
+    if [[ namedef_supported]]; then
+      local -n result="${target}"
+    else
+      local result=()
+    fi
+  else
+    local result=()
+  fi
 
   result=()
   for (( index=${#array[@]}-1 ; index>=0 ; index-- )) ; do
     result+=("${array[index]}")
   done
   
-  [[ -z "${target}" ]] && array=("${result[@]}")
+  if [[ (-n "${target}") ]]; then
+    if [[ ! namedef_supported ]]; then
+      eval "${target}=(\"\${result[@]}\")"
+    fi
+  else
+    if [[ namedef_supported ]]; then
+      array=("${result[@]}")
+    else
+      eval "${array_name}=(\"\${result[@]}\")"
+    fi
+  fi
 }
 
 function addToArrayWithPrefix() {
-  local -n array="$1"; shift
+  if [[ namedef_supported]]; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1";
+    eval "local array=(\"\${${array_name}[@]}\")"; shift
+  fi
   local prefix="$1"; shift
   local elements=("$@")
 
@@ -295,6 +340,8 @@ function addToArrayWithPrefix() {
       array+=("${prefix}${element}")
     fi
   done
+
+  [[ ! namedef_supported ]] && eval "${arrayName}=(\"\${array[@]}\")"
 }
 
 function addToArray() {
@@ -305,7 +352,12 @@ function addToArray() {
 }
 
 function addToArrayHeadWithPrefix() {
-  local -n array="$1"; shift
+  if [[ namedef_supported]]; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1";
+    eval "local array=(\"\${${array_name}[@]}\")"; shift
+  fi
   local prefix="$1"; shift
   local elements=("$@")
 
@@ -314,6 +366,8 @@ function addToArrayHeadWithPrefix() {
       array=("${prefix}${element}" "${array[@]}")
     fi
   done
+
+  [[ ! namedef_supported ]] && eval "${arrayName}=(\"\${array[@]}\")"
 }
 
 function addToArrayHead() {
@@ -392,6 +446,11 @@ function syncFilesToBucket() {
   local region="$1"; shift
   local bucket="$1"; shift
   local prefix="$1"; shift
+  if [[ namedef_supported]]; then
+    local -n files="$1"; shift
+  else
+    eval "local files=(\"\${${1}[@]}\")"; shift
+  fi
   local -n files="$1"; shift
   local optional_arguments=("$@")
 
