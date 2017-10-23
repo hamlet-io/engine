@@ -53,181 +53,169 @@ NOTES:
    the STACK_OPERATION=update
 
 EOF
-    exit
 }
 
-# Parse options
-while getopts ":dhil:mn:r:s:t:u:w:yz:" opt; do
+function set_context() {
+  # Parse options
+  while getopts ":dhil:mn:r:s:t:u:w:yz:" opt; do
     case $opt in
-        d)
-            STACK_OPERATION=delete
-            ;;
-        h)
-            usage
-            ;;
-        i)
-            STACK_MONITOR=false
-            ;;
-        l)
-            LEVEL="${OPTARG}"
-            ;;
-        m)
-            STACK_INITIATE=false
-            ;;
-        n)
-            STACK_NAME="${OPTARG}"
-            ;;
-        r)
-            REGION="${OPTARG}"
-            ;;
-        s)
-            DEPLOYMENT_UNIT="${OPTARG}"
-            ;;
-        t)
-            LEVEL="${OPTARG}"
-            ;;
-        u)
-            DEPLOYMENT_UNIT="${OPTARG}"
-            ;;
-        w)
-            STACK_WAIT="${OPTARG}"
-            ;;
-        y)
-            DRYRUN="--dryrun"
-            ;;
-        z)
-            DEPLOYMENT_UNIT_SUBSET="${OPTARG}"
-            ;;
-        \?)
-            fatalOption
-            ;;
-        :)
-            fatalOptionArgument
-            ;;
+      d) STACK_OPERATION=delete ;;
+      h) usage; return 1 ;;
+      i) STACK_MONITOR=false ;;
+      l) LEVEL="${OPTARG}" ;;
+      m) STACK_INITIATE=false ;;
+      n) STACK_NAME="${OPTARG}" ;;
+      r) REGION="${OPTARG}" ;;
+      s) DEPLOYMENT_UNIT="${OPTARG}" ;;
+      t) LEVEL="${OPTARG}" ;;
+      u) DEPLOYMENT_UNIT="${OPTARG}" ;;
+      w) STACK_WAIT="${OPTARG}" ;;
+      y) DRYRUN="--dryrun" ;;
+      z) DEPLOYMENT_UNIT_SUBSET="${OPTARG}" ;;
+      \?) fatalOption; return 1 ;;
+      :) fatalOptionArgument; return 1  ;;
     esac
-done
+  done
+  
+  # Apply defaults
+  STACK_OPERATION=${STACK_OPERATION:-${STACK_OPERATION_DEFAULT}}
+  STACK_WAIT=${STACK_WAIT:-${STACK_WAIT_DEFAULT}}
+  STACK_INITIATE=${STACK_INITIATE:-${STACK_INITIATE_DEFAULT}}
+  STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
+ 
+  # Set up the context
+  . "${GENERATION_DIR}/setStackContext.sh"
 
-# Apply defaults
-STACK_OPERATION=${STACK_OPERATION:-${STACK_OPERATION_DEFAULT}}
-STACK_WAIT=${STACK_WAIT:-${STACK_WAIT_DEFAULT}}
-STACK_INITIATE=${STACK_INITIATE:-${STACK_INITIATE_DEFAULT}}
-STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
+  [[ ! -f "${CF_DIR}/${TEMPLATE}" ]] && fatalLocation "\"${TEMPLATE}\" not found." && return 1
+  
+  return 0
+}
 
+function main() {
 
-# Set up the context
-. "${GENERATION_DIR}/setStackContext.sh"
+  set_context "$@" || exit
 
-pushd ${CF_DIR} > /dev/null 2>&1
+  pushd ${CF_DIR} > /dev/null 2>&1
 
-[[ ! -f "$TEMPLATE" ]] && fatalLocation "\"${TEMPLATE}\" not found."
+  # Assume all good
+  RESULT=0
+  STACK_STATUS_FILE="./temp_stack_status"
 
-# Assume all good
-RESULT=0
-
-# Update any file base configuration
-# Do this before stack in case it needs any of the files
-# to be present in the bucket e.g. swagger file
-if [[ "${LEVEL}" == "application" ]]; then
+  # Update any file base configuration
+  # Do this before stack in case it needs any of the files
+  # to be present in the bucket e.g. swagger file
+  if [[ "${LEVEL}" == "application" ]]; then
     case ${STACK_OPERATION} in
-        delete)
-            deleteCMDBFilesFromOperationsBucket "appsettings"
-            deleteCMDBFilesFromOperationsBucket "credentials"
-            ;;
-
-        update)
-            syncCMDBFilesToOperationsBucket ${APPSETTINGS_DIR} "appsettings" ${DRYRUN}
-            syncCMDBFilesToOperationsBucket ${CREDENTIALS_DIR} "credentials" ${DRYRUN}
-            ;;
+      delete)
+        deleteCMDBFilesFromOperationsBucket "appsettings"
+        deleteCMDBFilesFromOperationsBucket "credentials"
+        ;;
+  
+      update)
+        syncCMDBFilesToOperationsBucket ${APPSETTINGS_DIR} "appsettings" ${DRYRUN}
+        syncCMDBFilesToOperationsBucket ${CREDENTIALS_DIR} "credentials" ${DRYRUN}
+        ;;
     esac
-fi
-
-if [[ "${STACK_INITIATE}" = "true" ]]; then
+  fi
+  
+  if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
-        delete)
-            [[ -n "${DRYRUN}" ]] && fatal "Dryrun not applicable when deleting a stack"
-
-            aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
-
-            # For delete, we don't check result as stack may not exist
-            ;;
-
-        update)
-            # Compress the template to avoid aws cli size limitations
-            jq -c '.' < ${TEMPLATE} > stripped_${TEMPLATE}
-        
-            # Check if stack needs to be created
-            aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null
-            RESULT=$?
-            if [[ "$RESULT" -ne 0 ]]; then
-                STACK_OPERATION="create"
-            fi
-
-            [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]] &&
-                fatal "Dryrun not applicable when creating a stack"
-
-            # Initiate the required operation
-            if [[ -n "${DRYRUN}" ]]; then
-
-                # Force monitoring to wait for change set to be complete
-                STACK_OPERATION="create"
-                STACK_MONITOR="true"
-
-                # Change set naming
-                CHANGE_SET_NAME="cs$(date +'%s')"
-                STACK="temp_${CHANGE_SET_NAME}_${STACK}"
-                aws --region ${REGION} cloudformation create-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
-            else
-                aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
-            fi
-
-            # Check result of operation
-            RESULT=$?
-            if [[ "$RESULT" -ne 0 ]]; then exit; fi            
-            ;;
-
-        *)
-            fatal "\"${STACK_OPERATION}\" is not one of the known stack operations."
-            ;;
-    esac
-fi
-
-if [[ "${STACK_MONITOR}" = "true" ]]; then
-    while true; do
-
+      delete)
+        [[ -n "${DRYRUN}" ]] && fatal "Dryrun not applicable when deleting a stack"
+  
+        aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
+  
+        # For delete, we don't check result as stack may not exist
+        ;;
+  
+      update)
+        # Compress the template to avoid aws cli size limitations
+        jq -c '.' < ${TEMPLATE} > stripped_${TEMPLATE}
+    
+        # Check if stack needs to be created
+        aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null
+        RESULT=$?
+        if [[ "$RESULT" -ne 0 ]]; then
+            STACK_OPERATION="create"
+        fi
+  
+        [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]] &&
+            fatal "Dryrun not applicable when creating a stack"
+  
+        # Initiate the required operation
         if [[ -n "${DRYRUN}" ]]; then
-            STATUS_ATTRIBUTE="Status"
-            aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
-            RESULT=$?
+  
+          # Force monitoring to wait for change set to be complete
+          STACK_OPERATION="create"
+          STACK_MONITOR="true"
+  
+          # Change set naming
+          CHANGE_SET_NAME="cs$(date +'%s')"
+          STACK="temp_${CHANGE_SET_NAME}_${STACK}"
+          aws --region ${REGION} cloudformation create-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
+          RESULT=$? && [[ "$RESULT" -ne 0 ]] && exit
         else
-            STATUS_ATTRIBUTE="StackStatus"
-            aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
-            RESULT=$?
+          aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM > "${STACK_STATUS_FILE}" 2>&1
+          RESULT=$?
+          case "${RESULT}" in
+            0) ;;
+            255)
+              grep -q "No updates are to be performed" < "${STACK_STATUS_FILE}" &&
+                warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n" ||
+                (cat "${STACK_STATUS_FILE}"; exit)
+              ;;
+            *) exit ;;
+          esac
         fi
-
-        if [[ ("${STACK_OPERATION}" == "delete") && ("${RESULT}" -eq 255) ]]; then
-            # Assume stack doesn't exist
-            RESULT=0
-            break
-        fi
-
-        grep "${STATUS_ATTRIBUTE}" "${STACK}" > STATUS.txt
-        cat STATUS.txt
-        grep "${STACK_OPERATION^^}_COMPLETE" STATUS.txt >/dev/null 2>&1
+        ;;
+  
+      *)
+        fatal "\"${STACK_OPERATION}\" is not one of the known stack operations."
+        ;;
+    esac
+  fi
+  
+  if [[ "${STACK_MONITOR}" = "true" ]]; then
+    while true; do
+  
+      if [[ -n "${DRYRUN}" ]]; then
+        STATUS_ATTRIBUTE="Status"
+        aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
         RESULT=$?
-        if [[ "${RESULT}" -eq 0 ]]; then break;fi
-        grep "${STACK_OPERATION^^}_IN_PROGRESS" STATUS.txt  >/dev/null 2>&1
+      else
+        STATUS_ATTRIBUTE="StackStatus"
+        aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
         RESULT=$?
-        if [[ "${RESULT}" -ne 0 ]]; then break;fi
-        sleep ${STACK_WAIT}
+      fi
+  
+      if [[ ("${STACK_OPERATION}" == "delete") && ("${RESULT}" -eq 255) ]]; then
+        # Assume stack doesn't exist
+        RESULT=0
+        break
+      fi
+
+      grep "${STATUS_ATTRIBUTE}" "${STACK}" > "${STACK_STATUS_FILE}"
+      cat "${STACK_STATUS_FILE}"
+
+      grep "_COMPLETE" "${STACK_STATUS_FILE}" >/dev/null 2>&1
+      RESULT=$? && [[ "${RESULT}" -eq 0 ]] && break
+
+      grep "_IN_PROGRESS" "${STACK_STATUS_FILE}"  >/dev/null 2>&1
+      RESULT=$? && [[ "${RESULT}" -ne 0 ]] && break
+
+      sleep ${STACK_WAIT}
     done
-fi
-
-if [[ "${STACK_OPERATION}" == "delete" ]]; then
+  fi
+  
+  if [[ "${STACK_OPERATION}" == "delete" ]]; then
     if [[ ("${RESULT}" -eq 0) || !( -s "${STACK}" ) ]]; then
-        rm -f "${STACK}"
+      rm -f "${STACK}"
     fi
-fi
-if [[ -n "${DRYRUN}" ]]; then
+  fi
+  if [[ -n "${DRYRUN}" ]]; then
     cat "${STACK}"
-fi
+  fi
+}
+
+main "$@"
 
