@@ -93,7 +93,7 @@ function set_context() {
 
 function main() {
 
-  set_context "$@" || exit
+  set_context "$@" || return 1
 
   pushd ${CF_DIR} > /dev/null 2>&1
 
