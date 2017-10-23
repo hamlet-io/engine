@@ -263,8 +263,8 @@ function inArray() {
   if [[ $(namedef_supported) ]]; then
     local -n array="$1"; shift
   else
-    local array_name="$1";
-    eval "local array=(\"\${${array_name}[@]}\")"; shift
+    local array_name="$1"; shift
+    eval "local array=(\"\${${array_name}[@]}\")"
   fi
   local pattern="$1"
 
@@ -275,8 +275,8 @@ function arraySize() {
   if [[ $(namedef_supported) ]]; then
     local -n array="$1"; shift
   else
-    local array_name="$1";
-    eval "local array=(\"\${${array_name}[@]}\")"; shift
+    local array_name="$1"; shift
+    eval "local array=(\"\${${array_name}[@]}\")"
   fi
 
   echo -n "${#array[@]}"
@@ -292,8 +292,8 @@ function reverseArray() {
   if [[ $(namedef_supported) ]]; then
     local -n array="$1"; shift
   else
-    local array_name="$1";
-    eval "local array=(\"\${${array_name}[@]}\")"; shift
+    local array_name="$1"; shift
+    eval "local array=(\"\${${array_name}[@]}\")"
   fi
   local target="$1"; shift
 
@@ -329,8 +329,8 @@ function addToArrayWithPrefix() {
   if [[ $(namedef_supported) ]]; then
     local -n array="$1"; shift
   else
-    local array_name="$1";
-    eval "local array=(\"\${${array_name}[@]}\")"; shift
+    local array_name="$1"; shift
+    eval "local array=(\"\${${array_name}[@]}\")"
   fi
   local prefix="$1"; shift
   local elements=("$@")
@@ -341,7 +341,7 @@ function addToArrayWithPrefix() {
     fi
   done
 
-  [[ ! $(namedef_supported) ]] && eval "${arrayName}=(\"\${array[@]}\")"
+  [[ ! $(namedef_supported) ]] && eval "${array_name}=(\"\${array[@]}\")"
 }
 
 function addToArray() {
@@ -355,8 +355,8 @@ function addToArrayHeadWithPrefix() {
   if [[ $(namedef_supported) ]]; then
     local -n array="$1"; shift
   else
-    local array_name="$1";
-    eval "local array=(\"\${${array_name}[@]}\")"; shift
+    local array_name="$1"; shift
+    eval "local array=(\"\${${array_name}[@]}\")"
   fi
   local prefix="$1"; shift
   local elements=("$@")
@@ -367,7 +367,7 @@ function addToArrayHeadWithPrefix() {
     fi
   done
 
-  [[ ! $(namedef_supported) ]] && eval "${arrayName}=(\"\${array[@]}\")"
+  [[ ! $(namedef_supported) ]] && eval "${array_name}=(\"\${array[@]}\")"
 }
 
 function addToArrayHead() {
