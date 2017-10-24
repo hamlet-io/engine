@@ -37,7 +37,7 @@ MULTIPLE_UNITS_ARRAY=("iam" "dashboard")
 # Allow them to be separated by commas or spaces in line with the separator
 # definitions in setContext.sh for the automation framework
 for L in "${LEVELS[@]}"; do
-    if [[ $(namedef_supported) ]]; then
+    if namedef_supported; then
       declare -n UNITS_SOURCE="${L^^}_UNITS"
       declare -n UNITS_ARRAY="${L^^}_UNITS_ARRAY"
     else
@@ -56,7 +56,7 @@ done
 # Check level if provided
 # Confirm provided unit is valid
 if [[ (-n "${CHECK_LEVEL}") ]]; then
-    if [[ $(namedef_supported) ]]; then
+    if namedef_supported; then
       declare -n IS_UNIT="IS_${CHECK_LEVEL^^}_UNIT"
     else
       eval "declare IS_UNIT=\"\${IS_${CHECK_LEVEL^^}_UNIT}\""
