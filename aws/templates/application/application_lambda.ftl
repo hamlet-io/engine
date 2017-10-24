@@ -22,20 +22,7 @@
                     "Id" : containerId,
                     "Name" : containerId,
                     "Environment" :
-                        {
-                            "TEMPLATE_TIMESTAMP" : .now?iso_utc,
-                            "ENVIRONMENT" : environmentName,
-                            "REQUEST_REFERENCE" : requestReference,
-                            "CONFIGURATION_REFERENCE" : configurationReference,
-                            "APPDATA_BUCKET" : dataBucket,
-                            "APPDATA_PREFIX" : getAppDataFilePrefix(),
-                            "OPSDATA_BUCKET" : operationsBucket,
-                            "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
-                            "CREDENTIALS_PREFIX" : getCredentialsFilePrefix(),
-                            "APP_RUN_MODE" : "WEB"
-                        } +
-                        attributeIfContent("BUILD_REFERENCE", buildCommit) +
-                        attributeIfContent("APP_REFERENCE", appReference),
+                        standardEnvironment(tier, component, occurrence, "WEB"),
                     "S3Bucket" : getRegistryEndPoint("lambda"),
                     "S3Key" : 
                         formatRelativePath(
