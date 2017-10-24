@@ -41,7 +41,7 @@ function debug() {
 function trace() {
   local parts=("$@")
 
-  message "Trace" "${parts[@]}"
+  [[ "$(getLogLevel)" == "trace" ]] && message "Trace" "${parts[@]}"
 }
 
 function info() {
