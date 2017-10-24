@@ -142,9 +142,13 @@ popd >/dev/null
 findGen3Dirs "${GENERATION_DATA_DIR}" || exit
 
 addToArrayHead "BLUEPRINT_ARRAY" \
-    "${ACCOUNT_DIR}"/account*.json \
+    "${ACCOUNT_DIR}"/domains*.json \
+    "${ACCOUNT_DIR}"/ipaddressgroups*.json \
+    "${ACCOUNT_DIR}"/countrygroups*.json \
+    "${ACCOUNT_DIR}"/account.json \
     "${TENANT_DIR}"/domains*.json \
     "${TENANT_DIR}"/ipaddressgroups*.json \
+    "${TENANT_DIR}"/countrygroups*.json \
     "${TENANT_DIR}"/tenant.json
 
 # Build the composite solution ( aka blueprint)
