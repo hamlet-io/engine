@@ -95,7 +95,7 @@ function findGen3RootDir() {
   local current="$1"; shift
 
   # First check for an explicitly marked root
-  local marked_root_dir="$(filePath "$(findAncestorDir root.json "${current}")")"
+  local marked_root_dir="$(findAncestorDir root.json "${current}")"
   [[ -n "${marked_root_dir}" ]] && echo -n "${marked_root_dir}" && return 0
 
   # Now look for the first dir containing both a config and infrastructure directory
