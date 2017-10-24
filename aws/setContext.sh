@@ -102,9 +102,9 @@ if [[ -f "product.json" ]]; then
     fi
     export PRODUCT_DIR="$(pwd)"
     if [[ $(fileName "${PRODUCT_DIR}") == "config" ]]; then
-        export PRODUCT=$(fileName "$(pwd)/..")
+        export PRODUCT="$(cd ..; fileName "$(pwd)")"
     else
-        export PRODUCT=$(fileName "$(pwd)")
+        export PRODUCT="$(fileName "$(pwd)")"
     fi
 
     addToArrayHead "BLUEPRINT_ARRAY" \
@@ -132,8 +132,7 @@ fi
     fatalLocation "Can't locate the root of the directory tree."
 
 cd "${GENERATION_DATA_DIR}"
-[[ (-d config) && (-d infrastructure) ]] &&
-    export ACCOUNT="$(fileName "${GENERATION_DATA_DIR}")"
+export ACCOUNT="${ACCOUNT:-$(fileName "${GENERATION_DATA_DIR}")}"
 
 # Back to where we started
 popd >/dev/null
@@ -208,11 +207,9 @@ done
 # create the template composites
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     COMPOSITE_FILE="${ROOT_DIR}/composite_${COMPOSITE,,}.ftl"
-    if [[ $(namedef_supported) ]]; then
-      declare -n COMPOSITE_ARRAY="${COMPOSITE}_ARRAY"
-    else
+    namedef_supported &&
+      declare -n COMPOSITE_ARRAY="${COMPOSITE}_ARRAY" ||
       eval "declare COMPOSITE_ARRAY=(\"\${${COMPOSITE}_ARRAY[@]}\")"
-    fi
     declare -x COMPOSITE_${COMPOSITE}="${COMPOSITE_FILE}"
     debug "${COMPOSITE}=${COMPOSITE_ARRAY[*]}"
     cat "${COMPOSITE_ARRAY[@]}" > "${COMPOSITE_FILE}"
