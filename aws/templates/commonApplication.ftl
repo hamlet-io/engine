@@ -121,6 +121,31 @@
     [/#if]
 [/#macro]
 
+[#function standardEnvironment tier component occurrence mode=""]
+    [#return
+        {
+            "TEMPLATE_TIMESTAMP" : .now?iso_utc,
+            "PRODUCT" : productName,
+            "ENVIRONMENT" : environmentName,
+            "SEGMENT" : segmentName,
+            "TIER" : getTierName(tier),
+            "COMPONENT" : getComponentName(component),
+            "COMPONENT_INSTANCE" : occurrence.InstanceName,
+            "COMPONENT_VERSION" : occurrence.VersionName,
+            "REQUEST_REFERENCE" : requestReference,
+            "CONFIGURATION_REFERENCE" : configurationReference,
+            "APPDATA_BUCKET" : dataBucket,
+            "APPDATA_PREFIX" : getAppDataFilePrefix(),
+            "OPSDATA_BUCKET" : operationsBucket,
+            "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
+            "CREDENTIALS_PREFIX" : getCredentialsFilePrefix()
+        } +
+        attributeIfContent("APP_RUN_MODE", mode) +
+        attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
+        attributeIfContent("APP_REFERENCE", appReference!"")
+    ]
+[/#function]
+
 [#function getTaskContainers tier component task]
     
     [#local containers = [] ]
@@ -282,21 +307,14 @@
                     "LogDriver" : logDriver,
                     "LogOptions" : logOptions,
                     "Environment" :
+                        standardEnvironment(
+                            tier,
+                            component,
+                            task,
+                            getContainerMode(container)) +
                         {
-                            "TEMPLATE_TIMESTAMP" : .now?iso_utc,
-                            "AWS_REGION" : regionId,
-                            "ENVIRONMENT" : environmentName,
-                            "REQUEST_REFERENCE" : requestReference,
-                            "CONFIGURATION_REFERENCE" : configurationReference,
-                            "APPDATA_BUCKET" : dataBucket,
-                            "APPDATA_PREFIX" : getAppDataFilePrefix(),
-                            "OPSDATA_BUCKET" : operationsBucket,
-                            "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
-                            "CREDENTIALS_PREFIX" : getCredentialsFilePrefix(),
-                            "APP_RUN_MODE" : getContainerMode(container)
-                        } +
-                        attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
-                        attributeIfContent("APP_REFERENCE", appReference!"")
+                            "AWS_REGION" : regionId
+                        }
                 } +
                 attributeIfContent("Version", container.Version!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
