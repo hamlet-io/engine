@@ -7,6 +7,10 @@
 . ${GENERATION_DIR}/utility.sh
 . ${GENERATION_DIR}/contextTree.sh
 
+function getLogLevel() {
+  return "${GENERATION_LOG_LEVEL}"
+}
+
 function buildAppSettings () {
     local ROOT_DIR="${1}"; shift
     local FILE_PATTERN="${1}"; shift
