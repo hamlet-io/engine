@@ -112,8 +112,8 @@ function main() {
         ;;
   
       update)
-        syncCMDBFilesToOperationsBucket ${APPSETTINGS_DIR} "appsettings" ${DRYRUN}
-        syncCMDBFilesToOperationsBucket ${CREDENTIALS_DIR} "credentials" ${DRYRUN}
+        syncCMDBFilesToOperationsBucket "${SEGMENT_APPSETTINGS_DIR}" "appsettings" ${DRYRUN}
+        syncCMDBFilesToOperationsBucket "${SEGMENT_CREDENTIALS_DIR}" "credentials" ${DRYRUN}
         ;;
     esac
   fi
