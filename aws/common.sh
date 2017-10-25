@@ -8,7 +8,7 @@
 . ${GENERATION_DIR}/contextTree.sh
 
 function getLogLevel() {
-  return "${GENERATION_LOG_LEVEL}"
+  echo -n "${GENERATION_LOG_LEVEL}"
 }
 
 function buildAppSettings () {
