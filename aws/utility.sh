@@ -8,7 +8,7 @@
 function namedef_supported() {
   [[ "${BASH_VERSION}" =~ ([^.]+)\.([^.]+)\.(.+) ]] || return 1
 
-  [[ (${BASH_REMATCH[1]} -ge 4) && (${BASH_REMATCH[2]} -ge 3) ]]
+  [[ (${BASH_REMATCH[1]} -gt 4) || (${BASH_REMATCH[2]} -ge 3) ]]
 }
 
 # -- Error handling  --
@@ -451,7 +451,6 @@ function syncFilesToBucket() {
   else
     eval "local files=(\"\${${1}[@]}\")"; shift
   fi
-  local -n files="$1"; shift
   local optional_arguments=("$@")
 
   local tmpdir="./temp_copyfiles"
