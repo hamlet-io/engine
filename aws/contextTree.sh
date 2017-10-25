@@ -69,9 +69,9 @@ function syncCMDBFilesToOperationsBucket() {
   shopt -s nullglob
 
   local files=()
-  files+=(${base_dir}/${SEGMENT}/asFile/*)
-  files+=(${base_dir}/${SEGMENT}/${DEPLOYMENT_UNIT}/asFile/*)
-  files+=(${base_dir}/${SEGMENT}/${BUILD_DEPLOYMENT_UNIT}/asFile/*)
+  files+=(${base_dir}/asFile/*)
+  files+=(${base_dir}/${DEPLOYMENT_UNIT}/asFile/*)
+  files+=(${base_dir}/${BUILD_DEPLOYMENT_UNIT}/asFile/*)
 
   ${restore_nullglob}
 
