@@ -3,7 +3,7 @@
         [#case "definition"]
             [@containerBasicAttributes
                 containerName
-                "docker-redirector" + dockerTag
+                "redirector" + dockerTag
             /]
             [#break]
 
