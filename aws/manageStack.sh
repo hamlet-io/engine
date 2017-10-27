@@ -201,10 +201,10 @@ function main() {
       grep "${STATUS_ATTRIBUTE}" "${STACK}" > "${STACK_STATUS_FILE}"
       cat "${STACK_STATUS_FILE}"
 
-      egrep "(${OPERATION_TO_CHECK})_COMPLETE" "${STACK_STATUS_FILE}" >/dev/null 2>&1
+      egrep "(${OPERATION_TO_CHECK})_COMPLETE\"" "${STACK_STATUS_FILE}" >/dev/null 2>&1
       RESULT=$? && [[ "${RESULT}" -eq 0 ]] && break
 
-      egrep "(${OPERATION_TO_CHECK}).*_IN_PROGRESS" "${STACK_STATUS_FILE}"  >/dev/null 2>&1
+      egrep "(${OPERATION_TO_CHECK}).*_IN_PROGRESS\"" "${STACK_STATUS_FILE}"  >/dev/null 2>&1
       RESULT=$? && [[ "${RESULT}" -ne 0 ]] && break
 
       sleep ${STACK_WAIT}
