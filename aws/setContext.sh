@@ -223,7 +223,7 @@ if [[ -n "${PRODUCT}" ]]; then
     # deployment unit specific appsettings
     if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
         # Confirm it is an application level deployment unit
-        if [[ $(isValidUnit "application" "${DEPLOYMENT_UNIT}") ]]; then
+        if isValidUnit "application" "${DEPLOYMENT_UNIT}"; then
             export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
 
             # Legacy naming to support products using the term "slice" or "unit" instead of "deployment_unit"
