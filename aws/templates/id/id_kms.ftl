@@ -21,7 +21,10 @@
 [/#function]
 
 [#function formatSegmentCMKAliasId cmkId]
-    [#return formatDependentResourceId(CMK_ALIAS_RESOURCE_TYPE, cmkId)]
+    [#return
+      (cmkId == "cmk")?then(
+        formatDependentResourceId("alias", cmkId),
+        formatDependentResourceId(CMK_ALIAS_RESOURCE_TYPE, cmkId))]
 [/#function]
 
 [#function formatProductCMKId ]
