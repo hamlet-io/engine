@@ -32,12 +32,7 @@
             name=
                 existingName?has_content?then(
                     existingName,
-                    formatHostDomainName(
-                        [
-                            bucket,
-                            accountDomainQualifier
-                        ],
-                        accountdomain))
+                    formatName("account", bucket, accountObject.Seed))
             alternateId=formatAccountS3Id(bucket)
         /]
     [/#list]
