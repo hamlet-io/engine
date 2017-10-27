@@ -265,3 +265,44 @@ function checkInSegmentDirectory() {
 function fatalProductOrSegmentDirectory() {
   fatalDirectory "product or segment"
 }
+
+# -- Deployment Units --
+
+function isValidUnit() {
+  local level="$1"; shift
+  local unit="$1"; shift
+
+  # Known levels
+  declare -ga LEVELS=("account" "product" "application" "solution" "segment" "multiple")
+
+  # Ensure arguments have been provided
+  [[ (-n "${level}") && (-n "${unit}") ]] || return 1
+
+  # Ensure level is kwown
+  ! grep -w "${level,,}" <<< "${LEVELS[*]}" && return 1
+
+  # Default deployment units for each level
+  declare -ga ACCOUNT_UNITS_ARRAY=("s3" "cert" "roles" "apigateway" "waf")
+  declare -ga PRODUCT_UNITS_ARRAY=("s3" "sns" "cert" "cmk")
+  declare -ga APPLICATION_UNITS_ARRAY=(${unit})
+  declare -ga SOLUTION_UNITS_ARRAY=(${unit})
+  declare -ga SEGMENT_UNITS_ARRAY=("iam" "lg" "eip" "s3" "cmk" "cert" "vpc" "nat" "ssh" "dns" "eipvpc" "eips3vpc")
+  declare -ga MULTIPLE_UNITS_ARRAY=("iam" "dashboard")
+
+  # Apply explicit unit lists and check for presence of unit
+  # Allow them to be separated by commas or spaces in line with the separator
+  # definitions in setContext.sh for the automation framework
+  if namedef_supported; then
+    declare -n UNITS_SOURCE="${level^^}_UNITS"
+    declare -n UNITS_ARRAY="${level^^}_UNITS_ARRAY"
+  else
+    eval "declare UNITS_SOURCE=(\"\${${level^^}_UNITS}\")"
+    eval "declare UNITS_ARRAY=(\"\${${level^^}_UNITS_ARRAY[@]}\")"
+  fi
+  [[ -n "${UNITS_SOURCE}" ]] && IFS=", " read -ra UNITS_ARRAY <<< "${UNITS_SOURCE}"
+
+  # Return result
+  grep -iw "${unit}" <<< "${UNITS_ARRAY[*]}" >/dev/null 2>&1
+}
+
+# All good

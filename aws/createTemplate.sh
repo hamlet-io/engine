@@ -77,7 +77,7 @@ function set_context() {
   REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
   
   # Check level and deployment unit
-  . ${GENERATION_DIR}/validateDeploymentUnit.sh 
+  ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid"
   
   # Ensure other mandatory arguments have been provided
   [[ (-z "${REQUEST_REFERENCE}") ||
@@ -97,6 +97,8 @@ function set_context() {
         fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
       ;;
   esac
+
+  return 0
 }
 
 function main() {
