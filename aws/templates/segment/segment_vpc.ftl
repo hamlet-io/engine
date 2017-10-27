@@ -311,6 +311,7 @@
                             )
                     }
                 ]
+            vpcId=sshInVpc?then(vpcId,"")
         /]
     
         [@createSecurityGroup
@@ -591,6 +592,7 @@
                             "CIDR" : [segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask]
                         }
                     ]
+                vpcId=natInVpc?then(vpcId,"")
             /]
         [/#if]
         [#list zones as zone]

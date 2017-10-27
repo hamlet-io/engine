@@ -88,7 +88,7 @@
     [/#list]
 [/#macro]
 
-[#macro createSecurityGroup mode tier component id name description="" ingressRules=""]
+[#macro createSecurityGroup mode tier component id name description="" ingressRules="" vpcId=""]
     [#local nonemptyIngressRules = [] ]
     [#if ingressRules?has_content && ingressRules?is_sequence]
         [#list ingressRules as ingressRule]
