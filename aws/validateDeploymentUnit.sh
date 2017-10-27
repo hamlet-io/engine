@@ -41,7 +41,7 @@ for L in "${LEVELS[@]}"; do
       declare -n UNITS_SOURCE="${L^^}_UNITS"
       declare -n UNITS_ARRAY="${L^^}_UNITS_ARRAY"
     else
-      eval "declare UNITS_SOURCE=(\"\${${L^^}_UNITS[@]}\")"
+      eval "declare UNITS_SOURCE=(\"\${${L^^}_UNITS}\")"
       eval "declare UNITS_ARRAY=(\"\${${L^^}_UNITS_ARRAY[@]}\")"
     fi
     if [[ -n "${UNITS_SOURCE}" ]]; then

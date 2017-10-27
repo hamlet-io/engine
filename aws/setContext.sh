@@ -36,7 +36,7 @@ TEMPLATE_COMPOSITES=(
 BLUEPRINT_ARRAY=()
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     # define the array holding the list of composite fragment filenames
-    declare -a "${COMPOSITE}_ARRAY"
+    declare -ga "${COMPOSITE}_ARRAY"
 
     # Check for composite start fragment
     addToArray "${COMPOSITE}_ARRAY" "${GENERATION_DIR}"/templates/"${COMPOSITE,,}"/start*.ftl
@@ -132,7 +132,7 @@ fi
     fatalLocation "Can't locate the root of the directory tree."
 
 cd "${GENERATION_DATA_DIR}"
-export ACCOUNT="${ACCOUNT:-$(fileName "${GENERATION_DATA_DIR}")}"
+[[ -z "${ACCOUNT}" ]] && export ACCOUNT="$(fileName "${GENERATION_DATA_DIR}")"
 
 # Back to where we started
 popd >/dev/null
@@ -210,7 +210,7 @@ for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
     namedef_supported &&
       declare -n COMPOSITE_ARRAY="${COMPOSITE}_ARRAY" ||
       eval "declare COMPOSITE_ARRAY=(\"\${${COMPOSITE}_ARRAY[@]}\")"
-    declare -x COMPOSITE_${COMPOSITE}="${COMPOSITE_FILE}"
+    declare -gx COMPOSITE_${COMPOSITE}="${COMPOSITE_FILE}"
     debug "${COMPOSITE}=${COMPOSITE_ARRAY[*]}"
     cat "${COMPOSITE_ARRAY[@]}" > "${COMPOSITE_FILE}"
 done
