@@ -276,11 +276,11 @@ function isValidUnit() {
   declare -ga LEVELS=("account" "product" "application" "solution" "segment" "multiple")
 
   # Ensure arguments have been provided
-  [[ (-n "${level}") && (-n "${unit}") ]] || return 1
+  [[ (-z "${level}") || (-z "${unit}") ]] && return 1
 
   # Ensure level is kwown
-  ! grep -w "${level,,}" <<< "${LEVELS[*]}" && return 1
-
+  ! (grep -qw "${level,,}" <<< "${LEVELS[*]}") && return 1
+  
   # Default deployment units for each level
   declare -ga ACCOUNT_UNITS_ARRAY=("s3" "cert" "roles" "apigateway" "waf")
   declare -ga PRODUCT_UNITS_ARRAY=("s3" "sns" "cert" "cmk")
