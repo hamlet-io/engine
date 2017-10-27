@@ -122,7 +122,9 @@ function main() {
     case ${STACK_OPERATION} in
       delete)
         [[ -n "${DRYRUN}" ]] && fatal "Dryrun not applicable when deleting a stack"
-  
+
+        OPERATION_TO_CHECK="DELETE"
+
         aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
   
         # For delete, we don't check result as stack may not exist
@@ -131,7 +133,9 @@ function main() {
       update)
         # Compress the template to avoid aws cli size limitations
         jq -c '.' < ${TEMPLATE} > stripped_${TEMPLATE}
-    
+
+        OPERATION_TO_CHECK="CREATE|UPDATE"
+
         # Check if stack needs to be created
         aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null
         RESULT=$?
@@ -197,10 +201,10 @@ function main() {
       grep "${STATUS_ATTRIBUTE}" "${STACK}" > "${STACK_STATUS_FILE}"
       cat "${STACK_STATUS_FILE}"
 
-      grep "_COMPLETE" "${STACK_STATUS_FILE}" >/dev/null 2>&1
+      egrep "(${OPERATION_TO_CHECK})_COMPLETE" "${STACK_STATUS_FILE}" >/dev/null 2>&1
       RESULT=$? && [[ "${RESULT}" -eq 0 ]] && break
 
-      grep "_IN_PROGRESS" "${STACK_STATUS_FILE}"  >/dev/null 2>&1
+      egrep "(${OPERATION_TO_CHECK}).*_IN_PROGRESS" "${STACK_STATUS_FILE}"  >/dev/null 2>&1
       RESULT=$? && [[ "${RESULT}" -ne 0 ]] && break
 
       sleep ${STACK_WAIT}
