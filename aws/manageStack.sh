@@ -57,8 +57,8 @@ EOF
 
 function set_context() {
   # Parse options
-  while getopts ":dhil:mn:r:s:t:u:w:yz:" opt; do
-    case $opt in
+  while getopts ":dhil:mn:r:s:t:u:w:yz:" option; do
+    case "${option}" in
       d) STACK_OPERATION=delete ;;
       h) usage; return 1 ;;
       i) STACK_MONITOR=false ;;
