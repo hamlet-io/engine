@@ -43,6 +43,20 @@
     [/#if]
 [/#macro]
 
+[#macro Link name link attribute="Url"]
+    [#if (containerListMode!"") == "model"]
+        [#assign currentContainer +=
+            {
+                "Environment" :
+                  (currentContainer.Environment!{}) +
+                  {
+                      name  : (currentContainer.Links[link][attribute])!""
+                  }
+            }
+        ]
+    [/#if]
+[/#macro]
+
 [#macro Variable name value]
     [#if (containerListMode!"") == "model"]
         [#assign currentContainer +=

@@ -23,6 +23,7 @@
                     "Name" : containerId,
                     "Environment" :
                         standardEnvironment(tier, component, occurrence, "WEB"),
+                    "Links" : {},
                     "S3Bucket" : getRegistryEndPoint("lambda"),
                     "S3Key" : 
                         formatRelativePath(
@@ -35,11 +36,72 @@
                 }
             ]
         
+            [#list occurrence.Links?values as link]
+                [#if link?is_hash]
+                    [#assign targetComponent = getComponent(link.Tier, link.Component)]
+                    [#if targetComponent?has_content]
+                        [#list getOccurrences(targetComponent) as targetOccurrence]
+                            [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
+                                    (targetOccurrence.VersionId == occurrence.VersionId)]
+                                [#switch getComponentType(targetComponent)]
+                                    [#case "alb"]
+                                        [#assign currentContainer +=
+                                            {
+                                              "Links" :
+                                                  currentContainer.Links +
+                                                  {
+                                                    link.Name : {
+                                                        "Url" :
+                                                            getExistingReference(
+                                                                formatALBId(
+                                                                    link.Tier,
+                                                                    link.Component,
+                                                                    targetOccurrence),
+                                                                DNS_ATTRIBUTE_TYPE)
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                        [#break]
+
+                                    [#case "apigateway"]
+                                        [#assign apiId =
+                                            formatAPIGatewayId(
+                                                link.Tier,
+                                                link.Component,
+                                                targetOccurrence)]
+                                        [#assign currentContainer +=
+                                            {
+                                              "Links" :
+                                                  currentContainer.Links +
+                                                  {
+                                                    link.Name : {
+                                                        "Url" :
+                                                            "https://" +
+                                                            formatDomainName(
+                                                                getExistingReference(apiId),
+                                                                "execute-api",
+                                                                regionId,
+                                                                "amazonaws.com"),
+                                                        "Policy" : apigatewayInvokePermission(apiId, occurrence.VersionId)
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                        [#break]
+                                [/#switch]
+                                [#break]
+                            [/#if]
+                        [/#list]
+                    [/#if]
+                [/#if]
+            [/#list]
+
             [#-- Add in container specifics including override of defaults --]
             [#assign containerListMode = "model"]
             [#assign containerId = formatContainerFragmentId(occurrence, currentContainer)]
             [#include containerList?ensure_starts_with("/")]
-    
+
             [#assign roleId = formatDependentRoleId(lambdaId)]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                 [#-- Create a role under which the function will run and attach required policies --]
@@ -62,6 +124,22 @@
                         id=policyId
                         name=currentContainer.Name
                         statements=currentContainer.Policy
+                        roles=roleId
+                    /]
+                [/#if]
+
+                [#assign linkPolicies = [] ]
+                [#list currentContainer.Links as name,value]
+                    [#assign linkPolicies += (value.Policy)![] ]
+                [/#list]
+
+                [#if linkPolicies?has_content]
+                    [#assign policyId = formatDependentPolicyId(lambdaId, "links")]
+                    [@createPolicy
+                        mode=applicationListMode
+                        id=policyId
+                        name="links"
+                        statements=linkPolicies
                         roles=roleId
                     /]
                 [/#if]
