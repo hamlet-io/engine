@@ -401,6 +401,10 @@
                 "Container",
                 "Handler",
                 {
+                    "Name" : "Links",
+                    "Default" : {}
+                },
+                {
                     "Name" : "MemorySize",
                     "Default" : 0
                 },

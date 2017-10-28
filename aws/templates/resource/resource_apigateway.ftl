@@ -16,3 +16,15 @@
     }
 ]
 
+[#function formatInvokeApiGatewayArn apiId stageName account={ "Ref" : "AWS::AccountId" }]
+    [#return
+        formatRegionalArn(
+            "execute-api",
+            formatTypedArnResource(
+                getReference(apiId),
+                stageName + "/*",
+                "/"
+            )
+        )
+    ]
+[/#function]

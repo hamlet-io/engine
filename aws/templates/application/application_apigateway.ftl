@@ -90,15 +90,7 @@
                                                         "Action" : "lambda:InvokeFunction",
                                                         "FunctionName" : fnName,
                                                         "Principal" : "apigateway.amazonaws.com",
-                                                        "SourceArn" :
-                                                            formatRegionalArn(
-                                                                "execute-api",
-                                                                formatTypedArnResource(
-                                                                    getReference(apiId),
-                                                                    stageName + "/*",
-                                                                    "/"
-                                                                )
-                                                            )
+                                                        "SourceArn" : formatInvokeApiGatewayArn(apiId, stageName)
                                                     }
                                                 outputs={}
                                                 dependencies=stageId
