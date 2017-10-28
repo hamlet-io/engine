@@ -447,9 +447,9 @@ function syncFilesToBucket() {
   local bucket="$1"; shift
   local prefix="$1"; shift
   if namedef_supported; then
-    local -n files="$1"; shift
+    local -n syncFiles="$1"; shift
   else
-    eval "local files=(\"\${${1}[@]}\")"; shift
+    eval "local syncFiles=(\"\${${1}[@]}\")"; shift
   fi
   local optional_arguments=("$@")
 
@@ -459,7 +459,7 @@ function syncFilesToBucket() {
   mkdir -p "${tmpdir}"
   
   # Copy files locally so we can synch with S3, potentially including deletes
-  for file in "${files[@]}" ; do
+  for file in "${syncFiles[@]}" ; do
     if [[ -n "${file}" ]]; then
       case "$(fileExtension "${file}")" in
         zip)
