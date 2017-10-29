@@ -273,35 +273,7 @@ $(arrayIsEmpty "CREDENTIALS_ARRAY") &&
     ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
 
 # Create the composite stack outputs
-STACK_ARRAY=()
-[[ (-n "${ACCOUNT}") ]] &&
-    addToArray "STACK_ARRAY" "${ACCOUNT_INFRASTRUCTURE_DIR}"/aws/cf/acc*-stack.json
-[[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
-    addToArray "STACK_ARRAY" "${PRODUCT_INFRASTRUCTURE_DIR}"/aws/cf/product*-${REGION}-stack.json
-[[ (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-    addToArray "STACK_ARRAY" "${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}"/cf/*-"${REGION}"-stack.json
-
-debug "STACK_OUTPUTS=${STACK_ARRAY[*]}"
-export COMPOSITE_STACK_OUTPUTS="${ROOT_DIR}/composite_stack_outputs.json"
-if [[ $(arraySize "STACK_ARRAY") -ne 0 ]]; then
-
-    # Add default account, region, stack level and deployment unit
-    MODIFIED_STACK_ARRAY=()
-    for F in "${STACK_ARRAY[@]}"; do
-        MODIFIED_STACK_OUTPUT="temp_${F##*/}"
-        parseStackFilename "${F}"
-        runJQ -f ${GENERATION_DIR}/formatOutputs.jq \
-            --arg Account "${STACK_ACCOUNT:-${AWSID}}" \
-            --arg Region "${STACK_REGION}" \
-            --arg Level "${STACK_LEVEL}" \
-            --arg DeploymentUnit "${STACK_DEPLOYMENT_UNIT}" \
-            < ${F} > "${MODIFIED_STACK_OUTPUT}"
-        MODIFIED_STACK_ARRAY+=("${MODIFIED_STACK_OUTPUT}")
-    done
-    ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o ${COMPOSITE_STACK_OUTPUTS} "${MODIFIED_STACK_ARRAY[@]}"
-else
-    echo "[]" > ${COMPOSITE_STACK_OUTPUTS}
-fi
+assemble_composite_stack_outputs
 
 # Set default AWS credentials if available (hook from Jenkins framework)
 CHECK_AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-${ACCOUNT_TEMP_AWS_ACCESS_KEY_ID}}"
