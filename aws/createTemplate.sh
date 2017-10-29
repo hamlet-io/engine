@@ -52,7 +52,7 @@ EOF
     return 1
 }
 
-function set_context() {
+function options() {
 
   # Parse options
   while getopts ":b:c:hl:q:r:s:t:u:z:" option; do
@@ -103,7 +103,7 @@ function set_context() {
 
 function main() {
 
-  set_context "$@" || return 1
+  options "$@" || return 1
   
   # Set up the level specific template information
   TEMPLATE_DIR="${GENERATION_DIR}/templates"
