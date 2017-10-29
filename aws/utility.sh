@@ -66,7 +66,6 @@ function fatal() {
   local parts=("$@")
 
   message "Fatal" "${parts[@]}" >&2
-  exit
 }
 
 function fatalOption() {
