@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_DIR}/common.sh"
 
 # Defaults
@@ -9,7 +9,7 @@ CONFIGURATION_REFERENCE_DEFAULT="unassigned"
 REQUEST_REFERENCE_DEFAULT="unassigned"
 
 function usage() {
-    cat <<EOF
+  cat <<EOF
 
 Create a CloudFormation (CF) template
 
@@ -49,7 +49,6 @@ NOTES:
    should be created
 
 EOF
-    return 1
 }
 
 function options() {
@@ -77,24 +76,24 @@ function options() {
   REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
   
   # Check level and deployment unit
-  ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid"
+  ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
   
   # Ensure other mandatory arguments have been provided
   [[ (-z "${REQUEST_REFERENCE}") ||
-      (-z "${CONFIGURATION_REFERENCE}") ]] && fatalMandatory
+      (-z "${CONFIGURATION_REFERENCE}") ]] && fatalMandatory && return 1
   
   # Set up the context
   . "${GENERATION_DIR}/setContext.sh"
   
   # Ensure we are in the right place
-  case $LEVEL in
+  case "${LEVEL}" in
     account|product)
       [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] &&
-        fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
+        fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
       ;;
     solution|segment|application|multiple)
       [[ ! ("segment" =~ ${LOCATION}) ]] &&
-        fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"."
+        fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
       ;;
   esac
 
@@ -103,95 +102,89 @@ function options() {
 
 function main() {
 
-  options "$@" || return 1
+  options "$@" || return $?
   
   # Set up the level specific template information
-  TEMPLATE_DIR="${GENERATION_DIR}/templates"
-  TEMPLATE="create${LEVEL^}Template.ftl"
-  TEMPLATE_COMPOSITES=("POLICY" "ID" "NAME" "RESOURCE")
+  template_dir="${GENERATION_DIR}/templates"
+  template="create${LEVEL^}Template.ftl"
+  template_composites=("POLICY" "ID" "NAME" "RESOURCE")
   
   # Determine the template name
-  LEVEL_PREFIX="$LEVEL-"
-  DEPLOYMENT_UNIT_PREFIX="${DEPLOYMENT_UNIT}-"
-  REGION_PREFIX="${REGION}-"
+  level_prefix="${LEVEL}-"
+  deployment_unit_prefix="${DEPLOYMENT_UNIT}-"
+  region_prefix="${REGION}-"
   if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
-      DEPLOYMENT_UNIT_SUBSET_PREFIX="${DEPLOYMENT_UNIT_SUBSET,,}-"
+      deployment_unit_subset_prefix="${DEPLOYMENT_UNIT_SUBSET,,}-"
   fi
   case $LEVEL in
     account)
-      CF_DIR="${ACCOUNT_INFRASTRUCTURE_DIR}/aws/cf"
-      REGION_PREFIX="${ACCOUNT_REGION}-"
-      TEMPLATE_COMPOSITES+=("ACCOUNT")
+      cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/aws/cf"
+      region_prefix="${ACCOUNT_REGION}-"
+      template_composites+=("ACCOUNT")
 
       # LEGACY: Support stacks created before deployment units added to account
-      if [[ "${DEPLOYMENT_UNIT}" =~ s3 ]]; then
-        if [[ -f "${CF_DIR}/${LEVEL_PREFIX}${REGION_PREFIX}template.json" ]]; then
-          DEPLOYMENT_UNIT_PREFIX=""
-        fi
-      fi
+      [[ ("${DEPLOYMENT_UNIT}" =~ s3) &&
+        (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
+        deployment_unit_prefix=""
       ;;
 
     product)
-      CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/cf"
-      TEMPLATE_COMPOSITES+=("PRODUCT")
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/cf"
+      template_composites+=("PRODUCT")
 
       # LEGACY: Support stacks created before deployment units added to product
-      if [[ "${DEPLOYMENT_UNIT}" =~ cmk ]]; then
-        if [[ -f "${CF_DIR}/${LEVEL_PREFIX}${REGION_PREFIX}template.json" ]]; then
-          DEPLOYMENT_UNIT_PREFIX=""
-        fi
-      fi
+      [[ ("${DEPLOYMENT_UNIT}" =~ cmk) &&
+        (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
+        deployment_unit_prefix=""
       ;;
 
     solution)
-      CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
-      LEVEL_PREFIX="soln-"
-      TEMPLATE_COMPOSITES+=("SOLUTION" )
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
+      level_prefix="soln-"
+      template_composites+=("SOLUTION" )
 
-      if [[ -f "${CF_DIR}/solution-${REGION}-template.json" ]]; then
-        LEVEL_PREFIX="solution-"
-        DEPLOYMENT_UNIT_PREFIX=""
+      if [[ -f "${cf_dir}/solution-${REGION}-template.json" ]]; then
+        level_prefix="solution-"
+        deployment_unit_prefix=""
       fi
       ;;
 
     segment)
-      CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
-      LEVEL_PREFIX="seg-"
-      TEMPLATE_COMPOSITES+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
+      level_prefix="seg-"
+      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
 
       # LEGACY: Support old formats for existing stacks so they can be updated 
       if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
-        if [[ -f "${CF_DIR}/cont-${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}template.json" ]]; then
-          LEVEL_PREFIX="cont-"
+        if [[ -f "${cf_dir}/cont-${deployment_unit_prefix}${region_prefix}template.json" ]]; then
+          level_prefix="cont-"
         fi
-        if [[ -f "${CF_DIR}/container-${REGION}-template.json" ]]; then
-          LEVEL_PREFIX="container-"
-          DEPLOYMENT_UNIT_PREFIX=""
+        if [[ -f "${cf_dir}/container-${REGION}-template.json" ]]; then
+          level_prefix="container-"
+          deployment_unit_prefix=""
         fi
-        if [[ -f "${CF_DIR}/${SEGMENT}-container-template.json" ]]; then
-          LEVEL_PREFIX="${SEGMENT}-container-"
-          DEPLOYMENT_UNIT_PREFIX=""
-          REGION_PREFIX=""
+        if [[ -f "${cf_dir}/${SEGMENT}-container-template.json" ]]; then
+          level_prefix="${SEGMENT}-container-"
+          deployment_unit_prefix=""
+          region_prefix=""
         fi
       fi
       # "cmk" now used instead of "key"
-      if [[ "${DEPLOYMENT_UNIT}" == "cmk" ]]; then
-        if [[ -f "${CF_DIR}/${LEVEL_PREFIX}key-${REGION_PREFIX}template.json" ]]; then
-          DEPLOYMENT_UNIT_PREFIX="key-"
-        fi
-      fi
+      [[ ("${DEPLOYMENT_UNIT}" == "cmk") &&
+        (-f "${cf_dir}/${level_prefix}key-${region_prefix}template.json") ]] && \
+          deployment_unit_prefix="key-"
       ;;
 
     application)
-      CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
-      LEVEL_PREFIX="app-"
-      TEMPLATE_COMPOSITES+=("APPLICATION" "CONTAINER" )
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
+      level_prefix="app-"
+      template_composites+=("APPLICATION" "CONTAINER" )
       ;;
 
     multiple)
-      CF_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
-      LEVEL_PREFIX="multi-"
-      TEMPLATE_COMPOSITES+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER")
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
+      level_prefix="multi-"
+      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER")
       ;;
 
     *)
@@ -199,40 +192,71 @@ function main() {
       ;;
   esac
   
-  # Generate the template filename
-  OUTPUT="${CF_DIR}/${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
-  TEMP_OUTPUT="${CF_DIR}/temp_${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${DEPLOYMENT_UNIT_SUBSET_PREFIX}${REGION_PREFIX}template.json"
+  # Define the different subsets
+  [[ ("${LEVEL}" == "application") ]] &&
+    subsets=("${DEPLOYMENT_UNIT_SUBSET}" "config" "prologue" "epilogue") ||
+    subsets=("${DEPLOYMENT_UNIT_SUBSET}")
+  output_suffix=("template.json" "config.json" "prologue.sh" "epilogue.sh")
+  output_prefix="${level_prefix}${deployment_unit_prefix}${deployment_unit_subset_prefix}${region_prefix}"
   
   # Ensure the aws tree for the templates exists
-  [[ ! -d ${CF_DIR} ]] && mkdir -p ${CF_DIR}
+  [[ ! -d ${cf_dir} ]] && mkdir -p ${cf_dir}
   
-  ARGS=()
-  [[ -n "${DEPLOYMENT_UNIT}" ]]        && ARGS+=("-v" "deploymentUnit=${DEPLOYMENT_UNIT}")
-  [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]] && ARGS+=("-v" "deploymentUnitSubset=${DEPLOYMENT_UNIT_SUBSET}")
-  [[ -n "${BUILD_DEPLOYMENT_UNIT}" ]]  && ARGS+=("-v" "buildDeploymentUnit=${BUILD_DEPLOYMENT_UNIT}")
-  [[ -n "${BUILD_REFERENCE}" ]]        && ARGS+=("-v" "buildReference=${BUILD_REFERENCE}")
+  # Args common across all passes
+  args=()
+  [[ -n "${DEPLOYMENT_UNIT}" ]]        && args+=("-v" "deploymentUnit=${DEPLOYMENT_UNIT}")
+  [[ -n "${BUILD_DEPLOYMENT_UNIT}" ]]  && args+=("-v" "buildDeploymentUnit=${BUILD_DEPLOYMENT_UNIT}")
+  [[ -n "${BUILD_REFERENCE}" ]]        && args+=("-v" "buildReference=${BUILD_REFERENCE}")
   
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
   # It shouldn't affect other platforms as it won't be matched
-  for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-    COMPOSITE_VAR="COMPOSITE_${COMPOSITE^^}"
-    ARGS+=("-r" "${COMPOSITE,,}List=${!COMPOSITE_VAR#/?/}")
+  for composite in "${template_composites[@]}"; do
+    composite_var="COMPOSITE_${COMPOSITE^^}"
+    args+=("-r" "${composite,,}List=${!composite_var#/?/}")
   done
   
-  ARGS+=("-v" "region=${REGION}")
-  ARGS+=("-v" "productRegion=${PRODUCT_REGION}")
-  ARGS+=("-v" "accountRegion=${ACCOUNT_REGION}")
-  ARGS+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
-  ARGS+=("-v" "credentials=${COMPOSITE_CREDENTIALS}")
-  ARGS+=("-v" "appsettings=${COMPOSITE_APPSETTINGS}")
-  ARGS+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
-  ARGS+=("-v" "requestReference=${REQUEST_REFERENCE}")
-  ARGS+=("-v" "configurationReference=${CONFIGURATION_REFERENCE}")
+  args+=("-v" "region=${REGION}")
+  args+=("-v" "productRegion=${PRODUCT_REGION}")
+  args+=("-v" "accountRegion=${ACCOUNT_REGION}")
+  args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
+  args+=("-v" "credentials=${COMPOSITE_CREDENTIALS}")
+  args+=("-v" "appsettings=${COMPOSITE_APPSETTINGS}")
+  args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
+  args+=("-v" "requestReference=${REQUEST_REFERENCE}")
+  args+=("-v" "configurationReference=${CONFIGURATION_REFERENCE}")
+
+  # Perform each pass
+  for pass_index in "${!subsets[@]}"; do
+
+    output_file="${cf_dir}/temp_${output_prefix}${output_suffix[${pass_index}]}"
+    temp_output_file="${cf_dir}/${output_prefix}${output_suffix[${pass_index}]}"
+
+    pass_args=("${args[@]}")
+    [[ -n "${subsets[${pass_index}]}" ]] && pass_args+=("-v" "deploymentUnitSubset=${subsets[${pass_index}]}")
+
+    ${GENERATION_DIR}/freemarker.sh \
+      -d "${template_dir}" -t "${template}" -o "${temp_output_file}" "${pass_args[@]}" || return $?
+
+    # Process the results
+    case "${subsets[${pass_index}]}" in
+      prologue|epilogue)
+        [[ -s "${temp_output_file}" ]] && 
+          cp "${temp_output_file}" "${output_file}"
+        ;;
   
-  ${GENERATION_DIR}/freemarker.sh -t ${TEMPLATE} -d ${TEMPLATE_DIR} -o "${TEMP_OUTPUT}" "${ARGS[@]}"
-  # Tidy up the result
-  RESULT=$? && [[ "${RESULT}" -eq 0 ]] && jq --indent 4 '.' < "${TEMP_OUTPUT}" > "${OUTPUT}"
+      config)
+        [[ $(jq -r "length" < "${temp_output_file}") -ne 0 ]] &&
+          jq --indent 4 '.' < "${temp_output_file}" > "${output_file}"
+        ;;
+      *)
+        [[ $(jq -r ".Resources | length" < "${temp_output_file}") -ne 0 ]] &&
+          jq --indent 4 '.' < "${temp_output_file}" > "${output_file}"
+        ;;
+    esac
+  done
+
+  return 0
 }
 
 main "$@"

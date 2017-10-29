@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_DIR}/common.sh"
 
 # Defaults
@@ -11,7 +11,7 @@ STACK_OPERATION_DEFAULT="update"
 STACK_WAIT_DEFAULT=30
 
 function usage() {
-    cat <<EOF
+  cat <<EOF
 
 Manage a CloudFormation stack
 
@@ -86,24 +86,26 @@ function options() {
   # Set up the context
   . "${GENERATION_DIR}/setStackContext.sh"
 
-  [[ ! -f "${CF_DIR}/${TEMPLATE}" ]] && fatalLocation "\"${TEMPLATE}\" not found." && return 1
+  [[ ! -f "${CF_DIR}/${TEMPLATE}" ]] && \
+    fatalLocation "\"${TEMPLATE}\" not found." && return 1
   
   return 0
 }
 
 function main() {
 
-  options "$@" || return 1
+  options "$@" || return $?
 
   pushd ${CF_DIR} > /dev/null 2>&1
 
-  # Assume all good
-  RESULT=0
-  STACK_STATUS_FILE="./temp_stack_status"
+  stack_status_file="./temp_stack_status"
+  
+  # Run the prologue script if present
+  [[ -s "${PROLOGUE}" ]] && { . "${PROLOGUE}" || return $?; }
 
   # Update any file base configuration
   # Do this before stack in case it needs any of the files
-  # to be present in the bucket e.g. swagger file
+  # to be present in the bucket
   if [[ "${LEVEL}" == "application" ]]; then
     case ${STACK_OPERATION} in
       delete)
@@ -112,8 +114,16 @@ function main() {
         ;;
   
       update)
-        syncCMDBFilesToOperationsBucket "${SEGMENT_APPSETTINGS_DIR}" "appsettings" ${DRYRUN}
-        syncCMDBFilesToOperationsBucket "${SEGMENT_CREDENTIALS_DIR}" "credentials" ${DRYRUN}
+        syncCMDBFilesToOperationsBucket "${SEGMENT_APPSETTINGS_DIR}" \
+          "appsettings" "${DRYRUN}"
+        syncCMDBFilesToOperationsBucket "${SEGMENT_CREDENTIALS_DIR}" \
+          "credentials" "${DRYRUN}"
+        if [[ -f "${CONFIG}" ]]; then
+          local files=("${CONFIG}")
+          syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
+            "${prefix}/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/config" \
+            "files" "${DRYRUN}"
+        fi
         ;;
     esac
   fi
@@ -121,9 +131,10 @@ function main() {
   if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
       delete)
-        [[ -n "${DRYRUN}" ]] && fatal "Dryrun not applicable when deleting a stack"
+        [[ -n "${DRYRUN}" ]] && \
+          fatal "Dryrun not applicable when deleting a stack" && return 1
 
-        OPERATION_TO_CHECK="DELETE"
+        operation_to_check="DELETE"
 
         aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
   
@@ -131,20 +142,18 @@ function main() {
         ;;
   
       update)
-        # Compress the template to avoid aws cli size limitations
+        # Compress the template to minimise the impact of aws cli size limitations
         jq -c '.' < ${TEMPLATE} > stripped_${TEMPLATE}
 
-        OPERATION_TO_CHECK="CREATE|UPDATE"
+        operation_to_check="CREATE|UPDATE"
 
         # Check if stack needs to be created
-        aws --region ${REGION} cloudformation describe-stacks --stack-name $STACK_NAME > $STACK 2>/dev/null
-        RESULT=$?
-        if [[ "$RESULT" -ne 0 ]]; then
-            STACK_OPERATION="create"
-        fi
+        aws --region ${REGION} cloudformation describe-stacks \
+            --stack-name $STACK_NAME > $STACK 2>/dev/null ||
+          STACK_OPERATION="create"
   
         [[ (-n "${DRYRUN}") && ("${STACK_OPERATION}" == "create") ]] &&
-            fatal "Dryrun not applicable when creating a stack"
+            fatal "Dryrun not applicable when creating a stack" && return 1
   
         # Initiate the required operation
         if [[ -n "${DRYRUN}" ]]; then
@@ -156,25 +165,28 @@ function main() {
           # Change set naming
           CHANGE_SET_NAME="cs$(date +'%s')"
           STACK="temp_${CHANGE_SET_NAME}_${STACK}"
-          aws --region ${REGION} cloudformation create-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM
-          RESULT=$? && [[ "$RESULT" -ne 0 ]] && exit
+          aws --region ${REGION} cloudformation create-change-set \
+              --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" \
+              --template-body file://stripped_${TEMPLATE} \
+              --capabilities CAPABILITY_IAM ||
+            return $?
         else
-          aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM > "${STACK_STATUS_FILE}" 2>&1
-          RESULT=$?
-          case "${RESULT}" in
+          aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM > "${stack_status_file}" 2>&1
+          exit_status=$?
+          case ${exit_status} in
             0) ;;
             255)
-              grep -q "No updates are to be performed" < "${STACK_STATUS_FILE}" &&
+              grep -q "No updates are to be performed" < "${stack_status_file}" &&
                 warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n" ||
-                (cat "${STACK_STATUS_FILE}"; exit)
+                { cat "${stack_status_file}"; return ${exit_status}; }
               ;;
-            *) exit ;;
+            *) return ${exit_status} ;;
           esac
         fi
         ;;
   
       *)
-        fatal "\"${STACK_OPERATION}\" is not one of the known stack operations."
+        fatal "\"${STACK_OPERATION}\" is not one of the known stack operations."; return 1
         ;;
     esac
   fi
@@ -183,43 +195,41 @@ function main() {
     while true; do
   
       if [[ -n "${DRYRUN}" ]]; then
-        STATUS_ATTRIBUTE="Status"
+        status_attribute="Status"
         aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
-        RESULT=$?
+        exit_status=$?
       else
-        STATUS_ATTRIBUTE="StackStatus"
+        status_attribute="StackStatus"
         aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
-        RESULT=$?
+        exit_status=$?
       fi
   
-      if [[ ("${STACK_OPERATION}" == "delete") && ("${RESULT}" -eq 255) ]]; then
-        # Assume stack doesn't exist
-        RESULT=0
-        break
-      fi
+      [[ ("${STACK_OPERATION}" == "delete") && ("${exit_status}" -eq 255) ]] && break
 
-      grep "${STATUS_ATTRIBUTE}" "${STACK}" > "${STACK_STATUS_FILE}"
-      cat "${STACK_STATUS_FILE}"
+      grep "${status_attribute}" "${STACK}" > "${stack_status_file}"
+      cat "${stack_status_file}"
 
-      egrep "(${OPERATION_TO_CHECK})_COMPLETE\"" "${STACK_STATUS_FILE}" >/dev/null 2>&1
-      RESULT=$? && [[ "${RESULT}" -eq 0 ]] && break
+      egrep "(${operation_to_check})_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && break
 
-      egrep "(${OPERATION_TO_CHECK}).*_IN_PROGRESS\"" "${STACK_STATUS_FILE}"  >/dev/null 2>&1
-      RESULT=$? && [[ "${RESULT}" -ne 0 ]] && break
+      egrep "(${operation_to_check}).*_IN_PROGRESS\"" "${stack_status_file}"  >/dev/null 2>&1 || break
 
       sleep ${STACK_WAIT}
     done
   fi
   
   if [[ "${STACK_OPERATION}" == "delete" ]]; then
-    if [[ ("${RESULT}" -eq 0) || !( -s "${STACK}" ) ]]; then
+    if [[ ("${exit_status}" -eq 0) || !( -s "${STACK}" ) ]]; then
       rm -f "${STACK}"
     fi
   fi
-  if [[ -n "${DRYRUN}" ]]; then
-    cat "${STACK}"
-  fi
+
+  # Results of dryrun if required
+  [[ -n "${DRYRUN}" ]] && cat "${STACK}"
+  
+  # Run the epilogue script if present
+  [[ -s "${EPILOGUE}" ]] && { . "${PROLOGUE}" || return $?; }
+
+  return 0
 }
 
 main "$@"
-
