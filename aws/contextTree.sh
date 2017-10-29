@@ -4,21 +4,71 @@
 #
 # This script is designed to be sourced into other scripts
 
-# -- Stacks --
+# -- Composites --
 
-function parseStackFilename() {
+function parse_stack_filename() {
   local file="$1"; shift
 
   # Parse stack name for key values
-  # Account is not yet part of the stack filename
-  contains "$(fileName "${file}")" "([a-z0-9]+)-(.+)-([a-z]{2}-[a-z]+-[1-9])-stack.json"
-  STACK_LEVEL="${BASH_REMATCH[1]}"
-  STACK_ACCOUNT=""
-  STACK_REGION="${BASH_REMATCH[3]}"
-  STACK_DEPLOYMENT_UNIT="${BASH_REMATCH[2]}"
+  # Assume Account is part of the stack filename
+  if contains "$(fileName "${file}")" "([a-z0-9]+)-(.+)-([1-9][0-9]{10})-([a-z]{2}-[a-z]+-[1-9])-stack.json"; then
+    stack_level="${BASH_REMATCH[1]}"
+    stack_deployment_unit="${BASH_REMATCH[2]}"
+    stack_account="${BASH_REMATCH[3]}"
+    stack_region="${BASH_REMATCH[4]}"
+    return 0
+  fi
+  if contains "$(fileName "${file}")" "([a-z0-9]+)-(.+)-([a-z]{2}-[a-z]+-[1-9])-stack.json"; then
+    stack_level="${BASH_REMATCH[1]}"
+    stack_deployment_unit="${BASH_REMATCH[2]}"
+    stack_region="${BASH_REMATCH[3]}"
+    stack_account=""
+    return 0
+  fi
+
+  return 1
 }
 
-# -- Composites --
+function assemble_composite_stack_outputs() {
+
+  # Create the composite stack outputs
+  local restore_nullglob=$(shopt -p nullglob)
+  shopt -s nullglob
+
+  local stack_array=()
+  [[ (-n "${ACCOUNT}") ]] &&
+      addToArray "stack_array" "${ACCOUNT_INFRASTRUCTURE_DIR}"/aws/cf/acc*-stack.json
+  [[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
+      addToArray "stack_array" "${PRODUCT_INFRASTRUCTURE_DIR}"/aws/cf/product*-${REGION}-stack.json
+  [[ (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
+      addToArray "stack_array" "${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}"/cf/*-"${REGION}"-stack.json
+
+  ${restore_nullglob}
+
+  debug "STACK_OUTPUTS=${stack_array[*]}"
+  export COMPOSITE_STACK_OUTPUTS="${ROOT_DIR}/composite_stack_outputs.json"
+  if [[ $(arraySize "stack_array") -ne 0 ]]; then
+    # Add default account, region, stack level and deployment unit
+    local modified_stack_array=()
+    for stack in "${stack_array[@]}"; do
+      if parse_stack_filename "${stack}"; then
+        modified_stack_filename="temp_$(fileName "${stack}")"
+        runJQ -f ${GENERATION_DIR}/formatOutputs.jq \
+          --arg Account "${stack_account:-${AWSID}}" \
+          --arg Region "${stack_region}" \
+          --arg Level "${stack_level}" \
+          --arg DeploymentUnit "${stack_deployment_unit}" \
+          < "${stack}" > "${modified_stack_filename}"
+        modified_stack_array+=("${modified_stack_filename}")
+      else
+        modified_stack_array+=("${stack}")
+      fi
+    done
+    ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o ${COMPOSITE_STACK_OUTPUTS} "${modified_stack_array[@]}"
+  else
+    echo "[]" > ${COMPOSITE_STACK_OUTPUTS}
+  fi
+}
 
 function getCompositeStackOutput() {
   local file="$1"; shift
