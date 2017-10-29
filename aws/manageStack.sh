@@ -55,7 +55,7 @@ NOTES:
 EOF
 }
 
-function set_context() {
+function options() {
   # Parse options
   while getopts ":dhil:mn:r:s:t:u:w:yz:" option; do
     case "${option}" in
@@ -93,7 +93,7 @@ function set_context() {
 
 function main() {
 
-  set_context "$@" || return 1
+  options "$@" || return 1
 
   pushd ${CF_DIR} > /dev/null 2>&1
 
