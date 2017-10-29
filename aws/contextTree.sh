@@ -125,9 +125,12 @@ function syncCMDBFilesToOperationsBucket() {
 
   ${restore_nullglob}
 
-  syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
-    "${prefix}/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}" \
-    "files" "${optional_arguments[@]}" --delete
+  ! arrayIsEmpty "files" && \
+    { syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
+        "${prefix}/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}" \
+        "files" "${optional_arguments[@]}" --delete ||
+      return $?; }
+  return 0
 }
 
 function deleteCMDBFilesFromOperationsBucket() {

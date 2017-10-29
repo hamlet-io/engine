@@ -75,26 +75,28 @@
                                                     link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA" : fnName
                                                 }
                                             ]
-                                            [@cfResource
-                                                mode=applicationListMode
-                                                id=
-                                                    formatAPIGatewayLambdaPermissionId(
-                                                        tier,
-                                                        component,
-                                                        link,
-                                                        fn,
-                                                        occurrence)
-                                                type="AWS::Lambda::Permission"
-                                                properties=
-                                                    {
-                                                        "Action" : "lambda:InvokeFunction",
-                                                        "FunctionName" : fnName,
-                                                        "Principal" : "apigateway.amazonaws.com",
-                                                        "SourceArn" : formatInvokeApiGatewayArn(apiId, stageName)
-                                                    }
-                                                outputs={}
-                                                dependencies=stageId
-                                            /]
+                                            [#if deploymentSubsetRequired("apigateway", true)]
+                                              [@cfResource
+                                                  mode=applicationListMode
+                                                  id=
+                                                      formatAPIGatewayLambdaPermissionId(
+                                                          tier,
+                                                          component,
+                                                          link,
+                                                          fn,
+                                                          occurrence)
+                                                  type="AWS::Lambda::Permission"
+                                                  properties=
+                                                      {
+                                                          "Action" : "lambda:InvokeFunction",
+                                                          "FunctionName" : fnName,
+                                                          "Principal" : "apigateway.amazonaws.com",
+                                                          "SourceArn" : formatInvokeApiGatewayArn(apiId, stageName)
+                                                      }
+                                                  outputs={}
+                                                  dependencies=stageId
+                                              /]
+                                            [/#if]
                                         [/#if]
                                     [/#list]
                                     [#break]

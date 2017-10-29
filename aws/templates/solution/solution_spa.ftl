@@ -61,6 +61,7 @@
                 [/#if]
             [/#list]
         [/#if]
+
         [@createCFDistribution
             mode=applicationListMode
             id=cfId
@@ -76,6 +77,7 @@
                     occurrence.CloudFront.AssumeSNI),
                 occurrence.DNSIsConfigured)
             comment=cfName
+            customErrorResponses=getErrorResponse(404) + getErrorResponse(403)
             defaultCacheBehaviour=spaCacheBehaviour
             defaultRootObject="index.html"
             logging=valueIfTrue(

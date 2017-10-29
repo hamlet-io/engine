@@ -257,6 +257,19 @@
     ]
 [/#function]
 
+[#function getErrorResponse errorCode responseCode=200 path="/index.html" ttl={}]
+    [#return
+        [
+            {
+                "ErrorCode" : errorCode,
+                "ResponseCode" : responseCode,
+                "ResponsePagePath" : path
+            } +
+            attributeIfContent("ErrorCachingMinTTL", ttl.Min!"")
+        ]
+    ]
+[/#function]
+
 [#macro createCFDistribution mode id dependencies=""
     aliases=[]
     cacheBehaviours=[]

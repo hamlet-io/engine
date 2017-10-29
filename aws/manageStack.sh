@@ -86,55 +86,76 @@ function options() {
   # Set up the context
   . "${GENERATION_DIR}/setStackContext.sh"
 
-  [[ ! -f "${CF_DIR}/${TEMPLATE}" ]] && \
-    fatalLocation "\"${TEMPLATE}\" not found." && return 1
-  
   return 0
 }
 
-function main() {
-
-  options "$@" || return $?
-
-  pushd ${CF_DIR} > /dev/null 2>&1
-
-  stack_status_file="./temp_stack_status"
-  
-  # Run the prologue script if present
-  [[ -s "${PROLOGUE}" ]] && { . "${PROLOGUE}" || return $?; }
-
-  # Update any file base configuration
-  # Do this before stack in case it needs any of the files
-  # to be present in the bucket
+function copy_cmdb_files() {
   if [[ "${LEVEL}" == "application" ]]; then
     case ${STACK_OPERATION} in
       delete)
-        deleteCMDBFilesFromOperationsBucket "appsettings"
-        deleteCMDBFilesFromOperationsBucket "credentials"
+        deleteCMDBFilesFromOperationsBucket "appsettings" || return $?
+        deleteCMDBFilesFromOperationsBucket "credentials" || return $?
         ;;
   
       update)
         syncCMDBFilesToOperationsBucket "${SEGMENT_APPSETTINGS_DIR}" \
-          "appsettings" "${DRYRUN}"
+          "appsettings" ${DRYRUN} || return $?
         syncCMDBFilesToOperationsBucket "${SEGMENT_CREDENTIALS_DIR}" \
-          "credentials" "${DRYRUN}"
-        if [[ -f "${CONFIG}" ]]; then
-          local files=("${CONFIG}")
-          syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
-            "${prefix}/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/config" \
-            "files" "${DRYRUN}"
-        fi
+          "credentials" ${DRYRUN} || return $?
         ;;
     esac
   fi
+
+  return 0
+}
+
+function copy_config_file() {  
+  mkdir -p ./temp_config
+  cp "$1" "./temp_config/config.json"
+  local files=("./temp_config/config.json")
+
+  case ${STACK_OPERATION} in
+    update)
+      syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
+        "appsettings/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/config" \
+        "files" ${DRYRUN} --delete
+      ;;
+  esac
+
+  return 0
+}
+
+function copy_spa_file() {
+  local files=("$1")
+
+  case ${STACK_OPERATION} in
+    update)
+      syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
+        "appsettings/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/spa" \
+        "files" --delete
+      ;;
+  esac
+
+  return 0
+}
+
+function process_stack() {
+
+  local stack_status_file="${CF_DIR}/temp_stack_status"
+  local operation_to_check=
+  local exit_status=
+  local status_attribute=
+
+  case ${STACK_OPERATION} in
+    delete) operation_to_check="DELETE" ;;
+    update) operation_to_check="CREATE|UPDATE" ;;
+  esac
   
   if [[ "${STACK_INITIATE}" = "true" ]]; then
     case ${STACK_OPERATION} in
       delete)
         [[ -n "${DRYRUN}" ]] && \
           fatal "Dryrun not applicable when deleting a stack" && return 1
-
-        operation_to_check="DELETE"
 
         aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
   
@@ -144,8 +165,6 @@ function main() {
       update)
         # Compress the template to minimise the impact of aws cli size limitations
         jq -c '.' < ${TEMPLATE} > stripped_${TEMPLATE}
-
-        operation_to_check="CREATE|UPDATE"
 
         # Check if stack needs to be created
         aws --region ${REGION} cloudformation describe-stacks \
@@ -206,17 +225,22 @@ function main() {
   
       [[ ("${STACK_OPERATION}" == "delete") && ("${exit_status}" -eq 255) ]] && break
 
+      # Check the latest status
       grep "${status_attribute}" "${STACK}" > "${stack_status_file}"
       cat "${stack_status_file}"
 
+      # Finished if complete
       egrep "(${operation_to_check})_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && break
 
+      # Abort if not still in progress
       egrep "(${operation_to_check}).*_IN_PROGRESS\"" "${stack_status_file}"  >/dev/null 2>&1 || break
 
+      # All good, wait a while longer
       sleep ${STACK_WAIT}
     done
   fi
-  
+
+  # Clean up the stack if required
   if [[ "${STACK_OPERATION}" == "delete" ]]; then
     if [[ ("${exit_status}" -eq 0) || !( -s "${STACK}" ) ]]; then
       rm -f "${STACK}"
@@ -225,6 +249,27 @@ function main() {
 
   # Results of dryrun if required
   [[ -n "${DRYRUN}" ]] && cat "${STACK}"
+
+  return 0
+}
+
+function main() {
+
+  options "$@" || return $?
+
+  pushd ${CF_DIR} > /dev/null 2>&1
+
+  # Run the prologue script if present
+  [[ -s "${PROLOGUE}" ]] && { . "${PROLOGUE}" || return $?; }
+
+  # Update any file based configuration
+  copy_cmdb_files || return $?
+  
+  # Update any config file
+  [[ -f "${CONFIG}" ]] && { copy_config_file "${CONFIG}" || return $?; }
+
+  # Process the stack
+  [[ -f "${TEMPLATE}" ]] && { process_stack || return $?; }
   
   # Run the epilogue script if present
   [[ -s "${EPILOGUE}" ]] && { . "${PROLOGUE}" || return $?; }

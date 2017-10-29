@@ -33,7 +33,7 @@
 
 [#macro Attributes name="" image="" essential=true]
     [#if (containerListMode!"") == "model"]
-        [#assign currentContainer +=
+        [#assign context +=
             {
                 "Essential" : essential
             } +
@@ -50,7 +50,7 @@
                 "Environment" :
                   (currentContainer.Environment!{}) +
                   {
-                      name  : (currentContainer.Links[link][attribute])!""
+                      name  : (context.Links[link][attribute])!""
                   }
             }
         ]
@@ -334,6 +334,13 @@
                 attributeIfContent("Cpu", container.Cpu!"") +
                 attributeIfContent("MaximumMemory", container.MaximumMemory!"") +
                 attributeIfContent("PortMappings", portMappings)
+            ]
+            [#assign context =
+                {
+                    "Instance" : task.InstanceId,
+                    "Version" : task.VersionId,
+                    "Links" : {}
+                }
             ]
 
             [#-- Add in container specifics including override of defaults --]

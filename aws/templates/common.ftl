@@ -449,6 +449,10 @@
         "spa" :
             [
                 {
+                    "Name" : "Links",
+                    "Default" : {}
+                },
+                {
                     "Name" : "WAF",
                     "Children" : [
                         {

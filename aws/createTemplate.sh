@@ -212,7 +212,7 @@ function main() {
   # Removal of drive letter (/?/) is specifically for MINGW
   # It shouldn't affect other platforms as it won't be matched
   for composite in "${template_composites[@]}"; do
-    composite_var="COMPOSITE_${COMPOSITE^^}"
+    composite_var="COMPOSITE_${composite^^}"
     args+=("-r" "${composite,,}List=${!composite_var#/?/}")
   done
   
@@ -229,8 +229,8 @@ function main() {
   # Perform each pass
   for pass_index in "${!subsets[@]}"; do
 
-    output_file="${cf_dir}/temp_${output_prefix}${output_suffix[${pass_index}]}"
-    temp_output_file="${cf_dir}/${output_prefix}${output_suffix[${pass_index}]}"
+    output_file="${cf_dir}/${output_prefix}${output_suffix[${pass_index}]}"
+    temp_output_file="${cf_dir}/temp_${output_prefix}${output_suffix[${pass_index}]}"
 
     pass_args=("${args[@]}")
     [[ -n "${subsets[${pass_index}]}" ]] && pass_args+=("-v" "deploymentUnitSubset=${subsets[${pass_index}]}")
@@ -238,22 +238,19 @@ function main() {
     ${GENERATION_DIR}/freemarker.sh \
       -d "${template_dir}" -t "${template}" -o "${temp_output_file}" "${pass_args[@]}" || return $?
 
-    # Process the results
-    case "${subsets[${pass_index}]}" in
-      prologue|epilogue)
-        [[ -s "${temp_output_file}" ]] && 
-          cp "${temp_output_file}" "${output_file}"
-        ;;
-  
-      config)
-        [[ $(jq -r "length" < "${temp_output_file}") -ne 0 ]] &&
+    # Process the results - ignore whitespace only files
+    if [[ $(tr -d " \t\n\r\f" < "${temp_output_file}" | wc -m) -gt 0 ]]; then
+      case "$(fileExtension "${temp_output_file}")" in
+        sh)
+          # Strip out the whitespace added by freemarker
+          sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${temp_output_file}" > "${output_file}"
+          ;;
+    
+        json)
           jq --indent 4 '.' < "${temp_output_file}" > "${output_file}"
-        ;;
-      *)
-        [[ $(jq -r ".Resources | length" < "${temp_output_file}") -ne 0 ]] &&
-          jq --indent 4 '.' < "${temp_output_file}" > "${output_file}"
-        ;;
-    esac
+          ;;
+      esac
+    fi
   done
 
   return 0
