@@ -1,0 +1,130 @@
+[#if componentType = "spa"]
+
+    [#list getOccurrences(component, deploymentUnit) as occurrence]
+        [#assign containerId =
+            occurrence.Container?has_content?then(
+                occurrence.Container,
+                getComponentId(component)                            
+            ) ]
+        [#assign currentContainer = 
+            {
+                "Id" : containerId,
+                "Name" : containerId,
+                "Environment" : 
+                    {
+                        "TEMPLATE_TIMESTAMP" : .now?iso_utc
+                    } +
+                    attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
+                    attributeIfContent("APP_REFERENCE", appReference!"")
+            }
+        ]
+        [#assign context =
+            {
+                "Instance" : occurrence.InstanceId,
+                "Version" : occurrence.VersionId,
+                "Links" : {}
+            }
+        ]
+    
+        [#list occurrence.Links?values as link]
+            [#if link?is_hash]
+                [#assign targetComponent = getComponent(link.Tier, link.Component)]
+                [#if targetComponent?has_content]
+                    [#list getOccurrences(targetComponent) as targetOccurrence]
+                        [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
+                                (targetOccurrence.VersionId == occurrence.VersionId)]
+                            [#switch getComponentType(targetComponent)]
+                                [#case "alb"]
+                                    [#assign context +=
+                                        {
+                                          "Links" :
+                                              context.Links +
+                                              {
+                                                link.Name : {
+                                                    "Url" :
+                                                        getExistingReference(
+                                                            formatALBId(
+                                                                link.Tier,
+                                                                link.Component,
+                                                                targetOccurrence),
+                                                            DNS_ATTRIBUTE_TYPE)
+                                                }
+                                            }
+                                        }
+                                    ]
+                                    [#break]
+
+                                [#case "apigateway"]
+                                    [#assign apiId =
+                                        formatAPIGatewayId(
+                                            link.Tier,
+                                            link.Component,
+                                            targetOccurrence)]
+                                    [#assign context +=
+                                        {
+                                          "Links" :
+                                              context.Links +
+                                              {
+                                                link.Name : {
+                                                    "Url" :
+                                                        "https://" +
+                                                        targetOccurrence.DNSIsConfigured?then(
+                                                            formatDomainName(
+                                                                formatName(
+                                                                    targetOccurrence.DNS.Host,
+                                                                    targetOccurrence.InstanceName,
+                                                                    segmentDomainQualifier),
+                                                                segmentDomain),
+                                                            formatDomainName(
+                                                                getExistingReference(apiId),
+                                                                "execute-api",
+                                                                regionId,
+                                                                "amazonaws.com")
+                                                        )
+                                                }
+                                            }
+                                        }
+                                    ]
+                                    [#break]
+                            [/#switch]
+                            [#break]
+                        [/#if]
+                    [/#list]
+                [/#if]
+            [/#if]
+        [/#list]
+
+        [#-- Add in container specifics including override of defaults --]
+        [#assign containerListMode = "model"]
+        [#assign containerId = formatContainerFragmentId(occurrence, currentContainer)]
+        [#include containerList?ensure_starts_with("/")]
+
+        [#if deploymentSubsetRequired("config", false)]
+            [@cfConfig
+                mode=applicationListMode
+                content=currentContainer.Environment
+            /]
+        [/#if]
+        [#if deploymentSubsetRequired("prologue", false)]
+            [@cfScript
+                mode=applicationListMode
+                content=
+                  [
+                      "# Temporary dir for the spa file",
+                      "mkdir -p ./temp_spa",
+                      "# Fetch the spa zip file",
+                      "copyFilesFromBucket " + 
+                        regionId + " " + 
+                        getRegistryEndPoint("spa") + " " +
+                        formatRelativePath(
+                            getRegistryPrefix("spa") + productName,
+                            buildDeploymentUnit,
+                            buildCommit) + " " +
+                        "./temp_spa",
+                      "# Sync with the operations bucket",
+                      "copy_spa_file ./temp_spa/spa.zip"
+                  ]
+            /]
+        [/#if]
+    [/#list]
+[/#if]

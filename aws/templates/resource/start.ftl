@@ -395,6 +395,30 @@
     [/#switch]
 [/#macro]
 
+[#macro cfConfig
+            mode
+            content={}]
+
+    [#switch mode]
+        [#case "config"]
+            [#assign templateConfig += content]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
+[#macro cfScript
+            mode
+            content=[]]
+
+    [#switch mode]
+        [#case "script"]
+            [#assign templateScript += content]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
 [#macro includeCompositeLists compositeLists=[] ]
     [#list tiers as tier]
         [#assign tierId = tier.Id]
@@ -460,39 +484,74 @@
     [#else]
         [@includeCompositeLists asArray(compositeLists) /]
     [/#if]
-    
-    [@toJSON
-        {
-            "AWSTemplateFormatVersion" : "2010-09-09",
-            "Metadata" :
-                {
-                    "Prepared" : .now?iso_utc,
-                    "RequestReference" : requestReference,
-                    "ConfigurationReference" : configurationReference
-                } +
-                attributeIfContent("CostCentre", accountObject.CostCentre!"") +
-                attributeIfContent("BuildReference", buildCommit!"") +
-                attributeIfContent("AppReference", appReference!""),
-            "Resources" : templateResources,
-            "Outputs" :
-                templateOutputs +
-                {
-                    "Account" :{"Value" : { "Ref" : "AWS::AccountId" }},
-                    "Region" : {"Value" : { "Ref" : "AWS::Region" }},
-                    "Level" : {"Value" : level},
-                    "DeploymentUnit" : 
-                        {
-                            "Value" :
-                                deploymentUnit + 
-                                (
-                                    (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
-                                    (deploymentUnitSubset?has_content)
-                                )?then(
-                                    "-" + deploymentUnitSubset?lower_case,
-                                    ""
-                                )
-                        }
-                }
-        }
-    /]
+
+    [#-- Config --]
+    [#assign templateConfig = {} ]
+    [#assign segmentListMode="config"]
+    [#assign solutionListMode="config"]
+    [#assign applicationListMode="config"]
+    [#assign productListMode = "config"]
+    [#assign accountListMode = "config"]
+    [#if include?has_content]
+        [#include include]
+    [#else]
+        [@includeCompositeLists asArray(compositeLists) /]
+    [/#if]
+
+    [#-- Script --]
+    [#assign templateScript = [] ]
+    [#assign segmentListMode="script"]
+    [#assign solutionListMode="script"]
+    [#assign applicationListMode="script"]
+    [#assign productListMode = "script"]
+    [#assign accountListMode = "script"]
+    [#if include?has_content]
+        [#include include]
+    [#else]
+        [@includeCompositeLists asArray(compositeLists) /]
+    [/#if]
+
+    [#if templateResources?has_content]
+      [@toJSON
+          {
+              "AWSTemplateFormatVersion" : "2010-09-09",
+              "Metadata" :
+                  {
+                      "Prepared" : .now?iso_utc,
+                      "RequestReference" : requestReference,
+                      "ConfigurationReference" : configurationReference
+                  } +
+                  attributeIfContent("CostCentre", accountObject.CostCentre!"") +
+                  attributeIfContent("BuildReference", buildCommit!"") +
+                  attributeIfContent("AppReference", appReference!""),
+              "Resources" : templateResources,
+              "Outputs" :
+                  templateOutputs +
+                  {
+                      "Account" :{"Value" : { "Ref" : "AWS::AccountId" }},
+                      "Region" : {"Value" : { "Ref" : "AWS::Region" }},
+                      "Level" : {"Value" : level},
+                      "DeploymentUnit" : 
+                          {
+                              "Value" :
+                                  deploymentUnit + 
+                                  (
+                                      (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
+                                      (deploymentUnitSubset?has_content)
+                                  )?then(
+                                      "-" + deploymentUnitSubset?lower_case,
+                                      ""
+                                  )
+                          }
+                  }
+          }
+      /]
+    [#elseif templateScript?has_content]
+      #!/bin/bash
+      [#list templateScript as line]
+          ${line}       
+      [/#list]
+    [#elseif templateConfig?has_content]
+        [@toJSON templateConfig /]
+    [/#if]
 [/#macro]

@@ -21,9 +21,10 @@
                 {
                     "Id" : containerId,
                     "Name" : containerId,
+                    "Instance" : occurrence.InstanceId,
+                    "Version" : occurrence.VersionId,
                     "Environment" :
                         standardEnvironment(tier, component, occurrence, "WEB"),
-                    "Links" : {},
                     "S3Bucket" : getRegistryEndPoint("lambda"),
                     "S3Key" : 
                         formatRelativePath(
@@ -33,6 +34,13 @@
                             "lambda.zip"
                         )
 
+                }
+            ]
+            [#assign context =
+                {
+                    "Instance" : occurrence.InstanceId,
+                    "Version" : occurrence.VersionId,
+                    "Links" : {}
                 }
             ]
         
@@ -45,10 +53,10 @@
                                     (targetOccurrence.VersionId == occurrence.VersionId)]
                                 [#switch getComponentType(targetComponent)]
                                     [#case "alb"]
-                                        [#assign currentContainer +=
+                                        [#assign context +=
                                             {
                                               "Links" :
-                                                  currentContainer.Links +
+                                                  context.Links +
                                                   {
                                                     link.Name : {
                                                         "Url" :
@@ -70,10 +78,10 @@
                                                 link.Tier,
                                                 link.Component,
                                                 targetOccurrence)]
-                                        [#assign currentContainer +=
+                                        [#assign context +=
                                             {
                                               "Links" :
-                                                  currentContainer.Links +
+                                                  context.Links +
                                                   {
                                                     link.Name : {
                                                         "Url" :
