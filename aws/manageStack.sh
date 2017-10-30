@@ -110,31 +110,44 @@ function copy_cmdb_files() {
 }
 
 function copy_config_file() {  
+
+  local files=()
   mkdir -p ./temp_config
-  cp "$1" "./temp_config/config.json"
-  local files=("./temp_config/config.json")
 
   case ${STACK_OPERATION} in
+    delete)
+      # Nothing to do as synch will use an empty directory
+      ;;
     update)
-      syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
-        "appsettings/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/config" \
-        "files" ${DRYRUN} --delete
+      cp "$1" "./temp_config/config.json"
+      files+=("./temp_config/config.json")
       ;;
   esac
+
+  # Update S3
+  syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
+    "appsettings/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/config" \
+    "files" ${DRYRUN} --delete
 
   return 0
 }
 
 function copy_spa_file() {
-  local files=("$1")
+
+  local files=()
 
   case ${STACK_OPERATION} in
+    delete)
+      # Nothing to do as synch will use an empty directory
+      ;;
     update)
-      syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
-        "appsettings/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/spa" \
-        "files" --delete
+      files+=("$1")
       ;;
   esac
+
+  syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
+    "appsettings/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/spa" \
+    "files" ${DRYRUN} --delete
 
   return 0
 }
@@ -272,7 +285,8 @@ function main() {
   [[ -f "${TEMPLATE}" ]] && { process_stack || return $?; }
   
   # Run the epilogue script if present
-  [[ -s "${EPILOGUE}" ]] && { . "${PROLOGUE}" || return $?; }
+  # Refresh te stack outputs in case something from the just created stack is needed
+  [[ -s "${EPILOGUE}" ]] && { assemble_composite_stack_outputs; . "${PROLOGUE}" || return $?; }
 
   return 0
 }
