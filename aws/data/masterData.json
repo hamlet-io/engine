@@ -1144,13 +1144,13 @@
         "NAT" : {
             "Enabled" : true,
             "MultiAZ" : false,
-            "Hosted" : false
+            "Hosted" : true
         },
         "SSH" : {
             "Enabled" : true,
             "Active" : false,
             "PerSegment" : true,
-            "Standalone" : false,
+            "Standalone" : true,
             "IPAddressGroups" : []
         },
         "S3" : {
