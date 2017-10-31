@@ -502,8 +502,16 @@ function create_pki_credentials() {
 
   if [[ (! -f "${dir}/aws-ssh-crt.pem") &&
         (! -f "${dir}/aws-ssh-prv.pem") ]]; then
-      openssl genrsa -out "${dir}/aws-ssh-prv.pem" 2048 || return $?
-      openssl rsa -in "${dir}/aws-ssh-prv.pem" -pubout > "${dir}/aws-ssh-crt.pem" || return $?
+      openssl genrsa -out "${dir}/aws-ssh-prv.pem.plaintext" 2048 || return $?
+      openssl rsa -in "${dir}/aws-ssh-prv.pem.plaintext" -pubout > "${dir}/aws-ssh-crt.pem" || return $?
+  fi
+
+  if [[ ! -f "${dir}/.gitignore" ]]; then
+    cat << EOF > "${dir}/.gitignore"
+*.plaintext
+*.decrypted
+*.ppk
+EOF
   fi
 
   return 0
@@ -528,13 +536,14 @@ function update_ssh_credentials() {
 function update_oai_credentials() {
   local region="$1"; shift
   local name="$1"; shift
-  local result_file="${1:-./temp_oai_list.json}"; shift
+  local result_file="${1:-./temp_update_oai.json}"; shift
 
+  local return_code=
   local oai_id=
   local oai_canonicalid=
 
   # Check for existing identity
-  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_list.json || return $?  
+  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_list.json || return $?
   jq ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\")" < ./temp_oai_list.json > "${result_file}" || return $?
   oai_id=$(jq -r ".Id" < "${result_file}") || return $?
 

@@ -159,6 +159,22 @@ function getCmk() {
   getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "cmkX${level}" "cmkX${level}Xcmk"
 }
 
+function encrypt_file() {
+  local region="$1"; shift
+  local level="$1"; shift
+  local input_file="$1"; shift
+  local output_file="$1"; shift
+
+  local cmk=$(getCmk "${level}")
+  local temp_file=
+
+  cp "${input_file}" "./temp_encrypt_file"
+
+  aws --region "${region}" --output text kms encrypt \
+    --key-id "${cmk}" --query CiphertextBlob \
+    --plaintext "fileb://temp_encrypt_file" > "${output_file}"
+}
+
 function getBucketName() {
   local keys=("$@")
 
