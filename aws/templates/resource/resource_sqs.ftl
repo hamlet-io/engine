@@ -22,7 +22,7 @@
     }
 ]
 
-[#macro createSQSQueue mode id name delay="" maximumSize="" retention="" receiveWait="" visibilityTimout="" dependencies=""]
+[#macro createSQSQueue mode id name delay="" maximumSize="" retention="" receiveWait="" visibilityTimout="" dlq="" dlqReceives=1 dependencies=""]
     [@cfResource 
         mode=mode
         id=id
@@ -35,6 +35,13 @@
             attributeIfContent("MaximumMessageSize", maximumSize) +
             attributeIfContent("MessageRetentionPeriod", retention) +
             attributeIfContent("ReceiveMessageWaitTimeSeconds", receiveWait) +
+            attributeIfContent(
+                "RedrivePolicy",
+                dlq,
+                {
+                  "deadLetterTargetArn" : getReference(dlq, ARN_ATTRIBUTE_TYPE),
+                  "maxReceiveCount" : dlqReceives
+                }) +
             attributeIfContent("VisibilityTimeout", visibilityTimout)
         outputs=SQS_OUTPUT_MAPPINGS
         dependencies=dependencies
