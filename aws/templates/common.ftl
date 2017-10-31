@@ -500,7 +500,20 @@
                 "MaximumMessageSize",
                 "MessageRetentionPeriod",
                 "ReceiveMessageWaitTimeSeconds",
-                "VisibilityTimeout"               
+                {
+                    "Name" : "DeadLetterQueue",
+                    "Children" : [
+                        {
+                            "Name" : "MaxReceives",
+                            "Default" : 0
+                        },
+                        {
+                            "Name" : "Enabled",
+                            "Default" : true
+                        }
+                    ]
+                },
+                "VisibilityTimeout"
             ],
         "task" : 
             [

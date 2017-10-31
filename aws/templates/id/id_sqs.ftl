@@ -8,6 +8,13 @@
                 ids)]
 [/#function]
 
+[#function formatDependentSQSId resourceId extensions...]
+    [#return formatDependentResourceId(
+                SQS_RESOURCE_TYPE,
+                resourceId,
+                extensions)]
+[/#function]
+
 [#function formatComponentSQSId tier component extensions...]
     [#return formatComponentResourceId(
                 SQS_RESOURCE_TYPE,

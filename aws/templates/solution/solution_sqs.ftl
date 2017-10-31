@@ -8,6 +8,9 @@
                             tier,
                             component,
                             occurrence)]
+        [#assign dlqId = formatDependentSQSId(
+                            sqsId,
+                            "dlq")]
         [#assign sqsName = (sqs.Name != "SQS")?then(
                                 formatName(
                                     sqs.Name,
@@ -17,6 +20,9 @@
                                     segmentName,
                                     componentName,
                                     occurrence))]
+        [#assign dlqName = formatName(
+                            sqsName,
+                            "dlq")]
         [#assign sqsDimensions =
             [
                 {
@@ -25,7 +31,20 @@
                 }
             ]
         ]
-        
+
+        [#assign dlqRequired =
+            (occurrence.DeadLetterQueueIsConfigured &&
+                occurrence.DeadLetterQueue.Enabled) ||
+            ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
+        [#if dlqRequired]
+            [@createSQSQueue
+                mode=solutionListMode
+                id=dlqId
+                name=dlqName
+                retention=1209600
+                receiveWait=20
+            /]
+        [/#if]
         [@createSQSQueue
             mode=solutionListMode
             id=sqsId
@@ -35,6 +54,12 @@
             retention=occurrence.MessageRetentionPeriod
             receiveWait=occurrence.ReceiveMessageWaitTimeSeconds
             visibilityTimout=occurrence.VisibilityTimeout
+            dlq=valueIfTrue(dlqId, dlqRequired, "")
+            dlqReceives=
+                valueIfTrue(
+                  occurrence.DeadLetterQueue.MaxReceives,
+                  occurrence.DeadLetterQueue.MaxReceives > 0,
+                  (environmentObject.Operations.DeadLetterQueue.MaxReceives)!1)
         /]
 
         [#switch solutionListMode]

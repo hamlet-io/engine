@@ -650,6 +650,9 @@
                 "FlowLogs" : {
                     "Enabled" : true,
                     "Expiration" : 7
+                },
+                "DeadLetterQueue" : {
+                  "MaxReceives" : 1000
                 }
             },
             "DomainBehaviours" : {
