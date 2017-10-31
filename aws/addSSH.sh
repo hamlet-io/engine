@@ -68,8 +68,8 @@ fi
 
 # Create an SSH certificate at the product level
 mkdir -p "${CREDENTIALS_DIR}"
-. ${GENERATION_DIR}/createSSHCertificate.sh "${CREDENTIALS_DIR}"
+create_pki_credentials "${CREDENTIALS_DIR}"
 
 # Check that the SSH certificate has been defined in AWS
-${GENERATION_DIR}/manageSSHCertificate.sh -i ${SSH_ID} -p ${CREDENTIALS_DIR}/aws-ssh-crt.pem -r ${REGION}
+update_ssh_credentials ${REGION} ${SSH_ID} ${CREDENTIALS_DIR}/aws-ssh-crt.pem
 RESULT=$?

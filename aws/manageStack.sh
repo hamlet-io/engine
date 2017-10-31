@@ -273,20 +273,25 @@ function main() {
   pushd ${CF_DIR} > /dev/null 2>&1
 
   # Run the prologue script if present
-  [[ -s "${PROLOGUE}" ]] && { . "${PROLOGUE}" || return $?; }
+  # Refresh the stack outputs in case something from pseudo stack is needed
+  [[ -s "${PROLOGUE}" ]] && \
+    { info "Processing prologue script ..." && . "${PROLOGUE}" && assemble_composite_stack_outputs || return $?; }
 
   # Update any file based configuration
   copy_cmdb_files || return $?
   
   # Update any config file
-  [[ -f "${CONFIG}" ]] && { copy_config_file "${CONFIG}" || return $?; }
+  [[ -f "${CONFIG}" ]] && \
+    { info "Copying config file ..." && copy_config_file "${CONFIG}" || return $?; }
 
   # Process the stack
   [[ -f "${TEMPLATE}" ]] && { process_stack || return $?; }
   
   # Run the epilogue script if present
-  # Refresh te stack outputs in case something from the just created stack is needed
-  [[ -s "${EPILOGUE}" ]] && { assemble_composite_stack_outputs; . "${PROLOGUE}" || return $?; }
+  # Refresh the stack outputs in case something from the just created stack is needed
+  # by the epilogue script
+  [[ -s "${EPILOGUE}" ]] && \
+  { info "Processing epilogue script ..." && assemble_composite_stack_outputs && . "${EPILOGUE}" || return $?; }
 
   return 0
 }
