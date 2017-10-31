@@ -137,7 +137,7 @@
                 [/#if]
 
                 [#assign linkPolicies = [] ]
-                [#list currentContainer.Links as name,value]
+                [#list context.Links as name,value]
                     [#assign linkPolicies += (value.Policy)![] ]
                 [/#list]
 
