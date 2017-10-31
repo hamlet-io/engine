@@ -25,8 +25,8 @@
         outputId=s3OperationsId
     /]
 
-    [#-- TODO: when Cloud Formation supports it, create an access identity for the segment --]
-    [#-- For now, create it via the console and save in a manual stack --]
+    [#-- TODO(mfl): when Cloud Formation supports it, create an access identity for the segment --]
+    [#-- For now it is created by the epilogue script for the cmk --]
     [#assign cfAccess =
         getExistingReference(formatDependentCFAccessId(s3OperationsId), CANONICAL_ID_ATTRIBUTE_TYPE)]
             

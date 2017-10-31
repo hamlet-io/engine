@@ -31,12 +31,13 @@
     [/#if]
     [#if deploymentSubsetRequired("epilogue", false)]
         [#if sshPerSegment]
-            [#-- Make sure SSH credenitals are in place --]
+            [#-- Make sure SSH credentials are in place --]
             [@cfScript
                 mode=applicationListMode
                 content=
                     [
                         "function manage_ssh_credentials() {"
+                        "  info \"Checking SSH credentials ...\"",
                         "  #",
                         "  # Create SSH credential for the segment",
                         "  mkdir -p \"$\{SEGMENT_CREDENTIALS_DIR}\"",
@@ -46,7 +47,14 @@
                         "  update_ssh_credentials" + " " +
                             "\"" + regionId + "\" " +
                             "\"" + productName + "-" + segmentName + "\" " +
-                            "\"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-crt.pem\""
+                            "\"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-crt.pem\" || return $?",
+                        "  [[ -f \"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem.plaintext\" ]] && ",
+                        "    { encrypt_file" + " " +
+                               "\"" + regionId + "\"" + " " +
+                               "segment" + " " +
+                               "\"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem.plaintext\"" + " " +
+                               "\"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem\" || return $?; }",
+                        "  return 0"
                         "}",
                         "#",
                         "case $\{STACK_OPERATION} in",
@@ -66,6 +74,7 @@
             content=
                 [
                     "function manage_oai_credentials() {"
+                    "  info \"Checking OAI credentials ...\"",
                     "  #",
                     "  local oai_file=\"./temp_oai.json\"",
                     "  update_oai_credentials" + " " +
