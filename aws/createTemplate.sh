@@ -256,7 +256,7 @@ function main() {
       esac
     else
       # Remove any previous version
-      rm "${output_file}"
+      [[ -f "${output_file}" ]] && rm "${output_file}"
     fi
   done
 
