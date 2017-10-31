@@ -254,6 +254,9 @@ function main() {
           jq --indent 4 '.' < "${temp_output_file}" > "${output_file}"
           ;;
       esac
+    else
+      # Remove any previous version
+      rm "${output_file}"
     fi
   done
 
