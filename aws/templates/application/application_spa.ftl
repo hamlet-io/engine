@@ -110,7 +110,7 @@
                 mode=applicationListMode
                 content=
                   [
-                      "function get_spa_file() {
+                      "function get_spa_file() {",
                       "  #",
                       "  # Temporary dir for the spa file",
                       "  mkdir -p ./temp_spa",
