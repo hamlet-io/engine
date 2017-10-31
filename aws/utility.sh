@@ -492,5 +492,59 @@ function deleteTreeFromBucket() {
   local optional_arguments=("$@")
 
   # Delete everything below the prefix
-  aws --region ${region} s3 rm "${optional_arguments[@]}" --recursive "s3://${bucket}/${prefix}/"
+  aws --region "${region}" s3 rm "${optional_arguments[@]}" --recursive "s3://${bucket}/${prefix}/"
+}
+
+# -- PKI --
+
+function create_pki_credentials() {
+  local dir="$1"; shift
+
+  if [[ (! -f "${dir}/aws-ssh-crt.pem") &&
+        (! -f "${dir}/aws-ssh-prv.pem") ]]; then
+      openssl genrsa -out "${dir}/aws-ssh-prv.pem" 2048 || return $?
+      openssl rsa -in "${dir}/aws-ssh-prv.pem" -pubout > "${dir}/aws-ssh-crt.pem" || return $?
+  fi
+
+  return 0
+}
+
+# -- SSH --
+
+function update_ssh_credentials() {
+  local region="$1"; shift
+  local name="$1"; shift
+  local crt_file="$1"; shift
+
+  local crt_content=
+
+  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}" ||
+    { crt_content=$(dos2unix < "${crt_file}" | awk 'BEGIN {RS="\n"} /^[^-]/ {printf $1}'); \
+    aws --region "${region}" ec2 import-key-pair --key-name "${name}" --public-key-material "${crt_content}"; }
+}
+
+# -- OAI --
+
+function update_oai_credentials() {
+  local region="$1"; shift
+  local name="$1"; shift
+  local result_file="${1:-./temp_oai_list.json}"; shift
+
+  local oai_id=
+  local oai_canonicalid=
+
+  # Check for existing identity
+  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_list.json || return $?  
+  jq ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\")" < ./temp_oai_list.json > "${result_file}" || return $?
+  oai_id=$(jq -r ".Id" < "${result_file}") || return $?
+
+  # Create if not there already
+  if [[ -z "${oai_id}" ]]; then
+    aws --region "${region}" cloudfront create-cloud-front-origin-access-identity \
+      --cloud-front-origin-access-identity-config "\"Comment\" : \"${name}\"}" > "${result_file}" || return $?
+  fi
+
+  cat "${result_file}"
+
+  return 0
 }

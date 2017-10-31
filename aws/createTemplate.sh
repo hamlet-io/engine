@@ -116,6 +116,10 @@ function main() {
   if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
       deployment_unit_subset_prefix="${DEPLOYMENT_UNIT_SUBSET,,}-"
   fi
+
+  # Default subsets (if any)
+  subsets=("${DEPLOYMENT_UNIT_SUBSET}")
+
   case $LEVEL in
     account)
       cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/aws/cf"
@@ -142,6 +146,7 @@ function main() {
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
       level_prefix="soln-"
       template_composites+=("SOLUTION" )
+      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "config" "prologue" "epilogue")
 
       if [[ -f "${cf_dir}/solution-${REGION}-template.json" ]]; then
         level_prefix="solution-"
@@ -153,6 +158,7 @@ function main() {
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
       level_prefix="seg-"
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
+      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "config" "prologue" "epilogue")
 
       # LEGACY: Support old formats for existing stacks so they can be updated 
       if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
@@ -179,6 +185,7 @@ function main() {
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
       level_prefix="app-"
       template_composites+=("APPLICATION" "CONTAINER" )
+      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "config" "prologue" "epilogue")
       ;;
 
     multiple)
@@ -191,23 +198,20 @@ function main() {
       fatalCantProceed "\"${LEVEL}\" is not one of the known stack levels."
       ;;
   esac
-  
+
   # Define the different subsets
-  [[ ("${LEVEL}" == "application") ]] &&
-    subsets=("${DEPLOYMENT_UNIT_SUBSET}" "config" "prologue" "epilogue") ||
-    subsets=("${DEPLOYMENT_UNIT_SUBSET}")
   output_suffix=("template.json" "config.json" "prologue.sh" "epilogue.sh")
   output_prefix="${level_prefix}${deployment_unit_prefix}${deployment_unit_subset_prefix}${region_prefix}"
-  
+
   # Ensure the aws tree for the templates exists
   [[ ! -d ${cf_dir} ]] && mkdir -p ${cf_dir}
-  
+
   # Args common across all passes
   args=()
   [[ -n "${DEPLOYMENT_UNIT}" ]]        && args+=("-v" "deploymentUnit=${DEPLOYMENT_UNIT}")
   [[ -n "${BUILD_DEPLOYMENT_UNIT}" ]]  && args+=("-v" "buildDeploymentUnit=${BUILD_DEPLOYMENT_UNIT}")
   [[ -n "${BUILD_REFERENCE}" ]]        && args+=("-v" "buildReference=${BUILD_REFERENCE}")
-  
+
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
   # It shouldn't affect other platforms as it won't be matched

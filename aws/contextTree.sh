@@ -9,16 +9,16 @@
 function parse_stack_filename() {
   local file="$1"; shift
 
-  # Parse stack name for key values
+  # Parse file name for key values
   # Assume Account is part of the stack filename
-  if contains "$(fileName "${file}")" "([a-z0-9]+)-(.+)-([1-9][0-9]{10})-([a-z]{2}-[a-z]+-[1-9])-stack.json"; then
+  if contains "$(fileName "${file}")" "([a-z0-9]+)-(.+)-([1-9][0-9]{10})-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)"; then
     stack_level="${BASH_REMATCH[1]}"
     stack_deployment_unit="${BASH_REMATCH[2]}"
     stack_account="${BASH_REMATCH[3]}"
     stack_region="${BASH_REMATCH[4]}"
     return 0
   fi
-  if contains "$(fileName "${file}")" "([a-z0-9]+)-(.+)-([a-z]{2}-[a-z]+-[1-9])-stack.json"; then
+  if contains "$(fileName "${file}")" "([a-z0-9]+)-(.+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)"; then
     stack_level="${BASH_REMATCH[1]}"
     stack_deployment_unit="${BASH_REMATCH[2]}"
     stack_region="${BASH_REMATCH[3]}"
@@ -27,6 +27,71 @@ function parse_stack_filename() {
   fi
 
   return 1
+}
+
+function add_standard_pairs_to_stack() {
+  local account="$1"; shift
+  local region="$1"; shift
+  local level="$1"; shift
+  local deployment_unit="$1"; shift
+  local input_file="$1"; shift
+  local output_file="$1"; shift
+
+  local result_file="./temp_add_standard_pairs_to_stack.json"
+
+  runJQ -f ${GENERATION_DIR}/formatOutputs.jq \
+    --arg Account "${account}" \
+    --arg Region "${region}" \
+    --arg Level "${level}" \
+    --arg DeploymentUnit "${deployment_unit}" \
+    < "${input_file}" > "${result_file}" || return $?
+
+  # Copy/overwrite the output
+  [[ -n "${output_file}" ]] && \
+    cp "${result_file}" "${output_file}" ||
+    cp "${result_file}" "${input_file}"
+}
+
+function create_pseudo_stack() {
+  local comment="$1"; shift
+  local file="$1"; shift
+  local pairs=("$@")
+
+  local temp_file="./temp_create_pseudo_stack.json"
+
+  # TODO(mfl): Probably a more elegant way to do this with jq
+
+  # Create the name/value pairs
+  cat << EOF > "${temp_file}"
+{
+  "Stacks": [
+    {
+      "Comment": "${comment}",
+      "Outputs": [
+EOF
+  # now the keypairs
+  for ((i=0; i<${#pairs[@]}; i++)); do
+    [[ (i -gt 0) && (i%2 -eq 0) ]] && echo "," >> "${temp_file}"
+    [[ i%2 -eq 0 ]] && \
+    cat << EOF >> "${temp_file}"
+        {
+            "OutputKey": "${pairs[i]}",
+EOF
+    [[ i%2 -ne 0 ]] && \
+    cat << EOF >> "${temp_file}"
+            "OutputValue": "${pairs[i]}"
+        }
+EOF
+  done
+
+  cat << EOF >> "${temp_file}"
+      ]
+    }
+  ]
+}
+EOF
+
+  runJQ --indent 4 "." < "${temp_file}" > "${file}"
 }
 
 function assemble_composite_stack_outputs() {
@@ -39,9 +104,9 @@ function assemble_composite_stack_outputs() {
   [[ (-n "${ACCOUNT}") ]] &&
       addToArray "stack_array" "${ACCOUNT_INFRASTRUCTURE_DIR}"/aws/cf/acc*-stack.json
   [[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
-      addToArray "stack_array" "${PRODUCT_INFRASTRUCTURE_DIR}"/aws/cf/product*-${REGION}-stack.json
+      addToArray "stack_array" "${PRODUCT_INFRASTRUCTURE_DIR}"/aws/cf/product*-"${REGION}"*-stack.json
   [[ (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
-      addToArray "stack_array" "${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}"/cf/*-"${REGION}"-stack.json
+      addToArray "stack_array" "${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}"/cf/*-"${REGION}"*-stack.json
 
   ${restore_nullglob}
 
@@ -51,19 +116,25 @@ function assemble_composite_stack_outputs() {
     # Add default account, region, stack level and deployment unit
     local modified_stack_array=()
     for stack in "${stack_array[@]}"; do
+      # Ignore any existing temp files
+      [[ "${stack}" =~ temp_ ]] && continue
+
+      # Annotate as necessary
       if parse_stack_filename "${stack}"; then
         modified_stack_filename="temp_$(fileName "${stack}")"
-        runJQ -f ${GENERATION_DIR}/formatOutputs.jq \
-          --arg Account "${stack_account:-${AWSID}}" \
-          --arg Region "${stack_region}" \
-          --arg Level "${stack_level}" \
-          --arg DeploymentUnit "${stack_deployment_unit}" \
-          < "${stack}" > "${modified_stack_filename}"
+        add_standard_pairs_to_stack \
+          "${stack_account:-${AWSID}}" \
+          "${stack_region}" \
+          "${stack_level}" \
+          "${stack_deployment_unit}" \
+          "${stack}" \
+          "${modified_stack_filename}"
         modified_stack_array+=("${modified_stack_filename}")
       else
         modified_stack_array+=("${stack}")
       fi
     done
+    debug "MODIFIED_STACK_OUTPUTS=${modified_stack_array[*]}"
     ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o ${COMPOSITE_STACK_OUTPUTS} "${modified_stack_array[@]}"
   else
     echo "[]" > ${COMPOSITE_STACK_OUTPUTS}
@@ -357,5 +428,3 @@ function isValidUnit() {
   # Return result
   grep -iw "${unit}" <<< "${UNITS_ARRAY[*]}" >/dev/null 2>&1
 }
-
-# All good

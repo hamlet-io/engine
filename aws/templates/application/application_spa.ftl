@@ -110,19 +110,26 @@
                 mode=applicationListMode
                 content=
                   [
-                      "# Temporary dir for the spa file",
-                      "mkdir -p ./temp_spa",
-                      "# Fetch the spa zip file",
-                      "copyFilesFromBucket " + 
-                        regionId + " " + 
-                        getRegistryEndPoint("spa") + " " +
-                        formatRelativePath(
-                            getRegistryPrefix("spa") + productName,
-                            buildDeploymentUnit,
-                            buildCommit) + " " +
-                        "./temp_spa",
-                      "# Sync with the operations bucket",
-                      "copy_spa_file ./temp_spa/spa.zip"
+                      "function get_spa_file() {
+                      "  #",
+                      "  # Temporary dir for the spa file",
+                      "  mkdir -p ./temp_spa",
+                      "  #",
+                      "  # Fetch the spa zip file",
+                      "  copyFilesFromBucket" + " " +
+                          regionId + " " + 
+                          getRegistryEndPoint("spa") + " " +
+                          formatRelativePath(
+                              getRegistryPrefix("spa") + productName,
+                              buildDeploymentUnit,
+                              buildCommit) + " " +
+                      "   ./temp_spa || return $?",
+                      "  #",
+                      "  # Sync with the operations bucket",
+                      "  copy_spa_file ./temp_spa/spa.zip",
+                      "}",
+                      "#",
+                      "get_spa_file"
                   ]
             /]
         [/#if]
