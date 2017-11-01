@@ -59,7 +59,10 @@
                         "#",
                         "case $\{STACK_OPERATION} in",
                         "  delete)",
-                        "    # For safety, don't delete automatically",
+                        "    delete_ssh_credentials " + " " +
+                            "\"" + regionId + "\" " +
+                            "\"" + productName + "-" + segmentName + "\" || return $?",
+                        "    delete_pki_credentials \"$\{SEGMENT_CREDENTIALS_DIR}\" || return $?",
                         "    ;;",
                         "  create|update)",
                         "    manage_ssh_credentials || return $?",
@@ -94,7 +97,9 @@
                     "#",
                     "case $\{STACK_OPERATION} in",
                     "  delete)",
-                    "    # For safety, don't delete automatically",
+                    "  delete_oai_credentials" + " " +
+                        "\"" + regionId + "\" " +
+                        "\"" + productName + "-" + segmentName + "\" || return $?",
                     "    ;;",
                     "  create|update)",
                     "    manage_oai_credentials || return $?",

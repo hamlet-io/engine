@@ -517,6 +517,11 @@ EOF
   return 0
 }
 
+function delete_pki_credentials() {
+  local dir="$1"; shift
+
+  rm -f "${dir}/aws-ssh-crt*" "${dir}/aws-ssh-prv*"
+}
 # -- SSH --
 
 function update_ssh_credentials() {
@@ -531,6 +536,15 @@ function update_ssh_credentials() {
     aws --region "${region}" ec2 import-key-pair --key-name "${name}" --public-key-material "${crt_content}"; }
 }
 
+function delete_ssh_credentials() {
+  local region="$1"; shift
+  local name="$1"; shift
+
+  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}" && \
+    aws --region "${region}" ec2 delete-key-pair --key-name "${name}" || return $? }
+  return 0
+}
+
 # -- OAI --
 
 function update_oai_credentials() {
@@ -538,9 +552,7 @@ function update_oai_credentials() {
   local name="$1"; shift
   local result_file="${1:-./temp_update_oai.json}"; shift
 
-  local return_code=
   local oai_id=
-  local oai_canonicalid=
 
   # Check for existing identity
   aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_list.json || return $?
@@ -556,6 +568,24 @@ function update_oai_credentials() {
   fi
 
   cat "${result_file}"
+
+  return 0
+}
+
+function delete_oai_credentials() {
+  local region="$1"; shift
+  local name="$1"; shift
+
+  local oai_id=
+
+  # Check for existing identity
+  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_list.json || return $?
+  oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id") < ./temp_oai_list.json > "${result_file}" || return $?
+
+  # delete if present
+  if [[ -n "${oai_id}" ]]; then
+    aws --region "${region}" cloudfront delete-cloud-front-origin-access-identity --id "${oai_id}" || return $?
+  fi
 
   return 0
 }
