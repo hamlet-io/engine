@@ -579,8 +579,8 @@ function delete_oai_credentials() {
   local oai_id=
 
   # Check for existing identity
-  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_list.json || return $?
-  oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id") < ./temp_oai_list.json > "${result_file}" || return $?
+  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_delete.json || return $?
+  oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id" < ./temp_oai_delete.json) || return $?
 
   # delete if present
   if [[ -n "${oai_id}" ]]; then
