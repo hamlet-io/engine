@@ -61,7 +61,7 @@
                         "  delete)",
                         "    # For safety, don't delete automatically",
                         "    ;;",
-                        "  update)",
+                        "  create|update)",
                         "    manage_ssh_credentials || return $?",
                         "    ;;",
                         " esac"
@@ -96,7 +96,7 @@
                     "  delete)",
                     "    # For safety, don't delete automatically",
                     "    ;;",
-                    "  update)",
+                    "  create|update)",
                     "    manage_oai_credentials || return $?",
                     "    ;;",
                     " esac"
