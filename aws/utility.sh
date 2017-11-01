@@ -550,7 +550,7 @@ function update_oai_credentials() {
   # Create if not there already
   if [[ -z "${oai_id}" ]]; then
     aws --region "${region}" cloudfront create-cloud-front-origin-access-identity \
-      --cloud-front-origin-access-identity-config "{\"Comment\" : \"${name}\"}" > "${result_file}" || return $?
+      --cloud-front-origin-access-identity-config "{\"Comment\" : \"${name}\", \"CallerReference\" : \"${name}\"}" > "${result_file}" || return $?
   fi
 
   cat "${result_file}"
