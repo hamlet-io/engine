@@ -97,7 +97,7 @@ function copy_cmdb_files() {
         deleteCMDBFilesFromOperationsBucket "credentials" || return $?
         ;;
   
-      update)
+      create|update)
         syncCMDBFilesToOperationsBucket "${SEGMENT_APPSETTINGS_DIR}" \
           "appsettings" ${DRYRUN} || return $?
         syncCMDBFilesToOperationsBucket "${SEGMENT_CREDENTIALS_DIR}" \
@@ -118,7 +118,7 @@ function copy_config_file() {
     delete)
       # Nothing to do as synch will use an empty directory
       ;;
-    update)
+    create|update)
       cp "$1" "./temp_config/config.json"
       files+=("./temp_config/config.json")
       ;;
@@ -140,7 +140,7 @@ function copy_spa_file() {
     delete)
       # Nothing to do as synch will use an empty directory
       ;;
-    update)
+    create|update)
       files+=("$1")
       ;;
   esac
