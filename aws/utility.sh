@@ -549,8 +549,10 @@ function update_oai_credentials() {
 
   # Create if not there already
   if [[ -z "${oai_id}" ]]; then
+    set -o pipefail
     aws --region "${region}" cloudfront create-cloud-front-origin-access-identity \
-      --cloud-front-origin-access-identity-config "{\"Comment\" : \"${name}\", \"CallerReference\" : \"${name}\"}" > "${result_file}" || return $?
+      --cloud-front-origin-access-identity-config "{\"Comment\" : \"${name}\", \"CallerReference\" : \"${name}\"}" | jq ".CloudFrontOriginAccessIdentity" > "${result_file}" || return $?
+    set +o pipefail
   fi
 
   cat "${result_file}"
