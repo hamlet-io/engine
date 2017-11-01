@@ -540,8 +540,8 @@ function delete_ssh_credentials() {
   local region="$1"; shift
   local name="$1"; shift
 
-  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}" && \
-    aws --region "${region}" ec2 delete-key-pair --key-name "${name}" || return $? }
+  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}" > /dev/null 2>&1 && \
+    { aws --region "${region}" ec2 delete-key-pair --key-name "${name}"; return $? }
   return 0
 }
 
