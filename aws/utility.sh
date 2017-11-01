@@ -578,14 +578,20 @@ function delete_oai_credentials() {
   local name="$1"; shift
 
   local oai_id=
+  local oai_etag=
 
   # Check for existing identity
   aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_delete.json || return $?
   oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id" < ./temp_oai_delete.json) || return $?
-
+  
   # delete if present
-  [[ -n "${oai_id}" ]] &&
-    { aws --region "${region}" cloudfront delete-cloud-front-origin-access-identity --id "${oai_id}" || return $?; }
+  if [[ -n "${oai_id}" ]]; then
+    # Retrieve the ETag value
+    aws --region "${region}" cloudfront get-cloud-front-origin-access-identity --id "${oai_id}" > ./temp_oai_delete.json || return $?
+    oai_etag=$(jq -r ".ETag" < ./temp_oai_delete.json) || return $?
+    # Delete the OAI
+    aws --region "${region}" cloudfront delete-cloud-front-origin-access-identity --id "${oai_id}" --if-match "${oai_etag}" || return $?
+  fi
 
   return 0
 }
