@@ -541,7 +541,8 @@ function delete_ssh_credentials() {
   local name="$1"; shift
 
   aws --region "${region}" ec2 describe-key-pairs --key-name "${name}" > /dev/null 2>&1 && \
-    { aws --region "${region}" ec2 delete-key-pair --key-name "${name}"; return $? }
+    { aws --region "${region}" ec2 delete-key-pair --key-name "${name}" || return $?; }
+
   return 0
 }
 
@@ -583,9 +584,8 @@ function delete_oai_credentials() {
   oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id" < ./temp_oai_delete.json) || return $?
 
   # delete if present
-  if [[ -n "${oai_id}" ]]; then
-    aws --region "${region}" cloudfront delete-cloud-front-origin-access-identity --id "${oai_id}" || return $?
-  fi
+  [[ -n "${oai_id}" ]] &&
+    { aws --region "${region}" cloudfront delete-cloud-front-origin-access-identity --id "${oai_id}" || return $?; }
 
   return 0
 }
