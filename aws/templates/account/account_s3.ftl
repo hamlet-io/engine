@@ -23,7 +23,7 @@
     [#list buckets as bucket]
     
         [#-- TODO: Should be using formatAccountS3Id() not formatS3Id() --]
-        [#-- TODO: Remove alternate id parameter below when TODO addressed --]
+        [#-- TODO: Remove outputId parameter below when TODO addressed --]
         
         [#assign existingName = getExistingReference(formatAccountS3Id(bucket))]
         [@createS3Bucket
@@ -33,7 +33,7 @@
                 existingName?has_content?then(
                     existingName,
                     formatName("account", bucket, accountObject.Seed))
-            alternateId=formatAccountS3Id(bucket)
+            outputId=formatAccountS3Id(bucket)
         /]
     [/#list]
 [/#if]
