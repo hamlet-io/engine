@@ -26,7 +26,7 @@
         [#-- TODO: Remove alternate id parameter below when TODO addressed --]
         
         [#assign existingName = getExistingReference(formatAccountS3Id(bucket))]
-        [@createS3bucket
+        [@createS3Bucket
             mode=accountListMode
             id=formatS3Id(bucket)
             name=
