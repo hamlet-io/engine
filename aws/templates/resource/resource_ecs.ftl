@@ -66,8 +66,8 @@
                 {
                     "Name" : container.Name,
                     "Image" : container.Image +
-                                container.Version?has_content?then(
-                                    ":" + container.Version,
+                                container.ImageVersion?has_content?then(
+                                    ":" + container.ImageVersion,
                                     ""
                                 ),
                     "Essential" : container.Essential,
