@@ -36,8 +36,8 @@
         getDynamodbTableStatement(
             [
                 "dynamodb:BatchGetItem",
-                "dynamodb:Get*",
-                "dynamodb:List*",
+                "dynamodb:GetItem",
+                "dynamodb:ListTagsOfResource",
                 "dynamodb:Query"
             ],
             table)]
