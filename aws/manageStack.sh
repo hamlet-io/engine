@@ -156,7 +156,7 @@ function process_stack() {
 
   local stack_status_file="${CF_DIR}/temp_stack_status"
   local operation_to_check=
-  local exit_status=
+  local exit_status=0
   local status_attribute=
 
   case ${STACK_OPERATION} in
@@ -236,7 +236,8 @@ function process_stack() {
         exit_status=$?
       fi
   
-      [[ ("${STACK_OPERATION}" == "delete") && ("${exit_status}" -eq 255) ]] && break
+      [[ ("${STACK_OPERATION}" == "delete") && ("${exit_status}" -eq 255) ]] &&
+        { exit_status=0; break; }
 
       # Check the latest status
       grep "${status_attribute}" "${STACK}" > "${stack_status_file}"
@@ -264,7 +265,7 @@ function process_stack() {
   # Results of dryrun if required
   [[ -n "${DRYRUN}" ]] && cat "${STACK}"
 
-  return 0
+  return "${exit_status}"
 }
 
 function main() {
