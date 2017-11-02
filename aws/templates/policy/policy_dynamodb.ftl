@@ -7,10 +7,12 @@
                 actions,
                 formatRegionalArn(
                     "dynamodb",
-                    formatTypedArnResource(
-                        "table", 
-                        productName + "_" + segmentName + "_" + table,
-                        "/")),
+                    table?has_content?then(
+                        formatTypedArnResource(
+                            "table", 
+                            productName + "_" + segmentName + "_" + table,
+                            "/"),
+                        "*")),
                 principals,
                 conditions)
         ]
@@ -21,7 +23,7 @@
     [#return
         getDynamodbTableStatement(
             "dynamodb:*",
-            table) ]
+            "") ]
 [/#function]
 
 [#function dynamodbAllPermission table="*"]
