@@ -31,24 +31,25 @@
 
 [#-- Container List Macros --]
 
-[#macro Attributes name="" image="" essential=true]
+[#macro Attributes name="" image="" version="" essential=true]
     [#if (containerListMode!"") == "model"]
         [#assign context +=
             {
                 "Essential" : essential
             } +
             attributeIfContent("Name", name) +
-            attributeIfContent("Image", image, formatRelativePath(getRegistryEndPoint("docker"), image))
+            attributeIfContent("Image", image, formatRelativePath(getRegistryEndPoint("docker"), image)) +
+            attributeIfContent("ImageVersion", version)
         ]
     [/#if]
 [/#macro]
 
 [#macro Link name link attribute="Url"]
     [#if (containerListMode!"") == "model"]
-        [#assign currentContainer +=
+        [#assign context +=
             {
                 "Environment" :
-                  (currentContainer.Environment!{}) +
+                  (context.Environment!{}) +
                   {
                       name  : (context.Links[link][attribute])!""
                   }
@@ -59,9 +60,9 @@
 
 [#macro Variable name value]
     [#if (containerListMode!"") == "model"]
-        [#assign currentContainer +=
+        [#assign context +=
             {
-                "Environment" : (currentContainer.Environment!{}) + { name : value }
+                "Environment" : (context.Environment!{}) + { name : value }
             }
         ]
     [/#if]
@@ -69,9 +70,9 @@
 
 [#macro Variables variables={}]
     [#if ((containerListMode!"") == "model") && variables?is_hash]
-        [#assign currentContainer +=
+        [#assign context +=
             {
-                "Environment" : (currentContainer.Environment!{}) + variables
+                "Environment" : (context.Environment!{}) + variables
             }
         ]
     [/#if]
@@ -79,9 +80,9 @@
 
 [#macro Host name value]
     [#if (containerListMode!"") == "model"]
-        [#assign currentContainer +=
+        [#assign context +=
             {
-                "Hosts" : (currentContainer.Hosts!{}) + { name : value }
+                "Hosts" : (context.Hosts!{}) + { name : value }
             }
         ]
     [/#if]
@@ -89,9 +90,9 @@
 
 [#macro Hosts hosts]
     [#if ((containerListMode!"") == "model") && hosts?is_hash]
-        [#assign currentContainer +=
+        [#assign context +=
             {
-                "Hosts" : (currentContainer.Hosts!{}) + hosts
+                "Hosts" : (context.Hosts!{}) + hosts
             }
         ]
     [/#if]
@@ -99,10 +100,10 @@
 
 [#macro Volume name containerPath hostPath="" readonly=false]
     [#if (containerListMode!"") == "model"]
-        [#assign currentContainer +=
+        [#assign context +=
             {
                 "Volumes" :
-                    (currentContainer.Volumes!{}) + 
+                    (context.Volumes!{}) + 
                     {
                         name : {
                             "ContainerPath" : containerPath,
@@ -117,9 +118,9 @@
 
 [#macro Volumes volumes]
     [#if ((containerListMode!"") == "model") && volumes?is_hash]
-        [#assign currentContainer +=
+        [#assign context +=
             {
-                "Volumes" : (currentContainer.Volumes!{}) + volumes
+                "Volumes" : (context.Volumes!{}) + volumes
             }
         ]
     [/#if]
@@ -127,9 +128,9 @@
 
 [#macro Policy statements]
     [#if (containerListMode!"") == "model"]
-        [#assign currentContainer +=
+        [#assign context +=
             {
-                "Policy" : (currentContainer.Policy![]) + asArray(statements)
+                "Policy" : (context.Policy![]) + asArray(statements)
             }
         ]
     [/#if]
@@ -303,10 +304,12 @@
                     {}
                 )]
 
-            [#assign currentContainer = 
+            [#assign context = 
                 {
                     "Id" : getContainerId(container),
                     "Name" : getContainerName(container),
+                    "Instance" : task.InstanceId,
+                    "Version" : task.VersionId,
                     "Essential" : true,
                     "Image" :
                         formatRelativePath(
@@ -328,19 +331,13 @@
                             getContainerMode(container)) +
                         {
                             "AWS_REGION" : regionId
-                        }
+                        },
+                    "Links" : {}
                 } +
-                attributeIfContent("Version", container.Version!"") +
+                attributeIfContent("ImageVersion", container.Version!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
                 attributeIfContent("MaximumMemory", container.MaximumMemory!"") +
                 attributeIfContent("PortMappings", portMappings)
-            ]
-            [#assign context =
-                {
-                    "Instance" : task.InstanceId,
-                    "Version" : task.VersionId,
-                    "Links" : {}
-                }
             ]
 
             [#-- Add in container specifics including override of defaults --]
@@ -348,7 +345,7 @@
             [#assign containerId = formatContainerFragmentId(task, container)]
             [#include containerList]
             
-            [#local containers += [currentContainer] ]
+            [#local containers += [context] ]
         [/#if]
     [/#list]
     [#return containers]

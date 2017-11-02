@@ -17,7 +17,7 @@
                     occurrence.Container,
                     getComponentId(component)                            
                 ) ]
-            [#assign currentContainer = 
+            [#assign context = 
                 {
                     "Id" : containerId,
                     "Name" : containerId,
@@ -32,14 +32,7 @@
                             buildDeploymentUnit,
                             buildCommit,
                             "lambda.zip"
-                        )
-
-                }
-            ]
-            [#assign context =
-                {
-                    "Instance" : occurrence.InstanceId,
-                    "Version" : occurrence.VersionId,
+                        ),
                     "Links" : {}
                 }
             ]
@@ -107,7 +100,7 @@
 
             [#-- Add in container specifics including override of defaults --]
             [#assign containerListMode = "model"]
-            [#assign containerId = formatContainerFragmentId(occurrence, currentContainer)]
+            [#assign containerId = formatContainerFragmentId(occurrence, context)]
             [#include containerList?ensure_starts_with("/")]
 
             [#assign roleId = formatDependentRoleId(lambdaId)]
@@ -125,13 +118,13 @@
                         )
                 /]
                 
-                [#if currentContainer.Policy?has_content]
-                    [#assign policyId = formatDependentPolicyId(lambdaId, currentContainer)]
+                [#if context.Policy?has_content]
+                    [#assign policyId = formatDependentPolicyId(lambdaId, context)]
                     [@createPolicy
                         mode=applicationListMode
                         id=policyId
-                        name=currentContainer.Name
-                        statements=currentContainer.Policy
+                        name=context.Name
+                        statements=context.Policy
                         roles=roleId
                     /]
                 [/#if]
@@ -183,11 +176,11 @@
                         [@createLambdaFunction
                             mode=applicationListMode
                             id=lambdaFunctionId
-                            container=currentContainer +
+                            container=context +
                                 {
                                     "Handler" : fn.Handler!occurrence.Handler,
                                     "RunTime" : fn.RunTime!occurrence.RunTime,
-                                    "MemorySize" : fn.MemorySize!occurrence.MemorySize,
+                                    "MemorySize" : fn.Memory!fn.MemorySize!occurrence.Memory,
                                     "Timeout" : fn.Timeout!occurrence.Timeout,
                                     "UseSegmentKey" : fn.UseSegmentKey!occurrence.UseSegmentKey,
                                     "Name" : lambdaFunctionName,

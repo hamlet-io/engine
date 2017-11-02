@@ -270,31 +270,45 @@
 [#function getOccurrenceAttributes attributes=[] root={} instance={} version={} ]
     [#local result = {} ]
     [#list asArray(attributes) as attribute]
-        [#local attributeName = attribute?is_hash?then(attribute.Name, attribute) ]
+        [#local attributeNames = 
+            attribute?is_sequence?then(
+                attribute,
+                attribute?is_hash?then(
+                    attribute.Name?is_sequence?then(
+                        attribute.Name,
+                        [attribute.Name]),
+                    [attribute])) ]
         [#local children = attribute?is_hash?then(attribute.Children![], []) ]
         [#local attributeDefault = attribute?is_hash?then(attribute.Default!"","") ]
-        [#local isConfigured =
-                    version[attributeName]?? ||
-                    instance[attributeName]?? ||
-                    root[attributeName]?? ]
+
+        [#-- Look for the first named alternatives --]
+        [#local firstName = ""]
+        [#list attributeNames as attributeName]
+            [#if version[attributeName]?? ||
+                instance[attributeName]?? ||
+                root[attributeName]?? ]
+                [#local firstName = attributeName]
+            [/#if]
+        [/#list]
+
         [#local result +=
             {
-                attributeName + "IsConfigured": isConfigured
+                attributeNames[0] + "IsConfigured": firstName?has_content
             }
         ]
         [#local result +=
             {
-                attributeName :
+                attributeNames[0] :
                     children?has_content?then(
                         getOccurrenceAttributes(
                             children,
-                            root[attributeName]!{},
-                            instance[attributeName]!{},
-                            version[attributeName]!{}
+                            root[firstName]!{},
+                            instance[firstName]!{},
+                            version[firstName]!{}
                         ),
-                        version[attributeName]!
-                            instance[attributeName]!
-                            root[attributeName]!
+                        version[firstName]!
+                            instance[firstName]!
+                            root[firstName]!
                             attributeDefault
                     )
             }
@@ -405,7 +419,7 @@
                     "Default" : {}
                 },
                 {
-                    "Name" : "MemorySize",
+                    "Name" : ["Memory", "MemorySize"],
                     "Default" : 0
                 },
                 {

@@ -6,22 +6,18 @@
                 occurrence.Container,
                 getComponentId(component)                            
             ) ]
-        [#assign currentContainer = 
+        [#assign context = 
             {
                 "Id" : containerId,
                 "Name" : containerId,
+                "Instance" : occurrence.InstanceId,
+                "Version" : occurrence.VersionId,
                 "Environment" : 
                     {
                         "TEMPLATE_TIMESTAMP" : .now?iso_utc
                     } +
                     attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
-                    attributeIfContent("APP_REFERENCE", appReference!"")
-            }
-        ]
-        [#assign context =
-            {
-                "Instance" : occurrence.InstanceId,
-                "Version" : occurrence.VersionId,
+                    attributeIfContent("APP_REFERENCE", appReference!""),
                 "Links" : {}
             }
         ]
@@ -96,13 +92,13 @@
 
         [#-- Add in container specifics including override of defaults --]
         [#assign containerListMode = "model"]
-        [#assign containerId = formatContainerFragmentId(occurrence, currentContainer)]
+        [#assign containerId = formatContainerFragmentId(occurrence, context)]
         [#include containerList?ensure_starts_with("/")]
 
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig
                 mode=applicationListMode
-                content=currentContainer.Environment
+                content=context.Environment
             /]
         [/#if]
         [#if deploymentSubsetRequired("prologue", false)]
