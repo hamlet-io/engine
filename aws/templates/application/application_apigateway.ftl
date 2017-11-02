@@ -267,7 +267,7 @@
                         )
                     certificate=valueIfTrue(
                         getCFCertificate(
-                            appSettingsObject.CertificateId,
+                            appSettingsObject.CertificateId!"",
                             occurrence.CloudFront.AssumeSNI),
                         occurrence.DNSIsConfigured)
                     comment=cfName
