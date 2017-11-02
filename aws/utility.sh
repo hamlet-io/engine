@@ -534,6 +534,9 @@ function update_ssh_credentials() {
   aws --region "${region}" ec2 describe-key-pairs --key-name "${name}" > /dev/null 2>&1 ||
     { crt_content=$(dos2unix < "${crt_file}" | awk 'BEGIN {RS="\n"} /^[^-]/ {printf $1}'); \
     aws --region "${region}" ec2 import-key-pair --key-name "${name}" --public-key-material "${crt_content}"; }
+
+  # Show the current credential
+  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}"
 }
 
 function delete_ssh_credentials() {
@@ -568,6 +571,7 @@ function update_oai_credentials() {
     set +o pipefail
   fi
 
+  # Show the current credential
   cat "${result_file}"
 
   return 0
