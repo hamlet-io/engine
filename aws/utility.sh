@@ -225,7 +225,8 @@ function findFile() {
   local restore_globstar="$(shopt -p globstar)"
   shopt -s nullglob globstar
 
-  local matches=("$@")
+  # Note that any spaces in file specs must be escaped
+  local matches=($@)
 
   ${restore_nullglob}
   ${restore_globstar}
