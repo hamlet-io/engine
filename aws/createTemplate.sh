@@ -255,6 +255,8 @@ function main() {
           ;;
       esac
     else
+      warning "Ignoring empty ${subsets[${pass_index}]} file ..."
+
       # Remove any previous version
       [[ -f "${output_file}" ]] && rm "${output_file}"
     fi
