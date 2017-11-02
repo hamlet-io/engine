@@ -31,20 +31,50 @@
             table)]
 [/#function]
 
-[#function dynamodbProducePermission table="*"]
-    [#return [] ]
-[/#function]
-
-[#function dynamodbConsumePermission table="*"]
-    [#return [] ]
-[/#function]
-
 [#function dynamodbReadPermission table="*"]
-    [#return [] ]
+    [#return
+        getDynamodbTableStatement(
+            [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Get*",
+                "dynamodb:List*",
+                "dynamodb:Query"
+            ],
+            table)]
 [/#function]
 
 [#function dynamodbWritePermission table="*"]
-    [#return [] ]
+    [#return
+        getDynamodbTableStatement(
+            [
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:TagResource",
+                "dynamodb:UntagResource"
+            ],
+            table)]
+[/#function]
+
+[#function dynamodbDeletePermission table="*"]
+    [#return
+        getDynamodbTableStatement(
+            [
+                "dynamodb:DeleteItem"
+            ],
+            table)]
+[/#function]
+
+[#function dynamodbProducePermission table="*"]
+    [#return
+        dynamodbReadPermission(table) +
+        dynamodbWritePermission(table)]
+[/#function]
+
+[#function dynamodbConsumePermission table="*"]
+    [#return
+        dynamodbReadPermission(table) +
+        dynamodbDeletePermission(table)]
 [/#function]
 
 
