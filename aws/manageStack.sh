@@ -248,7 +248,7 @@ function process_stack() {
 
       # Abort if not still in progress
       egrep "(${operation_to_check}).*_IN_PROGRESS\"" "${stack_status_file}"  >/dev/null 2>&1 ||
-        {exit_status=$?; break; }
+        { exit_status=$?; break; }
 
       # All good, wait a while longer
       sleep ${STACK_WAIT}
