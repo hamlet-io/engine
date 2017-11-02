@@ -295,7 +295,7 @@
             tier=tier
             component=sshComponent
             id=sshToProxySecurityGroupId
-            name=formatSegmentFullName(tier, sshComponent)
+            name=formatComponentFullName(tier, sshComponent)
             description="Security Group for inbound SSH to the SSH Proxy"
             ingressRules=
                 [
@@ -319,7 +319,7 @@
             tier="all"
             component=sshComponent
             id=sshFromProxySecurityGroupId
-            name=formatSegmentFullName("all", sshComponent)
+            name=formatComponentFullName("all", sshComponent)
             description="Security Group for SSH access from the SSH Proxy"
             ingressRules=
                 [
@@ -583,7 +583,7 @@
                 tier=tier
                 component=natComponent
                 id=allToNATSecurityGroupId
-                name=formatSegmentFullName(tier, natComponent)
+                name=formatComponentFullName(tier, natComponent)
                 description="Security Group for outbound traffic to the NAT"
                 ingressRules=
                     [
