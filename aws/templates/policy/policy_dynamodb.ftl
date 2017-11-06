@@ -2,9 +2,12 @@
 
 [#function getDynamodbStatement actions tables=[] streams=[] indexes=[] principals="" conditions=""]
     [#local result = [] ]
+    [#-- TODO(mfl): for now aws doesn't support partitioning on the basis of prefix --]
+    [#-- local tablePrefix = productName + "_" + segmentName + "_" --]
+    [#local tablePrefix = "" ]
     [#if tables?has_content]
         [#list asArray(tables) as table]
-            [#local tableResource=["table", productName + "_" + segmentName + "_" + table] ]
+            [#local tableResource=["table", tablePrefix + table] ]
             [#if !(streams?has_content || indexes?has_content)]
                 [#local result +=
                     [
@@ -51,9 +54,7 @@
             [
                 getPolicyStatement(
                     actions,
-                    formatRegionalArn(
-                        "dynamodb",
-                        "*"),
+                    "*",
                     principals,
                     conditions)
             ]
