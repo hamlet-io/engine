@@ -69,7 +69,7 @@
             [
                 "dynamodb:BatchGetItem",
                 "dynamodb:DescribeTable",
-                "dynamodb:GetItem",
+                "dynamodb:GetItem"
             ],
             tables) +
         getDynamodbStatement(
