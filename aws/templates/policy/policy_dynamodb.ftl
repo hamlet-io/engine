@@ -69,11 +69,15 @@
             [
                 "dynamodb:BatchGetItem",
                 "dynamodb:DescribeTable",
-                "dynamodb:DescribeTimeToLive",
                 "dynamodb:GetItem",
-                "dynamodb:ListTagsOfResource"
             ],
             tables) +
+        getDynamodbStatement(
+            [
+                "dynamodb:DescribeTimeToLive",
+                "dynamodb:ListTagsOfResource"
+            ],
+            "") +
         valueIfTrue(
             getDynamodbStatement(
                 [
@@ -91,12 +95,15 @@
             [
                 "dynamodb:BatchWriteItem",
                 "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
+                "dynamodb:UpdateItem"
+            ],
+            tables) +
+        getDynamodbStatement(
+            [
                 "dynamodb:TagResource",
-                "dynamodb:UpdateTimeToLive",
                 "dynamodb:UntagResource"
             ],
-            tables)]
+            "") ]
 [/#function]
 
 [#function dynamodbDeletePermission tables="*"]
