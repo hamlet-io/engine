@@ -153,6 +153,8 @@
 [#function getTier tierId]
     [#if isTier(tierId)]
         [#return blueprintObject.Tiers[tierId]]
+    [#else]
+        [#return {}]
     [/#if]
 [/#function]
 
@@ -170,7 +172,8 @@
     [#if tier?is_hash]
         [#return tier.Name]
     [#else]
-        [#return getTier(tier).Name]
+      [#local tierObject = getTier(tier) ]
+        [#return tierObject.Name!tier ]
     [/#if]
 [/#function]
 
