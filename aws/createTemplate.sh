@@ -125,8 +125,9 @@ function main() {
       cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/aws/cf"
       region_prefix="${ACCOUNT_REGION}-"
       template_composites+=("ACCOUNT")
+      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "prologue" "epilogue")
 
-      # LEGACY: Support stacks created before deployment units added to account
+      # LEGACY: Support stacks created before deployment units added to account level
       [[ ("${DEPLOYMENT_UNIT}" =~ s3) &&
         (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
         deployment_unit_prefix=""
@@ -146,7 +147,7 @@ function main() {
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
       level_prefix="soln-"
       template_composites+=("SOLUTION" )
-      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "config" "prologue" "epilogue")
+      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "prologue" "epilogue")
 
       if [[ -f "${cf_dir}/solution-${REGION}-template.json" ]]; then
         level_prefix="solution-"
@@ -158,7 +159,7 @@ function main() {
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
       level_prefix="seg-"
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
-      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "config" "prologue" "epilogue")
+      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "prologue" "epilogue" "config" )
 
       # LEGACY: Support old formats for existing stacks so they can be updated 
       if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
@@ -200,7 +201,7 @@ function main() {
   esac
 
   # Define the different subsets
-  output_suffix=("template.json" "config.json" "prologue.sh" "epilogue.sh")
+  output_suffix=("template.json" "prologue.sh" "epilogue.sh" "config.json" )
   output_prefix="${level_prefix}${deployment_unit_prefix}${deployment_unit_subset_prefix}${region_prefix}"
 
   # Ensure the aws tree for the templates exists
