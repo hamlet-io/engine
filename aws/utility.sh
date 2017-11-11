@@ -112,10 +112,10 @@ function fatalMandatory() {
 # -- String manipulation --
 
 function join() {
-  local separator="$1"; shift
+  local separators="$1"; shift
   local parts=("$@")
 
-  local IFS="${separator}"
+  local IFS="${separators}"
   echo -n "${parts[*]}"
 }
 
@@ -269,6 +269,27 @@ function inArray() {
   local pattern="$1"
 
   contains "${array[*]}" "${pattern}"
+}
+
+function arrayFromList() {
+  local array="$1"; shift
+  local list="$1"; shift
+  local separators="${1:-, }"
+
+  IFS="${separators}" read -ra array <<< "${list}"
+}
+
+function listFromArray() {
+  if namedef_supported; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1"; shift
+    eval "local array=(\"\${${array_name}[@]}\")"
+  fi
+
+  local separators="${1:-, }"
+
+  join "${separators}" "${array[@]}"
 }
 
 function arraySize() {
