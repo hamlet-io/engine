@@ -272,11 +272,19 @@ function inArray() {
 }
 
 function arrayFromList() {
-  local array="$1"; shift
+  if namedef_supported; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1"; shift
+    local array=()
+  fi
   local list="$1"; shift
   local separators="${1:-, }"
 
   IFS="${separators}" read -ra array <<< "${list}"
+  if ! namedef_supported; then
+    eval "${array_name}=(\"\${array[@]}\")"
+  fi
 }
 
 function listFromArray() {
