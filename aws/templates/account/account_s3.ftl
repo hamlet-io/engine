@@ -27,18 +27,11 @@
             [#-- TODO: Remove outputId parameter below when TODO addressed --]
             
             [#assign existingName = getExistingReference(formatAccountS3Id(bucket))]
-            [#assign requiredName = valueIfContent(
-                        existingName,
-                        existingName,
-                        formatName("account", bucket, accountObject.Seed)) ]
-            [#if bucket == "code"]
-                [#assign codeBucket = requiredName]
-            [/#if]
             [@createS3Bucket
                 mode=accountListMode
                 id=formatS3Id(bucket)
-                name=
-                    existingName?has_content?then(
+                name=valueIfContent(
+                        existingName,
                         existingName,
                         formatName("account", bucket, accountObject.Seed))
                 outputId=formatAccountS3Id(bucket)
@@ -46,6 +39,11 @@
         [/#list]
     [/#if]
     [#if deploymentSubsetRequired("epilogue", false)]
+        [#assign existingName = getExistingReference(formatAccountS3Id("code"))]
+        [#assign codeBucket = valueIfContent(
+                    existingName,
+                    existingName,
+                    formatName("account", "code", accountObject.Seed))]
         [#-- Make sure code bucket is up to date --]
         [@cfScript
             mode=applicationListMode
@@ -60,7 +58,7 @@
                     "      aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"$\{GENERATION_STARTUP_DIR}/bootstrap/\" \"s3://" +
                               codeBucket + 
                               "/bootstrap/\" ||",
-                    "          { exit_status=$?; fatal \"Can't sync the code bucket\"; return exit_status; }",
+                    "          { exit_status=$?; fatal \"Can't sync the code bucket\"; return \"$\{exit_status}\"; }",
                     "  else",
                     "      fatal \"Startup directory not found - no sync performed\"; return 1",
                     "  fi",
