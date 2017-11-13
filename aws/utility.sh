@@ -279,7 +279,7 @@ function arrayFromList() {
     local array=()
   fi
   local list="$1"; shift
-  local separators="${1:-, }"
+  local separators="${1:- ,}"
 
   IFS="${separators}" read -ra array <<< "${list}"
   if ! namedef_supported; then
@@ -295,7 +295,7 @@ function listFromArray() {
     eval "local array=(\"\${${array_name}[@]}\")"
   fi
 
-  local separators="${1:-, }"
+  local separators="${1:- ,}"
 
   join "${separators}" "${array[@]}"
 }
