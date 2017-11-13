@@ -44,7 +44,12 @@
                     existingName,
                     existingName,
                     formatName("account", "code", accountObject.Seed))]
-        [#-- Make sure code bucket is up to date --]
+        [#assign existingName = getExistingReference(formatAccountS3Id("registry"))]
+        [#assign registryBucket = valueIfContent(
+                    existingName,
+                    existingName,
+                    formatName("account", "registry", accountObject.Seed))]
+        [#-- Make sure code bucket is up to date and registires initialised --]
         [@cfScript
             mode=applicationListMode
             content=
@@ -58,16 +63,27 @@
                     "      aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"$\{GENERATION_STARTUP_DIR}/bootstrap/\" \"s3://" +
                               codeBucket + 
                               "/bootstrap/\" ||",
-                    "          { exit_status=$?; fatal \"Can't sync the code bucket\"; return \"$\{exit_status}\"; }",
+                    "         { exit_status=$?; fatal \"Can't sync the code bucket\"; return \"$\{exit_status}\"; }",
                     "  else",
                     "      fatal \"Startup directory not found - no sync performed\"; return 1",
                     "  fi",
                     "  return 0",
                     "}",
                     "#",
+                    "function initialise_registries() {",
+                    "  touch ./temp_registry",
+                    "  for registry in \"$@\"; do",
+                    "    aws --region \"$\{ACCOUNT_REGION}\" s3 cp \"./temp_placeholder\" \"s3://" +
+                           registryBucket + "/$\{registry}/.registry\" ||",
+                    "      { exit_status=$?; fatal \"Can't initialise the $\{registry} registry\"; return \"$\{exit_status}\"; }",
+                    "  done",
+                    "  return 0",
+                    "}",
+                    "#",
                     "case $\{STACK_OPERATION} in",
                     "  create|update)",
                     "    sync_code_bucket || return $?",
+                    "    initialise_registries \"lambda\" \"swagger\" \"spa\" || return $?",
                     "    ;;",
                     " esac"
                 ]
