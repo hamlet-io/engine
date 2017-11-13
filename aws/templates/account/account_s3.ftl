@@ -59,7 +59,6 @@
                     "  #",
                     "  info \"Synching the code bucket ...\"",
                     "  if [[ -d \"$\{GENERATION_STARTUP_DIR}\" ]]; then",
-                    "      cd \"$\{GENERATION_STARTUP_DIR}\"",
                     "      aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"$\{GENERATION_STARTUP_DIR}/bootstrap/\" \"s3://" +
                               codeBucket + 
                               "/bootstrap/\" ||",
@@ -71,9 +70,10 @@
                     "}",
                     "#",
                     "function initialise_registries() {",
-                    "  touch ./temp_registry",
+                    "  local registry_marker=\"$\{ACCOUNT_DIR}/temp_registry\"",
+                    "  touch \"$\{registry_marker}\"",
                     "  for registry in \"$@\"; do",
-                    "    aws --region \"$\{ACCOUNT_REGION}\" s3 cp \"./temp_placeholder\" \"s3://" +
+                    "    aws --region \"$\{ACCOUNT_REGION}\" s3 cp \"$\{registry_marker}\" \"s3://" +
                            registryBucket + "/$\{registry}/.registry\" ||",
                     "      { exit_status=$?; fatal \"Can't initialise the $\{registry} registry\"; return \"$\{exit_status}\"; }",
                     "  done",
