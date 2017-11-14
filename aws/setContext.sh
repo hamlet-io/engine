@@ -173,7 +173,7 @@ export SID=${SID:-$(runJQ -r '.Segment.Id | select(.!="Segment") | select(.!=nul
 export REGION="${REGION:-$PRODUCT_REGION}"
 
 # Perform a few consistency checks
-[[ -z "${REGION}" ]] && fatalCantProceed "The region must be defined in the Product blueprint section."
+[[ -z "${REGION}" ]] && fatalCantProceed "The region must be defined in the Product blueprint section." && exit 1
 
 BLUEPRINT_ACCOUNT=$(runJQ -r '.Account.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
 BLUEPRINT_PRODUCT=$(runJQ -r '.Product.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
