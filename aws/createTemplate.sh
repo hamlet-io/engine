@@ -186,7 +186,7 @@ function main() {
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
       level_prefix="app-"
       template_composites+=("APPLICATION" "CONTAINER" )
-      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "config" "prologue" "epilogue")
+      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "prologue" "epilogue" "config" )
       ;;
 
     multiple)
