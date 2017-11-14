@@ -129,7 +129,7 @@ if [[ (-f "root.json") ||
 fi
 
 [[ -z "${GENERATION_DATA_DIR}" ]] &&
-    fatalLocation "Can't locate the root of the directory tree."
+    fatalLocation "Can't locate the root of the directory tree." && exit 1
 
 cd "${GENERATION_DATA_DIR}"
 [[ -z "${ACCOUNT}" ]] && export ACCOUNT="$(fileName "${GENERATION_DATA_DIR}")"
@@ -181,17 +181,17 @@ BLUEPRINT_SEGMENT=$(runJQ -r '.Segment.Name | select(.!=null)' < ${COMPOSITE_BLU
 [[ (-n "${ACCOUNT}") &&
     ("${BLUEPRINT_ACCOUNT}" != "Account") &&
     ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]] &&
-        fatalCantProceed "Blueprint account of ${BLUEPRINT_ACCOUNT} doesn't match expected value of ${ACCOUNT}"
+        fatalCantProceed "Blueprint account of ${BLUEPRINT_ACCOUNT} doesn't match expected value of ${ACCOUNT}" && exit 1
 
 [[ (-n "${PRODUCT}") &&
     ("${BLUEPRINT_PRODUCT}" != "Product") &&
     ("${PRODUCT}" != "${BLUEPRINT_PRODUCT}") ]] &&
-        fatalCantProceed "Blueprint product of ${BLUEPRINT_PRODUCT} doesn't match expected value of ${PRODUCT}"
+        fatalCantProceed "Blueprint product of ${BLUEPRINT_PRODUCT} doesn't match expected value of ${PRODUCT}" && exit 1
 
 [[ (-n "${SEGMENT}") &&
     ("${BLUEPRINT_SEGMENT}" != "Segment") &&
     ("${SEGMENT}" != "${BLUEPRINT_SEGMENT}") ]] &&
-        fatalCantProceed "Blueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}"
+        fatalCantProceed "Blueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}" && exit 1
 
 # Add default composite fragments including end fragment
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
@@ -329,5 +329,3 @@ else
 fi
 
 debug "--- finished setContext.sh ---\n"
-
-
