@@ -239,6 +239,11 @@ function main() {
 
     pass_args=("${args[@]}")
     [[ -n "${subsets[${pass_index}]}" ]] && pass_args+=("-v" "deploymentUnitSubset=${subsets[${pass_index}]}")
+      
+    pass_description="${subsets[${pass_index}]}"
+    [[ -z "${pass_description}" ]] && pass_description="cloud formation"
+
+    info "Generating ${pass_description} file ...\n"
 
     ${GENERATION_DIR}/freemarker.sh \
       -d "${template_dir}" -t "${template}" -o "${temp_output_file}" "${pass_args[@]}" || return $?
@@ -256,7 +261,7 @@ function main() {
           ;;
       esac
     else
-      debug "Ignoring empty ${subsets[${pass_index}]} file ..."
+      info "Ignoring empty ${pass_description} file ...\n"
 
       # Remove any previous version
       [[ -f "${output_file}" ]] && rm "${output_file}"
