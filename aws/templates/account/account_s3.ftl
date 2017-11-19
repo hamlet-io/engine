@@ -1,24 +1,26 @@
 [#-- Standard set of buckets for an account --]
 [#if deploymentUnit?contains("s3")]
     [#if deploymentSubsetRequired("s3", true)]
-    
-        [@cfOutput
-            mode=accountListMode
-            id=formatAccountDomainId()
-            value=accountDomain
-        /]
-            
-        [@cfOutput
-            mode=accountListMode
-            id=formatAccountDomainQualifierId()
-            value=accountDomainQualifier
-        /]
-    
-        [@cfOutput
-            mode=accountListMode
-            id=formatAccountDomainCertificateId()
-            value=accountDomainCertificateId
-        /]
+
+        [#if accountDomain?has_content]
+            [@cfOutput
+                mode=accountListMode
+                id=formatAccountDomainId()
+                value=accountDomain
+            /]
+                
+            [@cfOutput
+                mode=accountListMode
+                id=formatAccountDomainQualifierId()
+                value=accountDomainQualifier
+            /]
+        
+            [@cfOutput
+                mode=accountListMode
+                id=formatAccountDomainCertificateId()
+                value=accountDomainCertificateId
+            /]
+        [/#if]
         
         [#assign buckets = ["credentials", "code", "registry"] ]
         [#list buckets as bucket]

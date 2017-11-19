@@ -4,7 +4,7 @@
 [#-- Initialisation --]
 
 [#-- Domains --]
-[#if accountDomain??]
+[#if accountDomain?has_content]
     [#assign accountDomainObject = domains[accountDomain]]
     [#assign accountDomainStem = accountDomainObject.Stem]
     [#assign accountDomainBehaviour =
