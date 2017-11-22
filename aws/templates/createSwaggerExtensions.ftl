@@ -9,6 +9,7 @@
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
 [#assign defaultApiKey = integrationsObject.ApiKey ! false]
+[#assign binaryTypes = integrationsObject.BinaryTypes ! []]
 
 [#macro security sig4 apiKey]
     "security": [
@@ -30,6 +31,15 @@
 
 [#macro validator type]
     "x-amazon-apigateway-request-validator" : "${type}"
+[/#macro]
+
+[#macro binaryTypes types]
+    "x-amazon-apigateway-binary-media-types" : [
+        [#list types as type]
+            "${type}"
+            [#sep],[/#sep]
+        [/#list]
+    ]
 [/#macro]
 
 [#macro methodEntry verb type apiVariable validation sig4 apiKey ]
@@ -98,8 +108,11 @@
           "x-amazon-apigateway-authtype": "awsSigv4"
         }
     },
-    [@security defaultSig4 defaultApiKey /],
-    [@validator defaultValidation /]
+    [@security defaultSig4 defaultApiKey /]
+    ,[@validator defaultValidation /]
+    [#if binaryTypes?has_content]
+        ,[@binaryTypes binaryTypes /]
+    [/#if]
     [#if swaggerObject.paths??]
         ,"paths"  : {
             [#list swaggerObject.paths as path, pathObject]
