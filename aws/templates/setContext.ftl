@@ -118,7 +118,6 @@
     [#assign internetAccess = segmentObject.InternetAccess]
 
     [#assign natEnabled = internetAccess && ((segmentObject.NAT.Enabled)!true)]
-    [#assign natPerAZ = natEnabled && ((segmentObject.NAT.MultiAZ)!false)]
     [#assign natHosted = (segmentObject.NAT.Hosted)!false]
 
     [#assign sshEnabled = internetAccess &&
@@ -169,6 +168,11 @@
 [#if blueprintObject.Solution?has_content]
     [#assign solutionObject = blueprintObject.Solution]
     [#assign solnMultiAZ = solutionObject.MultiAZ!(environmentObject.MultiAZ)!false]
+    [#assign natPerAZ = natEnabled &&
+                        (
+                            (natHosted && solnMultiAZ) ||
+                            ((segmentObject.NAT.MultiAZ)!false)
+                        ) ]
 [/#if]
 
 [#-- Required tiers --]
