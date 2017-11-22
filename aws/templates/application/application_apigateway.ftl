@@ -236,7 +236,7 @@
                 dependencies=[invalidLogMetricId]
             /]
                     
-            [#if occurrence.CloudFrontIsConfigured]
+            [#if occurrence.CloudFrontIsConfigured && occurrence.CloudFront.Enabled]
                 [#assign origin =
                     getCFAPIGatewayOrigin(
                         cfOriginId,
@@ -261,7 +261,7 @@
                     id=cfId
                     dependencies=stageId     
                     aliases=
-                        occurrence.DNSIsConfigured?then(
+                        (occurrence.DNSIsConfigured && occurrence.DNS.Enabled)?then(
                             [dns],
                             []
                         )
@@ -269,7 +269,7 @@
                         getCFCertificate(
                             appSettingsObject.CertificateId!"",
                             occurrence.CloudFront.AssumeSNI),
-                        occurrence.DNSIsConfigured)
+                        occurrence.DNSIsConfigured  && occurrence.DNS.Enabled)
                     comment=cfName
                     defaultCacheBehaviour=defaultCacheBehaviour
                     logging=valueIfTrue(
@@ -289,6 +289,7 @@
                     wafAclId=valueIfTrue(
                         wafAclId,
                         (occurrence.WAFIsConfigured &&
+                            occurrence.WAF.Enabled &&
                             ipAddressGroupsUsage["waf"]?has_content))
                 /]
                 [@cfResource
@@ -310,6 +311,7 @@
                 /]
 
                 [#if occurrence.WAFIsConfigured &&
+                        occurrence.WAF.Enabled &&
                         ipAddressGroupsUsage["waf"]?has_content ]
                     [#assign wafGroups = [] ]
                     [#assign wafRuleDefault = 
@@ -383,7 +385,7 @@
                         rules=wafRules /]
                 [/#if]
             [#else]
-                [#if occurrence.DNSIsConfigured]
+                [#if occurrence.DNSIsConfigured && occurrence.DNS.Enabled]
                     [#-- TODO: fix fetching of certificate Arn --]
                     [@cfResource
                         mode=applicationListMode
