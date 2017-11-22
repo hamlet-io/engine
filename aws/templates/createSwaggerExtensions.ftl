@@ -33,7 +33,7 @@
     "x-amazon-apigateway-request-validator" : "${type}"
 [/#macro]
 
-[#macro binaryTypes types]
+[#macro binaryMediaTypes types]
     "x-amazon-apigateway-binary-media-types" : [
         [#list types as type]
             "${type}"
@@ -110,8 +110,8 @@
     },
     [@security defaultSig4 defaultApiKey /]
     ,[@validator defaultValidation /]
-    [#if binaryTypes?has_content]
-        ,[@binaryTypes binaryTypes /]
+    [#if binaryTypes?has_content ]
+        ,[@binaryMediaTypes binaryTypes /]
     [/#if]
     [#if swaggerObject.paths??]
         ,"paths"  : {
