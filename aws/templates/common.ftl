@@ -371,6 +371,10 @@
                     "Name" : "WAF",
                     "Children" : [
                         {
+                            "Name" : "Enabled",
+                            "Default" : true
+                        },
+                        {
                             "Name" : "IPAddressGroups",
                             "Default" : []
                         },
@@ -385,6 +389,10 @@
                 {
                     "Name" : "CloudFront",
                     "Children" : [
+                        {
+                            "Name" : "Enabled",
+                            "Default" : true
+                        },
                         {
                             "Name" : "AssumeSNI",
                             "Default" : true
@@ -402,6 +410,10 @@
                 {
                     "Name" : "DNS",
                     "Children" : [
+                        {
+                            "Name" : "Enabled",
+                            "Default" : true
+                        },
                         {
                             "Name" : "Host",
                             "Default" : ""
