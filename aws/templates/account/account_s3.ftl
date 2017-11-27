@@ -72,6 +72,7 @@
                     "}",
                     "#",
                     "function initialise_registries() {",
+                    "  info \"Initialising the registry bucket ...\"",
                     "  local registry_marker=\"$\{ACCOUNT_DIR}/temp_registry\"",
                     "  touch \"$\{registry_marker}\"",
                     "  for registry in \"$@\"; do",
