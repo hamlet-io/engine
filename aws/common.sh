@@ -11,6 +11,11 @@ function getLogLevel() {
   echo -n "${GENERATION_LOG_LEVEL}"
 }
 
+# Override default implementation
+function getTempRootDir() {
+  echo -n "${GENERATION_TMPDIR}"
+}
+
 function buildAppSettings () {
     local ROOT_DIR="${1}"; shift
     local FILE_PATTERN="${1}"; shift
