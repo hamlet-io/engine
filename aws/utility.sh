@@ -240,7 +240,7 @@ function findFile() {
 
 # -- Temporary file management --
 
-# Default implementation - should be overriden by caller
+# Default implementation - can be overriden by caller
 function getTempRootDir() {
   echo -n "${TMPDIR}"
 }

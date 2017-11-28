@@ -59,7 +59,7 @@
                 valueIfTrue(
                   occurrence.DeadLetterQueue.MaxReceives,
                   occurrence.DeadLetterQueue.MaxReceives > 0,
-                  (environmentObject.Operations.DeadLetterQueue.MaxReceives)!1)
+                  (environmentObject.Operations.DeadLetterQueue.MaxReceives)!3)
         /]
 
         [#switch solutionListMode]
