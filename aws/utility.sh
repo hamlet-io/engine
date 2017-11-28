@@ -238,6 +238,37 @@ function findFile() {
   return 1
 }
 
+# -- Temporary file management --
+
+# Default implementation - should be overriden by caller
+function getTempRootDir() {
+  echo -n "${TMPDIR}"
+}
+
+function getTempDir() {
+  local template="$1"; shift
+  local temp_path="$1"; shift
+
+  [[ -z "${template}" ]] && template="XXX"
+  [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
+
+  [[ -n "${temp_path}" ]] &&
+    mktemp -d    "${temp_path}/${template}" ||
+    mktemp -d -t "${template}"
+}
+
+function getTempFile() {
+  local template="$1"; shift
+  local temp_path="$1"; shift
+
+  [[ -z "${template}" ]] && template="XXX"
+  [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
+
+  [[ -n "${temp_path}" ]] &&
+    mktemp    "${temp_path}/${template}" ||
+    mktemp -t "${template}"
+}
+
 function cleanup() {
   local root_dir="${1:-.}"
 
@@ -412,16 +443,15 @@ function runJQ() {
   local arguments=("$@")
   
   # TODO(mfl): remove once path length limitations in jq are fixed
-  local tmpdir="./temp_jq_${RANDOM}"
+  local tmpdir="$( getTempDir "jq_XXX" )"
   local modified_arguments=()
   local index=0
 
-  mkdir -p "${tmpdir}"
   for argument in "${arguments[@]}"; do
     if [[ -f "${argument}" ]]; then
-      local file="${tmpdir}/temp_${index}"
+      local file="$( getTempFile "XXX" "${tmpdir}" )"
       cp "${argument}" "${file}" > /dev/null
-      modified_arguments+=("${file}")
+      modified_arguments+=("./$(fileName "${file}" )")
     else
       modified_arguments+=("${argument}")
     fi
@@ -429,7 +459,7 @@ function runJQ() {
   done
 
   # TODO(mfl): Add -L once path length limitations fixed
-  jq "${modified_arguments[@]}"
+  (cd ${tmpdir}; jq "${modified_arguments[@]}")
 }
 
 function getJSONValue() {
@@ -466,8 +496,10 @@ function isBucketAccessible() {
   local region="$1"; shift
   local bucket="$1"; shift
   local prefix="$1"; shift
+  
+  local result_file="$( getTempFile "s3_access_XXX.txt")"
 
-  aws --region ${region} s3 ls "s3://${bucket}/${prefix}${prefix:+/}" > temp_bucket_access.txt
+  aws --region ${region} s3 ls "s3://${bucket}/${prefix}${prefix:+/}" > "${result_file}"
   return $?
 }
 
@@ -492,10 +524,8 @@ function syncFilesToBucket() {
   fi
   local optional_arguments=("$@")
 
-  local tmpdir="./temp_copyfiles"
+  local tmpdir="$( getTempDir "s3_sync_XXX")"
   
-  rm -rf "${tmpdir}"
-  mkdir -p "${tmpdir}"
   
   # Copy files locally so we can synch with S3, potentially including deletes
   for file in "${syncFiles[@]}" ; do
@@ -584,13 +614,14 @@ function delete_ssh_credentials() {
 function update_oai_credentials() {
   local region="$1"; shift
   local name="$1"; shift
-  local result_file="${1:-./temp_update_oai.json}"; shift
+  local result_file="${1:-$( getTempFile update_oai_XXX.json)}"; shift
 
+  local oai_list_file="$( getTempFile oai_list_XXX.json)"
   local oai_id=
 
   # Check for existing identity
-  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_list.json || return $?
-  jq ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\")" < ./temp_oai_list.json > "${result_file}" || return $?
+  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > "${oai_list_file}" || return $?
+  jq ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\")" < "${oai_list_file}" > "${result_file}" || return $?
   oai_id=$(jq -r ".Id" < "${result_file}") || return $?
 
   # Create if not there already
@@ -611,18 +642,19 @@ function delete_oai_credentials() {
   local region="$1"; shift
   local name="$1"; shift
 
+  local oai_delete_file="$( getTempFile oai_delete_XXX.json)"
   local oai_id=
   local oai_etag=
 
   # Check for existing identity
-  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > ./temp_oai_delete.json || return $?
-  oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id" < ./temp_oai_delete.json) || return $?
+  aws --region "${region}" cloudfront list-cloud-front-origin-access-identities > "${oai_delete_file}" || return $?
+  oai_id=$(jq -r ".CloudFrontOriginAccessIdentityList.Items[] | select(.Comment==\"${name}\") | .Id" < "${oai_delete_file}") || return $?
   
   # delete if present
   if [[ -n "${oai_id}" ]]; then
     # Retrieve the ETag value
-    aws --region "${region}" cloudfront get-cloud-front-origin-access-identity --id "${oai_id}" > ./temp_oai_delete.json || return $?
-    oai_etag=$(jq -r ".ETag" < ./temp_oai_delete.json) || return $?
+    aws --region "${region}" cloudfront get-cloud-front-origin-access-identity --id "${oai_id}" > "${oai_delete_file}" || return $?
+    oai_etag=$(jq -r ".ETag" < "${oai_delete_file}") || return $?
     # Delete the OAI
     aws --region "${region}" cloudfront delete-cloud-front-origin-access-identity --id "${oai_id}" --if-match "${oai_etag}" || return $?
   fi

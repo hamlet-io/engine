@@ -14,14 +14,18 @@
 # This script is designed to be sourced into other scripts
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-. "${GENERATION_DIR}/common.sh"
 
 # If the context has already been determined, there is nothing to do
 if [[ -n "${GENERATION_CONTEXT_DEFINED}" ]]; then return 0; fi
+
 export GENERATION_CONTEXT_DEFINED="true"
 GENERATION_CONTEXT_DEFINED_LOCAL="true"
 
 debug "--- starting setContext.sh ---\n"
+
+# Create a temporary directory for this run
+export GENERATION_TMPDIR="$(getTempDir "cot_XXX" )"
+debug "TMPDIR=${GENERATION_TMPDIR}"
 
 # If no files match a glob, return nothing
 # Much of the logic in this script relies on this setting
@@ -292,19 +296,19 @@ if [[ -n "${CHECK_AWS_SESSION_TOKEN}" ]]; then export AWS_SESSION_TOKEN="${CHECK
 # bug in python
 if [[ ((-z "${AWS_ACCESS_KEY_ID}") || (-z "${AWS_SECRET_ACCESS_KEY}")) ]]; then
     if [[ -n "${ACCOUNT}" ]]; then
-        aws configure list --profile "${ACCOUNT}" > temp_profile_status.txt 2>&1
+        aws configure list --profile "${ACCOUNT}" > $(getTempFile "account_profile_status_XXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${ACCOUNT}"
         fi
     fi
     if [[ -n "${AID}" ]]; then
-        aws configure list --profile "${AID}" > temp_profile_status.txt 2>&1
+        aws configure list --profile "${AID}" > $(getTempFile "id_profile_status_XXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${AID}"
         fi
     fi
     if [[ -n "${AWSID}" ]]; then
-        aws configure list --profile "${AWSID}" > temp_profile_status.txt 2>&1
+        aws configure list --profile "${AWSID}" > $(getTempFile "awsid_profile_status_XXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${AWSID}"
         fi

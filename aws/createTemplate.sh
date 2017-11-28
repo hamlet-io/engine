@@ -231,11 +231,14 @@ function main() {
   args+=("-v" "requestReference=${REQUEST_REFERENCE}")
   args+=("-v" "configurationReference=${CONFIGURATION_REFERENCE}")
 
+  # Directory for temporary files
+  local tmpdir="$(getTempDir "create_template_XXX")"
+
   # Perform each pass
   for pass_index in "${!subsets[@]}"; do
 
     output_file="${cf_dir}/${output_prefix}${output_suffix[${pass_index}]}"
-    temp_output_file="${cf_dir}/temp_${output_prefix}${output_suffix[${pass_index}]}"
+    template_result_file="${tmpdir}/${output_prefix}${output_suffix[${pass_index}]}"
 
     pass_args=("${args[@]}")
     [[ -n "${subsets[${pass_index}]}" ]] && pass_args+=("-v" "deploymentUnitSubset=${subsets[${pass_index}]}")
@@ -246,18 +249,22 @@ function main() {
     info "Generating ${pass_description} file ...\n"
 
     ${GENERATION_DIR}/freemarker.sh \
-      -d "${template_dir}" -t "${template}" -o "${temp_output_file}" "${pass_args[@]}" || return $?
+      -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
 
     # Process the results - ignore whitespace only files
-    if [[ $(tr -d " \t\n\r\f" < "${temp_output_file}" | wc -m) -gt 0 ]]; then
-      case "$(fileExtension "${temp_output_file}")" in
+    if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -gt 0 ]]; then
+      case "$(fileExtension "${template_result_file}")" in
         sh)
           # Strip out the whitespace added by freemarker
-          sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${temp_output_file}" > "${output_file}"
+          sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
           ;;
     
         json)
-          jq --indent 4 '.' < "${temp_output_file}" > "${output_file}"
+          # Ignore if only the metadata has changed - AWS will ignore it anyway
+#          ignore_pattern='/"Prepared"\|"ConfigurationReference"\|"RequestReference"/d'
+#          [[ -f "${output_file}" ]] &&
+#          diff <(sed "${ignore_pattern}" "${template_result_file}") <(sed  "${ignore_pattern}" "${output_file}") > /dev/null &&
+          jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
           ;;
       esac
     else

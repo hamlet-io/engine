@@ -112,15 +112,15 @@ function copy_cmdb_files() {
 function copy_config_file() {  
 
   local files=()
-  mkdir -p ./temp_config
+  local tmpdir="$(getTempDir "config_XXX")"
 
   case ${STACK_OPERATION} in
     delete)
       # Nothing to do as synch will use an empty directory
       ;;
     create|update)
-      cp "$1" "./temp_config/config.json"
-      files+=("./temp_config/config.json")
+      cp "$1" "${tmpdir}/config.json"
+      files+=("${tmpdir}/config.json")
       ;;
   esac
 
@@ -154,7 +154,9 @@ function copy_spa_file() {
 
 function process_stack() {
 
-  local stack_status_file="${CF_DIR}/temp_stack_status"
+  local tmpdir="$(getTempDir "manage_stack_XXX")"
+  local stack_status_file="${tmpdir}/stack_status"
+  local stripped_template_file="${tmpdir}/stripped_template"
   local operation_to_check=
   local exit_status=0
   local status_attribute=
@@ -177,7 +179,7 @@ function process_stack() {
   
       update)
         # Compress the template to minimise the impact of aws cli size limitations
-        jq -c '.' < ${TEMPLATE} > stripped_${TEMPLATE}
+        jq -c '.' < ${TEMPLATE} > "${stripped_template_file}"
 
         # Check if stack needs to be created
         aws --region ${REGION} cloudformation describe-stacks \
@@ -196,14 +198,14 @@ function process_stack() {
   
           # Change set naming
           CHANGE_SET_NAME="cs$(date +'%s')"
-          STACK="temp_${CHANGE_SET_NAME}_${STACK}"
+          STACK="${tmpdir}/${CHANGE_SET_NAME}_${STACK}"
           aws --region ${REGION} cloudformation create-change-set \
               --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" \
-              --template-body file://stripped_${TEMPLATE} \
+              --template-body "file://${stripped_template_file}" \
               --capabilities CAPABILITY_IAM ||
             return $?
         else
-          aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body file://stripped_${TEMPLATE} --capabilities CAPABILITY_IAM > "${stack_status_file}" 2>&1
+          aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" --capabilities CAPABILITY_IAM > "${stack_status_file}" 2>&1
           exit_status=$?
           case ${exit_status} in
             0) ;;
