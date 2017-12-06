@@ -580,7 +580,12 @@ EOF
 function delete_pki_credentials() {
   local dir="$1"; shift
 
-  rm -f "${dir}/aws-ssh-crt*" "${dir}/aws-ssh-prv*"
+  local restore_nullglob="$(shopt -p nullglob)"
+  shopt -s nullglob
+
+  rm -f "${dir}"/aws-ssh-crt* "${dir}"/aws-ssh-prv*
+
+  ${restore_nullglob}
 }
 # -- SSH --
 
