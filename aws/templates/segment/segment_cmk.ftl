@@ -87,7 +87,6 @@
                     "  #",
                     "  oai_id=$(jq -r \".Id\" < \"$\{oai_file}\") || return $?",
                     "  oai_canonical_id=$(jq -r \".S3CanonicalUserId\" < \"$\{oai_file}\") || return $?",
-                    "  pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                     "  create_pseudo_stack" + " " +
                          "\"Cloudfront Origin Access Identity\"" + " " +
                          "\"$\{pseudo_stack_file}\"" + " " +
@@ -95,11 +94,13 @@
                          "\"cfaccessXs3XsegmentXopsXcanonicalid\" \"$\{oai_canonical_id}\" || return $?"
                     "}"
                     "#",
+                    "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                     "case $\{STACK_OPERATION} in",
                     "  delete)",
                     "  delete_oai_credentials" + " " +
                         "\"" + regionId + "\" " +
                         "\"" + productName + "-" + segmentName + "\" || return $?",
+                    "  rm -f \"$\{pseudo_stack_file}\"",
                     "    ;;",
                     "  create|update)",
                     "    manage_oai_credentials || return $?",
