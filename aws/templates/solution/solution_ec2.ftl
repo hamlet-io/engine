@@ -11,7 +11,7 @@
     [#assign ec2ELBId = formatELBId("elb", component)]
     
     [#assign ingressRules = []]
-    [#list ec2.Ports as port]
+    [#list ec2.Ports![] as port]
         [#assign nextPort = port?is_hash?then(port.Port, port)]
         [#assign portCIDRs = getUsageCIDRs(
                             nextPort,
