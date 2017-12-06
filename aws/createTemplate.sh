@@ -261,10 +261,10 @@ function main() {
     
         json)
           # Ignore if only the metadata has changed - AWS will ignore it anyway
-#          ignore_pattern='/"Prepared"\|"ConfigurationReference"\|"RequestReference"/d'
-#          [[ -f "${output_file}" ]] &&
-#          diff <(sed "${ignore_pattern}" "${template_result_file}") <(sed  "${ignore_pattern}" "${output_file}") > /dev/null &&
-          jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
+          ignore_pattern='/"Prepared"\|"ConfigurationReference"\|"RequestReference"/d'
+          [[ -f "${output_file}" ]] &&
+            diff <(sed "${ignore_pattern}" "${template_result_file}") <(sed  "${ignore_pattern}" "${output_file}") > /dev/null &&
+            jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
           ;;
       esac
     else
