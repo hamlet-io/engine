@@ -268,6 +268,8 @@ function main() {
                 <(cat "${template_result_file}" | jq --indent 4 "${filter_pattern}" ) \
                 <(cat "${output_file}" | jq --indent 4 "${filter_pattern}") ||
               jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
+          else
+            jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
           fi
           ;;
       esac
