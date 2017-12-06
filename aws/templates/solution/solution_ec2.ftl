@@ -1,7 +1,8 @@
 [#-- EC2 --]
 [#if componentType == "ec2"]
     [#assign ec2 = component.EC2]
-    [#assign fixedIP = ec2.FixedIP?? && ec2.FixedIP]
+    [#assign fixedIP = ec2.FixedIP!false]
+    [#assign loadBalanced = ec2.LoadBalanced!false]
 
     [#assign ec2FullName = formatName(tenantId, componentFullName) ]
     [#assign ec2SecurityGroupId = formatEC2SecurityGroupId(tier, component)]
@@ -183,7 +184,7 @@
                                     } +
                                     attributeIfTrue(
                                         "03RegisterWithLB",
-                                        ec2.LoadBalanced,
+                                        loadBalanced,
                                         {
                                             "command" : "/opt/codeontap/bootstrap/register.sh",
                                             "env" : {
@@ -246,7 +247,7 @@
                     outputs={}
                     dependencies=
                         [ec2ENIId] +
-                        ec2.LoadBalanced?then(
+                        loadBalanced?then(
                             [ec2ELBId],
                             []
                         ) + 
