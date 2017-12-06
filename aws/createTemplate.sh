@@ -261,10 +261,14 @@ function main() {
     
         json)
           # Ignore if only the metadata has changed - AWS will ignore it anyway
-          ignore_pattern='/"Prepared"\|"ConfigurationReference"\|"RequestReference"/d'
-          [[ -f "${output_file}" ]] &&
-            diff <(sed "${ignore_pattern}" "${template_result_file}") <(sed  "${ignore_pattern}" "${output_file}") > /dev/null &&
-            jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
+          # TODO(mfl): remove uses of the configuration reference e.g. in tags
+          filter_pattern='del(.Metadata) | '
+          if [[ -f "${output_file}" ]]; then
+            diff -q \
+                <(cat "${template_result_file}" | jq --indent 4 "${filter_pattern}" ) \
+                <(cat "${output_file}" | jq --indent 4 "${filter_pattern}") ||
+              jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
+          fi
           ;;
       esac
     else
