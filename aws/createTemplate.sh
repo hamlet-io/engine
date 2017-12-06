@@ -262,7 +262,7 @@ function main() {
         json)
           # Ignore if only the metadata has changed - AWS will ignore it anyway
           # TODO(mfl): remove uses of the configuration reference e.g. in tags
-          filter_pattern='del(.Metadata) | '
+          filter_pattern='del(.Metadata)'
           if [[ -f "${output_file}" ]]; then
             diff -q \
                 <(cat "${template_result_file}" | jq --indent 4 "${filter_pattern}" ) \
