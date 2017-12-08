@@ -8,6 +8,119 @@
 [#assign defaultVariable = integrationsObject.Variable ! ""]
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
+[#assign gatewayErrorReporting = integrationsObject.GatewayErrorReporting ! "full"]
+[#assign gatewayErrorMap =
+          {
+              "ACCESS_DENIED": {
+                  "Status" : 403,
+                  "Code" : "gen01",
+                  "Title" : "Authorisation Failure",
+                  "Action" : "Please contact the API provider"
+              },
+              "API_CONFIGURATION_ERROR": {
+                  "Status" : 500,
+                  "Code" : "gen02",
+                  "Title" : "Internal API failure",
+                  "Action" : "Please contact the API provider"
+              },
+              "AUTHORIZER_CONFIGURATION_ERROR": {
+                  "Status" : 500,
+                  "Code" : "gen03",
+                  "Title" : "Internal API failure",
+                  "Action" : "Please contact the API provider"
+              },
+              "AUTHORIZER_FAILURE": {
+                  "Status" : 500,
+                  "Code" : "gen04",
+                  "Title" : "Internal API failure",
+                  "Action" : "Please contact the API provider"
+              },
+              "BAD_REQUEST_PARAMETERS": {
+                  "Status" : 400,
+                  "Code" : "gen05",
+                  "Title" : "Parameters not valid",
+                  "Action" : "Please check the API documentation"
+              },
+              "BAD_REQUEST_BODY": {
+                  "Status" : 400,
+                  "Code" : "gen06",
+                  "Title" : "Request body not valid",
+                  "Action" : "Please check the API documentation"
+              },
+              "EXPIRED_TOKEN": {
+                  "Status" : 401,
+                  "Code" : "gen07",
+                  "Title" : "Expired Token",
+                  "Action" : "Please re-authenticate"
+              },
+              "INTEGRATION_FAILURE": {
+                  "Status" : 500,
+                  "Code" : "gen08",
+                  "Title" : "Internal API failure",
+                  "Action" : "Please contact the API provider"
+              },
+              "INTEGRATION_TIMEOUT": {
+                  "Status" : 500,
+                  "Code" : "gen09",
+                  "Title" : "Internal API failure",
+                  "Action" : "Please contact the API provider"
+              },
+              "INVALID_API_KEY": {
+                  "Status" : 401,
+                  "Code" : "gen10",
+                  "Title" : "Invalid API Key",
+                  "Action" : "Please contact the API provider"
+              },
+              "INVALID_SIGNATURE": {
+                  "Status" : 401,
+                  "Code" : "gen11",
+                  "Title" : "Invalid signature",
+                  "Action" : "Please check signature implementation"
+              },
+              "MISSING_AUTHENTICATION_TOKEN": {
+                  "Status" : 401,
+                  "Code" : "gen12",
+                  "Title" : "Authentication Failure",
+                  "Action" : "Please check the API specification to ensure verb/path are valid"
+              },
+              "QUOTA_EXCEEDED": {
+                  "Status" : 429,
+                  "Code" : "gen13",
+                  "Title" : "Quota exceeded",
+                  "Action" : "Please contact the API provider"
+              },
+              "REQUEST_TOO_LARGE": {
+                  "Status" : 413,
+                  "Code" : "gen14",
+                  "Title" : "Request too large",
+                  "Action" : "Please check the API documentation"
+              },
+              "RESOURCE_NOT_FOUND": {
+                  "Status" : 404,
+                  "Code" : "gen15",
+                  "Title" : "Resource not found",
+                  "Action" : "Please check the API documentation"
+              },
+              "THROTTLED": {
+                  "Status" : 429,
+                  "Code" : "gen16",
+                  "Title" : "Throttling employed",
+                  "Action" : "Please contact the API provider"
+              },
+              "UNAUTHORIZED": {
+                  "Status" : 403,
+                  "Code" : "gen17",
+                  "Title" : "Authorisation Failure",
+                  "Action" : "Please contact the API provider"
+              },
+              "UNSUPPORTED_MEDIA_TYPE": {
+                  "Status" : 415,
+                  "Code" : "gen18",
+                  "Title" : "Unsupported media type",
+                  "Action" : "Please check the API documentation"
+              }
+          } +
+          integrationsObject.gatewayErrorMap ! {}]
 [#assign defaultApiKey = integrationsObject.ApiKey ! false]
 [#assign binaryTypes = integrationsObject.BinaryTypes ! []]
 
@@ -31,6 +144,25 @@
 
 [#macro validator type]
     "x-amazon-apigateway-request-validator" : "${type}"
+[/#macro]
+
+[#macro gatewayResponses errorMap]
+    [#list errorMap as key,value]
+        [#assign detail = [] ]
+        [#if value.Description]
+            [#assign detail += ["Description:" + value.Description] ]
+        [/#if]
+        [#if value.Description]
+            [#assign detail += ["Action:" + value.Action] ]
+        [/#if]
+        [#assign detail += ["Diagnostics:$context.error.messageString"] ]
+        "${key}" : {
+            "statusCode": value.Status,
+            "responseTemplates": {
+                "application/json": "[{\"Code\" : ${value.Code},\"Title\" : \"${value.Title}\",\"Detail\" : \"${detail?join(", ")}\"}]"
+            }
+        }[#sep],[/#sep]
+    [/#list]
 [/#macro]
 
 [#macro binaryMediaTypes types]
@@ -77,6 +209,11 @@
 [/#macro]
 
 {
+    [#if gatewayErrorReporting?has_content]
+        "x-amazon-apigateway-gateway-responses": {
+            [@gatewayResponses gatewayErrorMap /]
+        },
+    [/#if]
     "x-amazon-apigateway-request-validators" : {
         "all" : {
             "validateRequestBody" : true,
