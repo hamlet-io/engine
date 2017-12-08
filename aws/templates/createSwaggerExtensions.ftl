@@ -159,7 +159,7 @@
         "${key}" : {
             "statusCode": ${value.Status?c},
             "responseTemplates": {
-                "application/json": "[{\"Code\" : ${value.Code},\"Title\" : \"${value.Title}\",\"Detail\" : \"${detail?join(", ")}\"}]"
+                "application/json": "[{\"Code\" : \"${value.Code}\",\n\"Title\" : \"${value.Title}\",\n\"Detail\" : \"${detail?join(", ")}\"}]"
             }
         }[#sep],[/#sep]
     [/#list]
