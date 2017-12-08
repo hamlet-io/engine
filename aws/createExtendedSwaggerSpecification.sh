@@ -5,8 +5,10 @@ trap '[[ (-z "${GENERATION_DEBUG}") && (-n "${tmpdir}") ]] && rm -rf "${tmpdir}"
 . "${GENERATION_DIR}/common.sh"
 
 # Create a temporary directory for this run
-tmpdir="$(getTempDir "cot_gw_XXX" )"
-debug "TMPDIR=${tmpdir}"
+export GENERATION_TMPDIR="$(getTempDir "cot_gw_XXX" )"
+debug "TMPDIR=${GENERATION_TMPDIR}"
+
+tmpdir="${GENERATION_TMPDIR}"
 
 # Defaults
 INTEGRATIONS_FILE_DEFAULT="apigw.json"
@@ -93,8 +95,8 @@ cp ${GENERATION_DIR}/postProcessSwagger.jq "${POST_PROCESSING_FILTER}"
 # Set up the type specific template information
 TEMPLATE_DIR="${GENERATION_DIR}/templates"
 TEMPLATE="createSwaggerExtensions.ftl"
-SWAGGER_EXTENSIONS_FILE="temp_swagger_extensions.json"
-SWAGGER_EXTENSIONS_PRE_POST_FILE="temp_swagger_pre_post.json"
+SWAGGER_EXTENSIONS_FILE="${tmpdir}/swagger_extensions.json"
+SWAGGER_EXTENSIONS_PRE_POST_FILE="${tmpdir}/swagger_pre_post.json"
 
 # Process the required accounts and regions
 temp_results_dir="${tmpdir}/extensions"
