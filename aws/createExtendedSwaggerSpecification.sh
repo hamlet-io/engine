@@ -1,8 +1,12 @@
 #!/bin/bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '[[ -z ${GENERATION_DEBUG} ]] && rm -rf temp_*; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+trap '[[ (-z "${GENERATION_DEBUG}") && (-n "${tmpdir}") ]] && rm -rf "${tmpdir}"; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_DIR}/common.sh"
+
+# Create a temporary directory for this run
+tmpdir="$(getTempDir "cot_gw_XXX" )"
+debug "TMPDIR=${tmpdir}"
 
 # Defaults
 INTEGRATIONS_FILE_DEFAULT="apigw.json"
@@ -32,7 +36,7 @@ NOTES:
 1. A file is produced for every combination of region and account included in
    the integrations file with the account and region appended to the provided 
    filename with "-" separators.
-2. If EXTENDED_SWAGER_FILE ends with a ".zip" extension, then the generated
+2. If EXTENDED_SWAGGER_FILE ends with a ".zip" extension, then the generated
    files are packaged into a zip file.
 3. The files produced contain the swagger extensions requested.
 
@@ -83,7 +87,7 @@ ACCOUNTS=($(jq -r '.Accounts | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | t
 REGIONS=($(jq -r '.Regions | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | tr -s [:space:] ' '))
 
 # TODO adjust next lines when path length limitations in jq are fixed
-POST_PROCESSING_FILTER="./temp_post_processing.jq"
+POST_PROCESSING_FILTER="${tmpdir}/pp.jq"
 cp ${GENERATION_DIR}/postProcessSwagger.jq "${POST_PROCESSING_FILTER}"
             
 # Set up the type specific template information
@@ -93,11 +97,13 @@ SWAGGER_EXTENSIONS_FILE="temp_swagger_extensions.json"
 SWAGGER_EXTENSIONS_PRE_POST_FILE="temp_swagger_pre_post.json"
 
 # Process the required accounts and regions
-mkdir -p temp_results_dir
+temp_results_dir="${tmpdir}/extensions"
+mkdir -p "${temp_results_dir}"
+
 for ACCOUNT in "${ACCOUNTS[@]}"; do
     for REGION in "${REGIONS[@]}"; do
 
-        TARGET_SWAGGER_FILE="temp_results_dir/${EXTENDED_SWAGGER_FILE_BASE}-${REGION}-${ACCOUNT}.json"
+        TARGET_SWAGGER_FILE="${temp_results_dir}/${EXTENDED_SWAGGER_FILE_BASE}-${REGION}-${ACCOUNT}.json"
 
         ARGS=()
         ARGS+=("-v" "account=${ACCOUNT}")
@@ -123,13 +129,12 @@ for ACCOUNT in "${ACCOUNTS[@]}"; do
 done
 
 # If the target is a zip file, zip up the generated files
-cd temp_results_dir
+cd "${temp_results_dir}"
 if [[ "${EXTENDED_SWAGGER_FILE_EXTENSION}" == "zip" ]]; then
     zip ${EXTENDED_SWAGGER_FILE_BASE}.zip *.json
     rm *.json
 fi
 cp * "${EXTENDED_SWAGGER_FILE_PATH}"
-cd ..
 
 # All good
 RESULT=0
