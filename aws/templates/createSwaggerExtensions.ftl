@@ -157,7 +157,7 @@
         [/#if]
         [#assign detail += ["Diagnostics:$context.error.messageString"] ]
         "${key}" : {
-            "statusCode": value.Status,
+            "statusCode": ${value.Status?c},
             "responseTemplates": {
                 "application/json": "[{\"Code\" : ${value.Code},\"Title\" : \"${value.Title}\",\"Detail\" : \"${detail?join(", ")}\"}]"
             }
