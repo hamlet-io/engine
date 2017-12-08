@@ -155,10 +155,11 @@
         [#if value.Action?has_content]
             [#assign detail += ["Action:" + value.Action] ]
         [/#if]
+        [#assign detail += ["Diagnostics:$context.error.message"] ]
         "${key}" : {
             "statusCode": ${value.Status?c},
             "responseTemplates": {
-                "application/json": "[{\"Code\" : \"${value.Code}\",\n\"Title\" : \"${value.Title}\",\n\"Detail\" : \"${detail?join(", ")}\",\n\"Diagnostics\" : $context.error.messageString}]"
+                "application/json": "[{\"Code\" : \"${value.Code}\",\n\"Title\" : \"${value.Title}\",\n\"Detail\" : \"${detail?join(", ")}\"}]"
             }
         }[#sep],[/#sep]
     [/#list]
