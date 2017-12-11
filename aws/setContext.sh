@@ -24,7 +24,7 @@ GENERATION_CONTEXT_DEFINED_LOCAL="true"
 debug "--- starting setContext.sh ---\n"
 
 # Create a temporary directory for this run
-export GENERATION_TMPDIR="$(getTempDir "cot_XXX" )"
+[[ -z "${GENERATION_TMPDIR}" ]] && export GENERATION_TMPDIR="$(getTempDir "cot_XXX" )"
 debug "TMPDIR=${GENERATION_TMPDIR}"
 
 # If no files match a glob, return nothing
@@ -316,10 +316,7 @@ if [[ ((-z "${AWS_ACCESS_KEY_ID}") || (-z "${AWS_SECRET_ACCESS_KEY}")) ]]; then
 fi
 
 # Handle some MINGW peculiarities
-uname | grep -i "MINGW64" > /dev/null 2>&1
-if [[ "$?" -eq 0 ]]; then
-    export MINGW64="true"
-fi
+uname | grep -iq "MINGW64" && export MINGW64="true"
 
 # Detect if within a git repo
 git status >/dev/null 2>&1
