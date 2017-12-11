@@ -240,9 +240,16 @@ function findFile() {
 
 # -- Temporary file management --
 
+# OS Temporary directory
+function getOSTempRootDir() {
+  uname | grep -iq "MINGW64" &&
+    echo -n "c:/tmp" ||
+    echo -n "${TMPDIR}"
+}
+
 # Default implementation - can be overriden by caller
 function getTempRootDir() {
-  echo -n "${TMPDIR}"
+  getOSTempRootDir
 }
 
 function getTempDir() {
@@ -253,8 +260,8 @@ function getTempDir() {
   [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
 
   [[ -n "${temp_path}" ]] &&
-    mktemp -d    "${temp_path}/${template}" ||
-    mktemp -d -t "${template}"
+    mktemp -d "${temp_path}/${template}" ||
+    mktemp -d "$(getOSTempRootDir)/${template}"
 }
 
 function getTempFile() {
