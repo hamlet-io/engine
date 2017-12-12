@@ -554,6 +554,18 @@
             },
             "DomainBehaviours" : {
                 "Segment" : "segmentInHost"
+            },
+            "CertificateBehaviours" : {
+                "External" : false,
+                "Wildcard" : true,
+                "IncludeInHost" : {
+                    "Product" : false,
+                    "Segment" : true,
+                    "Tier" : false,
+                    "Component" : true,
+                    "Instance" : true,
+                    "Version" : true
+                }
             }
         },
         "aat": {
@@ -663,6 +675,18 @@
             },
             "DomainBehaviours" : {
                 "Segment" : "naked"
+            },
+            "CertificateBehaviours" : {
+                "External" : false,
+                "Wildcard" : true,
+                "IncludeInHost" : {
+                    "Product" : false,
+                    "Segment" : false,
+                    "Tier" : false,
+                    "Component" : true,
+                    "Instance" : true,
+                    "Version" : true
+                }
             }
         },
         "trn": {
