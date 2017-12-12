@@ -190,11 +190,6 @@
                             securityGroupIds=
                                 (vpc?has_content && occurrence.VPCAccess)?then(
                                     formatDependentSecurityGroupId(lambdaId),
-                                    ""
-                                )
-                            securityGroupIds=
-                                (vpc?has_content && occurrence.VPCAccess)?then(
-                                    formatDependentSecurityGroupId(lambdaId),
                                     []
                                 )
                             subnetIds=
