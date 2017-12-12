@@ -2,14 +2,68 @@
 
 [#-- Utility functions --]
 
+[#function asArray arg flatten=false ]
+    [#if arg?is_sequence]
+        [#if flatten]
+            [#local result = [] ]
+            [#list arg as element]
+                [#local result += asArray(element, true) ]
+            [/#list]
+            [#return result ]
+        [#else]
+            [#return arg ]
+        [/#if]
+    [#else]
+        [#return [arg] ]
+    [/#if]
+[/#function]
+
+[#function asFlattenedArray arg]
+    [#return asArray(arg, true) ]
+[/#function]
+
+[#function asString arg attribute]
+    [#return
+        arg?is_string?then(
+            arg,
+            arg?is_hash?then(
+                arg[attribute]?has_content?then(
+                    asString(arg[attribute], attribute),
+                    ""
+                ),
+                arg[0]?has_content?then(
+                    asString(arg[0], attribute),
+                    ""
+                )
+            )
+        )
+    ]
+[/#function]
+
+[#function valueIfTrue value condition otherwise={}]
+    [#return condition?then(value, otherwise) ]
+[/#function]
+
+[#function valueIfContent value content otherwise={}]
+    [#return valueIfTrue(value, content?has_content, otherwise) ]
+[/#function]
+
+[#function attributeIfTrue attribute condition value]
+    [#return valueIfTrue({attribute : value}, condition) ]
+[/#function]
+
+[#function attributeIfContent attribute content value={}]
+    [#return attributeIfTrue(
+        attribute,
+        content?has_content,
+        value?has_content?then(value,content)) ]
+[/#function]
+
 [#-- Recursively concatenate sequence of non-empty strings with a separator --]
 [#function concatenate args separator]
     [#local content = []]
-    [#list asArray(args) as arg]
+    [#list asFlattenedArray(args) as arg]
         [#local argValue = arg!"ERROR_INVALID_ARG_TO_CONCATENATE"]
-        [#if argValue?is_sequence]
-            [#local argValue = concatenate(argValue, separator)]
-        [/#if]f
         [#if argValue?is_hash]
             [#switch separator]
                 [#case "X"]
@@ -269,55 +323,106 @@
     [#return {} ]
 [/#function]
 
-[#-- Get the type specific attributes of versions/instances of a component --]
-[#function getOccurrenceAttributes attributes=[] root={} instance={} version={} ]
+[#-- Formulate a composite object based on order precedence - lowest to highest  --]
+[#-- If no attributes provides, simply combine the objects --]
+[#function getCompositeObject attributes=[] objects...]
     [#local result = {} ]
-    [#list asArray(attributes) as attribute]
-        [#local attributeNames = 
-            attribute?is_sequence?then(
-                attribute,
-                attribute?is_hash?then(
-                    attribute.Name?is_sequence?then(
-                        attribute.Name,
-                        [attribute.Name]),
-                    [attribute])) ]
-        [#local children = attribute?is_hash?then(attribute.Children![], []) ]
-        [#local attributeDefault = attribute?is_hash?then(attribute.Default!"","") ]
+    [#local candidates = [] ]
+    [#list asFlattenedArray(objects) as element]
+        [#if element?is_hash]
+            [#local candidates += [element] ]
+        [/#if]
+    [/#list]
 
-        [#-- Look for the first named alternatives --]
-        [#local firstName = ""]
-        [#list attributeNames as attributeName]
-            [#if version[attributeName]?? ||
-                instance[attributeName]?? ||
-                root[attributeName]?? ]
-                [#local firstName = attributeName]
+    [#if attributes?has_content]
+        [#list asFlattenedArray(attributes) as attribute]
+            [#local attributeNames = 
+                attribute?is_sequence?then(
+                    attribute,
+                    attribute?is_hash?then(
+                        attribute.Name?is_sequence?then(
+                            attribute.Name,
+                            [attribute.Name]),
+                        [attribute])) ]
+            [#local children = attribute?is_hash?then(attribute.Children![], []) ]
+            [#local attributeValue = attribute?is_hash?then(attribute.Default!"","") ]
+    
+            [#-- Look for the first name alternative --]
+            [#local firstName = ""]
+            [#list attributeNames as attributeName]
+                [#if firstName?has_content]
+                    [#break]
+                [#else]
+                    [#list candidates?reverse as object]
+                        [#if object[attributeName]??]
+                            [#local firstName = attributeName]
+                            [#break]
+                        [/#if]
+                    [/#list]
+                [/#if]
+            [/#list]
+    
+            [#if children?has_content]
+                [#local childObjects = [] ]
+                [#list candidates as object]
+                    [#if object[firstName]??]
+                        [#local childObjects += [object[firstName]] ]
+                    [/#if]
+                [/#list]
+                [#local attributeValue = getCompositeObject(children, childObjects) ]
+            [#else]
+                [#list candidates?reverse as object]
+                    [#if object[firstName]??]
+                        [#local attributeValue = object[firstName] ]
+                        [#break]
+                    [/#if]
+                [/#list]
+            [/#if]
+            [#local result +=
+                {
+                    attributeNames[0] + "IsConfigured" : firstName?has_content,
+                    attributeNames[0] : attributeValue
+                }
+            ]
+        [/#list]
+    [#else]
+        [#list candidates as object]
+            [#local result += object?is_hash?then(object, {}) ]
+        [/#list]
+    [/#if]
+    [#return result ] 
+[/#function]
+
+[#function getObjectAndQualifiers object qualifiers...]
+    [#local result = [] ]
+    [#if object?is_hash]
+        [#local result += [object] ]
+        [#list asFlattenedArray(qualifiers) as qualifier]
+            [#if ((object.Qualifiers[qualifier])!"")?is_hash]
+                [#local result += [object.Qualifiers[qualifier]] ]
             [/#if]
         [/#list]
+    [/#if]
+    [#return result ]
+[/#function]
 
-        [#local result +=
-            {
-                attributeNames[0] + "IsConfigured": firstName?has_content
-            }
-        ]
-        [#local result +=
-            {
-                attributeNames[0] :
-                    children?has_content?then(
-                        getOccurrenceAttributes(
-                            children,
-                            root[firstName]!{},
-                            instance[firstName]!{},
-                            version[firstName]!{}
-                        ),
-                        version[firstName]!
-                            instance[firstName]!
-                            root[firstName]!
-                            attributeDefault
-                    )
-            }
-        ]
-    [/#list]
-    [#return result ] 
+[#function getObjectAncestry object id attributes qualifiers...]
+    [#local result = [] ]
+    [#if ((object[id])!"")?is_hash]
+        [#local base = getObjectAndQualifiers(object[id], qualifiers) ]
+        [#local result += [getCompositeObject(attributes, base)] ]
+        [#local parentObject = getCompositeObject( ["Parent"], base ) ]
+        [#if parentObject.Parent?has_content]
+            [#local result =
+                        getObjectAncestry(
+                            object,
+                            parentObject.Parent,
+                            attributes,
+                            qualifiers) +
+                        result ]
+        [/#if]
+    [/#if]
+    [#return result ]
 [/#function]
 
 [#-- treat the value "default" for version/instance as the same as blank --]
@@ -594,7 +699,7 @@
                                             "NameExtensions" : subComponentName + [instanceName, versionName]
                                         }
                                     } +
-                                    getOccurrenceAttributes(attributes, componentObject, instance, version)
+                                    getCompositeObject(attributes, componentObject, instance, version)
                                 ]
                             ]
                         [/#if]
@@ -612,7 +717,7 @@
                                     "NameExtensions" : subComponentName + [instanceName]
                                 }
                             } +
-                            getOccurrenceAttributes(attributes, componentObject, instance)
+                            getCompositeObject(attributes, componentObject, instance)
                         ]
                     ]
                 [/#if]
@@ -636,7 +741,7 @@
                                     "NameExtensions" : subComponentName + [versionName]
                                 }
                             } +
-                            getOccurrenceAttributes(attributes, componentObject, {}, version)
+                            getCompositeObject(attributes, componentObject, version)
                         ]
                     ]
                 [/#if]
@@ -655,7 +760,7 @@
                                 "NameExtensions" : subComponentName
                             }
                         } +
-                        getOccurrenceAttributes(attributes, componentObject)
+                        getCompositeObject(attributes, componentObject)
                     ]
                 ]
             [/#if]
@@ -712,7 +817,25 @@
     [/#if]
 [/#function]
 
-[#-- Utility Macros --]
+[#function getDomainObject id qualifiers...]
+    [#local name = "" ]
+    [#local domainObjects =
+                getObjectAncestry(domains, id, ["Stem", "Name", "Zone"], qualifiers) ]
+    [#list domainObjects as object]
+        [#local name = formatDomainName(
+                          object.Stem?has_content?then(
+                              object.Stem,
+                              object.Name?has_content?then(
+                                  object.Name,
+                                  "")),
+                          name) ]
+    [/#list]
+    [#return
+        {
+            "Name" : name
+        } +
+        getCompositeObject( ["Zone"], domainObjects ) ]
+[/#function]
 
 [#-- Output object as JSON --]
 [#function getJSON obj]
@@ -743,52 +866,10 @@
     [#return result]
 [/#function]
 
+[#-- Utility functions --]
+
 [#macro toJSON obj escaped=false]
     ${escaped?then(
         getJSON(obj)?json_string,
         getJSON(obj))}[/#macro]
         
-[#function asArray arg]
-    [#return arg?is_sequence?then(arg, [arg])]
-[/#function]
-
-[#function valueIfTrue value condition otherwise={}]
-    [#return condition?then(value, otherwise) ]
-[/#function]
-
-[#function valueIfContent value content otherwise={}]
-    [#return valueIfTrue(value, content?has_content, otherwise) ]
-[/#function]
-
-[#function attributeIfTrue attribute condition value]
-    [#return valueIfTrue({attribute : value}, condition) ]
-[/#function]
-
-[#function attributeIfContent attribute content value={}]
-    [#return attributeIfTrue(
-        attribute,
-        content?has_content,
-        value?has_content?then(value,content)) ]
-[/#function]
-
-[#function if arg value]
-    [#return arg?then(value, {}) ]
-[/#function]
-
-[#function asString arg attribute]
-    [#return
-        arg?is_string?then(
-            arg,
-            arg?is_hash?then(
-                arg[attribute]?has_content?then(
-                    asString(arg[attribute], attribute),
-                    ""
-                ),
-                arg[0]?has_content?then(
-                    asString(arg[0], attribute),
-                    ""
-                )
-            )
-        )
-    ]
-[/#function]
