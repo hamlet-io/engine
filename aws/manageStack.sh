@@ -84,6 +84,7 @@ function options() {
   STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
  
   # Set up the context
+  info "Preparing the context..."
   . "${GENERATION_DIR}/setStackContext.sh"
 
   return 0
@@ -172,7 +173,8 @@ function process_stack() {
         [[ -n "${DRYRUN}" ]] && \
           fatal "Dryrun not applicable when deleting a stack" && return 1
 
-        aws --region ${REGION} cloudformation delete-stack --stack-name $STACK_NAME 2>/dev/null
+        info "Deleting the "${STACK_NAME}" stack..."
+        aws --region ${REGION} cloudformation delete-stack --stack-name "${STACK_NAME}" 2>/dev/null
   
         # For delete, we don't check result as stack may not exist
         ;;
@@ -182,6 +184,7 @@ function process_stack() {
         jq -c '.' < ${TEMPLATE} > "${stripped_template_file}"
 
         # Check if stack needs to be created
+        info "Check if the "${STACK_NAME}" stack is already present..."
         aws --region ${REGION} cloudformation describe-stacks \
             --stack-name $STACK_NAME > $STACK 2>/dev/null ||
           STACK_OPERATION="create"
@@ -205,6 +208,7 @@ function process_stack() {
               --capabilities CAPABILITY_IAM ||
             return $?
         else
+          info "Creating/updating the "${STACK_NAME}" stack..."
           aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" --capabilities CAPABILITY_IAM > "${stack_status_file}" 2>&1
           exit_status=$?
           case ${exit_status} in
