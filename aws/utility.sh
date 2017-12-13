@@ -245,6 +245,7 @@ function getOSTempRootDir() {
   uname | grep -iq "MINGW64" &&
     echo -n "c:/tmp" ||
     echo -n "$(filePath $(mktemp -u -t tmp.XXXXXXXXXX))"
+}
 
 # Default implementation - can be overriden by caller
 function getTempRootDir() {
