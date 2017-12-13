@@ -6,7 +6,7 @@
     [@createCertificate
         mode=solutionListMode
         id="certificate"
-        domain=formatDomainName("*",certDomain)
+        domain=formatDomainName("*",segmentDomain)
         validationDomain=(domains.Validation)!""
         outputId=certificateId
     /]
