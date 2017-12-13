@@ -328,6 +328,7 @@
 [#function getCompositeObject attributes=[] objects...]
     [#local result = {} ]
     [#local candidates = [] ]
+
     [#list asFlattenedArray(objects) as element]
         [#if element?is_hash]
             [#local candidates += [element] ]
@@ -344,8 +345,9 @@
                             attribute.Name,
                             [attribute.Name]),
                         [attribute])) ]
+
             [#local children = attribute?is_hash?then(attribute.Children![], []) ]
-            [#local attributeValue = attribute?is_hash?then(attribute.Default!"","") ]
+            [#local populateMissingChildren = attribute?is_hash?then(attribute.PopulateMissingChildren!true, true) ]
     
             [#-- Look for the first name alternative --]
             [#local firstName = ""]
@@ -369,21 +371,44 @@
                         [#local childObjects += [object[firstName]] ]
                     [/#if]
                 [/#list]
-                [#local attributeValue = getCompositeObject(children, childObjects) ]
+                [#if populateMissingChildren || childObjects?has_content]
+                    [#local result +=
+                        {
+                            attributeNames[0] : getCompositeObject(children, childObjects) 
+                        } +
+                        populateMissingChildren?then(
+                            {
+                                attributeNames[0] + "IsConfigured" : firstName?has_content
+                            },
+                            {}
+                        )
+                    ]
+                [/#if]
             [#else]
+                [#local valueProvided = false ]
                 [#list candidates?reverse as object]
                     [#if object[firstName]??]
                         [#local attributeValue = object[firstName] ]
+                        [#local valueProvided = true ]
                         [#break]
                     [/#if]
                 [/#list]
+                [#if valueProvided]
+                    [#local result +=
+                        {
+                            attributeNames[0] : attributeValue
+                        }
+                    ]
+                [#else]
+                    [#if attribute?is_hash && attribute.Default??]
+                        [#local result +=
+                            {
+                                attributeNames[0] : attribute.Default
+                            }
+                        ]
+                    [/#if]
+                [/#if]
             [/#if]
-            [#local result +=
-                {
-                    attributeNames[0] + "IsConfigured" : firstName?has_content,
-                    attributeNames[0] : attributeValue
-                }
-            ]
         [/#list]
     [#else]
         [#list candidates as object]
@@ -406,18 +431,17 @@
     [#return result ]
 [/#function]
 
-[#function getObjectAncestry object id attributes qualifiers...]
+[#function getObjectAncestry object id qualifiers...]
     [#local result = [] ]
     [#if ((object[id])!"")?is_hash]
         [#local base = getObjectAndQualifiers(object[id], qualifiers) ]
-        [#local result += [getCompositeObject(attributes, base)] ]
+        [#local result += [base] ]
         [#local parentObject = getCompositeObject( ["Parent"], base ) ]
         [#if parentObject.Parent?has_content]
             [#local result =
                         getObjectAncestry(
                             object,
                             parentObject.Parent,
-                            attributes,
                             qualifiers) +
                         result ]
         [/#if]
@@ -819,14 +843,14 @@
 
 [#function getDomainObject id qualifiers...]
     [#local name = "" ]
-    [#local domainObjects =
-                getObjectAncestry(domains, id, ["Stem", "Name", "Zone"], qualifiers) ]
-    [#list domainObjects as object]
+    [#local domainObjects = getObjectAncestry(domains, id, qualifiers) ]
+    [#list domainObjects as domainObject]
+        [#local qualifiedDomainObject = getCompositeObject(["Stem", "Name", "Zone"], domainObject) ]
         [#local name = formatDomainName(
-                          object.Stem?has_content?then(
-                              object.Stem,
-                              object.Name?has_content?then(
-                                  object.Name,
+                          qualifiedDomainObject.Stem?has_content?then(
+                              qualifiedDomainObject.Stem,
+                              qualifiedDomainObject.Name?has_content?then(
+                                  qualifiedDomainObject.Name,
                                   "")),
                           name) ]
     [/#list]
@@ -835,6 +859,27 @@
             "Name" : name
         } +
         getCompositeObject( ["Zone"], domainObjects ) ]
+[/#function]
+
+[#function getCertificateObject component qualifiers...]
+
+    [#local compositeCertificateObject =
+        getCompositeObject(
+            [
+                "Domain"
+            ],
+            asFlattenedArray(
+                [(environmentObject.CertificateBehaviours)!{} ] +
+                getObjectAncestry(certificates, productId, qualifiers) +
+                getObjectAncestry(certificates, (component.Certificate)!"", qualifiers) +
+                [component]
+            )
+        )
+    ]
+
+    [#return compositeCertificateObject ]
+    [#local domainObject = getDomainObject(compositeCertificateObject.Domain, qualifiers) ]
+
 [/#function]
 
 [#-- Output object as JSON --]
