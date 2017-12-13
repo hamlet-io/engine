@@ -1,21 +1,23 @@
 [#-- Certificate --]
 
+[#assign CERTIFICATE_RESOURCE_TYPE="certificate" ]
+
 [#function formatCertificateId ids...]
     [#return formatResourceId(
-                "certificate",
+                CERTIFICATE_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentCertificateId resourceId extensions...]
     [#return formatDependentResourceId(
-                "certificate",
+                CERTIFICATE_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatComponentCertificateId tier component extensions...]
     [#return formatComponentResourceId(
-                "certificate",
+                CERTIFICATE_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
