@@ -386,14 +386,23 @@
                 [/#if]
             [#else]
                 [#if occurrence.DNSIsConfigured && occurrence.DNS.Enabled]
-                    [#-- TODO: fix fetching of certificate Arn --]
+                    [#assign certificateArn =
+                        formatRegionalArn(
+                            "acm",
+                            formatTypedArnResource(
+                                "certificate",
+                                appSettingsObject.CertificateId,
+                                "/"
+                            ),
+                            "us-east-1"
+                        )]
                     [@cfResource
                         mode=applicationListMode
                         id=domainId
                         type="AWS::ApiGateway::DomainName"
                         properties= 
                             {
-                                "CertificateArn": "",
+                                "CertificateArn": certificateArn,
                                 "DomainName" : dns
                             }
                         outputs={}
