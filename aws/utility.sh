@@ -325,6 +325,21 @@ function arrayFromList() {
   fi
 }
 
+function arrayFromCommand() {
+  if namedef_supported; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1"; shift
+    local array=()
+  fi
+  local command="$1"; shift
+
+  readarray array < <(${command})
+  if ! namedef_supported; then
+    eval "${array_name}=(\"\${array[@]}\")"
+  fi
+}
+
 function listFromArray() {
   if namedef_supported; then
     local -n array="$1"; shift
