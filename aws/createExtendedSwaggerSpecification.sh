@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 trap '[[ (-z "${GENERATION_DEBUG}") && (-n "${tmpdir}") ]] && rm -rf "${tmpdir}"; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
