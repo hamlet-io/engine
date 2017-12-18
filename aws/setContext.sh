@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Based on current directory location and existing environment,
 # define additional environment variables to facilitate automation

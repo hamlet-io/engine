@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
 . "${GENERATION_DIR}/common.sh"

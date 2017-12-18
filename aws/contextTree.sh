@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # GEN3 Context Tree Functions
 #
@@ -420,7 +420,7 @@ function isValidUnit() {
 
   # Ensure level is kwown
   ! (grep -qw "${level,,}" <<< "${LEVELS[*]}") && return 1
-  
+
   # Default deployment units for each level
   declare -ga ACCOUNT_UNITS_ARRAY=("s3" "cert" "roles" "apigateway" "waf")
   declare -ga PRODUCT_UNITS_ARRAY=("s3" "sns" "cert" "cmk")

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Set up the necessary environment for Cloud Formation stack management
 #
