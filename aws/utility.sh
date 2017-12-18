@@ -334,7 +334,7 @@ function arrayFromCommand() {
   fi
   local command="$1"; shift
 
-  readarray array < <(${command})
+  readarray -t array < <(${command})
   if ! namedef_supported; then
     eval "${array_name}=(\"\${array[@]}\")"
   fi
