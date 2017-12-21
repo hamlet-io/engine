@@ -36,6 +36,11 @@
                     statements=getSqsWriteStatement(sqsId)
                 /]
             [/#if]
+            [#if website??]
+                [#assign websiteConfiguration =
+                    getWebsiteConfiguration(website.index, website.error)
+                ]
+            [/#if]
         [/#list]
                             
         [@createS3Bucket
@@ -60,6 +65,7 @@
                     [])
             sqsNotifications=sqsNotifications
             dependencies=dependencies
+            websiteConfiguration=websiteConfiguration
         /]
 
     [/#list]
