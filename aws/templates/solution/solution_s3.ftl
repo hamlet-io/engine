@@ -55,8 +55,8 @@
             tier=tier
             component=component
             lifecycleRules=
-                ((occurrence.Lifecycle.Expiration)!"")?has_content?then(
-                    getS3LifecycleExpirationRule(occurrence.Lifecycle.Expiration),
+                (occurrence.LifecycleIsConfigured && (occurrence.Lifecycle.Expiration!operationsExpiration)?has_content)?then(
+                    getS3LifecycleExpirationRule(occurrence.Lifecycle.Expiration!operationsExpiration),
                     [])
             sqsNotifications=sqsNotifications
             dependencies=dependencies
