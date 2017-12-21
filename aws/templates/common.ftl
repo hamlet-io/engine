@@ -593,6 +593,18 @@
                         }
                     ]
                 },
+                { 
+                    "Name" : "Website",
+                    "Children" : [
+                        {
+                            "Name": "Index"
+                        },
+                        {
+                            "Name": "Error",
+                            "Default": ""
+                        }
+                    ]
+                }
                 "Style",
                 "Notifications"
             ],
