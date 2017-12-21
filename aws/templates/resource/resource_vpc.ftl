@@ -132,6 +132,7 @@
             component
             resourceId
             resourceName
+            extensions=""
             ingressRules=""]
     [@createSecurityGroup 
         mode=mode 
@@ -181,6 +182,8 @@
             mode=mode 
             tier=tier 
             component=component
+            resourceId=resourceId
+            resourceName=resourceName
             extensions=extensions
             ingressRules=ingressRules /]
     [#else]
