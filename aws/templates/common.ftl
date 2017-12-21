@@ -585,7 +585,14 @@
             ],
         "s3" : 
             [
-                "Lifecycle",
+                {
+                    "Name" : "Lifecycle",
+                    "Children" : [
+                        {
+                            "Name" : "Expiration"
+                        }
+                    ]
+                },
                 "Style",
                 "Notifications"
             ],
