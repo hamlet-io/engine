@@ -37,6 +37,9 @@
                 /]
             [/#if]
             [#if website??]
+                [#if website.index!assgin website.index="index.html"]
+                [#if website.index!assign website.error="error.html"]
+
                 [#assign websiteConfiguration =
                     getWebsiteConfiguration(website.index, website.error)
                 ]
