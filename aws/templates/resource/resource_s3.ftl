@@ -24,6 +24,19 @@
     ]
 [/#function]
 
+[#function getS3WebsiteConfiguration index error]
+    [#return 
+        [
+            {
+                "WebsiteConfiguration" : {
+                    "IndexDocument" : index,
+                    "ErrorDocument" : error
+                }
+            }
+        ]
+    ]
+[/#function]
+
 [#assign S3_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -43,13 +56,14 @@
         }
     }
 ]
+
 [#assign outputMappings +=
     {
         S3_RESOURCE_TYPE : S3_OUTPUT_MAPPINGS
     }
 ]
 
-[#macro createS3Bucket mode id name tier="" component="" lifecycleRules=[] sqsNotifications=[] dependencies="" outputId=""]
+[#macro createS3Bucket mode id name tier="" component="" lifecycleRules=[] sqsNotifications=[] websiteConfiguration={} dependencies="" outputId=""]
     [@cfResource 
         mode=mode
         id=id
@@ -69,7 +83,14 @@
                 sqsNotifications,
                 {
                     "QueueConfigurations" : sqsNotifications
-                })
+                }) + 
+            attributeIfContent(
+                "websiteConfiguration",
+                websiteConfiguration,
+                {
+                    "websiteConfiguration" : websiteConfiguration
+                }
+            )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
         outputId=outputId
