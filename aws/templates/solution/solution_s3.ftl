@@ -59,6 +59,11 @@
                     getS3LifecycleExpirationRule(occurrence.Lifecycle.Expiration!operationsExpiration),
                     [])
             sqsNotifications=sqsNotifications
+            websiteConfiguration=
+                (occurrence.WebsiteIsConfigured) (
+                    getS3WebsiteConfiguration(occurrence.Website.Index, occurrence.Website.Error),
+                    {})
+                )
             dependencies=dependencies
         /]
 
