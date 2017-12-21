@@ -36,7 +36,7 @@
                     statements=getSqsWriteStatement(sqsId)
                 /]
             [/#if]
-            [#if website?]
+            [#if website??]
                 [#assign websiteConfiguration =
                     getWebsiteConfiguration(website.index, website.error)
                 ]
