@@ -29,6 +29,14 @@
     ]
 [/#function]
 
+[#function getWebsiteConfiguration index error]
+    [#return
+        "WebsiteConfiguration" : {
+         "IndexDocument" : index,
+         "ErrorDocument" : error
+      }
+    ]
+
 [#assign S3_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -54,7 +62,7 @@
     }
 ]
 
-[#macro createS3Bucket mode id name tier="" component="" lifecycleRules=[] sqsNotifications=[] dependencies="" outputId=""]
+[#macro createS3Bucket mode id name tier="" component="" lifecycleRules=[] sqsNotifications=[] websiteConfiguration=[] dependencies="" outputId=""]
     [@cfTemplate 
         mode=mode
         id=id
@@ -78,6 +86,9 @@
                     }
                 },
                 {}
+            ) + 
+            websiteConfiguration?has_content?then(
+                websiteConfiguration 
             )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
