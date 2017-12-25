@@ -56,7 +56,7 @@
                                             link.Tier,
                                             link.Component,
                                             targetOccurrence)]
-                                    [#assign context +=
+                                    [#-- assign context +=
                                         {
                                           "Links" :
                                               context.Links +
@@ -80,7 +80,7 @@
                                                 }
                                             }
                                         }
-                                    ]
+                                    --]
                                     [#break]
                             [/#switch]
                             [#break]

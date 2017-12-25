@@ -324,7 +324,7 @@
 [/#function]
 
 [#-- Formulate a composite object based on order precedence - lowest to highest  --]
-[#-- If no attributes provides, simply combine the objects --]
+[#-- If no attributes are provided, simply combine the objects --]
 [#function getCompositeObject attributes=[] objects...]
     [#local result = {} ]
     [#local candidates = [] ]
@@ -431,16 +431,31 @@
     [#return result ]
 [/#function]
 
-[#function getObjectAncestry object id qualifiers...]
+[#function getObjectAncestry collection start qualifiers...]
     [#local result = [] ]
-    [#if ((object[id])!"")?is_hash]
-        [#local base = getObjectAndQualifiers(object[id], qualifiers) ]
+    [#local startingObject = "" ]
+    [#list asFlattenedArray(start) as startEntry]
+        [#if startEntry?is_hash]
+            [#local startingObject = start ]
+            [#break]
+        [#else]
+            [#if startEntry?is_string]
+                [#if ((collection[startEntry])!"")?is_hash]
+                    [#local startingObject = collection[startEntry] ]
+                    [#break]
+                [/#if]
+            [/#if]
+        [/#if]
+    [/#list]
+
+    [#if startingObject?is_hash]
+        [#local base = getObjectAndQualifiers(startingObject, qualifiers) ]
         [#local result += [base] ]
         [#local parentObject = getCompositeObject( ["Parent"], base ) ]
         [#if parentObject.Parent?has_content]
             [#local result =
                         getObjectAncestry(
-                            object,
+                            collection,
                             parentObject.Parent,
                             qualifiers) +
                         result ]
@@ -860,9 +875,9 @@
     [/#if]
 [/#function]
 
-[#function getDomainObject id qualifiers...]
+[#function getDomainObject start qualifiers...]
     [#local name = "" ]
-    [#local domainObjects = getObjectAncestry(domains, id, qualifiers) ]
+    [#local domainObjects = getObjectAncestry(domains, start, qualifiers) ]
     [#list domainObjects as domainObject]
         [#local qualifiedDomainObject = getCompositeObject(["Stem", "Name", "Zone"], domainObject) ]
         [#local name = formatDomainName(
@@ -880,25 +895,71 @@
         getCompositeObject( ["Zone"], domainObjects ) ]
 [/#function]
 
-[#function getCertificateObject component qualifiers...]
+[#function getCertificateObject start qualifiers...]
 
-    [#local compositeCertificateObject =
+    [#local certificateObject = 
         getCompositeObject(
             [
-                "Domain"
+                "External",
+                "Wildcard",
+                "Domain",
+                {
+                    "Name" : "Host",
+                    "Default" : ""
+                },
+                {
+                    "Name" : "IncludeInHost",
+                    "Children" : [
+                      "Product",
+                      "Environment",
+                      "Segment",
+                      "Tier",
+                      "Component",
+                      "Instance",
+                      "Version"
+                    ]
+                }
             ],
             asFlattenedArray(
-                [(environmentObject.CertificateBehaviours)!{} ] +
-                getObjectAncestry(certificates, productId, qualifiers) +
-                getObjectAncestry(certificates, (component.Certificate)!"", qualifiers) +
-                [component]
+                getObjectAndQualifiers((blueprintObject.CertificateBehaviours)!{}, qualifiers) +
+                getObjectAndQualifiers((tenantObject.CertificateBehaviours)!{}, qualifiers) +
+                getObjectAncestry(certificates, [productId, productName], qualifiers) +
+                getObjectAncestry(certificates, (start.Certificate)!"", qualifiers)
             )
         )
     ]
 
-    [#return compositeCertificateObject ]
-    [#local domainObject = getDomainObject(compositeCertificateObject.Domain, qualifiers) ]
+    [#return
+        certificateObject +
+        {
+            "Domain" : getDomainObject(certificateObject.Domain, qualifiers)
+        }
+    ]
+[/#function]
 
+[#function getHostName certificateObject tier="" component="" instance="" version=""]
+
+    [#local includes = certificateObject.IncludeInHost ]
+
+    [#return
+        formatDomainName(
+            valueIfContent(
+                certificateObject.Host,
+                certificateObject.Host,
+                formatName(
+                    valueIfTrue(getTierName(tier), includes.Tier),
+                    valueIfTrue(getComponentName(component), includes.Component),
+                    valueIfTrue(instance, includes.Instance),
+                    valueIfTrue(version, includes.Version),
+                    valueIfTrue(segmentName!"", includes.Segment),
+                    valueIfTrue(environmentName!"", includes.Environment),
+                    valueIfTrue(productName!"", includes.Product)
+                )
+            ),
+            certificateObject.Domain.Name
+        )
+    ]
+]
 [/#function]
 
 [#-- Output object as JSON --]

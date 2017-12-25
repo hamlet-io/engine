@@ -218,21 +218,6 @@
             [/#list]
         [/#list]
 
-        [@cfOutput
-            mode=segmentListMode
-            id=formatId("domain", "segment", "domain")
-            value=segmentDomain
-        /]
-        [@cfOutput
-            mode=segmentListMode
-            id=formatId("domain", "segment", "qualifier")
-            value=segmentDomainQualifier
-        /]
-        [@cfOutput
-            mode=segmentListMode
-            id=formatId("domain", "segment", "certificate")
-            value=segmentDomainCertificateId
-        /]
     [/#if]
 
 [/#if]

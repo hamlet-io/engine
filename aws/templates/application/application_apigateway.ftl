@@ -131,12 +131,13 @@
                                         "invalid")]
         [#assign domainId  = formatDependentAPIGatewayDomainId(apiId)]
         [#assign basePathMappingId  = formatDependentAPIGatewayBasePathMappingId(stageId)]
-        [#assign dns = formatDomainName(
+        [#assign dns = "" ]
+        [#-- assign dns = formatDomainName(
                             formatName(
                                 occurrence.DNS.Host,
                                 occurrence.InstanceName,
                                 segmentDomainQualifier),
-                            segmentDomain) ]
+                            segmentDomain) --]
 
         [#assign cfId  = formatDependentCFDistributionId(
                                 apiId)]
