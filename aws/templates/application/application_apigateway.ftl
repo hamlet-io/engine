@@ -423,6 +423,87 @@
                 [/#if]
             [/#if]
         [/#if]
+
+        [#if deploymentSubsetRequired("s3", true)]
+            [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
+                [#assign docsS3BucketId = formatComponentS3Id(
+                                            tier,
+                                            component,
+                                            occurrence,
+                                            "docs")]
+                
+                [#assign docsS3BucketPolicyId = formatBucketPolicyId(
+                                            tier,
+                                            component,
+                                            occurrence,
+                                            "docs")]
+
+                [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
+
+                [#assign docsS3BucketName = (occurrence.DNSIsConfigured && occurrence.DNS.Enabled)?then(
+                                                formatDomainName(
+                                                    occurrence.Publish.DnsNamePrefix,
+                                                    dns
+                                                ),
+                                                formatName(
+                                                    occurrence.Publish.DnsNamePrefix,
+                                                    tier,
+                                                    component,
+                                                    occurrence
+                                                )
+                                                )]    
+                
+                [#assign docsWAFCIDRList = [] ]
+
+                [#if occurrence.WAFIsConfigured &&
+                        occurrence.WAF.Enabled &&
+                        ipAddressGroupsUsage["waf"]?has_content ]
+                    
+                    [#list occurrence.WAF.IPAddressGroups as group]
+                            
+                            [#assign groupId = group?is_hash?then(
+                                            group.Id,
+                                            group)]
+                            
+                            [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
+                                
+                                [#assign docsWAFCIDRList +=  (ipAddressGroupsUsage["waf"][groupId]).CIDR  ]
+                                
+                            [/#if]
+                            
+                    [/#list]
+                    
+                [/#if]
+                
+                [#assign docsS3IPWhitelist = (docsWAFCIDRList?has_content)?then(
+                                                s3IPAccessCondition(docsWAFCIDRList),
+                                                "*")]                  
+
+                [@createBucketPolicy
+                    mode=applicationListMode
+                    id=docsS3BucketPolicyId
+                    bucket=docsS3BucketId
+                    statements=
+                        s3ReadPermission(
+                            docsS3BucketName,
+                            "",
+                            "*",
+                            "*",
+                            docsS3IPWhitelist
+                        )
+                    dependencies=docsS3BucketId
+                /]
+
+                [@createS3Bucket
+                    mode=applicationListMode
+                    id=docsS3BucketId
+                    name=docsS3BucketName
+                    websiteConfiguration=docsS3WebsiteConfiguration
+                    outputId=docsS3BucketId
+                /]
+            [/#if]  
+        [/#if]
+
         [#switch applicationListMode]
             [#case "dashboard"]
                 [#if getExistingReference(apiId)?has_content]
