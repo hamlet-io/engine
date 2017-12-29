@@ -82,7 +82,7 @@
                 }) + 
             attributeIfContent(
                 "WebsiteConfiguration",
-                WebsiteConfiguration
+                websiteConfiguration
             )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
