@@ -24,16 +24,12 @@
     ]
 [/#function]
 
-[#function getS3WebsiteConfiguration index error]
+[#function getS3WebsiteConfiguration index="index.html" error="" ]
     [#return 
-        [
-            {
-                "WebsiteConfiguration" : {
-                    "IndexDocument" : index,
-                    "ErrorDocument" : error
-                }
-            }
-        ]
+        {
+            "IndexDocument" : index,
+            "ErrorDocument" : error
+        }
     ]
 [/#function]
 
@@ -85,11 +81,8 @@
                     "QueueConfigurations" : sqsNotifications
                 }) + 
             attributeIfContent(
-                "websiteConfiguration",
-                websiteConfiguration,
-                {
-                    "websiteConfiguration" : websiteConfiguration
-                }
+                "WebsiteConfiguration",
+                WebsiteConfiguration
             )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
