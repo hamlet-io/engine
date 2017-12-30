@@ -254,7 +254,7 @@
                             (port.LB.Port)?has_content?then(
                                 port.LB.Port,
                                 (port.LB.PortMapping)?has_content?then(
-                                    portMappings[lb.PortMapping].Source,
+                                    portMappings[port.LB.PortMapping].Source,
                                     port.Id
                                 )
                             )]
