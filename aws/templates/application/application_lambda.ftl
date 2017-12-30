@@ -108,7 +108,7 @@
                 [#-- Create a role under which the function will run and attach required policies --]
                 [#-- The role is mandatory though there may be no policies attached to it --]
                 [@createRole 
-                    mode=applicationListMode
+                    mode=listMode
                     id=roleId
                     trustedServices=["lambda.amazonaws.com"]
                     managedArns=
@@ -121,7 +121,7 @@
                 [#if context.Policy?has_content]
                     [#assign policyId = formatDependentPolicyId(lambdaId, context)]
                     [@createPolicy
-                        mode=applicationListMode
+                        mode=listMode
                         id=policyId
                         name=context.Name
                         statements=context.Policy
@@ -137,7 +137,7 @@
                 [#if linkPolicies?has_content]
                     [#assign policyId = formatDependentPolicyId(lambdaId, "links")]
                     [@createPolicy
-                        mode=applicationListMode
+                        mode=listMode
                         id=policyId
                         name="links"
                         statements=linkPolicies
@@ -150,7 +150,7 @@
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
                 [#if vpc?has_content && occurrence.VPCAccess]
                     [@createDependentSecurityGroup 
-                        mode=applicationListMode
+                        mode=listMode
                         tier=tier
                         component=component
                         resourceId=lambdaId
@@ -174,7 +174,7 @@
                                 fn)]
                                 
                         [@createLambdaFunction
-                            mode=applicationListMode
+                            mode=listMode
                             id=lambdaFunctionId
                             container=context +
                                 {
@@ -203,7 +203,7 @@
                 [/#list]
                 
                 [#-- Pick any extra macros in the container fragment --]
-                [#assign containerListMode = applicationListMode]
+                [#assign containerListMode = listMode]
                 [#include containerList?ensure_starts_with("/")]
             [/#if]
         [/#if]

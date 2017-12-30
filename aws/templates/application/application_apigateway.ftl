@@ -77,7 +77,7 @@
                                             ]
                                             [#if deploymentSubsetRequired("apigateway", true)]
                                               [@cfResource
-                                                  mode=applicationListMode
+                                                  mode=listMode
                                                   id=
                                                       formatAPIGatewayLambdaPermissionId(
                                                           tier,
@@ -160,7 +160,7 @@
 
         [#if deploymentSubsetRequired("apigateway", true)]
             [@cfResource
-                mode=applicationListMode
+                mode=listMode
                 id=apiId
                 type="AWS::ApiGateway::RestApi"
                 properties= 
@@ -183,7 +183,7 @@
                 outputs=APIGATEWAY_OUTPUT_MAPPINGS
             /]
             [@cfResource
-                mode=applicationListMode
+                mode=listMode
                 id=deployId
                 type="AWS::ApiGateway::Deployment"
                 properties= 
@@ -195,7 +195,7 @@
                 dependencies=apiId                       
             /]
             [@cfResource
-                mode=applicationListMode
+                mode=listMode
                 id=stageId
                 type="AWS::ApiGateway::Stage"
                 properties= 
@@ -217,7 +217,7 @@
                 dependencies=deployId                       
             /]
             [@createSegmentCountLogMetric
-                    applicationListMode,
+                    listMode,
                     invalidLogMetricId,
                     invalidLogMetricName,
                     logGroup,
@@ -225,7 +225,7 @@
                     [stageId]
             /]
             [@createCountAlarm
-                mode=applicationListMode
+                mode=listMode
                 id=invalidAlarmId
                 name=invalidAlarmName
                 actions=[
@@ -258,7 +258,7 @@
                     [/#list]
                 [/#if]
                 [@createCFDistribution
-                    mode=applicationListMode
+                    mode=listMode
                     id=cfId
                     dependencies=stageId     
                     aliases=
@@ -294,7 +294,7 @@
                             ipAddressGroupsUsage["waf"]?has_content))
                 /]
                 [@cfResource
-                    mode=applicationListMode
+                    mode=listMode
                     id=usagePlanId
                     type="AWS::ApiGateway::UsagePlan"
                     properties= 
@@ -378,7 +378,7 @@
                         ]
                     [/#list]
                     [@createWAFAcl 
-                        mode=applicationListMode
+                        mode=listMode
                         id=wafAclId
                         name=wafAclName
                         metric=wafAclName
@@ -398,7 +398,7 @@
                             "us-east-1"
                         )]
                     [@cfResource
-                        mode=applicationListMode
+                        mode=listMode
                         id=domainId
                         type="AWS::ApiGateway::DomainName"
                         properties= 
@@ -409,7 +409,7 @@
                         outputs={}
                     /]
                     [@cfResource
-                        mode=applicationListMode
+                        mode=listMode
                         id=basePathMappingId
                         type="AWS::ApiGateway::BasePathMapping"
                         properties= 
@@ -424,7 +424,7 @@
                 [/#if]
             [/#if]
         [/#if]
-        [#switch applicationListMode]
+        [#switch listMode]
             [#case "dashboard"]
                 [#if getExistingReference(apiId)?has_content]
                     [#assign widgets =

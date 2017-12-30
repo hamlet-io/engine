@@ -40,6 +40,19 @@
     ]
 [/#function]
 
+[#function getDescendent object default path...]
+    [#local descendent=object]
+    [#list asFlattenedArray(path) as part]
+        [#if descendent[part]??]
+            [#local descendent=descendent[part] ]
+        [#else]
+            [#return default]
+        [/#if]
+    [/#list]
+        
+    [#return descendent]
+[/#function]
+
 [#function valueIfTrue value condition otherwise={}]
     [#return condition?then(value, otherwise) ]
 [/#function]
@@ -501,7 +514,7 @@
                     "Default" : []
                 },
                 {
-                    "Name" : "DNS",
+                    "Name" : "Certificate",
                     "Default" : {}
                 }
             ],
@@ -923,8 +936,9 @@
             asFlattenedArray(
                 getObjectAndQualifiers((blueprintObject.CertificateBehaviours)!{}, qualifiers) +
                 getObjectAndQualifiers((tenantObject.CertificateBehaviours)!{}, qualifiers) +
+                getObjectAndQualifiers((productObject.CertificateBehaviours)!{}, qualifiers) +
                 getObjectAncestry(certificates, [productId, productName], qualifiers) +
-                getObjectAncestry(certificates, (start.Certificate)!"", qualifiers)
+                getObjectAncestry(certificates, start, qualifiers)
             )
         )
     ]
@@ -937,7 +951,7 @@
     ]
 [/#function]
 
-[#function getHostName certificateObject tier="" component="" instance="" version=""]
+[#function getHostName certificateObject tier="" component="" occurrence={}]
 
     [#local includes = certificateObject.IncludeInHost ]
 
@@ -949,8 +963,8 @@
                 formatName(
                     valueIfTrue(getTierName(tier), includes.Tier),
                     valueIfTrue(getComponentName(component), includes.Component),
-                    valueIfTrue(instance, includes.Instance),
-                    valueIfTrue(version, includes.Version),
+                    valueIfTrue(occurrence.InstanceName!"", includes.Instance),
+                    valueIfTrue(occurrence.VersionName!"", includes.Version),
                     valueIfTrue(segmentName!"", includes.Segment),
                     valueIfTrue(environmentName!"", includes.Environment),
                     valueIfTrue(productName!"", includes.Product)

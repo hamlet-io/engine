@@ -86,7 +86,7 @@
                                         loadBalancer.Version) ]
                                         
                         [@createSecurityGroupIngress
-                            mode=applicationListMode
+                            mode=listMode
                             id=
                                 formatContainerSecurityGroupIngressId(
                                     ecsSecurityGroupId,
@@ -105,7 +105,7 @@
                                 isPartOfCurrentDeploymentUnit(loadBalancerId)]
 
                             [@createTargetGroup
-                                mode=applicationListMode
+                                mode=listMode
                                 id=loadBalancerId
                                 name=loadBalancer.TargetGroup
                                 tier=loadBalancer.Tier
@@ -123,7 +123,7 @@
                                     loadBalancer.Version
                                 )]
                             [@createListenerRule
-                                mode=applicationListMode
+                                mode=listMode
                                 id=listenerRuleId
                                 listenerId=
                                     formatALBListenerId(
@@ -145,7 +145,7 @@
             [/#list]
 
             [@createECSService
-                mode=applicationListMode
+                mode=listMode
                 id=serviceId
                 ecsId=ecsId
                 desiredCount=
@@ -175,7 +175,7 @@
             [#assign roleId = formatDependentRoleId(taskId) ]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                 [@createRole 
-                    mode=applicationListMode
+                    mode=listMode
                     id=roleId
                     trustedServices=["ecs-tasks.amazonaws.com"]
                 /]
@@ -184,7 +184,7 @@
                     [#if container.Policy?has_content]
                         [#assign policyId = formatDependentPolicyId(taskId, container.Id) ]
                         [@createPolicy
-                            mode=applicationListMode
+                            mode=listMode
                             id=policyId
                             name=container.Name
                             statements=container.Policy
@@ -200,7 +200,7 @@
 
         [#if deploymentSubsetRequired("ecs", true)]
             [@createECSTask
-                mode=applicationListMode
+                mode=listMode
                 id=taskId
                 containers=containers
                 role=roleId
@@ -209,7 +209,7 @@
 
             [#-- Pick any extra macros in the container fragments --]
             [#list (occurrence.Containers!{})?values as container]
-                [#assign containerListMode = applicationListMode]
+                [#assign containerListMode = listMode]
                 [#assign containerId = formatContainerFragmentId(occurrence, container)]
                 [#include containerList?ensure_starts_with("/")]
             [/#list]

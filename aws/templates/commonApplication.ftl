@@ -44,20 +44,6 @@
     [/#if]
 [/#macro]
 
-[#macro Link name link attribute="Url"]
-    [#if (containerListMode!"") == "model"]
-        [#assign context +=
-            {
-                "Environment" :
-                  (context.Environment!{}) +
-                  {
-                      name  : (context.Links[link][attribute])!""
-                  }
-            }
-        ]
-    [/#if]
-[/#macro]
-
 [#macro Variable name value]
     [#if (containerListMode!"") == "model"]
         [#assign context +=
@@ -68,14 +54,58 @@
     [/#if]
 [/#macro]
 
-[#macro Variables variables={}]
-    [#if ((containerListMode!"") == "model") && variables?is_hash]
-        [#assign context +=
-            {
-                "Environment" : (context.Environment!{}) + variables
-            }
-        ]
-    [/#if]
+[#macro Link name link attribute="Url"]
+    [@Variable
+        name=name
+        value=(context.Links[link][attribute])!"" /]
+[/#macro]
+
+[#macro Setting name path=[] default=""]
+    [@Variable
+        name=name
+        value=getDescendent(
+                  appSettingsObject,
+                  default,
+                  path?has_content?then(path, name)) /]
+[/#macro]
+
+[#macro Credential path id="" secret="" idAttribute="Username" secretAttribute="Password"]
+  [#if id?has_content]
+    [@Variable
+        name=id
+        value=getDescendent(
+                  credentialsObject, 
+                  "ERROR: Missing credential id",
+                  path?is_string?then(path?split("."), path) + [idAttribute]) /]
+  [/#if]
+  [#if secret?has_content]
+    [@Variable
+        name=secret
+        value=getDescendent(
+                  credentialsObject, 
+                  "ERROR: Missing credential secret",
+                  path?is_string?then(path?split("."), path) + [secretAttribute]) /]
+  [/#if]
+[/#macro]
+
+[#macro Settings settings...]
+    [#list asFlattenedArray(settings) as setting]
+        [#if setting?is_string]
+            [@Setting
+                name=setting /]
+        [/#if]
+        [#if setting?is_hash]
+            [#list setting as key,value]
+                [@Variable
+                    name=key
+                    value=value /]
+            [/#list]
+        [/#if]
+    [/#list]
+[/#macro]
+
+[#macro Variables variables...]
+    [@Settings  variables /]
 [/#macro]
 
 [#macro Host name value]
@@ -174,7 +204,7 @@
                     [#local targetLoadBalancer = {} ]
                     [#local targetTierId = (port.LB.Tier)!port.ELB?has_content?then("elb", "") ]
                     [#local targetComponentId = port.LB.Component!port.ELB?has_content?then(port.ELB, "") ]
-                    [#local targetGroup = ""]
+                    [#local targetGroup = (port.LB.TargetGroup)!""]
                     [#local targetPath = (port.LB.Path)!""]
                     [#local targetType = port.ELB?has_content?then("elb", "alb")]
                     
@@ -251,12 +281,12 @@
                                             "Version" : targetLoadBalancer.VersionId
                                         } +
                                         valueIfContent(
-                                                {
-                                                    "TargetGroup" : targetGroup,
-                                                    "Port" : targetPort
-                                                } +
-                                                attributeIfContent("Priority",(port.LB.Priority)!"") +
-                                                attributeIfContent("Path", targetPath),
+                                            {
+                                                "TargetGroup" : targetGroup,
+                                                "Port" : targetPort,
+                                                "Priority" : (port.LB.Priority)!100,
+                                                "Path" : targetPath
+                                            },
                                             targetGroup
                                         )
                                 },

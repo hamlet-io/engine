@@ -22,3 +22,13 @@
                 component,
                 extensions)]
 [/#function]
+
+[#function formatDomainCertificateId certificateObject, hostName=""]
+    [#return formatResourceId(
+                CERTIFICATE_RESOURCE_TYPE,
+                certificateObject.Wildcard?then(
+                    "star",
+                    hostName
+                ),
+                splitDomainName(certificateObject.Domain.Name) )]
+[/#function]

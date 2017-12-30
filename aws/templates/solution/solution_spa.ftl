@@ -63,7 +63,7 @@
         [/#if]
 
         [@createCFDistribution
-            mode=applicationListMode
+            mode=listMode
             id=cfId
             aliases=
                 occurrence.DNSIsConfigured?then(
@@ -166,7 +166,7 @@
                 ]
             [/#list]
             [@createWAFAcl 
-                mode=applicationListMode
+                mode=listMode
                 id=wafAclId
                 name=wafAclName
                 metric=wafAclName
