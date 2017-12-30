@@ -13,13 +13,13 @@
             [/#list]
             [#if entries?has_content]
                 [@createWAFIPSet
-                    accountListMode,
+                    listMode,
                     ipSetId,
                     ipSetName,
                     entries
                 /]
                 [@createWAFRule
-                    accountListMode,
+                    listMode,
                     ipRuleId,
                     ipSetName,
                     ipSetName,

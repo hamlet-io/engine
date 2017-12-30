@@ -47,7 +47,7 @@
     [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
     [@createDependentComponentSecurityGroup
-        mode=solutionListMode
+        mode=listMode
         tier=tier
         component=component
         resourceId=rdsId
@@ -55,7 +55,7 @@
     /]
         
     [@createSecurityGroupIngress
-        mode=solutionListMode
+        mode=listMode
         id=rdsSecurityGroupIngressId
         port=db.Port
         cidr="0.0.0.0"
@@ -63,7 +63,7 @@
     /]
     
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=rdsSubnetGroupId
         type="AWS::RDS::DBSubnetGroup"
         properties=
@@ -80,7 +80,7 @@
     /]
 
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=rdsParameterGroupId
         type="AWS::RDS::DBParameterGroup"
         properties=
@@ -99,7 +99,7 @@
     /]
 
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=rdsOptionGroupId
         type="AWS::RDS::OptionGroup"
         properties=
@@ -119,7 +119,7 @@
     /]
 
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=rdsId
         type="AWS::RDS::DBInstance"
         properties=

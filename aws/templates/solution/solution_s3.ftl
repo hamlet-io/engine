@@ -30,7 +30,7 @@
                         queue) ]
                 [#assign dependencies += [sqsPolicyId] ]
                 [@createSQSPolicy
-                    mode=solutionListMode
+                    mode=listMode
                     id=sqsPolicyId
                     queues=sqsId
                     statements=sqsWritePermission(sqsId)
@@ -39,7 +39,7 @@
         [/#list]
                             
         [@createS3Bucket
-            mode=solutionListMode
+            mode=listMode
             id=s3Id
             name=
                 getExistingReference(s3Id)?has_content?then(

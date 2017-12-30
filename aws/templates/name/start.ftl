@@ -4,26 +4,30 @@
 
 [#-- Names are largely for human consumption, such as in the AWS console --]
 
-[#function formatName names...]
-    [#return concatenate(names, "-")]
+[#function formatName parts...]
+    [#return concatenate(parts, "-")]
 [/#function]
 
 [#function formatDomainName parts...]
     [#return concatenate(parts, ".")]
 [/#function]
 
-[#function formatPath absolute names...]
+[#function splitDomainName name]
+    [#return name?split(".")]
+[/#function]
+
+[#function formatPath absolute parts...]
     [#return
         absolute?then("/","") +
-        concatenate(names, "/")]
+        concatenate(parts, "/")]
 [/#function]
 
-[#function formatAbsolutePath names...]
-    [#return formatPath(true, names)]
+[#function formatAbsolutePath parts...]
+    [#return formatPath(true, parts)]
 [/#function]
 
-[#function formatRelativePath names...]
-    [#return formatPath(false, names)]
+[#function formatRelativePath parts...]
+    [#return formatPath(false, parts)]
 [/#function]
 
 [#function formatNameExtension extensions...]
