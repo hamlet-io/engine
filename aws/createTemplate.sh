@@ -276,7 +276,7 @@ function main() {
             cat "${template_result_file}" | jq --indent 4 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
             cat "${output_file}" | jq --indent 4 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
 
-            diff -q "${template_result_file}-new" "${template_result_file}-existing" &&
+            diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
               info "Ignoring unchanged ${pass_description} file ...\n" ||
               jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
           else
