@@ -12,7 +12,7 @@
                             segmentDomain)]
                             
     [@createCertificate
-        mode=solutionListMode
+        mode=listMode
         id=certId
         domain=certDomain
         validationdomain=(domains.Validation)!""

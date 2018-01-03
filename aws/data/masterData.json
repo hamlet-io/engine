@@ -554,18 +554,6 @@
             },
             "DomainBehaviours" : {
                 "Segment" : "segmentInHost"
-            },
-            "CertificateBehaviours" : {
-                "External" : false,
-                "Wildcard" : true,
-                "IncludeInHost" : {
-                    "Product" : false,
-                    "Segment" : true,
-                    "Tier" : false,
-                    "Component" : true,
-                    "Instance" : true,
-                    "Version" : true
-                }
             }
         },
         "aat": {
@@ -675,18 +663,6 @@
             },
             "DomainBehaviours" : {
                 "Segment" : "naked"
-            },
-            "CertificateBehaviours" : {
-                "External" : false,
-                "Wildcard" : true,
-                "IncludeInHost" : {
-                    "Product" : false,
-                    "Segment" : false,
-                    "Tier" : false,
-                    "Component" : true,
-                    "Instance" : true,
-                    "Version" : true
-                }
             }
         },
         "trn": {
@@ -1197,6 +1173,26 @@
         },
         "Zones" : {
             "Order" : ["a", "b", "spare", "spare"]
+        }
+    },
+    "CertificateBehaviours" : {
+        "External" : false,
+        "Wildcard" : true,
+        "IncludeInHost" : {
+            "Product" : false,
+            "Environment" : false,
+            "Segment" : true,
+            "Tier" : false,
+            "Component" : true,
+            "Instance" : true,
+            "Version" : true
+        },
+        "Qualifiers" : {
+            "prod" : {
+                "IncludeInHost" : {
+                    "Segment" : false
+                }
+            }
         }
     },
     "PowersOf2" : [ 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536]

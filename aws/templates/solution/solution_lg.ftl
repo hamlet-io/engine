@@ -4,7 +4,7 @@
     [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(componentLogGroupId)]
         [@createLogGroup 
-            mode=solutionListMode
+            mode=listMode
             id=componentLogGroupId
             name=formatComponentLogGroupName(tier, component) /]
     [/#if]

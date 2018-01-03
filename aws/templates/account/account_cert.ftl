@@ -4,7 +4,7 @@
         [#assign certificateId = formatCertificateId(accountDomainCertificateId)]
     
         [@createCertificate
-            mode=accountListMode
+            mode=listMode
             id="certificate"
             domain=formatDomainName("*",accountDomain)
             validationDomain=(domains.Validation)!""

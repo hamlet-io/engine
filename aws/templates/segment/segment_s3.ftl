@@ -12,7 +12,7 @@
     [#assign s3DataTemplateId = formatS3DataTemplateId()]
 
     [@createS3Bucket
-        mode=segmentListMode
+        mode=listMode
         id=s3OperationsTemplateId
         name=operationsBucket
         lifecycleRules=
@@ -31,7 +31,7 @@
         getExistingReference(formatDependentCFAccessId(s3OperationsId), CANONICAL_ID_ATTRIBUTE_TYPE)]
             
     [@createBucketPolicy
-        mode=segmentListMode
+        mode=listMode
         id=s3OperationsPolicyTemplateId
         bucket=operationsBucket
         statements=
@@ -70,7 +70,7 @@
     /]
     
     [@createS3Bucket
-        mode=segmentListMode
+        mode=listMode
         id=s3DataTemplateId
         name=dataBucket
         lifecycleRules=
@@ -85,18 +85,18 @@
     [#-- Legacy naming --]
     [#-- TODO: Remove --]
     [@cfOutput
-        mode=segmentListMode
+        mode=listMode
         id=formatSegmentS3Id("ops", "template")
         value=s3OperationsTemplateId
     /]
     [@cfOutput
-        mode=segmentListMode
+        mode=listMode
         id=formatSegmentS3Id("data", "template")
         value=s3DataTemplateId
     /]
     [#if s3OperationsId != s3OperationsTemplateId ]
         [@cfOutput
-            mode=segmentListMode
+            mode=listMode
             id=formatSegmentS3Id("ops")
             value=
                 {
@@ -106,7 +106,7 @@
     [/#if]
     [#if s3DataId != s3DataTemplateId ]
         [@cfOutput
-            mode=segmentListMode
+            mode=listMode
             id=formatSegmentS3Id("data")
             value=
                 {

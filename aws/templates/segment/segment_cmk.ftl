@@ -6,7 +6,7 @@
         [#assign cmkAliasId = formatSegmentCMKAliasId(cmkId)]
     
         [@createCMK
-            mode=segmentListMode
+            mode=listMode
             id=cmkId
             description=formatName(productName,segmentName)
             statements=
@@ -23,7 +23,7 @@
         /]
         
         [@createCMKAlias
-            mode=segmentListMode
+            mode=listMode
             id=cmkAliasId
             name=formatName("alias/" + productName, segmentName)
             cmkId=cmkId
@@ -33,7 +33,7 @@
         [#if sshPerSegment]
             [#-- Make sure SSH credentials are in place --]
             [@cfScript
-                mode=applicationListMode
+                mode=listMode
                 content=
                     [
                         "function manage_ssh_credentials() {"
@@ -73,7 +73,7 @@
         [/#if]
         [#-- Origin Access Identity for any S3 based cloudfront distributions --]
         [@cfScript
-            mode=applicationListMode
+            mode=listMode
             content=
                 [
                     "function manage_oai_credentials() {"

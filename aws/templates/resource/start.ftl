@@ -166,11 +166,22 @@
     [#if ((!(inRegion?has_content)) || (inRegion == region)) &&
         isPartOfCurrentDeploymentUnit(resourceId)]
         [#if attributeType?has_content]
-            [#local mapping = outputMappings[getResourceType(resourceId)][attributeType] ]
-            [#if (mapping.Attribute)?has_content]
+            [#local resourceType = getResourceType(resourceId) ]
+            [#if outputMappings[resourceType]?? ]
+                [#local mapping = outputMappings[getResourceType(resourceId)][attributeType] ]
+                [#if (mapping.Attribute)?has_content]
+                    [#return
+                        {
+                            "Fn::GetAtt" : [resourceId, mapping.Attribute] 
+                        }
+                    ]
+                [/#if]
+            [#else]
                 [#return
                     {
-                        "Fn::GetAtt" : [resourceId, mapping.Attribute] 
+                        "Mapping" : "ERROR_UNKNOWN_RESOURCE_TYPE",
+                        "ResourceId" : resourceId,
+                        "ResourceType" : resourceType
                     }
                 ]
             [/#if]
@@ -459,13 +470,18 @@
 
 [#macro cfTemplate level include="" compositeLists=[]]
     
+    [#-- Model --]
+    [#assign model = {} ]
+    [#assign listMode = "model"]
+    [#if include?has_content]
+        [#include include?ensure_starts_with("/")]
+    [#else]
+        [@includeCompositeLists asArray(compositeLists) /]
+    [/#if]
+
     [#-- Resources --]
     [#assign templateResources = {} ]
-    [#assign segmentListMode = "definition"]
-    [#assign solutionListMode = "definition"]
-    [#assign applicationListMode = "definition"]
-    [#assign productListMode = "definition"]
-    [#assign accountListMode = "definition"]
+    [#assign listMode = "definition"]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
@@ -474,11 +490,7 @@
 
     [#-- Outputs --]
     [#assign templateOutputs={} ]
-    [#assign segmentListMode="outputs"]
-    [#assign solutionListMode="outputs"]
-    [#assign applicationListMode="outputs"]
-    [#assign productListMode = "outputs"]
-    [#assign accountListMode = "outputs"]
+    [#assign listMode="outputs"]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
@@ -487,11 +499,7 @@
 
     [#-- Config --]
     [#assign templateConfig = {} ]
-    [#assign segmentListMode="config"]
-    [#assign solutionListMode="config"]
-    [#assign applicationListMode="config"]
-    [#assign productListMode = "config"]
-    [#assign accountListMode = "config"]
+    [#assign listMode="config"]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
@@ -500,11 +508,7 @@
 
     [#-- Script --]
     [#assign templateScript = [] ]
-    [#assign segmentListMode="script"]
-    [#assign solutionListMode="script"]
-    [#assign applicationListMode="script"]
-    [#assign productListMode = "script"]
-    [#assign accountListMode = "script"]
+    [#assign listMode="script"]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]

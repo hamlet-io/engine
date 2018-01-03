@@ -5,7 +5,7 @@
     [#assign cmkAliasId = formatProductCMKAliasId(cmkId)]
 
     [@createCMK
-        mode=productListMode
+        mode=listMode
         id=cmkId
         description=productName
         statements=
@@ -22,7 +22,7 @@
     /]
     
     [@createCMKAlias
-        mode=productListMode
+        mode=listMode
         id=cmkAliasId
         name="alias/" + productName
         cmkId=cmkId

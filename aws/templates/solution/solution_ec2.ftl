@@ -28,7 +28,7 @@
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(ec2RoleId)]
         [@createRole
-            mode=solutionListMode
+            mode=listMode
             id=ec2RoleId
             trustedServices=["ec2.amazonaws.com" ]
             policies=
@@ -47,7 +47,7 @@
     [#if deploymentSubsetRequired("ec2", true)]
     
         [@createComponentSecurityGroup
-            mode=solutionListMode
+            mode=listMode
             tier=tier
             component=component
             ingressRules=ingressRules
@@ -55,7 +55,7 @@
         
         
         [@cfResource
-            mode=solutionListMode
+            mode=listMode
             id=ec2InstanceProfileId
             type="AWS::IAM::InstanceProfile"
             properties=
@@ -103,7 +103,7 @@
                 [#assign storageProfile = getStorage(tier, component, "EC2")]
     
                 [@cfResource
-                    mode=solutionListMode
+                    mode=listMode
                     id=ec2InstanceId
                     type="AWS::EC2::Instance"
                     metadata=
@@ -258,7 +258,7 @@
                 /]
     
                 [@cfResource
-                    mode=solutionListMode
+                    mode=listMode
                     id=ec2ENIId
                     type="AWS::EC2::NetworkInterface"
                     properties=
@@ -284,13 +284,13 @@
                 
                 [#if fixedIP]
                     [@createEIP
-                        mode=solutionListMode
+                        mode=listMode
                         id=ec2EIPId
                         dependencies=[ec2ENIId]
                     /]
                     
                     [@cfResource
-                        mode=solutionListMode
+                        mode=listMode
                         id=ec2EIPAssociationId
                         type="AWS::EC2::EIPAssociation"
                         properties=

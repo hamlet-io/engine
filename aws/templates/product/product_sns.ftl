@@ -1,9 +1,11 @@
 [#-- SNS for product --]
 [#if deploymentUnit?contains("sns")]
     [#assign topicId = formatProductSNSTopicId()]
-    [@createProductSNSTopic productListMode topicId /]
+    [@createProductSNSTopic
+        listMode,
+        topicId /]
     [@createSNSSubscription
-        productListMode,
+        listMode,
         topicId,
         "alerts@${productDomain}",
         "email" /]
