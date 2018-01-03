@@ -543,7 +543,7 @@
             [/#if]
         [/#if]
 
-        [#switch applicationListMode]
+        [#switch listmode]
             [#case "dashboard"]
                 [#if getExistingReference(apiId)?has_content]
                     [#assign widgets =
