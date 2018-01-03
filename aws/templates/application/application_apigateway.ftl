@@ -481,7 +481,7 @@
                                                 "*")]                  
 
                 [@createBucketPolicy
-                    mode=applicationListMode
+                    mode=listMode
                     id=docsS3BucketPolicyId
                     bucket=docsS3BucketId
                     statements=
@@ -496,7 +496,7 @@
                 /]
 
                 [@createS3Bucket
-                    mode=applicationListMode
+                    mode=listMode
                     id=docsS3BucketId
                     name=docsS3BucketName
                     websiteConfiguration=docsS3WebsiteConfiguration
@@ -508,7 +508,7 @@
         [#if deploymentSubsetRequired("epilogue", false)]
             [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
                 [@cfScript
-                    mode=applicationListMode
+                    mode=listMode
                     content=
                     [
                         "function get_apidoc_file() {",
