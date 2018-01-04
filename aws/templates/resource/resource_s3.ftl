@@ -24,7 +24,7 @@
     ]
 [/#function]
 
-[#function getS3WebsiteConfiguration index="index.html" error="" ]
+[#function getS3WebsiteConfiguration index error ]
     [#return 
         {
             "IndexDocument" : index,

@@ -625,7 +625,8 @@
                     "Name" : "Website",
                     "Children" : [
                         {
-                            "Name": "Index"
+                            "Name": "Index",
+                            "Default": "index.html"
                         },
                         {
                             "Name": "Error",
