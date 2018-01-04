@@ -440,7 +440,7 @@
                                             occurrence,
                                             "docs")]
 
-                [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
+                [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("apidoc.html", "")]
 
                 [#assign docsS3BucketName = (occurrence.DNSIsConfigured && occurrence.DNS.Enabled)?then(
                                                 formatDomainName(
@@ -506,7 +506,49 @@
             [/#if]  
         [/#if]
 
+<<<<<<< HEAD
         [#switch listMode]
+=======
+        [#if deploymentSubsetRequired("epilogue", false)]
+            [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
+                [@cfScript
+                    mode=applicationListMode
+                    content=
+                    [
+                        "function get_apidoc_file() {",
+                        "  #",
+                        "  # Temporary dir for the apidoc file",
+                        "  mkdir -p ./temp_apidoc",
+                        "  #",
+                        "  # Fetch the apidoc file",
+                        "  copyFilesFromBucket" + " " +
+                            regionId + " " + 
+                            getRegistryEndPoint("swagger") + " " +
+                            formatRelativePath(
+                                        productName,
+                                        buildDeploymentUnit,
+                                        buildCommit,
+                                        "apidoc.html") + " " +
+                        "   ./temp_apidoc || return $?",
+                        "  #",
+                        "  # Sync to the API Doc bucket",
+                        "  copy_apidoc_file" + " " +  
+                            formatComponentS3Id(
+                                        tier,
+                                        component,
+                                        occurrence,
+                                        "docs") + " " +
+                        " ./temp_spa/apidoc.html",
+                        "}",
+                        "#",
+                        "get_apidoc_file"
+                    ]
+                /]
+            [/#if]
+        [/#if]
+
+        [#switch applicationListMode]
+>>>>>>> 00a39cb... Added Doc Deployment Script
             [#case "dashboard"]
                 [#if getExistingReference(apiId)?has_content]
                     [#assign widgets =
