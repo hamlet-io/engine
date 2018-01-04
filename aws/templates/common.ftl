@@ -886,7 +886,7 @@
                             "Default" : false
                         }
                     ] 
-                }
+                },
         "efs"  :
             [
             ]

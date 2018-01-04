@@ -4,8 +4,8 @@
 [#assign EFS_MOUNTTARGET_RESOURCE_TYPE = "efsMountTarget" ]
 
 [#function formatEFSId tier component extensions...]
-    [#return formatComponentResourceId(
-        EFS_RESOURCE_TYPE
+    [#return fromatResourceId (
+        EFS_RESOURCE_TYPE,
         tier,
         component,
         extensions)]
