@@ -512,9 +512,6 @@
                     [
                         "function get_apidoc_file() {",
                         "  #",
-                        "  # Temporary dir for the apidoc file",
-                        "  mkdir -p ./temp_apidoc",
-                        "  #",
                         "  # Fetch the apidoc file",
                         "  copyFilesFromBucket" + " " +
                             regionId + " " + 
@@ -524,7 +521,7 @@
                                         buildDeploymentUnit,
                                         buildCommit,
                                         "apidoc.html") + " " +
-                        "   ./temp_apidoc || return $?",
+                        "   ${tmpdir} || return $?",
                         "  #",
                         "  # Sync to the API Doc bucket",
                         "  copy_apidoc_file" + " " +  
@@ -533,7 +530,7 @@
                                         component,
                                         occurrence,
                                         "docs") + " " +
-                        " ./temp_spa/apidoc.html",
+                        " ${tmpdir}/apidoc.html",
                         "}",
                         "#",
                         "get_apidoc_file"
