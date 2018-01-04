@@ -23,7 +23,7 @@
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
         [@createRole
-            mode=segmentListMode
+            mode=listMode
             id=flowLogsRoleId                               
             trustedServices=["vpc-flow-logs.amazonaws.com"]
             policies=
@@ -38,7 +38,7 @@
     [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(flowLogsAllLogGroupId)]
         [@createVPCLogGroup
-            mode=segmentListMode
+            mode=listMode
             id=flowLogsAllLogGroupId
             name=flowLogsAllLogGroupName
             retention=((segmentObject.Operations.FlowLogs.Expiration) !
@@ -52,7 +52,7 @@
         [#if (segmentObject.Operations.FlowLogs.Enabled)!
                 (environmentObject.Operations.FlowLogs.Enabled)! false]
             [@createVPCFlowLog
-                mode=segmentListMode
+                mode=listMode
                 id=flowLogsAllId
                 vpcId=vpcId
                 roleId=flowLogsRoleId
@@ -62,12 +62,12 @@
         [/#if]
             
         [@createSegmentSNSTopic
-            mode=segmentListMode
+            mode=listMode
             id=topicId
         /]
 
         [@createVPC 
-            mode=segmentListMode
+            mode=listMode
             id=vpcId
             name=formatVPCName()
             cidr=segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask
@@ -77,12 +77,12 @@
 
         [#if internetAccess]
             [@createIGW
-                mode=segmentListMode
+                mode=listMode
                 id=igwId
                 name=formatIGWName()
             /]
             [@createIGWAttachment
-                mode=segmentListMode
+                mode=listMode
                 id=formatId("igw","attachment")
                 vpcId=vpcId
                 igwId=igwId
@@ -99,7 +99,7 @@
                 [#if !solutionRouteTables?seq_contains(routeTableId)]
                     [#assign solutionRouteTables += [routeTableId]]
                     [@createRouteTable
-                        mode=segmentListMode
+                        mode=listMode
                         id=routeTableId
                         name=routeTableName
                         vpcId=vpcId
@@ -111,7 +111,7 @@
                                 [#case "gateway"]
                                     [#if internetAccess]
                                         [@createRoute
-                                            mode=segmentListMode
+                                            mode=listMode
                                             id=formatRouteId(routeTableId, route)
                                             routeTableId=routeTableId
                                             route=
@@ -136,7 +136,7 @@
         [#-- by default with the endpoint                         --]
         [#list ["s3", "dynamodb"] as service]
             [@createVPCEndpoint
-                mode=segmentListMode
+                mode=listMode
                 id=formatVPCEndPointId(service)
                 vpcId=vpcId
                 service=service
@@ -153,7 +153,7 @@
             [#if !solutionNetworkACLs?seq_contains(networkACLId)]
                 [#assign solutionNetworkACLs += [networkACLId]]
                 [@createNetworkACL
-                    mode=segmentListMode
+                    mode=listMode
                     id=networkACLId
                     name=networkACLName
                     vpcId=vpcId
@@ -168,7 +168,7 @@
                                                 (direction=="Outbound"),
                                                 rule)]
                                 [@createNetworkACLEntry
-                                    mode=segmentListMode
+                                    mode=listMode
                                     id=networkACLEntryId
                                     networkACLId=networkACLId
                                     outbound=(direction=="Outbound")
@@ -194,7 +194,7 @@
                 [#assign routeTableAssociationId = formatRouteTableAssociationId(subnetId)]
                 [#assign networkACLAssociationId = formatNetworkACLAssociationId(subnetId)]
                 [@createSubnet
-                    mode=segmentListMode
+                    mode=listMode
                     id=subnetId
                     name=subnetName
                     vpcId=vpcId
@@ -204,13 +204,13 @@
                     private=routeTable.Private!false
                 /]
                 [@createRouteTableAssociation
-                    mode=segmentListMode
+                    mode=listMode
                     id=routeTableAssociationId
                     subnetId=subnetId
                     routeTableId=routeTableId
                 /]
                 [@createNetworkACLAssociation
-                    mode=segmentListMode
+                    mode=listMode
                     id=networkACLAssociationId
                     subnetId=subnetId
                     networkACLId=networkACLId
@@ -218,21 +218,6 @@
             [/#list]
         [/#list]
 
-        [@cfOutput
-            mode=segmentListMode
-            id=formatId("domain", "segment", "domain")
-            value=segmentDomain
-        /]
-        [@cfOutput
-            mode=segmentListMode
-            id=formatId("domain", "segment", "qualifier")
-            value=segmentDomainQualifier
-        /]
-        [@cfOutput
-            mode=segmentListMode
-            id=formatId("domain", "segment", "certificate")
-            value=segmentDomainCertificateId
-        /]
     [/#if]
 
 [/#if]
@@ -264,7 +249,7 @@
             isPartOfCurrentDeploymentUnit(roleId) &&
             sshStandalone]
         [@createRole
-            mode=segmentListMode
+            mode=listMode
             id=roleId
             trustedServices=["ec2.amazonaws.com" ]
             policies=
@@ -284,14 +269,14 @@
             isPartOfCurrentDeploymentUnit(eipId) &&
             sshStandalone]
         [@createEIP
-            mode=segmentListMode
+            mode=listMode
             id=eipId
         /]
     [/#if]
 
     [#if deploymentSubsetRequired("ssh", true)]
         [@createSecurityGroup
-            mode=segmentListMode
+            mode=listMode
             tier=tier
             component=sshComponent
             id=sshToProxySecurityGroupId
@@ -315,7 +300,7 @@
         /]
     
         [@createSecurityGroup
-            mode=segmentListMode
+            mode=listMode
             tier="all"
             component=sshComponent
             id=sshFromProxySecurityGroupId
@@ -334,7 +319,7 @@
             [#assign instanceProfileId = formatEC2InstanceProfileId(tier, sshComponent)]
 
             [@cfResource
-                mode=segmentListMode
+                mode=listMode
                 id=instanceProfileId
                 type="AWS::IAM::InstanceProfile"
                 properties=
@@ -349,7 +334,7 @@
             [#assign launchConfigId = formatEC2LaunchConfigId(tier, sshComponent)]
     
             [@cfResource
-                mode=segmentListMode
+                mode=listMode
                 id=asgId
                 type="AWS::AutoScaling::AutoScalingGroup"
                 dependencies=getSubnets(tier, false)
@@ -464,7 +449,7 @@
         
             [#assign processorProfile = getProcessor(tier, sshComponent, "SSH")]
             [@cfResource
-                mode=segmentListMode
+                mode=listMode
                 id=launchConfigId
                 type="AWS::AutoScaling::LaunchConfiguration"
                 properties=
@@ -531,7 +516,7 @@
             isPartOfCurrentDeploymentUnit(roleId) &&
             (!natHosted)]
         [@createRole
-            mode=segmentListMode
+            mode=listMode
             id=roleId
             trustedServices=["ec2.amazonaws.com" ]
             policies=
@@ -554,7 +539,7 @@
                 [#assign eipId = formatComponentEIPId(tier, natComponent, zone)]
                 [#if isPartOfCurrentDeploymentUnit(eipId)]
                     [@createEIP
-                        mode=segmentListMode
+                        mode=listMode
                         id=eipId
                     /]
                 [/#if]
@@ -567,7 +552,7 @@
             [#assign instanceProfileId = formatEC2InstanceProfileId(tier, natComponent)]
     
             [@cfResource
-                mode=segmentListMode
+                mode=listMode
                 id=instanceProfileId
                 type="AWS::IAM::InstanceProfile"
                 properties=
@@ -579,7 +564,7 @@
             /]
     
             [@createSecurityGroup
-                mode=segmentListMode
+                mode=listMode
                 tier=tier
                 component=natComponent
                 id=allToNATSecurityGroupId
@@ -601,7 +586,7 @@
                 [#if natHosted]
                     [#assign natGatewayId = formatNATGatewayId(tier, zone)]
                     [@createNATGateway
-                        mode=segmentListMode
+                        mode=listMode
                         id=natGatewayId
                         name=formatComponentFullName(tier, natComponent, zone)
                         tier=tier
@@ -618,7 +603,7 @@
                             [#if !updatedRouteTables?seq_contains(routeTableId)]
                                 [#assign updatedRouteTables += [routeTableId]]
                                 [@createRoute
-                                    mode=segmentListMode
+                                    mode=listMode
                                     id=formatRouteId(routeTableId, "natgateway")
                                     routeTableId=routeTableId
                                     route=
@@ -656,7 +641,7 @@
                     ]
     
                     [@cfResource
-                        mode=segmentListMode
+                        mode=listMode
                         id=asgId
                         type="AWS::AutoScaling::AutoScalingGroup"
                         dependencies=formatSubnetId(tier, zone)
@@ -760,7 +745,7 @@
                 
                     [#assign processorProfile = getProcessor(tier, natComponent, "NAT")]
                     [@cfResource
-                        mode=segmentListMode
+                        mode=listMode
                         id=launchConfigId
                         type="AWS::AutoScaling::LaunchConfiguration"
                         properties=

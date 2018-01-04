@@ -260,13 +260,24 @@ function main() {
           ;;
     
         json)
-          # Ignore if only the metadata has changed - AWS will ignore it anyway
-          # TODO(mfl): remove uses of the configuration reference e.g. in tags
-          filter_pattern='del(.Metadata)'
           if [[ -f "${output_file}" ]]; then
-            diff -q \
-                <(cat "${template_result_file}" | jq --indent 4 "${filter_pattern}" ) \
-                <(cat "${output_file}" | jq --indent 4 "${filter_pattern}") ||
+            # Ignore if only the metadata/timestamps have changed
+            jq_pattern='del(.Metadata)'
+            sed_patterns=("-e" "s/${REQUEST_REFERENCE}//g")
+            sed_patterns+=("-e" "s/${CONFIGURATION_REFERENCE}//g")
+            sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
+
+            existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
+            [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
+
+            existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
+            [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
+
+            cat "${template_result_file}" | jq --indent 4 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
+            cat "${output_file}" | jq --indent 4 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+
+            diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
+              info "Ignoring unchanged ${pass_description} file ...\n" ||
               jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
           else
             jq --indent 4 '.' < "${template_result_file}" > "${output_file}"

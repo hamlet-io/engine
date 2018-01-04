@@ -38,7 +38,7 @@
             ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
         [#if dlqRequired]
             [@createSQSQueue
-                mode=solutionListMode
+                mode=listMode
                 id=dlqId
                 name=dlqName
                 retention=1209600
@@ -46,7 +46,7 @@
             /]
         [/#if]
         [@createSQSQueue
-            mode=solutionListMode
+            mode=listMode
             id=sqsId
             name=sqsName
             delay=occurrence.DelaySeconds
@@ -62,7 +62,7 @@
                   (environmentObject.Operations.DeadLetterQueue.MaxReceives)!3)
         /]
 
-        [#switch solutionListMode]
+        [#switch listMode]
             [#case "dashboard"]
                 [#if getExistingReference(sqsId)?has_content]
                     [#assign widgets =

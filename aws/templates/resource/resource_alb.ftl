@@ -93,36 +93,7 @@
     /]
 [/#macro]
 
-[#macro createALBListener mode id port albId defaultTargetGroupId certificateLink={}]
-
-    [#assign acmCert =
-        certificateLink?has_content?then(
-            getExistingReference(
-                formatComponentCertificateId(
-                    certificateLink.Tier,
-                    certificateLink.Component),
-                "",
-                region),
-            "")
-    ]
-    [#if !(acmCert?has_content)]
-        [#assign acmCert =
-            getExistingReference(
-                formatCertificateId(
-                    productDomain),
-                "",
-                region)
-        ]
-    [/#if]
-    [#if !(acmCert?has_content)]
-        [#assign acmCert =
-            getExistingReference(
-                formatCertificateId(
-                    certificateId),
-                "",
-                region)
-        ]
-    [/#if]
+[#macro createALBListener mode id port albId defaultTargetGroupId certificateId=""]
 
     [@cfResource
         mode=mode
@@ -140,33 +111,16 @@
                 "Port" : port.Port,
                 "Protocol" : port.Protocol
             } +
-            valueIfContent(
+            valueIfTrue(
                 {
                     "Certificates" : [
                         {
-                            "CertificateArn" :
-                                acmCert?has_content?then(
-                                    acmCert,
-                                    {
-                                        "Fn::Join" : [
-                                            "",
-                                            [
-                                                "arn:aws:iam::",
-                                                {"Ref" : "AWS::AccountId"},
-                                                ":server-certificate/ssl/",
-                                                certificateId,
-                                                "/",
-                                                certificateId,
-                                                "-ssl"
-                                            ]
-                                        ]
-                                    }
-                                )
+                            "CertificateArn" : getReference(certificateId, ARN_ATTRIBUTE_TYPE)
                         }
                     ],
                     "SslPolicy" : "ELBSecurityPolicy-TLS-1-2-2017-01"
                 },
-                port.Certificate!"")
+                port.Certificate!false)
         outputs=ALB_LISTENER_OUTPUT_MAPPINGS
     /]
 [/#macro]

@@ -144,10 +144,6 @@
         [/#if]
     [/#if]
 
-    [#assign segmentDomain = getExistingReference(formatSegmentDomainId())]
-    [#assign segmentDomainQualifier = getExistingReference(formatSegmentDomainQualifierId())]
-    [#assign certificateId = getExistingReference(formatSegmentDomainCertificateId())]
-
     [#if segmentObject.Environment??]
         [#assign environmentId = segmentObject.Environment]
         [#assign environmentObject = environments[environmentId]]

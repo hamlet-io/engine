@@ -53,7 +53,7 @@
 
 
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=esId
         type="AWS::Elasticsearch::Domain"
         properties=

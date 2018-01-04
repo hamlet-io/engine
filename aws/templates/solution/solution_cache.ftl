@@ -52,7 +52,7 @@
     [/#list]
 
     [@createDependentSecurityGroup
-        mode=solutionListMode
+        mode=listMode
         tier=tier
         component=component
         resourceId=cacheId
@@ -60,7 +60,7 @@
     /]
 
     [@createSecurityGroupIngress
-        mode=solutionListMode
+        mode=listMode
         id=cacheSecurityGroupIngressId
         port=cache.Port
         cidr="0.0.0.0"
@@ -68,7 +68,7 @@
     /]
 
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=cacheSubnetGroupId
         type="AWS::ElastiCache::SubnetGroup"
         properties=
@@ -80,7 +80,7 @@
     /]
     
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=cacheParameterGroupId
         type="AWS::ElastiCache::ParameterGroup"
         properties=
@@ -94,7 +94,7 @@
     /]
 
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=cacheId
         type="AWS::ElastiCache::CacheCluster"
         properties=

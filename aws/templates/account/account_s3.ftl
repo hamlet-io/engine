@@ -1,26 +1,6 @@
 [#-- Standard set of buckets for an account --]
 [#if deploymentUnit?contains("s3")]
     [#if deploymentSubsetRequired("s3", true)]
-
-        [#if accountDomain?has_content]
-            [@cfOutput
-                mode=accountListMode
-                id=formatAccountDomainId()
-                value=accountDomain
-            /]
-                
-            [@cfOutput
-                mode=accountListMode
-                id=formatAccountDomainQualifierId()
-                value=accountDomainQualifier
-            /]
-        
-            [@cfOutput
-                mode=accountListMode
-                id=formatAccountDomainCertificateId()
-                value=accountDomainCertificateId
-            /]
-        [/#if]
         
         [#assign buckets = ["credentials", "code", "registry"] ]
         [#list buckets as bucket]
@@ -30,7 +10,7 @@
             
             [#assign existingName = getExistingReference(formatAccountS3Id(bucket))]
             [@createS3Bucket
-                mode=accountListMode
+                mode=listMode
                 id=formatS3Id(bucket)
                 name=valueIfContent(
                         existingName,
@@ -53,7 +33,7 @@
                     formatName("account", "registry", accountObject.Seed))]
         [#-- Make sure code bucket is up to date and registires initialised --]
         [@cfScript
-            mode=applicationListMode
+            mode=listMode
             content=
                 [
                     "function sync_code_bucket() {",

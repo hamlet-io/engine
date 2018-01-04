@@ -9,7 +9,7 @@
     [#assign healthCheckDestination = ports[portMappings[elb.PortMappings[0]].Destination] ]
 
     [@createComponentSecurityGroup
-        mode=solutionListMode
+        mode=listMode
         tier=tier
         component=component /]
 
@@ -19,7 +19,7 @@
         [#assign destination = ports[portMappings[mapping].Destination]]
         
         [@createSecurityGroupIngress
-            mode=solutionListMode
+            mode=listMode
             id=formatComponentSecurityGroupIngressId(tier, component,source.Port)
             port=source.Port
             cidr="0.0.0.0/0"
@@ -58,7 +58,7 @@
     [/#list]
 
     [@cfResource
-        mode=solutionListMode
+        mode=listMode
         id=elbId
         type="AWS::ElasticLoadBalancing::LoadBalancer"
         properties=

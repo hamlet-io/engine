@@ -15,7 +15,7 @@
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(ecsRoleId)]
         [@createRole
-            mode=solutionListMode
+            mode=listMode
             id=ecsRoleId
             trustedServices=["ec2.amazonaws.com" ]
             managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
@@ -37,7 +37,7 @@
         /]
 
         [@createRole
-            mode=solutionListMode
+            mode=listMode
             id=ecsServiceRoleId
             trustedServices=["ecs.amazonaws.com" ]
             managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
@@ -48,7 +48,7 @@
     [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(ecsLogGroupId)]
         [@createLogGroup 
-            mode=solutionListMode
+            mode=listMode
             id=ecsLogGroupId
             name=formatComponentLogGroupName(tier, component) /]
     [/#if]
@@ -56,7 +56,7 @@
     [#if deploymentSubsetRequired("ecs", true)]
 
         [@createComponentSecurityGroup
-            mode=solutionListMode
+            mode=listMode
             tier=tier
             component=component /]
 
@@ -69,13 +69,13 @@
         [#assign defaultLogDriver = ecs.LogDriver!"awslogs"]
         
         [@cfResource
-            mode=solutionListMode
+            mode=listMode
             id=ecsId
             type="AWS::ECS::Cluster"
         /]
         
         [@cfResource
-            mode=solutionListMode
+            mode=listMode
             id=ecsInstanceProfileId
             type="AWS::IAM::InstanceProfile"
             properties=
@@ -90,7 +90,7 @@
         [#if fixedIP]
             [#list 1..maxSize as index]
                 [@createEIP
-                    mode=solutionListMode
+                    mode=listMode
                     id=formatComponentEIPId(tier, component, index)
                 /]
                 [#assign allocationIds +=
@@ -102,7 +102,7 @@
         [/#if]
     
         [@cfResource
-            mode=solutionListMode
+            mode=listMode
             id=ecsAutoScaleGroupId
             type="AWS::AutoScaling::AutoScalingGroup"
             metadata=
@@ -253,7 +253,7 @@
         [/#if]
     
         [@cfResource
-            mode=solutionListMode
+            mode=listMode
             id=ecsLaunchConfigId
             type="AWS::AutoScaling::LaunchConfiguration"
             properties=

@@ -56,7 +56,7 @@
                                             link.Tier,
                                             link.Component,
                                             targetOccurrence)]
-                                    [#assign context +=
+                                    [#-- assign context +=
                                         {
                                           "Links" :
                                               context.Links +
@@ -80,7 +80,7 @@
                                                 }
                                             }
                                         }
-                                    ]
+                                    --]
                                     [#break]
                             [/#switch]
                             [#break]
@@ -97,13 +97,13 @@
 
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig
-                mode=applicationListMode
+                mode=listMode
                 content=context.Environment
             /]
         [/#if]
         [#if deploymentSubsetRequired("prologue", false)]
             [@cfScript
-                mode=applicationListMode
+                mode=listMode
                 content=
                   [
                       "function get_spa_file() {",

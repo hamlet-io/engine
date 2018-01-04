@@ -16,9 +16,7 @@
         [#assign ignoreDeploymentUnitSubsetInOutputs = true]
         
         [#-- No effect except addition to the dashboardComponents array --]
-        [#assign segmentListMode="dashboard"]
-        [#assign solutionListMode="dashboard"]
-        [#assign applicationListMode="dashboard"]
+        [#assign listMode="dashboard"]
         [@includeCompositeLists
             level="multiple"
             compositeLists=compositeLists /]

@@ -4,7 +4,7 @@
 
     [#if deploymentSubsetRequired("dashboard", true)]
         [@createDashboard
-            mode=segmentListMode
+            mode=listMode
             id=formatSegmentCWDashboardId()
             name=formatSegmentFullName()
             components=dashboardComponents
