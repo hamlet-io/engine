@@ -744,6 +744,9 @@
                     "Name" : "UseTaskRole",
                     "Default" : true
                 }
+            ],
+        "efs"  :
+            [
             ]
     }
 ]
