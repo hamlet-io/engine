@@ -153,6 +153,28 @@ function copy_spa_file() {
   return 0
 }
 
+function copy_apidoc_file() { 
+  
+  local apidocbucket="$1"; shift
+
+  local files=()
+
+  case ${STACK_OPERATION} in
+    delete)
+      #Nothing to do as the sync will use an empty directory
+      ;;
+    create|update)
+      files+=("$1")
+      ;;
+  esac
+
+  syncFilesToBucket "${REGION}" "${apidocbucket}" \
+  "" \
+  "files" ${DRYRUN} --delete
+
+  return 0
+}
+
 function process_stack() {
 
   local tmpdir="$(getTempDir "manage_stack_XXX")"
