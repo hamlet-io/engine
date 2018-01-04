@@ -576,6 +576,19 @@
                             "Default" : ""
                         }
                     ]
+                },
+                {
+                    "Name" : "Publish",
+                    "Children" : [
+                        {
+                            "Name"  : "Enabled",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "DnsNamePrefix",
+                            "Default" : "docs"
+                        }
+                    ]
                 }
             ],
         "ecs" : 
