@@ -60,10 +60,9 @@
                     [])
             sqsNotifications=sqsNotifications
             websiteConfiguration=
-                (occurrence.WebsiteIsConfigured) (
+                occurrence.WebsiteIsConfigured?then(
                     getS3WebsiteConfiguration(occurrence.Website.Index, occurrence.Website.Error),
                     {})
-                )
             dependencies=dependencies
         /]
 
