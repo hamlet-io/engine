@@ -425,10 +425,6 @@
             [/#if]
         [/#if]
         
-<<<<<<< HEAD
-
-=======
->>>>>>> 38765a2333b63de40d8949444368033297efadcd
         [#if deploymentSubsetRequired("s3", true)]
             [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
                 [#assign docsS3BucketId = formatComponentS3Id(
@@ -485,11 +481,7 @@
                                                 "*")]                  
 
                 [@createBucketPolicy
-<<<<<<< HEAD
-                    mode=applicationListMode
-=======
                     mode=listMode
->>>>>>> 38765a2333b63de40d8949444368033297efadcd
                     id=docsS3BucketPolicyId
                     bucket=docsS3BucketId
                     statements=
@@ -504,22 +496,14 @@
                 /]
 
                 [@createS3Bucket
-<<<<<<< HEAD
-                    mode=applicationListMode
-=======
                     mode=listMode
->>>>>>> 38765a2333b63de40d8949444368033297efadcd
                     id=docsS3BucketId
                     name=docsS3BucketName
                     websiteConfiguration=docsS3WebsiteConfiguration
-                    outputId=docsS3BucketId
                 /]
             [/#if]  
         [/#if]
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
         [#if deploymentSubsetRequired("epilogue", false)]
             [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
                 [@cfScript
@@ -558,9 +542,6 @@
             [/#if]
         [/#if]
 
->>>>>>> 38765a2333b63de40d8949444368033297efadcd
-        [#switch listMode]
-=======
         [#if deploymentSubsetRequired("epilogue", false)]
             [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
                 [@cfScript
@@ -599,8 +580,7 @@
             [/#if]
         [/#if]
 
-        [#switch applicationListMode]
->>>>>>> 00a39cb... Added Doc Deployment Script
+        [#switch listMode]
             [#case "dashboard"]
                 [#if getExistingReference(apiId)?has_content]
                     [#assign widgets =
