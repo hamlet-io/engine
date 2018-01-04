@@ -45,10 +45,12 @@
 [/#macro]
 
 [#macro Variable name value]
+    [#local effectiveValue = (value?is_hash || value?is_sequence)?then(getJSON(value, true), value) ]
+
     [#if (containerListMode!"") == "model"]
         [#assign context +=
             {
-                "Environment" : (context.Environment!{}) + { name : value }
+                "Environment" : (context.Environment!{}) + { name : effectiveValue }
             }
         ]
     [/#if]
@@ -64,9 +66,9 @@
     [@Variable
         name=name
         value=getDescendent(
-                  appSettingsObject,
-                  default,
-                  path?has_content?then(path, name)) /]
+                      appSettingsObject,
+                      default,
+                      path?has_content?then(path, name)) /]
 [/#macro]
 
 [#macro Credential path id="" secret="" idAttribute="Username" secretAttribute="Password"]
@@ -156,11 +158,11 @@
     [/#if]
 [/#macro]
 
-[#macro Policy statements]
+[#macro Policy statements...]
     [#if (containerListMode!"") == "model"]
         [#assign context +=
             {
-                "Policy" : (context.Policy![]) + asArray(statements)
+                "Policy" : (context.Policy![]) + asFlattenedArray(statements)
             }
         ]
     [/#if]

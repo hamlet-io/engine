@@ -965,7 +965,7 @@
 [/#function]
 
 [#-- Output object as JSON --]
-[#function getJSON obj]
+[#function getJSON obj escaped=false]
     [#local result = ""]
     [#if obj?is_hash]
         [#local result += "{"]
@@ -990,13 +990,11 @@
             [/#if]
         [/#if]
     [/#if]
-    [#return result]
+    [#return escaped?then(result?json_string, result) ]
 [/#function]
 
 [#-- Utility functions --]
 
 [#macro toJSON obj escaped=false]
-    ${escaped?then(
-        getJSON(obj)?json_string,
-        getJSON(obj))}[/#macro]
+    ${getJSON(obj, escaped)}[/#macro]
         
