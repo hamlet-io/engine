@@ -1,5 +1,5 @@
 [#-- EFS --]
-[#if (componentType == "efs") && deploymentSubsetRequired("s3", true) ]
+[#if componentType == "efs" && deploymentSubsetRequired("efs", true) ]
     [#assign efs = component.EFS]
 
     [#list getOccurrences(component, deploymentUnit) as occurrence]
@@ -13,21 +13,21 @@
         [#assign efsMountTargetId = formatDependentEFSMountTargetId(
                                         efsId)]
         
-        [#assign efsSecurityGroupId = formatDependentComponentSecurityGroupId(
+        [#assign efsSecurityGroupId = formatComponentSecurityGroupId(
                                         tier, 
                                         component,
-                                        efsId)]
+                                        "efs")]
 
-        [@createDependentComponentSecurityGroup
+        [@createComponentSecurityGroup
             mode=listMode
             tier=tier
             component=component
-            resourceId=efsId
-            resourceName=efsName
+            extensions="efs"
         /]
-
+        
         [@createEFS 
             mode=listMode
+            tier=tier
             id=efsId
             name=efsFullName
             component=component
@@ -35,12 +35,10 @@
 
         [@createEFSMountTarget
             mode=listMode
-            id=efsMountTargetId
             tier=tier
-            efs=efsId
+            efsId=efsId
             securityGroups=efsSecurityGroupId
-            dependecies=efsId
+            dependencies=[efsId,efsSecurityGroupId]
         /]
-
     [/#list]
 [/#if]
