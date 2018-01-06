@@ -53,6 +53,47 @@
             name=formatComponentLogGroupName(tier, component) /]
     [/#if]
 
+    [#if deploymentSubsetRequired("efs", true) && 
+            ecs.ClusterWideStorage?has_content && ecs.ClusterWideStorage ]
+
+        [#assign ecsEFSVolumeId = formatEFSId(tier, component)]
+        [#assign ecsEFSVolumeName = formatName( tier, component, "efs")]
+        [#assign ecsEFSSecurityGroupId = formatComponentSecurityGroupId( tier, component,"efs")]
+        [#assign ecsEFSIngressSecurityGroupId = formatDependentSecurityGroupIngressId(ecsEFSSecurityGroupId) ]
+
+        [@createComponentSecurityGroup
+            mode=listMode
+            tier=tier
+            component=component 
+            extensions="efs"
+            /]
+        
+        [@createSecurityGroupIngress
+            mode=listMode
+            id=ecsEFSIngressSecurityGroupId
+            port="any"
+            cidr=ecsSecurityGroupId
+            groupId=ecsEFSSecurityGroupId
+        /]
+
+        [@createEFS 
+            mode=listMode
+            tier=tier
+            id=ecsEFSVolumeId
+            name=ecsEFSVolumeName
+            component=component
+        /]
+
+        [@createEFSMountTarget
+            mode=listMode
+            tier=tier
+            efsId=ecsEFSVolumeId
+            securityGroups=ecsEFSSecurityGroupId
+            dependencies=[ecsEFSVolumeId,ecsEFSSecurityGroupId]
+        /]
+    
+    [/#if]
+        
     [#if deploymentSubsetRequired("ecs", true)]
 
         [@createComponentSecurityGroup
@@ -122,7 +163,8 @@
                         "bootstrap": {
                             "packages" : {
                                 "yum" : {
-                                    "aws-cli" : []
+                                    "aws-cli" : [],
+                                    "nfs-utils" : []
                                 }
                             },
                             "files" : {
@@ -198,14 +240,25 @@
                         "ecs": {
                             "commands":
                                 attributeIfTrue(
-                                    "01Fluentd"
+                                    "01Fluentd",
                                     defaultLogDriver == "fluentd",
                                     {
                                         "command" : "/opt/codeontap/bootstrap/fluentd.sh",
                                         "ignoreErrors" : "false"
                                     }) +
+                                attributeIfTrue(
+                                    "02ConfigureEFSClusterWide",
+                                    ecs.ClusterWideStorage?has_content && ecs.ClusterWideStorage == true,
+                                    {
+                                        "command" : "/opt/codeontap/bootstrap/efs.sh",
+                                        "env" : { 
+                                            "EFS_FILE_SYSTEM_ID" : getReference(ecsEFSVolumeId),
+                                            "EFS_MOUNT_PATH" : "/",
+                                            "EFS_OS_MOUNT_PATH" : "/efs"
+                                        }
+                                    }) +
                                 {
-                                    "02ConfigureCluster" : {
+                                    "03ConfigureCluster" : {
                                         "command" : "/opt/codeontap/bootstrap/ecs.sh",
                                         "env" : {
                                             "ECS_CLUSTER" : getReference(ecsId),
