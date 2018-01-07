@@ -131,13 +131,6 @@
                                         "invalid")]
         [#assign domainId  = formatDependentAPIGatewayDomainId(apiId)]
         [#assign basePathMappingId  = formatDependentAPIGatewayBasePathMappingId(stageId)]
-        [#assign dns = "" ]
-        [#-- assign dns = formatDomainName(
-                            formatName(
-                                occurrence.DNS.Host,
-                                occurrence.InstanceName,
-                                segmentDomainQualifier),
-                            segmentDomain) --]
 
         [#assign cfId  = formatDependentCFDistributionId(
                                 apiId)]
@@ -157,6 +150,11 @@
                                 tier,
                                 component,
                                 occurrence)]
+                        
+        [#assign certificateObject = getCertificateObject(occurrence.Certificate, segmentId, segmentName) ]
+        [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
+        [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
+        [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
         [#if deploymentSubsetRequired("apigateway", true)]
             [@cfResource
@@ -262,15 +260,15 @@
                     id=cfId
                     dependencies=stageId     
                     aliases=
-                        (occurrence.DNSIsConfigured && occurrence.DNS.Enabled)?then(
+                        (occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)?then(
                             [dns],
                             []
                         )
                     certificate=valueIfTrue(
                         getCFCertificate(
-                            appSettingsObject.CertificateId!"",
+                            certificateId,
                             occurrence.CloudFront.AssumeSNI),
-                        occurrence.DNSIsConfigured  && occurrence.DNS.Enabled)
+                        occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)
                     comment=cfName
                     defaultCacheBehaviour=defaultCacheBehaviour
                     logging=valueIfTrue(
@@ -386,24 +384,14 @@
                         rules=wafRules /]
                 [/#if]
             [#else]
-                [#if occurrence.DNSIsConfigured && occurrence.DNS.Enabled]
-                    [#assign certificateArn =
-                        formatRegionalArn(
-                            "acm",
-                            formatTypedArnResource(
-                                "certificate",
-                                appSettingsObject.CertificateId,
-                                "/"
-                            ),
-                            "us-east-1"
-                        )]
+                [#if occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled]
                     [@cfResource
                         mode=listMode
                         id=domainId
                         type="AWS::ApiGateway::DomainName"
                         properties= 
                             {
-                                "CertificateArn": certificateArn,
+                                "CertificateArn": getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1"),
                                 "DomainName" : dns
                             }
                         outputs={}
@@ -425,35 +413,38 @@
             [/#if]
         [/#if]
         
-        [#if deploymentSubsetRequired("s3", true)]
-            [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
-                [#assign docsS3BucketId = formatComponentS3Id(
-                                            tier,
-                                            component,
-                                            occurrence,
-                                            "docs")]
-                
-                [#assign docsS3BucketPolicyId = formatBucketPolicyId(
-                                            tier,
-                                            component,
-                                            occurrence,
-                                            "docs")]
+        [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
+            [#assign docsS3BucketId = formatComponentS3Id(
+                                        tier,
+                                        component,
+                                        occurrence,
+                                        "docs")]
+            
+            [#assign docsS3BucketPolicyId = formatBucketPolicyId(
+                                        tier,
+                                        component,
+                                        occurrence,
+                                        "docs")]
 
-                [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("apidoc.html", "")]
+            [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("apidoc.html", "")]
 
-                [#assign docsS3BucketName = (occurrence.DNSIsConfigured && occurrence.DNS.Enabled)?then(
-                                                formatDomainName(
-                                                    occurrence.Publish.DnsNamePrefix,
-                                                    dns
-                                                ),
-                                                formatName(
-                                                    occurrence.Publish.DnsNamePrefix,
+            [#assign docsS3BucketName = (occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)?then(
+                                            formatDomainName(
+                                                occurrence.Publish.DnsNamePrefix,
+                                                dns
+                                            ),
+                                            formatName(
+                                                occurrence.Publish.DnsNamePrefix,
+                                                formatSegmentFullName(
                                                     tier,
                                                     component,
-                                                    occurrence
+                                                    occurrence,
+                                                    vpc?remove_beginning("vpc-")
                                                 )
-                                                )]    
-                
+                                            )
+                                            )]    
+            
+            [#if deploymentSubsetRequired("s3", true)]
                 [#assign docsWAFCIDRList = [] ]
 
                 [#if occurrence.WAFIsConfigured &&
@@ -483,7 +474,7 @@
                 [@createBucketPolicy
                     mode=listMode
                     id=docsS3BucketPolicyId
-                    bucket=docsS3BucketId
+                    bucket=docsS3BucketName
                     statements=
                         s3ReadPermission(
                             docsS3BucketName,
@@ -502,10 +493,8 @@
                     websiteConfiguration=docsS3WebsiteConfiguration
                 /]
             [/#if]  
-        [/#if]
 
-        [#if deploymentSubsetRequired("epilogue", false)]
-            [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
+            [#if deploymentSubsetRequired("epilogue", false)]
                 [@cfScript
                     mode=listMode
                     content=
@@ -521,16 +510,11 @@
                                         buildDeploymentUnit,
                                         buildCommit,
                                         "apidoc.html") + " " +
-                        "   ${tmpdir} || return $?",
+                        "   \"$\{tmpdir}\" || return $?",
                         "  #",
                         "  # Sync to the API Doc bucket",
-                        "  copy_apidoc_file" + " " +  
-                            formatComponentS3Id(
-                                        tier,
-                                        component,
-                                        occurrence,
-                                        "docs") + " " +
-                        " ${tmpdir}/apidoc.html",
+                        "  copy_apidoc_file" + " " + docsS3BucketName + " " +
+                        "   \"$\{tmpdir}/apidoc.html\"",
                         "}",
                         "#",
                         "get_apidoc_file"
