@@ -733,11 +733,14 @@
                     ]
                 },
                 {
-                    "Name" : "DNS",
+                    "Name" : "Certificate",
                     "Children" : [
                         {
-                            "Name" : "Host",
-                            "Default" : ""
+                            "Name" : "Enabled",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "*"
                         }
                     ]
                 }

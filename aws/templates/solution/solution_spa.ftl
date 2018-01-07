@@ -5,14 +5,11 @@
 
     [#list getOccurrences(component, deploymentUnit) as occurrence]
 
-        [#assign dns = formatDomainName(
-                            formatName(
-                                occurrence.DNS.Host,
-                                occurrence.InstanceName,
-                                occurrence.VersionName,
-                                segmentDomainQualifier),
-                            segmentDomain) ]
-
+        [#assign certificateObject = getCertificateObject(occurrence.Certificate, segmentId, segmentName) ]
+        [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
+        [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
+        [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
+  
         [#assign cfId  = formatComponentCFDistributionId(
                                 tier,
                                 component,
@@ -66,16 +63,16 @@
             mode=listMode
             id=cfId
             aliases=
-                occurrence.DNSIsConfigured?then(
+                (occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)?then(
                     [dns],
                     []
                 )
             cacheBehaviours=configCacheBehaviour
             certificate=valueIfTrue(
                 getCFCertificate(
-                    appSettingsObject.CertificateId,
+                    certificateId,
                     occurrence.CloudFront.AssumeSNI),
-                occurrence.DNSIsConfigured)
+                    occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)
             comment=cfName
             customErrorResponses=getErrorResponse(404) + getErrorResponse(403)
             defaultCacheBehaviour=spaCacheBehaviour
