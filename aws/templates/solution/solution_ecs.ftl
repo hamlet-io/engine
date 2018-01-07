@@ -254,7 +254,7 @@
                                         "env" : { 
                                             "EFS_FILE_SYSTEM_ID" : getReference(ecsEFSVolumeId),
                                             "EFS_MOUNT_PATH" : "/",
-                                            "EFS_OS_MOUNT_PATH" : "/efs"
+                                            "EFS_OS_MOUNT_PATH" : "/efs/clusterstorage"
                                         }
                                     }) +
                                 {
