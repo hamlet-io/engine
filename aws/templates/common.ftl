@@ -53,6 +53,25 @@
     [#return descendent]
 [/#function]
 
+[#function setDescendent object descendent id path...]
+  [#local effectivePath = asFlattenedArray(path) ]
+    [#if effectivePath?has_content]
+      [#return
+        object +
+        {
+          effectivePath?first : 
+            setDescendent(
+              object[effectivePath?first]!{},
+              descendent,
+              id,
+              (effectivePath?size == 1)?then([],effectivePath[1..]))
+        }
+      ]
+    [#else]
+      [#return object + { id : object[id]!{} + descendent } ]
+    [/#if]
+[/#function]
+
 [#function valueIfTrue value condition otherwise={}]
     [#return condition?then(value, otherwise) ]
 [/#function]
@@ -338,6 +357,8 @@
 
 [#-- Formulate a composite object based on order precedence - lowest to highest  --]
 [#-- If no attributes are provided, simply combine the objects --]
+[#-- It is also possible to define an attribute with a name of "*" which will trigger --]
+[#-- the combining of the objects in addition to any attributes already created --]
 [#function getCompositeObject attributes=[] objects...]
     [#local result = {} ]
     [#local candidates = [] ]
@@ -365,6 +386,9 @@
             [#-- Look for the first name alternative --]
             [#local firstName = ""]
             [#list attributeNames as attributeName]
+                [#if attributeName == "*"]
+                    [#local firstName = "*"]
+                [/#if]
                 [#if firstName?has_content]
                     [#break]
                 [#else]
@@ -376,6 +400,9 @@
                     [/#list]
                 [/#if]
             [/#list]
+            [#if firstName == "*"]
+                [#break]
+            [/#if]
     
             [#if children?has_content]
                 [#local childObjects = [] ]
@@ -413,21 +440,24 @@
                         }
                     ]
                 [#else]
-                    [#if attribute?is_hash && attribute.Default??]
-                        [#local result +=
+                    [#if attribute?is_hash && attribute.Default?? ]
+                        [#local result += 
                             {
                                 attributeNames[0] : attribute.Default
                             }
-                        ]
+                        ]          
                     [/#if]
                 [/#if]
             [/#if]
         [/#list]
-    [#else]
-        [#list candidates as object]
-            [#local result += object?is_hash?then(object, {}) ]
-        [/#list]
+        [#if firstName != "*"]
+            [#return result ]
+        [/#if]
     [/#if]
+
+    [#list candidates as object]
+        [#local result += object?is_hash?then(object, {}) ]
+    [/#list]
     [#return result ] 
 [/#function]
 
@@ -565,15 +595,14 @@
                     ]
                 },
                 {
-                    "Name" : "DNS",
+                    "Name" : "Certificate",
                     "Children" : [
                         {
                             "Name" : "Enabled",
                             "Default" : true
                         },
                         {
-                            "Name" : "Host",
-                            "Default" : ""
+                            "Name" : "*"
                         }
                     ]
                 },
@@ -704,11 +733,14 @@
                     ]
                 },
                 {
-                    "Name" : "DNS",
+                    "Name" : "Certificate",
                     "Children" : [
                         {
-                            "Name" : "Host",
-                            "Default" : ""
+                            "Name" : "Enabled",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "*"
                         }
                     ]
                 }
@@ -970,21 +1002,18 @@
     [#local includes = certificateObject.IncludeInHost ]
 
     [#return
-        formatDomainName(
-            valueIfContent(
-                certificateObject.Host,
-                certificateObject.Host,
-                formatName(
-                    valueIfTrue(getTierName(tier), includes.Tier),
-                    valueIfTrue(getComponentName(component), includes.Component),
-                    valueIfTrue(occurrence.InstanceName!"", includes.Instance),
-                    valueIfTrue(occurrence.VersionName!"", includes.Version),
-                    valueIfTrue(segmentName!"", includes.Segment),
-                    valueIfTrue(environmentName!"", includes.Environment),
-                    valueIfTrue(productName!"", includes.Product)
-                )
-            ),
-            certificateObject.Domain.Name
+        valueIfContent(
+            certificateObject.Host,
+            certificateObject.Host,
+            formatName(
+                valueIfTrue(getTierName(tier), includes.Tier),
+                valueIfTrue(getComponentName(component), includes.Component),
+                valueIfTrue(occurrence.InstanceName!"", includes.Instance),
+                valueIfTrue(occurrence.VersionName!"", includes.Version),
+                valueIfTrue(segmentName!"", includes.Segment),
+                valueIfTrue(environmentName!"", includes.Environment),
+                valueIfTrue(productName!"", includes.Product)
+            )
         )
     ]
 ]

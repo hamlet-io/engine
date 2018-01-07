@@ -20,12 +20,12 @@ where
 (m) -b BUILD_DEPLOYMENT_UNIT   is the deployment unit defining the build reference
 (m) -c CONFIGURATION_REFERENCE is the identifier of the configuration used to generate this template
     -h                         shows this text
-(m) -l LEVEL                   is the template level - "account", "product", "segment", "solution", "application" or "multiple"
+(m) -l LEVEL                   is the template level - "blueprint", "account", "product", "segment", "solution", "application" or "multiple"
 (m) -q REQUEST_REFERENCE       is an opaque value to link this template to a triggering request management system
 (o) -r REGION                  is the AWS region identifier
 (d) -s DEPLOYMENT_UNIT         same as -u
 (d) -t LEVEL                   same as -l
-(m) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
+(o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required 
 
 (m) mandatory, (o) optional, (d) deprecated
@@ -39,9 +39,9 @@ NOTES:
 
 1. You must be in the directory specific to the level
 2. REGION is only relevant for the "product" level
-3. DEPLOYMENT_UNIT may be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
-4. DEPLOYMENT_UNIT may be one of "cmk", "cert", "sns" or "shared" for the "product" level
-5. DEPLOYMENT_UNIT may be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" level
+3. DEPLOYMENT_UNIT must be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
+4. DEPLOYMENT_UNIT must be one of "cmk", "cert", "sns" or "shared" for the "product" level
+5. DEPLOYMENT_UNIT must be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" level
 6. Stack for DEPLOYMENT_UNIT of "eip" or "s3" must be created before stack for "vpc" for the "segment" level
 7. Stack for DEPLOYMENT_UNIT of "vpc" must be created before stack for "dns" for the "segment" level
 8. To support legacy configurations, the DEPLOYMENT_UNIT combinations "eipvpc" and "eips3vpc" 
@@ -91,7 +91,7 @@ function options() {
       [[ ! ("${LEVEL}" =~ ${LOCATION}) ]] &&
         fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
       ;;
-    solution|segment|application|multiple)
+    solution|segment|application|multiple|blueprint)
       [[ ! ("segment" =~ ${LOCATION}) ]] &&
         fatalLocation "Current directory doesn't match requested level \"${LEVEL}\"." && return 1
       ;;
@@ -100,37 +100,94 @@ function options() {
   return 0
 }
 
-function main() {
+function process_template() {
+  local level="${1,,}"; shift
+  local deployment_unit="${1,,}"; shift
+  local deployment_unit_subset="${1,,}"; shift
+  local account="$1"; shift
+  local account_region="${1,,}"; shift
+  local product_region="${1,,}"; shift
+  local region="${1,,}"; shift
+  local build_deployment_unit="${1,,}"; shift
+  local build_reference="${1}"; shift
+  local request_reference="${1}"; shift
+  local configuration_reference="${1}"; shift
 
-  options "$@" || return $?
-  
+  # Filename parts
+  local level_prefix="${level}-"
+  local deployment_unit_prefix="${deployment_unit:+${deployment_unit}-}"
+  local account_prefix="${account:+${account}-}"
+  local region_prefix="${region:+${region}-}"
+
   # Set up the level specific template information
-  template_dir="${GENERATION_DIR}/templates"
-  template="create${LEVEL^}Template.ftl"
-  template_composites=("POLICY" "ID" "NAME" "RESOURCE")
+  local template_dir="${GENERATION_DIR}/templates"
+  local template="create${level^}Template.ftl"
+  [[ ! -f "${template_dir}/${template}" ]] && template="create${level^}.ftl"
+  local template_composites=("POLICY" "ID" "NAME" "RESOURCE")
   
-  # Determine the template name
-  level_prefix="${LEVEL}-"
-  deployment_unit_prefix="${DEPLOYMENT_UNIT}-"
-  region_prefix="${REGION}-"
-  if [[ -n "${DEPLOYMENT_UNIT_SUBSET}" ]]; then
-      deployment_unit_subset_prefix="${DEPLOYMENT_UNIT_SUBSET,,}-"
-  fi
+  # Define the possible passes
+  local pass_list=("prologue" "template" "epilogue" "config")
+  
+  # Initialise the components of the pass filenames
+  declare -A pass_level_prefix
+  declare -A pass_deployment_unit_prefix
+  declare -A pass_deployment_unit_subset
+  declare -A pass_deployment_unit_subset_prefix
+  declare -A pass_account_prefix
+  declare -A pass_region_prefix
+  declare -A pass_description
+  declare -A pass_suffix
 
-  # Default subsets (if any)
-  subsets=("${DEPLOYMENT_UNIT_SUBSET}")
+  # Defaults
+  for pass in "${pass_list[@]}"; do
+    pass_level_prefix["${pass}"]="${level_prefix}"
+    pass_deployment_unit_prefix["${pass}"]="${deployment_unit_prefix}"
+    pass_deployment_unit_subset["${pass}"]="${pass}"
+    pass_deployment_unit_subset_prefix["${pass}"]=""
+    pass_account_prefix["${pass}"]="${account_prefix}"
+    pass_region_prefix["${pass}"]="${region_prefix}"
+    pass_description["${pass}"]="${pass}"
+  done
+  pass_suffix=(
+    ["prologue"]="prologue.sh"
+    ["template"]="template.json"
+    ["epilogue"]="epilogue.sh"
+    ["config"]="config.json")
 
-  case $LEVEL in
+  # Template pass specifics
+  pass_deployment_unit_subset["template"]="${deployment_unit_subset}"
+  pass_deployment_unit_subset_prefix["template"]="${deployment_unit_subset:+${deployment_unit_subset}-}"
+  pass_description["template"]="cloud formation"
+
+  # Default passes
+  local passes=("prologue" "template" "epilogue")
+
+  local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
+
+  case "${level}" in
+    blueprint)
+      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
+
+      # Blueprint applies across accounts and regions
+      for pass in "${pass_list[@]}"; do
+        pass_account_prefix["${pass}"]=""
+        pass_region_prefix["${pass}"]=""
+      done
+
+      pass_level_prefix["template"]="blueprint"
+      pass_description["template"]="blueprint"
+      pass_suffix["template"]=".json"
+      ;;
+
     account)
       cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/aws/cf"
-      region_prefix="${ACCOUNT_REGION}-"
+      for pass in "${pass_list[@]}"; do pass_region_prefix["${pass}"]="${account_region}-"; done
       template_composites+=("ACCOUNT")
-      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "prologue" "epilogue")
 
       # LEGACY: Support stacks created before deployment units added to account level
       [[ ("${DEPLOYMENT_UNIT}" =~ s3) &&
-        (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
-        deployment_unit_prefix=""
+        (-f "${cf_dir}/${level_prefix[template]}${region_prefix[template]}template.json") ]] && \
+          for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]=""; done
       ;;
 
     product)
@@ -139,59 +196,57 @@ function main() {
 
       # LEGACY: Support stacks created before deployment units added to product
       [[ ("${DEPLOYMENT_UNIT}" =~ cmk) &&
-        (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
-        deployment_unit_prefix=""
+        (-f "${cf_dir}/${level_prefix[template]}${region_prefix[template]}template.json") ]] && \
+          for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]=""; done
       ;;
 
     solution)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
-      level_prefix="soln-"
       template_composites+=("SOLUTION" )
-      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "prologue" "epilogue")
 
-      if [[ -f "${cf_dir}/solution-${REGION}-template.json" ]]; then
-        level_prefix="solution-"
-        deployment_unit_prefix=""
+      if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
+        for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]=""; done
+      else
+        for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="soln-"; done
       fi
       ;;
 
     segment)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
-      level_prefix="seg-"
+      for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="seg-"; done
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
-      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "prologue" "epilogue" "config" )
 
       # LEGACY: Support old formats for existing stacks so they can be updated 
       if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
         if [[ -f "${cf_dir}/cont-${deployment_unit_prefix}${region_prefix}template.json" ]]; then
-          level_prefix="cont-"
+          for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="cont-"; done
         fi
-        if [[ -f "${cf_dir}/container-${REGION}-template.json" ]]; then
-          level_prefix="container-"
-          deployment_unit_prefix=""
+        if [[ -f "${cf_dir}/container-${region}-template.json" ]]; then
+          for pass in "${pass_list[@]}"; do
+            pass_level_prefix["${pass}"]="container-"
+            pass_deployment_unit_prefix["${pass}"]=""
+          done
         fi
         if [[ -f "${cf_dir}/${SEGMENT}-container-template.json" ]]; then
-          level_prefix="${SEGMENT}-container-"
-          deployment_unit_prefix=""
-          region_prefix=""
+          for pass in "${pass_list[@]}"; do
+            pass_level_prefix["${pass}"]="${SEGMENT}-container-"
+            pass_deployment_unit_prefix["${pass}"]=""
+            pass_region_prefix["${pass}"]=""
+          done
         fi
       fi
       # "cmk" now used instead of "key"
       [[ ("${DEPLOYMENT_UNIT}" == "cmk") &&
         (-f "${cf_dir}/${level_prefix}key-${region_prefix}template.json") ]] && \
-          deployment_unit_prefix="key-"
+          for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]="key-"; done
       ;;
 
     application)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
-      level_prefix="app-"
+      for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="app-"; done
       template_composites+=("APPLICATION" "CONTAINER" )
-      subsets=("${DEPLOYMENT_UNIT_SUBSET}" "prologue" "epilogue" "config" )
+      passes=("${passes[@]}" "config")
       ;;
 
     multiple)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
-      level_prefix="multi-"
+      for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="multi-"; done
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER")
       ;;
 
@@ -200,18 +255,14 @@ function main() {
       ;;
   esac
 
-  # Define the different subsets
-  output_suffix=("template.json" "prologue.sh" "epilogue.sh" "config.json" )
-  output_prefix="${level_prefix}${deployment_unit_prefix}${deployment_unit_subset_prefix}${region_prefix}"
-
   # Ensure the aws tree for the templates exists
   [[ ! -d ${cf_dir} ]] && mkdir -p ${cf_dir}
 
   # Args common across all passes
   args=()
-  [[ -n "${DEPLOYMENT_UNIT}" ]]        && args+=("-v" "deploymentUnit=${DEPLOYMENT_UNIT}")
-  [[ -n "${BUILD_DEPLOYMENT_UNIT}" ]]  && args+=("-v" "buildDeploymentUnit=${BUILD_DEPLOYMENT_UNIT}")
-  [[ -n "${BUILD_REFERENCE}" ]]        && args+=("-v" "buildReference=${BUILD_REFERENCE}")
+  [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
+  [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
+  [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
@@ -221,32 +272,39 @@ function main() {
     args+=("-r" "${composite,,}List=${!composite_var#/?/}")
   done
   
-  args+=("-v" "region=${REGION}")
-  args+=("-v" "productRegion=${PRODUCT_REGION}")
-  args+=("-v" "accountRegion=${ACCOUNT_REGION}")
+  args+=("-v" "region=${region}")
+  args+=("-v" "productRegion=${product_region}")
+  args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
   args+=("-v" "credentials=${COMPOSITE_CREDENTIALS}")
   args+=("-v" "appsettings=${COMPOSITE_APPSETTINGS}")
   args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
-  args+=("-v" "requestReference=${REQUEST_REFERENCE}")
-  args+=("-v" "configurationReference=${CONFIGURATION_REFERENCE}")
+  args+=("-v" "requestReference=${request_reference}")
+  args+=("-v" "configurationReference=${configuration_reference}")
 
   # Directory for temporary files
   local tmpdir="$(getTempDir "create_template_XXX")"
 
   # Perform each pass
-  for pass_index in "${!subsets[@]}"; do
+  for pass in "${passes[@]}"; do
 
-    output_file="${cf_dir}/${output_prefix}${output_suffix[${pass_index}]}"
-    template_result_file="${tmpdir}/${output_prefix}${output_suffix[${pass_index}]}"
+    # Determine output file
+    local output_prefix="${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_region_prefix[${pass}]}"
+    local output_prefix_with_account="${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_account_prefix[${pass}]}${pass_region_prefix[${pass}]}"
+
+    local output_file="${cf_dir}/${output_prefix}${pass_suffix[${pass}]}"
+    local template_result_file="${tmpdir}/${output_prefix}${pass_suffix[${pass}]}"
+    if [[ ! -f "${output_file}" ]]; then
+      # Include account prefix
+      local output_file="${cf_dir}/${output_prefix_with_account}${pass_suffix[${pass}]}"
+      local template_result_file="${tmpdir}/${output_prefix_with_account}${pass_suffix[${pass}]}"
+    fi
 
     pass_args=("${args[@]}")
-    [[ -n "${subsets[${pass_index}]}" ]] && pass_args+=("-v" "deploymentUnitSubset=${subsets[${pass_index}]}")
-      
-    pass_description="${subsets[${pass_index}]}"
-    [[ -z "${pass_description}" ]] && pass_description="cloud formation"
+    [[ -n "${pass_deployment_unit_subset[${pass}]}" ]] && pass_args+=("-v" "deploymentUnitSubset=${pass_deployment_unit_subset[${pass}]}")
 
-    info "Generating ${pass_description} file ...\n"
+    local file_description="${pass_description[${pass}]}"
+    info "Generating ${file_description} file ...\n"
 
     ${GENERATION_DIR}/freemarker.sh \
       -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
@@ -262,9 +320,9 @@ function main() {
         json)
           if [[ -f "${output_file}" ]]; then
             # Ignore if only the metadata/timestamps have changed
-            jq_pattern='del(.Metadata)'
-            sed_patterns=("-e" "s/${REQUEST_REFERENCE}//g")
-            sed_patterns+=("-e" "s/${CONFIGURATION_REFERENCE}//g")
+            jq_pattern="del(.Metadata)"
+            sed_patterns=("-e" "s/${request_reference}//g")
+            sed_patterns+=("-e" "s/${configuration_reference}//g")
             sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
 
             existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
@@ -273,19 +331,19 @@ function main() {
             existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
             [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
 
-            cat "${template_result_file}" | jq --indent 4 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
-            cat "${output_file}" | jq --indent 4 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+            cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
+            cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
 
             diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
-              info "Ignoring unchanged ${pass_description} file ...\n" ||
-              jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
+              info "Ignoring unchanged ${file_description} file ...\n" ||
+              jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
           else
-            jq --indent 4 '.' < "${template_result_file}" > "${output_file}"
+            jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
           fi
           ;;
       esac
     else
-      info "Ignoring empty ${pass_description} file ...\n"
+      info "Ignoring empty ${file_description} file ...\n"
 
       # Remove any previous version
       [[ -f "${output_file}" ]] && rm "${output_file}"
@@ -293,6 +351,37 @@ function main() {
   done
 
   return 0
+}
+
+function main() {
+
+  options "$@" || return $?
+  
+  case "${LEVEL}" in
+    blueprint-disabled)
+      process_template \
+        "${LEVEL}" \
+        "${DEPLOYMENT_UNIT}" "${DEPLOYMENT_UNIT_SUBSET}" \
+        "" "${ACCOUNT_REGION}" \
+        "${PRODUCT_REGION}" \
+        "" \
+        "${BUILD_DEPLOYMENT_UNIT}" "${BUILD_REFERENCE}" \
+        "${REQUEST_REFERENCE}" \
+        "${CONFIGURATION_REFERENCE}"
+      ;;
+
+    *)
+      process_template \
+        "${LEVEL}" \
+        "${DEPLOYMENT_UNIT}" "${DEPLOYMENT_UNIT_SUBSET}" \
+        "${ACCOUNT}" "${ACCOUNT_REGION}" \
+        "${PRODUCT_REGION}" \
+        "${REGION}" \
+        "${BUILD_DEPLOYMENT_UNIT}" "${BUILD_REFERENCE}" \
+        "${REQUEST_REFERENCE}" \
+        "${CONFIGURATION_REFERENCE}"
+      ;;
+  esac
 }
 
 main "$@"
