@@ -470,15 +470,6 @@
 
 [#macro cfTemplate level include="" compositeLists=[]]
     
-    [#-- Model --]
-    [#assign model = {} ]
-    [#assign listMode = "model"]
-    [#if include?has_content]
-        [#include include?ensure_starts_with("/")]
-    [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
-    [/#if]
-
     [#-- Resources --]
     [#assign templateResources = {} ]
     [#assign listMode = "definition"]
