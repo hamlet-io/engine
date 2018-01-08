@@ -119,7 +119,9 @@ function copy_config_file() {
       # Nothing to do as synch will use an empty directory
       ;;
     create|update)
-      files+=("$@")
+      # Change filename to config.json
+      cp "$1" "${tmpdir}/config.json"
+      files+=("${tmpdir}/config.json")
       ;;
   esac
 
