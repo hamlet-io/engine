@@ -506,9 +506,9 @@
                             regionId + " " + 
                             getRegistryEndPoint("swagger") + " " +
                             formatRelativePath(
-                                        productName,
-                                        buildDeploymentUnit,
-                                        buildCommit) + " " +
+                                getRegistryPrefix("swagger") + productName,
+                                buildDeploymentUnit,
+                                buildCommit) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                         "  #",
                         "  # Sync to the API Doc bucket",
