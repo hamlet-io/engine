@@ -29,8 +29,8 @@
                     [#list getOccurrences(targetComponent) as targetOccurrence]
                         [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
                                 (targetOccurrence.VersionId == occurrence.VersionId)]
-                            [#assign certificateObject = getCertificateObject(occurrence.Certificate, segmentId, segmentName) ]
-                            [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
+                            [#assign certificateObject = getCertificateObject(targetOccurrence.Certificate, segmentId, segmentName) ]
+                            [#assign hostName = getHostName(certificateObject, link.Tier, targetComponent, targetOccurrence) ]
                             [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
                             [#switch getComponentType(targetComponent)]
                                 [#case "alb"]
@@ -53,7 +53,7 @@
                                             link.Tier,
                                             link.Component,
                                             targetOccurrence)]
-                                    [#-- assign context +=
+                                    [#assign context +=
                                         {
                                           "Links" :
                                               context.Links +
@@ -72,7 +72,7 @@
                                                 }
                                             }
                                         }
-                                    --]
+                                    ]
                                     [#break]
                             [/#switch]
                             [#break]
@@ -100,8 +100,6 @@
                   [
                       "function get_spa_file() {",
                       "  #",
-                      "  # Temporary dir for the spa file",
-                      "  mkdir -p ./temp_spa",
                       "  #",
                       "  # Fetch the spa zip file",
                       "  copyFilesFromBucket" + " " +
@@ -111,10 +109,10 @@
                               getRegistryPrefix("spa") + productName,
                               buildDeploymentUnit,
                               buildCommit) + " " +
-                      "   ./temp_spa || return $?",
+                        "   \"$\{tmpdir}\" || return $?",
                       "  #",
                       "  # Sync with the operations bucket",
-                      "  copy_spa_file ./temp_spa/spa.zip",
+                      "  copy_spa_file \"$\{tmpdir}/spa.zip\"",
                       "}",
                       "#",
                       "get_spa_file"
