@@ -29,8 +29,8 @@
                     [#list getOccurrences(targetComponent) as targetOccurrence]
                         [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
                                 (targetOccurrence.VersionId == occurrence.VersionId)]
-                            [#assign certificateObject = getCertificateObject(occurrence.Certificate, segmentId, segmentName) ]
-                            [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
+                            [#assign certificateObject = getCertificateObject(targetOccurrence.Certificate, segmentId, segmentName) ]
+                            [#assign hostName = getHostName(certificateObject, link.Tier, targetComponent, targetOccurrence) ]
                             [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
                             [#switch getComponentType(targetComponent)]
                                 [#case "alb"]
