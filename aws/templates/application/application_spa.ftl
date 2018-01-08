@@ -100,8 +100,6 @@
                   [
                       "function get_spa_file() {",
                       "  #",
-                      "  # Temporary dir for the spa file",
-                      "  mkdir -p ./temp_spa",
                       "  #",
                       "  # Fetch the spa zip file",
                       "  copyFilesFromBucket" + " " +
@@ -110,11 +108,12 @@
                           formatRelativePath(
                               getRegistryPrefix("spa") + productName,
                               buildDeploymentUnit,
-                              buildCommit) + " " +
-                      "   ./temp_spa || return $?",
+                              buildCommit,
+                              "spa.zip") + " " +
+                        "   \"$\{tmpdir}\" || return $?",
                       "  #",
                       "  # Sync with the operations bucket",
-                      "  copy_spa_file ./temp_spa/spa.zip",
+                      "  copy_spa_file \"$\{tmpdir}/spa.zip\"",
                       "}",
                       "#",
                       "get_spa_file"
