@@ -119,7 +119,7 @@ function copy_config_file() {
       # Nothing to do as synch will use an empty directory
       ;;
     create|update)
-      files+=("$1")
+      files+=("$@")
       ;;
   esac
 
@@ -140,7 +140,7 @@ function copy_spa_file() {
       # Nothing to do as synch will use an empty directory
       ;;
     create|update)
-      files+=("$1")
+      files+=("$@")
       ;;
   esac
 
@@ -162,7 +162,7 @@ function copy_apidoc_file() {
       #Nothing to do as the sync will use an empty directory
       ;;
     create|update)
-      files+=("$1")
+      files+=("$@")
       ;;
   esac
 
