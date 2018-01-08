@@ -113,15 +113,13 @@ function copy_cmdb_files() {
 function copy_config_file() {  
 
   local files=()
-  local tmpdir="$(getTempDir "config_XXX")"
 
   case ${STACK_OPERATION} in
     delete)
       # Nothing to do as synch will use an empty directory
       ;;
     create|update)
-      cp "$1" "${tmpdir}/config.json"
-      files+=("${tmpdir}/config.json")
+      files+=("$1")
       ;;
   esac
 
@@ -177,7 +175,6 @@ function copy_apidoc_file() {
 
 function process_stack() {
 
-  local tmpdir="$(getTempDir "manage_stack_XXX")"
   local stack_status_file="${tmpdir}/stack_status"
   local stripped_template_file="${tmpdir}/stripped_template"
   local operation_to_check=
@@ -299,6 +296,8 @@ function process_stack() {
 function main() {
 
   options "$@" || return $?
+
+  tmpdir="$(getTempDir "manage_stack_XXX")"
 
   pushd ${CF_DIR} > /dev/null 2>&1
 
