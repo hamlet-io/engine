@@ -445,31 +445,21 @@
                                             )]    
             
             [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
-                [#assign docsWAFCIDRList = [] ]
+                [#assign docsCIDRList = [] ]
 
-                [#if occurrence.WAFIsConfigured &&
-                        occurrence.WAF.Enabled &&
-                        ipAddressGroupsUsage["waf"]?has_content ]
-                    
-                    [#list occurrence.WAF.IPAddressGroups as group]
-                            
-                            [#assign groupId = group?is_hash?then(
-                                            group.Id,
-                                            group)]
-                            
-                            [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
-                                
-                                [#assign docsWAFCIDRList +=  (ipAddressGroupsUsage["waf"][groupId]).CIDR  ]
-                                
-                            [/#if]
-                            
+                [#if ipAddressGroupsUsage["publish"]?has_content ]
+                    [#list occurrence.Publish.IPAddressGroups as group]
+                        [#assign groupId = group?is_hash?then(
+                                        group.Id,
+                                        group)]
+                        
+                        [#if (ipAddressGroupsUsage["publish"][groupId])?has_content]
+                            [#assign docsCIDRList +=  (ipAddressGroupsUsage["publish"][groupId]).CIDR ]
+                        [/#if]
                     [/#list]
-                    
                 [/#if]
                 
-                [#assign docsS3IPWhitelist = (docsWAFCIDRList?has_content)?then(
-                                                s3IPAccessCondition(docsWAFCIDRList),
-                                                "*")]                  
+                [#assign docsS3IPWhitelist = s3IPAccessCondition(docsCIDRList)]                  
 
                 [@createBucketPolicy
                     mode=listMode
