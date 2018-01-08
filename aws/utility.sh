@@ -551,7 +551,7 @@ function syncFilesToBucket() {
   
   # Copy files locally so we can synch with S3, potentially including deletes
   for file in "${syncFiles[@]}" ; do
-    if [[ -n "${file}" ]]; then
+    if [[ -f "${file}" ]]; then
       case "$(fileExtension "${file}")" in
         zip)
           unzip "${file}" -d "${tmpdir}"

@@ -108,8 +108,7 @@
                           formatRelativePath(
                               getRegistryPrefix("spa") + productName,
                               buildDeploymentUnit,
-                              buildCommit,
-                              "spa.zip") + " " +
+                              buildCommit) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                       "  #",
                       "  # Sync with the operations bucket",

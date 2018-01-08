@@ -508,13 +508,12 @@
                             formatRelativePath(
                                         productName,
                                         buildDeploymentUnit,
-                                        buildCommit,
-                                        "apidoc.html") + " " +
+                                        buildCommit) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                         "  #",
                         "  # Sync to the API Doc bucket",
                         "  copy_apidoc_file" + " " + docsS3BucketName + " " +
-                        "   \"$\{tmpdir}/apidoc.html\"",
+                        "   \"$\{tmpdir}/apidoc.html\" \"$\{tmpdir}/apidoc.zip\"",
                         "}",
                         "#",
                         "get_apidoc_file"
