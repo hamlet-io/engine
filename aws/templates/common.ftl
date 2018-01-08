@@ -616,6 +616,10 @@
                         {
                             "Name" : "DnsNamePrefix",
                             "Default" : "docs"
+                        },
+                        {
+                            "Name" : "IPAddressGroups",
+                            "Default" : []
                         }
                     ]
                 }

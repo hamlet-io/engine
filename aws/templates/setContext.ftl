@@ -225,7 +225,7 @@
 [#-- Annotate IPAddressGroups --]
 [#assign ipAddressGroupsUsage =
     {
-        "DefaultUsageList" : ["es", "ssh", "http", "https", "waf"]
+        "DefaultUsageList" : ["es", "ssh", "http", "https", "waf", "publish"]
     }
 ]
 [#list ipAddressGroups as groupKey,groupValue]
