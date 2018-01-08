@@ -27,9 +27,9 @@
 [#function getS3WebsiteConfiguration index error ]
     [#return 
         {
-            "IndexDocument" : index,
-            "ErrorDocument" : error
-        }
+            "IndexDocument" : index
+        } +
+        attributeIfContent("ErrorDocument", error)
     ]
 [/#function]
 

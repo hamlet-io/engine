@@ -444,7 +444,7 @@
                                             )
                                             )]    
             
-            [#if deploymentSubsetRequired("s3", true)]
+            [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
                 [#assign docsWAFCIDRList = [] ]
 
                 [#if occurrence.WAFIsConfigured &&
