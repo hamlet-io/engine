@@ -61,7 +61,7 @@
                                                 link.Name : {
                                                     "Url" :
                                                         "https://" +
-                                                        (targetOccurrence.CertificateIsConfigured && targetOccurrence.Certificate.Enabled)?then(
+                                                        (targetOccurrence.Certificate.Configured && targetOccurrence.Certificate.Enabled)?then(
                                                             dns,
                                                             formatDomainName(
                                                                 getExistingReference(apiId),
