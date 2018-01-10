@@ -1,1199 +1,1283 @@
 {
-    "Regions": {
-        "ap-northeast-1": {
-            "Locality": "Tokyo",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "ap-northeast-1a"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "ap-northeast-1c"
-                }
-            },
-            "Accounts": {
-                "ELB": "582318560864"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-6a9d2f0c",
-                    "EC2": "ami-da9e2cbc",
-                    "ECS": "ami-56bd0030"
-                }
-            }
+  "Regions": {
+    "ap-northeast-1": {
+      "Locality": "Tokyo",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "ap-northeast-1a"
         },
-        "ap-northeast-2": {
-            "Locality": "Seoul",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "ap-northeast-2a"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "ap-northeast-2c"
-                }
-            },
-            "Accounts": {
-                "ELB": "600734575887"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-c5882fab",
-                    "EC2": "ami-1196317f",
-                    "ECS": "ami-7267c01c"
-                }
-            }
-        },
-        "ap-south-1": {
-            "Locality": "Mumbai",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "ap-south-1a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "ap-south-1b"
-                }
-            },
-            "Accounts": {
-                "ELB": "718504428378"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-61c38c0e",
-                    "EC2": "ami-d5c18eba"
-                }
-            }
-        },
-        "ap-southeast-1": {
-            "Locality": "Singapore",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "Index": 0,
-                    "AWSZone": "ap-southeast-1a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Singapore Zone B",
-                    "Index": 1,
-                    "AWSZone": "ap-southeast-1b"
-                }
-            },
-            "Accounts": {
-                "ELB": "114774131450"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-0e3e696d",
-                    "EC2": "ami-c63d6aa5",
-                    "ECS": "ami-1bdc8b78"
-                }
-            }
-        },
-        "ap-southeast-2": {
-            "Locality": "Sydney",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "ap-southeast-2a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "ap-southeast-2b"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "ap-southeast-2c"
-                }
-            },
-            "Accounts": {
-                "ELB": "783225319266"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-3348a351",
-                    "EC2": "ami-ff4ea59d",
-                    "ECS": "ami-14b55f76"
-                }
-            }
-        },
-        "ca-central-1": {
-            "Locality": "Central",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "ca-central-1a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "ca-central-1b"
-                }
-            },
-            "Accounts": {
-                "ELB": "985666609251"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-909e25f4",
-                    "EC2": "ami-d29e25b6",
-                    "ECS": "ami-918b30f5"
-                }
-            }
-        },
-        "cn-north-1": {
-            "Locality": "Beijing",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "cn-north-1a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "cn-north-1b"
-                }
-            },
-            "Accounts": {
-                "ELB": "638102146993"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-0f944362",
-                    "EC2": "ami-29934444"
-                }
-            }
-        },
-        "eu-central-1": {
-            "Locality": "Frankfurt",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "eu-central-1a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "eu-central-1b"
-                }
-            },
-            "Accounts": {
-                "ELB": "054676820928"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-7d2ba812",
-                    "EC2": "ami-bf2ba8d0",
-                    "ECS": "ami-05991b6a"
-                }
-            }
-        },
-        "eu-west-1": {
-            "Locality": "Ireland",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "eu-west-1a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "eu-west-1b"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "eu-west-1c"
-                }
-            },
-            "Accounts": {
-                "ELB": "156460612806"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-2d912554",
-                    "EC2": "ami-1a962263",
-                    "ECS": "ami-4cbe0935"
-                }
-            }
-        },
-        "eu-west-2": {
-            "Locality": "London",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "eu-west-2a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "eu-west-2b"
-                }
-            },
-            "Accounts": {
-                "ELB": "652711504416"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-e5d6c981",
-                    "EC2": "ami-e7d6c983",
-                    "ECS": "ami-dbfee1bf"
-                }
-            }
-        },
-        "sa-east-1": {
-            "Locality": "Sao Paulo",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "sa-east-1a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "sa-east-1b"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "sa-east-1c"
-                }
-            },
-            "Accounts": {
-                "ELB": "507241528517"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-dc6e2bb0",
-                    "EC2": "ami-286f2a44"
-                }
-            }
-        },
-        "us-east-1": {
-            "Locality": "North Virginia",
-            "Zones": {
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "us-east-1b"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "us-east-1c"
-                },
-                "d" : {
-                    "Title": "Zone D",
-                    "Name": "d",
-                    "Description": "Zone D",
-                    "AWSZone": "us-east-1d"
-                },
-                "e" : {
-                    "Title": "Zone E",
-                    "Name": "e",
-                    "Description": "Zone E",
-                    "AWSZone": "us-east-1e"
-                }
-            },
-            "Accounts": {
-                "ELB": "127311923021"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-25ef665f",
-                    "EC2": "ami-55ef662f",
-                    "ECS": "ami-fad25980"
-                }
-            }
-        },
-        "us-east-2": {
-            "Locality": "Ohio",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "us-east-2a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "us-east-2b"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "us-east-2c"
-                }
-            },
-            "Accounts": {
-                "ELB": "033677994240"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-e2e4ca87",
-                    "EC2": "ami-15e9c770",
-                    "ECS": "ami-58f5db3d"
-                }
-            }
-        },
-        "us-gov-west-1": {
-            "Locality": "US",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "us-gov-west-1a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "us-gov-west-1b"
-                }
-            },
-            "Accounts": {
-                "ELB": "048591011584"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-66a01b07",
-                    "EC2": "ami-ffa61d9e"
-                }
-            }
-        },
-        "us-west-1": {
-            "Locality": "North California",
-            "Zones": {
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "us-west-1b"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "us-west-1c"
-                }
-            },
-            "Accounts": {
-                "ELB": "027434742980"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-e71d2587",
-                    "EC2": "ami-a51f27c5",
-                    "ECS": "ami-62e0d802"
-                }
-            }
-        },
-        "us-west-2": {
-            "Locality": "Oregon",
-            "Zones": {
-                "a" : {
-                    "Title": "Zone A",
-                    "Name": "a",
-                    "Description": "Zone A",
-                    "AWSZone": "us-west-2a"
-                },
-                "b" : {
-                    "Title": "Zone B",
-                    "Name": "b",
-                    "Description": "Zone B",
-                    "AWSZone": "us-west-2b"
-                },
-                "c" : {
-                    "Title": "Zone C",
-                    "Name": "c",
-                    "Description": "Zone C",
-                    "AWSZone": "us-west-2c"
-                }
-            },
-            "Accounts": {
-                "ELB": "797873946194"
-            },
-            "AMIs": {
-                "Centos": {
-                    "NAT": "ami-38469440",
-                    "EC2": "ami-bf4193c7",
-                    "ECS": "ami-7114c909"
-                }
-            }
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "ap-northeast-1c"
         }
-    },
-    "Environments": {
-        "alm": {
-            "Title": "Application Lifecycle Management Environment",
-            "Description": "Normally only one environment for the alm. Entry mainly here for naming consistency",
-            "Category": "alm",
-            "Operations": {
-                "Expiration": 90,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "shared": {
-            "Title": "Shared Services Environment",
-            "Description": "One shared environment per account. Entry mainly here for naming consistency",
-            "Category": "alm",
-            "Operations": {
-                "Expiration": 30
-            }
-        },
-        "dev": {
-            "Title": "Development Environment",
-            "Name": "development",
-            "Description": "Potentially holds individual dev servers for multiple devs",
-            "Category": "dev",
-            "Operations": {
-                "Expiration": 14
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "alpha": {
-            "Title": "Alpha Environment",
-            "Description": "Prototyping environment according to DTO classification",
-            "Category": "test",
-            "Operations": {
-                "Expiration": 14,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 2
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "beta": {
-            "Title": "Beta Environment",
-            "Description": "Preproduction environment according to DTO classification",
-            "Category": "stg",
-            "MultiAZ": true,
-            "Operations": {
-                "Expiration": 90,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "int": {
-            "Title": "Integration Environment",
-            "Name": "integration",
-            "Description": "Mainly for devs to confirm components work together",
-            "Category": "test",
-            "Operations": {
-                "Expiration": 30,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "aat": {
-            "Title": "Automated Acceptance Environment",
-            "Name": "automatedacceptance",
-            "Description": "Execution of automated tests",
-            "Category": "test",
-            "Operations": {
-                "Expiration": 30,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "uat": {
-            "Title": "User Acceptance Environment",
-            "Name": "useracceptance",
-            "Description": "Manual customer testing",
-            "Category": "test",
-            "Operations": {
-                "Expiration": 30,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "system": {
-            "Title": "System Test Environment",
-            "Name": "system",
-            "Description": "Same as UAT",
-            "Category": "test",
-            "MultiAZ": true,
-            "Operations": {
-                "Expiration": 30,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "preprod": {
-            "Title": "Preproduction Environment",
-            "Name": "preproduction",
-            "Description": "Deployment, performance, volume testing",
-            "Category": "stg",
-            "MultiAZ": true,
-            "Operations": {
-                "Expiration": 90,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                },
-                "DeadLetterQueue" : {
-                  "MaxReceives" : 13
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "stg": {
-            "Title": "Staging Environment",
-            "Name": "staging",
-            "Description": "Deployment, performance, volume testing. Staging is used both as a specific environment and as a category of environments.",
-            "Category": "stg",
-            "MultiAZ": true,
-            "Operations": {
-                "Expiration": 90,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                },
-                "DeadLetterQueue" : {
-                  "MaxReceives" : 13
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
-        },
-        "prod": {
-            "Title": "Production Environment",
-            "Name": "production",
-            "Description": "Kind of obvious...",
-            "Category": "prod",
-            "MultiAZ": true,
-            "Operations": {
-                "Expiration": 365,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                },
-                "DeadLetterQueue" : {
-                  "MaxReceives" : 13
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "naked"
-            }
-        },
-        "trn": {
-            "Title": "Training Environment",
-            "Name": "training",
-            "Description": "",
-            "Category": "prod",
-            "Operations": {
-                "Expiration": 90,
-                "FlowLogs" : {
-                    "Enabled" : true,
-                    "Expiration" : 7
-                }
-            },
-            "DomainBehaviours" : {
-                "Segment" : "segmentInHost"
-            }
+      },
+      "Accounts": {
+        "ELB": "582318560864"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-6bc45d0d",
+          "EC2": "ami-33c25b55",
+          "ECS": "ami-72f36a14"
         }
+      }
     },
-    "Categories": {
-        "alm": {
-            "Title": "Application Lifecycle Management Environments"
+    "ap-northeast-2": {
+      "Locality": "Seoul",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "ap-northeast-2a"
         },
-        "account": {
-            "Title": "Account Resources"
-        },
-        "dev": {
-            "Title": "Development Environments",
-            "Name": "development"
-        },
-        "test": {
-            "Title": "Testing Environments",
-            "Name": "testing"
-        },
-        "stg": {
-            "Title": "Staging Environments",
-            "Name": "staging"
-        },
-        "prod": {
-            "Title": "Production Environments",
-            "Name": "production"
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "ap-northeast-2c"
         }
+      },
+      "Accounts": {
+        "ELB": "600734575887"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-42b8182c",
+          "EC2": "ami-d9b616b7",
+          "ECS": "ami-59b71737"
+        }
+      }
     },
+    "ap-south-1": {
+      "Locality": "Mumbai",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "ap-south-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "ap-south-1b"
+        }
+      },
+      "Accounts": {
+        "ELB": "718504428378"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-ffc49090",
+          "EC2": "ami-fedb8f91",
+          "ECS": "ami-f4db8f9b"
+        }
+      }
+    },
+    "ap-southeast-1": {
+      "Locality": "Singapore",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "Index": 0,
+          "AWSZone": "ap-southeast-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Singapore Zone B",
+          "Index": 1,
+          "AWSZone": "ap-southeast-1b"
+        }
+      },
+      "Accounts": {
+        "ELB": "114774131450"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-839cecff",
+          "EC2": "ami-889cecf4",
+          "ECS": "ami-e782f29b"
+        }
+      }
+    },
+    "ap-southeast-2": {
+      "Locality": "Sydney",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "ap-southeast-2a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "ap-southeast-2b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "ap-southeast-2c"
+        }
+      },
+      "Accounts": {
+        "ELB": "783225319266"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-fda5589f",
+          "EC2": "ami-ccab56ae",
+          "ECS": "ami-7aa15c18"
+        }
+      }
+    },
+    "ca-central-1": {
+      "Locality": "Central",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "ca-central-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "ca-central-1b"
+        }
+      },
+      "Accounts": {
+        "ELB": "985666609251"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-62fc7906",
+          "EC2": "ami-61f97c05",
+          "ECS": "ami-9afc79fe"
+        }
+      }
+    },
+    "cn-north-1": {
+      "Locality": "Beijing",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "cn-north-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "cn-north-1b"
+        }
+      },
+      "Accounts": {
+        "ELB": "638102146993"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-0f944362",
+          "EC2": "ami-dadb09b7"
+        }
+      }
+    },
+    "eu-central-1": {
+      "Locality": "Frankfurt",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "eu-central-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "eu-central-1b"
+        }
+      },
+      "Accounts": {
+        "ELB": "054676820928"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-96c85af9",
+          "EC2": "ami-0fc85a60",
+          "ECS": "ami-eacf5d85"
+        }
+      }
+    },
+    "eu-west-1": {
+      "Locality": "Ireland",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "eu-west-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "eu-west-1b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "eu-west-1c"
+        }
+      },
+      "Accounts": {
+        "ELB": "156460612806"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-4587173c",
+          "EC2": "ami-e487179d",
+          "ECS": "ami-acb020d5"
+        }
+      }
+    },
+    "eu-west-2": {
+      "Locality": "London",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "eu-west-2a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "eu-west-2b"
+        }
+      },
+      "Accounts": {
+        "ELB": "652711504416"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-ce8d95aa",
+          "EC2": "ami-51809835",
+          "ECS": "ami-4d809829"
+        }
+      }
+    },
+    "eu-west-3": {
+      "Locality": "Paris",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "eu-west-3a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "eu-west-3b"
+        }
+      },
+      "Accounts": {
+        "ELB": "009996457667"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-fd03b480",
+          "EC2": "ami-fe03b483",
+          "ECS": "ami-5e02b523"
+        }
+      }
+    },
+    "sa-east-1": {
+      "Locality": "Sao Paulo",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "sa-east-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "sa-east-1b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "sa-east-1c"
+        }
+      },
+      "Accounts": {
+        "ELB": "507241528517"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-9e2664f2",
+          "EC2": "ami-1226647e",
+          "ECS": "ami-49256725"
+        }
+      }
+    },
+    "us-east-1": {
+      "Locality": "North Virginia",
+      "Zones": {
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "us-east-1b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "us-east-1c"
+        },
+        "d": {
+          "Title": "Zone D",
+          "Name": "d",
+          "Description": "Zone D",
+          "AWSZone": "us-east-1d"
+        },
+        "e": {
+          "Title": "Zone E",
+          "Name": "e",
+          "Description": "Zone E",
+          "AWSZone": "us-east-1e"
+        }
+      },
+      "Accounts": {
+        "ELB": "127311923021"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-01623d7b",
+          "EC2": "ami-cb9ec1b1",
+          "ECS": "ami-ba722dc0"
+        }
+      }
+    },
+    "us-east-2": {
+      "Locality": "Ohio",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "us-east-2a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "us-east-2b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "us-east-2c"
+        }
+      },
+      "Accounts": {
+        "ELB": "033677994240"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-d4a883b1",
+          "EC2": "ami-caaf84af",
+          "ECS": "ami-13af8476"
+        }
+      }
+    },
+    "us-gov-west-1": {
+      "Locality": "US",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "us-gov-west-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "us-gov-west-1b"
+        }
+      },
+      "Accounts": {
+        "ELB": "048591011584"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-66a01b07",
+          "EC2": "ami-ffa61d9e"
+        }
+      }
+    },
+    "us-west-1": {
+      "Locality": "North California",
+      "Zones": {
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "us-west-1b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "us-west-1c"
+        }
+      },
+      "Accounts": {
+        "ELB": "027434742980"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-4fefef2f",
+          "EC2": "ami-95eeeef5",
+          "ECS": "ami-9df0f0fd"
+        }
+      }
+    },
+    "us-west-2": {
+      "Locality": "Oregon",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "us-west-2a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "us-west-2b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "us-west-2c"
+        }
+      },
+      "Accounts": {
+        "ELB": "797873946194"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-d3cc78ab",
+          "EC2": "ami-32cf7b4a",
+          "ECS": "ami-c9c87cb1"
+        }
+      }
+    }
+  },
+  "Environments": {
+    "alm": {
+      "Title": "Application Lifecycle Management Environment",
+      "Description": "Normally only one environment for the alm. Entry mainly here for naming consistency",
+      "Category": "alm",
+      "Operations": {
+        "Expiration": 90,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "shared": {
+      "Title": "Shared Services Environment",
+      "Description": "One shared environment per account. Entry mainly here for naming consistency",
+      "Category": "alm",
+      "Operations": {
+        "Expiration": 30
+      }
+    },
+    "dev": {
+      "Title": "Development Environment",
+      "Name": "development",
+      "Description": "Potentially holds individual dev servers for multiple devs",
+      "Category": "dev",
+      "Operations": {
+        "Expiration": 14
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "alpha": {
+      "Title": "Alpha Environment",
+      "Description": "Prototyping environment according to DTO classification",
+      "Category": "test",
+      "Operations": {
+        "Expiration": 14,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 2
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "beta": {
+      "Title": "Beta Environment",
+      "Description": "Preproduction environment according to DTO classification",
+      "Category": "stg",
+      "MultiAZ": true,
+      "Operations": {
+        "Expiration": 90,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "int": {
+      "Title": "Integration Environment",
+      "Name": "integration",
+      "Description": "Mainly for devs to confirm components work together",
+      "Category": "test",
+      "Operations": {
+        "Expiration": 30,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "aat": {
+      "Title": "Automated Acceptance Environment",
+      "Name": "automatedacceptance",
+      "Description": "Execution of automated tests",
+      "Category": "test",
+      "Operations": {
+        "Expiration": 30,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "uat": {
+      "Title": "User Acceptance Environment",
+      "Name": "useracceptance",
+      "Description": "Manual customer testing",
+      "Category": "test",
+      "Operations": {
+        "Expiration": 30,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "system": {
+      "Title": "System Test Environment",
+      "Name": "system",
+      "Description": "Same as UAT",
+      "Category": "test",
+      "MultiAZ": true,
+      "Operations": {
+        "Expiration": 30,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "preprod": {
+      "Title": "Preproduction Environment",
+      "Name": "preproduction",
+      "Description": "Deployment, performance, volume testing",
+      "Category": "stg",
+      "MultiAZ": true,
+      "Operations": {
+        "Expiration": 90,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        },
+        "DeadLetterQueue": {
+          "MaxReceives": 13
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "stg": {
+      "Title": "Staging Environment",
+      "Name": "staging",
+      "Description": "Deployment, performance, volume testing. Staging is used both as a specific environment and as a category of environments.",
+      "Category": "stg",
+      "MultiAZ": true,
+      "Operations": {
+        "Expiration": 90,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        },
+        "DeadLetterQueue": {
+          "MaxReceives": 13
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    },
+    "prod": {
+      "Title": "Production Environment",
+      "Name": "production",
+      "Description": "Kind of obvious...",
+      "Category": "prod",
+      "MultiAZ": true,
+      "Operations": {
+        "Expiration": 365,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        },
+        "DeadLetterQueue": {
+          "MaxReceives": 13
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "naked"
+      }
+    },
+    "trn": {
+      "Title": "Training Environment",
+      "Name": "training",
+      "Description": "",
+      "Category": "prod",
+      "Operations": {
+        "Expiration": 90,
+        "FlowLogs": {
+          "Enabled": true,
+          "Expiration": 7
+        }
+      },
+      "DomainBehaviours": {
+        "Segment": "segmentInHost"
+      }
+    }
+  },
+  "Categories": {
+    "alm": {
+      "Title": "Application Lifecycle Management Environments"
+    },
+    "account": {
+      "Title": "Account Resources"
+    },
+    "dev": {
+      "Title": "Development Environments",
+      "Name": "development"
+    },
+    "test": {
+      "Title": "Testing Environments",
+      "Name": "testing"
+    },
+    "stg": {
+      "Title": "Staging Environments",
+      "Name": "staging"
+    },
+    "prod": {
+      "Title": "Production Environments",
+      "Name": "production"
+    }
+  },
+  "Tiers": {
+    "web": {
+      "Title": "Web Tier",
+      "Description": "Supports HMI",
+      "RouteTable": "internal",
+      "NetworkACL": "open"
+    },
+    "api": {
+      "Title": "API Tier",
+      "Description": "Supports externally exposed APIs",
+      "RouteTable": "internal",
+      "NetworkACL": "open"
+    },
+    "msg": {
+      "Title": "Messaging Tier",
+      "Name": "messaging",
+      "Description": "Supports system-to-system based interactions/services",
+      "RouteTable": "internal",
+      "NetworkACL": "open"
+    },
+    "app": {
+      "Title": "Applications Tier",
+      "Name": "application",
+      "Description": "Supports application logic execution",
+      "RouteTable": "internal",
+      "NetworkACL": "open"
+    },
+    "db": {
+      "Title": "Database Tier",
+      "Name": "database",
+      "Description": "Supports long term storage of content and customer data",
+      "RouteTable": "internal",
+      "NetworkACL": "open"
+    },
+    "dir": {
+      "Title": "Directories Tier",
+      "Name": "directories",
+      "Description": "Supports directories or domain controllers",
+      "RouteTable": "internal",
+      "NetworkACL": "open"
+    },
+    "ana": {
+      "Title": "Analytics Tier",
+      "Name": "analytics",
+      "Description": "Suports things like search engines",
+      "RouteTable": "internal",
+      "NetworkACL": "open"
+    },
+    "elb": {
+      "Title": "External Load Balancer Tier",
+      "Description": "Publically accessible application load balancers",
+      "RouteTable": "external",
+      "NetworkACL": "open"
+    },
+    "ilb": {
+      "Title": "Internal Load Balancer Tier",
+      "Description": "Internally accessible application load balancers",
+      "RouteTable": "internal",
+      "NetworkACL": "open"
+    },
+    "mgmt": {
+      "Title": "Management Tier",
+      "Name": "management",
+      "Description": "Supports ssh based host access and internet access for internal hosts",
+      "RouteTable": "external",
+      "NetworkACL": "open",
+      "Components": {
+        "seg-cert": {
+          "DeploymentUnits": [
+            "cert"
+          ]
+        },
+        "seg-cmk": {
+          "DeploymentUnits": [
+            "cmk"
+          ]
+        },
+        "seg-dns": {
+          "DeploymentUnits": [
+            "dns"
+          ]
+        },
+        "seg-s3": {
+          "DeploymentUnits": [
+            "s3"
+          ]
+        },
+        "seg-vpc": {
+          "DeploymentUnits": [
+            "vpc"
+          ]
+        },
+        "seg-dashboard": {
+          "DeploymentUnits": [
+            "dashboard"
+          ]
+        },
+        "ssh-ssh": {
+          "DeploymentUnits": [
+            "ssh"
+          ]
+        },
+        "nat-nat": {
+          "DeploymentUnits": [
+            "nat"
+          ]
+        }
+      }
+    },
+    "shared": {
+      "Title": "Shared Tier",
+      "Name": "shared",
+      "Description": "Shared Tier",
+      "RouteTable": "external",
+      "NetworkACL": "open"
+    }
+  },
+  "RouteTables": {
+    "internal": {
+      "Title": "Internal Subnet Route Table",
+      "Description": "Route table supporting routing only to local subnets - default route always present. No internet access provided.",
+      "Routes": {},
+      "Private": true
+    },
+    "external": {
+      "Title": "External Subnet Route Table",
+      "Description": "Route table supporting direct internet access",
+      "Routes": {
+        "gateway": {
+          "Type": "gateway"
+        }
+      }
+    }
+  },
+  "NetworkACLs": {
+    "open": {
+      "Title": "Completely open subnet",
+      "Rules": {
+        "Inbound": {
+          "all": {
+            "RuleNumber": 100,
+            "Protocol": "all",
+            "CIDRBlock": "0.0.0.0/0",
+            "Allow": true
+          }
+        },
+        "Outbound": {
+          "all": {
+            "Id": "all",
+            "RuleNumber": 100,
+            "Protocol": "all",
+            "CIDRBlock": "0.0.0.0/0",
+            "Allow": true
+          }
+        }
+      }
+    }
+  },
+  "Storage": {
+    "default": {
+      "EC2": {
+        "Volumes": {
+          "codeontap": {
+            "Device": "/dev/sdp",
+            "Size": "30"
+          }
+        }
+      },
+      "ECS": {},
+      "ElasticSearch": {}
+    }
+  },
+  "Processors": {
+    "default": {
+      "NAT": {
+        "Processor": "t2.micro"
+      },
+      "SSH": {
+        "Processor": "t2.micro"
+      },
+      "EC2": {
+        "Processor": "t2.micro"
+      },
+      "ECS": {
+        "Processor": "t2.micro",
+        "MinPerZone": 1,
+        "MaxPerZone": 1,
+        "DesiredPerZone": 1
+      },
+      "ElastiCache": {
+        "Processor": "cache.t2.micro",
+        "CountPerZone": 1
+      },
+      "RDS": {
+        "Processor": "db.t2.small"
+      },
+      "ElasticSearch": {
+        "Processor": "m3.medium.elasticsearch",
+        "CountPerZone": 1
+      }
+    }
+  },
+  "Ports": {
+    "couchdb": {
+      "Port": 5984,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "ednp": {
+      "Port": 25672,
+      "IPProtocol": "tcp"
+    },
+    "elasticsearch": {
+      "Port": 9200,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "epmd": {
+      "Port": 4369,
+      "IPProtocol": "tcp"
+    },
+    "http": {
+      "Port": 80,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "httpalt": {
+      "Port": 8080,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "https": {
+      "Port": 443,
+      "Protocol": "HTTPS",
+      "IPProtocol": "tcp",
+      "Certificate": true,
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "kibana": {
+      "Port": 5601,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "memcached": {
+      "Port": 11211,
+      "IPProtocol": "tcp"
+    },
+    "meteor": {
+      "Port": 3000,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "mongodb": {
+      "Port": 27017,
+      "IPProtocol": "tcp"
+    },
+    "mysql": {
+      "Port": 3306,
+      "IPProtocol": "tcp"
+    },
+    "node": {
+      "Port": 9000,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "play": {
+      "Port": 9000,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "playws": {
+      "Port": 9000,
+      "Protocol": "TCP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Protocol": "HTTP",
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "postgresql": {
+      "Port": 5432,
+      "IPProtocol": "tcp"
+    },
+    "rabbit": {
+      "Port": 5672,
+      "IPProtocol": "tcp"
+    },
+    "rabbit-ui": {
+      "Port": 15672,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "2",
+        "UnhealthyThreshold": "3",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "redis": {
+      "Port": 6379,
+      "IPProtocol": "tcp"
+    },
+    "ssh": {
+      "Port": 22,
+      "IPProtocol": "tcp"
+    },
+    "ws": {
+      "Port": 80,
+      "Protocol": "TCP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    },
+    "wss": {
+      "Port": 443,
+      "Protocol": "SSL",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
+    }
+  },
+  "PortMappings": {
+    "couchdb": {
+      "Source": "https",
+      "Destination": "couchdb"
+    },
+    "elasticsearch": {
+      "Source": "https",
+      "Destination": "elasticsearch"
+    },
+    "http": {
+      "Source": "http",
+      "Destination": "http"
+    },
+    "httpalt": {
+      "Source": "http",
+      "Destination": "httpalt"
+    },
+    "https": {
+      "Source": "https",
+      "Destination": "http"
+    },
+    "httpsalt": {
+      "Source": "https",
+      "Destination": "httpalt"
+    },
+    "kibana": {
+      "Source": "https",
+      "Destination": "kibana"
+    },
+    "meteor": {
+      "Source": "https",
+      "Destination": "meteor"
+    },
+    "node": {
+      "Source": "https",
+      "Destination": "node"
+    },
+    "play": {
+      "Source": "https",
+      "Destination": "play"
+    },
+    "playwss": {
+      "Source": "wss",
+      "Destination": "playws"
+    },
+    "ws": {
+      "Source": "ws",
+      "Destination": "ws"
+    },
+    "wss": {
+      "Source": "wss",
+      "Destination": "ws"
+    }
+  },
+  "Segment": {
+    "CIDR": {
+      "Address": "10.0.0.0",
+      "Mask": 16
+    },
+    "InternetAccess": true,
+    "DNSSupport": true,
+    "DNSHostnames": true,
+    "NAT": {
+      "Enabled": true,
+      "MultiAZ": false,
+      "Hosted": true
+    },
+    "SSH": {
+      "Enabled": true,
+      "Active": false,
+      "PerSegment": true,
+      "Standalone": true,
+      "IPAddressGroups": []
+    },
+    "S3": {
+      "IncludeTenant": false
+    },
+    "SSHPerSegment": true,
+    "RotateKey": true,
     "Tiers": {
-        "web": {
-            "Title": "Web Tier",
-            "Description": "Supports HMI",
-            "RouteTable": "internal",
-            "NetworkACL": "open"
-        },
-        "api": {
-            "Title": "API Tier",
-            "Description": "Supports externally exposed APIs",
-            "RouteTable": "internal",
-            "NetworkACL": "open"
-        },
-        "msg": {
-            "Title": "Messaging Tier",
-            "Name": "messaging",
-            "Description": "Supports system-to-system based interactions/services",
-            "RouteTable": "internal",
-            "NetworkACL": "open"
-        },
-        "app": {
-            "Title": "Applications Tier",
-            "Name": "application",
-            "Description": "Supports application logic execution",
-            "RouteTable": "internal",
-            "NetworkACL": "open"
-        },
-        "db": {
-            "Title": "Database Tier",
-            "Name": "database",
-            "Description": "Supports long term storage of content and customer data",
-            "RouteTable": "internal",
-            "NetworkACL": "open"
-        },
-        "dir": {
-            "Title": "Directories Tier",
-            "Name": "directories",
-            "Description": "Supports directories or domain controllers",
-            "RouteTable": "internal",
-            "NetworkACL": "open"
-        },
-        "ana": {
-            "Title": "Analytics Tier",
-            "Name": "analytics",
-            "Description": "Suports things like search engines",
-            "RouteTable": "internal",
-            "NetworkACL": "open"
-        },
-        "elb": {
-            "Title": "External Load Balancer Tier",
-            "Description": "Publically accessible application load balancers",
-            "RouteTable": "external",
-            "NetworkACL": "open"
-        },
-        "ilb": {
-            "Title": "Internal Load Balancer Tier",
-            "Description": "Internally accessible application load balancers",
-            "RouteTable": "internal",
-            "NetworkACL": "open"
-        },
-        "mgmt": {
-            "Title": "Management Tier",
-            "Name": "management",
-            "Description": "Supports ssh based host access and internet access for internal hosts",
-            "RouteTable": "external",
-            "NetworkACL": "open",
-            "Components" : {
-                "seg-cert" : {
-                    "DeploymentUnits" : ["cert"]
-                },
-                "seg-cmk" : {
-                    "DeploymentUnits" : ["cmk"]
-                },
-                "seg-dns" : {
-                    "DeploymentUnits" : ["dns"]
-                },
-                "seg-s3" : {
-                    "DeploymentUnits" : ["s3"]
-                },
-                "seg-vpc" : {
-                    "DeploymentUnits" : ["vpc"]
-                },
-                "seg-dashboard" : {
-                    "DeploymentUnits" : ["dashboard"]
-                },
-                "ssh-ssh" : {
-                    "DeploymentUnits" : ["ssh"]
-                },
-                "nat-nat" : {
-                    "DeploymentUnits" : ["nat"]
-                }
-            }
-        },
-        "shared": {
-            "Title": "Shared Tier",
-            "Name": "shared",
-            "Description": "Shared Tier",
-            "RouteTable": "external",
-            "NetworkACL": "open"
-        }
+      "Order": [
+        "web",
+        "msg",
+        "app",
+        "db",
+        "dir",
+        "ana",
+        "api",
+        "spare",
+        "elb",
+        "ilb",
+        "spare",
+        "spare",
+        "spare",
+        "spare",
+        "spare",
+        "mgmt"
+      ]
     },
-    "RouteTables": {
-        "internal": {
-            "Title": "Internal Subnet Route Table",
-            "Description": "Route table supporting routing only to local subnets - default route always present. No internet access provided.",
-            "Routes": {},
-            "Private": true
-        },
-        "external": {
-            "Title": "External Subnet Route Table",
-            "Description": "Route table supporting direct internet access",
-            "Routes": {
-                "gateway" : {
-                    "Type": "gateway"
-                }
-            }
-        }
+    "Zones": {
+      "Order": [
+        "a",
+        "b",
+        "spare",
+        "spare"
+      ]
+    }
+  },
+  "CertificateBehaviours": {
+    "External": false,
+    "Wildcard": true,
+    "IncludeInHost": {
+      "Product": false,
+      "Environment": false,
+      "Segment": true,
+      "Tier": false,
+      "Component": true,
+      "Instance": true,
+      "Version": true
     },
-    "NetworkACLs": {
-        "open": {
-            "Title": "Completely open subnet",
-            "Rules": {
-                "Inbound": {
-                    "all" : {
-                        "RuleNumber": 100,
-                        "Protocol": "all",
-                        "CIDRBlock": "0.0.0.0/0",
-                        "Allow": true
-                    }
-                },
-                "Outbound": {
-                    "all" : {
-                        "Id": "all",
-                        "RuleNumber": 100,
-                        "Protocol": "all",
-                        "CIDRBlock": "0.0.0.0/0",
-                        "Allow": true
-                    }
-                }
-            }
+    "Qualifiers": {
+      "prod": {
+        "IncludeInHost": {
+          "Segment": false
         }
-    },
-    "Storage": {
-        "default": {
-            "EC2": {
-                "Volumes": {
-                    "codeontap" : {
-                        "Device": "/dev/sdp",
-                        "Size": "30"
-                    }
-                }
-            },
-            "ECS": {},
-            "ElasticSearch": {}
-        }
-    },
-    "Processors": {
-        "default": {
-            "NAT": {
-                "Processor": "t2.micro"
-            },
-            "SSH": {
-                "Processor": "t2.micro"
-            },
-            "EC2": {
-                "Processor": "t2.micro"
-            },
-            "ECS": {
-                "Processor": "t2.micro",
-                "MinPerZone": 1,
-                "MaxPerZone": 1,
-                "DesiredPerZone": 1
-            },
-            "ElastiCache": {
-                "Processor": "cache.t2.micro",
-                "CountPerZone": 1
-            },
-            "RDS": {
-                "Processor": "db.t2.small"
-            },
-            "ElasticSearch": {
-                "Processor": "m3.medium.elasticsearch",
-                "CountPerZone": 1
-            }
-        }
-    },
-    "Ports": {
-        "couchdb": {
-            "Port": 5984,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "ednp": {
-            "Port": 25672,
-            "IPProtocol": "tcp"
-        },
-        "elasticsearch": {
-            "Port": 9200,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "epmd": {
-            "Port": 4369,
-            "IPProtocol": "tcp"
-        },
-        "http": {
-            "Port": 80,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "httpalt": {
-            "Port": 8080,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "https": {
-            "Port": 443,
-            "Protocol": "HTTPS",
-            "IPProtocol": "tcp",
-            "Certificate": true,
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "kibana": {
-            "Port": 5601,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "memcached": {
-            "Port": 11211,
-            "IPProtocol": "tcp"
-        },
-        "meteor": {
-            "Port": 3000,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "mongodb": {
-            "Port": 27017,
-            "IPProtocol": "tcp"
-        },
-        "mysql": {
-            "Port": 3306,
-            "IPProtocol": "tcp"
-        },
-        "node": {
-            "Port": 9000,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "play": {
-            "Port": 9000,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "playws": {
-            "Port": 9000,
-            "Protocol": "TCP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Protocol": "HTTP",
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "postgresql": {
-            "Port": 5432,
-            "IPProtocol": "tcp"
-        },
-        "rabbit": {
-            "Port": 5672,
-            "IPProtocol": "tcp"
-        },
-        "rabbit-ui": {
-            "Port": 15672,
-            "Protocol": "HTTP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "2",
-                "UnhealthyThreshold": "3",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "redis": {
-            "Port": 6379,
-            "IPProtocol": "tcp"
-        },
-        "ssh": {
-            "Port": 22,
-            "IPProtocol": "tcp"
-        },
-        "ws": {
-            "Port": 80,
-            "Protocol": "TCP",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        },
-        "wss": {
-            "Port": 443,
-            "Protocol": "SSL",
-            "IPProtocol": "tcp",
-            "HealthCheck": {
-                "Path": "/",
-                "HealthyThreshold": "3",
-                "UnhealthyThreshold": "5",
-                "Interval": "30",
-                "Timeout": "5"
-            }
-        }
-    },
-    "PortMappings": {
-        "couchdb": {
-            "Source": "https",
-            "Destination": "couchdb"
-        },
-        "elasticsearch": {
-            "Source": "https",
-            "Destination": "elasticsearch"
-        },
-        "http": {
-            "Source": "http",
-            "Destination": "http"
-        },
-        "httpalt": {
-            "Source": "http",
-            "Destination": "httpalt"
-        },
-        "https": {
-            "Source": "https",
-            "Destination": "http"
-        },
-        "httpsalt": {
-            "Source": "https",
-            "Destination": "httpalt"
-        },
-        "kibana": {
-            "Source": "https",
-            "Destination": "kibana"
-        },
-        "meteor": {
-            "Source": "https",
-            "Destination": "meteor"
-        },
-        "node": {
-            "Source": "https",
-            "Destination": "node"
-        },
-        "play": {
-            "Source": "https",
-            "Destination": "play"
-        },
-        "playwss": {
-            "Source": "wss",
-            "Destination": "playws"
-        },
-        "ws": {
-            "Source": "ws",
-            "Destination": "ws"
-        },
-        "wss": {
-            "Source": "wss",
-            "Destination": "ws"
-        }
-    },
-    "Segment" : {
-        "CIDR" : {
-            "Address" : "10.0.0.0",
-            "Mask" : 16
-        },
-        "InternetAccess" : true,
-        "DNSSupport" : true,
-        "DNSHostnames" : true,
-        "NAT" : {
-            "Enabled" : true,
-            "MultiAZ" : false,
-            "Hosted" : true
-        },
-        "SSH" : {
-            "Enabled" : true,
-            "Active" : false,
-            "PerSegment" : true,
-            "Standalone" : true,
-            "IPAddressGroups" : []
-        },
-        "S3" : {
-            "IncludeTenant" : false
-        },
-        "SSHPerSegment" : true,
-        "RotateKey" : true,
-        "Tiers" : {
-            "Order" : ["web", "msg", "app", "db", "dir", "ana", "api", "spare",
-            "elb", "ilb", "spare", "spare", "spare", "spare", "spare", "mgmt"]
-        },
-        "Zones" : {
-            "Order" : ["a", "b", "spare", "spare"]
-        }
-    },
-    "CertificateBehaviours" : {
-        "External" : false,
-        "Wildcard" : true,
-        "IncludeInHost" : {
-            "Product" : false,
-            "Environment" : false,
-            "Segment" : true,
-            "Tier" : false,
-            "Component" : true,
-            "Instance" : true,
-            "Version" : true
-        },
-        "Qualifiers" : {
-            "prod" : {
-                "IncludeInHost" : {
-                    "Segment" : false
-                }
-            }
-        }
-    },
-    "PowersOf2" : [ 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536]
+      }
+    }
+  },
+  "PowersOf2": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192,
+    16384,
+    32768,
+    65536
+  ]
 }
