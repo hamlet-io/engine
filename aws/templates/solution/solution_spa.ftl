@@ -63,7 +63,7 @@
             mode=listMode
             id=cfId
             aliases=
-                (occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)?then(
+                (occurrence.Certificate.Configured && occurrence.Certificate.Enabled)?then(
                     [dns],
                     []
                 )
@@ -72,7 +72,7 @@
                 getCFCertificate(
                     certificateId,
                     occurrence.CloudFront.AssumeSNI),
-                    occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)
+                    occurrence.Certificate.Configured && occurrence.Certificate.Enabled)
             comment=cfName
             customErrorResponses=getErrorResponse(404) + getErrorResponse(403)
             defaultCacheBehaviour=spaCacheBehaviour
@@ -93,11 +93,13 @@
                 restrictions)
             wafAclId=valueIfTrue(
                 wafAclId,
-                (occurrence.WAFIsConfigured &&
+                (occurrence.WAF.Configured &&
+                    occurrence.WAF.Enabled &&
                     ipAddressGroupsUsage["waf"]?has_content))
         /]
 
-        [#if occurrence.WAFIsConfigured &&
+        [#if occurrence.WAF.Configured &&
+                occurrence.WAF.Enabled &&
                 ipAddressGroupsUsage["waf"]?has_content ]
             [#assign wafGroups = [] ]
             [#assign wafRuleDefault = 

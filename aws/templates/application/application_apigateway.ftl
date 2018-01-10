@@ -1,5 +1,8 @@
 [#-- API Gateway --]
 
+[#function getApigatewayBlueprint ]
+[/#function]
+
 [#if (componentType == "apigateway")]
     [#assign apigateway = component.APIGateway]
                                      
@@ -235,7 +238,7 @@
                 dependencies=[invalidLogMetricId]
             /]
                     
-            [#if occurrence.CloudFrontIsConfigured && occurrence.CloudFront.Enabled]
+            [#if occurrence.CloudFront.Configured && occurrence.CloudFront.Enabled]
                 [#assign origin =
                     getCFAPIGatewayOrigin(
                         cfOriginId,
@@ -260,7 +263,7 @@
                     id=cfId
                     dependencies=stageId     
                     aliases=
-                        (occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)?then(
+                        (occurrence.Certificate.Configured && occurrence.Certificate.Enabled)?then(
                             [dns],
                             []
                         )
@@ -268,7 +271,7 @@
                         getCFCertificate(
                             certificateId,
                             occurrence.CloudFront.AssumeSNI),
-                        occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)
+                        occurrence.Certificate.Configured && occurrence.Certificate.Enabled)
                     comment=cfName
                     defaultCacheBehaviour=defaultCacheBehaviour
                     logging=valueIfTrue(
@@ -287,7 +290,7 @@
                         restrictions)
                     wafAclId=valueIfTrue(
                         wafAclId,
-                        (occurrence.WAFIsConfigured &&
+                        (occurrence.WAF.Configured &&
                             occurrence.WAF.Enabled &&
                             ipAddressGroupsUsage["waf"]?has_content))
                 /]
@@ -309,7 +312,7 @@
                     dependencies=stageId                       
                 /]
 
-                [#if occurrence.WAFIsConfigured &&
+                [#if occurrence.WAF.Configured &&
                         occurrence.WAF.Enabled &&
                         ipAddressGroupsUsage["waf"]?has_content ]
                     [#assign wafGroups = [] ]
@@ -384,7 +387,7 @@
                         rules=wafRules /]
                 [/#if]
             [#else]
-                [#if occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled]
+                [#if occurrence.Certificate.Configured && occurrence.Certificate.Enabled]
                     [@cfResource
                         mode=listMode
                         id=domainId
@@ -413,7 +416,7 @@
             [/#if]
         [/#if]
         
-        [#if occurrence.PublishIsConfigured && occurrence.Publish.Enabled ]
+        [#if occurrence.Publish.Configured && occurrence.Publish.Enabled ]
             [#assign docsS3BucketId = formatComponentS3Id(
                                         tier,
                                         component,
@@ -428,7 +431,7 @@
 
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("apidoc.html", "")]
 
-            [#assign docsS3BucketName = (occurrence.CertificateIsConfigured && occurrence.Certificate.Enabled)?then(
+            [#assign docsS3BucketName = (occurrence.Certificate.Configured && occurrence.Certificate.Enabled)?then(
                                             formatDomainName(
                                                 occurrence.Publish.DnsNamePrefix,
                                                 dns

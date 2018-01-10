@@ -55,12 +55,12 @@
             tier=tier
             component=component
             lifecycleRules=
-                (occurrence.LifecycleIsConfigured && (occurrence.Lifecycle.Expiration!operationsExpiration)?has_content)?then(
+                (occurrence.Lifecycle.Configured && (occurrence.Lifecycle.Expiration!operationsExpiration)?has_content)?then(
                     getS3LifecycleExpirationRule(occurrence.Lifecycle.Expiration!operationsExpiration),
                     [])
             sqsNotifications=sqsNotifications
             websiteConfiguration=
-                occurrence.WebsiteIsConfigured?then(
+                (occurrence.Website.Configured && occurrence.Website.Enabled)?then(
                     getS3WebsiteConfiguration(occurrence.Website.Index, occurrence.Website.Error),
                     {})
             dependencies=dependencies
