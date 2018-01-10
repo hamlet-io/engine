@@ -3,6 +3,7 @@
     [#assign ec2 = component.EC2]
     [#assign fixedIP = ec2.FixedIP!false]
     [#assign loadBalanced = ec2.LoadBalanced!false]
+    [#assign dockerHost = ec2.DockerHost!false]
 
     [#assign ec2FullName = formatName(tenantId, componentFullName) ]
     [#assign ec2SecurityGroupId = formatEC2SecurityGroupId(tier, component)]
@@ -190,6 +191,13 @@
                                             "env" : {
                                                 "LOAD_BALANCER" : getReference(ec2ELBId)
                                             },
+                                            "ignoreErrors" : "false"
+                                        }) + 
+                                    attributeIfTrue(
+                                        "04DockerHostSetup",
+                                        dockerHost,
+                                        {
+                                            "command" : "/opt/codeontap/bootstrap/docker.sh",
                                             "ignoreErrors" : "false"
                                         })
                                 },
