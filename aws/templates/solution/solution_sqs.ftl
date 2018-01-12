@@ -33,7 +33,7 @@
         ]
 
         [#assign dlqRequired =
-            (occurrence.DeadLetterQueueIsConfigured &&
+            (occurrence.DeadLetterQueue.Configured &&
                 occurrence.DeadLetterQueue.Enabled) ||
             ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
         [#if dlqRequired]

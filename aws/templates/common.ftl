@@ -414,14 +414,16 @@
                 [#if populateMissingChildren || childObjects?has_content]
                     [#local result +=
                         {
-                            attributeNames[0] : getCompositeObject(children, childObjects) 
-                        } +
-                        populateMissingChildren?then(
-                            {
-                                attributeNames[0] + "IsConfigured" : firstName?has_content
-                            },
-                            {}
-                        )
+                            attributeNames[0] :
+                                populateMissingChildren?then(
+                                    {
+                                        "Configured" : firstName?has_content
+                                    },
+                                    {}
+                                ) +
+                                getCompositeObject(children, childObjects)
+                        }
+                        
                     ]
                 [/#if]
             [#else]
@@ -671,6 +673,10 @@
                     "Name" : "Website",
                     "Children" : [
                         {
+                            "Name"  : "Enabled",
+                            "Default" : true
+                        },
+                        {
                             "Name": "Index",
                             "Default": "index.html"
                         },
@@ -707,6 +713,10 @@
                 {
                     "Name" : "WAF",
                     "Children" : [
+                        {
+                            "Name" : "Enabled",
+                            "Default" : true
+                        },
                         {
                             "Name" : "IPAddressGroups",
                             "Default" : []
