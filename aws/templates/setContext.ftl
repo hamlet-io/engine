@@ -69,8 +69,6 @@
     [#assign accountName = accountObject.Name]
     [#assign accounts += {accountId : accountObject} ]
 
-    [#assign accountDomain = accountObject.Domain!""]
-
     [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials")) ]
     [#assign codeBucket = getExistingReference(formatAccountS3Id("code")) ]
     [#assign registryBucket = getExistingReference(formatAccountS3Id("registry")) ]
