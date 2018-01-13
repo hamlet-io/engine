@@ -186,7 +186,7 @@ function process_template() {
 
       # LEGACY: Support stacks created before deployment units added to account level
       [[ ("${DEPLOYMENT_UNIT}" =~ s3) &&
-        (-f "${cf_dir}/${level_prefix[template]}${region_prefix[template]}template.json") ]] && \
+        (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
           for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]=""; done
       ;;
 
@@ -196,7 +196,7 @@ function process_template() {
 
       # LEGACY: Support stacks created before deployment units added to product
       [[ ("${DEPLOYMENT_UNIT}" =~ cmk) &&
-        (-f "${cf_dir}/${level_prefix[template]}${region_prefix[template]}template.json") ]] && \
+        (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
           for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]=""; done
       ;;
 
