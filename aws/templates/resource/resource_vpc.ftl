@@ -188,13 +188,8 @@
             mode=mode 
             tier=tier 
             component=component
-            extensions=
-                {
-                    "Internal" : {
-                        "IdExtensions" : [resourceId],
-                        "NameExtensions" : [resourceName]
-                    }
-                }
+            resourceId=resourceId
+            resourceName=resourceName
             ingressRules=ingressRules /]
     [/#if]
 [/#macro]
