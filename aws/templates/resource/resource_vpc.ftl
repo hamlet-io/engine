@@ -184,7 +184,7 @@
             extensions=extensions
             ingressRules=ingressRules /]
     [#else]
-        [@createComponentSecurityGroup 
+        [@createDependentSecurityGroup 
             mode=mode 
             tier=tier 
             component=component
