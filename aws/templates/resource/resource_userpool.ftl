@@ -1,3 +1,5 @@
+[#-- Cognito User Pool --]
+
 [#assign USERPOOL_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -15,7 +17,33 @@
     }
 ]
 
-[#macro createUserPool mode id name tier="" component="" lifecycleRules=[] sqsNotifications=[] websiteConfiguration={} dependencies="" outputId=""]
+[#function getUserPoolPasswordPolicy length="8" lowercase=true uppercase=true numbers=true symbols=true]
+    [#return 
+        {
+            "PasswordPolicy" : {
+                "MinimumLength"     : length
+                "RequireLowercase"  : lowercase
+                "RequireUppercase"  : uppercase
+                "RequireNumbers"    : numbers
+                "RequireSymbols"    : symbols
+            }
+        }
+    ]
+[/#function]
+
+[#macro createUserPool mode id name 
+    tier="" 
+    component="" 
+    mfa
+    adminCreatesUser
+    unusedTimeout 
+    verifyEmail 
+    verifyPhone 
+    loginAliases=[] 
+    passwordPolicy={}  
+    dependencies="" 
+    outputId=""]
+
     [@cfResource 
         mode=mode
         id=id
@@ -23,28 +51,12 @@
         properties=
             {
                 "UserPoolName" : name,
-                "AutoVerifiedAttributes" : [
-                    "email"
-                ],
-                "MfaConfiguration" : "OFF",
+                "UserPoolTags" : getCfTemplateCoreTags("", tier, component)
+                "MfaConfiguration" : mfa?then("ON","OFF") 
                 "AdminCreateUserConfig" : {
-                    "AllowAdminCreateUserOnly" : true,
-                    "UnusedAccountValidityDays" : 14
+                    "AllowAdminCreateUserOnly" : adminCreatesUser,
+                    "UnusedAccountValidityDays" : unusedTimeout
                 },
-                "DeviceConfiguration" : {
-                    "ChallengeRequiredOnNewDevice" : false,
-                    "DeviceOnlyRememberedOnUserPrompt" : false
-                },
-                "Policies" : [
-                    {
-                        "PasswordPolicy" : {
-                            "MinimumLength" : 8,
-                            "RequireLowercase": true,
-                            "RequireUppercase" : true,
-                            "RequireNumbers" : true
-                        }
-                    }
-                ],
                 "Schema" : [
                     {
                         "AttributeDataType" : "String",
@@ -56,9 +68,27 @@
                         }
                     }
                 ]
-            } 
-        tags=getCfTemplateCoreTags("", tier, component)
-        outputs=S3_OUTPUT_MAPPINGS
+            } + 
+            attributeIfContent(
+                "Policies",
+                passwordPolicy,
+                {
+                    PasswordPolicy
+                }
+            ) + 
+            attributeIfContent(
+                "AliasAttributes",
+                loginAliases
+            ) + 
+            attributeIfTrue(
+                "AutoVerifiedAttributes", 
+                verifyEmail || verifyPhone, 
+                [
+                    verifyEmail?then("email")
+                    verifyPhone?then("phone_number") 
+                ]
+            )
+        outputs=USERPOOL_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies
     /]
