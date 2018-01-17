@@ -6,7 +6,7 @@
             "UseRef" : true
         },
         NAME_ATTRIBUTE_TYPE : { 
-            "Attribute" : ProviderName
+            "Attribute" : "ProviderName"
         },
         ARN_ATTRIBUTE_TYPE : { 
             "Attribute" : "Arn"
@@ -21,28 +21,44 @@
     [#return 
         {
             "PasswordPolicy" : {
-                "MinimumLength"     : length
-                "RequireLowercase"  : lowercase
-                "RequireUppercase"  : uppercase
-                "RequireNumbers"    : numbers
+                "MinimumLength"     : length,
+                "RequireLowercase"  : lowercase,
+                "RequireUppercase"  : uppercase,
+                "RequireNumbers"    : numbers,
                 "RequireSymbols"    : symbols
             }
         }
     ]
 [/#function]
 
+[#function getUserPoolAutoVerifcation email=false phone=false ]
+    [#assign autoVerifyArray=[]]
+
+    [#if email ]
+        [#assign autoVerifyArray = autoVerifyArray + [ "email" ] ]
+    [/#if]
+
+    [#if phone ] 
+        [#assign autoVerifyArray = autoVerifyArray + [ "phone_number" ]]
+    [/#if]
+
+    [#return 
+        autoVerifyArray
+    ]
+[/#function]
+
 [#macro createUserPool mode id name 
-    tier="" 
-    component="" 
     mfa
     adminCreatesUser
-    unusedTimeout 
-    verifyEmail 
-    verifyPhone 
+    unusedTimeout
+    tier="" 
+    component="" 
     loginAliases=[] 
+    autoVerify=[]
     passwordPolicy={}  
     dependencies="" 
-    outputId=""]
+    outputId=""
+]
 
     [@cfResource 
         mode=mode
@@ -51,8 +67,8 @@
         properties=
             {
                 "UserPoolName" : name,
-                "UserPoolTags" : getCfTemplateCoreTags("", tier, component)
-                "MfaConfiguration" : mfa?then("ON","OFF") 
+                "UserPoolTags" : getCfTemplateCoreTags("", tier, component),
+                "MfaConfiguration" : mfa?then("ON","OFF"),
                 "AdminCreateUserConfig" : {
                     "AllowAdminCreateUserOnly" : adminCreatesUser,
                     "UnusedAccountValidityDays" : unusedTimeout
@@ -71,22 +87,15 @@
             } + 
             attributeIfContent(
                 "Policies",
-                passwordPolicy,
-                {
-                    PasswordPolicy
-                }
+                passwordPolicy 
             ) + 
             attributeIfContent(
                 "AliasAttributes",
                 loginAliases
             ) + 
-            attributeIfTrue(
+            attributeIfContent(
                 "AutoVerifiedAttributes", 
-                verifyEmail || verifyPhone, 
-                [
-                    verifyEmail?then("email")
-                    verifyPhone?then("phone_number") 
-                ]
+                autoVerify                
             )
         outputs=USERPOOL_OUTPUT_MAPPINGS
         outputId=outputId

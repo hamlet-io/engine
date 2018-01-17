@@ -794,11 +794,11 @@
         "userpool" :
             [
                 { 
-                    "Name" : "MFA"
+                    "Name" : "MFA",
                     "Default" : false
                 },
                 {
-                    "Name" : "adminCreatesUser"
+                    "Name" : "adminCreatesUser",
                     "Default" : true
                 },
                 {
@@ -819,7 +819,7 @@
                     ]
                 },
                 {
-                    "Name" : "passwordPolicy"
+                    "Name" : "passwordPolicy",
                     "Children" : [
                         {
                            "Name" : "MinimumLength",
@@ -831,7 +831,7 @@
                         },
                         {
                             "Name" : "Uppercase",
-                            "Default" : true,
+                            "Default" : true
                         },
                         {
                             "Name" : "Numbers",
