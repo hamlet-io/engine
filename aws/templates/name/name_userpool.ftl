@@ -6,5 +6,5 @@
                 formatComponentFullName(
                     tier,
                     component,
-                    lambda))]
+                    userpool))]
 [/#function]
