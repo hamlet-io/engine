@@ -33,6 +33,14 @@
                 extensions)]
 [/#function]
 
+[#function formatDependentAPIGatewayAuthorizerId resourceId extensions ]
+    [#return formatDependentResourceId(
+                "apiAuthorizer",
+                resourceId,
+                extensions
+    )] 
+[/#function]
+
 [#function formatDependentAPIGatewayBasePathMappingId resourceId extensions...]
     [#return formatDependentResourceId(
                 "apiBasePathMapping",

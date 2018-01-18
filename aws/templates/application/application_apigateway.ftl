@@ -102,9 +102,30 @@
                                             [/#if]
                                         [/#if]
                                     [/#list]
-                                    [#break]
+                                [#break]
+                                [#case "userpool"] 
+                                    [@cfResource
+                                        mode=listMode
+                                        id= 
+                                            formatDependentAPIGatewayAuthorizerId(apiId)
+                                        type="AWS::ApiGateway::Authorizer" 
+                                        properties=
+                                            {
+                                                "Name" : formatComponentName(link.Tier, link.Component targetOccurrence),
+                                                "ProviderARNs" : [ getExistingReference(
+                                                                    formatUserPoolId(
+                                                                        link.Tier,
+                                                                        link.Component,
+                                                                        targetOccurrence)) ],
+                                                "RestApiId" : getReference(apiId),
+                                                "Type" : "COGNITO_USER_POOLS",
+                                                "IdentitySource" : "Authorization"
+                                            }
+                                        dependencies=apiId 
+                                        outputs={}
+                                    /]
+                                [#break]
                             [/#switch]
-                            [#break] 
                         [/#if]
                     [/#list]
                 [/#if]

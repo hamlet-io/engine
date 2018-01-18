@@ -2,8 +2,10 @@
 
 [#assign USERPOOL_RESOURCE_TYPE = "userpool"]
 
-[#function formatUserPoolId ids...]
-    [#return formatResourceId(
+[#function formatUserPoolId tier component extensions...]
+    [#return formatComponentResourceId(
                 USERPOOL_RESOURCE_TYPE,
-                ids)]
+                tier,
+                component,
+                extensions)]
 [/#function]
