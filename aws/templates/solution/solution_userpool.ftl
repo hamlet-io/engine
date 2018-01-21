@@ -13,6 +13,10 @@
         tier=tier
         id=userPoolId
         name=userPoolName
+        tags=getCfTemplateCoreTags(
+                userPoolName,
+                tier,
+                component)
         dependencies=dependencies
         mfa=userpool.MFA
         adminCreatesUser=userpool.adminCreatesUser

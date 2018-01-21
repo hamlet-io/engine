@@ -51,6 +51,7 @@
     mfa
     adminCreatesUser
     unusedTimeout
+    tags
     tier="" 
     component="" 
     loginAliases=[] 
@@ -67,7 +68,7 @@
         properties=
             {
                 "UserPoolName" : name,
-                "UserPoolTags" : getCfTemplateCoreTags("", tier, component),
+                "UserPoolTags" : tags,
                 "MfaConfiguration" : mfa?then("ON","OFF"),
                 "AdminCreateUserConfig" : {
                     "AllowAdminCreateUserOnly" : adminCreatesUser,
