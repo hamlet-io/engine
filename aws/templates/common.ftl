@@ -790,6 +790,59 @@
                     "Name" : "UseTaskRole",
                     "Default" : true
                 }
+            ],
+        "userpool" :
+            [
+                { 
+                    "Name" : "MFA",
+                    "Default" : false
+                },
+                {
+                    "Name" : "adminCreatesUser",
+                    "Default" : true
+                },
+                {
+                    "Name" : "unusedAccountTimeout"
+                },
+                {
+                    "Name" : "verifyEmail",
+                    "Default" : true
+                },
+                {
+                    "Name" : "verifyPhone",
+                    "Default" : false
+                },
+                {
+                    "Name" : "loginAliases",
+                    "Default" : [
+                        "email"
+                    ]
+                },
+                {
+                    "Name" : "passwordPolicy",
+                    "Children" : [
+                        {
+                           "Name" : "MinimumLength",
+                           "Default" : "8"
+                        },
+                        {
+                            "Name" : "Lowercase",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "Uppercase",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "Numbers",
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "SpecialCharacters",
+                            "Default" : false
+                        }
+                    ] 
+                }
             ]
     }
 ]
