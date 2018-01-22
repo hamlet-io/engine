@@ -42,6 +42,7 @@
             ]
         ]
         [#assign stageVariables = {} ]
+        [#assign userPoolArns = [] ]
         [#list occurrence.Links?values as link]
             [#if link?is_hash]
                 [#assign targetComponent = getComponent(link.Tier, link.Component)]
@@ -62,7 +63,7 @@
                                                 DNS_ATTRIBUTE_TYPE)
                                         }
                                     ]
-                                    [#break]
+                                [#break]
 
                                 [#case "lambda"]
                                     [#list targetOccurrence.Functions?values as fn]
@@ -103,30 +104,17 @@
                                         [/#if]
                                     [/#list]
                                 [#break]
-                                [#case "userpool"] 
-                                    [@cfResource
-                                        mode=listMode
-                                        id= 
-                                            formatDependentAPIGatewayAuthorizerId(apiId)
-                                        type="AWS::ApiGateway::Authorizer" 
-                                        properties=
-                                            {
-                                                "Name" : formatComponentName(link.Tier, link.Component targetOccurrence),
-                                                "ProviderARNs" : [ getExistingReference(
-                                                                    formatUserPoolId(
-                                                                        link.Tier,
-                                                                        link.Component,
-                                                                        targetOccurrence)) ],
-                                                "RestApiId" : getReference(apiId),
-                                                "Type" : "COGNITO_USER_POOLS",
-                                                "IdentitySource" : "Authorization"
-                                            }
-                                        dependencies=apiId 
-                                        outputs={}
-                                    /]
-                                [#break]
                             [/#switch]
                         [/#if]
+                        [#switch getComponentType(targetComponent)]
+                            [#case "userpool"] 
+                                [#if deploymentSubsetRequired("apigateway", true)]
+                                    [#assign userPoolArns += [ getExistingReference(
+                                                                    formatUserPoolId(link.Tier, link.Component), 
+                                                                    ARN_ATTRIBUTE_TYPE )]]
+                                [/#if]
+                            [#break]
+                        [/#switch]
                     [/#list]
                 [/#if]
             [/#if]
@@ -258,7 +246,26 @@
                 dimensions=stageDimensions
                 dependencies=[invalidLogMetricId]
             /]
-                    
+
+            [#if userPoolArns?has_content ]
+                [@cfResource
+                    mode=listMode
+                    id= 
+                        formatDependentAPIGatewayAuthorizerId(apiId)
+                    type="AWS::ApiGateway::Authorizer" 
+                    properties=
+                        {
+                            "Name" : "CognitoUserPoolAuthorizers",
+                            "ProviderARNs" : userPoolArns,
+                            "RestApiId" : getReference(apiId),
+                            "Type" : "COGNITO_USER_POOLS",
+                            "IdentitySource" : "Authorization"
+                        }
+                    dependencies=apiId 
+                    outputs={}
+                /]
+            [/#if]        
+
             [#if occurrence.CloudFront.Configured && occurrence.CloudFront.Enabled]
                 [#assign origin =
                     getCFAPIGatewayOrigin(
