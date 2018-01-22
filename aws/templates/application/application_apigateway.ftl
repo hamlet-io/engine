@@ -259,7 +259,7 @@
                             "ProviderARNs" : userPoolArns,
                             "RestApiId" : getReference(apiId),
                             "Type" : "COGNITO_USER_POOLS",
-                            "IdentitySource" : "Authorization"
+                            "IdentitySource" : "method.request.header.Authorization"
                         }
                     dependencies=apiId 
                     outputs={}
