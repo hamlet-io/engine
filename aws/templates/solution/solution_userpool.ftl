@@ -20,7 +20,8 @@
                 policies=
                     [
                         getPolicyDocument(
-                            snsPublishPermission() 
+                            snsPublishPermission(),
+                            "smsVerification" 
                         )
                     ]
             /]
