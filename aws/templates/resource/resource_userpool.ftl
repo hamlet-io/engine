@@ -31,12 +31,12 @@
     ]
 [/#function]
 
-[#function getUserPoolSMSConfiguration snsId externalId="" ]
+[#function getUserPoolSMSConfiguration snsId externalId ]
     [#return
         {
-            "SnsCallerArn" : snsId
-        }   + 
-        attributeIfContent("ExternalId", externalId)
+            "SnsCallerArn" : snsId,
+            "ExternalId" : externalId
+        }  
     ]
 [/#function]
 
