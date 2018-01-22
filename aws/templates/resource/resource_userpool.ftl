@@ -31,6 +31,15 @@
     ]
 [/#function]
 
+[#function getUserPoolSMSConfiguration snsId externalId="" ]
+    [#return
+        {
+            "SnsCallerArn" : snsId
+        }   + 
+        attributeIfContent("ExternalId", externalId)
+    ]
+[/#function]
+
 [#function getUserPoolAutoVerifcation email=false phone=false ]
     [#assign autoVerifyArray=[]]
 
@@ -56,6 +65,7 @@
     component="" 
     loginAliases=[] 
     autoVerify=[]
+    smsConfiguration={}
     passwordPolicy={}  
     dependencies="" 
     outputId=""
@@ -105,6 +115,10 @@
             attributeIfContent(
                 "AutoVerifiedAttributes", 
                 autoVerify                
+            ) + 
+            attributeIfContent(
+                "SmsConfiguration",
+                smsConfiguration
             )
         outputs=USERPOOL_OUTPUT_MAPPINGS
         outputId=outputId
