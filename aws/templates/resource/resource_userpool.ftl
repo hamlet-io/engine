@@ -60,7 +60,15 @@
     dependencies="" 
     outputId=""
 ]
-
+    
+    [#-- Convert Tag Array to String Map --]
+    [#local tagMap={}]
+    [#list tags as tag] 
+        [#local tagMap = tagMap +  
+            { tag.Key, tag.Value }
+        ]
+    [/#list]
+    
     [@cfResource 
         mode=mode
         id=id
@@ -68,7 +76,7 @@
         properties=
             {
                 "UserPoolName" : name,
-                "UserPoolTags" : tags,
+                "UserPoolTags" : tagMap,
                 "MfaConfiguration" : mfa?then("ON","OFF"),
                 "AdminCreateUserConfig" : {
                     "AllowAdminCreateUserOnly" : adminCreatesUser,
