@@ -27,7 +27,7 @@
             /]
         [/#if]
 
-        [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId), userPoolName )]
+        [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
         [#assign smsVerification = true]
     [/#if]
 
