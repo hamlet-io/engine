@@ -8,3 +8,12 @@
                     component,
                     userpool))]
 [/#function]
+
+[#function formatUserPoolClientName tier component userpool ]
+    [#return formatName( 
+        "userpoolclient",
+        formatComponentFullName(
+            tier,
+            component
+            userpool))]
+[/#function]

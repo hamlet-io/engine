@@ -17,6 +17,17 @@
     }
 ]
 
+[#assign USERPOOL_CLIENT_OUTPUT_MAPPINGS = 
+    { 
+        REFERENCE_ATTRIBUTE_TYPE : { 
+            "UserRef" : true
+        },
+        NAME_ATTRIBUTE_TYPE : { 
+            "Attribute" : "Name" 
+        }
+    }
+]
+
 [#function getUserPoolPasswordPolicy length="8" lowercase=true uppercase=true numbers=true symbols=true]
     [#return 
         {
@@ -121,6 +132,33 @@
                 smsConfiguration
             )
         outputs=USERPOOL_OUTPUT_MAPPINGS
+        outputId=outputId
+        dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createUserPoolClient mode id name 
+        userPoolId 
+        generateSecret=false
+        tokenValidity=30
+        tier="" 
+        component="" 
+        dependencies="" 
+        outputId=""
+]
+
+    [@cfResource 
+        mode=mode
+        id=id
+        type="AWS::Cognito::UserPoolClient"
+        properties=
+            {
+                "ClientName" : name,
+                "GenerateSecret" : generateSecret,
+                "RefreshTokenValidity" : tokenValidity,
+                "UserPoolId" : getReference(userPoolId)
+            }
+        outputs=USERPOOL_CLIENT_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies
     /]
