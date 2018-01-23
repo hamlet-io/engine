@@ -819,6 +819,14 @@
                     ]
                 },
                 {
+                    "Name" : "clientGenerateSecret",
+                    "Default" : false
+                },
+                {
+                    "Name" : "clientTokenValidity",
+                    "Default" : 30
+                },
+                {
                     "Name" : "passwordPolicy",
                     "Children" : [
                         {
