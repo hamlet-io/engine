@@ -4,7 +4,9 @@
     [#assign userpool = component.UserPool]
 
     [#assign userPoolId = formatUserPoolId(tier, component)]
+    [#assign userPoolClientId = formatUserPoolClientId(tier, component)]
     [#assign userPoolName = componentFullName]
+    [#assign userPoolClientName = formatUserPoolClientName(tier,component,userpool) ]
     [#assign dependencies = [] ]
     [#assign userPoolRoleId = formatComponentRoleId(tier, component)]
     [#assign smsVerification = false]
@@ -62,6 +64,18 @@
         smsConfiguration=((smsConfig)?has_content)?then(
             smsConfig,
             {})
+    /]
+
+    [@createUserPoolClient 
+        mode=listMode
+        component=component
+        tier=tier
+        id=userPoolClientId
+        name=userPoolClientName
+        userPoolId=userPoolId
+        generateSecret=userpool.clientGenerateSecret
+        tokenValidity=userpool.clientTokenValidity
+        dependencies=dependencies
     /]
 
 [/#if]
