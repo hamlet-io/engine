@@ -457,7 +457,7 @@
                                         occurrence,
                                         "docs")]
 
-            [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("apidoc.html", "")]
+            [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
 
             [#assign docsS3BucketName = (occurrence.Certificate.Configured && occurrence.Certificate.Enabled)?then(
                                             formatDomainName(
