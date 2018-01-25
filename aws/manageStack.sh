@@ -175,6 +175,32 @@ function copy_apidoc_file() {
   return 0
 }
 
+function add_host_to_apidoc() { 
+  # adds the API Host endpoint to the swagger spec
+  local apihost="$1"; shift
+  local apidocs="$1"
+  local swaggerjson="${tmpdir}/swagger.json"
+
+  if [[ "${apidocs##*.}" == "zip" ]]; then
+      unzip -o "${apidocs}" -d "${tmpdir}"
+      RESULT=$?
+      [[ $RESULT -ne 0 ]] &&
+          fatal "Unable to unzip ${apidocs}" && exit
+  fi
+
+  if [[ -f ${swaggerjson} ]]; then 
+     jq --arg apihost $apihost '. + { host: $apihost} ' < ${swaggerjson} > "${swaggerjson}_host"
+    mv "${swaggerjson}_host" ${swaggerjson}
+  fi
+
+  if [[ "${apidocs##*.}" == "zip" ]]; then
+    rm "${apidocs}"
+    zip -rj "${apidocs}" "${tmpdir}"
+  fi
+
+  return 0
+}
+
 function process_stack() {
 
   local stack_status_file="${tmpdir}/stack_status"
