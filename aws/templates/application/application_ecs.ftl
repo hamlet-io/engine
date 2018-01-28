@@ -15,7 +15,7 @@
     [#assign taskOccurrences=[] ]
     [#list (ecs.Tasks!{})?values as task]
         [#if task?is_hash]
-            [#assign taskOccurrences += getOccurrences(service, deploymentUnit, "task") ]
+            [#assign taskOccurrences += getOccurrences(task, deploymentUnit, "task") ]
         [/#if]
     [/#list]
 
