@@ -8,6 +8,9 @@
 [#assign defaultVariable = integrationsObject.Variable ! ""]
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
+[#assign defaultCorsHeaders = integrationsObject.corsHeaders ! ["Content-Type","X-Amz-Date","Authorization","X-Api-Key"]]
+[#assign defaultCorsMethods = integrationsObject.corsMethods ! ["*"] ]
+[#assign defaultCorsOrigin = integrationsObject.corsOrigin ! ["*"] ] 
 [#assign gatewayErrorReporting = integrationsObject.GatewayErrorReporting ! "full"]
 [#assign gatewayErrorMap =
           {
@@ -124,6 +127,16 @@
 [#assign defaultApiKey = integrationsObject.ApiKey ! false]
 [#assign binaryTypes = integrationsObject.BinaryTypes ! []]
 
+[#function getCorsHeaders header=[] method=[] origin=[] ]
+    [#return 
+        {   
+            "method.response.header.Access-Control-Allow-Headers": header?join(","),
+            "method.response.header.Access-Control-Allow-Methods": method?join(","),
+            "method.response.header.Access-Control-Allow-Origin" : origin?join(",")
+        }
+    ]
+[/#function]
+
 [#macro security sig4 apiKey]
     "security": [
         [#local count = 0]
@@ -174,7 +187,7 @@
     ]
 [/#macro]
 
-[#macro methodEntry verb type apiVariable validation sig4 apiKey ]
+[#macro methodEntry verb type apiVariable validation sig4 apiKey corsConfiguration={} ]
     [@security sig4 apiKey /],
     [@validator validation /],
     [#switch type]
@@ -204,7 +217,26 @@
             "x-amazon-apigateway-integration" : {
                 "type": "mock"
             }
-            [#break]
+        [#break]
+        [#case "mock-cors"]
+            "x-amazon-apigateway-integration" : {
+                "type" : "mock",
+                "requestTemplates" : {
+                    "application/json": "{\n  \"statusCode\" : 200\n}\n"
+                },
+                "responses": {
+                    "default": {
+                        "statusCode": "200",
+                        "responseParameters": {
+                            [#list corsConfiguration as key,value] 
+                                "${key}": "${value}"
+                                [#sep],[/#sep]
+                            [/#list]
+                        }
+                    }
+                }
+            }
+        [#break]
     [/#switch]
 [/#macro]
 
@@ -254,6 +286,24 @@
         ,"paths"  : {
             [#list swaggerObject.paths as path, pathObject]
                 "${path}" : {
+                    [#if !pathObject?keys?seq_contains("options")]
+                        [#assign corsConfiguration= getCorsHeaders(defaultCorsHeaders,defaultCorsMethods,defaultCorsOrigin)]
+                        "options": { 
+                                "summary": "CORS Configuration",
+                                "description": "API Gateway Mock Response with CORS headers",
+                                [@methodEntry
+                                    "options"
+                                    "mock-cors" 
+                                    defaultVariable
+                                    defaultValidation
+                                    defaultSig4
+                                    defaultApiKey
+                                    corsConfiguration
+                                /]
+                        }
+                        ,
+                    [/#if]
+
                     [#list pathObject as verb, verbObject]
                         "${verb}" : {
                             [#assign matchSeen = false]
