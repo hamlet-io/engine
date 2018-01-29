@@ -307,7 +307,7 @@
                                         }
                                     }
                                 },
-                                "cosumes" : [
+                                "consumes" : [
                                     "application/json"
                                 ],
                                 "produces" : [
