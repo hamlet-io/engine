@@ -294,26 +294,17 @@
                         "options": { 
                                 "summary": "CORS support",
                                 "description": "API Gateway Mock Response with CORS headers",
-                                "consumes": [
-                                    "application/json"
-                                ],
-                                "produces": [
-                                    "application/json"
-                                ],
-                                "tags": [
-                                    "CORS"
-                                ],
-                                "responses": {
-                                    "200": {
-                                        "description": "Default response for CORS method",
+                                "responses" : {
+                                    200 : { 
+                                        "description" : "CORS Response",
                                         "headers": {
-                                        "Access-Control-Allow-Headers": {
+                                        "Access-Control-Allow-Origin": {
                                             "type": "string"
                                         },
                                         "Access-Control-Allow-Methods": {
                                             "type": "string"
                                         },
-                                        "Access-Control-Allow-Origin": {
+                                        "Access-Control-Allow-Headers": {
                                             "type": "string"
                                         }
                                         }
