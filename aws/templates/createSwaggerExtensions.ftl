@@ -224,7 +224,6 @@
                 "requestTemplates": {
                     "application/json": "{\n  \"statusCode\" : 200\n}\n"
                 },
-                "contentHandling" : "CONVERT_TO_TEXT",
                 "responses": {
                     "default": {
                         "statusCode": 200,
@@ -295,17 +294,26 @@
                         "options": { 
                                 "summary": "CORS support",
                                 "description": "API Gateway Mock Response with CORS headers",
-                                "responses" : {
-                                    200 : { 
-                                        "description" : "CORS Response",
+                                "consumes": [
+                                    "application/json"
+                                ],
+                                "produces": [
+                                    "application/json"
+                                ],
+                                "tags": [
+                                    "CORS"
+                                ],
+                                "responses": {
+                                    "200": {
+                                        "description": "Default response for CORS method",
                                         "headers": {
-                                        "Access-Control-Allow-Origin": {
+                                        "Access-Control-Allow-Headers": {
                                             "type": "string"
                                         },
                                         "Access-Control-Allow-Methods": {
                                             "type": "string"
                                         },
-                                        "Access-Control-Allow-Headers": {
+                                        "Access-Control-Allow-Origin": {
                                             "type": "string"
                                         }
                                         }
