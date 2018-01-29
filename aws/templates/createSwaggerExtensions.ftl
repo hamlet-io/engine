@@ -221,6 +221,9 @@
         [#case "mock-cors"]
             "x-amazon-apigateway-integration" : {
                 "type" : "mock",
+                "requestTemplates": {
+                    "application/json": "{\n  \"statusCode\" : 200\n}\n"
+                },
                 "contentHandling" : "CONVERT_TO_TEXT",
                 "responses": {
                     "default": {
