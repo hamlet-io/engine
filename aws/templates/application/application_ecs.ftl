@@ -165,7 +165,7 @@
         [#assign taskId    = formatECSTaskId(
                                 tier,
                                 component,
-                                occurrence)]
+                                occurrence)?replace("-","X")]
                                 
         [#assign containers = getTaskContainers(tier, component, occurrence) ]
 
