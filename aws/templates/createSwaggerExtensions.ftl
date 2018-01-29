@@ -227,7 +227,7 @@
                 "contentHandling" : "CONVERT_TO_TEXT",
                 "responses": {
                     "default": {
-                        "statusCode": "200",
+                        "statusCode": 200,
                         "responseParameters": {
                             [#list corsConfiguration as key,value] 
                                 "${key}": "${value}"
@@ -296,7 +296,7 @@
                                 "summary": "CORS Configuration",
                                 "description": "API Gateway Mock Response with CORS headers",
                                 "responses" : {
-                                    "200" : { 
+                                    200 : { 
                                         "description" : "CORS Response",
                                         "headers": {
                                         "Access-Control-Allow-Origin": {
