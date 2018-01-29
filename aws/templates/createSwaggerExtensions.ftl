@@ -291,6 +291,28 @@
                         "options": { 
                                 "summary": "CORS Configuration",
                                 "description": "API Gateway Mock Response with CORS headers",
+                                "responses" : {
+                                    200 : { 
+                                        "description" : "CORS Response",
+                                        "headers": {
+                                        "Access-Control-Allow-Origin": {
+                                            "type": "string"
+                                        },
+                                        "Access-Control-Allow-Methods": {
+                                            "type": "string"
+                                        },
+                                        "Access-Control-Allow-Headers": {
+                                            "type": "string"
+                                        }
+                                        }
+                                    }
+                                },
+                                "cosumes" : [
+                                    "application/json"
+                                ],
+                                "produces" : [
+                                    "application/json
+                                ]
                                 [@methodEntry
                                     "options"
                                     "mock-cors" 
