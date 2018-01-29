@@ -235,6 +235,9 @@
                                 "${key}": "${value}"
                                 [#sep],[/#sep]
                             [/#list]
+                        },
+                        "responseTemplates" : { 
+                            "application/json" : "{}"
                         }
                     }
                 }
