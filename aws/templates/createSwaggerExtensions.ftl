@@ -130,9 +130,9 @@
 [#function getCorsHeaders header=[] method=[] origin=[] ]
     [#return 
         {   
-            "method.response.header.Access-Control-Allow-Headers": header?join(","),
-            "method.response.header.Access-Control-Allow-Methods": method?join(","),
-            "method.response.header.Access-Control-Allow-Origin" : origin?join(",")
+            "method.response.header.Access-Control-Allow-Headers": "\'" + header?join(",")?j_string + "\'",
+            "method.response.header.Access-Control-Allow-Methods": "\'" + method?join(",")?j_string + "\'",
+            "method.response.header.Access-Control-Allow-Origin" : "\'" + origin?join(",")?j_string + "\'"
         }
     ]
 [/#function]
