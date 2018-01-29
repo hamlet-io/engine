@@ -296,7 +296,7 @@
                                 "summary": "CORS Configuration",
                                 "description": "API Gateway Mock Response with CORS headers",
                                 "responses" : {
-                                    "200" : { 
+                                    200 : { 
                                         "description" : "CORS Response",
                                         "headers": {
                                         "Access-Control-Allow-Origin": {
