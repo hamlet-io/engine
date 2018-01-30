@@ -221,8 +221,10 @@
         [#case "mock-cors"]
             "x-amazon-apigateway-integration" : {
                 "type" : "mock",
+                "contentHandling": "CONVERT_TO_TEXT",
+                "passthroughBehavior:" "when_no_match",
                 "requestTemplates": {
-                    "application/json": "{\n  \"statusCode\" : 200\n}\n"
+                    "application/json": "{ \"statusCode\" : 200}"
                 },
                 "responses": {
                     "default": {
@@ -232,9 +234,6 @@
                                 "${key}": "${value}"
                                 [#sep],[/#sep]
                             [/#list]
-                        },
-                        "responseTemplates" : { 
-                            "application/json" : "{}"
                         }
                     }
                 }
@@ -292,17 +291,6 @@
                     [#if !pathObject?keys?seq_contains("options")]
                         [#assign corsConfiguration= getCorsHeaders(defaultCorsHeaders,defaultCorsMethods,defaultCorsOrigin)]
                         "options": { 
-                                "summary": "CORS support",
-                                "description": "API Gateway Mock Response with CORS headers",
-                                "consumes": [
-                                    "application/json"
-                                ],
-                                "produces": [
-                                    "application/json"
-                                ],
-                                "tags": [
-                                    "CORS"
-                                ],
                                 "responses": {
                                     "200": {
                                         "description": "Default response for CORS method",
