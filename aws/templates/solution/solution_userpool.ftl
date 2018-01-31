@@ -11,8 +11,8 @@
     [#assign userPoolIdentityAuthRoleId = formatDependentUserPoolIdentityAuthRoleId(tier, component)]
     [#assign userPoolIdentityRoleMappingId = formatDependentUserPoolIdentityRoleMappingId(userPoolIdentityPoolId)]
     [#assign userPoolName = componentFullName]
+    [#assign userPoolIdentityPoolName = formatUserPoolIdentityPoolName(tier,component, userpool)]
     [#assign userPoolClientName = formatUserPoolClientName(tier,component,userpool) ]
-    [#assign userPoolIdentityPoolName = formatUserPoolIdentityPoolName(tier,component,userpool)]
     [#assign dependencies = [] ]
     [#assign smsVerification = false]
 

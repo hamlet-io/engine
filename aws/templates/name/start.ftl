@@ -8,10 +8,6 @@
     [#return concatenate(parts, "-")]
 [/#function]
 
-[#function formatNameSeperator seperator parts...]
-    [#return concatenate(parts, seperator)]
-[/#function]
-
 [#function formatDomainName parts...]
     [#return concatenate(parts, ".")]
 [/#function]

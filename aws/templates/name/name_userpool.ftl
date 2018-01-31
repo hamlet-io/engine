@@ -19,12 +19,12 @@
 [/#function]
 
 [#function formatUserPoolIdentityPoolName tier component userpool ]
-    [#return formatNameSeperator(
-        "_"
-        "identitypool",
+    [#return formatId(
         productName,
         segmentName,
-        getTierName(tier),
-        getComponentName(component)
-        userpool)]
+        getTierId(tier),
+        getComponentId(component),
+        userpool
+        
+    )]
 [/#function]
