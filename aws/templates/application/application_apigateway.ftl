@@ -112,6 +112,28 @@
                                     [#assign userPoolArns += [ getExistingReference(
                                                                     formatUserPoolId(link.Tier, link.Component), 
                                                                     ARN_ATTRIBUTE_TYPE )]]
+
+                                    [#assign policyId = formatDependentPolicyId(apiId, link.Component )]
+                                    [@createPolicy 
+                                        mode=listMode
+                                        id=policyId
+                                        name=apiName
+                                        statements=[
+                                            getPolicyStatement(
+                                                "execute-api:Execution-operation",
+                                                formatRegionalArn(
+                                                        "execute-api",
+                                                        getReference(apiId)   
+                                                    )
+                                            )
+                                        ]
+                                        roles=getExistingReference(
+                                                formatDependentUserPoolIdentityUnAuthRoleId(
+                                                    link.Tier, 
+                                                    link.Component),
+                                                    ARN_ATTRIBUTE_TYPE
+                                                )
+                                    /]
                                 [/#if]
                             [#break]
                         [/#switch]

@@ -119,6 +119,7 @@
             mode
             id
             trustedServices=[]
+            federatedServices=[]
             trustedAccounts=[]
             multiFactor=false
             condition=""
@@ -144,7 +145,7 @@
         properties=
             attributeIfTrue(
                 "AssumeRolePolicyDocument",
-                trustedServices?has_content || trustedAccountArns?has_content,
+                trustedServices?has_content || trustedAccountArns?has_content || federatedServices?has_content,
                 {
                     "Version": "2012-10-17",
                     "Statement": [
@@ -152,8 +153,14 @@
                             "Effect": "Allow",
                             "Principal":
                                 attributeIfContent("Service", trustedServices) +
-                                attributeIfContent("AWS", trustedAccountArns),
-                            "Action": [ "sts:AssumeRole" ]
+                                attributeIfContent("AWS", trustedAccountArns) +
+                                attributeIfContent("Federated", federatedServices),
+                            "Action": valueIfTrue( 
+                                            [ "sts:AssumeRoleWithWebIdentity" ],
+                                            federatedServices?has_content,
+                                            [ "sts:AssumeRole" ]
+                                        )
+
                         } +
                         attributeIfTrue(
                             "Condition",
