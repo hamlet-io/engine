@@ -17,3 +17,14 @@
             component
             userpool))]
 [/#function]
+
+[#function formatUserPoolIdentityPoolName tier component userpool ]
+    [#return formatNameSeperator(
+        "_"
+        "identitypool",
+        productName,
+        segmentName,
+        getTierName(tier),
+        getComponentName(component)
+        userpool)]
+[/#function]
