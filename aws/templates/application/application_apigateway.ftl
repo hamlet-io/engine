@@ -110,10 +110,6 @@
                             [#case "userpool"] 
                                 [#if deploymentSubsetRequired("apigateway", true)]
 
-                                    [#assign UserPoolId = formatUserPoolId(link.Tier, link.Component)]
-                                    [#assign userPoolArns += [ getExistingReference(
-                                                                    UserPoolId, 
-                                                                    ARN_ATTRIBUTE_TYPE )]]
                                     [#assign policyId = formatDependentPolicyId(apiId, UserPoolId )]
 
                                     [@createPolicy 
@@ -265,25 +261,7 @@
                 dependencies=[invalidLogMetricId]
             /]
 
-            [#if userPoolArns?has_content ]
-                [@cfResource
-                    mode=listMode
-                    id= 
-                        formatDependentAPIGatewayAuthorizerId(apiId)
-                    type="AWS::ApiGateway::Authorizer" 
-                    properties=
-                        {
-                            "Name" : "CognitoUserPoolAuthorizers",
-                            "ProviderARNs" : userPoolArns,
-                            "RestApiId" : getReference(apiId),
-                            "Type" : "COGNITO_USER_POOLS",
-                            "IdentitySource" : "method.request.header.Authorization"
-                        }
-                    dependencies=apiId 
-                    outputs={}
-                /]
-            [/#if]        
-
+    
             [#if occurrence.CloudFront.Configured && occurrence.CloudFront.Enabled]
                 [#assign origin =
                     getCFAPIGatewayOrigin(
