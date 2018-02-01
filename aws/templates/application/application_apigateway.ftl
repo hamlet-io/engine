@@ -129,11 +129,11 @@
                                                     )
                                             )
                                         ]
-                                        roles=getExistingReference(
+                                        roles=GetExistingReference( 
                                                 formatDependentUserPoolIdentityAuthRoleId(
-                                                    link.Tier, 
-                                                    link.Component),
-                                                    ARN_ATTRIBUTE_TYPE)
+                                                            link.Tier, 
+                                                            link.Component),
+                                                            NAME_ATTRIBUTE_TYPE)
                                     /]
                                 [/#if]
                             [#break]
