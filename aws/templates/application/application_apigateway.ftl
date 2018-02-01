@@ -109,11 +109,14 @@
                         [#switch getComponentType(targetComponent)]
                             [#case "userpool"] 
                                 [#if deploymentSubsetRequired("apigateway", true)]
+
+                                    [#assign UserPoolId = formatUserPoolId(link.Tier, link.Component)]
                                     [#assign userPoolArns += [ getExistingReference(
-                                                                    formatUserPoolId(link.Tier, link.Component), 
+                                                                    UserPoolId, 
                                                                     ARN_ATTRIBUTE_TYPE )]]
 
-                                    [#assign policyId = formatDependentPolicyId(apiId, link.Component )]
+                                    [#assign userPoolId = format]
+                                    [#assign policyId = formatDependentPolicyId(apiId, UserPoolId )]
                                     [@createPolicy 
                                         mode=listMode
                                         id=policyId
