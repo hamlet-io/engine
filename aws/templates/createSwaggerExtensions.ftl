@@ -11,7 +11,7 @@
 [#assign defaultCorsHeaders = integrationsObject.corsHeaders ! ["*"]]
 [#assign defaultCorsMethods = integrationsObject.corsMethods ! ["*"] ]
 [#assign defaultCorsOrigin = integrationsObject.corsOrigin ! ["*"] ] 
-[#assign defaultUserPool = integrationsObject.userPool && integrationsObject.userPoolArn?has_content]
+[#assign defaultUserPool = integrationsObject.userPool ! false ]
 [#assign defaultCognitoPoolName = integrationsObject.cognitoPoolName!"CognitoUserPool" ]
 [#assign defaultCognitoAuthHeader = integrationsObject.cognitoAuthHeader!"Authorization" ]
 [#assign gatewayErrorReporting = integrationsObject.GatewayErrorReporting ! "full"]
@@ -160,7 +160,7 @@
         [#if userPool]
             [#if count > 0],[/#if]
             {
-                defaultCognitoPoolName : []
+                "${defaultCognitoPoolName}" : []
             }
         [/#if]
 
@@ -292,16 +292,17 @@
           "x-amazon-apigateway-authtype": "awsSigv4"
         }
         [#if integrationsObject.userPoolArn?has_content ]
-            ,defaultCognitoPoolName: {
+            ,"${defaultCognitoPoolName}": {
                 "type": "apiKey",
-                "name": defaultCognitoAuthHeader,
+                "name": "${defaultCognitoAuthHeader}",
                 "in": "header",
                 "x-amazon-apigateway-authtype": "cognito_user_pools",
                 "x-amazon-apigateway-authorizer": {
                     "type": "cognito_user_pools",
                     "providerARNs": [
-                            integrationsObject.userPoolArn
+                            "${integrationsObject.userPoolArn}"
                     ]
+                }
             }
         [/#if]
 
