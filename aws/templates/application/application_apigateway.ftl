@@ -114,9 +114,8 @@
                                     [#assign userPoolArns += [ getExistingReference(
                                                                     UserPoolId, 
                                                                     ARN_ATTRIBUTE_TYPE )]]
-
-                                    [#assign userPoolId = format]
                                     [#assign policyId = formatDependentPolicyId(apiId, UserPoolId )]
+                                    
                                     [@createPolicy 
                                         mode=listMode
                                         id=policyId
