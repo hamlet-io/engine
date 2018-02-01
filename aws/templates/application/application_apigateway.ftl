@@ -122,11 +122,8 @@
                                         name=apiName
                                         statements=[
                                             getPolicyStatement(
-                                                "execute-api:Execution-operation",
-                                                formatRegionalArn(
-                                                        "execute-api",
-                                                        getReference(apiId)   
-                                                    )
+                                                "execute-api:*",
+                                                formatInvokeApiGatewayArn(apiId, stageName)    
                                             )
                                         ]
                                         roles=formatDependentUserPoolIdentityAuthRoleId(
