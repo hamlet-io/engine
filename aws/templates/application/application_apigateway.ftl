@@ -115,7 +115,7 @@
                                                                     UserPoolId, 
                                                                     ARN_ATTRIBUTE_TYPE )]]
                                     [#assign policyId = formatDependentPolicyId(apiId, UserPoolId )]
-                                    
+
                                     [@createPolicy 
                                         mode=listMode
                                         id=policyId
@@ -130,11 +130,10 @@
                                             )
                                         ]
                                         roles=getExistingReference(
-                                                formatDependentUserPoolIdentityUnAuthRoleId(
+                                                formatDependentUserPoolIdentityAuthRoleId(
                                                     link.Tier, 
                                                     link.Component),
-                                                    ARN_ATTRIBUTE_TYPE
-                                                )
+                                                    ARN_ATTRIBUTE_TYPE)
                                     /]
                                 [/#if]
                             [#break]
