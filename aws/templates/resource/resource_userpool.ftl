@@ -224,7 +224,7 @@
     /]
 [/#macro]
 
-[#macro createUserPoolIdentityPollRoleMapping mode id  
+[#macro createUserPoolIdentityPoolRoleMapping mode id  
     IdentityPoolId,
     authenticatedRoleArn,
     unauthenticatedRoleArn

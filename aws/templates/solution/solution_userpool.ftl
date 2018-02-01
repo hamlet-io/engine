@@ -137,7 +137,7 @@
         }
     /]
 
-    [@createUserPoolIdentityPollRoleMapping
+    [@createUserPoolIdentityPoolRoleMapping
         mode=listMode
         component=component
         tier=tier
