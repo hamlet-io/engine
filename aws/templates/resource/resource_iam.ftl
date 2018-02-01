@@ -62,7 +62,7 @@
         type="AWS::IAM::Policy"
         properties=
             getPolicyDocument(statements, name) +
-            attributeIfContent("Roles", roles, getReferences(roles))
+            attributeIfContent("Roles", roles, getReferences(roles)) 
         outputs={}
         dependencies=dependencies
     /]
@@ -106,6 +106,9 @@
         },
         ARN_ATTRIBUTE_TYPE : { 
             "Attribute" : "Arn"
+        },
+        NAME_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
         }
     }
 ]
