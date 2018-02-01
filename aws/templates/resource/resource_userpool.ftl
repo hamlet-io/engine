@@ -28,6 +28,25 @@
     }
 ]
 
+[#assign USERPOOL_IDENTITYPOOL_OUTPUT_MAPPINGS = 
+    {
+        REFERENCE_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
+        },
+        NAME_ATTRIBUTE_TYPE : {
+            "Attribute" : "Name"
+        }
+    }
+]
+
+[#assign outputMappings +=
+    {
+        USERPOOL_RESOURCE_TYPE : USERPOOL_OUTPUT_MAPPINGS,
+        USERPOOL_CLIENT_RESOURCE_TYPE : USERPOOL_CLIENT_OUTPUT_MAPPINGS,
+        USERPOOL_IDENTITYPOOL_RESOURCE_TYPE : USERPOOL_IDENTITYPOOL_OUTPUT_MAPPINGS
+    }
+]
+
 [#function getUserPoolPasswordPolicy length="8" lowercase=true uppercase=true numbers=true symbols=true]
     [#return 
         {
@@ -64,6 +83,20 @@
 
     [#return 
         autoVerifyArray
+    ]
+[/#function]
+
+[#function getIdentityPoolCognitoProvider UserPoolId userPoolClientId serverSideToken=true ]
+
+    [#assign userPoolRef = getReference(UserPoolId, NAME_ATTRIBUTE_TYPE)]
+    [#assign userpoolClientRef = getReference(userPoolClientId )]
+
+    [#return
+        {
+            "ProviderName" : userPoolRef,
+            "ClientId" : userpoolClientRef,
+            "ServerSideTokenCheck" : serverSideToken
+        }
     ]
 [/#function]
 
@@ -163,3 +196,57 @@
         dependencies=dependencies
     /]
 [/#macro]
+
+[#macro createUserPoolIdentityPool mode id name
+    cognitoIdProviders
+    allowUnauthenticatedIdentities=false
+    tier=""
+    component=""
+    dependencies=""
+    outputId=""
+]
+
+    [@cfResource 
+        mode=mode
+        id=id
+        type="AWS::Cognito::IdentityPool"
+        properties=
+            {
+                "IdentityPoolName" : name,
+                "AllowUnauthenticatedIdentities" : allowUnauthenticatedIdentities,
+                "CognitoIdentityProviders" : [ 
+                    cognitoIdProviders
+                ]
+            }
+        outputs=USERPOOL_IDENTITY_POOL_OUTPUT_MAPPINGS
+        outputId=outputId
+        dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createUserPoolIdentityPoolRoleMapping mode id  
+    IdentityPoolId,
+    authenticatedRoleArn,
+    unauthenticatedRoleArn
+    tier=""
+    component=""
+    dependencies=""
+    outputId=""
+]
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::Cognito::IdentityPoolRoleAttachment"
+        properties=
+            {
+                "IdentityPoolId" : IdentityPoolId,
+                "Roles" : { 
+                    "authenticated" : authenticatedRoleArn,
+                    "unauthenticated" : unauthenticatedRoleArn
+                }
+            }
+        outputId=outputId
+        dependencies=dependencies
+    /]
+[/#macro]
+
