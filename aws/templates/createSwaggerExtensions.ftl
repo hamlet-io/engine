@@ -8,10 +8,14 @@
 [#assign defaultVariable = integrationsObject.Variable ! ""]
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
-[#assign defaultCorsHeaders = integrationsObject.corsHeaders ! ["Content-Type","X-Amz-Date","Authorization","X-Api-Key"]]
+[#assign defaultCorsHeaders = integrationsObject.corsHeaders ! ["*"]]
 [#assign defaultCorsMethods = integrationsObject.corsMethods ! ["*"] ]
 [#assign defaultCorsOrigin = integrationsObject.corsOrigin ! ["*"] ] 
+[#assign defaultUserPool = integrationsObject.userPool ! false ]
+[#assign defaultCognitoPoolName = integrationsObject.cognitoPoolName!"CognitoUserPool" ]
+[#assign defaultCognitoAuthHeader = integrationsObject.cognitoAuthHeader!"Authorization" ]
 [#assign gatewayErrorReporting = integrationsObject.GatewayErrorReporting ! "full"]
+
 [#assign gatewayErrorMap =
           {
               "ACCESS_DENIED": {
@@ -137,7 +141,7 @@
     ]
 [/#function]
 
-[#macro security sig4 apiKey]
+[#macro security sig4 apiKey userPool]
     "security": [
         [#local count = 0]
         [#if sig4]
@@ -151,7 +155,15 @@
             {
                 "api_key": []
             }
+            [#local count += 1]
         [/#if]
+        [#if userPool]
+            [#if count > 0],[/#if]
+            {
+                "${defaultCognitoPoolName}" : []
+            }
+        [/#if]
+
     ]
 [/#macro]
 
@@ -187,8 +199,8 @@
     ]
 [/#macro]
 
-[#macro methodEntry verb type apiVariable validation sig4 apiKey corsConfiguration={} ]
-    [@security sig4 apiKey /],
+[#macro methodEntry verb type apiVariable validation sig4 apiKey userPool corsConfiguration={} ]
+    [@security sig4 apiKey userPool /],
     [@validator validation /],
     [#switch type]
         [#case "docker"]
@@ -279,8 +291,23 @@
           "in": "header",
           "x-amazon-apigateway-authtype": "awsSigv4"
         }
+        [#if integrationsObject.userPoolArn?has_content ]
+            ,"${defaultCognitoPoolName}": {
+                "type": "apiKey",
+                "name": "${defaultCognitoAuthHeader}",
+                "in": "header",
+                "x-amazon-apigateway-authtype": "cognito_user_pools",
+                "x-amazon-apigateway-authorizer": {
+                    "type": "cognito_user_pools",
+                    "providerARNs": [
+                            "${integrationsObject.userPoolArn}"
+                    ]
+                }
+            }
+        [/#if]
+
     },
-    [@security defaultSig4 defaultApiKey /]
+    [@security defaultSig4 defaultApiKey defaultUserPool /]
     ,[@validator defaultValidation /]
     [#if binaryTypes?has_content ]
         ,[@binaryMediaTypes binaryTypes /]
@@ -315,6 +342,7 @@
                                     defaultValidation
                                     defaultSig4
                                     defaultApiKey
+                                    defaultUserPool
                                     corsConfiguration
                                 /]
                         }
@@ -336,6 +364,7 @@
                                             pattern.Validation ! defaultValidation
                                             pattern.Sig4 ! defaultSig4
                                             pattern.ApiKey ! defaultApiKey
+                                            pattern.UserPool ! defaultUserPool
                                         /]
                                         [#assign matchSeen = true]
                                         [#break]
@@ -350,6 +379,7 @@
                                     defaultValidation
                                     defaultSig4
                                     defaultApiKey
+                                    defaultUserPool
                                 /]
                             [/#if]
                         }
