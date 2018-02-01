@@ -226,6 +226,7 @@
                 "requestTemplates": {
                     "application/json": "{ \"statusCode\" : 200}"
                 },
+                "contentHandling" : "CONVERT_TO_TEXT",
                 "responses": {
                     "default": {
                         "statusCode": 200,

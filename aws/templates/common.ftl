@@ -827,6 +827,10 @@
                     "Default" : 30
                 },
                 {
+                    "Name" : "allowUnauthIds",
+                    "Default" : false
+                }
+                {
                     "Name" : "passwordPolicy",
                     "Children" : [
                         {
