@@ -110,7 +110,9 @@
                             [#case "userpool"] 
                                 [#if deploymentSubsetRequired("apigateway", true)]
 
-                                    [#assign policyId = formatDependentPolicyId(apiId, UserPoolId )]
+                                    [#assign policyId = formatDependentPolicyId(
+                                                            apiId, 
+                                                            formatUserPoolId(link.Tier, link.Component))]
 
                                     [@createPolicy 
                                         mode=listMode
