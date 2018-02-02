@@ -8,6 +8,7 @@
 [#assign defaultVariable = integrationsObject.Variable ! ""]
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
+[#assign defaultUseCientCreds = integrationsObject.useClientCreds ! false ]
 [#assign defaultCorsHeaders = integrationsObject.corsHeaders ! ["*"]]
 [#assign defaultCorsMethods = integrationsObject.corsMethods ! ["*"] ]
 [#assign defaultCorsOrigin = integrationsObject.corsOrigin ! ["*"] ] 
@@ -199,7 +200,7 @@
     ]
 [/#macro]
 
-[#macro methodEntry verb type apiVariable validation sig4 apiKey userPool corsConfiguration={} ]
+[#macro methodEntry verb type apiVariable validation sig4 apiKey userPool useClientCreds corsConfiguration={} ]
     [@security sig4 apiKey userPool /],
     [@validator validation /],
     [#switch type]
@@ -221,7 +222,7 @@
                 "uri" : "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${r"${stageVariables." + apiVariable + r"}"}/invocations",
                 "passthroughBehavior" : "never",
                 "httpMethod" : "POST" 
-                [#if userPool ] 
+                [#if useClientCreds ] 
                 ,"credentials" : "arn:aws:iam::*:user/*"
                 [/#if]
             },
@@ -346,6 +347,7 @@
                                     false
                                     defaultApiKey
                                     false
+                                    false
                                     corsConfiguration
                                 /]
                         }
@@ -368,6 +370,7 @@
                                             pattern.Sig4 ! defaultSig4
                                             pattern.ApiKey ! defaultApiKey
                                             pattern.UserPool ! defaultUserPool
+                                            pattern.useClientCreds ! defaultUseCientCreds
                                         /]
                                         [#assign matchSeen = true]
                                         [#break]
@@ -383,6 +386,7 @@
                                     defaultSig4
                                     defaultApiKey
                                     defaultUserPool
+                                    defaultUseCientCreds
                                 /]
                             [/#if]
                         }
