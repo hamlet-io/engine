@@ -93,6 +93,31 @@
                                 [/#switch]
                                 [#break]
                             [/#if]
+                            [#switch getComponentType(targetComponent)]
+                            [#case "userpool"] 
+                                [#if deploymentSubsetRequired("lambda", true)]
+
+                                    [#assign policyId = formatDependentPolicyId(
+                                                            lambdaId, 
+                                                            formatUserPoolId(link.Tier, link.Component))]
+
+                                    [@createPolicy 
+                                        mode=listMode
+                                        id=policyId
+                                        name=lambdaName
+                                        statements=[
+                                            getPolicyStatement(
+                                                "lambda:InvokeFunction",
+                                                formatLambdaArn(lambdaId)    
+                                            )
+                                        ]
+                                        roles=formatDependentUserPoolIdentityAuthRoleId(
+                                                link.Tier, 
+                                                link.Component)
+                                    /]
+                                [/#if]
+                            [#break]
+                        [/#switch]
                         [/#list]
                     [/#if]
                 [/#if]
