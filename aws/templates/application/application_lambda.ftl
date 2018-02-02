@@ -101,20 +101,37 @@
                                                             lambdaId, 
                                                             formatUserPoolId(link.Tier, link.Component))]
 
-                                    [@createPolicy 
-                                        mode=listMode
-                                        id=policyId
-                                        name=lambdaName
-                                        statements=[
-                                            getPolicyStatement(
-                                                "lambda:InvokeFunction",
-                                                formatLambdaArn(lambdaId)    
-                                            )
-                                        ]
-                                        roles=formatDependentUserPoolIdentityAuthRoleId(
-                                                link.Tier, 
-                                                link.Component)
-                                    /]
+                                    [#assign lamdbaFunctionPolicies = [] ]
+
+                                    [#list occurrence.Functions?values as fn]
+                                        [#if fn?is_hash]
+                                            [#assign lambdaFunctionId =
+                                                formatLambdaFunctionId(
+                                                    tier,
+                                                    component,
+                                                    fn,
+                                                    occurrence)]
+                                            
+                                        [#assign lambdaFunctionPolicy = getPolicyStatement(
+                                                    "lambda:InvokeFunction",
+                                                    formatLambdaArn(lambdaFunctionId)    
+                                                )]
+                                        [#assign lamdbaFunctionPolicies = lamdbaFunctionPolicies + [lambdaFunctionPolicy]]
+                                        
+                                        [/#if]
+                                    [/#list]
+
+                                    [#if lamdbaFunctionPolicies?has_content ]
+                                        [@createPolicy 
+                                            mode=listMode
+                                            id=policyId
+                                            name=lambdaName
+                                            statements=lamdbaFunctionPolicies
+                                            roles=formatDependentUserPoolIdentityAuthRoleId(
+                                                    link.Tier, 
+                                                    link.Component)
+                                        /]
+                                    [/#if]
                                 [/#if]
                             [#break]
                         [/#switch]
