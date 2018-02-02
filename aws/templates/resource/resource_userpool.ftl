@@ -70,6 +70,17 @@
     ]
 [/#function]
 
+[#function getUserPoolSchemaObject name, datatype, mutable, required]
+    [#return
+        {
+            "Name" : name,
+            "AttributeDataType" : datatype,
+            "Mutable" : mutable,
+            "Required" : required
+        }
+    ]
+[/#function]
+
 [#function getUserPoolAutoVerifcation email=false phone=false ]
     [#assign autoVerifyArray=[]]
 
@@ -109,6 +120,7 @@
     component="" 
     loginAliases=[] 
     autoVerify=[]
+    schema=[]
     smsConfiguration={}
     passwordPolicy={}  
     dependencies="" 
@@ -135,18 +147,7 @@
                 "AdminCreateUserConfig" : {
                     "AllowAdminCreateUserOnly" : adminCreatesUser,
                     "UnusedAccountValidityDays" : unusedTimeout
-                },
-                "Schema" : [
-                    {
-                        "AttributeDataType" : "String",
-                        "Name": "email",
-                        "Required" : true,
-                        "Mutable" : false,
-                        "StringAttributeConstraints": {
-                            "MinLength" : "3" 
-                        }
-                    }
-                ]
+                }
             } + 
             attributeIfContent(
                 "Policies",
@@ -163,6 +164,10 @@
             attributeIfContent(
                 "SmsConfiguration",
                 smsConfiguration
+            ),
+            attirbuteifContent(
+                "Schema",
+                schema
             )
         outputs=USERPOOL_OUTPUT_MAPPINGS
         outputId=outputId

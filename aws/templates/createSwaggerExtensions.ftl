@@ -340,9 +340,9 @@
                                     "mock-cors" 
                                     defaultVariable
                                     defaultValidation
-                                    defaultSig4
+                                    false
                                     defaultApiKey
-                                    defaultUserPool
+                                    false
                                     corsConfiguration
                                 /]
                         }
