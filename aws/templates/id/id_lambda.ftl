@@ -19,3 +19,10 @@
                 extensions,
                 fn)]
 [/#function]
+
+[#function formatLambdaArn lambdaId account={ "Ref" : "AWS::AccountId" }]
+    [#return
+        formatRegionalArn(
+            "lambda",
+            getReference(lambdaId))]
+[/#function]

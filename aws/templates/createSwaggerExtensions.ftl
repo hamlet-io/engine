@@ -220,7 +220,10 @@
                 [#-- "uri" : "${r"${stageVariables." + apiVariable + r"}"}", --]
                 "uri" : "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account}:function:${r"${stageVariables." + apiVariable + r"}"}/invocations",
                 "passthroughBehavior" : "never",
-                "httpMethod" : "POST"
+                "httpMethod" : "POST" 
+                [#if userPool ] 
+                ,"credentials" : "arn:aws:iam::*:user/*"
+                [/#if]
             },
             "responses" : {}
             [#break]
