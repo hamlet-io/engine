@@ -15,6 +15,7 @@
     [#assign userPoolClientName = formatUserPoolClientName(tier,component,userpool) ]
     [#assign dependencies = [] ]
     [#assign smsVerification = false]
+    [#assign schema = [] ]
 
     [#if (userpool.MFA?has_content && userpool.MFA) || (userpool.VerifyPhone?has_content && userpool.VerifyPhone)]
         [#if deploymentSubsetRequired("iam", true) &&
@@ -32,10 +33,29 @@
                         )
                     ]
             /]
+
+            [#assign phoneSchema = getUserPoolSchemaObject( 
+                                        "phone_number",
+                                        "string",
+                                        true,
+                                        true)]
+            [#assign schema = schema + [ phoneSchema ]]
+
+            )]
+
         [/#if]
 
         [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
         [#assign smsVerification = true]
+    [/#if]
+
+    [#if userpool.verifyEmail || ( userpool.loginAliases?has_content && userpool.loginAliases.seq_contains("email") ) ]
+            [#assign emailSchema = getUserPoolSchemaObject( 
+                                        "email",
+                                        "string",
+                                        true,
+                                        true)]
+            [#assign schema = schema +  [ emailSchema ]]
     [/#if]
 
     [@createUserPool 
@@ -52,6 +72,7 @@
         mfa=userpool.MFA
         adminCreatesUser=userpool.adminCreatesUser
         unusedTimeout=userpool.unusedAccountTimeout
+        schema=schema
         autoVerify=(userpool.verifyEmail || smsVerification)?then(
             getUserPoolAutoVerifcation(userpool.verifyEmail, smsVerification),
             []
