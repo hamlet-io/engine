@@ -8,7 +8,7 @@
 [#assign defaultVariable = integrationsObject.Variable ! ""]
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
-[#assign defaultUseCientCreds = integrationsObject.useClientCreds ! false ]
+[#assign defaultUseClientCreds = integrationsObject.useClientCreds ! false ]
 [#assign defaultCorsHeaders = integrationsObject.corsHeaders ! ["*"]]
 [#assign defaultCorsMethods = integrationsObject.corsMethods ! ["*"] ]
 [#assign defaultCorsOrigin = integrationsObject.corsOrigin ! ["*"] ] 
@@ -370,7 +370,7 @@
                                             pattern.Sig4 ! defaultSig4
                                             pattern.ApiKey ! defaultApiKey
                                             pattern.UserPool ! defaultUserPool
-                                            pattern.useClientCreds ! defaultUseCientCreds
+                                            pattern.useClientCreds ! defaultUseClientCreds
                                         /]
                                         [#assign matchSeen = true]
                                         [#break]
@@ -386,7 +386,7 @@
                                     defaultSig4
                                     defaultApiKey
                                     defaultUserPool
-                                    defaultUseCientCreds
+                                    defaultUseClientCreds
                                 /]
                             [/#if]
                         }
