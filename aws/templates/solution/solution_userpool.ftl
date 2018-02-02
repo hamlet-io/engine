@@ -39,7 +39,7 @@
                                         "string",
                                         true,
                                         true)]
-            [#assign schema += [ phoneSchema ]]
+            [#assign schema = schema + [ phoneSchema ]]
 
             )]
 
@@ -49,13 +49,13 @@
         [#assign smsVerification = true]
     [/#if]
 
-    [#if userpool.verifyEmail || ( (userpool.loginAliases)?has_content) && userpool.loginAliases.seq_contains("email") ) ]
+    [#if userpool.verifyEmail || ( userpool.loginAliases?has_content && userpool.loginAliases.seq_contains("email") ) ]
             [#assign emailSchema = getUserPoolSchemaObject( 
                                         "email",
                                         "string",
                                         true,
                                         true)]
-            [#assign schema += [ emailSchema ]]
+            [#assign schema = schema +  [ emailSchema ]]
     [/#if]
 
     [@createUserPool 

@@ -164,8 +164,8 @@
             attributeIfContent(
                 "SmsConfiguration",
                 smsConfiguration
-            ),
-            attirbuteifContent(
+            ) +
+            attributeIfContent(
                 "Schema",
                 schema
             )
