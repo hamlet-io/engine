@@ -9,7 +9,7 @@
 [#assign defaultValidation = integrationsObject.Validation ! "all"]
 [#assign defaultSig4 = integrationsObject.Sig4 ! false]
 [#assign defaultUseClientCreds = integrationsObject.useClientCreds ! false ]
-[#assign defaultCorsHeaders = integrationsObject.corsHeaders ! ["*"]]
+[#assign defaultCorsHeaders = integrationsObject.corsHeaders ! ["Content-Type","X-Amz-Date","Authorization","X-Api-Key"]]
 [#assign defaultCorsMethods = integrationsObject.corsMethods ! ["*"] ]
 [#assign defaultCorsOrigin = integrationsObject.corsOrigin ! ["*"] ] 
 [#assign defaultUserPool = integrationsObject.userPool ! false ]
