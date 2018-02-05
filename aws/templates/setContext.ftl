@@ -156,6 +156,12 @@
     [#assign dataExpiration =
         (segmentObject.Data.Expiration)!
         (environmentObject.Data.Expiration)!""]
+    [#assign dataPublicPrefix = 
+        (segmentObject.Data.PublicPrefix)!
+        (environmentObject.Data.PublicPrefix)!""]
+    [#assign dataPublicWhiteList = 
+        (segmentObject.Data.PublicWhitelist)!
+        (environmentObject.Data.PublicWhitelist)![]]
 [/#if]
 
 [#-- Solution --]
@@ -223,7 +229,7 @@
 [#-- Annotate IPAddressGroups --]
 [#assign ipAddressGroupsUsage =
     {
-        "DefaultUsageList" : ["es", "ssh", "http", "https", "waf", "publish"]
+        "DefaultUsageList" : ["es", "ssh", "http", "https", "waf", "publish", "dataPublic"]
     }
 ]
 [#list ipAddressGroups as groupKey,groupValue]
