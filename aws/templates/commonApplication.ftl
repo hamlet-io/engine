@@ -56,10 +56,17 @@
     [/#if]
 [/#macro]
 
-[#macro Link name link attribute="Url"]
-    [@Variable
-        name=name
-        value=(context.Links[link][attribute])!"" /]
+[#function getLinkResourceId link]
+    [#return (context.Links[link].ResourceId)!"" ]
+[/#funtion]
+
+[#macro Link name link attributes=[]]
+    [#local attributeList = valueIfContent(attributes, attributes, context.Links[link].Attributes?keys) ]
+    [#list attributeList as attribute]
+        [@Variable
+            name=name + attribute?upper_case
+            value=(context.Links[link].Attributes[attribute?upper_case])!"" /]
+    [/#list]
 [/#macro]
 
 [#macro Setting name path=[] default=""]
