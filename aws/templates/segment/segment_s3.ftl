@@ -10,6 +10,7 @@
     [#assign s3OperationsTemplateId = formatS3OperationsTemplateId()]
     [#assign s3OperationsPolicyTemplateId = formatDependentBucketPolicyId(s3OperationsTemplateId)]
     [#assign s3DataTemplateId = formatS3DataTemplateId()]
+    [#assign s3DataPolicyTemplateId = formatDependentBucketPolicyId(s3DataTemplateId)]
 
     [@createS3Bucket
         mode=listMode
@@ -80,7 +81,41 @@
             )
         outputId=s3DataId
     /]
+
+    [#if dataPublicPrefix?has_content ]
+
+        [#assign dataPublicCIDRList = [] ]
+
+        [#if ipAddressGroupsUsage["dataPublic"]?has_content ]
+            [#list dataPublicWhiteList as group]
+                [#assign groupId = group?is_hash?then(
+                                group.Id,
+                                group)]
+                
+                [#if (ipAddressGroupsUsage["dataPublic"][groupId])?has_content]
+                    [#assign dataPublicCIDRList +=  (ipAddressGroupsUsage["publish"][groupId]).CIDR ]
+                [/#if]
+            [/#list]
+        [/#if]
     
+        [#assign dataPublicWhitelistCondition = s3IPAccessCondition(dataPublicCIDRList)]
+
+        [@createBucketPolicy
+            mode=listMode
+            id=s3DataPolicyTemplateId
+            bucket=dataBucket
+            statements=
+                s3ReadPermission(
+                    dataBucket,
+                    formatSegmentPrefixPath("appdata", "*", dataPublicPrefix),
+                    "*",
+                    "*",
+                    dataPublicWhitelistCondition
+                    
+                )  
+            dependencies=s3DataTemplateId
+        /]
+    [/#if]
     
     [#-- Legacy naming --]
     [#-- TODO: Remove --]
