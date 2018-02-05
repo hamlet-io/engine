@@ -984,6 +984,105 @@
     [#return occurrences ]
 [/#function]
 
+[#function resolveLinks links]
+    [#local result={} ]
+    [#list links?values as link]
+        [#if link?is_hash]
+            [#local targetComponent = getComponent(link.Tier, link.Component)]
+            [#if targetComponent?has_content]
+                [#list getOccurrences(targetComponent) as targetOccurrence]
+                    [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
+                            (targetOccurrence.VersionId == occurrence.VersionId)]
+                        [#local fqdn = ""]
+                        [#local signingFqdn = ""]
+                        [#if targetOccurrence.Certificate.Configured && targetOccurrence.Certificate.Enabled ]
+                            [#local certificateObject = getCertificateObject(targetOccurrence.Certificate, segmentId, segmentName) ]
+                            [#local hostName = getHostName(certificateObject, link.Tier, targetComponent, targetOccurrence) ]
+                            [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name) ]
+                            [#local signingFqdn = formatDomainName(
+                                formatName("sig4", hostName), certificateObject.Domain.Name) ] 
+                        [/#if]
+                        [#local type = getComponentType(targetComponent) ]
+                        [#switch type]
+                            [#case "alb"]
+                                [#local id =
+                                    formatALBId(
+                                        link.Tier,
+                                        link.Component,
+                                        targetOccurrence) ]
+                                [#local internalFqdn =
+                                    getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
+                                [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
+                                [#local portMapping = occurrence.PortMappings[0]mapping?is_hash?then(
+                                        occurrence.PortMappings[0]mapping,
+                                        {
+                                            "Mapping" : occurrence.PortMappings[0]mapping
+                                        }
+                                    )]
+
+                                [#local scheme =
+                                    ((ports[portMappings[mappingObject.Mapping].Source].Certificate)!false)?then(
+                                        "https",
+                                        "http"
+                                    )]
+                                [#local result +=
+                                    {
+                                        link.Name : {
+                                            "Type" : type,
+                                            "ResourceId" : id,
+                                            "Attributes" : {
+                                                "DNS" : fqdn,
+                                                "URL" : scheme + "://" + fqdn,
+                                                "INTERNAL_DNS" : internalFqdn,
+                                                "INTERNAL_URL" : scheme + "://" + internalFqdn
+                                            }
+                                        }
+                                    }
+                                ]
+                                [#break]
+
+                            [#case "apigateway"]
+                                [#local id =
+                                    formatAPIGatewayId(
+                                        link.Tier,
+                                        link.Component,
+                                        targetOccurrence)]
+                                [#local internalFqdn =
+                                    formatDomainName(
+                                        getExistingReference(id),
+                                        "execute-api",
+                                        regionId,
+                                        "amazonaws.com") ]
+                                [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
+                                [#local signingFqdn = valueIfContent(signingFqdn, signingFqdn, internalFqdn) ]
+                                [#local result +=
+                                    {
+                                        link.Name : {
+                                            "Type" : type,
+                                            "ResourceId" : id,
+                                            "Attributes" : {
+                                                "DNS" : fqdn,
+                                                "URL" : scheme + "://" + fqdn,
+                                                "SIGNING_DNS" : internalFqdn,
+                                                "SIGNING_URL" : scheme + "://" + internalFqdn,
+                                                "INTERNAL_DNS" : internalFqdn,
+                                                "INTERNAL_URL" : scheme + "://" + internalFqdn
+                                            },
+                                            "Policy" : apigatewayInvokePermission(id, targetOccurrence.VersionId)
+                                        }
+                                    }
+                                ]
+                                [#break]
+                        [/#switch]
+                        [#break]
+                    [/#if]
+                [/#list]
+            [/#if]
+        [/#if]
+    [/#list]
+    [#return result ]
+[/#function]
+
 [#-- Get processor settings --]
 [#function getProcessor tier component type extensions...]
     [#local tc = formatComponentShortName(
