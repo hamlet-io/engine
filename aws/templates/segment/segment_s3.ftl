@@ -82,7 +82,7 @@
         outputId=s3DataId
     /]
 
-    [#if dataPublicPrefix?has_content ]
+    [#if dataPublicEnabled ]
 
         [#assign dataPublicCIDRList = [] ]
 
@@ -107,7 +107,7 @@
             statements=
                 s3ReadPermission(
                     dataBucket,
-                    formatSegmentPrefixPath("appdata", "*", dataPublicPrefix),
+                    formatSegmentPrefixPath("apppublic"),
                     "*",
                     "*",
                     dataPublicWhitelistCondition
