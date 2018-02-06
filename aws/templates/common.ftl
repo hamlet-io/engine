@@ -758,6 +758,10 @@
                         {
                             "Name" : "CountryGroups",
                             "Default" : []
+                        },
+                        {
+                            "Name" : "ErrorPage",
+                            "Default" : "/index.html"
                         }
                     ]
                 },
