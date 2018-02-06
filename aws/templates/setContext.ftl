@@ -157,11 +157,11 @@
         (segmentObject.Data.Expiration)!
         (environmentObject.Data.Expiration)!""]
     [#assign dataPublicPrefix = 
-        (segmentObject.Data.PublicPrefix)!
-        (environmentObject.Data.PublicPrefix)!""]
+        (segmentObject.Data.Public.Prefix)!
+        (environmentObject.Data.Public.Prefix)!""]
     [#assign dataPublicWhiteList = 
-        (segmentObject.Data.PublicWhitelist)!
-        (environmentObject.Data.PublicWhitelist)![]]
+        (segmentObject.Data.Public.IPWhitelist)!
+        (environmentObject.Data.Public.IPWhitelist)![]]
 [/#if]
 
 [#-- Solution --]
