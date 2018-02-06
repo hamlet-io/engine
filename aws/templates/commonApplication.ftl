@@ -189,7 +189,8 @@
         } +
         attributeIfContent("APP_RUN_MODE", mode) +
         attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
-        attributeIfContent("APP_REFERENCE", appReference!"")
+        attributeIfContent("APP_REFERENCE", appReference!"") + 
+        attributeIfContent("APPDATA_PUBLIC_PREFIX" getAppDataPublicFilePrefix())
     ]
 [/#function]
 

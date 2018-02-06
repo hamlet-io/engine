@@ -201,7 +201,23 @@
             "appdata",
             (appSettingsObject.FilePrefixes.AppData)!
                 (appSettingsObject.DefaultFilePrefix)!
-                deploymentUnit)]
+                deploymentUnit)]     
+[/#function]
+
+[#function getAppDataPublicFilePrefix ]
+
+    [#if segmentObject.Data?has_content  && segmentObject.Data.Public?has_content]
+        [#return formatSegmentPrefixPath(
+            "appdata",
+            (appSettingsObject.FilePrefixes.AppData)!
+                (appSettingsObject.DefaultFilePrefix)!
+                deploymentUnit,
+            (segmentObject.Data.Public.Prefix))]
+    [#else]
+        [#return 
+            ""
+        ]
+    [/#if]
 [/#function]
 
 [#function getBackupsFilePrefix]
