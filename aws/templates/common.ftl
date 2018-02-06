@@ -204,15 +204,15 @@
                 deploymentUnit)]     
 [/#function]
 
-[#function getAppDataPublicFilePrefix publicDataPrefix=""]
+[#function getAppDataPublicFilePrefix ]
 
-    [#if segmentObject.Data?has_content  && segmentObject.Data.PublicPrefix?has_content]
+    [#if segmentObject.Data?has_content  && segmentObject.Data.Public?has_content]
         [#return formatSegmentPrefixPath(
             "appdata",
             (appSettingsObject.FilePrefixes.AppData)!
                 (appSettingsObject.DefaultFilePrefix)!
                 deploymentUnit,
-            (segmentObject.Data.PublicPrefix))]
+            (segmentObject.Data.Public.Prefix))]
     [#else]
         [#return 
             ""

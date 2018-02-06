@@ -93,7 +93,7 @@
                                 group)]
                 
                 [#if (ipAddressGroupsUsage["dataPublic"][groupId])?has_content]
-                    [#assign dataPublicCIDRList +=  (ipAddressGroupsUsage["publish"][groupId]).CIDR ]
+                    [#assign dataPublicCIDRList +=  (ipAddressGroupsUsage["dataPublic"][groupId]).CIDR ]
                 [/#if]
             [/#list]
         [/#if]
