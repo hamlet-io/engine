@@ -206,13 +206,12 @@
 
 [#function getAppDataPublicFilePrefix ]
 
-    [#if segmentObject.Data?has_content  && segmentObject.Data.Public?has_content]
+    [#if segmentObject.Data?has_content  && segmentObject.Data.Public?has_content && segmentObject.Data.Public.Enabled]
         [#return formatSegmentPrefixPath(
-            "appdata",
+            "apppublic",
             (appSettingsObject.FilePrefixes.AppData)!
                 (appSettingsObject.DefaultFilePrefix)!
-                deploymentUnit,
-            (segmentObject.Data.Public.Prefix))]
+                deploymentUnit)]
     [#else]
         [#return 
             ""
