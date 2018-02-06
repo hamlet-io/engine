@@ -207,6 +207,20 @@
                                 component,
                                 fn,
                                 occurrence)]
+
+                        [#assign eventRuleId =
+                            formatEventRuleId(
+                                tier,
+                                component,
+                                fn,
+                                occurrence)]
+    
+                        [#assign lambdaPermissionId =
+                            formatLambdaPermissionId(
+                                tier,
+                                component,
+                                fn,
+                                occurrence)]
     
                         [#assign lambdaFunctionName =
                             formatLambdaFunctionName(
@@ -240,6 +254,19 @@
                                     []
                                 )
                             dependencies=roleId
+                        /]
+                        [@createScheduleEventRule
+                            mode=listMode
+                            id=eventRuleId
+                            targetId=lambdaFunctionId
+                            dependencies=lambdaFunctionId
+                        /]
+                        [@createLambdaPermission
+                            mode=listMode
+                            id=lambdaPermissionId
+                            targetId=lambdaFunctionId
+                            eventRuleId=eventRuleId
+                            dependencies=eventRuleId
                         /]
                     [/#if]
                 [/#list]
