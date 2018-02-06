@@ -156,9 +156,9 @@
     [#assign dataExpiration =
         (segmentObject.Data.Expiration)!
         (environmentObject.Data.Expiration)!""]
-    [#assign dataPublicPrefix = 
-        (segmentObject.Data.Public.Prefix)!
-        (environmentObject.Data.Public.Prefix)!""]
+    [#assign dataPublicEnabled = 
+        (segmentObject.Data.Public.Enabled)!
+        (environmentObject.Data.Public.Enabled)!false]
     [#assign dataPublicWhiteList = 
         (segmentObject.Data.Public.IPWhitelist)!
         (environmentObject.Data.Public.IPWhitelist)![]]
