@@ -46,7 +46,7 @@
 
         [#assign spaCacheBehaviour = getCFSPACacheBehaviour(spaOrigin) ]
         [#assign configCacheBehaviour = getCFSPACacheBehaviour(configOrigin, "/config/*", {"Default" : 60}) ]
-                   
+
         [#assign restrictions = {} ]
         [#if occurrence.CloudFront.CountryGroups?has_content]
             [#list asArray(occurrence.CloudFront.CountryGroups) as countryGroup]
@@ -74,7 +74,14 @@
                     occurrence.CloudFront.AssumeSNI),
                     occurrence.Certificate.Configured && occurrence.Certificate.Enabled)
             comment=cfName
-            customErrorResponses=getErrorResponse(404) + getErrorResponse(403)
+            customErrorResponses=getErrorResponse(
+                                        404, 
+                                        200,
+                                        occurrence.CloudFront.ErrorPage) + 
+                                getErrorResponse(
+                                        403, 
+                                        200,
+                                        occurrence.CloudFront.ErrorPage)
             defaultCacheBehaviour=spaCacheBehaviour
             defaultRootObject="index.html"
             logging=valueIfTrue(
