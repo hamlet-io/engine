@@ -11,12 +11,25 @@
     }
 ]
 
+[#assign LAMBDA_PERMISSION_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        }
+    }
+]
+
 [#assign outputMappings +=
     {
         LAMBDA_FUNCTION_RESOURCE_TYPE : LAMBDA_FUNCTION_OUTPUT_MAPPINGS
     }
 ]
 
+[#assign outputMappings +=
+    {
+        LAMBDA_PERMISSION_RESOURCE_TYPE : LAMBDA_PERMISSION_OUTPUT_MAPPINGS
+    }
+]
 [#macro createLambdaFunction mode id container roleId securityGroupIds=[] subnetIds=[] dependencies=""]
     [@cfResource
         mode=mode
@@ -49,6 +62,23 @@
                     "SubnetIds" : getReferences(subnetIds)
                 })
         outputs=LAMBDA_FUNCTION_OUTPUT_MAPPINGS
+        dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createLambdaPermission mode id targetId eventRuleId dependencies=""]
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::Lambda::Permission"
+        properties=
+            {
+                "FunctionName" : getReference(targetId),
+                "Action" : "lambda:InvokeFunction",
+                "Principal" : "events.amazonaws.com",
+                "SourceArn" : getReference(eventRuleId, ARN_ATTRIBUTE_TYPE)
+            }
+        outputs=LAMBDA_PERMISSION_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]
 [/#macro]
