@@ -17,7 +17,7 @@
     [#return 
         {
             "DestinationBucketName" : logBucket,
-            "LogFilePrefix" : "s3/" +prefix
+            "LogFilePrefix" : "s3/" + prefix + "/"
         }   
     ]
 [/#function]
