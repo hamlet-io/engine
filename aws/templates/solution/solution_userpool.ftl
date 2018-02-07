@@ -36,7 +36,7 @@
 
             [#assign phoneSchema = getUserPoolSchemaObject( 
                                         "phone_number",
-                                        "string",
+                                        "String",
                                         true,
                                         true)]
             [#assign schema = schema + [ phoneSchema ]]
@@ -52,7 +52,7 @@
     [#if userpool.verifyEmail || ( userpool.loginAliases?has_content && userpool.loginAliases.seq_contains("email") ) ]
             [#assign emailSchema = getUserPoolSchemaObject( 
                                         "email",
-                                        "string",
+                                        "String",
                                         true,
                                         true)]
             [#assign schema = schema +  [ emailSchema ]]
