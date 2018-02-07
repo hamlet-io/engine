@@ -71,7 +71,8 @@
 [#macro createS3Bucket mode id name tier="" component="" 
                         lifecycleRules=[] 
                         sqsNotifications=[] 
-                        websiteConfiguration={} 
+                        websiteConfiguration={}
+                        cannedACL=""
                         dependencies="" 
                         outputId=""]
 
@@ -109,6 +110,10 @@
             attributeIfContent(
                 "LoggingConfiguration",
                 loggingConfiguration
+            ) + 
+            attributeIfContent(
+                "AccessControl",
+                cannedACL
             )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
