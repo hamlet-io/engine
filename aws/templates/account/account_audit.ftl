@@ -11,6 +11,7 @@
                 existingAuditName,
                 existingAuditName,
                 formatName("account", "audit", accountObject.Seed))
+            cannedACL="LogDeliveryWrite"
         /]
     [/#if]
 [/#if]
