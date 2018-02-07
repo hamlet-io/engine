@@ -13,6 +13,15 @@
     ]
 [/#function]
 
+[#function getS3LoggingConfiguration logBucket prefix ]
+    [#return 
+        {
+            "DestinationBucketName" : logBucket,
+            "LogFilePrefix" : "s3/" +prefix
+        }   
+    ]
+[/#function]
+
 [#function getS3SQSNotification queue event]
     [#return
         [
@@ -59,7 +68,20 @@
     }
 ]
 
-[#macro createS3Bucket mode id name tier="" component="" lifecycleRules=[] sqsNotifications=[] websiteConfiguration={} dependencies="" outputId=""]
+[#macro createS3Bucket mode id name tier="" component="" 
+                        lifecycleRules=[] 
+                        sqsNotifications=[] 
+                        websiteConfiguration={} 
+                        dependencies="" 
+                        outputId=""]
+
+    [#assign loggingConfiguration = {} ] 
+    [#if getExistingReference(formatAccountS3Id("audit"))?has_content ]
+        [#assign loggingConfiguration = getS3LoggingConfiguration(
+                                getExistingReference(formatAccountS3Id("audit")), 
+                                name) ]
+    [/#if]
+
     [@cfResource 
         mode=mode
         id=id
@@ -83,6 +105,10 @@
             attributeIfContent(
                 "WebsiteConfiguration",
                 websiteConfiguration
+            ) + 
+            attributeIfContent(
+                "loggingConfiguration",
+                loggingConfiguration
             )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
