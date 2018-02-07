@@ -107,7 +107,7 @@
                 websiteConfiguration
             ) + 
             attributeIfContent(
-                "loggingConfiguration",
+                "LoggingConfiguration",
                 loggingConfiguration
             )
         tags=getCfTemplateCoreTags("", tier, component)
