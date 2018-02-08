@@ -97,6 +97,27 @@
     ]
 [/#function]
 
+[#function getUserPoolAdminCreateUserConfig enabled unusedTimeout emailMessage="" emailSubject="" smsMessage="" ]
+    [#return 
+        {
+            "AllowAdminCreateUserOnly" : enabled,
+            "UnusedAccountValidityDays" : unusedTimeout 
+        }   + 
+            attributeIfContent(
+                "EmailMessage",
+                emailMessage
+            ) + 
+            attributeIfContent(
+                "EmailSubject",
+                emailSubject
+            ) + 
+            attributeIfContent(
+                "SMSMessage",
+                smsMessage
+            )
+    ]
+[/#function]
+
 [#function getIdentityPoolCognitoProvider UserPoolId userPoolClientId serverSideToken=true ]
 
     [#assign userPoolRef = getReference(UserPoolId, NAME_ATTRIBUTE_TYPE)]
@@ -116,6 +137,9 @@
     adminCreatesUser
     unusedTimeout
     tags
+    smsVerificationMessage=""
+    emailVerificationMessage=""
+    emailVerificationSubject=""
     tier="" 
     component="" 
     loginAliases=[] 
@@ -126,7 +150,7 @@
     dependencies="" 
     outputId=""
 ]
-    
+
     [#-- Convert Tag Array to String Map --]
     [#local tagMap={}]
     [#list tags as tag] 
@@ -144,10 +168,12 @@
                 "UserPoolName" : name,
                 "UserPoolTags" : tagMap,
                 "MfaConfiguration" : mfa?then("ON","OFF"),
-                "AdminCreateUserConfig" : {
-                    "AllowAdminCreateUserOnly" : adminCreatesUser,
-                    "UnusedAccountValidityDays" : unusedTimeout
-                }
+                "AdminCreateUserConfig" : getUserPoolAdminCreateUserConfig(
+                                                adminCreatesUser, 
+                                                unusedTimeout,
+                                                emailVerificationMessage,
+                                                emailVerificationSubject,
+                                                smsVerificationMessage)
             } + 
             attributeIfContent(
                 "Policies",
@@ -168,7 +194,19 @@
             attributeIfContent(
                 "Schema",
                 schema
-            )
+            ) + 
+            attributeIfContent (
+                "EmailVerificationMessage"
+                emailVerificationMessage
+            ) + 
+            attributeIfContent (
+                "EmailVerificationSubject",
+                emailVerificationSubject
+             ) + 
+             attributeIfContent ( 
+                 "SmsVerificationMessage",
+                 smsVerificationMessage
+             )
         outputs=USERPOOL_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies
