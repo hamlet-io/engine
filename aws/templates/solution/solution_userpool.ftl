@@ -17,6 +17,22 @@
     [#assign smsVerification = false]
     [#assign schema = [] ]
 
+    [#assign emailVerificationMessage = ""]
+    [#if appSettingsObject.UserPool?has_content &&  appSettingsObject.UserPool.EmailVerificationMessage?has_content ]
+        [#assign emailVerificationMessage = appSettingsObject.UserPool.EmailVerificationMessage ]
+    [/#if]
+
+    [#assign emailVerificationSubject = ""]
+    [#if appSettingsObject.UserPool?has_content && appSettingsObject.UserPool.EmailVerificationSubject?has_content ]
+        [#assign emailVerificationSubject = appSettingsObject.UserPool.EmailVerificationSubject ]
+    [/#if]
+
+    [#assign smsVerificationMessage = ""]
+    [#if appSettingsObject.UserPool?has_content &&  appSettingsObject.UserPool.smsVerificationMessage?has_content ]
+        [#assign emailVerificationSubject = appSettingsObject.UserPool.smsVerificationMessage ]
+    [/#if]
+
+
     [#if (userpool.MFA?has_content && userpool.MFA) || (userpool.VerifyPhone?has_content && userpool.VerifyPhone)]
         [#if deploymentSubsetRequired("iam", true) &&
         isPartOfCurrentDeploymentUnit(userPoolId) ]
@@ -73,6 +89,9 @@
         adminCreatesUser=userpool.adminCreatesUser
         unusedTimeout=userpool.unusedAccountTimeout
         schema=schema
+        emailVerificationMessage=emailVerificationMessage
+        emailVerificationSubject=emailVerificationSubject
+        smsVerificationMessage=smsVerificationMessage
         autoVerify=(userpool.verifyEmail || smsVerification)?then(
             getUserPoolAutoVerifcation(userpool.verifyEmail, smsVerification),
             []
