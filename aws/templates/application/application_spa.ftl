@@ -18,74 +18,19 @@
                     } +
                     attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
                     attributeIfContent("APP_REFERENCE", appReference!""),
-                "Links" : {}
+                "Links" : getLinkTargets(occurrence),
+                "DefaultLinkVariables" : false
             }
         ]
-    
-        [#list occurrence.Links?values as link]
-            [#if link?is_hash]
-                [#assign targetComponent = getComponent(link.Tier, link.Component)]
-                [#if targetComponent?has_content]
-                    [#list getOccurrences(targetComponent) as targetOccurrence]
-                        [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
-                                (targetOccurrence.VersionId == occurrence.VersionId)]
-                            [#assign certificateObject = getCertificateObject(targetOccurrence.Certificate, segmentId, segmentName) ]
-                            [#assign hostName = getHostName(certificateObject, link.Tier, targetComponent, targetOccurrence) ]
-                            [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
-                            [#switch getComponentType(targetComponent)]
-                                [#case "alb"]
-                                    [#assign context +=
-                                        {
-                                          "Links" :
-                                              context.Links +
-                                              {
-                                                link.Name : {
-                                                    "Url" : "https://" + dns
-                                                }
-                                            }
-                                        }
-                                    ]
-                                    [#break]
-
-                                [#case "apigateway"]
-                                    [#assign apiId =
-                                        formatAPIGatewayId(
-                                            link.Tier,
-                                            link.Component,
-                                            targetOccurrence)]
-                                    [#assign context +=
-                                        {
-                                          "Links" :
-                                              context.Links +
-                                              {
-                                                link.Name : {
-                                                    "Url" :
-                                                        "https://" +
-                                                        (targetOccurrence.Certificate.Configured && targetOccurrence.Certificate.Enabled)?then(
-                                                            dns,
-                                                            formatDomainName(
-                                                                getExistingReference(apiId),
-                                                                "execute-api",
-                                                                regionId,
-                                                                "amazonaws.com")
-                                                        )
-                                                }
-                                            }
-                                        }
-                                    ]
-                                    [#break]
-                            [/#switch]
-                            [#break]
-                        [/#if]
-                    [/#list]
-                [/#if]
-            [/#if]
-        [/#list]
 
         [#-- Add in container specifics including override of defaults --]
         [#assign containerListMode = "model"]
         [#assign containerId = formatContainerFragmentId(occurrence, context)]
         [#include containerList?ensure_starts_with("/")]
+
+        [#if context.DefaultLinkVariables]
+            [#assign context = addDefaultLinkVariablesToContext(context) ]
+        [/#if]
 
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig
