@@ -207,6 +207,20 @@
                                 component,
                                 fn,
                                 occurrence)]
+
+                        [#assign eventRuleId =
+                            formatEventRuleId(
+                                tier,
+                                component,
+                                fn,
+                                occurrence)]
+    
+                        [#assign lambdaPermissionId =
+                            formatLambdaPermissionId(
+                                tier,
+                                component,
+                                fn,
+                                occurrence)]
     
                         [#assign lambdaFunctionName =
                             formatLambdaFunctionName(
@@ -240,6 +254,29 @@
                                     []
                                 )
                             dependencies=roleId
+                        /]
+                        
+                        [#-- By default schedule event rule is enabled for all functions with rate 15 minutes --]
+                        [#-- To disable it set fn.Schedule.EnabledState to "false" --]
+                        [#-- To change schedule expression set fn.Schedule.Expression --]
+                        [#assign state = "ENABLED"]
+                        [#if fn.Schedule?has_content && fn.Schedule.EnabledState?has_content && !fn.Schedule.EnabledState]
+                            [#assign state = "DISABLED"]
+                        [/#if]
+                        [@createScheduleEventRule
+                            mode=listMode
+                            id=eventRuleId
+                            targetId=lambdaFunctionId
+                            state=state
+                            scheduleExpression=(fn.Schedule.Expression)!"rate(15 minutes)"
+                            dependencies=lambdaFunctionId
+                        /]
+                        [@createLambdaPermission
+                            mode=listMode
+                            id=lambdaPermissionId
+                            targetId=lambdaFunctionId
+                            eventRuleId=eventRuleId
+                            dependencies=eventRuleId
                         /]
                     [/#if]
                 [/#list]
