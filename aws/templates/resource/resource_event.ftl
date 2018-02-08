@@ -17,7 +17,7 @@
     }
 ]
 
-[#macro createScheduleEventRule mode id targetId scheduleExpression="rate(15 minutes)" dependencies=""]
+[#macro createScheduleEventRule mode id targetId state="ENABLED" scheduleExpression="rate(15 minutes)" dependencies=""]
     [@cfResource
         mode=mode
         id=id
@@ -25,7 +25,7 @@
         properties=
             {
                 "ScheduleExpression" : scheduleExpression,
-                "State" : "ENABLED",
+                "State" : state,
                 "Targets" : [{
                     "Arn" : getReference(targetId, ARN_ATTRIBUTE_TYPE),
                     "Id" : targetId
