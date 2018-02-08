@@ -93,7 +93,7 @@
         emailVerificationSubject=emailVerificationSubject
         smsVerificationMessage=smsVerificationMessage
         autoVerify=(userpool.verifyEmail || smsVerification)?then(
-            getUserPoolAutoVerifcation(userpool.verifyEmail, smsVerification),
+            getUserPoolAutoVerification(userpool.verifyEmail, smsVerification),
             []
         )
         loginAliases=((userpool.loginAliases)?has_content)?then(
@@ -126,20 +126,20 @@
 
     [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
 
-    [@createUserPoolIdentityPool 
+    [@createIdentityPool 
         mode=listMode
         component=component
         tier=tier
         dependencies=dependencies
-        id=userPoolIdentityPoolId
-        name=userPoolIdentityPoolName
+        id=identityPoolId
+        name=identityPoolName
         cognitoIdProviders=cognitoIdentityPoolProvider
         allowUnauthenticatedIdentities=userpool.allowUnauthIds
     /]
 
     [@createRole
         mode=listMode
-        id=userPoolIdentityUnAuthRoleId
+        id=identityPoolUnAuthRoleId
         policies=[
             getPolicyDocument(
                 getUserPoolUnAuthPolicy(),
@@ -149,7 +149,7 @@
         federatedServices="cognito-identity.amazonaws.com"
         condition={
               "StringEquals": {
-                "cognito-identity.amazonaws.com:aud": getReference(userPoolIdentityPoolId)
+                "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
               },
               "ForAnyValue:StringLike": {
                 "cognito-identity.amazonaws.com:amr": "unauthenticated"
@@ -159,7 +159,7 @@
 
     [@createRole 
         mode=listMode
-        id=userPoolIdentityAuthRoleId
+        id=identityPoolAuthRoleId
         policies=[
             getPolicyDocument(
                 getUserPoolAuthPolicy(),
@@ -169,7 +169,7 @@
         federatedServices="cognito-identity.amazonaws.com"
         condition={
               "StringEquals": {
-                "cognito-identity.amazonaws.com:aud": getReference(userPoolIdentityPoolId)
+                "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
               },
               "ForAnyValue:StringLike": {
                 "cognito-identity.amazonaws.com:amr": "authenticated"
@@ -177,14 +177,14 @@
         }
     /]
 
-    [@createUserPoolIdentityPoolRoleMapping
+    [@createIdentityPoolRoleMapping
         mode=listMode
         component=component
         tier=tier
-        id=userPoolIdentityRoleMappingId
-        IdentityPoolId=getReference(userPoolIdentityPoolId)
-        authenticatedRoleArn=getReference(userPoolIdentityAuthRoleId, ARN_ATTRIBUTE_TYPE)
-        unauthenticatedRoleArn=getReference(userPoolIdentityUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
+        id=identityRoleMappingId
+        identityPoolId=getReference(identityPoolId)
+        authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
+        unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
     /]
 
 [/#if]

@@ -81,7 +81,7 @@
     ]
 [/#function]
 
-[#function getUserPoolAutoVerifcation email=false phone=false ]
+[#function getUserPoolAutoVerification email=false phone=false ]
     [#assign autoVerifyArray=[]]
 
     [#if email ]
@@ -251,7 +251,7 @@
     /]
 [/#macro]
 
-[#macro createUserPoolIdentityPool mode id name
+[#macro createIdentityPool mode id name
     cognitoIdProviders
     allowUnauthenticatedIdentities=false
     tier=""
@@ -278,8 +278,8 @@
     /]
 [/#macro]
 
-[#macro createUserPoolIdentityPoolRoleMapping mode id  
-    IdentityPoolId,
+[#macro createIdentityPoolRoleMapping mode id  
+    identityPoolId,
     authenticatedRoleArn,
     unauthenticatedRoleArn
     tier=""
@@ -293,7 +293,7 @@
         type="AWS::Cognito::IdentityPoolRoleAttachment"
         properties=
             {
-                "IdentityPoolId" : IdentityPoolId,
+                "IdentityPoolId" : identityPoolId,
                 "Roles" : { 
                     "authenticated" : authenticatedRoleArn,
                     "unauthenticated" : unauthenticatedRoleArn

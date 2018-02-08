@@ -40,95 +40,84 @@
         ]
         [#assign stageVariables = {} ]
         [#assign userPoolArns = [] ]
+
         [#list occurrence.Links?values as link]
             [#if link?is_hash]
-                [#assign targetComponent = getComponent(link.Tier, link.Component)]
-                [#if targetComponent?has_content]
-                    [#list getOccurrences(targetComponent) as targetOccurrence]
-                        [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
-                                (targetOccurrence.VersionId == occurrence.VersionId)]
-                            [#switch getComponentType(targetComponent)]
-                                [#case "alb"]
-                                    [#assign stageVariables +=
-                                        {
-                                            link.Name?upper_case + "_DOCKER" :
-                                            getExistingReference(
-                                                formatALBId(
-                                                    link.Tier,
-                                                    link.Component,
-                                                    targetOccurrence),
-                                                DNS_ATTRIBUTE_TYPE)
-                                        }
-                                    ]
-                                [#break]
+                [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                [#assign linkInformation = getLinkTargetInformation(linkTarget) ]
+                [#switch linkTarget.Type!""]
+                    [#case "alb"]
+                        [#assign stageVariables +=
+                            {
+                                link.Name?upper_case + "_DOCKER" : linkInformation.Attributes.DNS
+                            }
+                        ]
+                        [#break]
 
-                                [#case "lambda"]
-                                    [#list targetOccurrence.Functions?values as fn]
-                                        [#if fn?is_hash]
-                                            [#assign fnName =
-                                                formatLambdaFunctionName(
-                                                    getTier(link.Tier),
-                                                    targetComponent,
-                                                    targetOccurrence,
-                                                    fn)]
-                                            [#assign stageVariables +=
-                                                {
-                                                    link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA" : fnName
-                                                }
-                                            ]
-                                            [#if deploymentSubsetRequired("apigateway", true)]
-                                              [@cfResource
-                                                  mode=listMode
-                                                  id=
-                                                      formatAPIGatewayLambdaPermissionId(
-                                                          tier,
-                                                          component,
-                                                          link,
-                                                          fn,
-                                                          occurrence)
-                                                  type="AWS::Lambda::Permission"
-                                                  properties=
-                                                      {
-                                                          "Action" : "lambda:InvokeFunction",
-                                                          "FunctionName" : fnName,
-                                                          "Principal" : "apigateway.amazonaws.com",
-                                                          "SourceArn" : formatInvokeApiGatewayArn(apiId, stageName)
-                                                      }
-                                                  outputs={}
-                                                  dependencies=stageId
-                                              /]
-                                            [/#if]
-                                        [/#if]
-                                    [/#list]
-                                [#break]
-                            [/#switch]
-                        [/#if]
-                        [#switch getComponentType(targetComponent)]
-                            [#case "userpool"] 
+                    [#case "lambda"]
+                        [#list linkTarget.Functions?values as fn]
+                            [#if fn?is_hash]
+                                [#assign fnName =
+                                    formatLambdaFunctionName(
+                                        getTier(linkTarget.Tier),
+                                        linkTarget.Component,
+                                        linktarget,
+                                        fn)]
+                                [#assign stageVariables +=
+                                    {
+                                        link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA" : fnName
+                                    }
+                                ]
                                 [#if deploymentSubsetRequired("apigateway", true)]
-
-                                    [#assign policyId = formatDependentPolicyId(
-                                                            apiId, 
-                                                            formatUserPoolId(link.Tier, link.Component))]
-
-                                    [@createPolicy 
-                                        mode=listMode
-                                        id=policyId
-                                        name=apiName
-                                        statements=[
-                                            getPolicyStatement(
-                                                "execute-api:*",
-                                                formatInvokeApiGatewayArn(apiId, stageName)    
-                                            )
-                                        ]
-                                        roles=formatDependentIdentityPoolAuthRoleId(
-                                                formatIdentityPoolId(link.Tier, link.Component))
-                                    /]
+                                  [@cfResource
+                                      mode=listMode
+                                      id=
+                                          formatAPIGatewayLambdaPermissionId(
+                                              tier,
+                                              component,
+                                              link,
+                                              fn,
+                                              occurrence)
+                                      type="AWS::Lambda::Permission"
+                                      properties=
+                                          {
+                                              "Action" : "lambda:InvokeFunction",
+                                              "FunctionName" : fnName,
+                                              "Principal" : "apigateway.amazonaws.com",
+                                              "SourceArn" : formatInvokeApiGatewayArn(apiId, stageName)
+                                          }
+                                      outputs={}
+                                      dependencies=stageId
+                                  /]
                                 [/#if]
-                            [#break]
-                        [/#switch]
-                    [/#list]
-                [/#if]
+                            [/#if]
+                        [/#list]
+                        [#break]
+
+                    [#case "userpool"] 
+                        [#if deploymentSubsetRequired("apigateway", true)]
+        
+                            [#assign policyId = formatDependentPolicyId(
+                                                    apiId, 
+                                                    link.Name)]
+        
+                            [@createPolicy 
+                                mode=listMode
+                                id=policyId
+                                name=apiName
+                                statements=[
+                                    getPolicyStatement(
+                                        "execute-api:*",
+                                        formatInvokeApiGatewayArn(apiId, stageName)    
+                                    )
+                                ]
+                                roles=formatDependentIdentityPoolAuthRoleId(
+                                        link.Tier, 
+                                        link.Component)
+                            /]
+                        [/#if]
+                        [#break]
+                [/#switch]
             [/#if]
         [/#list]
 

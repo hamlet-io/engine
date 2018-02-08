@@ -311,6 +311,9 @@
 
 [#-- Get the type for a component --]
 [#function getComponentType component]
+    [#if ! component.Id?has_content]
+        [#return "???" ]
+    [/#if]
     [#local idParts = component.Id?split("-")]
     [#if idParts[1]?has_content]
         [#return idParts[1]?lower_case]
@@ -881,16 +884,17 @@
 [#-- Get the occurrences of versions/instances of a component/subcomponent --]
 [#function getOccurrences root deploymentUnit="" subComponentType=""]
     [#if subComponentType?has_content]
+        [#local type = subComponentType]
         [#local componentObject = root]
-        [#local attributes = componentAttributes[subComponentType]![] ]
         [#local subComponentId = [root.Id] ]
         [#local subComponentName = [root.Name] ]
     [#else]
+        [#local type = getComponentType(root)]
         [#local componentObject = getComponentTypeObject(root)]
-        [#local attributes = componentAttributes[getComponentType(root)]![] ]
         [#local subComponentId = [] ]
         [#local subComponentName = [] ]
     [/#if]
+    [#local attributes = componentAttributes[type]![] ]
     [#local occurrences=[] ]
     [#if componentObject.Instances?has_content]
         [#list componentObject.Instances?values as instance]
@@ -984,100 +988,215 @@
     [#return occurrences ]
 [/#function]
 
-[#function resolveLinks links]
-    [#local result={} ]
-    [#list links?values as link]
-        [#if link?is_hash]
-            [#local targetComponent = getComponent(link.Tier, link.Component)]
-            [#if targetComponent?has_content]
-                [#list getOccurrences(targetComponent) as targetOccurrence]
-                    [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
+[#function getLinkTarget occurrence link]
+    [#local result = {} ]
+    [#local targetComponent = getComponent(link.Tier, link.Component)]
+    [#local targetComponentType = getComponentType(targetComponent) ]
+
+    [#if targetComponent?has_content]
+        [#list getOccurrences(targetComponent) as targetOccurrence]
+            [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
                             (targetOccurrence.VersionId == occurrence.VersionId)]
-                        [#local fqdn = ""]
-                        [#local signingFqdn = ""]
-                        [#if targetOccurrence.Certificate.Configured && targetOccurrence.Certificate.Enabled ]
-                            [#local certificateObject = getCertificateObject(targetOccurrence.Certificate, segmentId, segmentName) ]
-                            [#local hostName = getHostName(certificateObject, link.Tier, targetComponent, targetOccurrence) ]
-                            [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name) ]
-                            [#local signingFqdn = formatDomainName(
-                                formatName("sig4", hostName), certificateObject.Domain.Name) ] 
-                        [/#if]
-                        [#local type = getComponentType(targetComponent) ]
-                        [#switch type]
-                            [#case "alb"]
-                                [#local id =
-                                    formatALBId(
-                                        link.Tier,
-                                        link.Component,
-                                        targetOccurrence) ]
-                                [#local internalFqdn =
-                                    getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
-                                [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
-                                [#local portMapping = occurrence.PortMappings[0]mapping?is_hash?then(
-                                        occurrence.PortMappings[0]mapping,
-                                        {
-                                            "Mapping" : occurrence.PortMappings[0]mapping
-                                        }
-                                    )]
-
-                                [#local scheme =
-                                    ((ports[portMappings[mappingObject.Mapping].Source].Certificate)!false)?then(
-                                        "https",
-                                        "http"
-                                    )]
-                                [#local result +=
-                                    {
-                                        link.Name : {
-                                            "Type" : type,
-                                            "ResourceId" : id,
-                                            "Attributes" : {
-                                                "DNS" : fqdn,
-                                                "URL" : scheme + "://" + fqdn,
-                                                "INTERNAL_DNS" : internalFqdn,
-                                                "INTERNAL_URL" : scheme + "://" + internalFqdn
-                                            }
-                                        }
-                                    }
-                                ]
-                                [#break]
-
-                            [#case "apigateway"]
-                                [#local id =
-                                    formatAPIGatewayId(
-                                        link.Tier,
-                                        link.Component,
-                                        targetOccurrence)]
-                                [#local internalFqdn =
-                                    formatDomainName(
-                                        getExistingReference(id),
-                                        "execute-api",
-                                        regionId,
-                                        "amazonaws.com") ]
-                                [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
-                                [#local signingFqdn = valueIfContent(signingFqdn, signingFqdn, internalFqdn) ]
-                                [#local result +=
-                                    {
-                                        link.Name : {
-                                            "Type" : type,
-                                            "ResourceId" : id,
-                                            "Attributes" : {
-                                                "DNS" : fqdn,
-                                                "URL" : scheme + "://" + fqdn,
-                                                "SIGNING_DNS" : internalFqdn,
-                                                "SIGNING_URL" : scheme + "://" + internalFqdn,
-                                                "INTERNAL_DNS" : internalFqdn,
-                                                "INTERNAL_URL" : scheme + "://" + internalFqdn
-                                            },
-                                            "Policy" : apigatewayInvokePermission(id, targetOccurrence.VersionId)
-                                        }
-                                    }
-                                ]
-                                [#break]
-                        [/#switch]
+                [#switch targetComponentType]
+                    [#case "alb"]
+                    [#case "apigateway"]
+                    [#case "sqs"]
+                        [#local result = targetOccurrence]
                         [#break]
-                    [/#if]
-                [/#list]
+                [/#switch]
             [/#if]
+
+            [#switch targetComponentType]
+                [#case "userpool"] 
+                [#case "rds"] 
+                        [#local result = targetOccurrence]
+                    [#break]
+            [/#switch]
+        [/#list]
+    [/#if]
+    [#return
+        {} +
+        valueIfContent(
+            result +
+            {
+                "Type" : targetComponentType,
+                "Tier" : link.Tier,
+                "Component" : link.Component
+            },
+            result) ]
+[/#function]
+
+[#function getLinkTargetInformation target]
+    [#local result = {} ]
+
+    [#local fqdn = ""]
+    [#local signingFqdn = ""]
+    [#if ((target.Certificate.Configured)!false) && 
+            ((target.Certificate.Enabled)!false) ]
+        [#local certificateObject = getCertificateObject(target.Certificate, segmentId, segmentName) ]
+        [#local hostName = getHostName(certificateObject, target.Tier, target.Component, target) ]
+        [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name) ]
+        [#local signingFqdn = formatDomainName(
+            formatName("sig4", hostName), certificateObject.Domain.Name) ] 
+    [/#if]
+    [#switch target.Type!""]
+        [#case "alb"]
+            [#local id =
+                formatALBId(
+                    target.Tier,
+                    target.Component,
+                    target) ]
+            [#local internalFqdn =
+                getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
+            [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
+            [#local portMapping = occurrence.PortMappings[0]?is_hash?then(
+                    occurrence.PortMappings[0],
+                    {
+                        "Mapping" : occurrence.PortMappings[0]
+                    }
+                )]
+
+            [#local scheme =
+                ((ports[portMappings[mappingObject.Mapping].Source].Certificate)!false)?then(
+                    "https",
+                    "http"
+                )]
+            [#local result =
+                {
+                    "ResourceId" : id,
+                    "Attributes" : {
+                        "DNS" : fqdn,
+                        "URL" : scheme + "://" + fqdn,
+                        "INTERNAL_DNS" : internalFqdn,
+                        "INTERNAL_URL" : scheme + "://" + internalFqdn
+                    }
+                }
+            ]
+            [#break]
+
+        [#case "apigateway"]
+            [#local id =
+                formatAPIGatewayId(
+                    target.Tier,
+                    target.Component,
+                    target)]
+            [#local internalFqdn =
+                formatDomainName(
+                    getExistingReference(id),
+                    "execute-api",
+                    regionId,
+                    "amazonaws.com") ]
+            [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
+            [#local signingFqdn = valueIfContent(signingFqdn, signingFqdn, internalFqdn) ]
+            [#local result =
+                {
+                    "ResourceId" : id,
+                    "Attributes" : {
+                        "DNS" : fqdn,
+                        "URL" : "https://" + fqdn,
+                        "SIGNING_DNS" : signingFqdn,
+                        "SIGNING_URL" : "https://" + signingFqdn,
+                        "INTERNAL_DNS" : internalFqdn,
+                        "INTERNAL_URL" : "https://" + internalFqdn
+                    },
+                    "Policy" : apigatewayInvokePermission(id, target.VersionId)
+                }
+            ]
+            [#break]
+
+        [#case "lambda"]
+            [#local id =
+                formatLambdaId(
+                    target.Tier,
+                    target.Component,
+                    target)]
+
+            [#local result =
+                {
+                    "ResourceId" : id,
+                    "Attributes" : {}
+                }
+            ]
+            [#break]
+
+        [#case "rds"]
+            [#local id =
+                formatRDSId(
+                    target.Tier,
+                    target.Component,
+                    target)]
+
+            [#local result =
+                {
+                    "ResourceId" : id,
+                    "Attributes" : {
+                        "DNS" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
+                        "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
+                        "NAME" : getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)
+                    }
+                }
+            ]
+            [#list (credentialsObject[target.Tier + "-" + target.Component].Login)!{} as name,value]
+                [#local result +=
+                    {
+                      "Attributes" : result.Attributes + { name : value }
+                    }
+                ]
+            [/#list]
+            [#break]
+
+        [#case "sqs"]
+            [#local id =
+                formatComponentSQSId(
+                    target.Tier,
+                    target.Component,
+                    target)]
+            [#local result +=
+                {
+                    "ResourceId" : id,
+                    "Attributes" : {
+                        "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
+                        "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
+                        "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE)
+                    }
+                }
+            ]
+            [#break]
+
+        [#case "userpool"] 
+            [#local id = formatUserPoolId(target.Tier, target.Component) ]
+            [#local clientId = formatUserPoolClientId(target.Tier, target.Component) ]
+            [#local identityPoolId = formatIdentityPoolId(target.Tier, target.Component) ]
+            [#local result +=
+                {
+                    "ResourceId" : id,
+                    "Attributes" : {
+                        "USER_POOL" : getReference(id),
+                        "IDENTITY_POOL" : getReference(identityPoolId),
+                        "CLIENT" : getReference(clientId)
+                    }
+                }
+            ]
+            [#break]
+    [/#switch]
+    
+    [#return result]
+[/#function]
+
+[#function getLinkTargets occurrence links={}]
+    [#local result={} ]
+    [#list (valueIfContent(links, links, occurrence.Links!{}))?values as link]
+        [#if link?is_hash]
+            [#local linkInformation =
+                getLinkTargetInformation(getLinkTarget(occurrence, link)) ]
+            
+            [#local result +=
+                valueIfContent(
+                    {
+                        link.Name : linkInformation
+                    },
+                    linkInformation
+                )]
         [/#if]
     [/#list]
     [#return result ]
