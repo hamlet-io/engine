@@ -97,23 +97,33 @@
     ]
 [/#function]
 
-[#function getUserPoolAdminCreateUserConfig enabled unusedTimeout emailMessage="" emailSubject="" smsMessage="" ]
+[#function getUserPoolInviteMessageTemplate emailMessage="" emailSubject="" smsMessage="" ]
+    [#return 
+        {} + 
+        attributeIfContent(
+            "EmailMessage",
+            emailMessage
+        ) + 
+        attributeIfContent(
+            "EmailSubject",
+            emailSubject
+        ) + 
+        attributeIfContent(
+            "SMSMessage",
+            smsMessage
+        )
+    ]
+[/#function]
+
+[#function getUserPoolAdminCreateUserConfig enabled unusedTimeout inviteMessageTemplate={} ]
     [#return 
         {
             "AllowAdminCreateUserOnly" : enabled,
             "UnusedAccountValidityDays" : unusedTimeout 
         }   + 
             attributeIfContent(
-                "EmailMessage",
-                emailMessage
-            ) + 
-            attributeIfContent(
-                "EmailSubject",
-                emailSubject
-            ) + 
-            attributeIfContent(
-                "SMSMessage",
-                smsMessage
+                "InviteMessageTemplate",
+                inviteMessageTemplate
             )
     ]
 [/#function]
@@ -171,9 +181,10 @@
                 "AdminCreateUserConfig" : getUserPoolAdminCreateUserConfig(
                                                 adminCreatesUser, 
                                                 unusedTimeout,
-                                                emailVerificationMessage,
-                                                emailVerificationSubject,
-                                                smsVerificationMessage)
+                                                getUserPoolInviteMessageTemplate(
+                                                    emailVerificationMessage,
+                                                    emailVerificationSubject,
+                                                    smsVerificationMessage))
             } + 
             attributeIfContent(
                 "Policies",
