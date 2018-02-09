@@ -66,7 +66,7 @@
     /]
 [/#macro]
 
-[#macro createLambdaPermission mode id targetId eventRuleId dependencies=""]
+[#macro createLambdaPermission mode id targetId sourcePrincipal sourceId dependencies=""]
     [@cfResource
         mode=mode
         id=id
@@ -75,8 +75,8 @@
             {
                 "FunctionName" : getReference(targetId),
                 "Action" : "lambda:InvokeFunction",
-                "Principal" : "events.amazonaws.com",
-                "SourceArn" : getReference(eventRuleId, ARN_ATTRIBUTE_TYPE)
+                "Principal" : sourcePrincipal,
+                "SourceArn" : getReference(sourceId, ARN_ATTRIBUTE_TYPE)
             }
         outputs=LAMBDA_PERMISSION_OUTPUT_MAPPINGS
         dependencies=dependencies

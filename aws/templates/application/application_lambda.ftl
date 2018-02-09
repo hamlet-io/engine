@@ -241,7 +241,7 @@
                             dependencies=roleId
                         /]
                         
-                        [#list fn.Schedules as schedule ]
+                        [#list (fn.Schedules!{})?values as schedule ]
                             [#if schedule?is_hash ]
                                 [#-- By default schedule event rule is disabled for all functions with rate 30 minutes --]
                                 [#-- To disable it set fn.Schedule.Enabled to "false" --]
@@ -254,7 +254,7 @@
                                         component,
                                         fn,
                                         occurrence,
-                                        schedule.Name
+                                        schedule.Id
                                         )]
             
                                 [#assign lambdaPermissionId =
@@ -263,7 +263,7 @@
                                         component,
                                         fn,
                                         occurrence,
-                                        schedule.Name
+                                        schedule.Id
                                         )]
                                 
                                 [@createScheduleEventRule
@@ -280,7 +280,8 @@
                                     mode=listMode
                                     id=lambdaPermissionId
                                     targetId=lambdaFunctionId
-                                    eventRuleId=eventRuleId
+                                    sourcePrincipal="events.amazonaws.com"
+                                    sourceId=eventRuleId
                                     dependencies=eventRuleId
                                 /]
                             [/#if]
