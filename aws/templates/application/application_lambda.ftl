@@ -206,20 +206,6 @@
                                 component,
                                 fn,
                                 occurrence)]
-
-                        [#assign eventRuleId =
-                            formatEventRuleId(
-                                tier,
-                                component,
-                                fn,
-                                occurrence)]
-    
-                        [#assign lambdaPermissionId =
-                            formatLambdaPermissionId(
-                                tier,
-                                component,
-                                fn,
-                                occurrence)]
     
                         [#assign lambdaFunctionName =
                             formatLambdaFunctionName(
@@ -255,28 +241,50 @@
                             dependencies=roleId
                         /]
                         
-                        [#-- By default schedule event rule is enabled for all functions with rate 15 minutes --]
-                        [#-- To disable it set fn.Schedule.EnabledState to "false" --]
-                        [#-- To change schedule expression set fn.Schedule.Expression --]
-                        [#assign state = "DISABLED"]
-                        [#if fn.Schedule?has_content && fn.Schedule.EnabledState?has_content && fn.Schedule.EnabledState]
-                            [#assign state = "ENABLED"]
-                        [/#if]
-                        [@createScheduleEventRule
-                            mode=listMode
-                            id=eventRuleId
-                            targetId=lambdaFunctionId
-                            state=state
-                            scheduleExpression=(fn.Schedule.Expression)!"rate(15 minutes)"
-                            dependencies=lambdaFunctionId
-                        /]
-                        [@createLambdaPermission
-                            mode=listMode
-                            id=lambdaPermissionId
-                            targetId=lambdaFunctionId
-                            eventRuleId=eventRuleId
-                            dependencies=eventRuleId
-                        /]
+                        [#list fn.Schedules as schedule ]
+                            [#if schedule?is_hash ]
+                                [#-- By default schedule event rule is disabled for all functions with rate 30 minutes --]
+                                [#-- To disable it set fn.Schedule.Enabled to "false" --]
+                                [#-- To change schedule expression set fn.Schedule.Expression --]
+                                [#-- The Input path is used to mimic a path request in the same way that Lambda does --]
+                                
+                                [#assign eventRuleId =
+                                    formatEventRuleId(
+                                        tier,
+                                        component,
+                                        fn,
+                                        occurrence,
+                                        schedule.Name
+                                        )]
+            
+                                [#assign lambdaPermissionId =
+                                    formatLambdaPermissionId(
+                                        tier,
+                                        component,
+                                        fn,
+                                        occurrence,
+                                        schedule.Name
+                                        )]
+                                
+                                [@createScheduleEventRule
+                                    mode=listMode
+                                    id=eventRuleId
+                                    targetId=lambdaFunctionId
+                                    enabled=schedule.Enabled
+                                    scheduleExpression=schedule.Expression
+                                    path=schedule.InputPath
+                                    dependencies=lambdaFunctionId
+                                /]
+
+                                [@createLambdaPermission
+                                    mode=listMode
+                                    id=lambdaPermissionId
+                                    targetId=lambdaFunctionId
+                                    eventRuleId=eventRuleId
+                                    dependencies=eventRuleId
+                                /]
+                            [/#if]
+                        [/#list]
                     [/#if]
                 [/#list]
                 
