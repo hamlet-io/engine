@@ -258,9 +258,9 @@
                         [#-- By default schedule event rule is enabled for all functions with rate 15 minutes --]
                         [#-- To disable it set fn.Schedule.EnabledState to "false" --]
                         [#-- To change schedule expression set fn.Schedule.Expression --]
-                        [#assign state = "ENABLED"]
-                        [#if fn.Schedule?has_content && fn.Schedule.EnabledState?has_content && !fn.Schedule.EnabledState]
-                            [#assign state = "DISABLED"]
+                        [#assign state = "DISABLED"]
+                        [#if fn.Schedule?has_content && fn.Schedule.EnabledState?has_content && fn.Schedule.EnabledState]
+                            [#assign state = "ENABLED"]
                         [/#if]
                         [@createScheduleEventRule
                             mode=listMode
