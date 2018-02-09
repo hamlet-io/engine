@@ -243,11 +243,7 @@
                         
                         [#list (fn.Schedules!{})?values as schedule ]
                             [#if schedule?is_hash ]
-                                [#-- By default schedule event rule is disabled for all functions with rate 30 minutes --]
-                                [#-- To disable it set fn.Schedule.Enabled to "false" --]
-                                [#-- To change schedule expression set fn.Schedule.Expression --]
-                                [#-- The Input path is used to mimic a path request in the same way that Lambda does --]
-                                
+
                                 [#assign eventRuleId =
                                     formatEventRuleId(
                                         tier,
