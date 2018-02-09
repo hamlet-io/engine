@@ -2,7 +2,7 @@
 
 [#assign USERPOOL_RESOURCE_TYPE = "userpool"]
 [#assign USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient" ]
-[#assign USERPOOL_IDENTITYPOOL_RESOURCE_TYPE = "userpoolidentitypool" ]
+[#assign IDENTITYPOOL_RESOURCE_TYPE = "identitypool" ]
 
 [#function formatUserPoolId tier component extensions...]
     [#return formatComponentResourceId(
@@ -20,35 +20,35 @@
             extensions)]
 [/#function]
 
-[#function formatUserPoolIdentityPoolId tier component extensions... ]
+[#function formatIdentityPoolId tier component extensions... ]
     [#return formatComponentResourceId(
-            USERPOOL_IDENTITYPOOL_RESOURCE_TYPE,
+            IDENTITYPOOL_RESOURCE_TYPE,
             tier,
             component,
             extensions)]
 [/#function]
 
-[#function formatDependentUserPoolIdentityRoleMappingId resourceId extensions...]
+[#function formatIdentityPoolRoleMappingId resourceId extensions...]
     [#return formatDependentResourceId(
-                "userPoolIdentityPoolRoleMapping",
-                resourceId,
-                extensions)]
+            "rolemapping",
+            resourceId,
+            extensions)]
 [/#function]
 
-[#function formatDependentUserPoolIdentityUnAuthRoleId tier component ]
+[#function formatIdentityPoolUnAuthRoleId resourceId extensions... ]
     [#return 
-        formatComponentRoleId(
-            tier, 
-            component, 
-            "IdentityUnAuthRole")
+        formatDependentRoleId(
+            resourceId,
+            "unauth",
+            extensions)]
     ]
 [/#function]
 
-[#function formatDependentUserPoolIdentityAuthRoleId tier component ]
+[#function formatIdentityPoolAuthRoleId resourceId extensions... ]
     [#return 
-        formatComponentRoleId(
-            tier, 
-            component, 
-            "IdentityAuthRole")
+        formatDependentRoleId(
+                resourceId,
+                "auth",
+                extensions)]
     ]
 [/#function]
