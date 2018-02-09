@@ -672,10 +672,6 @@
                 {
                     "Name" : "UseSegmentKey",
                     "Default" : false
-                },
-                {
-                    "Name" : "Schedules",
-                    "Default" : [ ]
                 }
             ],
         "s3" : 
