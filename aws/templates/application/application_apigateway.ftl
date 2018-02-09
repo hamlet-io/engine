@@ -1,8 +1,5 @@
 [#-- API Gateway --]
 
-[#function getApigatewayBlueprint ]
-[/#function]
-
 [#if (componentType == "apigateway")]
     [#assign apigateway = component.APIGateway]
                                      
@@ -124,9 +121,8 @@
                                                 formatInvokeApiGatewayArn(apiId, stageName)    
                                             )
                                         ]
-                                        roles=formatDependentUserPoolIdentityAuthRoleId(
-                                                link.Tier, 
-                                                link.Component)
+                                        roles=formatDependentIdentityPoolAuthRoleId(
+                                                formatIdentityPoolId(link.Tier, link.Component))
                                     /]
                                 [/#if]
                             [#break]
