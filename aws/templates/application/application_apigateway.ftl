@@ -121,7 +121,7 @@
                                                 formatInvokeApiGatewayArn(apiId, stageName)    
                                             )
                                         ]
-                                        roles=formatIdentityPoolAuthRoleId(
+                                        roles=formatDependentIdentityPoolAuthRoleId(
                                                 formatIdentityPoolId(link.Tier, link.Component))
                                     /]
                                 [/#if]

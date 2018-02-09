@@ -28,14 +28,14 @@
             extensions)]
 [/#function]
 
-[#function formatIdentityPoolRoleMappingId resourceId extensions...]
+[#function formatDependentIdentityPoolRoleMappingId resourceId extensions...]
     [#return formatDependentResourceId(
             "rolemapping",
             resourceId,
             extensions)]
 [/#function]
 
-[#function formatIdentityPoolUnAuthRoleId resourceId extensions... ]
+[#function formatDependentIdentityPoolUnAuthRoleId resourceId extensions... ]
     [#return 
         formatDependentRoleId(
             resourceId,
@@ -44,7 +44,7 @@
     ]
 [/#function]
 
-[#function formatIdentityPoolAuthRoleId resourceId extensions... ]
+[#function formatDependentIdentityPoolAuthRoleId resourceId extensions... ]
     [#return 
         formatDependentRoleId(
                 resourceId,

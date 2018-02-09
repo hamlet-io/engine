@@ -127,7 +127,7 @@
                                             id=policyId
                                             name=lambdaName
                                             statements=lamdbaFunctionPolicies
-                                            roles=formatIdentityPoolAuthRoleId(
+                                            roles=formatDependentIdentityPoolAuthRoleId(
                                                     formatIdentityPoolId(link.Tier, link.Component))
                                         /]
                                     [/#if]
