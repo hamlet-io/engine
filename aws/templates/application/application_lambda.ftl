@@ -1,6 +1,7 @@
 [#if componentType = "lambda"]
 
     [#list getOccurrences(component, deploymentUnit) as occurrence]
+        [@cfDebug listMode occurrence false /]
         [#if occurrence.Functions?is_hash]
         
             [#assign lambdaId = formatLambdaId(
@@ -42,6 +43,7 @@
                 [#list occurrence.Links?values as link]
                     [#if link?is_hash]
                         [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                        [@cfDebug listMode linkTarget false /]
                         [#switch linkTarget.Type!""]
                             [#case "userpool"] 
                                 [#assign policyId = formatDependentPolicyId(
@@ -63,7 +65,7 @@
                                                     "lambda:InvokeFunction",
                                                     formatLambdaArn(lambdaFunctionId)    
                                                 )]
-                                        [#assign lamdbaFunctionPolicies = lamdbaFunctionPolicies + [lambdaFunctionPolicy]]
+                                        [#assign lamdbaFunctionPolicies = lamdbaFunctionPolicies + [lambdaFunctionPolicy]]                                    
                                     [/#if]
                                 [/#list]
         
