@@ -108,6 +108,7 @@
                     [/#if]
                     [#break]
                 [#case "-"]
+                [#case "_"]
                 [#case "/"]
                     [#if (argValue.Internal.NameExtensions)??]
                         [#local argValue = concatenate(
@@ -206,7 +207,7 @@
 
 [#function getAppDataPublicFilePrefix ]
 
-    [#if segmentObject.Data?has_content  && segmentObject.Data.Public?has_content && segmentObject.Data.Public.Enabled]
+    [#if (segmentObject.Data.Public.Enabled)!false]
         [#return formatSegmentPrefixPath(
             "apppublic",
             (appSettingsObject.FilePrefixes.AppData)!
@@ -311,8 +312,9 @@
 
 [#-- Get the type for a component --]
 [#function getComponentType component]
-    [#if ! component.Id?has_content]
-        [#return "???" ]
+    [#if ! (component?is_hash && component.Id?has_content) ]
+        [@cfPreconditionFailed listMode "getComponentType" component /]
+        [#return "???"]
     [/#if]
     [#local idParts = component.Id?split("-")]
     [#if idParts[1]?has_content]
@@ -358,14 +360,18 @@
 
 [#-- Get a component within a tier --]
 [#function getComponent tierId componentId type=""]
-    [#if isTier(tierId) && (getTier(tierId).Components)??]
-        [#list getTier(tierId).Components?values as component]
-            [#if component?is_hash && (component.Id == componentId)]
-                [#return component]
-            [/#if]
-            [#if type?has_content &&
-                (getComponentId(component) == componentId) &&
-                (getComponentType(component) == type)]
+    [#if isTier(tierId) ]
+        [#list ((getTier(tierId).Components)!{})?values as component]
+            [#if
+                component?is_hash &&
+                (
+                    (component.Id == componentId) ||
+                    (
+                      type?has_content &&
+                      (getComponentId(component) == componentId) &&
+                      (getComponentType(component) == type)
+                    )
+                ) ]
                 [#return component]
             [/#if]
         [/#list]
@@ -990,16 +996,18 @@
 
 [#function getLinkTarget occurrence link]
     [#local result = {} ]
+    [#local targetComponentType = "" ]
     [#local targetComponent = getComponent(link.Tier, link.Component)]
-    [#local targetComponentType = getComponentType(targetComponent) ]
 
     [#if targetComponent?has_content]
+        [#local targetComponentType = getComponentType(targetComponent) ]
         [#list getOccurrences(targetComponent) as targetOccurrence]
             [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
                             (targetOccurrence.VersionId == occurrence.VersionId)]
                 [#switch targetComponentType]
                     [#case "alb"]
                     [#case "apigateway"]
+                    [#case "lambda"]
                     [#case "sqs"]
                         [#local result = targetOccurrence]
                         [#break]
@@ -1014,16 +1022,26 @@
             [/#switch]
         [/#list]
     [/#if]
-    [#return
-        {} +
-        valueIfContent(
+    
+    [#if result?has_content]
+        [#return
             result +
             {
                 "Type" : targetComponentType,
                 "Tier" : link.Tier,
                 "Component" : link.Component
-            },
-            result) ]
+            } ]
+    [#else]
+        [@cfPostconditionFailed
+            listMode
+            "getLinkTarget"
+            {
+                "Occurrence" : occurrence,
+                "Link" : link
+            }
+            "Link not found" /]
+        [#return {} ]
+    [/#if]
 [/#function]
 
 [#function getLinkTargetInformation target]
@@ -1065,9 +1083,9 @@
                 {
                     "ResourceId" : id,
                     "Attributes" : {
-                        "DNS" : fqdn,
+                        "FQDN" : fqdn,
                         "URL" : scheme + "://" + fqdn,
-                        "INTERNAL_DNS" : internalFqdn,
+                        "INTERNAL_FQDN" : internalFqdn,
                         "INTERNAL_URL" : scheme + "://" + internalFqdn
                     }
                 }
@@ -1092,11 +1110,11 @@
                 {
                     "ResourceId" : id,
                     "Attributes" : {
-                        "DNS" : fqdn,
+                        "FQDN" : fqdn,
                         "URL" : "https://" + fqdn,
-                        "SIGNING_DNS" : signingFqdn,
+                        "SIGNING_FQDN" : signingFqdn,
                         "SIGNING_URL" : "https://" + signingFqdn,
-                        "INTERNAL_DNS" : internalFqdn,
+                        "INTERNAL_FQDN" : internalFqdn,
                         "INTERNAL_URL" : "https://" + internalFqdn
                     },
                     "Policy" : apigatewayInvokePermission(id, target.VersionId)
@@ -1130,7 +1148,7 @@
                 {
                     "ResourceId" : id,
                     "Attributes" : {
-                        "DNS" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
+                        "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
                         "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
                         "NAME" : getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)
                     }
@@ -1139,7 +1157,7 @@
             [#list (credentialsObject[target.Tier + "-" + target.Component].Login)!{} as name,value]
                 [#local result +=
                     {
-                      "Attributes" : result.Attributes + { name : value }
+                      "Attributes" : result.Attributes + { name?upper_case : value }
                     }
                 ]
             [/#list]
