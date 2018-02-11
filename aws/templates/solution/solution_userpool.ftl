@@ -5,20 +5,20 @@
 
     [#assign userPoolId = formatUserPoolId(tier, component)]
     [#assign userPoolClientId = formatUserPoolClientId(tier, component)]
-    [#assign userPoolIdentityPoolId = formatIdentityPoolId(tier,component)]
     [#assign userPoolRoleId = formatComponentRoleId(tier, component)]
-    [#assign userPoolIdentityUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(userPoolIdentityPoolId)]
-    [#assign userPoolIdentityAuthRoleId = formatDependentIdentityPoolAuthRoleId(userPoolIdentityPoolId)]
-    [#assign userPoolIdentityRoleMappingId = formatDependentIdentityPoolRoleMappingId(userPoolIdentityPoolId)]
-    [#assign userPoolName = componentFullName]
-    [#assign userPoolIdentityPoolName = formatIdentityPoolName(tier, component)]
-    [#assign userPoolClientName = formatUserPoolClientName(tier,component) ]
+    [#assign identityPoolId = formatIdentityPoolId(tier,component)]
+    [#assign identityPoolUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(identityPoolId)]
+    [#assign identityPoolAuthRoleId = formatDependentIdentityPoolAuthRoleId(identityPoolId)]
+    [#assign identityPoolRoleMappingId = formatDependentIdentityPoolRoleMappingId(identityPoolId)]
+    [#assign userPoolName = formatUserPoolName(tier, component)]
+    [#assign identityPoolName = formatIdentityPoolName(tier, component)]
+    [#assign userPoolClientName = formatUserPoolClientName(tier, component) ]
     [#assign dependencies = [] ]
     [#assign smsVerification = false]
     [#assign schema = [] ]
 
     [#assign emailVerificationMessage = ""]
-    [#if appSettingsObject.UserPool?has_content &&  appSettingsObject.UserPool.EmailVerificationMessage?has_content ]
+    [#if appSettingsObject.UserPool?has_content &&  (appSettingsObject.UserPool.EmailVerificationMessage)?has_content ]
         [#assign emailVerificationMessage = appSettingsObject.UserPool.EmailVerificationMessage ]
     [/#if]
 
@@ -181,7 +181,7 @@
         mode=listMode
         component=component
         tier=tier
-        id=identityRoleMappingId
+        id=identityPoolRoleMappingId
         identityPoolId=getReference(identityPoolId)
         authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
         unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
