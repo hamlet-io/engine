@@ -430,6 +430,84 @@
     [/#switch]
 [/#macro]
 
+[#macro cfDebug
+            mode
+            value
+            enabled=true]
+
+    [#switch mode]
+        [#case "definition"]
+            [#if enabled]
+                [#assign debugResources += [value] ]
+            [/#if]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
+[#macro cfException
+            mode
+            description
+            context={}
+            detail=""]
+
+    [#switch mode]
+        [#case "definition"]
+            [#assign exceptionResources +=
+                [
+                    {
+                        "Description" : description,
+                        "Context" : context
+                    } + 
+                    valueIfContent(
+                        {
+                            "Detail" : detail
+                        },
+                        detail
+                    )
+                ]
+            ]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
+[#macro cfPreconditionFailed
+            mode
+            function
+            context={}
+            description=""]
+
+    [#switch mode]
+        [#case "definition"]
+            [@cfException
+                mode
+                function + " precondition failed"
+                context
+                description /]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
+[#macro cfPostconditionFailed
+            mode
+            function
+            context={}
+            description=""]
+
+    [#switch mode]
+        [#case "definition"]
+            [@cfException
+                mode
+                function + " postcondition failed"
+                context
+                description /]
+            [#break]
+
+    [/#switch]
+[/#macro]
+
 [#macro includeCompositeLists compositeLists=[] ]
     [#list tiers as tier]
         [#assign tierId = tier.Id]
@@ -472,6 +550,8 @@
     
     [#-- Resources --]
     [#assign templateResources = {} ]
+    [#assign debugResources = [] ]
+    [#assign exceptionResources = [] ]
     [#assign listMode = "definition"]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
@@ -539,7 +619,19 @@
                                   )
                           }
                   }
-          }
+          } +
+          valueIfContent(
+              {
+                  "Debug" : debugResources
+              },
+              debugResources
+          ) +
+          valueIfContent(
+              {
+                  "Exceptions" : exceptionResources
+              },
+              exceptionResources
+          )
       /]
     [#elseif templateScript?has_content]
       #!/bin/bash
