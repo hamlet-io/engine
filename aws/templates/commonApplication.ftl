@@ -44,6 +44,10 @@
     [/#if]
 [/#macro]
 
+[#function formatVariableName parts...]
+    [#return concatenate(parts, "_")?upper_case?replace("-", "_") ]
+[/#function]
+
 [#function addVariableToContext context name value]
     [#return
         context +
@@ -51,7 +55,7 @@
             "Environment" : 
                 (context.Environment!{}) +
                 {
-                    name?upper_case : (value?is_hash || value?is_sequence)?then(getJSON(value, true), value)
+                    formatVariableName(name) : (value?is_hash || value?is_sequence)?then(getJSON(value, true), value)
                 }
         }
     ]

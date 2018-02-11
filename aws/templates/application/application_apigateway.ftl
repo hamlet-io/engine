@@ -2,11 +2,10 @@
 
 [#if (componentType == "apigateway")]
     [#assign apigateway = component.APIGateway]
-                                     
     [#-- Non-repeating text to ensure deploy happens every time --]
     [#assign noise = random.nextLong()?string.computer?replace("-","X")]
-
     [#list getOccurrences(component, deploymentUnit) as occurrence]
+        [@cfDebug listMode occurrence false /]
 
         [#assign apiId    = formatAPIGatewayId(
                                 tier,
@@ -49,7 +48,7 @@
                     [#case "alb"]
                         [#assign stageVariables +=
                             {
-                                link.Name?upper_case + "_DOCKER" : linkInformation.Attributes.DNS
+                                formatVariableName(link.Name, "DOCKER") : linkInformation.Attributes.FQDN
                             }
                         ]
                         [#break]
@@ -61,11 +60,11 @@
                                     formatLambdaFunctionName(
                                         getTier(linkTarget.Tier),
                                         linkTarget.Component,
-                                        linktarget,
+                                        linkTarget,
                                         fn)]
                                 [#assign stageVariables +=
                                     {
-                                        link.Name?upper_case + "_" + fn.Name?upper_case + "_LAMBDA" : fnName
+                                        formatVariableName(link.Name, fn.Name, "LAMBDA") : fnName
                                     }
                                 ]
                                 [#if deploymentSubsetRequired("apigateway", true)]
@@ -111,9 +110,8 @@
                                         formatInvokeApiGatewayArn(apiId, stageName)    
                                     )
                                 ]
-                                roles=formatDependentIdentityPoolAuthRoleId(
-                                        link.Tier, 
-                                        link.Component)
+                                roles=formatIdentityPoolAuthRoleId(
+                                        formatIdentityPoolId(link.Tier, link.Component))
                             /]
                         [/#if]
                         [#break]
