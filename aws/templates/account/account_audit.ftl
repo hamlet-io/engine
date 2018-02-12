@@ -1,13 +1,12 @@
 [#-- Auditing configuration --]
 [#if deploymentUnit?contains("audit")] 
 
-        [#assign existingAuditName = getExistingReference(formatAccountS3Id("audit"))]
+    [#assign existingAuditName = getExistingReference(formatAccountS3Id("audit"))]
 
-        [#assign lifecycleRules = [] ]
-        [#assign sqsNotifications = []]
-        [#assign dependencies = [] ]
+    [#assign lifecycleRules = []]
+    [#assign sqsNotifications = []]
         
-        [@cfResource 
+    [@cfResource 
         mode=listMode
         id=formatAccountS3Id("audit")
         type="AWS::S3::Bucket"
@@ -33,7 +32,5 @@
                 }) 
         tags=getCfTemplateCoreTags()
         outputs=S3_OUTPUT_MAPPINGS
-        outputId=outputId
-        dependencies=dependencies
     /]
 [/#if]
