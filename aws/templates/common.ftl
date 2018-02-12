@@ -1132,7 +1132,9 @@
             [#local result =
                 {
                     "ResourceId" : id,
-                    "Attributes" : {}
+                    "Attributes" : {
+                        "REGION" : regionId
+                    }
                 }
             ]
             [#break]
@@ -1175,7 +1177,8 @@
                     "Attributes" : {
                         "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
                         "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
-                        "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE)
+                        "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
+                        "REGION" : regionId
                     }
                 }
             ]
@@ -1191,7 +1194,9 @@
                     "Attributes" : {
                         "USER_POOL" : getReference(id),
                         "IDENTITY_POOL" : getReference(identityPoolId),
-                        "CLIENT" : getReference(clientId)
+                        "CLIENT" : getReference(clientId),
+                        "REGION" : regionId
+
                     }
                 }
             ]
