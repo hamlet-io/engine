@@ -1,6 +1,7 @@
 [#if componentType = "lambda"]
 
     [#list getOccurrences(component, deploymentUnit) as occurrence]
+        [@cfDebug listMode occurrence false /]
         [#if occurrence.Functions?is_hash]
         
             [#assign lambdaId = formatLambdaId(
@@ -33,116 +34,65 @@
                             buildCommit,
                             "lambda.zip"
                         ),
-                    "Links" : {}
+                    "Links" : getLinkTargets(occurrence),
+                    "DefaultLinkVariables" : true
                 }
             ]
-        
-            [#list occurrence.Links?values as link]
-                [#if link?is_hash]
-                    [#assign targetComponent = getComponent(link.Tier, link.Component)]
-                    [#if targetComponent?has_content]
-                        [#list getOccurrences(targetComponent) as targetOccurrence]
-                            [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
-                                    (targetOccurrence.VersionId == occurrence.VersionId)]
-                                [#switch getComponentType(targetComponent)]
-                                    [#case "alb"]
-                                        [#assign context +=
-                                            {
-                                              "Links" :
-                                                  context.Links +
-                                                  {
-                                                    link.Name : {
-                                                        "Url" :
-                                                            getExistingReference(
-                                                                formatALBId(
-                                                                    link.Tier,
-                                                                    link.Component,
-                                                                    targetOccurrence),
-                                                                DNS_ATTRIBUTE_TYPE)
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                        [#break]
 
-                                    [#case "apigateway"]
-                                        [#assign apiId =
-                                            formatAPIGatewayId(
-                                                link.Tier,
-                                                link.Component,
-                                                targetOccurrence)]
-                                        [#assign context +=
-                                            {
-                                              "Links" :
-                                                  context.Links +
-                                                  {
-                                                    link.Name : {
-                                                        "Url" :
-                                                            "https://" +
-                                                            formatDomainName(
-                                                                getExistingReference(apiId),
-                                                                "execute-api",
-                                                                regionId,
-                                                                "amazonaws.com"),
-                                                        "Policy" : apigatewayInvokePermission(apiId, occurrence.VersionId)
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                        [#break]
-                                [/#switch]
-                                [#break]
-                            [/#if]
-                            [#switch getComponentType(targetComponent)]
+            [#if deploymentSubsetRequired("lambda", true)]
+                [#list occurrence.Links?values as link]
+                    [#if link?is_hash]
+                        [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                        [@cfDebug listMode linkTarget false /]
+                        [#switch linkTarget.Type!""]
                             [#case "userpool"] 
-                                [#if deploymentSubsetRequired("lambda", true)]
+                                [#assign policyId = formatDependentPolicyId(
+                                                        lambdaId, 
+                                                        link.Name)]
 
-                                    [#assign policyId = formatDependentPolicyId(
-                                                            lambdaId, 
-                                                            formatUserPoolId(link.Tier, link.Component))]
-
-                                    [#assign lamdbaFunctionPolicies = [] ]
-
-                                    [#list occurrence.Functions?values as fn]
-                                        [#if fn?is_hash]
-                                            [#assign lambdaFunctionId =
-                                                formatLambdaFunctionId(
-                                                    tier,
-                                                    component,
-                                                    fn,
-                                                    occurrence)]
-                                            
+                                [#assign lamdbaFunctionPolicies = [] ]
+      
+                                [#list occurrence.Functions?values as fn]
+                                    [#if fn?is_hash]
+                                        [#assign lambdaFunctionId =
+                                            formatLambdaFunctionId(
+                                                tier,
+                                                component,
+                                                fn,
+                                                occurrence)]
+                                        
                                         [#assign lambdaFunctionPolicy = getPolicyStatement(
                                                     "lambda:InvokeFunction",
                                                     formatLambdaArn(lambdaFunctionId)    
                                                 )]
-                                        [#assign lamdbaFunctionPolicies = lamdbaFunctionPolicies + [lambdaFunctionPolicy]]
-                                        
-                                        [/#if]
-                                    [/#list]
-
-                                    [#if lamdbaFunctionPolicies?has_content ]
-                                        [@createPolicy 
-                                            mode=listMode
-                                            id=policyId
-                                            name=lambdaName
-                                            statements=lamdbaFunctionPolicies
-                                            roles=formatDependentIdentityPoolAuthRoleId(
-                                                    formatIdentityPoolId(link.Tier, link.Component))
-                                        /]
+                                        [#assign lamdbaFunctionPolicies = lamdbaFunctionPolicies + [lambdaFunctionPolicy]]                                    
                                     [/#if]
+                                [/#list]
+        
+                                [#if lamdbaFunctionPolicies?has_content ]
+                                    [@createPolicy 
+                                        mode=listMode
+                                        id=policyId
+                                        name=lambdaName
+                                        statements=lamdbaFunctionPolicies
+                                        roles=formatDependentIdentityPoolAuthRoleId(
+                                                formatIdentityPoolId(link.Tier, link.Component))
+                                    /]
                                 [/#if]
-                            [#break]
+                                [#break]
                         [/#switch]
-                        [/#list]
                     [/#if]
-                [/#if]
-            [/#list]
+                [/#list]
+            [/#if]
 
             [#-- Add in container specifics including override of defaults --]
             [#assign containerListMode = "model"]
             [#assign containerId = formatContainerFragmentId(occurrence, context)]
             [#include containerList?ensure_starts_with("/")]
+
+            [#if context.DefaultLinkVariables]
+                [#assign context = addDefaultLinkVariablesToContext(context) ]
+            [/#if]
 
             [#assign roleId = formatDependentRoleId(lambdaId)]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]

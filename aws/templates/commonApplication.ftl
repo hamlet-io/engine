@@ -44,22 +44,70 @@
     [/#if]
 [/#macro]
 
-[#macro Variable name value]
-    [#local effectiveValue = (value?is_hash || value?is_sequence)?then(getJSON(value, true), value) ]
+[#function formatVariableName parts...]
+    [#return concatenate(parts, "_")?upper_case?replace("-", "_") ]
+[/#function]
 
+[#function addVariableToContext context name value]
+    [#return
+        context +
+        {
+            "Environment" : 
+                (context.Environment!{}) +
+                {
+                    formatVariableName(name) : (value?is_hash || value?is_sequence)?then(getJSON(value, true), value)
+                }
+        }
+    ]
+[/#function]
+
+[#macro Variable name value]
     [#if (containerListMode!"") == "model"]
-        [#assign context +=
-            {
-                "Environment" : (context.Environment!{}) + { name : effectiveValue }
-            }
-        ]
+        [#assign context = addVariableToContext(context, name, value) ]
     [/#if]
 [/#macro]
 
-[#macro Link name link attribute="Url"]
-    [@Variable
-        name=name
-        value=(context.Links[link][attribute])!"" /]
+[#function getLinkResourceId link]
+    [#return (context.Links[link].ResourceId)!"" ]
+[/#function]
+
+[#function addLinkVariablesToContext context name link attributes rawName=false]
+    [#local result = context ]
+    [#local linkAttributes = (context.Links[link].Attributes)!{} ]  
+    [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
+    [#if linkAttributes?has_content]
+        [#list attributeList as attribute]
+            [#local result =
+                addVariableToContext(
+                    result,
+                    name + valueIfTrue("_" + attribute, !rawName, ""),
+                    (linkAttributes[attribute?upper_case])!"") ]
+        [/#list]
+    [#else]
+        [#local result = addVariableToContext(result, name, "ERROR: No attributes found") ]
+    [/#if]
+    [#return result]
+[/#function]
+
+[#function addDefaultLinkVariablesToContext context]
+    [#local result = context ]
+    [#list context.Links?keys as name]
+        [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#macro Link name link attributes=[] rawName=false]
+    [#if (containerListMode!"") == "model"]
+        [#assign context =
+            addLinkVariablesToContext(context, name, link, attributes, rawName) ]
+    [/#if]
+[/#macro]
+
+[#macro DefaultLinkVariables enabled=true ]
+    [#if (containerListMode!"") == "model"]
+        [#assign context += { "DefaultLinkVariables" : enabled } ]
+    [/#if]
 [/#macro]
 
 [#macro Setting name path=[] default=""]
@@ -190,7 +238,8 @@
         attributeIfContent("APP_RUN_MODE", mode) +
         attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
         attributeIfContent("APP_REFERENCE", appReference!"") + 
-        attributeIfContent("APPDATA_PUBLIC_PREFIX" getAppDataPublicFilePrefix())
+        attributeIfContent("APPDATA_PUBLIC_PREFIX" getAppDataPublicFilePrefix()) +
+        attributeIfContent("SES_REGION", (productObject.SES.Region)!"")        
     ]
 [/#function]
 
@@ -365,7 +414,8 @@
                         {
                             "AWS_REGION" : regionId
                         },
-                    "Links" : {}
+                    "Links" : getLinkTargets(task, container.Links!{}),
+                    "DefaultLinkVariables" : true
                 } +
                 attributeIfContent("ImageVersion", container.Version!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
@@ -378,6 +428,10 @@
             [#assign containerId = formatContainerFragmentId(task, container)]
             [#include containerList]
             
+            [#if context.DefaultLinkVariables]
+                [#assign context = addDefaultLinkVariablesToContext(context) ]
+            [/#if]
+
             [#local containers += [context] ]
         [/#if]
     [/#list]

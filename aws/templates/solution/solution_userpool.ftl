@@ -5,20 +5,20 @@
 
     [#assign userPoolId = formatUserPoolId(tier, component)]
     [#assign userPoolClientId = formatUserPoolClientId(tier, component)]
-    [#assign userPoolIdentityPoolId = formatIdentityPoolId(tier,component)]
     [#assign userPoolRoleId = formatComponentRoleId(tier, component)]
-    [#assign userPoolIdentityUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(userPoolIdentityPoolId)]
-    [#assign userPoolIdentityAuthRoleId = formatDependentIdentityPoolAuthRoleId(userPoolIdentityPoolId)]
-    [#assign userPoolIdentityRoleMappingId = formatDependentIdentityPoolRoleMappingId(userPoolIdentityPoolId)]
-    [#assign userPoolName = componentFullName]
-    [#assign userPoolIdentityPoolName = formatIdentityPoolName(tier, component)]
-    [#assign userPoolClientName = formatUserPoolClientName(tier,component) ]
+    [#assign identityPoolId = formatIdentityPoolId(tier,component)]
+    [#assign identityPoolUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(identityPoolId)]
+    [#assign identityPoolAuthRoleId = formatDependentIdentityPoolAuthRoleId(identityPoolId)]
+    [#assign identityPoolRoleMappingId = formatDependentIdentityPoolRoleMappingId(identityPoolId)]
+    [#assign userPoolName = formatUserPoolName(tier, component)]
+    [#assign identityPoolName = formatIdentityPoolName(tier, component)]
+    [#assign userPoolClientName = formatUserPoolClientName(tier, component) ]
     [#assign dependencies = [] ]
     [#assign smsVerification = false]
     [#assign schema = [] ]
 
     [#assign emailVerificationMessage = ""]
-    [#if appSettingsObject.UserPool?has_content &&  appSettingsObject.UserPool.EmailVerificationMessage?has_content ]
+    [#if appSettingsObject.UserPool?has_content &&  (appSettingsObject.UserPool.EmailVerificationMessage)?has_content ]
         [#assign emailVerificationMessage = appSettingsObject.UserPool.EmailVerificationMessage ]
     [/#if]
 
@@ -93,7 +93,7 @@
         emailVerificationSubject=emailVerificationSubject
         smsVerificationMessage=smsVerificationMessage
         autoVerify=(userpool.verifyEmail || smsVerification)?then(
-            getUserPoolAutoVerifcation(userpool.verifyEmail, smsVerification),
+            getUserPoolAutoVerification(userpool.verifyEmail, smsVerification),
             []
         )
         loginAliases=((userpool.loginAliases)?has_content)?then(
@@ -126,20 +126,20 @@
 
     [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
 
-    [@createUserPoolIdentityPool 
+    [@createIdentityPool 
         mode=listMode
         component=component
         tier=tier
         dependencies=dependencies
-        id=userPoolIdentityPoolId
-        name=userPoolIdentityPoolName
+        id=identityPoolId
+        name=identityPoolName
         cognitoIdProviders=cognitoIdentityPoolProvider
         allowUnauthenticatedIdentities=userpool.allowUnauthIds
     /]
 
     [@createRole
         mode=listMode
-        id=userPoolIdentityUnAuthRoleId
+        id=identityPoolUnAuthRoleId
         policies=[
             getPolicyDocument(
                 getUserPoolUnAuthPolicy(),
@@ -149,7 +149,7 @@
         federatedServices="cognito-identity.amazonaws.com"
         condition={
               "StringEquals": {
-                "cognito-identity.amazonaws.com:aud": getReference(userPoolIdentityPoolId)
+                "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
               },
               "ForAnyValue:StringLike": {
                 "cognito-identity.amazonaws.com:amr": "unauthenticated"
@@ -159,7 +159,7 @@
 
     [@createRole 
         mode=listMode
-        id=userPoolIdentityAuthRoleId
+        id=identityPoolAuthRoleId
         policies=[
             getPolicyDocument(
                 getUserPoolAuthPolicy(),
@@ -169,7 +169,7 @@
         federatedServices="cognito-identity.amazonaws.com"
         condition={
               "StringEquals": {
-                "cognito-identity.amazonaws.com:aud": getReference(userPoolIdentityPoolId)
+                "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
               },
               "ForAnyValue:StringLike": {
                 "cognito-identity.amazonaws.com:amr": "authenticated"
@@ -177,14 +177,14 @@
         }
     /]
 
-    [@createUserPoolIdentityPoolRoleMapping
+    [@createIdentityPoolRoleMapping
         mode=listMode
         component=component
         tier=tier
-        id=userPoolIdentityRoleMappingId
-        IdentityPoolId=getReference(userPoolIdentityPoolId)
-        authenticatedRoleArn=getReference(userPoolIdentityAuthRoleId, ARN_ATTRIBUTE_TYPE)
-        unauthenticatedRoleArn=getReference(userPoolIdentityUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
+        id=identityPoolRoleMappingId
+        identityPoolId=getReference(identityPoolId)
+        authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
+        unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
     /]
 
 [/#if]
