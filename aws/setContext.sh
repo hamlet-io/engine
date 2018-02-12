@@ -248,6 +248,19 @@ if [[ -n "${PRODUCT}" ]]; then
                 "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.json \
                 "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.ref
         fi
+
+        # Some solution units require environment/unit level settings.
+        if isValidUnit "solution" "${DEPLOYMENT_UNIT}"; then 
+            export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNI}"
+
+            addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/appsettings*.json
+            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
+                addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/appsettings*.json
+
+            addToArrayHead "CREDENTIALS_ARRAY" "${SEGMENT_CREDENTIALS_DIR}/${DEPLOYMENT_UNIT}"/credentials*.json
+            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
+                addToArrayHead "CREDENTIALS_ARRAY"  "${SEGMENT_CREDENTIALS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/credentials*.json
+        fi
     fi
     
     # segment/product/account specific appsettings/credentials
