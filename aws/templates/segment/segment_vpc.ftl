@@ -597,6 +597,13 @@
             /]
         
             [#assign processorProfile = getProcessor(tier, sshComponent, "SSH")]
+            [#assign updateCommand = "yum clean all && yum -y update"]
+            [#if environmentId == "prod"]
+                [#-- for production update only security packages --]
+                [#assign updateCommand += " --security"]
+            [/#if]
+            [#-- daily cron record for updates --]
+            [#assign dailyUpdateCron = 'echo \\"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
             [@cfTemplate
                 mode=segmentListMode
                 id=launchConfigId
@@ -617,6 +624,8 @@
                                         [
                                             "#!/bin/bash -ex\\n",
                                             "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
+                                            updateCommand, "\\n",
+                                            dailyUpdateCron, "\\n",
                                             "yum install -y aws-cfn-bootstrap\\n",
                                             "# Remainder of configuration via metadata\\n",
                                             "/opt/aws/bin/cfn-init -v",
@@ -888,6 +897,13 @@
                     /]
                 
                     [#assign processorProfile = getProcessor(tier, natComponent, "NAT")]
+                    [#assign updateCommand = "yum clean all && yum -y update"]
+                    [#if environmentId == "prod"]
+                        [#-- for production update only security packages --]
+                        [#assign updateCommand += " --security"]
+                    [/#if]
+                    [#-- daily cron record for updates --]
+                    [#assign dailyUpdateCron = 'echo \\"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
                     [@cfTemplate
                         mode=segmentListMode
                         id=launchConfigId
@@ -915,6 +931,8 @@
                                             [
                                                 "#!/bin/bash -ex\\n",
                                                 "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
+                                                updateCommand, "\\n",
+                                                dailyUpdateCron, "\\n",
                                                 "yum install -y aws-cfn-bootstrap\\n",
                                                 "# Remainder of configuration via metadata\\n",
                                                 "/opt/aws/bin/cfn-init -v",
