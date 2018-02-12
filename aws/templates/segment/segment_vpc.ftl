@@ -448,7 +448,7 @@
             /]
         
             [#assign processorProfile = getProcessor(tier, sshComponent, "SSH")]
-            [#assign updateCommand = "yum -y update"]
+            [#assign updateCommand = "yum clean all && yum -y update"]
             [#if environmentId == "prod"]
                 [#-- for production update only security packages --]
                 [#assign updateCommand += " --security"]
