@@ -1,8 +1,6 @@
 [#-- Auditing configuration --]
 [#if deploymentUnit?contains("audit")] 
 
-    [#if deploymentSubsetRequired("s3", true)]
-
         [#assign existingAuditName = getExistingReference(formatAccountS3Id("audit"))]
 
         [#assign lifecycleRules = [] ]
@@ -33,11 +31,9 @@
                 {
                     "QueueConfigurations" : sqsNotifications
                 }) 
-        tags=getCfTemplateCoreTags("", tier, component)
+        tags=getCfTemplateCoreTags()
         outputs=S3_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies
     /]
-
-    [/#if]
 [/#if]
