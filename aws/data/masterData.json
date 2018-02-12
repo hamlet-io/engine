@@ -21,9 +21,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-6bc45d0d",
-          "EC2": "ami-33c25b55",
-          "ECS": "ami-72f36a14"
+          "NAT": "ami-2c593d4a",
+          "EC2": "ami-ceafcba8",
+          "ECS": "ami-e3166185"
         }
       }
     },
@@ -48,9 +48,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-42b8182c",
-          "EC2": "ami-d9b616b7",
-          "ECS": "ami-59b71737"
+          "NAT": "ami-c52f8fab",
+          "EC2": "ami-863090e8",
+          "ECS": "ami-0acc6e64"
         }
       }
     },
@@ -75,9 +75,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-ffc49090",
-          "EC2": "ami-fedb8f91",
-          "ECS": "ami-f4db8f9b"
+          "NAT": "ami-c2e9bead",
+          "EC2": "ami-531a4c3c",
+          "ECS": "ami-ca8ad9a5"
         }
       }
     },
@@ -104,9 +104,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-839cecff",
-          "EC2": "ami-889cecf4",
-          "ECS": "ami-e782f29b"
+          "NAT": "ami-270f735b",
+          "EC2": "ami-68097514",
+          "ECS": "ami-66c98f1a"
         }
       }
     },
@@ -139,7 +139,7 @@
         "Centos": {
           "NAT": "ami-3d28d45f",
           "EC2": "ami-942dd1f6",
-          "ECS": "ami-58bb443a"
+          "ECS": "ami-36867d54"
         }
       }
     },
@@ -164,9 +164,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-62fc7906",
-          "EC2": "ami-61f97c05",
-          "ECS": "ami-9afc79fe"
+          "NAT": "ami-2b4acf4f",
+          "EC2": "ami-a954d1cd",
+          "ECS": "ami-4b9c182f"
         }
       }
     },
@@ -217,9 +217,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-96c85af9",
-          "EC2": "ami-0fc85a60",
-          "ECS": "ami-eacf5d85"
+          "NAT": "ami-5756ca38",
+          "EC2": "ami-5652ce39",
+          "ECS": "ami-63cbae0c"
         }
       }
     },
@@ -250,9 +250,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-4587173c",
-          "EC2": "ami-e487179d",
-          "ECS": "ami-acb020d5"
+          "NAT": "ami-a136a9d8",
+          "EC2": "ami-d834aba1",
+          "ECS": "ami-880d64f1"
         }
       }
     },
@@ -277,9 +277,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-ce8d95aa",
-          "EC2": "ami-51809835",
-          "ECS": "ami-4d809829"
+          "NAT": "ami-87312ae3",
+          "EC2": "ami-403e2524",
+          "ECS": "ami-42a64325"
         }
       }
     },
@@ -304,9 +304,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-fd03b480",
-          "EC2": "ami-fe03b483",
-          "ECS": "ami-5e02b523"
+          "NAT": "ami-0fe35572",
+          "EC2": "ami-8ee056f3",
+          "ECS": "ami-6fa21412"
         }
       }
     },
@@ -337,9 +337,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-9e2664f2",
-          "EC2": "ami-1226647e",
-          "ECS": "ami-49256725"
+          "NAT": "ami-be1f52d2",
+          "EC2": "ami-84175ae8",
+          "ECS": "ami-69f7b805"
         }
       }
     },
@@ -376,9 +376,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-01623d7b",
-          "EC2": "ami-cb9ec1b1",
-          "ECS": "ami-ba722dc0"
+          "NAT": "ami-8d7655f7",
+          "EC2": "ami-97785bed",
+          "ECS": "ami-5e414e24"
         }
       }
     },
@@ -409,9 +409,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-d4a883b1",
-          "EC2": "ami-caaf84af",
-          "ECS": "ami-13af8476"
+          "NAT": "ami-fc3b1199",
+          "EC2": "ami-f63b1193",
+          "ECS": "ami-67ab9e02"
         }
       }
     },
@@ -462,9 +462,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-4fefef2f",
-          "EC2": "ami-95eeeef5",
-          "ECS": "ami-9df0f0fd"
+          "NAT": "ami-394e4c59",
+          "EC2": "ami-824c4ee2",
+          "ECS": "ami-00898660"
         }
       }
     },
@@ -495,9 +495,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-d3cc78ab",
-          "EC2": "ami-32cf7b4a",
-          "ECS": "ami-c9c87cb1"
+          "NAT": "ami-35d6664d",
+          "EC2": "ami-f2d3638a",
+          "ECS": "ami-10ed6968"
         }
       }
     }
