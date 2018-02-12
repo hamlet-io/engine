@@ -1,36 +1,36 @@
 [#-- Auditing configuration --]
-[#if deploymentUnit?contains("audit")] 
+[#if deploymentUnit?contains("audit")]
 
-    [#assign existingAuditName = getExistingReference(formatAccountS3Id("audit"))]
+    [#if accountObject.Seed?has_content]
 
-    [#assign lifecycleRules = []]
-    [#assign sqsNotifications = []]
-        
-    [@cfResource 
-        mode=listMode
-        id=formatAccountS3Id("audit")
-        type="AWS::S3::Bucket"
-        properties=
-            {
-                "BucketName" : valueIfContent(
-                                    existingAuditName,
-                                    existingAuditName,
-                                    formatName("account", "audit", accountObject.Seed)),
-                "AccessControl" : "LogDeliveryWrite"
-            } +
-            attributeIfContent(
-                "LifecycleConfiguration",
-                lifecycleRules,
+        [#assign lifecycleRules = []]
+        [#assign sqsNotifications = []]
+            
+        [@cfResource 
+            mode=listMode
+            id=formatAccountS3Id("audit")
+            type="AWS::S3::Bucket"
+            properties=
                 {
-                    "Rules" : lifecycleRules
-                }) +
-            attributeIfContent(
-                "NotificationConfiguration",
-                sqsNotifications,
-                {
-                    "QueueConfigurations" : sqsNotifications
-                }) 
-        tags=getCfTemplateCoreTags()
-        outputs=S3_OUTPUT_MAPPINGS
-    /]
+                    "BucketName" : formatName("account", "audit", accountObject.Seed),
+                    "AccessControl" : "LogDeliveryWrite"
+                } +
+                attributeIfContent(
+                    "LifecycleConfiguration",
+                    lifecycleRules,
+                    {
+                        "Rules" : lifecycleRules
+                    }) +
+                attributeIfContent(
+                    "NotificationConfiguration",
+                    sqsNotifications,
+                    {
+                        "QueueConfigurations" : sqsNotifications
+                    }) 
+            tags=getCfTemplateCoreTags()
+            outputs=S3_OUTPUT_MAPPINGS
+        /]
+    [#else]
+        [@cfPreconditionFailed listMode "account_audit" {} "No account seed provided" /]
+    [/#if]
 [/#if]
