@@ -251,7 +251,7 @@ if [[ -n "${PRODUCT}" ]]; then
 
         # Some solution units require environment/unit level settings.
         if isValidUnit "solution" "${DEPLOYMENT_UNIT}"; then 
-            export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNI}"
+            export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"
 
             addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/appsettings*.json
             [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
