@@ -586,7 +586,7 @@
         [@includeCompositeLists asArray(compositeLists) /]
     [/#if]
 
-    [#if templateResources?has_content]
+    [#if templateResources?has_content || exceptionResources?has_content]
       [@toJSON
           {
               "AWSTemplateFormatVersion" : "2010-09-09",
