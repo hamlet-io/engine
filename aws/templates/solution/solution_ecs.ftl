@@ -252,7 +252,7 @@
             [#assign configSet = "ecs"]
         [/#if]
         
-        [#assign updateCommand = "yum update"]
+        [#assign updateCommand = "yum clean all && yum -y update"]
         [#if environmentId == "prod"]
             [#-- for production update only security packages --]
             [#assign updateCommand += " --security"]
