@@ -369,7 +369,7 @@
                                             pattern.Validation ! defaultValidation
                                             pattern.Sig4 ! defaultSig4
                                             pattern.ApiKey ! defaultApiKey
-                                            pattern.UserPool ! defaultUserPool
+                                            pattern.userPool ! defaultUserPool
                                             pattern.useClientCreds ! defaultUseClientCreds
                                         /]
                                         [#assign matchSeen = true]
