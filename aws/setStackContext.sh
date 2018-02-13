@@ -59,11 +59,8 @@ case $LEVEL in
             PRODUCT_PREFIX=""
             LEVEL_SUFFIX="${LEVEL}"
         else
-            EXISTING_STACK_NAME=$(jq -r ".Stacks[0].StackName" <  "${CF_DIR}/${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json")
-            if [[ ! ("${EXISTING_STACK_NAME%%-*}" == "${ACCOUNT}") ]]; then 
-                PRODUCT_PREFIX=""
-                LEVEL_SUFFIX="${LEVEL}"
-            fi
+            # Stick with the legacy stack name
+            STACK_NAME=$(jq -r ".Stacks[0].StackName" <  "${CF_DIR}/${LEVEL_PREFIX}${DEPLOYMENT_UNIT_PREFIX}${REGION_PREFIX}stack.json")
         fi
         ;;
 
