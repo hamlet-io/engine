@@ -51,11 +51,24 @@
     [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
     [#if deploymentSubsetRequired("prologue", false)]
-        [#if db.SnapShotOnDeploy ]
+        [#if db.SnapShotOnDeploy!false ]
             [@cfScript
                 mode=listMode
                 content=
                 [
+                    "function create_deploy_snapshot() {",
+                    "# Create RDS snapshot",
+                    "snapshot_arn=$(create_snapshot" + " \"" + 
+                    region + "\" \"" + 
+                    rdsFullName + "\" " + 
+                    "\"pre-deploy\" ) || return $?",
+                    "create_pseudo_stack" + " " + 
+                    "\"RDS Pre-Deploy Snapshot\"" + " " +
+                    "\"$\{pseudo_stack_file}\"" + " " +
+                    "\"snapshotXrdsX" + tier.Name + "X" + component.Name + "\" " + "\"$\{snapshot_arn}\" || return $?", 
+                    "}",
+                    "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
+                    "create_deploy_snapshot || return $?"
                 ]
             /]
         [/#if]
