@@ -1,5 +1,5 @@
 [#-- RDS --]
-[#if (componentType == "rds") && deploymentSubsetRequired("rds", true)]
+[#if (componentType == "rds") ]
 
     [#assign db = component.RDS]
     
@@ -43,122 +43,135 @@
     [#assign rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                             rdsSecurityGroupId, 
                                             ports[db.Port].Port?c)]
+    [#assign rdsTags = getCfTemplateCoreTags(
+                                    rdsFullName,
+                                    tier,
+                                    component)]
 
     [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
-    [@createDependentComponentSecurityGroup
-        mode=listMode
-        tier=tier
-        component=component
-        resourceId=rdsId
-        resourceName=rdsFullName
-    /]
-        
-    [@createSecurityGroupIngress
-        mode=listMode
-        id=rdsSecurityGroupIngressId
-        port=db.Port
-        cidr="0.0.0.0/0"
-        groupId=rdsSecurityGroupId
-    /]
-    
-    [@cfResource
-        mode=listMode
-        id=rdsSubnetGroupId
-        type="AWS::RDS::DBSubnetGroup"
-        properties=
-            {
-                "DBSubnetGroupDescription" : rdsFullName,
-                "SubnetIds" : getSubnets(tier)
-            }
-        tags=
-            getCfTemplateCoreTags(
-                rdsFullName,
-                tier,
-                component)
-        outputs={}
-    /]
-
-    [@cfResource
-        mode=listMode
-        id=rdsParameterGroupId
-        type="AWS::RDS::DBParameterGroup"
-        properties=
-            {
-                "Family" : family,
-                "Description" : rdsFullName,
-                "Parameters" : {
-                }
-            }
-        tags=
-            getCfTemplateCoreTags(
-                rdsFullName,
-                tier,
-                component)
-        outputs={}
-    /]
-
-    [@cfResource
-        mode=listMode
-        id=rdsOptionGroupId
-        type="AWS::RDS::OptionGroup"
-        properties=
-            {
-                "EngineName": engine,
-                "MajorEngineVersion": engineVersion,
-                "OptionGroupDescription" : rdsFullName,
-                "OptionConfigurations" : [
+    [#if deploymentSubsetRequired("prologue", false)]
+        [#if db.SnapShotOnDeploy ]
+            [@cfScript
+                mode=listMode
+                content=
+                [
                 ]
-            }
-        tags=
-            getCfTemplateCoreTags(
-                rdsFullName,
-                tier,
-                component)
-        outputs={}
-    /]
+            /]
+        [/#if]
+    [/#if]
 
-    [@cfResource
-        mode=listMode
-        id=rdsId
-        type="AWS::RDS::DBInstance"
-        properties=
-            {
-                "Engine": engine,
-                "EngineVersion": engineVersion,
-                "DBInstanceClass" : processorProfile.Processor,
-                "AllocatedStorage": db.Size,
-                "StorageType" : "gp2",
-                "Port" : ports[db.Port].Port,
-                "MasterUsername": rdsUsername,
-                "MasterUserPassword": rdsPassword,
-                "BackupRetentionPeriod" : db.Backup.RetentionPeriod,
-                "DBInstanceIdentifier": rdsFullName,
-                "DBName": productName,
-                "DBSubnetGroupName": getReference(rdsSubnetGroupId),
-                "DBParameterGroupName": getReference(rdsParameterGroupId),
-                "OptionGroupName": getReference(rdsOptionGroupId),
-                "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
-            } +
-            multiAZ?then(
+    [#if deploymentSubsetRequired("rds", true)]
+        [@createDependentComponentSecurityGroup
+            mode=listMode
+            tier=tier
+            component=component
+            resourceId=rdsId
+            resourceName=rdsFullName
+        /]
+            
+        [@createSecurityGroupIngress
+            mode=listMode
+            id=rdsSecurityGroupIngressId
+            port=db.Port
+            cidr="0.0.0.0/0"
+            groupId=rdsSecurityGroupId
+        /]
+        
+        [@cfResource
+            mode=listMode
+            id=rdsSubnetGroupId
+            type="AWS::RDS::DBSubnetGroup"
+            properties=
                 {
-                    "MultiAZ": true
-                },
+                    "DBSubnetGroupDescription" : rdsFullName,
+                    "SubnetIds" : getSubnets(tier)
+                }
+            tags=rdsTags
+            outputs={}
+        /]
+
+        [@cfResource
+            mode=listMode
+            id=rdsParameterGroupId
+            type="AWS::RDS::DBParameterGroup"
+            properties=
                 {
-                    "AvailabilityZone" : zones[0].AWSZone
+                    "Family" : family,
+                    "Description" : rdsFullName,
+                    "Parameters" : {
+                    }
                 }
-            )
-        tags=
-            getCfTemplateCoreTags(
-                rdsFullName,
-                tier,
-                component)
-        outputs=
-            RDS_OUTPUT_MAPPINGS +
-            {
-                DATABASENAME_ATTRIBUTE_TYPE : { 
-                    "Value" : productName
+            tags=
+                getCfTemplateCoreTags(
+                    rdsFullName,
+                    tier,
+                    component)
+            outputs={}
+        /]
+
+        [@cfResource
+            mode=listMode
+            id=rdsOptionGroupId
+            type="AWS::RDS::OptionGroup"
+            properties=
+                {
+                    "EngineName": engine,
+                    "MajorEngineVersion": engineVersion,
+                    "OptionGroupDescription" : rdsFullName,
+                    "OptionConfigurations" : [
+                    ]
                 }
-            }
-    /]
+            tags=
+                getCfTemplateCoreTags(
+                    rdsFullName,
+                    tier,
+                    component)
+            outputs={}
+        /]
+
+        [@cfResource
+            mode=listMode
+            id=rdsId
+            type="AWS::RDS::DBInstance"
+            properties=
+                {
+                    "Engine": engine,
+                    "EngineVersion": engineVersion,
+                    "DBInstanceClass" : processorProfile.Processor,
+                    "AllocatedStorage": db.Size,
+                    "StorageType" : "gp2",
+                    "Port" : ports[db.Port].Port,
+                    "MasterUsername": rdsUsername,
+                    "MasterUserPassword": rdsPassword,
+                    "BackupRetentionPeriod" : db.Backup.RetentionPeriod,
+                    "DBInstanceIdentifier": rdsFullName,
+                    "DBName": productName,
+                    "DBSubnetGroupName": getReference(rdsSubnetGroupId),
+                    "DBParameterGroupName": getReference(rdsParameterGroupId),
+                    "OptionGroupName": getReference(rdsOptionGroupId),
+                    "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
+                } +
+                multiAZ?then(
+                    {
+                        "MultiAZ": true
+                    },
+                    {
+                        "AvailabilityZone" : zones[0].AWSZone
+                    }
+                )
+            tags=
+                getCfTemplateCoreTags(
+                    rdsFullName,
+                    tier,
+                    component)
+            outputs=
+                RDS_OUTPUT_MAPPINGS +
+                {
+                    DATABASENAME_ATTRIBUTE_TYPE : { 
+                        "Value" : productName
+                    }
+                }
+        /]
+    [/#if]
 [/#if]
