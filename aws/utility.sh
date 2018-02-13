@@ -708,5 +708,5 @@ function create_snapshot() {
     aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
     db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
   fi
-  echo "${db_snapshot}"
+  echo "$(echo "${db_snapshot}" | jq -r .DBSnapshots[0].DBSnapshotArn )" 
 }
