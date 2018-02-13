@@ -683,6 +683,26 @@
                     "Default" : false
                 }
             ],
+        "rds" : 
+            [
+                "Engine",
+                "EngineVersion",
+                "Port",
+                "Size",
+                {
+                    "Name" : "Backup",
+                    "Children" : [
+                        {
+                            "Name" : "RetentionPeriod",
+                            "Default" : 35
+                        }
+                    ]
+                },
+                {
+                    "Name" : "SnapShotOnDeploy",
+                    "Default" : true
+                }
+            ],
         "s3" : 
             [
                 {
