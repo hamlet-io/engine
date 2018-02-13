@@ -688,3 +688,25 @@ function delete_oai_credentials() {
 
   return 0
 }
+
+# -- RDS -- 
+function create_snapshot() { 
+  local region="$1"; shift
+  local db_identifier="$1"; shift
+  local snapshot_suffix="$1"; shift
+  
+  db_snapshot_identifier="${db_identifier}-$(date -u +%Y-%m-%d-%H-%M-%S)"
+  if [[ ! -z "${snapshot_suffix}" ]]; then
+    db_snapshot_identifier="${db_snapshot_identifier}-${snapshot_suffix}"
+  fi
+
+  # Check that the database exists
+  db_info=$(aws --region "${region}" rds describe-db-instances --db-instance-identifier ${db_identifier} || true )
+
+  if [[ ! -z "${db_info}" ]]; then
+    aws --region "${region}" rds create-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}" --db-instance-identifier "${db_identifier}" > /dev/null 2>&1 || return $?
+    aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
+    db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
+  fi
+  echo "${db_snapshot}"
+}
