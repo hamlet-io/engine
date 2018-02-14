@@ -997,30 +997,41 @@
 [#function getLinkTarget occurrence link]
     [#local result = {} ]
     [#local targetComponentType = "" ]
-    [#local targetComponent = getComponent(link.Tier, link.Component)]
 
-    [#if targetComponent?has_content]
-        [#local targetComponentType = getComponentType(targetComponent) ]
-        [#list getOccurrences(targetComponent) as targetOccurrence]
-            [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
-                            (targetOccurrence.VersionId == occurrence.VersionId)]
+    [#if link.Tier?lower_case == "external"]
+        [#local result = 
+            {
+                "InstanceId" : "",
+                "InstanceName" : "",
+                "VersionId" : "",
+                "VersionName" : ""
+            } ]
+        [#local targetComponentType = "external" ]
+    [#else]
+        [#local targetComponent = getComponent(link.Tier, link.Component)]
+        [#if targetComponent?has_content]
+            [#local targetComponentType = getComponentType(targetComponent) ]
+            [#list getOccurrences(targetComponent) as targetOccurrence]
+                [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
+                                (targetOccurrence.VersionId == occurrence.VersionId)]
+                    [#switch targetComponentType]
+                        [#case "alb"]
+                        [#case "apigateway"]
+                        [#case "lambda"]
+                        [#case "sqs"]
+                            [#local result = targetOccurrence]
+                            [#break]
+                    [/#switch]
+                [/#if]
+    
                 [#switch targetComponentType]
-                    [#case "alb"]
-                    [#case "apigateway"]
-                    [#case "lambda"]
-                    [#case "sqs"]
-                        [#local result = targetOccurrence]
+                    [#case "userpool"] 
+                    [#case "rds"] 
+                            [#local result = targetOccurrence]
                         [#break]
                 [/#switch]
-            [/#if]
-
-            [#switch targetComponentType]
-                [#case "userpool"] 
-                [#case "rds"] 
-                        [#local result = targetOccurrence]
-                    [#break]
-            [/#switch]
-        [/#list]
+            [/#list]
+        [/#if]
     [/#if]
     
     [#if result?has_content]
@@ -1120,6 +1131,33 @@
                     "Policy" : apigatewayInvokePermission(id, target.VersionId)
                 }
             ]
+            [#break]
+
+        [#case "external"]
+            [#local result =
+                {
+                    "ResourceId" : "externalXlink",
+                    "Attributes" : {}
+                }
+            ]
+            [#list appSettingsObject!{} as name,value]
+                [#local prefix = target.Component?upper_case + "_"]
+                [#if name?upper_case?starts_with(prefix)]
+                    [#local result +=
+                    {
+                      "Attributes" : result.Attributes + { name?upper_case?remove_beginning(prefix) : value }
+                    } ]
+                [/#if]
+            [/#list]
+            [#list ((credentialsObject[target.Tier + "-" + target.Component])!{})?values as credential]
+                [#list credential as name,value]
+                    [#local result +=
+                        {
+                          "Attributes" : result.Attributes + { name?upper_case : value }
+                        }
+                    ]
+                [/#list]
+            [/#list]
             [#break]
 
         [#case "lambda"]
