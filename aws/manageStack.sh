@@ -179,13 +179,16 @@ function add_host_to_apidoc() {
   # adds the API Host endpoint to the swagger spec
   local apihost="$1"; shift
   local apidocs="$1"
-  local swaggerjson="${tmpdir}/swagger.json"
+  local apidocdir="${tmpdir}/apidocs"
+  local swaggerjson="${apidocdir}/swagger.json"
+
+  mkdir -p "${apidocdir}"
 
   if [[ "${apidocs##*.}" == "zip" ]]; then
-      unzip -o "${apidocs}" -d "${tmpdir}"
+      unzip -o "${apidocs}" -d "${apidocdir}"
       RESULT=$?
       [[ $RESULT -ne 0 ]] &&
-          fatal "Unable to unzip ${apidocs}" && exit
+          fatal "Unable to unzip ${apidocs}" && return 1
   fi
 
   if [[ -f ${swaggerjson} ]]; then 
@@ -195,7 +198,7 @@ function add_host_to_apidoc() {
 
   if [[ "${apidocs##*.}" == "zip" ]]; then
     rm "${apidocs}"
-    zip -rj "${apidocs}" "${tmpdir}"
+    zip -rj "${apidocs}" "${apidocdir}"
   fi
 
   return 0
