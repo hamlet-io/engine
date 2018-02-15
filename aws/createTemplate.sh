@@ -137,6 +137,7 @@ function process_template() {
   declare -A pass_region_prefix
   declare -A pass_description
   declare -A pass_suffix
+  declare -A pass_alternatives
 
   # Defaults
   for pass in "${pass_list[@]}"; do
@@ -147,6 +148,8 @@ function process_template() {
     pass_account_prefix["${pass}"]="${account_prefix}"
     pass_region_prefix["${pass}"]="${region_prefix}"
     pass_description["${pass}"]="${pass}"
+    pass_alternatives["${pass}"]="primary"
+
   done
   pass_suffix=(
     ["prologue"]="prologue.sh"
@@ -202,11 +205,16 @@ function process_template() {
 
     solution)
       template_composites+=("SOLUTION" )
-
       if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
-        for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]=""; done
+        for pass in "${pass_list[@]}"; do 
+          pass_deployment_unit_prefix["${pass}"]="" 
+          pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace"
+        done
       else
-        for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="soln-"; done
+        for pass in "${pass_list[@]}"; do 
+          pass_level_prefix["${pass}"]="soln-" 
+          pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace"
+        done
       fi
       ;;
 
@@ -292,62 +300,69 @@ function process_template() {
     local output_prefix="${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_region_prefix[${pass}]}"
     local output_prefix_with_account="${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_account_prefix[${pass}]}${pass_region_prefix[${pass}]}"
 
-    local output_file="${cf_dir}/${output_prefix}${pass_suffix[${pass}]}"
-    local template_result_file="${tmpdir}/${output_prefix}${pass_suffix[${pass}]}"
-    if [[ ! -f "${output_file}" ]]; then
-      # Include account prefix
-      local output_file="${cf_dir}/${output_prefix_with_account}${pass_suffix[${pass}]}"
-      local template_result_file="${tmpdir}/${output_prefix_with_account}${pass_suffix[${pass}]}"
-    fi
-
     pass_args=("${args[@]}")
     [[ -n "${pass_deployment_unit_subset[${pass}]}" ]] && pass_args+=("-v" "deploymentUnitSubset=${pass_deployment_unit_subset[${pass}]}")
 
     local file_description="${pass_description[${pass}]}"
     info "Generating ${file_description} file ...\n"
 
-    ${GENERATION_DIR}/freemarker.sh \
-      -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
+    for pass_alternative in ${pass_alternatives["${pass}"]}; do
 
-    # Process the results - ignore whitespace only files
-    if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -gt 0 ]]; then
-      case "$(fileExtension "${template_result_file}")" in
-        sh)
-          # Strip out the whitespace added by freemarker
-          sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
-          ;;
-    
-        json)
-          if [[ -f "${output_file}" ]]; then
-            # Ignore if only the metadata/timestamps have changed
-            jq_pattern="del(.Metadata)"
-            sed_patterns=("-e" "s/${request_reference}//g")
-            sed_patterns+=("-e" "s/${configuration_reference}//g")
-            sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
+      [[ "${pass_alternative}" == "primary" ]] && pass_alternative=""
+      pass_args+=("-v" "alternative=${pass_alternative}")
+      pass_alternative_suffix="${pass_alternative:+${pass_alternative}-}"
 
-            existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
-            [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
+      local output_file="${cf_dir}/${output_prefix}${pass_alternative_suffix}${pass_suffix[${pass}]}"
+      local template_result_file="${tmpdir}/${output_prefix}${pass_alternative_suffix}${pass_suffix[${pass}]}"
+      if [[ ! -f "${output_file}" ]]; then
+        # Include account prefix
+        local output_file="${cf_dir}/${output_prefix_with_account}${pass_alternative_suffix}${pass_suffix[${pass}]}"
+        local template_result_file="${tmpdir}/${output_prefix_with_account}${pass_alternative_suffix}${pass_suffix[${pass}]}"
+      fi
 
-            existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
-            [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
+      ${GENERATION_DIR}/freemarker.sh \
+        -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
 
-            cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
-            cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+      # Process the results - ignore whitespace only files
+      if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -gt 0 ]]; then
+        case "$(fileExtension "${template_result_file}")" in
+          sh)
+            # Strip out the whitespace added by freemarker
+            sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
+            ;;
+      
+          json)
+            if [[ -f "${output_file}" ]]; then
+              # Ignore if only the metadata/timestamps have changed
+              jq_pattern="del(.Metadata)"
+              sed_patterns=("-e" "s/${request_reference}//g")
+              sed_patterns+=("-e" "s/${configuration_reference}//g")
+              sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
 
-            diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
-              info "Ignoring unchanged ${file_description} file ...\n" ||
+              existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
+              [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
+
+              existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
+              [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
+
+              cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
+              cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+
+              diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
+                info "Ignoring unchanged ${file_description} file ...\n" ||
+                jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
+            else
               jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
-          else
-            jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
-          fi
-          ;;
-      esac
-    else
-      info "Ignoring empty ${file_description} file ...\n"
+            fi
+            ;;
+        esac
+      else
+        info "Ignoring empty ${file_description} file ...\n"
 
-      # Remove any previous version
-      [[ -f "${output_file}" ]] && rm "${output_file}"
-    fi
+        # Remove any previous version
+        [[ -f "${output_file}" ]] && rm "${output_file}"
+      fi
+    done
   done
 
   return 0
