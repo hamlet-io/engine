@@ -688,7 +688,10 @@
                 "Engine",
                 "EngineVersion",
                 "Port",
-                "Size",
+                { 
+                    "Name" : "Size",
+                    "Default" : "20"
+                },
                 {
                     "Name" : "Backup",
                     "Children" : [

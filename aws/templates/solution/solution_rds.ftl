@@ -4,7 +4,7 @@
     [#assign db = component.RDS]
     
     [#list getOccurrences(component, deploymentUnit) as occurrence]
-        [#assign engine = occurrence.Engine]
+        [#assign engine = occurrence.Engine!""]
         [#switch engine]
             [#case "mysql"]
                 [#assign engineVersion =
@@ -14,6 +14,11 @@
                     )
                 ]
                 [#assign family = "mysql" + engineVersion]
+                [#assign port = ports[occurrence.Port].Port?has_content?then(
+                    ports[occurrence.Port].Port,
+                    "3306"
+                )]
+                
             [#break]
 
             [#case "postgres"]
@@ -24,7 +29,14 @@
                     )
                 ]
                 [#assign family = "postgres" + engineVersion]
-                [#break]
+                [#assign port = ports[occurrence.Port].Port?has_content?then(
+                    ports[occurrence.Port].Port,
+                    "5432"
+                )]
+            [#break]
+
+            [#default]
+                [@cfPreconditionFailed listMode "solution_rds" occurrence "No Engine Provided" /]
         [/#switch]
 
         [#assign rdsId = formatRDSId(tier, component, occurrence)]
@@ -43,7 +55,7 @@
                                         rdsId)]
         [#assign rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                                 rdsSecurityGroupId, 
-                                                ports[occurrence.Port].Port?c)]
+                                                port)]
         [#assign rdsTags = getCfTemplateCoreTags(
                                         rdsFullName,
                                         tier,
@@ -87,7 +99,7 @@
             [@createSecurityGroupIngress
                 mode=listMode
                 id=rdsSecurityGroupIngressId
-                port=occurrence.Port
+                port=port
                 cidr="0.0.0.0/0"
                 groupId=rdsSecurityGroupId
             /]
@@ -155,7 +167,7 @@
                         "DBInstanceClass" : processorProfile.Processor,
                         "AllocatedStorage": occurrence.Size,
                         "StorageType" : "gp2",
-                        "Port" : ports[occurrence.Port].Port,
+                        "Port" : port,
                         "MasterUsername": rdsUsername,
                         "MasterUserPassword": rdsPassword,
                         "BackupRetentionPeriod" : occurrence.Backup.RetentionPeriod,
