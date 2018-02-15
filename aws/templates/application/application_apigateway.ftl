@@ -516,10 +516,10 @@
                         "  # Insert host in Doc File ",
                         "  add_host_to_apidoc" + " " + 
                             dns + " " +
-                        "  \"$\{tmpdir}/apidoc.zip\"",
+                        "  \"$\{tmpdir}/apidoc.zip\"  || return $?",
                         "  # Sync to the API Doc bucket",
                         "  copy_apidoc_file" + " " + docsS3BucketName + " " +
-                        "   \"$\{tmpdir}/apidoc.html\" \"$\{tmpdir}/apidoc.zip\"",
+                        "  \"$\{tmpdir}/apidoc.zip\" || return $?",
                         "}",
                         "#",
                         "get_apidoc_file"
