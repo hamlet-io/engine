@@ -262,73 +262,47 @@ function process_stack() {
               --capabilities CAPABILITY_IAM ||
             return $?
         
-        elif [[ ${STACK_ALTERNATIVES} == true && "${STACK_OPERATION}" == "update" ]]; then
+        else
+        
+          if [[ ${STACK_ALTERNATIVES} == true && "${STACK_OPERATION}" == "update" ]]; then
 
-          STACK="${tmpdir}/${CHANGE_SET_NAME}_${STACK}"
+            STACK="${tmpdir}/${CHANGE_SET_NAME}_${STACK}"
 
-          # Create initial Change Set
-          CHANGE_SET_NAME="primary$(date +'%s')"
-          aws --region ${REGION} cloudformation create-change-set \
-              --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" \
-              --template-body "file://${stripped_template_file}" \
-              --capabilities CAPABILITY_IAM &>/dev/null || return $?
-          
-          #Wait for change set to be processed 
-          aws --region ${REGION} cloudformation wait change-set-create-complete \
-              --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" &>/dev/null
+            # Create initial Change Set
+            CHANGE_SET_NAME="primary$(date +'%s')"
+            aws --region ${REGION} cloudformation create-change-set \
+                --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" \
+                --template-body "file://${stripped_template_file}" \
+                --capabilities CAPABILITY_IAM &>/dev/null || return $?
+            
+            #Wait for change set to be processed 
+            aws --region ${REGION} cloudformation wait change-set-create-complete \
+                --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" &>/dev/null
 
-          # Check ChangeSet for results 
-          change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
-              --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" || return $?) 
-          
-          if [[ $( echo "${change_set_results}" | jq '.Status == "FAILED" ') -eq false ]]; then 
+            # Check ChangeSet for results 
+            change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
+                --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" || return $?) 
+            
+            if [[ $( echo "${change_set_results}" | jq '.Status == "FAILED" ') -eq false ]]; then 
 
-            replacement=$( echo "${change_set_results}" | jq '.Changes[].ResourceChange.Replacement | contains("True")' )
+              replacement=$( echo "${change_set_results}" | jq '.Changes[].ResourceChange.Replacement' )
 
-            info "ChangeSet Status: ${replacement} Changes: $(echo "${change_set_results}" | jq -r '.Changes[].ResourceChange.Replacement') "
+              info "ChangeSet Status: ${replacement} Changes: $(echo "${change_set_results}" | jq -r '.Changes[].ResourceChange.Replacement') "
 
-            if [[ "${replacement}" == "true" ]]; then 
-                for ALTERNATIVE_TEMPLATE in ${ALTERNATIVE_TEMPLATES}; do 
-                  info "ALTERNATIVE TEMPLATE: ${ALTERNATIVE_TEMPLATE} Match: $(contains "$(fileName "${ALTERNATIVE_TEMPLATE}")" "*-replace-template.json")"
-                  if contains "${ALTERNATIVE_TEMPLATE}" "*-replace-template.json"; then
-                    info "Found replacement template will apply it as a change set template"
+              if [[ "${replacement}" == "true" ]]; then 
+                  for ALTERNATIVE_TEMPLATE in ${ALTERNATIVE_TEMPLATES}; do 
+                    info "ALTERNATIVE TEMPLATE: $(fileName "${ALTERNATIVE_TEMPLATE}") Match: $(contains "$(fileName "${ALTERNATIVE_TEMPLATE}")" "-replace-template\.json?")"
+                    if contains "$(fileName "${ALTERNATIVE_TEMPLATE}")" "-replace-template\.json?"; then
+                      info "Found replacement template will apply it as a change set template"
 
-                    alternative_template_file = jq -c '.' < ${ALTERNATIVE_TEMPLATE} > "${stripped_template_file}"
-                    
-                    # Create Replace Change Set
-                    alternative_set_name="replace$(date +'%s')"
-                    aws --region ${REGION} cloudformation create-change-set \
-                        --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" \
-                        --template-body "file://${alternative_template_file}" \
-                        --capabilities CAPABILITY_IAM &>/dev/null || return $?
-                    
-                    #Wait for change set to be processed 
-                    aws --region ${REGION} cloudformation wait change-set-create-complete \
-                        --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" &>/dev/null
-
-                    # Check ChangeSet for results 
-                    change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
-                        --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" || return $?) 
-
-                    if [[ $( echo "${change_set_results}" | jq '.Status == "FAILED" ') -eq false ]]; then 
-                      aws --region ${REGION} cloudformation execute-change-set \
-                          --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" &>/dev/null
-
-                      #Wait for change set to be processed 
-                      aws --region ${REGION} cloudformation wait stack-update-complete \
-                        --stack-name "${STACK_NAME}"  &>/dev/null
-
-                      # Check ChangeSet for results 
-                      change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
-                        --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" || return $?) 
-
+                      # Replace the template file with the Alternative Template 
+                      jq -c '.' < ${ALTERNATIVE_TEMPLATE} > "${stripped_template_file}"
                     fi
-
-                  fi
-                done
+                  done
+              fi
             fi
           fi
-        else
+        
 
           info "Creating/updating the "${STACK_NAME}" stack..."
           aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack \
