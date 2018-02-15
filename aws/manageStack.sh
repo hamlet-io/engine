@@ -9,6 +9,7 @@ STACK_INITIATE_DEFAULT="true"
 STACK_MONITOR_DEFAULT="true"
 STACK_OPERATION_DEFAULT="update"
 STACK_WAIT_DEFAULT=30
+STACK_ALTERNATIVES_DEFAULT="false"
 
 function usage() {
   cat <<EOF
@@ -19,6 +20,7 @@ Usage: $(basename $0) -l LEVEL -u DEPLOYMENT_UNIT -i -m -w STACK_WAIT -r REGION 
 
 where
 
+(o) -a (STACK_ALTERNATIVES=true) Use alternative change sets is available
 (o) -d (STACK_OPERATION=delete) to delete the stack
     -h                          shows this text
 (o) -i (STACK_MONITOR=false)    initiates but does not monitor the stack operation
@@ -57,8 +59,9 @@ EOF
 
 function options() {
   # Parse options
-  while getopts ":dhil:mn:r:s:t:u:w:yz:" option; do
+  while getopts ":adhil:mn:r:s:t:u:w:yz:" option; do
     case "${option}" in
+      a) STACK_ALTERNATIVES=true ;;
       d) STACK_OPERATION=delete ;;
       h) usage; return 1 ;;
       i) STACK_MONITOR=false ;;
@@ -82,7 +85,8 @@ function options() {
   STACK_WAIT=${STACK_WAIT:-${STACK_WAIT_DEFAULT}}
   STACK_INITIATE=${STACK_INITIATE:-${STACK_INITIATE_DEFAULT}}
   STACK_MONITOR=${STACK_MONITOR:-${STACK_MONITOR_DEFAULT}}
- 
+  STACK_ALTERNATIVES=${STACK_ALTERNATIVES:-${STACK_ALTERNATIVES_DEFAULT}}
+
   # Set up the context
   info "Preparing the context..."
   . "${GENERATION_DIR}/setStackContext.sh"
@@ -257,9 +261,79 @@ function process_stack() {
               --template-body "file://${stripped_template_file}" \
               --capabilities CAPABILITY_IAM ||
             return $?
+        
+        elif [[ ${STACK_ALTERNATIVES} == true && "${STACK_OPERATION}" == "update" ]]; then
+
+          STACK="${tmpdir}/${CHANGE_SET_NAME}_${STACK}"
+
+          # Create initial Change Set
+          CHANGE_SET_NAME="primary$(date +'%s')"
+          aws --region ${REGION} cloudformation create-change-set \
+              --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" \
+              --template-body "file://${stripped_template_file}" \
+              --capabilities CAPABILITY_IAM &>/dev/null || return $?
+          
+          #Wait for change set to be processed 
+          aws --region ${REGION} cloudformation wait change-set-create-complete \
+              --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" &>/dev/null
+
+          # Check ChangeSet for results 
+          change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
+              --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" || return $?) 
+          
+          if [[ $( echo "${change_set_results}" | jq '.Status == "FAILED" ') -eq false ]]; then 
+
+            replacement=$( echo "${change_set_results}" | jq '.Changes[].ResourceChange.Replacement | contains("True")' )
+
+            info "ChangeSet Status: ${replacement} Changes: $(echo "${change_set_results}" | jq -r '.Changes[].ResourceChange.Replacement') "
+
+            if [[ "${replacement}" == "true" ]]; then 
+                for ALTERNATIVE_TEMPLATE in ${ALTERNATIVE_TEMPLATES}; do 
+                  info "ALTERNATIVE TEMPLATE: ${ALTERNATIVE_TEMPLATE} Match: $(contains "$(fileName "${ALTERNATIVE_TEMPLATE}")" "*-replace-template.json")"
+                  if contains "${ALTERNATIVE_TEMPLATE}" "*-replace-template.json"; then
+                    info "Found replacement template will apply it as a change set template"
+
+                    alternative_template_file = jq -c '.' < ${ALTERNATIVE_TEMPLATE} > "${stripped_template_file}"
+                    
+                    # Create Replace Change Set
+                    alternative_set_name="replace$(date +'%s')"
+                    aws --region ${REGION} cloudformation create-change-set \
+                        --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" \
+                        --template-body "file://${alternative_template_file}" \
+                        --capabilities CAPABILITY_IAM &>/dev/null || return $?
+                    
+                    #Wait for change set to be processed 
+                    aws --region ${REGION} cloudformation wait change-set-create-complete \
+                        --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" &>/dev/null
+
+                    # Check ChangeSet for results 
+                    change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
+                        --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" || return $?) 
+
+                    if [[ $( echo "${change_set_results}" | jq '.Status == "FAILED" ') -eq false ]]; then 
+                      aws --region ${REGION} cloudformation execute-change-set \
+                          --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" &>/dev/null
+
+                      #Wait for change set to be processed 
+                      aws --region ${REGION} cloudformation wait stack-update-complete \
+                        --stack-name "${STACK_NAME}"  &>/dev/null
+
+                      # Check ChangeSet for results 
+                      change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
+                        --stack-name "${STACK_NAME}" --change-set-name "${alternative_set_name}" || return $?) 
+
+                    fi
+
+                  fi
+                done
+            fi
+          fi
         else
+
           info "Creating/updating the "${STACK_NAME}" stack..."
-          aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" --capabilities CAPABILITY_IAM > "${stack_status_file}" 2>&1
+          aws --region ${REGION} cloudformation ${STACK_OPERATION,,}-stack \
+              --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" \
+              --capabilities CAPABILITY_IAM > "${stack_status_file}" 2>&1
           exit_status=$?
           case ${exit_status} in
             0) ;;
@@ -272,7 +346,7 @@ function process_stack() {
           esac
         fi
         ;;
-  
+      
       *)
         fatal "\"${STACK_OPERATION}\" is not one of the known stack operations."; return 1
         ;;
