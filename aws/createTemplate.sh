@@ -208,12 +208,12 @@ function process_template() {
       if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
         for pass in "${pass_list[@]}"; do 
           pass_deployment_unit_prefix["${pass}"]="" 
-          pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace"
+          pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace1"
         done
       else
         for pass in "${pass_list[@]}"; do 
           pass_level_prefix["${pass}"]="soln-" 
-          pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace"
+          pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace1"
         done
       fi
       ;;
