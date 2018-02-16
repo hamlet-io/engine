@@ -327,7 +327,7 @@ function process_stack() {
 
               STACK_MONITOR=false
               info "Dry Run Complete - Results available in CMBD"
-              echo ${change_set_results} > "${DRYRUN}" 2>/dev/null 
+              echo ${change_set_results} > "${DRYRUNCHANGE}" 2>/dev/null 
               echo ${change_set_results}
               return 0;
 
