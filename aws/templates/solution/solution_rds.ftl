@@ -71,6 +71,7 @@
                     [
                         "function create_deploy_snapshot() {",
                         "# Create RDS snapshot",
+                        "info \"Creating Pre-Deployment snapshot\"",
                         "snapshot_arn=$(create_snapshot" + " \"" + 
                         region + "\" \"" + 
                         rdsFullName + "\" " + 
