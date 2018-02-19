@@ -91,6 +91,14 @@
         value?has_content?then(value,content)) ]
 [/#function]
 
+[#function firstContent alternatives=[] otherwise={}]
+    [#list asArray(alternatives) as alternative]
+        [#if alternative?has_content]
+            [#return alternative]
+        [/#if]
+    [#return otherwise ]
+[/#function]
+
 [#-- Recursively concatenate sequence of non-empty strings with a separator --]
 [#function concatenate args separator]
     [#local content = []]
@@ -1042,6 +1050,7 @@
                         [#case "apigateway"]
                         [#case "lambda"]
                         [#case "sqs"]
+                        [#case "s3"]
                             [#local result = targetOccurrence]
                             [#break]
                     [/#switch]
@@ -1238,6 +1247,27 @@
                     "Attributes" : {
                         "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
                         "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
+                        "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
+                        "REGION" : regionId
+                    }
+                }
+            ]
+            [#break]
+
+        [#case "s3"]
+            [#local id =
+                formatComponentS3Id(
+                    target.Tier,
+                    target.Component,
+                    target)]
+            [#local result +=
+                {
+                    "ResourceId" : id,
+                    "Attributes" : {
+                        "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
+                        "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
+                        "INTERNAL_FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
+                        "WEBSITE_URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
                         "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
                         "REGION" : regionId
                     }
