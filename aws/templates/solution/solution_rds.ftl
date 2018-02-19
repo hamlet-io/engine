@@ -202,6 +202,12 @@
                             "DBSnapshotIdentifier"
                             rdsRestoreSnapshot,
                             rdsRestoreSnapshot
+                        ) + 
+                        occurrence.Encrypted?then(
+                            {
+                                "StorageEncrypted" : true,
+                                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE))
+                            }
                         )
                     tags=
                         getCfTemplateCoreTags(
