@@ -206,15 +206,17 @@ function add_host_to_apidoc() {
 
 function wait_for_stack_execution() { 
   
+  info "watching Stack Execution"
+
   local stack_status_file="${tmpdir}/stack_status"
 
   while true; do
 
     case ${STACK_OPERATION} in 
       update)
-        status_attribute="ExecutionStatus"
-        operation_to_check="EXECUTE"
-        aws --region ${REGION} cloudformation describe-change-set --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > "${STACK}" 2>/dev/null
+        status_attribute="StackStatus"
+        opertation_to_check="UPDATE"
+        aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
         exit_status=$?
       ;;
 
@@ -240,17 +242,6 @@ function wait_for_stack_execution() {
     [[ ("${STACK_OPERATION}" == "delete") && ("${exit_status}" -eq 255) ]] &&
       { exit_status=0; break; }
 
-    # Check to see if the work has already been completed
-    case ${exit_status} in
-      0) ;;
-      255)
-        grep -q "No updates are to be performed" < "${stack_status_file}" &&
-          warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n"; break ||
-          { cat "${stack_status_file}"; return ${exit_status}; }
-        ;;
-      *) return ${exit_status} ;;
-    esac
-
     if [[ "${STACK_MONITOR}" = "true" ]]; then 
 
       # Check the latest status
@@ -269,6 +260,18 @@ function wait_for_stack_execution() {
     else 
       break
     fi
+
+    # Check to see if the work has already been completed
+    case ${exit_status} in
+      0) ;;
+      255)
+        grep -q "No updates are to be performed" < "${stack_status_file}" &&
+          warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n"; break ||
+          { cat "${stack_status_file}"; return ${exit_status}; }
+        ;;
+      *) 
+      return ${exit_status} ;;
+    esac
 
   done
 }
@@ -306,78 +309,75 @@ function process_stack() {
 
         if [[ "${STACK_OPERATION}" == "update" ]]; then 
 
-
           info "Update Operation - Submitting Change Set to determine update action"
           INITIAL_CHANGE_SET_NAME="initial-$(date +'%s')"
           aws --region ${REGION} cloudformation create-change-set \
               --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" \
               --template-body "file://${stripped_template_file}" \
-              --capabilities CAPABILITY_IAM &>/dev/null ||
-            return $?
+              --capabilities CAPABILITY_IAM &>/dev/null || return $?
 
           #Wait for change set to be processed 
           aws --region ${REGION} cloudformation wait change-set-create-complete \
               --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" &>/dev/null            
 
           # Check ChangeSet for results 
-          change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
-              --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" || return $?) 
-          
+          aws --region ${REGION} cloudformation describe-change-set \
+              --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" > "${CHANGE}" 2>/dev/null || return $?
+        
           if [[ -n "${DRYRUN}" ]]; then 
 
               STACK_MONITOR=false
               info "Dry Run Complete - Results available in CMBD"
-              echo ${change_set_results} > "${DRYRUNCHANGE}" 2>/dev/null 
-              echo ${change_set_results}
+              cat "${CHANGE}" > "${DRYRUNCHANGE}" 2>/dev/null 
+              cat "${CHANGE}"
               return 0;
 
           else
 
-            if [[ $( echo "${change_set_results}" | jq  -r '.Status == "FAILED" ') = "true" ]]; then
+            if [[ $( cat "${CHANGE}" | jq  -r '.Status == "FAILED" ') = "true" ]]; then
               
-              info "Change Set Failed: $( echo "${change_set_results}" | jq '.Status == "FAILED" ') "
+              info "Change Set Failed: $( cat "${CHANGE}" | jq '.Status == "FAILED" ') "
 
-              echo "${change_set_results}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
+              cat "${CHANGE}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
                 warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n" ||
-                echo "${change_set_results}"; return ${exit_status}; 
+                cat "${CHANGE}"; return ${exit_status}; 
 
             else 
 
-              replacement=$( echo "${change_set_results}" | jq '[.Changes[].ResourceChange.Replacement] | contains(["True"])' )
+              replacement=$( cat "${CHANGE}" | jq '[.Changes[].ResourceChange.Replacement] | contains(["True"])' )
+              REPLACE_TEMPLATES=$( for i in ${ALTERNATIVE_TEMPLATES} ; do echo $i | awk '/-replace[0-9]-template\.json$/'  ; done  | sort  )
+              
               info "Replacement Status: ${replacement}"
 
-              if [[ "${replacement}" == "true" ]]; then 
+              if [[ "${replacement}" == "true" && -n REPLACE_TEMPLATES ]]; then
 
-                  REPLACE_TEMPLATES=( $( for i in ${ALTERNATIVE_TEMPLATES} ; do echo $i ; done | grep "-replace[0-9]-template\.json?" | sort ) )
                   info "Using Replacement Templates - ${REPLACE_TEMPLATES} - From Alternative Templates: ${ALTERNATIVE_TEMPLATES}"
 
                   for REPLACE_TEMPLATE in ${REPLACE_TEMPLATES}; do 
                     info "Applying replace template : $(fileName "${REPLACE_TEMPLATE}")"
 
-                    jq -c '.' < ${ALTERNATIVE_TEMPLATE} > "${stripped_template_file}"
+                    jq -c '.' < ${REPLACE_TEMPLATE} > "${stripped_template_file}"
 
-                    CHANGE_SET_NAME="${REPLACE_TEMPLATE}-$(date +'%s')"
+                    CHANGE_SET_NAME="$( fileBase "${REPLACE_TEMPLATE}" )-$(date +'%s')"
                     aws --region ${REGION} cloudformation create-change-set \
                         --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" \
                         --template-body "file://${stripped_template_file}" \
-                        --capabilities CAPABILITY_IAM &>/dev/null ||
-                      return $?
+                        --capabilities CAPABILITY_IAM  || return $?
 
                     #Wait for change set to be processed 
                     aws --region ${REGION} cloudformation wait change-set-create-complete \
-                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" &>/dev/null            
+                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" || return $?          
 
                     # Check ChangeSet for results 
-                    change_set_results=$(aws --region ${REGION} cloudformation describe-change-set \
-                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" || return $?) 
+                    aws --region ${REGION} cloudformation describe-change-set \
+                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}"  > "${CHANGE}" 2>/dev/null || return $?
 
-                    if [[ $(change_set_results | jq -r '.Status == CREATE_COMPLETE') == true ]]; then 
-                          aws --region ${REGION} cloudformation execute-change-set \
-                              --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}"
+                    # Running 
+                    aws --region ${REGION} cloudformation execute-change-set \
+                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > /dev/null || return $?
 
-                        wait_for_stack_execution
-                    fi 
-
+                    wait_for_stack_execution
+                    
                   done
               
               else
@@ -386,7 +386,7 @@ function process_stack() {
                 # Execute a normal change 
                 CHANGE_SET_NAME="${INITIAL_CHANGE_SET_NAME}"
                 aws --region ${REGION} cloudformation execute-change-set \
-                      --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}"
+                      --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > /dev/null || return $?
 
                 wait_for_stack_execution
 
@@ -398,8 +398,7 @@ function process_stack() {
 
             # Create Action 
             info "Creating the "${STACK_NAME}" stack..."
-            aws --region ${REGION} cloudformation create-stack --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" --capabilities CAPABILITY_IAM > "${stack_status_file}" 2>&1
-            exit_status=$?
+            aws --region ${REGION} cloudformation create-stack --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" --capabilities CAPABILITY_IAM > /dev/null || return $?
 
             wait_for_stack_execution
 
