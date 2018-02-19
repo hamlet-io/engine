@@ -190,16 +190,17 @@
                                 "AvailabilityZone" : zones[0].AWSZone
                             }
                         ) + 
+                        (occurrence.Encrypted)?then(
+                            {
+                                "StorageEncrypted" : true,
+                                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                            },
+                            ""
+                        ) +
                         attributeIfContent(
                             "DBSnapshotIdentifier"
                             rdsRestoreSnapshot,
                             rdsRestoreSnapshot
-                        ) + 
-                        occurrence.Encrypted?then(
-                            {
-                                "StorageEncrypted" : true,
-                                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
-                            }
                         )
                     tags=
                         getCfTemplateCoreTags(
@@ -252,7 +253,14 @@
                             {
                                 "AvailabilityZone" : zones[0].AWSZone
                             }
-                        ) + 
+                        ) +  
+                        (occurrence.Encrypted)?then(
+                            {
+                                "StorageEncrypted" : true,
+                                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                            },
+                            ""
+                        ) +
                         attributeIfContent(
                             "DBSnapshotIdentifier",
                             rdsLastSnapshot,
