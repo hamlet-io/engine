@@ -126,20 +126,16 @@
     [#assign sshStandalone = ((segmentObject.SSH.Standalone)!false) || natHosted ]
     [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
 
-    [#assign operationsBucket = getExistingReference(formatS3OperationsId())]
-    [#if ! operationsBucket?has_content]
-        [#assign operationsBucket = formatSegmentFullName("ops", vpc?remove_beginning("vpc-"))]
-        [#if ((segmentObject.S3.IncludeTenant)!false) && tenantObject?has_content]
-            [#assign operationsBucket = formatName(tenantObject, operationsBucket) ]
-        [/#if]
+    [#assign operationsBucket =
+        firstContent(
+            getExistingReference(formatS3OperationsId()),
+            formatSegmentBucketName("ops"))]
     [/#if]
 
-    [#assign dataBucket = getExistingReference(formatS3DataId())]
-    [#if ! dataBucket?has_content]
-        [#assign dataBucket = formatSegmentFullName("data", vpc?remove_beginning("vpc-"))]
-        [#if ((segmentObject.S3.IncludeTenant)!false) && tenantObject?has_content]
-            [#assign dataBucket = formatName(tenantObject, dataBucket) ]
-        [/#if]
+    [#assign dataBucket =
+        firstContent(
+            getExistingReference(formatS3DataId()),
+            formatSegmentBucketName("data"))]
     [/#if]
 
     [#if segmentObject.Environment??]

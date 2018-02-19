@@ -42,16 +42,9 @@
             mode=listMode
             id=s3Id
             name=
-                getExistingReference(s3Id)?has_content?then(
-                    getExistingReference(s3Id),
-                    formatHostDomainName(
-                        [
-                            (s3.Name != "S3")?then(s3.Name, componentName),
-                            occurrence,
-                            segmentDomainQualifier
-                        ],
-                        segmentDomain,
-                        occurrence.Style))
+                firstContent(
+                    getExistingReference(s3Id, NAME_ATTRIBUTE_TYPE),
+                    formatComponentBucketName(tier, component, occurrence))
             tier=tier
             component=component
             lifecycleRules=
