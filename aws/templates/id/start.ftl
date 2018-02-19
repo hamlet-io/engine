@@ -115,6 +115,7 @@
 [#assign PASSWORD_ATTRIBUTE_TYPE = "password" ]
 [#assign DATABASENAME_ATTRIBUTE_TYPE = "databasename" ]
 [#assign TOPICNAME_ATTRIBUTE_TYPE = "topicname" ]
+[#assign LASTRESTORE_ATTRIBUTE_TYPE = "lastrestore" ]
 
 [#-- special attribute type to handle references --]
 [#assign REFERENCE_ATTRIBUTE_TYPE = "ref" ]
