@@ -706,17 +706,21 @@
                     "Default" : "20"
                 },
                 {
+                    "Name" : "Encrypted",
+                    "Default" : false
+                },
+                {
                     "Name" : "Backup",
                     "Children" : [
                         {
                             "Name" : "RetentionPeriod",
                             "Default" : 35
+                        },
+                        {
+                            "Name" : "SnapShotOnDeploy",
+                            "Default" : true
                         }
                     ]
-                },
-                {
-                    "Name" : "SnapShotOnDeploy",
-                    "Default" : true
                 }
             ],
         "s3" : 
