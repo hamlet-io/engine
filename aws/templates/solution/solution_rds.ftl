@@ -48,6 +48,9 @@
                                     credentialsObject[componentShortName]!{}]
         [#assign rdsUsername = (rdsCredentials.Login.Username)!""]
         [#assign rdsPassword = (rdsCredentials.Login.Password)!""]
+        [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), "ARN_ATTRIBUTE_TYPE") ]
+        [#assign rdsLastSnapshot = getExistingReference(rdsId, "LASTRESTORE_ATTRIBUTE_TYPE") ]
+
 
         [#assign rdsSecurityGroupId = formatDependentComponentSecurityGroupId(
                                         tier, 
@@ -79,7 +82,7 @@
                         "create_pseudo_stack" + " " + 
                         "\"RDS Pre-Deploy Snapshot\"" + " " +
                         "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"snapshotX" + rdsId + "\" " + "\"$\{snapshot_arn}\" || return $?", 
+                        "\"snapshotX" + rdsId + "Xarn\" " + "\"$\{snapshot_arn}\" || return $?", 
                         "}",
                         "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-snapshot-pseudo-stack.json\" ",
                         "create_deploy_snapshot || return $?"
@@ -157,49 +160,121 @@
                 outputs={}
             /]
 
-            [@cfResource
-                mode=listMode
-                id=rdsId
-                type="AWS::RDS::DBInstance"
-                properties=
-                    {
-                        "Engine": engine,
-                        "EngineVersion": engineVersion,
-                        "DBInstanceClass" : processorProfile.Processor,
-                        "AllocatedStorage": occurrence.Size,
-                        "StorageType" : "gp2",
-                        "Port" : port,
-                        "MasterUsername": rdsUsername,
-                        "MasterUserPassword": rdsPassword,
-                        "BackupRetentionPeriod" : occurrence.Backup.RetentionPeriod,
-                        "DBInstanceIdentifier": rdsFullName,
-                        "DBName": productName,
-                        "DBSubnetGroupName": getReference(rdsSubnetGroupId),
-                        "DBParameterGroupName": getReference(rdsParameterGroupId),
-                        "OptionGroupName": getReference(rdsOptionGroupId),
-                        "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
-                    } +
-                    multiAZ?then(
+            [#if replacement?has_content && replacement == "replace1" ]
+               [@cfResource 
+                    mode=listMode
+                    id=rdsId
+                    type="AWS::RDS::DBInstance"
+                    properties=
                         {
-                            "MultiAZ": true
-                        },
+                            "Engine": engine,
+                            "EngineVersion": engineVersion,
+                            "DBInstanceClass" : processorProfile.Processor,
+                            "AllocatedStorage": occurrence.Size,
+                            "StorageType" : "gp2",
+                            "Port" : port,
+                            "MasterUsername": rdsUsername,
+                            "MasterUserPassword": rdsPassword,
+                            "BackupRetentionPeriod" : occurrence.Backup.RetentionPeriod,
+                            "DBInstanceIdentifier": formatName(rdsFullName, "backup"),
+                            "DBName": productName,
+                            "DBSubnetGroupName": getReference(rdsSubnetGroupId),
+                            "DBParameterGroupName": getReference(rdsParameterGroupId),
+                            "OptionGroupName": getReference(rdsOptionGroupId),
+                            "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
+                        } +
+                        multiAZ?then(
+                            {
+                                "MultiAZ": true
+                            },
+                            {
+                                "AvailabilityZone" : zones[0].AWSZone
+                            }
+                        ) + 
+                        attributeIfContent(
+                            "DBSnapshotIdentifier"
+                            rdsRestoreSnapshot,
+                            rdsRestoreSnapshot
+                        )
+                    tags=
+                        getCfTemplateCoreTags(
+                            rdsFullName,
+                            tier,
+                            component)
+                    outputs=
+                        RDS_OUTPUT_MAPPINGS +
                         {
-                            "AvailabilityZone" : zones[0].AWSZone
-                        }
-                    )
-                tags=
-                    getCfTemplateCoreTags(
-                        rdsFullName,
-                        tier,
-                        component)
-                outputs=
-                    RDS_OUTPUT_MAPPINGS +
-                    {
-                        DATABASENAME_ATTRIBUTE_TYPE : { 
-                            "Value" : productName
-                        }
-                    }
-            /]
+                            DATABASENAME_ATTRIBUTE_TYPE : { 
+                                "Value" : productName
+                            }
+                        } +
+                        attributeIfContent(
+                            LASTRESTORE_ATTRIBUTE_TYPE,
+                            rdsRestoreSnapshot,
+                            {
+                                "Value" : rdsRestoreSnapshot
+                            }
+                        )
+                /]
+
+            [#else]
+                [@cfResource
+                    mode=listMode
+                    id=rdsId
+                    type="AWS::RDS::DBInstance"
+                    properties=
+                        {
+                            "Engine": engine,
+                            "EngineVersion": engineVersion,
+                            "DBInstanceClass" : processorProfile.Processor,
+                            "AllocatedStorage": occurrence.Size,
+                            "StorageType" : "gp2",
+                            "Port" : port,
+                            "MasterUsername": rdsUsername,
+                            "MasterUserPassword": rdsPassword,
+                            "BackupRetentionPeriod" : occurrence.Backup.RetentionPeriod,
+                            "DBInstanceIdentifier": rdsFullName,
+                            "DBName": productName,
+                            "DBSubnetGroupName": getReference(rdsSubnetGroupId),
+                            "DBParameterGroupName": getReference(rdsParameterGroupId),
+                            "OptionGroupName": getReference(rdsOptionGroupId),
+                            "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
+                        } +
+                        multiAZ?then(
+                            {
+                                "MultiAZ": true
+                            },
+                            {
+                                "AvailabilityZone" : zones[0].AWSZone
+                            }
+                        ) + 
+                        attributeIfContent(
+                            "DBSnapshotIdentifier",
+                            rdsLastSnapshot,
+                            rdsLastSnapshot
+                        )
+                    tags=
+                        getCfTemplateCoreTags(
+                            rdsFullName,
+                            tier,
+                            component)
+                    outputs=
+                        RDS_OUTPUT_MAPPINGS +
+                        {
+                            DATABASENAME_ATTRIBUTE_TYPE : { 
+                                "Value" : productName
+                            }
+                        } +
+                        attributeIfContent(
+                            LASTRESTORE_ATTRIBUTE_TYPE,
+                            rdsRestoreSnapshot,
+                            {
+                                "Value" : rdsRestoreSnapshot
+                            }
+                        )
+                /]
+            [/#if]
+             
         [/#if]
     [/#list]
 [/#if]
