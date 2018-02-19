@@ -447,11 +447,10 @@
                                             ),
                                             formatName(
                                                 occurrence.Publish.DnsNamePrefix,
-                                                formatSegmentFullName(
+                                                formatComponentBucketName(
                                                     tier,
                                                     component,
-                                                    occurrence,
-                                                    vpc?remove_beginning("vpc-")
+                                                    occurrence)
                                                 )
                                             )
                                             )]    
