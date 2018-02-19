@@ -91,4 +91,9 @@
     [/#list]
 
     [#return result ]
+[#function formatDependentRDSSnapshotId resourceId extensions... ]
+    [#return formatDependentResourceId(
+                "snapshot",
+                resourceId,
+                extensions)]
 [/#function]
