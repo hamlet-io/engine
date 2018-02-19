@@ -7,9 +7,6 @@
         },
         ARN_ATTRIBUTE_TYPE : { 
             "UseRef" : true
-        },
-        NAME_ATTRIBUTE_TYPE : { 
-            "UseRef" : true
         }
     }
 ]
@@ -54,7 +51,7 @@
 
             [#assign efsMountTargetId = formatDependentEFSMountTargetId(
                                             efsId,
-                                            subnet?index)]
+                                            zone.AWSZone)]
 
             [@cfResource
                 mode=mode
