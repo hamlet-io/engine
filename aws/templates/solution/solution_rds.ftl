@@ -66,7 +66,7 @@
         [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
         [#if deploymentSubsetRequired("prologue", false)]
-            [#if occurrence.SnapShotOnDeploy ]
+            [#if occurrence.Backup.SnapShotOnDeploy ]
                 [@cfScript
                     mode=listMode
                     content=
@@ -194,6 +194,12 @@
                             "DBSnapshotIdentifier"
                             rdsRestoreSnapshot,
                             rdsRestoreSnapshot
+                        ) + 
+                        occurrence.Encrypted?then(
+                            {
+                                "StorageEncrypted" : true,
+                                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE))
+                            }
                         )
                     tags=
                         getCfTemplateCoreTags(
