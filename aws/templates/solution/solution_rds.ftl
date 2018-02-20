@@ -240,71 +240,148 @@
                         )
                 /]
 
-            [#else]
-                [@cfResource
-                    mode=listMode
-                    id=rdsId
-                    type="AWS::RDS::DBInstance"
-                    properties=
-                        {
-                            "Engine": engine,
-                            "EngineVersion": engineVersion,
-                            "DBInstanceClass" : processorProfile.Processor,
-                            "AllocatedStorage": occurrence.Size,
-                            "StorageType" : "gp2",
-                            "Port" : port,
-                            "MasterUsername": rdsUsername,
-                            "MasterUserPassword": rdsPassword,
-                            "BackupRetentionPeriod" : occurrence.Backup.RetentionPeriod,
-                            "DBInstanceIdentifier": rdsFullName,
-                            "DBName": productName,
-                            "DBSubnetGroupName": getReference(rdsSubnetGroupId),
-                            "DBParameterGroupName": getReference(rdsParameterGroupId),
-                            "OptionGroupName": getReference(rdsOptionGroupId),
-                            "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
-                        } +
-                        multiAZ?then(
+            [#switch alternative ]
+
+                [#case "replace1" ]
+
+                    [#assign rdsRestoreName=formatName(rdsFullName, "backup") ]
+
+                    [@createRDSInstance 
+                        mode=listMode
+                        id=rdsId
+                        name=rdsRestoreName
+                        engine=engine
+                        engineVersion=engineVersion
+                        processor=processorProfile.Processor
+                        size=occurrence.Size
+                        port=port
+                        multiAZ=multiAZ
+                        encrypted=occurrence.Encrypted
+                        masterUsername=rdsUsername
+                        masterPassword=rdsPassword
+                        databaseName=productName
+                        retentionPeriod=occurrence.Backup.RetentionPeriod
+                        subnetGroupId=getReference(rdsSubnetGroupId)
+                        parameterGroupId=getReference(rdsParameterGroupId)
+                        optionGroupId=getReference(rdsOptionGroupId)
+                        securityGroupId=getReference(rdsSecurityGroupId)
+                        snapshotId=rdsRestoreSnapshot
+                    /]
+
+                    [#--
+                    [@cfResource 
+                        mode=listMode
+                        id=rdsId
+                        type="AWS::RDS::DBInstance"
+                        properties=
                             {
-                                "MultiAZ": true
-                            },
+                                "Engine": engine,
+                                "EngineVersion": engineVersion,
+                                "DBInstanceClass" : processorProfile.Processor,
+                                "AllocatedStorage": occurrence.Size,
+                                "StorageType" : "gp2",
+                                "Port" : port,
+                                "MasterUsername": rdsUsername,
+                                "MasterUserPassword": rdsPassword,
+                                "BackupRetentionPeriod" : occurrence.Backup.RetentionPeriod,
+                                "DBInstanceIdentifier": formatName(rdsFullName, "backup"),
+                                "DBSubnetGroupName": getReference(rdsSubnetGroupId),
+                                "DBParameterGroupName": getReference(rdsParameterGroupId),
+                                "OptionGroupName": getReference(rdsOptionGroupId),
+                                "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
+                            } +
+                            multiAZ?then(
+                                {
+                                    "MultiAZ": true
+                                },
+                                {
+                                    "AvailabilityZone" : zones[0].AWSZone
+                                }
+                            ) + 
+                            (occurrence.Encrypted)?then(
+                                {
+                                    "StorageEncrypted" : true,
+                                    "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                                },
+                                ""
+                            ) +
+                            attributeIfContent(
+                                "DBSnapshotIdentifier"
+                                rdsRestoreSnapshot,
+                                rdsRestoreSnapshot
+                            )
+                        tags=
+                            getCfTemplateCoreTags(
+                                rdsFullName,
+                                tier,
+                                component)
+                        outputs=
+                            RDS_OUTPUT_MAPPINGS +
                             {
-                                "AvailabilityZone" : zones[0].AWSZone
-                            }
-                        ) +  
-                        (occurrence.Encrypted)?then(
-                            {
-                                "StorageEncrypted" : true,
-                                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
-                            },
-                            ""
-                        ) +
-                        attributeIfContent(
-                            "DBSnapshotIdentifier",
-                            rdsLastSnapshot,
-                            rdsLastSnapshot
-                        )
-                    tags=
-                        getCfTemplateCoreTags(
-                            rdsFullName,
-                            tier,
-                            component)
-                    outputs=
-                        RDS_OUTPUT_MAPPINGS +
-                        {
-                            DATABASENAME_ATTRIBUTE_TYPE : { 
-                                "Value" : productName
-                            }
-                        } +
-                        attributeIfContent(
-                            LASTRESTORE_ATTRIBUTE_TYPE,
-                            rdsRestoreSnapshot,
-                            {
-                                "Value" : rdsRestoreSnapshot
-                            }
-                        )
-                /]
-            [/#if]
-             
+                                DATABASENAME_ATTRIBUTE_TYPE : { 
+                                    "Value" : productName
+                                }
+                            } +
+                            attributeIfContent(
+                                LASTRESTORE_ATTRIBUTE_TYPE,
+                                rdsRestoreSnapshot,
+                                {
+                                    "Value" : rdsRestoreSnapshot
+                                }
+                            )
+                    /]
+                    --]
+
+                [#break]
+
+                [#case "replace2"]
+                    [@createRDSInstance 
+                        mode=listMode
+                        id=rdsId
+                        name=rdsFullName
+                        engine=engine
+                        engineVersion=engineVersion
+                        processor=processorProfile.Processor
+                        size=occurrence.Size
+                        port=port
+                        multiAZ=multiAZ
+                        encrypted=occurrence.Encrypted
+                        masterUsername=rdsUsername
+                        masterPassword=rdsPassword
+                        databaseName=productName
+                        retentionPeriod=occurrence.Backup.RetentionPeriod
+                        subnetGroupId=getReference(rdsSubnetGroupId)
+                        parameterGroupId=getReference(rdsParameterGroupId)
+                        optionGroupId=getReference(rdsOptionGroupId)
+                        securityGroupId=getReference(rdsSecurityGroupId)
+                        snapshotId=rdsLastSnapshot
+                    /]
+           
+                [#break]
+
+                [#default]
+                    [@createRDSInstance 
+                        mode=listMode
+                        id=rdsId
+                        name=rdsFullName
+                        engine=engine
+                        engineVersion=engineVersion
+                        processor=processorProfile.Processor
+                        size=occurrence.Size
+                        port=port
+                        multiAZ=multiAZ
+                        encrypted=occurrence.Encrypted
+                        masterUsername=rdsUsername
+                        masterPassword=rdsPassword
+                        databaseName=productName
+                        retentionPeriod=occurrence.Backup.RetentionPeriod
+                        subnetGroupId=getReference(rdsSubnetGroupId)
+                        parameterGroupId=getReference(rdsParameterGroupId)
+                        optionGroupId=getReference(rdsOptionGroupId)
+                        securityGroupId=getReference(rdsSecurityGroupId)
+                        snapshotId=rdsLastSnapshot
+                    /]
+                [/#switch]
         [/#if]
     [/#list]
 [/#if]
