@@ -210,14 +210,23 @@
     [/#if]
 [/#list]
 
-[#function getSubnets tier asReferences=true]
+[#function getSubnets tier asReferences=true includeZone=false]
     [#local result = [] ]
     [#list zones as zone]
         [#local subnetId = formatSubnetId(tier, zone)]
+
+        [#assign subnetId = asReferences?then(
+                                getReference(subnetId),
+                                subnetId   
+                            )]
+
         [#local result += 
             [
-                asReferences?then(
-                    getReference(subnetId),
+                includeZone?then(
+                    {
+                        "subnetId" : subnetId,
+                        "zone" : zone
+                    },
                     subnetId
                 )
             ]
