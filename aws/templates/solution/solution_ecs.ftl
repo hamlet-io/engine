@@ -246,7 +246,7 @@
                                     }) +
                                 attributeIfTrue(
                                     "02ConfigureEFSClusterWide",
-                                    ecs.ClusterWideStorage == true,
+                                    ecs.ClusterWideStorage,
                                     {
                                         "command" : "/opt/codeontap/bootstrap/efs.sh",
                                         "env" : { 
