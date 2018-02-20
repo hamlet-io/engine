@@ -130,13 +130,11 @@
         firstContent(
             getExistingReference(formatS3OperationsId()),
             formatSegmentBucketName("ops"))]
-    [/#if]
 
     [#assign dataBucket =
         firstContent(
             getExistingReference(formatS3DataId()),
             formatSegmentBucketName("data"))]
-    [/#if]
 
     [#if segmentObject.Environment??]
         [#assign environmentId = segmentObject.Environment]
