@@ -661,6 +661,10 @@
             ],
         "ecs" : 
             [
+                {
+                    "Name" : "ClusterWideStorage",
+                    "Default" : false
+                }
             ],
         "lambda" :
             [
@@ -849,7 +853,7 @@
                 {
                     "Name" : "UseTaskRole",
                     "Default" : true
-                }
+                } 
             ],
         "userpool" :
             [
@@ -915,6 +919,9 @@
                         }
                     ] 
                 }
+            ],
+        "efs"  :
+            [
             ]
     }
 ]
