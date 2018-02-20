@@ -215,10 +215,9 @@
     [#list zones as zone]
         [#local subnetId = formatSubnetId(tier, zone)]
 
-        [#assign subnetId = asReferences?then(
+        [#local subnetId = asReferences?then(
                                 getReference(subnetId),
-                                subnetId   
-                            )]
+                                subnetId)]
 
         [#local result += 
             [
