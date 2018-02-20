@@ -206,7 +206,7 @@ function add_host_to_apidoc() {
 
 function wait_for_stack_execution() { 
   
-  info "watching Stack Execution"
+  info "Watching stack execution..."
 
   local stack_status_file="${tmpdir}/stack_status"
 
@@ -309,7 +309,7 @@ function process_stack() {
 
         if [[ "${STACK_OPERATION}" == "update" ]]; then 
 
-          info "Update Operation - Submitting Change Set to determine update action"
+          info "Update operation - submitting change set to determine update action"
           INITIAL_CHANGE_SET_NAME="initial-$(date +'%s')"
           aws --region ${REGION} cloudformation create-change-set \
               --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" \
@@ -327,16 +327,16 @@ function process_stack() {
           if [[ -n "${DRYRUN}" ]]; then 
 
               STACK_MONITOR=false
-              info "Dry Run Complete - Results available in CMBD"
+              info "Dry run complete - results available in CMDB"
               cat "${CHANGE}" > "${DRYRUNCHANGE}" 2>/dev/null 
               cat "${CHANGE}"
               return 0;
 
           else
 
-            if [[ $( cat "${CHANGE}" | jq  -r '.Status == "FAILED" ') = "true" ]]; then
+            if [[ $( jq  -r '.Status == "FAILED"' < "${CHANGE}" ) == "true" ]]; then
               
-              info "Change Set Failed: $( cat "${CHANGE}" | jq '.Status == "FAILED" ') "
+              warning "Change set failed: $( jq '.Status' < "${CHANGE}" )"
 
               cat "${CHANGE}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
                 warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n" ||
@@ -346,15 +346,13 @@ function process_stack() {
 
               replacement=$( cat "${CHANGE}" | jq '[.Changes[].ResourceChange.Replacement] | contains(["True"])' )
               REPLACE_TEMPLATES=$( for i in ${ALTERNATIVE_TEMPLATES} ; do echo $i | awk '/-replace[0-9]-template\.json$/'  ; done  | sort  )
-              
-              info "Replacement Status: ${replacement}"
 
-              if [[ "${replacement}" == "true" && -n REPLACE_TEMPLATES ]]; then
+              if [[ "${replacement}" == "true" && -n "${REPLACE_TEMPLATES}" ]]; then
 
-                  info "Using Replacement Templates - ${REPLACE_TEMPLATES} - From Alternative Templates: ${ALTERNATIVE_TEMPLATES}"
+                  info "Replacement update - Using replacement templates"
 
                   for REPLACE_TEMPLATE in ${REPLACE_TEMPLATES}; do 
-                    info "Applying replace template : $(fileName "${REPLACE_TEMPLATE}")"
+                    info "Executing replace template : $(fileBase "${REPLACE_TEMPLATE}")..."
 
                     jq -c '.' < ${REPLACE_TEMPLATE} > "${stripped_template_file}"
 
@@ -382,7 +380,7 @@ function process_stack() {
               
               else
 
-                info "Standard Update - Executing Change Set"
+                info "Standard update - executing change set..."
                 # Execute a normal change 
                 CHANGE_SET_NAME="${INITIAL_CHANGE_SET_NAME}"
                 aws --region ${REGION} cloudformation execute-change-set \
