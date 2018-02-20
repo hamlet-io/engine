@@ -96,6 +96,7 @@
         [#if alternative?has_content]
             [#return alternative]
         [/#if]
+    [/#list]
     [#return otherwise ]
 [/#function]
 
