@@ -319,20 +319,20 @@ function process_stack() {
           #Wait for change set to be processed 
           aws --region ${REGION} cloudformation wait change-set-create-complete \
               --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" &>/dev/null            
-
-          # Check ChangeSet for results 
-          aws --region ${REGION} cloudformation describe-change-set \
-              --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" > "${CHANGE}" 2>/dev/null || return $?
         
           if [[ -n "${DRYRUN}" ]]; then 
 
-              STACK_MONITOR=false
-              info "Dry run complete - results available in CMDB"
-              cat "${CHANGE}" > "${DRYRUNCHANGE}" 2>/dev/null 
-              cat "${CHANGE}"
-              return 0;
+            info "Dry run results"
+
+            # Return the change set results
+            aws --region ${REGION} cloudformation describe-change-set \
+              --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" && return $? )
 
           else
+
+            # Check ChangeSet for results 
+            aws --region ${REGION} cloudformation describe-change-set \
+                --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" > "${CHANGE}" 2>/dev/null || return $?
 
             if [[ $( jq  -r '.Status == "FAILED"' < "${CHANGE}" ) == "true" ]]; then
               
