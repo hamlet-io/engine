@@ -6,6 +6,10 @@
     [#assign noise = random.nextLong()?string.computer?replace("-","X")]
     [#list getOccurrences(component, deploymentUnit) as occurrence]
         [@cfDebug listMode occurrence false /]
+        [#if ! (buildCommit?has_content)]
+            [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
+            [#break]
+        [/#if]
 
         [#assign apiId    = formatAPIGatewayId(
                                 tier,
@@ -439,20 +443,16 @@
                                         "docs")]
 
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
-
             [#assign docsS3BucketName = (occurrence.Certificate.Configured && occurrence.Certificate.Enabled)?then(
                                             formatDomainName(
                                                 occurrence.Publish.DnsNamePrefix,
-                                                dns
-                                            ),
+                                                dns),
                                             formatName(
                                                 occurrence.Publish.DnsNamePrefix,
                                                 formatComponentBucketName(
                                                     tier,
                                                     component,
-                                                    occurrence)
-                                                )
-                                            )
+                                                    occurrence))
                                             )]    
             
             [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
