@@ -326,7 +326,7 @@ function process_stack() {
 
             # Return the change set results
             aws --region ${REGION} cloudformation describe-change-set \
-              --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" && return $? )
+              --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" && return $?
 
           else
 
