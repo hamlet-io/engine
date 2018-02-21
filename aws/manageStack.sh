@@ -415,6 +415,9 @@ function process_stack() {
     if [[ ("${exit_status}" -eq 0) || !( -s "${STACK}" ) ]]; then
       rm -f "${STACK}"
     fi
+    if [[ ("${exit_status}" -eq 0) || !( -s "${CHANGE}" ) ]]; then
+      rm -f "${CHANGE}"
+    fi
   fi
 
   return "${exit_status}"
