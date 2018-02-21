@@ -311,7 +311,7 @@ function process_stack() {
 
         if [[ "${STACK_OPERATION}" == "update" ]]; then 
 
-          info "Update operation - submitting change set to determine update action"
+          info "Update operation - submitting change set to determine update action..."
           INITIAL_CHANGE_SET_NAME="initial-$(date +'%s')"
           aws --region ${REGION} cloudformation create-change-set \
               --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" \
