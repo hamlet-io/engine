@@ -249,7 +249,8 @@ function wait_for_stack_execution() {
       cat "${stack_status_file}"
 
       # Finished if complete
-      egrep "(${operation_to_check})_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && break
+      egrep "(${operation_to_check})_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && \
+        { [[ -f "${potential_change_file}" ]] && cp "${potential_change_file}" "${CHANGE}"; break; }
 
       # Abort if not still in progress
       egrep "(${operation_to_check}).*_IN_PROGRESS\"" "${stack_status_file}"  >/dev/null 2>&1 ||
@@ -279,6 +280,7 @@ function wait_for_stack_execution() {
 function process_stack() {
 
   local stripped_template_file="${tmpdir}/stripped_template"
+
   local exit_status=0
   
   if [[ "${STACK_INITIATE}" = "true" ]]; then
@@ -332,19 +334,17 @@ function process_stack() {
 
             # Check ChangeSet for results 
             aws --region ${REGION} cloudformation describe-change-set \
-                --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" > "${CHANGE}" 2>/dev/null || return $?
+                --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" > "${potential_change_file}" 2>/dev/null || return $?
 
-            if [[ $( jq  -r '.Status == "FAILED"' < "${CHANGE}" ) == "true" ]]; then
-              
-              warning "Change set failed: $( jq '.Status' < "${CHANGE}" )"
+            if [[ $( jq  -r '.Status == "FAILED"' < "${potential_change_file}" ) == "true" ]]; then
 
-              cat "${CHANGE}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
+              cat "${potential_change_file}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
                 warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n" ||
-                cat "${CHANGE}"; return ${exit_status}; 
+                cat "${potential_change_file}"; return ${exit_status}; 
 
             else 
 
-              replacement=$( cat "${CHANGE}" | jq '[.Changes[].ResourceChange.Replacement] | contains(["True"])' )
+              replacement=$( cat "${potential_change_file}" | jq '[.Changes[].ResourceChange.Replacement] | contains(["True"])' )
               REPLACE_TEMPLATES=$( for i in ${ALTERNATIVE_TEMPLATES} ; do echo $i | awk '/-replace[0-9]-template\.json$/'  ; done  | sort  )
 
               if [[ "${replacement}" == "true" && -n "${REPLACE_TEMPLATES}" ]]; then
@@ -368,7 +368,7 @@ function process_stack() {
 
                     # Check ChangeSet for results 
                     aws --region ${REGION} cloudformation describe-change-set \
-                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}"  > "${CHANGE}" 2>/dev/null || return $?
+                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}"  > "${potential_change_file}" 2>/dev/null || return $?
 
                     # Running 
                     aws --region ${REGION} cloudformation execute-change-set \
@@ -425,6 +425,7 @@ function main() {
   options "$@" || return $?
 
   tmpdir="$(getTempDir "manage_stack_XXX")"
+  potential_change_file="${tmpdir}/potential_changes"
 
   pushd ${CF_DIR} > /dev/null 2>&1
 
