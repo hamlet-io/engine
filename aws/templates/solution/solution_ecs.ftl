@@ -10,7 +10,8 @@
     [#assign ecsLaunchConfigId = formatEC2LaunchConfigId(tier, component)]
     [#assign ecsSecurityGroupId = formatComponentSecurityGroupId(tier, component)]
     [#assign ecsLogGroupId = formatComponentLogGroupId(tier, component)]
-    [#assign fixedIP = ecs.FixedIP?? && ecs.FixedIP]
+    [#assign fixedIP = ecs.FixedIP!false]
+    [#assign ecsClusterWideStorage = ecs.ClusterWideStorage!false]
 
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(ecsRoleId)]
@@ -53,7 +54,7 @@
             name=formatComponentLogGroupName(tier, component) /]
     [/#if]
 
-    [#if deploymentSubsetRequired("efs", true) && ecs.ClusterWideStorage ]
+    [#if deploymentSubsetRequired("efs", true) && ecsClusterWideStorage ]
 
         [#assign ecsEFSVolumeId = formatEFSId(tier, component)]
         [#assign ecsEFSVolumeName = formatComponentFullName( tier, component )]
@@ -246,7 +247,7 @@
                                     }) +
                                 attributeIfTrue(
                                     "02ConfigureEFSClusterWide",
-                                    ecs.ClusterWideStorage,
+                                    ecsClusterWideStorage,
                                     {
                                         "command" : "/opt/codeontap/bootstrap/efs.sh",
                                         "env" : { 
