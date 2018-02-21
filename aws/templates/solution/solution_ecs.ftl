@@ -54,9 +54,11 @@
             name=formatComponentLogGroupName(tier, component) /]
     [/#if]
 
-    [#if deploymentSubsetRequired("efs", true) && ecsClusterWideStorage ]
+    [#assign ecsEFSVolumeId = formatEFSId(tier, component)]
+    [#if ecsClusterWideStorage &&
+        deploymentSubsetRequired("efs", true) &&
+        isPartOfCurrentDeploymentUnit(ecsEFSVolumeId) ]
 
-        [#assign ecsEFSVolumeId = formatEFSId(tier, component)]
         [#assign ecsEFSVolumeName = formatComponentFullName( tier, component )]
         [#assign ecsEFSSecurityGroupId = formatComponentSecurityGroupId( tier, component,"efs")]
         [#assign ecsEFSIngressSecurityGroupId = formatDependentSecurityGroupIngressId(ecsEFSSecurityGroupId) ]
