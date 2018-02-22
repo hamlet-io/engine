@@ -1413,7 +1413,8 @@
                       "Tier",
                       "Component",
                       "Instance",
-                      "Version"
+                      "Version",
+                      "Host"
                     ]
                 }
             ],
@@ -1440,10 +1441,11 @@
     [#local includes = certificateObject.IncludeInHost ]
 
     [#return
-        valueIfContent(
+        valueIfTrue(
             certificateObject.Host,
-            certificateObject.Host,
+            certificateObject.Host?has_content && (!(includes.Host)),
             formatName(
+                valueIfTrue(certificateObject.Host, includes.Host),
                 valueIfTrue(getTierName(tier), includes.Tier),
                 valueIfTrue(getComponentName(component), includes.Component),
                 valueIfTrue(occurrence.InstanceName!"", includes.Instance),
