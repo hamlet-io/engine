@@ -316,7 +316,10 @@ function arrayFromList() {
   local list="$1"; shift
   local separators="${1:- ,}"
 
-  IFS="${separators}" read -ra array <<< "${list}"
+  # Handle situation of multi-line inputs e.g. from Jenkins multi-line string parameter plugin
+  readarray -t list_lines <<< "${list}"
+
+  IFS="${separators}" read -ra array <<< "$(join "${separators:0:1}" "${list_lines[@]}" )"
   if ! namedef_supported; then
     eval "${array_name}=(\"\${array[@]}\")"
   fi
