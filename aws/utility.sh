@@ -112,11 +112,8 @@ function fatalMandatory() {
 # -- String manipulation --
 
 function join() {
-  local separators="$1"; shift
-  local parts=("$@")
-
-  local IFS="${separators}"
-  echo -n "${parts[*]}"
+  local IFS="$1"; shift
+  echo -n "$*"
 }
 
 function contains() {
