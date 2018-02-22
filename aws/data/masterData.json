@@ -1251,7 +1251,8 @@
       "Tier": false,
       "Component": true,
       "Instance": true,
-      "Version": true
+      "Version": true,
+      "Host": true
     },
     "Qualifiers": {
       "prod": {
