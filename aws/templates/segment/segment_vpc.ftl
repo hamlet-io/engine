@@ -754,12 +754,13 @@
                 
                     [#assign processorProfile = getProcessor(tier, natComponent, "NAT")]
                     [#assign updateCommand = "yum clean all && yum -y update"]
+                    [#assign dailyUpdateCron = 'echo \\"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
                     [#if environmentId == "prod"]
                         [#-- for production update only security packages --]
                         [#assign updateCommand += " --security"]
+                        [#assign dailyUpdateCron = 'echo \\"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
                     [/#if]
                     [#-- daily cron record for updates --]
-                    [#assign dailyUpdateCron = 'echo \\"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
                     [@cfResource
                         mode=listMode
                         id=launchConfigId
