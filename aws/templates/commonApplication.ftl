@@ -399,7 +399,7 @@
                             productName,
                             formatName(
                                 buildDeploymentUnit,
-                                buildCommit
+                                buildCommit!"build_commit_missing"
                             )
                         ),
                     "MemoryReservation" : container.Memory,
