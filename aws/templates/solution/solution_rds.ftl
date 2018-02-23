@@ -45,9 +45,9 @@
         [#assign rdsParameterGroupId = formatRDSParameterGroupId(tier, component, occurrence)]
         [#assign rdsOptionGroupId = formatRDSOptionGroupId(tier, component, occurrence)]
         [#assign rdsCredentials = credentialsObject[componentShortNameWithType]!
-                                    credentialsObject[componentShortName]]
-        [#assign rdsUsername = rdsCredentials.Login.Username]
-        [#assign rdsPassword = rdsCredentials.Login.Password]
+                                    credentialsObject[componentShortName]!{}]
+        [#assign rdsUsername = (rdsCredentials.Login.Username)!""]
+        [#assign rdsPassword = (rdsCredentials.Login.Password)!""]
 
         [#assign rdsSecurityGroupId = formatDependentComponentSecurityGroupId(
                                         tier, 
