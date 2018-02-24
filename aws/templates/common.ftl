@@ -1051,38 +1051,30 @@
         [#if targetComponent?has_content]
             [#local targetComponentType = getComponentType(targetComponent) ]
             [#list getOccurrences(targetComponent) as targetOccurrence]
-                [#if (targetOccurrence.InstanceId == occurrence.InstanceId) &&
-                                (targetOccurrence.VersionId == occurrence.VersionId)]
-                    [#switch targetComponentType]
-                        [#case "alb"]
-                        [#case "apigateway"]
-                        [#case "lambda"]
-                        [#case "sqs"]
-                        [#case "s3"]
-                            [#local result = targetOccurrence]
-                            [#break]
-                    [/#switch]
+                [#if targetOccurrence.VersionId?has_content]
+                    [#if (targetOccurrence.InstanceId != occurrence.InstanceId) ||
+                        (targetOccurrence.VersionId != occurrence.VersionId) ]
+                        [#continue]
+                    [/#if]
                 [/#if]
-    
-                [#switch targetComponentType]
-                    [#case "userpool"] 
-                    [#case "rds"] 
-                            [#local result = targetOccurrence]
-                        [#break]
-                [/#switch]
+                [#if targetOccurrence.InstanceId?has_content]
+                    [#if (targetOccurrence.InstanceId != occurrence.InstanceId) ]
+                        [#continue]
+                    [/#if]
+                [/#if]
+                [#local
+                    result =
+                        targetOccurrence +
+                        {
+                            "Type" : targetComponentType,
+                            "Tier" : link.Tier,
+                            "Component" : link.Component
+                        } ]
             [/#list]
         [/#if]
     [/#if]
-    
-    [#if result?has_content]
-        [#return
-            result +
-            {
-                "Type" : targetComponentType,
-                "Tier" : link.Tier,
-                "Component" : link.Component
-            } ]
-    [#else]
+
+    [#if !(result?has_content) ]
         [@cfPostconditionFailed
             listMode
             "getLinkTarget"
@@ -1091,12 +1083,24 @@
                 "Link" : link
             }
             "Link not found" /]
-        [#return {} ]
     [/#if]
+    [#return result ]
 [/#function]
 
 [#function getLinkTargetInformation target]
     [#local result = {} ]
+    [@cfDebug listMode target false /]
+
+    [#if !(target?has_content)]
+        [#return
+            {
+                "ResourceId" : "unknown",
+                "Attributes" : {
+                    "NOATTRIBUTES" : "link not found"
+                }
+            }
+        ]
+    [/#if]
 
     [#local fqdn = ""]
     [#local signingFqdn = ""]
@@ -1118,18 +1122,22 @@
             [#local internalFqdn =
                 getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
             [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
-            [#local portMapping = occurrence.PortMappings[0]?is_hash?then(
-                    occurrence.PortMappings[0],
-                    {
-                        "Mapping" : occurrence.PortMappings[0]
-                    }
-                )]
-
-            [#local scheme =
-                ((ports[portMappings[mappingObject.Mapping].Source].Certificate)!false)?then(
-                    "https",
-                    "http"
-                )]
+            [#if (target.PortMappings![])?has_content]
+                [#local portMapping = target.PortMappings[0]?is_hash?then(
+                        target.PortMappings[0],
+                        {
+                            "Mapping" : target.PortMappings[0]
+                        }
+                    )]
+    
+                [#local scheme =
+                    ((ports[portMappings[mappingObject.Mapping].Source].Certificate)!false)?then(
+                        "https",
+                        "http"
+                    )]
+            [#else]
+                [#local scheme = "?????" ]
+            [/#if]
             [#local result =
                 {
                     "ResourceId" : id,
