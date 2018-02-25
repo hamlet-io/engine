@@ -52,3 +52,94 @@
                 extensions)]
     ]
 [/#function]
+
+[#assign componentConfiguration +=
+    {
+        "userpool" : [
+            { 
+                "Name" : "MFA",
+                "Default" : false
+            },
+            {
+                "Name" : "adminCreatesUser",
+                "Default" : true
+            },
+            {
+                "Name" : "unusedAccountTimeout"
+            },
+            {
+                "Name" : "verifyEmail",
+                "Default" : true
+            },
+            {
+                "Name" : "verifyPhone",
+                "Default" : false
+            },
+            {
+                "Name" : "loginAliases",
+                "Default" : [
+                    "email"
+                ]
+            },
+            {
+                "Name" : "clientGenerateSecret",
+                "Default" : false
+            },
+            {
+                "Name" : "clientTokenValidity",
+                "Default" : 30
+            },
+            {
+                "Name" : "allowUnauthIds",
+                "Default" : false
+            }
+            {
+                "Name" : "passwordPolicy",
+                "Children" : [
+                    {
+                       "Name" : "MinimumLength",
+                       "Default" : "8"
+                    },
+                    {
+                        "Name" : "Lowercase",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "Uppercase",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "Numbers",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "SpecialCharacters",
+                        "Default" : false
+                    }
+                ] 
+            }
+        ]
+    }]
+    
+[#function getUserPoolState occurrence]
+    [#local id = formatUserPoolId(occurrence.Tier, occurrence.Component) ]
+    [#local clientId = formatUserPoolClientId(occurrence.Tier, occurrence.Component) ]
+    [#local identityPoolId = formatIdentityPoolId(occurrence.Tier, occurrence.Component) ]
+    [#return
+        {
+            "Resources" : {
+                "primary" : {
+                    "Id" : id
+                }
+            },
+            "Attributes" : {
+                "USER_POOL" : getReference(id),
+                "IDENTITY_POOL" : getReference(identityPoolId),
+                "CLIENT" : getReference(clientId),
+                "REGION" : regionId
+
+            }
+        }
+    ]
+[/#function]
+

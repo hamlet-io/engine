@@ -2,7 +2,7 @@
 [#if componentType == "efs" && deploymentSubsetRequired("efs", true) ]
     [#assign efs = component.EFS]
 
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
         [#assign efsId = formatEFSId(
                             tier, 
                             component,

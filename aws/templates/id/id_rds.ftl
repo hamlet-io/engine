@@ -36,3 +36,57 @@
                 component,
                 extensions)]
 [/#function]
+
+[#assign componentConfiguration +=
+    {
+        "rds" : [
+            "Engine",
+            "EngineVersion",
+            "Port",
+            { 
+                "Name" : "Size",
+                "Default" : "20"
+            },
+            {
+                "Name" : "Backup",
+                "Children" : [
+                    {
+                        "Name" : "RetentionPeriod",
+                        "Default" : 35
+                    }
+                ]
+            },
+            {
+                "Name" : "SnapShotOnDeploy",
+                "Default" : true
+            }
+        ]
+    }]
+    
+[#function getRDSState occurrence]
+    [#local id = formatRDSId(occurrence.Tier, occurrence.Component, occurrence)]
+
+    [#local result =
+        {
+            "Resources" : {
+                "primary" : {
+                    "Id" : id
+                }
+            },
+            "Attributes" : {
+                "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
+                "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
+                "NAME" : getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)
+            }
+        }
+    ]
+    [#list (credentialsObject[occurrence.Tier.Id + "-" + occurrence.Component.Id].Login)!{} as name,value]
+        [#local result +=
+            {
+              "Attributes" : result.Attributes + { name?upper_case : value }
+            }
+        ]
+    [/#list]
+
+    [#return result ]
+[/#function]

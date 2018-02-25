@@ -3,7 +3,7 @@
 
     [#assign db = component.RDS]
     
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
         [#assign engine = occurrence.Engine!""]
         [#switch engine]
             [#case "mysql"]

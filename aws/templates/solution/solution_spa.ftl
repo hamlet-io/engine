@@ -3,7 +3,7 @@
 [#if (componentType == "spa") && deploymentSubsetRequired("spa", true)]
     [#assign spa = component.SPA]
 
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
 
         [#assign certificateObject = getCertificateObject(occurrence.Certificate, segmentId, segmentName) ]
         [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]

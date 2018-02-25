@@ -67,7 +67,7 @@
             "Id" : componentId,
             "Name" : componentName,
             "Type" : componentType,
-            "Occurrences" : getOccurrences(component, "")
+            "Occurrences" : getOccurrences(component, tier, component, "")
           }
         } ]
     [/#if]

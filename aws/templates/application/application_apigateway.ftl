@@ -4,7 +4,7 @@
     [#assign apigateway = component.APIGateway]
     [#-- Non-repeating text to ensure deploy happens every time --]
     [#assign noise = random.nextLong()?string.computer?replace("-","X")]
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
         [@cfDebug listMode occurrence false /]
         [#if ! (buildCommit?has_content)]
             [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
@@ -28,7 +28,7 @@
                                 tier,
                                 component,
                                 occurrence)]
-        [#assign stageName = occurrence.VersionName]
+        [#assign stageName = occurrence.Version.Name]
         [#assign stageDimensions =
             [
                 {
@@ -47,12 +47,11 @@
         [#list occurrence.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
-                [#assign linkInformation = getLinkTargetInformation(linkTarget) ]
                 [#switch linkTarget.Type!""]
                     [#case "alb"]
                         [#assign stageVariables +=
                             {
-                                formatVariableName(link.Name, "DOCKER") : linkInformation.Attributes.FQDN
+                                formatVariableName(link.Name, "DOCKER") : linkTarget.State.Attributes.FQDN
                             }
                         ]
                         [#break]
@@ -62,8 +61,8 @@
                             [#if fn?is_hash]
                                 [#assign fnName =
                                     formatLambdaFunctionName(
-                                        getTier(linkTarget.Tier),
-                                        linkTarget.Component,
+                                        getTier(linkTarget.Tier.Id),
+                                        linkTarget.Component.Id,
                                         linkTarget,
                                         fn)]
                                 [#assign stageVariables +=

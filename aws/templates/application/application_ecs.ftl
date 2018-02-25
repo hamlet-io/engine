@@ -8,14 +8,14 @@
     [#assign serviceOccurrences=[] ]
     [#list (ecs.Services!{})?values as service]
         [#if service?is_hash]
-            [#assign serviceOccurrences += getOccurrences(service, deploymentUnit, "service") ]
+            [#assign serviceOccurrences += getOccurrences(service, tier, component, deploymentUnit, "service") ]
         [/#if]
     [/#list]
 
     [#assign taskOccurrences=[] ]
     [#list (ecs.Tasks!{})?values as task]
         [#if task?is_hash]
-            [#assign taskOccurrences += getOccurrences(task, deploymentUnit, "task") ]
+            [#assign taskOccurrences += getOccurrences(task, tier, component, deploymentUnit, "task") ]
         [/#if]
     [/#list]
 

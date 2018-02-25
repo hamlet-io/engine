@@ -2,7 +2,7 @@
 [#if (componentType == "sqs") && deploymentSubsetRequired("sqs", true)]
     [#assign sqs = component.SQS]
 
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
     
         [#assign sqsId = formatComponentSQSId(
                             tier,

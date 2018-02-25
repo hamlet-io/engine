@@ -1,6 +1,6 @@
 [#if componentType = "lambda"]
 
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
         [@cfDebug listMode occurrence false /]
         [#if occurrence.Functions?is_hash]
         
@@ -22,8 +22,8 @@
                 {
                     "Id" : containerId,
                     "Name" : containerId,
-                    "Instance" : occurrence.InstanceId,
-                    "Version" : occurrence.VersionId,
+                    "Instance" : occurrence.Instance.Id,
+                    "Version" : occurrence.Version.Id,
                     "Environment" :
                         standardEnvironment(tier, component, occurrence, "WEB"),
                     "S3Bucket" : getRegistryEndPoint("lambda"),

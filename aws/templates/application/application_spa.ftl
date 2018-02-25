@@ -1,6 +1,6 @@
 [#if componentType = "spa"]
 
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
         [#assign containerId =
             occurrence.Container?has_content?then(
                 occurrence.Container,
@@ -10,8 +10,8 @@
             {
                 "Id" : containerId,
                 "Name" : containerId,
-                "Instance" : occurrence.InstanceId,
-                "Version" : occurrence.VersionId,
+                "Instance" : occurrence.Instance.Id,
+                "Version" : occurrence.Version.Id,
                 "Environment" : 
                     {
                         "TEMPLATE_TIMESTAMP" : .now?iso_utc

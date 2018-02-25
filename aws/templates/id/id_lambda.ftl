@@ -36,3 +36,53 @@
             "lambda",
             getReference(lambdaId))]
 [/#function]
+
+[#assign componentConfiguration +=
+    {
+        "lambda" : [
+            "RunTime",
+            "Container",
+            "Handler",
+            {
+                "Name" : "Links",
+                "Default" : {}
+            },
+            {
+                "Name" : ["Memory", "MemorySize"],
+                "Default" : 0
+            },
+            {
+                "Name" : "Timeout",
+                "Default" : 0
+            },
+            {
+                "Name" : "VPCAccess",
+                "Default" : true
+            },
+            {
+                "Name" : "Functions",
+                "Default" : {}
+            },
+            {
+                "Name" : "UseSegmentKey",
+                "Default" : false
+            }
+        ]
+    }]
+    
+[#function getLambdaState occurrence]
+    [#local id = formatLambdaId(occurrence.Tier, occurrence.Component, occurrence)]
+
+    [#return
+        {
+            "Resources" : {
+                "primary" : {
+                    "Id" : id
+                }
+            },
+            "Attributes" : {
+                "REGION" : regionId
+            }
+        }
+    ]
+[/#function]
