@@ -54,3 +54,70 @@
                 resourceId,
                 source.Port)]
 [/#function]
+
+[#assign componentConfiguration +=
+    {
+        "alb" : [
+            {
+                "Name" : "Logs",
+                "Default" : false
+            },
+            {
+                "Name" : "PortMappings",
+                "Default" : []
+            },
+            {
+                "Name" : "IPAddressGroups",
+                "Default" : []
+            },
+            {
+                "Name" : "Certificate",
+                "Default" : {}
+            }
+        ]
+    }]
+    
+[#function getALBState occurrence]
+    [#local core = occurrence.Core]
+    [#local configuration = occurrence.Configuration]
+
+    [#local id = formatALBId(core.Tier, core.Component, occurrence) ]
+    [#local internalFqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
+
+    [#if (configuration.PortMappings![])?has_content]
+        [#local portMapping = configuration.PortMappings[0]?is_hash?then(
+                configuration.PortMappings[0],
+                {
+                    "Mapping" : configuration.PortMappings[0]
+                }
+            )]
+        [#if (ports[portMappings[mappingObject.Mapping].Source].Certificate)!false ]
+            [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
+            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence) ]
+            
+            [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
+            [#local scheme = "https" ]
+        [#else]
+            [#local fqdn = internalFqdn ]
+            [#local scheme ="http" ]
+        [/#if]
+    [#else]
+        [#local fqdn = "" ]
+        [#local scheme = "http?" ]
+    [/#if]
+    [#return
+        {
+            "Resources" : {
+                "primary" : {
+                    "Id" : id
+                }
+            },
+            "Attributes" : {
+                "FQDN" : fqdn,
+                "URL" : scheme + "://" + fqdn,
+                "INTERNAL_FQDN" : internalFqdn,
+                "INTERNAL_URL" : scheme + "://" + internalFqdn
+            }
+        }
+    ]
+[/#function]

@@ -8,18 +8,27 @@
     [#assign serviceOccurrences=[] ]
     [#list (ecs.Services!{})?values as service]
         [#if service?is_hash]
-            [#assign serviceOccurrences += getOccurrences(service, deploymentUnit, "service") ]
+            [#assign serviceOccurrences +=
+                requiredOccurrences(
+                    getOccurrences(service, tier, component, "service"),
+                    deploymentUnit)]
         [/#if]
     [/#list]
 
     [#assign taskOccurrences=[] ]
     [#list (ecs.Tasks!{})?values as task]
         [#if task?is_hash]
-            [#assign taskOccurrences += getOccurrences(task, deploymentUnit, "task") ]
+            [#assign taskOccurrences +=
+                requiredOccurrences(
+                    getOccurrences(task, tier, component, "task"),
+                    deploymentUnit)]
         [/#if]
     [/#list]
 
     [#list serviceOccurrences as occurrence]
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+
         [#assign serviceDependencies = []]
         [#assign serviceId = formatECSServiceId(
                                 tier,
@@ -149,8 +158,8 @@
                 id=serviceId
                 ecsId=ecsId
                 desiredCount=
-                    (occurrence.DesiredCount >= 0)?then(
-                        occurrence.DesiredCount,
+                    (configuration.DesiredCount >= 0)?then(
+                        configuration.DesiredCount,
                         multiAZ?then(zones?size,1)
                     )
                 taskId=taskId
@@ -162,6 +171,9 @@
     [/#list]
     
     [#list (serviceOccurrences + taskOccurrences) as occurrence]
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+
         [#assign taskId    = formatECSTaskId(
                                 tier,
                                 component,
@@ -171,7 +183,7 @@
 
         [#assign dependencies = [] ]
 
-        [#if occurrence.UseTaskRole]
+        [#if configuration.UseTaskRole]
             [#assign roleId = formatDependentRoleId(taskId) ]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                 [@createRole 
@@ -208,7 +220,7 @@
             /]
 
             [#-- Pick any extra macros in the container fragments --]
-            [#list (occurrence.Containers!{})?values as container]
+            [#list (configuration.Containers!{})?values as container]
                 [#assign containerListMode = listMode]
                 [#assign containerId = formatContainerFragmentId(occurrence, container)]
                 [#include containerList?ensure_starts_with("/")]

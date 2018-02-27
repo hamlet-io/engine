@@ -22,3 +22,49 @@
                 component,
                 extensions)]
 [/#function]
+
+[#assign componentConfiguration +=
+    {
+        "sqs" : [
+            "DelaySeconds",
+            "MaximumMessageSize",
+            "MessageRetentionPeriod",
+            "ReceiveMessageWaitTimeSeconds",
+            {
+                "Name" : "DeadLetterQueue",
+                "Children" : [
+                    {
+                        "Name" : "MaxReceives",
+                        "Default" : 0
+                    },
+                    {
+                        "Name" : "Enabled",
+                        "Default" : true
+                    }
+                ]
+            },
+            "VisibilityTimeout"
+        ]
+    }]
+    
+[#function getSQSState occurrence]
+    [#local core = occurrence.Core]
+
+    [#local id = formatComponentSQSId(core.Tier, core.Component, occurrence)]
+
+    [#return
+        {
+            "Resources" : {
+                "primary" : {
+                    "Id" : id
+                }
+            },
+            "Attributes" : {
+                "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
+                "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
+                "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
+                "REGION" : regionId
+            }
+        }
+    ]
+[/#function]

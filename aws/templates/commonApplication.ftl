@@ -68,7 +68,7 @@
 [/#macro]
 
 [#function getLinkResourceId link]
-    [#return (context.Links[link].ResourceId)!"" ]
+    [#return (context.Links[link].Resources["primary"].Id)!"" ]
 [/#function]
 
 [#function addLinkVariablesToContext context name link attributes rawName=false]
@@ -225,8 +225,8 @@
             "SEGMENT" : segmentName,
             "TIER" : getTierName(tier),
             "COMPONENT" : getComponentName(component),
-            "COMPONENT_INSTANCE" : occurrence.InstanceName,
-            "COMPONENT_VERSION" : occurrence.VersionName,
+            "COMPONENT_INSTANCE" : occurrence.Core.Instance.Name,
+            "COMPONENT_VERSION" : occurrence.Core.Version.Name,
             "REQUEST_REFERENCE" : requestReference,
             "CONFIGURATION_REFERENCE" : configurationReference,
             "APPDATA_BUCKET" : dataBucket,
@@ -270,13 +270,13 @@
                         [#local instanceAndVersionMatch = {}]
                         [#local instanceMatch = {}]
                         [#if targetComponent?has_content]
-                            [#list getOccurrences(targetComponent) as targetOccurrence]
-                                [#if task.InstanceId == targetOccurrence.InstanceId]
-                                    [#if task.VersionId == targetOccurrence.VersionId]
+                            [#list getOccurrences(targetComponent, targetTierId, targetComponentId) as targetOccurrence]
+                                [#if task.Core.Instance.Id == targetOccurrence.Core.Instance.Id]
+                                    [#if task.Core.Version.Id == targetOccurrence.Core.Version.Id]
                                         [#local instanceAndVersionMatch = targetOccurrence]
                                     [#else]
-                                        [#if (task.VersionId?has_content) &&
-                                                (!(targetOccurrence.VersionId?has_content))]                                              
+                                        [#if (task.Core.Version.Id?has_content) &&
+                                                (!(targetOccurrence.Core.Version.Id?has_content))]
                                             [#local instanceMatch = targetOccurrence]
                                         [/#if]
                                     [/#if]
@@ -291,9 +291,9 @@
                         [#else]
                             [#if instanceMatch?has_content && (targetType == "alb")]
                                 [#local targetLoadBalancer = instanceMatch]
-                                [#local targetGroup = task.VersionId]
+                                [#local targetGroup = task.Version.Id]
                                 [#local targetPath =
-                                    "/" + task.VersionId + 
+                                    "/" + task.Version.Id + 
                                     (port.LB.Path)?has_content?then(
                                         port.LB.Path,
                                         "/*"
@@ -329,8 +329,8 @@
                                         {
                                             "Tier" : targetTierId,
                                             "Component" : targetComponentId,
-                                            "Instance" : targetLoadBalancer.InstanceId,
-                                            "Version" : targetLoadBalancer.VersionId
+                                            "Instance" : targetLoadBalancer.Instance.Id,
+                                            "Version" : targetLoadBalancer.Version.Id
                                         } +
                                         valueIfContent(
                                             {
@@ -390,8 +390,8 @@
                 {
                     "Id" : getContainerId(container),
                     "Name" : getContainerName(container),
-                    "Instance" : task.InstanceId,
-                    "Version" : task.VersionId,
+                    "Instance" : task.Instance.Id,
+                    "Version" : task.Version.Id,
                     "Essential" : true,
                     "Image" :
                         formatRelativePath(

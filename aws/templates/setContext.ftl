@@ -1,5 +1,8 @@
 [#ftl]
 
+[#-- Component configuration is extended dynamically by each component type --]
+[#assign componentConfiguration = {} ]
+
 [#include idList]
 [#include nameList]
 [#include policyList]
@@ -172,19 +175,17 @@
 [#-- Required tiers --]
 [#assign tiers = [] ]
 [#list segmentObject.Tiers.Order as tierId]
-    [#if isTier(tierId)]
-        [#assign tier = getTier(tierId)]
-        [#if tier.Components?has_content || ((tier.Required)!false)]
-            [#assign tiers +=
-                [
-                    tier +
-                    {
-                        "Index" : tierId?index,
-                        "RouteTable" : internetAccess?then(tier.RouteTable, "internal")
-                    }
-                ]
+    [#assign tier = getTier(tierId)]
+    [#if tier.Components?has_content || ((tier.Required)!false)]
+        [#assign tiers +=
+            [
+                tier +
+                {
+                    "Index" : tierId?index,
+                    "RouteTable" : internetAccess?then(tier.RouteTable, "internal")
+                }
             ]
-        [/#if]
+        ]
     [/#if]
 [/#list]
 
