@@ -6,52 +6,56 @@
 [#assign deploymentUnit = ""]
 
 [#function getIntegratorBlueprint]
-  [#local result= {
-      "Id": tenantObject.Id,
-      "Title" : tenantObject.Title!productObject.Id,
-      "Products" : getTenantBlueprint() 
-    } ]
+  [#local result={
+    "Tenants" : {
+        tenantObject.Id : {
+            "Configuration" : tenantObject,
+            "Products" : getTenantBlueprint() 
+        } 
+    } 
+  }]
   [#return result ]
 [/#function]
 
 [#function getTenantBlueprint]
-  [#local result= [
-      { 
-        "Id" : productObject.Id,
-        "Title" : productObject.Title!productObject.Id,
+  [#local result= {
+      productObject.Id : { 
+        "Configuration" : productObject,
         "Environments" : getProductBlueprint() 
-      } ]]
+      } 
+  }]
   [#return result ]
 [/#function]
 
 [#function getProductBlueprint ]
-  [#local result= [
-      { 
-        "Id" : environmentId,
-        "Name" : environmentObject.Name,
+  [#local result= {
+    environmentObject.Id : { 
+        "Configuration" : environmentObject,
         "Segments" : getEnvironmentBlueprint() 
-      } ]]
+      }
+  }]
   [#return result ]
 [/#function]
 
 [#function getEnvironmentBlueprint ]
-  [#local result=[  
-      {
-        "Id" :segmentId,
+  [#local result={
+      segmentObject.Id : {
+        "Configuration" : segmentObject,
         "Tiers" : getSegmentBlueprint() 
-      } ]]
+      } 
+  }]
   [#return result ]
 [/#function]
 
 [#function getSegmentBlueprint ]
   [#local result=[] ]
   [#list tiers as tier]
-    [#assign tierId = tier.Id]
-    [#assign tierName = tier.Name]
     [#local result += [ 
-        {
-            "Id" : tierId,
+      {
+        tier.Id : {
+            "Configuration" : tier,
             "Components" :  getTierBlueprint(tier)
+        }
         }] ]
   [/#list]
   [#return result ]
