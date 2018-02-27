@@ -48,7 +48,7 @@
                                     credentialsObject[componentShortName]!{}]
         [#assign rdsUsername = (rdsCredentials.Login.Username)!""]
         [#assign rdsPassword = (rdsCredentials.Login.Password)!""]
-        [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), "ARN_ATTRIBUTE_TYPE") ]
+        [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), ARN_ATTRIBUTE_TYPE) ]
         [#assign rdsLastSnapshot = getExistingReference(rdsId, "LASTRESTORE_ATTRIBUTE_TYPE") ]
 
 
@@ -159,8 +159,7 @@
                         component)
                 outputs={}
             /]
-
-
+            
             [#switch alternative ]
 
                 [#case "replace1" ]
@@ -188,7 +187,6 @@
                         securityGroupId=getReference(rdsSecurityGroupId)
                         snapshotId=rdsRestoreSnapshot
                     /]
-
                     [#--
                     [@cfResource 
                         mode=listMode

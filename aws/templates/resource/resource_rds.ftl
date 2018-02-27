@@ -73,7 +73,7 @@
                 "StorageEncrypted" : true,
                 "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
             },
-            ""
+            {}
         ) +
         [#-- If restoring from a snapshot the database details will be provided by the snapshot --]
         (snapshotId?has_content)?then(
