@@ -3,10 +3,12 @@
 
 [#assign listMode = "blueprint"]
 [#assign allDeploymentUnits = true]
+[#assign deploymentUnit = ""]
 
 [#function getIntegratorBlueprint]
   [#local result= {
-      "Id": tenantId,
+      "Id": tenantObject.Id,
+      "Title" : tenantObject.Title!productObject.Id,
       "Products" : getTenantBlueprint() 
     } ]
   [#return result ]
@@ -15,7 +17,8 @@
 [#function getTenantBlueprint]
   [#local result= [
       { 
-        "Id" : productId,
+        "Id" : productObject.Id,
+        "Title" : productObject.Title!productObject.Id,
         "Environments" : getProductBlueprint() 
       } ]]
   [#return result ]
@@ -25,6 +28,7 @@
   [#local result= [
       { 
         "Id" : environmentId,
+        "Name" : environmentObject.Name,
         "Segments" : getEnvironmentBlueprint() 
       } ]]
   [#return result ]
