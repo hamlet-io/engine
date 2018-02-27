@@ -1467,6 +1467,48 @@
 ]
 [/#function]
 
+[#-- Diretory Strucutre for ContentHubs --]
+[#function getPathObject start qualifiers...]
+
+    [#local pathObject = 
+        getCompositeObject(
+            [
+                {
+                    "Name" : "Fixed",
+                    "Default" : ""
+                },
+                {
+                    "Name" : "IncludeInPath",
+                    "Children" : [
+                      "Product",
+                      "Environment",
+                      "Segment",
+                      "Tier",
+                      "Component",
+                      "Instance",
+                      "Version",
+                      "Fixed"
+                    ]
+                }
+            ],
+            asFlattenedArray(
+                getObjectAndQualifiers((blueprintObject.PathBehaviours)!{}, qualifiers) +
+                getObjectAndQualifiers((tenantObject.PathBehaviours)!{}, qualifiers) +
+                getObjectAndQualifiers((productObject.PathBehaviours)!{}, qualifiers) +
+                getObjectAncestry(paths, [productId, productName], qualifiers) +
+                getObjectAncestry(paths, start, qualifiers)
+            )
+        )
+    ]
+
+    [#return
+        pathObject +
+        {
+            "Path" : formatRelativePath(qualifiers)
+        }
+    ]
+[/#function]
+
 [#-- Output object as JSON --]
 [#function getJSON obj escaped=false]
     [#local result = ""]
