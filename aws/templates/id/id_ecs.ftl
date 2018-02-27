@@ -109,11 +109,11 @@
 
 [#-- Container --]
 
-[#function formatContainerFragmentId host container]
+[#function formatContainerFragmentId occurrence container]
     [#return formatName(
                 getContainerId(container),
-                host.Instance.Id,
-                host.Version.Id)]
+                occurrence.Core.Instance.Id,
+                occurrence.Core.Version.Id)]
 [/#function]
 
 [#function formatContainerSecurityGroupIngressId resourceId container portRange]

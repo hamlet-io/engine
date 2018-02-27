@@ -225,8 +225,8 @@
             "SEGMENT" : segmentName,
             "TIER" : getTierName(tier),
             "COMPONENT" : getComponentName(component),
-            "COMPONENT_INSTANCE" : occurrence.Instance.Name,
-            "COMPONENT_VERSION" : occurrence.Version.Name,
+            "COMPONENT_INSTANCE" : occurrence.Core.Instance.Name,
+            "COMPONENT_VERSION" : occurrence.Core.Version.Name,
             "REQUEST_REFERENCE" : requestReference,
             "CONFIGURATION_REFERENCE" : configurationReference,
             "APPDATA_BUCKET" : dataBucket,
@@ -271,12 +271,12 @@
                         [#local instanceMatch = {}]
                         [#if targetComponent?has_content]
                             [#list getOccurrences(targetComponent, targetTierId, targetComponentId) as targetOccurrence]
-                                [#if task.Instance.Id == targetOccurrence.Instance.Id]
-                                    [#if task.Version.Id == targetOccurrence.Version.Id]
+                                [#if task.Core.Instance.Id == targetOccurrence.Core.Instance.Id]
+                                    [#if task.Core.Version.Id == targetOccurrence.Core.Version.Id]
                                         [#local instanceAndVersionMatch = targetOccurrence]
                                     [#else]
-                                        [#if (task.Version.Id?has_content) &&
-                                                (!(targetOccurrence.Version.Id?has_content))]                                              
+                                        [#if (task.Core.Version.Id?has_content) &&
+                                                (!(targetOccurrence.Core.Version.Id?has_content))]
                                             [#local instanceMatch = targetOccurrence]
                                         [/#if]
                                     [/#if]

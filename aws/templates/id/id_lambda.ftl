@@ -71,7 +71,9 @@
     }]
     
 [#function getLambdaState occurrence]
-    [#local id = formatLambdaId(occurrence.Tier, occurrence.Component, occurrence)]
+    [#local core = occurrence.Core]
+
+    [#local id = formatLambdaId(core.Tier, core.Component, occurrence)]
 
     [#return
         {

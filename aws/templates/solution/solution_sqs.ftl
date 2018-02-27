@@ -2,8 +2,15 @@
 [#if (componentType == "sqs") && deploymentSubsetRequired("sqs", true)]
     [#assign sqs = component.SQS]
 
-    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
-    
+    [#list requiredOccurrences(
+            getOccurrences(component, tier, component),
+            deploymentUnit) as occurrence]
+
+        [@cfDebug listMode occurrence false /]
+
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+
         [#assign sqsId = formatComponentSQSId(
                             tier,
                             component,
@@ -33,8 +40,8 @@
         ]
 
         [#assign dlqRequired =
-            (occurrence.DeadLetterQueue.Configured &&
-                occurrence.DeadLetterQueue.Enabled) ||
+            (configuration.DeadLetterQueue.Configured &&
+                configuration.DeadLetterQueue.Enabled) ||
             ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
         [#if dlqRequired]
             [@createSQSQueue
@@ -49,16 +56,16 @@
             mode=listMode
             id=sqsId
             name=sqsName
-            delay=occurrence.DelaySeconds
-            maximumSize=occurrence.MaximumMessageSize
-            retention=occurrence.MessageRetentionPeriod
-            receiveWait=occurrence.ReceiveMessageWaitTimeSeconds
-            visibilityTimout=occurrence.VisibilityTimeout
+            delay=configuration.DelaySeconds
+            maximumSize=configuration.MaximumMessageSize
+            retention=configuration.MessageRetentionPeriod
+            receiveWait=configuration.ReceiveMessageWaitTimeSeconds
+            visibilityTimout=configuration.VisibilityTimeout
             dlq=valueIfTrue(dlqId, dlqRequired, "")
             dlqReceives=
                 valueIfTrue(
-                  occurrence.DeadLetterQueue.MaxReceives,
-                  occurrence.DeadLetterQueue.MaxReceives > 0,
+                  configuration.DeadLetterQueue.MaxReceives,
+                  configuration.DeadLetterQueue.MaxReceives > 0,
                   (environmentObject.Operations.DeadLetterQueue.MaxReceives)!3)
         /]
 

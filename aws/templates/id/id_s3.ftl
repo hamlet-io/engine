@@ -99,7 +99,9 @@
     }]
     
 [#function getS3State occurrence]
-    [#local id = formatComponentS3Id(occurrence.Tier, occurrence.Component, occurrence)]
+    [#local core = occurrence.Core]
+
+    [#local id = formatComponentS3Id(core.Tier, core.Component, occurrence)]
 
     [#return
         {

@@ -108,9 +108,9 @@
         [#if argValue?is_hash]
             [#switch separator]
                 [#case "X"]
-                    [#if (argValue.Internal.IdExtensions)??]
+                    [#if (argValue.Core.Internal.IdExtensions)??]
                         [#local argValue = concatenate(
-                                            argValue.Internal.IdExtensions,
+                                            argValue.Core.Internal.IdExtensions,
                                             separator)]
                     [#else]
                         [#local argValue = argValue.Id!""]
@@ -119,9 +119,9 @@
                 [#case "-"]
                 [#case "_"]
                 [#case "/"]
-                    [#if (argValue.Internal.NameExtensions)??]
+                    [#if (argValue.Core.Internal.NameExtensions)??]
                         [#local argValue = concatenate(
-                                            argValue.Internal.NameExtensions,
+                                            argValue.Core.Internal.NameExtensions,
                                             separator)]
                     [#else]
                         [#local argValue = argValue.Name!""]
@@ -147,7 +147,7 @@
 [/#function]
 
 [#-- Check if a deployment unit occurs anywhere in provided object --]
-[#function deploymentRequired obj unit]
+[#function deploymentRequired obj unit subObjects=true]
     [#if obj?is_hash]
         [#if allDeploymentUnits!false]
             [#return true]
@@ -158,13 +158,25 @@
         [#if obj.DeploymentUnits?has_content && obj.DeploymentUnits?seq_contains(unit)]
             [#return true]
         [/#if]
-        [#list obj?values as attribute]
-            [#if deploymentRequired(attribute unit)]
-                [#return true]
-            [/#if]
-        [/#list]
+        [#if subObjects]
+            [#list obj?values as attribute]
+                [#if deploymentRequired(attribute unit)]
+                    [#return true]
+                [/#if]
+            [/#list]
+        [/#if]
     [/#if]
     [#return false]
+[/#function]
+
+[#function requiredOccurrences occurrences deploymentUnit]
+    [#local result = [] ]
+    [#list asFlattenedArray(occurrences) as occurrence]
+        [#if deploymentRequired(occurrence.Configuration, deploymentUnit, false) ]
+            [#local result += [occurrence] ]
+        [/#if]
+    [/#list]
+    [#return result ]
 [/#function]
 
 [#function deploymentSubsetRequired subset default=false]
@@ -528,19 +540,19 @@
 [/#function]
 
 [#-- treat the value "default" for version/instance as the same as blank --]
-[#function getOccurrenceId occurrence]
+[#function getContextId context]
     [#return
-        (occurrence.Id == "default")?then(
+        (context.Id == "default")?then(
             "",
-            occurrence.Id
+            context.Id
         )
     ]
 [/#function]
 
-[#function getOccurrenceName occurrence]
+[#function getContextName context]
     [#return
-        getOccurrenceId(occurrence)?has_content?then(
-            occurrence.Name,
+        getContextId(context)?has_content?then(
+            context.Name,
             ""
         )
     ]
@@ -551,7 +563,10 @@
     [@cfDebug listMode occurrence false /]
 
     [#if occurrence?has_content]
-        [#switch occurrence.Type!""]
+        [#local core = occurrence.Core ]
+        [#local configuration = occurrence.Configuration ]
+
+        [#switch core.Type!""]
             [#case "alb"]
                 [#local result = getALBState(occurrence)]
                 [#break]
@@ -580,7 +595,7 @@
                     }
                 ]
                 [#list appSettingsObject!{} as name,value]
-                    [#local prefix = occurrence.Component?upper_case + "_"]
+                    [#local prefix = core.Component?upper_case + "_"]
                     [#if name?upper_case?starts_with(prefix)]
                         [#local result +=
                         {
@@ -588,7 +603,7 @@
                         } ]
                     [/#if]
                 [/#list]
-                [#list ((credentialsObject[occurrence.Tier + "-" + occurrence.Component])!{})?values as credential]
+                [#list ((credentialsObject[core.Tier + "-" + core.Component])!{})?values as credential]
                     [#list credential as name,value]
                         [#local result +=
                             {
@@ -649,191 +664,112 @@
     [#return result ]
 [/#function]
 
-[#-- Get the occurrences of versions/instances of a component/subcomponent --]
-[#function getOccurrences root tier component deploymentUnit="" subComponentType=""]
+[#-- Get the occurrences of versions/instances of a component and any subcomponents --]
+[#function getOccurrences root tier component subComponentType=""]
 
     [#if !(root?has_content) ]
         [#return [] ]
     [/#if]
     [#if subComponentType?has_content]
         [#local type = subComponentType]
-        [#local componentObject = root]
+        [#local componentObject = root ]
         [#local subComponentId = [root.Id] ]
         [#local subComponentName = [root.Name] ]
+        [#local contexts = [componentObject] ]
     [#else]
         [#local type = getComponentType(root)]
-        [#local componentObject = getComponentTypeObject(root)]
+        [#local componentObject = getComponentTypeObject(root) ]
         [#local subComponentId = [] ]
         [#local subComponentName = [] ]
+        [#local contexts = [root, componentObject] ]
     [/#if]
-    [#-- Add Export as a standard attribute --]
-    [#local attributes = componentConfiguration[type]![] + [{"Name" : "Export", "Default" : []}] ]
+
+    [#-- Placeholder for code to deal with subComponents as subOccurrences --]
+    [#local parentOccurrence = {} ]
+
+    [#-- Add Export and DeploymentUnits as a standard attribute --]
+    [#local attributes =
+        (componentConfiguration[type]![]) +
+        [
+            {
+                "Name" : "Export",
+                "Default" : []
+            },
+            {
+                "Name" : "DeploymentUnits",
+                "Default" : []
+            }
+        ]
+    ]
+    [@cfDebug listMode attributes false /]
+
     [#local occurrences=[] ]
-    [#if componentObject.Instances?has_content]
-        [#list componentObject.Instances?values as instance]
-            [#if instance?is_hash && deploymentRequired(instance, deploymentUnit)]
-                [#local instanceId = getOccurrenceId(instance)]
-                [#local instanceName = getOccurrenceName(instance)]
-                [#if instance.Versions?has_content]
-                    [#list instance.Versions?values as version]
-                        [#if version?is_hash && deploymentRequired(version, deploymentUnit)]
-                            [#local versionId = getOccurrenceId(version)]
-                            [#local versionName = getOccurrenceName(version)]
-                            [#local occurrence =
+
+    [#list (componentObject.Instances!{"default" : {"Id" : "default"}})?values as instance]
+        [#if instance?is_hash ]
+            [#local instanceId = firstContent(getContextId(instance), (parentOccurrence.Core.Instance.Id)!"") ]
+            [#local instanceName = firstContent(getContextName(instance), (parentOccurrence.Core.Instance.Name)!"") ]
+
+            [#list (instance.Versions!{"default" : {"Id" : "default"}})?values as version]
+                [#if version?is_hash ]
+                    [#local versionId = firstContent(getContextId(version), (parentOccurrence.Core.Version.Id)!"") ]
+                    [#local versionName = firstContent(getContextName(version), (parentOccurrence.Core.Version.Id)!"") ]
+                    [#local contexts += [instance, version] ]
+                    [#local occurrence =
+                        {
+                            "Core" : {
+                                "Type" : type,
+                                "Tier" : {
+                                    "Id" : getTierId(tier),
+                                    "Name" : getTierName(tier)
+                                },
+                                "Component" : {
+                                    "Id" : getComponentId(component),
+                                    "Name" : getComponentName(component)
+                                },
+                                "Instance" : {
+                                    "Id" : instanceId,
+                                    "Name" : instanceName
+                                },
+                                "Version" : {
+                                    "Id" : versionId,
+                                    "Name" : versionName
+                                },
+                                "Internal" : {
+                                    "IdExtensions" : subComponentId + [instanceId, versionId],
+                                    "NameExtensions" : subComponentName + [instanceName, versionName]
+                                }
+                            },
+                            "Configuration" : getCompositeObject(attributes, contexts)
+                        }
+                    ]
+                    [#local occurrences +=
+                        [
+                            occurrence +
+                            {
+                                "State" : getOccurrenceState(occurrence)
+                            }
+                        ]
+                    ]
+                    [#-- 
+                        [#local subOccurrences = [] ]
+                        [#list subComponents as subComponent]
+                            [#local subOccurrences +=
+                                getOccurrences(tier, component, subComponent.Type, contexts=[], occurrence]
+                        [/#list]
+                        [#local occurrences +=
+                            [
+                                occurrence +
                                 {
-                                    "Type" : type,
-                                    "Tier" : {
-                                        "Id" : getTierId(tier),
-                                        "Name" : getTierName(tier)
-                                    },
-                                    "Component" : {
-                                        "Id" : getComponentId(component),
-                                        "Name" : getComponentName(component)
-                                    },
-                                    "Instance" : {
-                                        "Id" : instanceId,
-                                        "Name" : instanceName
-                                    },
-                                    "Version" : {
-                                        "Id" : versionId,
-                                        "Name" : versionName
-                                    },
-                                    "Internal" : {
-                                        "IdExtensions" : subComponentId + [instanceId, versionId],
-                                        "NameExtensions" : subComponentName + [instanceName, versionName]
-                                    }
-                                } +
-                                getCompositeObject(attributes, componentObject, instance, version)
+                                    "Occurrences" : subOccurrences
+                                }
                             ]
-                            [#local occurrences +=
-                                [
-                                    occurrence +
-                                    { 
-                                        "State" : getOccurrenceState(occurrence)
-                                    }
-                                ]
-                            ]
-                        [/#if]
-                    [/#list]
-                [#else]
-                    [#local occurrence =
-                        {
-                            "Type" : type,
-                            "Tier" : {
-                                "Id" : getTierId(tier),
-                                "Name" : getTierName(tier)
-                            },
-                            "Component" : {
-                                "Id" : getComponentId(component),
-                                "Name" : getComponentName(component)
-                            },
-                            "Instance" : {
-                                "Id" : instanceId,
-                                "Name" : instanceName
-                            },
-                            "Version" : {
-                                "Id" : "",
-                                "Name" : ""
-                            },
-                            "Internal" : {
-                                "IdExtensions" : subComponentId + [instanceId],
-                                "NameExtensions" : subComponentName + [instanceName]
-                            }
-                        } +
-                        getCompositeObject(attributes, componentObject, instance)
-                    ] 
-                    [#local occurrences +=
-                        [
-                            occurrence +
-                            { 
-                                "State" : getOccurrenceState(occurrence)
-                            }
                         ]
-                    ]
-                [/#if]
-            [/#if]
-        [/#list]
-    [#else]
-        [#if componentObject.Versions?has_content]
-            [#list componentObject.Versions?values as version]
-                [#if version?is_hash && deploymentRequired(version, deploymentUnit)]
-                    [#local versionId = getOccurrenceId(version)]
-                    [#local versionName = getOccurrenceName(version)]
-                    [#local occurrence =
-                        {
-                            "Type" : type,
-                            "Tier" : {
-                                "Id" : getTierId(tier),
-                                "Name" : getTierName(tier)
-                            },
-                            "Component" : {
-                                "Id" : getComponentId(component),
-                                "Name" : getComponentName(component)
-                            },
-                            "Instance" : {
-                                "Id" : "",
-                                "Name" : ""
-                            },
-                            "Version" : {
-                                "Id" : versionId,
-                                "Name" : versionName
-                            },
-                            "Internal" : {
-                                "IdExtensions" : subComponentId + [versionId],
-                                "NameExtensions" : subComponentName + [versionName]
-                            }
-                        } +
-                        getCompositeObject(attributes, componentObject, version)
-                    ]
-                    [#local occurrences +=
-                        [
-                            occurrence +
-                            { 
-                                "State" : getOccurrenceState(occurrence)
-                            }
-                        ]
-                    ]
+                    --]
                 [/#if]
             [/#list]
-        [#else]
-            [#if deploymentRequired(root, deploymentUnit)]
-                [#local occurrence =
-                    {
-                        "Type" : type,
-                        "Tier" : {
-                            "Id" : getTierId(tier),
-                            "Name" : getTierName(tier)
-                        },
-                        "Component" : {
-                            "Id" : getComponentId(component),
-                            "Name" : getComponentName(component)
-                        },
-                        "Instance" : {
-                            "Id" : "",
-                            "Name" : ""
-                        },
-                        "Version" : {
-                            "Id" : "",
-                            "Name" : ""
-                        },
-                        "Internal" : {
-                            "IdExtensions" : subComponentId,
-                            "NameExtensions" : subComponentName
-                        }
-                    } +
-                    getCompositeObject(attributes, componentObject)
-                ]
-                [#local occurrences +=
-                    [
-                        occurrence +
-                        { 
-                            "State" : getOccurrenceState(occurrence)
-                        }
-                    ]
-                ]
-            [/#if]
         [/#if]
-    [/#if]
+    [/#list]
     [#return occurrences ]
 [/#function]
 
@@ -842,22 +778,24 @@
     [#if link.Tier?lower_case == "external"]
         [#return
             {
-                "Type" : "external",
-                "Tier" : {
-                    "Id" : link.Tier,
-                    "Name" : link.Tier
-                },
-                "Component" : {
-                    "Id" : link.Component,
-                    "Name" : link.Component
-                },
-                "Instance" : {
-                    "Id" : "",
-                    "Name" : ""
-                },
-                "Version" : {
-                    "Id" : "",
-                    "Name" : ""
+                "Core" : {
+                    "Type" : "external",
+                    "Tier" : {
+                        "Id" : link.Tier,
+                        "Name" : link.Tier
+                    },
+                    "Component" : {
+                        "Id" : link.Component,
+                        "Name" : link.Component
+                    },
+                    "Instance" : {
+                        "Id" : "",
+                        "Name" : ""
+                    },
+                    "Version" : {
+                        "Id" : "",
+                        "Name" : ""
+                    }
                 }
             }
         ]
@@ -867,14 +805,14 @@
                 getComponent(link.Tier, link.Component),
                 link.Tier,
                 link.Component) as targetOccurrence]
-        [#if targetOccurrence.Version.Id?has_content]
-            [#if (targetOccurrence.Instance.Id != occurrence.Instance.Id) ||
-                (targetOccurrence.Version.Id != occurrence.Version.Id) ]
+        [#if targetOccurrence.Core.Version.Id?has_content]
+            [#if (targetOccurrence.Core.Instance.Id != occurrence.Core.Instance.Id) ||
+                (targetOccurrence.Core.Version.Id != occurrence.Core.Version.Id) ]
                 [#continue]
             [/#if]
         [/#if]
-        [#if targetOccurrence.Instance.Id?has_content]
-            [#if (targetOccurrence.Instance.Id != occurrence.Instance.Id) ]
+        [#if targetOccurrence.Core.Instance.Id?has_content]
+            [#if (targetOccurrence.Core.Instance.Id != occurrence.Core.Instance.Id) ]
                 [#continue]
             [/#if]
         [/#if]
@@ -895,7 +833,7 @@
 
 [#function getLinkTargets occurrence links={}]
     [#local result={} ]
-    [#list (valueIfContent(links, links, occurrence.Links!{}))?values as link]
+    [#list (valueIfContent(links, links, occurrence.Configuration.Links!{}))?values as link]
         [#if link?is_hash]
             [#local linkState = getLinkTarget(occurrence, link).State!{} ]
             
@@ -1035,8 +973,8 @@
                 valueIfTrue(certificateObject.Host, includes.Host),
                 valueIfTrue(getTierName(tier), includes.Tier),
                 valueIfTrue(getComponentName(component), includes.Component),
-                valueIfTrue(occurrence.Instance.Name!"", includes.Instance),
-                valueIfTrue(occurrence.Version.Name!"", includes.Version),
+                valueIfTrue(occurrence.Core.Instance.Name!"", includes.Instance),
+                valueIfTrue(occurrence.Core.Version.Name!"", includes.Version),
                 valueIfTrue(segmentName!"", includes.Segment),
                 valueIfTrue(environmentName!"", includes.Environment),
                 valueIfTrue(productName!"", includes.Product)

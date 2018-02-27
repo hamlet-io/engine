@@ -3,19 +3,27 @@
 
     [#assign db = component.RDS]
     
-    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
-        [#assign engine = occurrence.Engine!""]
+    [#list requiredOccurrences(
+            getOccurrences(component, tier, component),
+            deploymentUnit) as occurrence]
+
+        [@cfDebug listMode occurrence false /]
+
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+
+        [#assign engine = configuration.Engine!""]
         [#switch engine]
             [#case "mysql"]
                 [#assign engineVersion =
-                    occurrence.EngineVersion?has_content?then(
-                        occurrence.EngineVersion,
+                    configuration.EngineVersion?has_content?then(
+                        configuration.EngineVersion,
                         "5.6"
                     )
                 ]
                 [#assign family = "mysql" + engineVersion]
-                [#assign port = ports[occurrence.Port].Port?has_content?then(
-                    ports[occurrence.Port].Port,
+                [#assign port = ports[configuration.Port].Port?has_content?then(
+                    ports[configuration.Port].Port,
                     "3306"
                 )]
                 
@@ -23,14 +31,14 @@
 
             [#case "postgres"]
                 [#assign engineVersion =
-                    occurrence.EngineVersion?has_content?then(
-                        occurrence.EngineVersion,
+                    configuration.EngineVersion?has_content?then(
+                        configuration.EngineVersion,
                         "9.4"
                     )
                 ]
                 [#assign family = "postgres" + engineVersion]
-                [#assign port = ports[occurrence.Port].Port?has_content?then(
-                    ports[occurrence.Port].Port,
+                [#assign port = ports[configuration.Port].Port?has_content?then(
+                    ports[configuration.Port].Port,
                     "5432"
                 )]
             [#break]
@@ -64,7 +72,7 @@
         [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
         [#if deploymentSubsetRequired("prologue", false)]
-            [#if occurrence.SnapShotOnDeploy ]
+            [#if configuration.SnapShotOnDeploy ]
                 [@cfScript
                     mode=listMode
                     content=
@@ -166,12 +174,12 @@
                         "Engine": engine,
                         "EngineVersion": engineVersion,
                         "DBInstanceClass" : processorProfile.Processor,
-                        "AllocatedStorage": occurrence.Size,
+                        "AllocatedStorage": configuration.Size,
                         "StorageType" : "gp2",
                         "Port" : port,
                         "MasterUsername": rdsUsername,
                         "MasterUserPassword": rdsPassword,
-                        "BackupRetentionPeriod" : occurrence.Backup.RetentionPeriod,
+                        "BackupRetentionPeriod" : configuration.Backup.RetentionPeriod,
                         "DBInstanceIdentifier": rdsFullName,
                         "DBName": productName,
                         "DBSubnetGroupName": getReference(rdsSubnetGroupId),

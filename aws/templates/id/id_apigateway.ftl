@@ -151,7 +151,10 @@
     }]
     
 [#function getAPIGatewayState occurrence]
-    [#local id = formatAPIGatewayId(occurrence.Tier, occurrence.Component, occurrence)]
+    [#local core = occurrence.Core]
+    [#local configuration = occurrence.Configuration]
+
+    [#local id = formatAPIGatewayId(core.Tier, core.Component, occurrence)]
     [#local internalFqdn =
         formatDomainName(
             getExistingReference(id),
@@ -159,9 +162,9 @@
             regionId,
             "amazonaws.com") ]
 
-    [#if occurrence.Certificate.Configured && occurrence.Certificate.Enabled ]
-            [#local certificateObject = getCertificateObject(occurrence.Certificate!"", segmentId, segmentName) ]
-            [#local hostName = getHostName(certificateObject, occurrence.Tier, occurrence.Component, occurrence) ]
+    [#if configuration.Certificate.Configured && configuration.Certificate.Enabled ]
+            [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
+            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence) ]
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
             [#local signingFqdn = formatDomainName(formatName("sig4", hostName), certificateObject.Domain.Name) ] 
 
@@ -185,7 +188,7 @@
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn
             },
-            "Policy" : apigatewayInvokePermission(id, occurrence.Version.Id)
+            "Policy" : apigatewayInvokePermission(id, core.Version.Id)
         }
     ]
 [/#function]

@@ -3,9 +3,16 @@
 [#if (componentType == "spa") && deploymentSubsetRequired("spa", true)]
     [#assign spa = component.SPA]
 
-    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
+    [#list requiredOccurrences(
+            getOccurrences(component, tier, component),
+            deploymentUnit) as occurrence]
 
-        [#assign certificateObject = getCertificateObject(occurrence.Certificate, segmentId, segmentName) ]
+        [@cfDebug listMode occurrence false /]
+
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+
+        [#assign certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
         [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
         [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
         [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
@@ -48,8 +55,8 @@
         [#assign configCacheBehaviour = getCFSPACacheBehaviour(configOrigin, "/config/*", {"Default" : 60}) ]
 
         [#assign restrictions = {} ]
-        [#if occurrence.CloudFront.CountryGroups?has_content]
-            [#list asArray(occurrence.CloudFront.CountryGroups) as countryGroup]
+        [#if configuration.CloudFront.CountryGroups?has_content]
+            [#list asArray(configuration.CloudFront.CountryGroups) as countryGroup]
                 [#assign group = (countryGroups[countryGroup])!{}]
                 [#if group.Locations?has_content]
                     [#assign restrictions +=
@@ -63,7 +70,7 @@
             mode=listMode
             id=cfId
             aliases=
-                (occurrence.Certificate.Configured && occurrence.Certificate.Enabled)?then(
+                (configuration.Certificate.Configured && configuration.Certificate.Enabled)?then(
                     [dns],
                     []
                 )
@@ -71,17 +78,17 @@
             certificate=valueIfTrue(
                 getCFCertificate(
                     certificateId,
-                    occurrence.CloudFront.AssumeSNI),
-                    occurrence.Certificate.Configured && occurrence.Certificate.Enabled)
+                    configuration.CloudFront.AssumeSNI),
+                    configuration.Certificate.Configured && configuration.Certificate.Enabled)
             comment=cfName
             customErrorResponses=getErrorResponse(
                                         404, 
                                         200,
-                                        occurrence.CloudFront.ErrorPage) + 
+                                        configuration.CloudFront.ErrorPage) + 
                                 getErrorResponse(
                                         403, 
                                         200,
-                                        occurrence.CloudFront.ErrorPage)
+                                        configuration.CloudFront.ErrorPage)
             defaultCacheBehaviour=spaCacheBehaviour
             defaultRootObject="index.html"
             logging=valueIfTrue(
@@ -93,32 +100,32 @@
                         occurrence
                     )
                 ),
-                occurrence.CloudFront.EnableLogging)
+                configuration.CloudFront.EnableLogging)
             origins=spaOrigin + configOrigin
             restrictions=valueIfContent(
                 restrictions,
                 restrictions)
             wafAclId=valueIfTrue(
                 wafAclId,
-                (occurrence.WAF.Configured &&
-                    occurrence.WAF.Enabled &&
+                (configuration.WAF.Configured &&
+                    configuration.WAF.Enabled &&
                     ipAddressGroupsUsage["waf"]?has_content))
         /]
 
-        [#if occurrence.WAF.Configured &&
-                occurrence.WAF.Enabled &&
+        [#if configuration.WAF.Configured &&
+                configuration.WAF.Enabled &&
                 ipAddressGroupsUsage["waf"]?has_content ]
             [#assign wafGroups = [] ]
             [#assign wafRuleDefault = 
-                        occurrence.WAF.RuleDefault?has_content?then(
-                            occurrence.WAF.RuleDefault,
+                        configuration.WAF.RuleDefault?has_content?then(
+                            configuration.WAF.RuleDefault,
                             "ALLOW")]
             [#assign wafDefault = 
-                        occurrence.WAF.Default?has_content?then(
-                            occurrence.WAF.Default,
+                        configuration.WAF.Default?has_content?then(
+                            configuration.WAF.Default,
                             "BLOCK")]
-            [#if occurrence.WAF.IPAddressGroups?has_content]
-                [#list occurrence.WAF.IPAddressGroups as group]
+            [#if configuration.WAF.IPAddressGroups?has_content]
+                [#list configuration.WAF.IPAddressGroups as group]
                     [#assign groupId = group?is_hash?then(
                                     group.Id,
                                     group)]
@@ -126,12 +133,12 @@
                         [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
                         [#if usageGroup.IsOpen]
                             [#assign wafRuleDefault = 
-                                occurrence.WAF.RuleDefault?has_content?then(
-                                    occurrence.WAF.RuleDefault,
+                                configuration.WAF.RuleDefault?has_content?then(
+                                    configuration.WAF.RuleDefault,
                                     "COUNT")]
                             [#assign wafDefault = 
-                                    occurrence.WAF.Default?has_content?then(
-                                        occurrence.WAF.Default,
+                                    configuration.WAF.Default?has_content?then(
+                                        configuration.WAF.Default,
                                         "ALLOW")]
                         [/#if]
                         [#if usageGroup.CIDR?has_content]
@@ -147,12 +154,12 @@
                 [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
                     [#if usageGroup.IsOpen]
                         [#assign wafRuleDefault = 
-                            occurrence.WAF.RuleDefault?has_content?then(
-                                occurrence.WAF.RuleDefault,
+                            configuration.WAF.RuleDefault?has_content?then(
+                                configuration.WAF.RuleDefault,
                                 "COUNT")]
                         [#assign wafDefault = 
-                                occurrence.WAF.Default?has_content?then(
-                                    occurrence.WAF.Default,
+                                configuration.WAF.Default?has_content?then(
+                                    configuration.WAF.Default,
                                     "ALLOW")]
                     [/#if]
                     [#if usageGroup.CIDR?has_content]

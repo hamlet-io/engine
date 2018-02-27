@@ -48,7 +48,9 @@
     }]
     
 [#function getSQSState occurrence]
-    [#local id = formatComponentSQSId(occurrence.Tier, occurrence.Component, occurrence)]
+    [#local core = occurrence.Core]
+
+    [#local id = formatComponentSQSId(core.Tier, core.Component, occurrence)]
 
     [#return
         {

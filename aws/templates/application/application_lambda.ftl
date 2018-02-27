@@ -1,8 +1,15 @@
 [#if componentType = "lambda"]
 
-    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
+    [#list requiredOccurrences(
+            getOccurrences(component, tier, component),
+            deploymentUnit) as occurrence ]
+
         [@cfDebug listMode occurrence false /]
-        [#if occurrence.Functions?is_hash]
+
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+
+        [#if configuration.Functions?is_hash]
         
             [#assign lambdaId = formatLambdaId(
                                     tier,
@@ -14,16 +21,16 @@
                                     occurrence)]
 
             [#assign containerId =
-                occurrence.Container?has_content?then(
-                    occurrence.Container,
+                configuration.Container?has_content?then(
+                    configuration.Container,
                     getComponentId(component)                            
                 ) ]
             [#assign context = 
                 {
                     "Id" : containerId,
                     "Name" : containerId,
-                    "Instance" : occurrence.Instance.Id,
-                    "Version" : occurrence.Version.Id,
+                    "Instance" : core.Instance.Id,
+                    "Version" : core.Version.Id,
                     "Environment" :
                         standardEnvironment(tier, component, occurrence, "WEB"),
                     "S3Bucket" : getRegistryEndPoint("lambda"),
@@ -40,7 +47,7 @@
             ]
 
             [#if deploymentSubsetRequired("lambda", true)]
-                [#list occurrence.Links?values as link]
+                [#list configuration.Links?values as link]
                     [#if link?is_hash]
                         [#assign linkTarget = getLinkTarget(occurrence, link) ]
                         [@cfDebug listMode linkTarget false /]
@@ -52,7 +59,7 @@
 
                                 [#assign lamdbaFunctionPolicies = [] ]
       
-                                [#list occurrence.Functions?values as fn]
+                                [#list configuration.Functions?values as fn]
                                     [#if fn?is_hash]
                                         [#assign lambdaFunctionId =
                                             formatLambdaFunctionId(
@@ -103,7 +110,7 @@
                     id=roleId
                     trustedServices=["lambda.amazonaws.com"]
                     managedArns=
-                        (vpc?has_content && occurrence.VPCAccess)?then(
+                        (vpc?has_content && configuration.VPCAccess)?then(
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
                         )
@@ -139,7 +146,7 @@
 
             [#if deploymentSubsetRequired("lambda", true)]
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
-                [#if vpc?has_content && occurrence.VPCAccess]
+                [#if vpc?has_content && configuration.VPCAccess]
                     [@createDependentSecurityGroup 
                         mode=listMode
                         tier=tier
@@ -148,7 +155,7 @@
                         resourceName=lambdaName  /]
                 [/#if]
 
-                [#list occurrence.Functions?values as fn]
+                [#list configuration.Functions?values as fn]
                     [#if fn?is_hash]
                         [#assign lambdaFunctionId =
                             formatLambdaFunctionId(
@@ -169,22 +176,22 @@
                             id=lambdaFunctionId
                             container=context +
                                 {
-                                    "Handler" : fn.Handler!occurrence.Handler,
-                                    "RunTime" : fn.RunTime!occurrence.RunTime,
-                                    "MemorySize" : fn.Memory!fn.MemorySize!occurrence.Memory,
-                                    "Timeout" : fn.Timeout!occurrence.Timeout,
-                                    "UseSegmentKey" : fn.UseSegmentKey!occurrence.UseSegmentKey,
+                                    "Handler" : fn.Handler!configuration.Handler,
+                                    "RunTime" : fn.RunTime!configuration.RunTime,
+                                    "MemorySize" : fn.Memory!fn.MemorySize!configuration.Memory,
+                                    "Timeout" : fn.Timeout!configuration.Timeout,
+                                    "UseSegmentKey" : fn.UseSegmentKey!configuration.UseSegmentKey,
                                     "Name" : lambdaFunctionName,
                                     "Description" : lambdaFunctionName
                                 }
                             roleId=roleId
                             securityGroupIds=
-                                (vpc?has_content && occurrence.VPCAccess)?then(
+                                (vpc?has_content && configuration.VPCAccess)?then(
                                     formatDependentSecurityGroupId(lambdaId),
                                     []
                                 )
                             subnetIds=
-                                (vpc?has_content && occurrence.VPCAccess)?then(
+                                (vpc?has_content && configuration.VPCAccess)?then(
                                     getSubnets(tier, false),
                                     []
                                 )

@@ -64,7 +64,9 @@
     }]
     
 [#function getRDSState occurrence]
-    [#local id = formatRDSId(occurrence.Tier, occurrence.Component, occurrence)]
+    [#local core = occurrence.Core]
+
+    [#local id = formatRDSId(core.Tier, core.Component, occurrence)]
 
     [#local result =
         {
@@ -80,7 +82,7 @@
             }
         }
     ]
-    [#list (credentialsObject[occurrence.Tier.Id + "-" + occurrence.Component.Id].Login)!{} as name,value]
+    [#list (credentialsObject[core.Tier.Id + "-" + core.Component.Id].Login)!{} as name,value]
         [#local result +=
             {
               "Attributes" : result.Attributes + { name?upper_case : value }

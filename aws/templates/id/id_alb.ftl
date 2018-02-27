@@ -78,19 +78,22 @@
     }]
     
 [#function getALBState occurrence]
-    [#local id = formatALBId(occurrence.Tier, occurrence.Component, occurrence) ]
+    [#local core = occurrence.Core]
+    [#local configuration = occurrence.Configuration]
+
+    [#local id = formatALBId(core.Tier, core.Component, occurrence) ]
     [#local internalFqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
 
-    [#if (occurrence.PortMappings![])?has_content]
-        [#local portMapping = occurrence.PortMappings[0]?is_hash?then(
-                occurrence.PortMappings[0],
+    [#if (configuration.PortMappings![])?has_content]
+        [#local portMapping = configuration.PortMappings[0]?is_hash?then(
+                configuration.PortMappings[0],
                 {
-                    "Mapping" : occurrence.PortMappings[0]
+                    "Mapping" : configuration.PortMappings[0]
                 }
             )]
         [#if (ports[portMappings[mappingObject.Mapping].Source].Certificate)!false ]
-            [#local certificateObject = getCertificateObject(occurrence.Certificate!"", segmentId, segmentName) ]
-            [#local hostName = getHostName(certificateObject, occurrence.Tier, occurrence.Component, occurrence) ]
+            [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
+            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence) ]
             
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
             [#local scheme = "https" ]

@@ -4,8 +4,15 @@
     [#assign apigateway = component.APIGateway]
     [#-- Non-repeating text to ensure deploy happens every time --]
     [#assign noise = random.nextLong()?string.computer?replace("-","X")]
-    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
+    [#list requiredOccurrences(
+            getOccurrences(component, tier, component),
+            deploymentUnit) as occurrence]
+
         [@cfDebug listMode occurrence false /]
+
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+
         [#if ! (buildCommit?has_content)]
             [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
             [#break]
@@ -28,7 +35,7 @@
                                 tier,
                                 component,
                                 occurrence)]
-        [#assign stageName = occurrence.Version.Name]
+        [#assign stageName = core.Version.Name]
         [#assign stageDimensions =
             [
                 {
@@ -44,25 +51,29 @@
         [#assign stageVariables = {} ]
         [#assign userPoolArns = [] ]
 
-        [#list occurrence.Links?values as link]
+        [#list configuration.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
-                [#switch linkTarget.Type!""]
+                [#assign linkTargetCore = linkTarget.Core ]
+                [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+
+                [#switch linkTargetCore.Type!""]
                     [#case "alb"]
                         [#assign stageVariables +=
                             {
-                                formatVariableName(link.Name, "DOCKER") : linkTarget.State.Attributes.FQDN
+                                formatVariableName(link.Name, "DOCKER") : linkTargetAttributes.FQDN
                             }
                         ]
                         [#break]
 
                     [#case "lambda"]
-                        [#list linkTarget.Functions?values as fn]
+                        [#list linkTargetConfiguration.Functions?values as fn]
                             [#if fn?is_hash]
                                 [#assign fnName =
                                     formatLambdaFunctionName(
-                                        getTier(linkTarget.Tier.Id),
-                                        linkTarget.Component.Id,
+                                        getTier(linkTargetCore.Tier.Id),
+                                        linkTargetCore.Component.Id,
                                         linkTarget,
                                         fn)]
                                 [#assign stageVariables +=
@@ -165,7 +176,7 @@
                                 component,
                                 occurrence)]
                         
-        [#assign certificateObject = getCertificateObject(occurrence.Certificate, segmentId, segmentName) ]
+        [#assign certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
         [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
         [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
         [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
@@ -250,7 +261,7 @@
             /]
 
     
-            [#if occurrence.CloudFront.Configured && occurrence.CloudFront.Enabled]
+            [#if configuration.CloudFront.Configured && configuration.CloudFront.Enabled]
                 [#assign origin =
                     getCFAPIGatewayOrigin(
                         cfOriginId,
@@ -260,8 +271,8 @@
                 ]
                 [#assign defaultCacheBehaviour = getCFAPIGatewayCacheBehaviour(origin) ]
                 [#assign restrictions = {} ]
-                [#if occurrence.CloudFront.CountryGroups?has_content]
-                    [#list asArray(occurrence.CloudFront.CountryGroups) as countryGroup]
+                [#if configuration.CloudFront.CountryGroups?has_content]
+                    [#list asArray(configuration.CloudFront.CountryGroups) as countryGroup]
                         [#assign group = (countryGroups[countryGroup])!{}]
                         [#if group.Locations?has_content]
                             [#assign restrictions +=
@@ -275,15 +286,15 @@
                     id=cfId
                     dependencies=stageId     
                     aliases=
-                        (occurrence.Certificate.Configured && occurrence.Certificate.Enabled)?then(
+                        (configuration.Certificate.Configured && configuration.Certificate.Enabled)?then(
                             [dns],
                             []
                         )
                     certificate=valueIfTrue(
                         getCFCertificate(
                             certificateId,
-                            occurrence.CloudFront.AssumeSNI),
-                        occurrence.Certificate.Configured && occurrence.Certificate.Enabled)
+                            configuration.CloudFront.AssumeSNI),
+                        configuration.Certificate.Configured && configuration.Certificate.Enabled)
                     comment=cfName
                     defaultCacheBehaviour=defaultCacheBehaviour
                     logging=valueIfTrue(
@@ -295,15 +306,15 @@
                                 occurrence
                             )
                         ),
-                        occurrence.CloudFront.EnableLogging)
+                        configuration.CloudFront.EnableLogging)
                     origins=origin
                     restrictions=valueIfContent(
                         restrictions,
                         restrictions)
                     wafAclId=valueIfTrue(
                         wafAclId,
-                        (occurrence.WAF.Configured &&
-                            occurrence.WAF.Enabled &&
+                        (configuration.WAF.Configured &&
+                            configuration.WAF.Enabled &&
                             ipAddressGroupsUsage["waf"]?has_content))
                 /]
                 [@cfResource
@@ -324,20 +335,20 @@
                     dependencies=stageId                       
                 /]
 
-                [#if occurrence.WAF.Configured &&
-                        occurrence.WAF.Enabled &&
+                [#if configuration.WAF.Configured &&
+                        configuration.WAF.Enabled &&
                         ipAddressGroupsUsage["waf"]?has_content ]
                     [#assign wafGroups = [] ]
                     [#assign wafRuleDefault = 
-                                occurrence.WAF.RuleDefault?has_content?then(
-                                    occurrence.WAF.RuleDefault,
+                                configuration.WAF.RuleDefault?has_content?then(
+                                    configuration.WAF.RuleDefault,
                                     "ALLOW")]
                     [#assign wafDefault = 
-                                occurrence.WAF.Default?has_content?then(
-                                    occurrence.WAF.Default,
+                                configuration.WAF.Default?has_content?then(
+                                    configuration.WAF.Default,
                                     "BLOCK")]
-                    [#if occurrence.WAF.IPAddressGroups?has_content]
-                        [#list occurrence.WAF.IPAddressGroups as group]
+                    [#if configuration.WAF.IPAddressGroups?has_content]
+                        [#list configuration.WAF.IPAddressGroups as group]
                             [#assign groupId = group?is_hash?then(
                                             group.Id,
                                             group)]
@@ -345,12 +356,12 @@
                                 [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
                                 [#if usageGroup.IsOpen]
                                     [#assign wafRuleDefault = 
-                                        occurrence.WAF.RuleDefault?has_content?then(
-                                            occurrence.WAF.RuleDefault,
+                                        configuration.WAF.RuleDefault?has_content?then(
+                                            configuration.WAF.RuleDefault,
                                             "COUNT")]
                                     [#assign wafDefault = 
-                                            occurrence.WAF.Default?has_content?then(
-                                                occurrence.WAF.Default,
+                                            configuration.WAF.Default?has_content?then(
+                                                configuration.WAF.Default,
                                                 "ALLOW")]
                                 [/#if]
                                 [#if usageGroup.CIDR?has_content]
@@ -366,12 +377,12 @@
                         [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
                             [#if usageGroup.IsOpen]
                                 [#assign wafRuleDefault = 
-                                    occurrence.WAF.RuleDefault?has_content?then(
-                                        occurrence.WAF.RuleDefault,
+                                    configuration.WAF.RuleDefault?has_content?then(
+                                        configuration.WAF.RuleDefault,
                                         "COUNT")]
                                 [#assign wafDefault = 
-                                        occurrence.WAF.Default?has_content?then(
-                                            occurrence.WAF.Default,
+                                        configuration.WAF.Default?has_content?then(
+                                            configuration.WAF.Default,
                                             "ALLOW")]
                             [/#if]
                             [#if usageGroup.CIDR?has_content]
@@ -399,7 +410,7 @@
                         rules=wafRules /]
                 [/#if]
             [#else]
-                [#if occurrence.Certificate.Configured && occurrence.Certificate.Enabled]
+                [#if configuration.Certificate.Configured && configuration.Certificate.Enabled]
                     [@cfResource
                         mode=listMode
                         id=domainId
@@ -428,7 +439,7 @@
             [/#if]
         [/#if]
         
-        [#if occurrence.Publish.Configured && occurrence.Publish.Enabled ]
+        [#if configuration.Publish.Configured && configuration.Publish.Enabled ]
             [#assign docsS3BucketId = formatComponentS3Id(
                                         tier,
                                         component,
@@ -442,12 +453,12 @@
                                         "docs")]
 
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
-            [#assign docsS3BucketName = (occurrence.Certificate.Configured && occurrence.Certificate.Enabled)?then(
+            [#assign docsS3BucketName = (configuration.Certificate.Configured && configuration.Certificate.Enabled)?then(
                                             formatDomainName(
-                                                occurrence.Publish.DnsNamePrefix,
+                                                configuration.Publish.DnsNamePrefix,
                                                 dns),
                                             formatName(
-                                                occurrence.Publish.DnsNamePrefix,
+                                                configuration.Publish.DnsNamePrefix,
                                                 formatComponentBucketName(
                                                     tier,
                                                     component,
@@ -458,7 +469,7 @@
                 [#assign docsCIDRList = [] ]
 
                 [#if ipAddressGroupsUsage["publish"]?has_content ]
-                    [#list occurrence.Publish.IPAddressGroups as group]
+                    [#list configuration.Publish.IPAddressGroups as group]
                         [#assign groupId = group?is_hash?then(
                                         group.Id,
                                         group)]

@@ -122,9 +122,11 @@
     }]
     
 [#function getUserPoolState occurrence]
-    [#local id = formatUserPoolId(occurrence.Tier, occurrence.Component) ]
-    [#local clientId = formatUserPoolClientId(occurrence.Tier, occurrence.Component) ]
-    [#local identityPoolId = formatIdentityPoolId(occurrence.Tier, occurrence.Component) ]
+    [#local core = occurrence.Core]
+
+    [#local id = formatUserPoolId(core.Tier, core.Component) ]
+    [#local clientId = formatUserPoolClientId(core.Tier, core.Component) ]
+    [#local identityPoolId = formatIdentityPoolId(core.Tier, core.Component) ]
     [#return
         {
             "Resources" : {

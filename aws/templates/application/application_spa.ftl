@@ -1,17 +1,25 @@
 [#if componentType = "spa"]
 
-    [#list getOccurrences(component, tier, component, deploymentUnit) as occurrence]
+    [#list requiredOccurrences(
+            getOccurrences(component, tier, component),
+            deploymentUnit) as occurrence]
+
+        [@cfDebug listMode occurrence false /]
+
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+
         [#assign containerId =
-            occurrence.Container?has_content?then(
-                occurrence.Container,
+            configuration.Container?has_content?then(
+                configuration.Container,
                 getComponentId(component)                            
             ) ]
         [#assign context = 
             {
                 "Id" : containerId,
                 "Name" : containerId,
-                "Instance" : occurrence.Instance.Id,
-                "Version" : occurrence.Version.Id,
+                "Instance" : core.Instance.Id,
+                "Version" : core.Version.Id,
                 "Environment" : 
                     {
                         "TEMPLATE_TIMESTAMP" : .now?iso_utc
