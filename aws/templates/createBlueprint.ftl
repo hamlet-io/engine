@@ -6,44 +6,50 @@
 [#assign deploymentUnit = ""]
 
 [#function getIntegratorBlueprint]
-  [#local result={
-    "Tenants" : {
+  [#local result=
+  {
+    "Tenants" : [
+      {
         tenantObject.Id : {
-            "Configuration" : tenantObject,
-            "Products" : getTenantBlueprint() 
+          "Configuration" : tenantObject,
+          "Products" : getTenantBlueprint() 
         } 
-    } 
+      }
+    ]
   }]
   [#return result ]
 [/#function]
 
 [#function getTenantBlueprint]
-  [#local result= {
+  [#local result= [
+    {
       productObject.Id : { 
         "Configuration" : productObject,
         "Environments" : getProductBlueprint() 
       } 
-  }]
+    }]] 
   [#return result ]
 [/#function]
 
 [#function getProductBlueprint ]
-  [#local result= {
-    environmentObject.Id : { 
+  [#local result= [
+    {
+      environmentObject.Id : { 
         "Configuration" : environmentObject,
         "Segments" : getEnvironmentBlueprint() 
       }
-  }]
+    }]]
   [#return result ]
 [/#function]
 
 [#function getEnvironmentBlueprint ]
-  [#local result={
+  [#local result=[
+    {
       segmentObject.Id : {
         "Configuration" : segmentObject,
         "Tiers" : getSegmentBlueprint() 
       } 
-  }]
+    }]]
   [#return result ]
 [/#function]
 
@@ -53,10 +59,17 @@
     [#local result += [ 
       {
         tier.Id : {
-            "Configuration" : tier,
+            "Configuration" : {
+              "Description": tier.Description,
+              "NetworkACL": tier.NetworkACL,
+              "RouteTable": tier.RouteTable,
+              "Title": tier.Title,
+              "Id": tier.Id,
+              "Name": tier.Name
+            },
             "Components" :  getTierBlueprint(tier)
         }
-        }] ]
+        }]]
   [/#list]
   [#return result ]
 [/#function]
@@ -78,9 +91,10 @@
       [#local result +=
         [
           {
-            "Id": id,
-            "Occurrences" : getOccurrences(component, tier, component)
-            }
+            id : {
+              "Occurrences" : getOccurrences(component, tier, component)
+              }
+          }
         ] ]
     [/#if]
   [/#list]
