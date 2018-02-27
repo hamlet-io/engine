@@ -709,4 +709,70 @@ function create_snapshot() {
     db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
   fi
   echo -n "$(echo "${db_snapshot}" | jq -r '.DBSnapshots[0].DBSnapshotArn' )" 
+  
+  return 0
+}
+
+# -- Git Repo Management -- 
+function clone_git_repo() {
+  local repo_url "$1"; shift
+  local repo_branch "$1"; shift
+  local local_dir "$1"; shift
+
+  [[ (-z "${repo_url}") ||
+      (-z "${repo_branch}") ||
+      (-z "${local_dir}") ]] && fatalMandatory $$ return 1
+
+  trace "Cloning the ${repo_url} repo and checking out the ${repo_branch} branch ..."
+  [[ (-z "${repo_url}") ||
+      (-z "${repo_branch}") ]] && fatalMandatory && return 1
+
+  git clone -b "${repo_branch}" "${repo_url}" "${local_dir}"
+  RESULT=$? && [[ ${RESULT} -ne 0 ]] && fatal "Can't clone ${repo_url} repo" && return 1
+
+  return 0
+}
+
+function push_git_repo() { 
+  local repo_url "$1"; shift
+  local repo_branch "$1"; shift
+  local repo_remote "$1"; shift
+  local commit_message "$1"; shift
+  local git_user "$1"; shift
+  local git_email "$1"; shift
+
+    [[ (-z "${repo_url}") ||
+        (-z "${repo_branch}") ||
+        (-z "${repo_remote}") ||
+        (-z "${commit_message}") ||
+        (-z "${git_user}") ||
+        (-z "${git_email}") ]] && fatalMandatory && return 1
+
+    git remote show "${repo_remote}" >/dev/null 2>&1
+    RESULT=$? && [[ ${RESULT} -ne 0 ]] && fatal "Remote ${repo_remote} is not initialised" && return 1
+
+    # Ensure git knows who we are
+    git config user.name  "${git_user}"
+    git config user.email "${git_email}"
+
+    # Add anything that has been added/modified/deleted
+    git add -A
+
+    if [[ -n "$(git status --porcelain)" ]]; then
+        # Commit changes
+        trace "Committing to the ${repo_url} repo..."
+        git commit -m "${commit_message}"
+        RESULT=$? && [[ ${RESULT} -ne 0 ]] && fatal "Can't commit to the ${repo_url} repo" && return 1
+
+        REPO_PUSH_REQUIRED="true"
+    fi
+
+    # Update upstream repo
+    if [[ "${REPO_PUSH_REQUIRED}" == "true" ]]; then
+        trace "Pushing the ${repo_url} repo upstream..."
+        git push ${repo_remote} ${repo_branch}
+        RESULT=$? && [[ ${RESULT} -ne 0 ]] && \
+            fatal "Can't push the ${repo_url} repo changes to upstream repo ${repo_remote}" && return 1
+    fi
+
 }
