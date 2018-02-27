@@ -3,8 +3,15 @@
 [#if (componentType == "s3") && deploymentSubsetRequired("s3", true)]
     [#assign s3 = component.S3]
 
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list requiredOccurrences(
+            getOccurrences(component, tier, component),
+            deploymentUnit) as occurrence]
 
+        [@cfDebug listMode occurrence false /]
+
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+        
         [#assign s3Id = formatComponentS3Id(
                             tier,
                             component,
@@ -12,7 +19,7 @@
         [#assign sqsIds = [] ]
         [#assign sqsNotifications = [] ]
         [#assign dependencies = [] ]
-        [#list ((occurrence.Notifications.SQS)!{})?values as queue]
+        [#list ((configuration.Notifications.SQS)!{})?values as queue]
             [#if queue?is_hash]
                 [#assign sqsId = 
                     formatComponentSQSId(
@@ -48,13 +55,13 @@
             tier=tier
             component=component
             lifecycleRules=
-                (occurrence.Lifecycle.Configured && (occurrence.Lifecycle.Expiration!operationsExpiration)?has_content)?then(
-                    getS3LifecycleExpirationRule(occurrence.Lifecycle.Expiration!operationsExpiration),
+                (configuration.Lifecycle.Configured && (configuration.Lifecycle.Expiration!operationsExpiration)?has_content)?then(
+                    getS3LifecycleExpirationRule(configuration.Lifecycle.Expiration!operationsExpiration),
                     [])
             sqsNotifications=sqsNotifications
             websiteConfiguration=
-                (occurrence.Website.Configured && occurrence.Website.Enabled)?then(
-                    getS3WebsiteConfiguration(occurrence.Website.Index, occurrence.Website.Error),
+                (configuration.Website.Configured && configuration.Website.Enabled)?then(
+                    getS3WebsiteConfiguration(configuration.Website.Index, configuration.Website.Error),
                     {})
             dependencies=dependencies
         /]

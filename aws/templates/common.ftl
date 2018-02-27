@@ -108,9 +108,9 @@
         [#if argValue?is_hash]
             [#switch separator]
                 [#case "X"]
-                    [#if (argValue.Internal.IdExtensions)??]
+                    [#if (argValue.Core.Internal.IdExtensions)??]
                         [#local argValue = concatenate(
-                                            argValue.Internal.IdExtensions,
+                                            argValue.Core.Internal.IdExtensions,
                                             separator)]
                     [#else]
                         [#local argValue = argValue.Id!""]
@@ -119,9 +119,9 @@
                 [#case "-"]
                 [#case "_"]
                 [#case "/"]
-                    [#if (argValue.Internal.NameExtensions)??]
+                    [#if (argValue.Core.Internal.NameExtensions)??]
                         [#local argValue = concatenate(
-                                            argValue.Internal.NameExtensions,
+                                            argValue.Core.Internal.NameExtensions,
                                             separator)]
                     [#else]
                         [#local argValue = argValue.Name!""]
@@ -147,7 +147,7 @@
 [/#function]
 
 [#-- Check if a deployment unit occurs anywhere in provided object --]
-[#function deploymentRequired obj unit]
+[#function deploymentRequired obj unit subObjects=true]
     [#if obj?is_hash]
         [#if allDeploymentUnits!false]
             [#return true]
@@ -158,13 +158,25 @@
         [#if obj.DeploymentUnits?has_content && obj.DeploymentUnits?seq_contains(unit)]
             [#return true]
         [/#if]
-        [#list obj?values as attribute]
-            [#if deploymentRequired(attribute unit)]
-                [#return true]
-            [/#if]
-        [/#list]
+        [#if subObjects]
+            [#list obj?values as attribute]
+                [#if deploymentRequired(attribute unit)]
+                    [#return true]
+                [/#if]
+            [/#list]
+        [/#if]
     [/#if]
     [#return false]
+[/#function]
+
+[#function requiredOccurrences occurrences deploymentUnit]
+    [#local result = [] ]
+    [#list asFlattenedArray(occurrences) as occurrence]
+        [#if deploymentRequired(occurrence.Configuration, deploymentUnit, false) ]
+            [#local result += [occurrence] ]
+        [/#if]
+    [/#list]
+    [#return result ]
 [/#function]
 
 [#function deploymentSubsetRequired subset default=false]
@@ -255,37 +267,25 @@
 
 [#-- Tiers --]
 
-[#-- Check if a tier exists --]
-[#function isTier tierId]
-    [#return (blueprintObject.Tiers[tierId])??]
-[/#function]
-
 [#-- Get a tier --]
-[#function getTier tierId]
-    [#if isTier(tierId)]
-        [#return blueprintObject.Tiers[tierId]]
+[#function getTier tier]
+    [#if tier?is_hash]
+        [#local tierId = (tier.Id)!"" ]
     [#else]
-        [#return {}]
+        [#local tierId = tier ]
     [/#if]
+
+    [#return (blueprintObject.Tiers[tierId])!{} ]
 [/#function]
 
 [#-- Get the id for a tier --]
 [#function getTierId tier]
-    [#if tier?is_hash]
-        [#return tier.Id]
-    [#else]
-        [#return tier]
-    [/#if]
+    [#return getTier(tier).Id!""]
 [/#function]
 
 [#-- Get the name for a tier --]
 [#function getTierName tier]
-    [#if tier?is_hash]
-        [#return tier.Name]
-    [#else]
-      [#local tierObject = getTier(tier) ]
-        [#return tierObject.Name!tier ]
-    [/#if]
+    [#return getTier(tier).Name!""]
 [/#function]
 
 [#-- Zones --]
@@ -325,6 +325,9 @@
         [@cfPreconditionFailed listMode "getComponentType" component /]
         [#return "???"]
     [/#if]
+    [#if component.Type?has_content]
+        [#return component.Type]
+    [/#if]
     [#local idParts = component.Id?split("-")]
     [#if idParts[1]?has_content]
         [#return idParts[1]?lower_case]
@@ -349,42 +352,36 @@
 
 [#-- Get the type object for a component --]
 [#function getComponentTypeObject component]
+    [#local type = getComponentType(component) ]
     [#list component as key,value]
-        [#switch key]
-            [#case "Id"]
-            [#case "Name"]
-            [#case "Title"]
-            [#case "Description"]
-            [#case "DeploymentUnits"]
-            [#case "MultiAZ"]
-                [#break]
-
-            [#default]
-                [#return value]
-                [#break]
-        [/#switch]
+        [#if key?lower_case == type]
+            [#return value]
+        [/#if]
     [/#list]
-    [#return {}]
+    [#return {} ]
 [/#function]
 
 [#-- Get a component within a tier --]
 [#function getComponent tierId componentId type=""]
-    [#if isTier(tierId) ]
-        [#list ((getTier(tierId).Components)!{})?values as component]
-            [#if
-                component?is_hash &&
+    [#list ((getTier(tierId).Components)!{})?values as component]
+        [#if
+            component?is_hash &&
+            (
+                (component.Id == componentId) ||
                 (
-                    (component.Id == componentId) ||
-                    (
-                      type?has_content &&
-                      (getComponentId(component) == componentId) &&
-                      (getComponentType(component) == type)
-                    )
-                ) ]
-                [#return component]
-            [/#if]
-        [/#list]
-    [/#if]
+                  type?has_content &&
+                  (getComponentId(component) == componentId) &&
+                  (getComponentType(component) == type)
+                )
+            ) ]
+            [#return
+                component +
+                {
+                    "Type" : getComponentType(component),
+                    "Tier" : tierId
+                }]
+        [/#if]
+    [/#list]
     [#return {} ]
 [/#function]
 
@@ -543,789 +540,309 @@
 [/#function]
 
 [#-- treat the value "default" for version/instance as the same as blank --]
-[#function getOccurrenceId occurrence]
+[#function getContextId context]
     [#return
-        (occurrence.Id == "default")?then(
+        (context.Id == "default")?then(
             "",
-            occurrence.Id
+            context.Id
         )
     ]
 [/#function]
 
-[#function getOccurrenceName occurrence]
+[#function getContextName context]
     [#return
-        getOccurrenceId(occurrence)?has_content?then(
-            occurrence.Name,
+        getContextId(context)?has_content?then(
+            context.Name,
             ""
         )
     ]
 [/#function]
 
-[#-- Component attributes object can be extended dynamically by each component type --]
-[#assign componentAttributes =
-    {
-        "alb" :
-            [
-                {
-                    "Name" : "Logs",
-                    "Default" : false
-                },
-                {
-                    "Name" : "PortMappings",
-                    "Default" : []
-                },
-                {
-                    "Name" : "IPAddressGroups",
-                    "Default" : []
-                },
-                {
-                    "Name" : "Certificate",
-                    "Default" : {}
-                }
-            ],
-        "apigateway" :
-            [
-                {
-                    "Name" : "Links",
-                    "Default" : {}
-                },
-                {
-                    "Name" : "WAF",
-                    "Children" : [
-                        {
-                            "Name" : "Enabled",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "IPAddressGroups",
-                            "Default" : []
-                        },
-                        {
-                            "Name" : "Default"
-                        },
-                        {
-                            "Name" : "RuleDefault"
-                        }
-                    ]
-                },
-                {
-                    "Name" : "CloudFront",
-                    "Children" : [
-                        {
-                            "Name" : "Enabled",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "AssumeSNI",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "EnableLogging",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "CountryGroups",
-                            "Default" : []
-                        }
-                    ]
-                },
-                {
-                    "Name" : "Certificate",
-                    "Children" : [
-                        {
-                            "Name" : "Enabled",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "*"
-                        }
-                    ]
-                },
-                {
-                    "Name" : "Publish",
-                    "Children" : [
-                        {
-                            "Name"  : "Enabled",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "DnsNamePrefix",
-                            "Default" : "docs"
-                        },
-                        {
-                            "Name" : "IPAddressGroups",
-                            "Default" : []
-                        }
-                    ]
-                }
-            ],
-        "ecs" : 
-            [
-                {
-                    "Name" : "ClusterWideStorage",
-                    "Default" : false
-                }
-            ],
-        "lambda" :
-            [
-                "RunTime",
-                "Container",
-                "Handler",
-                {
-                    "Name" : "Links",
-                    "Default" : {}
-                },
-                {
-                    "Name" : ["Memory", "MemorySize"],
-                    "Default" : 0
-                },
-                {
-                    "Name" : "Timeout",
-                    "Default" : 0
-                },
-                {
-                    "Name" : "VPCAccess",
-                    "Default" : true
-                },
-                {
-                    "Name" : "Functions",
-                    "Default" : {}
-                },
-                {
-                    "Name" : "UseSegmentKey",
-                    "Default" : false
-                }
-            ],
-        "rds" : 
-            [
-                "Engine",
-                "EngineVersion",
-                "Port",
-                { 
-                    "Name" : "Size",
-                    "Default" : "20"
-                },
-                {
-                    "Name" : "Backup",
-                    "Children" : [
-                        {
-                            "Name" : "RetentionPeriod",
-                            "Default" : 35
-                        }
-                    ]
-                },
-                {
-                    "Name" : "SnapShotOnDeploy",
-                    "Default" : true
-                }
-            ],
-        "s3" : 
-            [
-                {
-                    "Name" : "Lifecycle",
-                    "Children" : [
-                        {
-                            "Name" : "Expiration"
-                        }
-                    ]
-                },
-                { 
-                    "Name" : "Website",
-                    "Children" : [
-                        {
-                            "Name"  : "Enabled",
-                            "Default" : true
-                        },
-                        {
-                            "Name": "Index",
-                            "Default": "index.html"
-                        },
-                        {
-                            "Name": "Error",
-                            "Default": ""
-                        }
-                    ]
-                }
-                "Style",
-                "Notifications"
-            ],
-        "service" : 
-            [
-                {
-                    "Name" : "DesiredCount",
-                    "Default" : -1
-                },
-                {
-                    "Name" : "Containers",
-                    "Default" : {}
-                },
-                {
-                    "Name" : "UseTaskRole",
-                    "Default" : true
-                }
-            ],
-        "spa" :
-            [
-                {
-                    "Name" : "Links",
-                    "Default" : {}
-                },
-                {
-                    "Name" : "WAF",
-                    "Children" : [
-                        {
-                            "Name" : "Enabled",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "IPAddressGroups",
-                            "Default" : []
-                        },
-                        {
-                            "Name" : "Default"
-                        },
-                        {
-                            "Name" : "RuleDefault"
-                        }
-                    ]
-                },
-                {
-                    "Name" : "CloudFront",
-                    "Children" : [
-                        {
-                            "Name" : "AssumeSNI",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "EnableLogging",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "CountryGroups",
-                            "Default" : []
-                        },
-                        {
-                            "Name" : "ErrorPage",
-                            "Default" : "/index.html"
-                        }
-                    ]
-                },
-                {
-                    "Name" : "Certificate",
-                    "Children" : [
-                        {
-                            "Name" : "Enabled",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "*"
-                        }
-                    ]
-                }
-            ],
-        "sqs" : 
-            [
-                "DelaySeconds",
-                "MaximumMessageSize",
-                "MessageRetentionPeriod",
-                "ReceiveMessageWaitTimeSeconds",
-                {
-                    "Name" : "DeadLetterQueue",
-                    "Children" : [
-                        {
-                            "Name" : "MaxReceives",
-                            "Default" : 0
-                        },
-                        {
-                            "Name" : "Enabled",
-                            "Default" : true
-                        }
-                    ]
-                },
-                "VisibilityTimeout"
-            ],
-        "task" : 
-            [
-                {
-                    "Name" : "Containers",
-                    "Default" : {}
-                },
-                {
-                    "Name" : "UseTaskRole",
-                    "Default" : true
-                } 
-            ],
-        "userpool" :
-            [
-                { 
-                    "Name" : "MFA",
-                    "Default" : false
-                },
-                {
-                    "Name" : "adminCreatesUser",
-                    "Default" : true
-                },
-                {
-                    "Name" : "unusedAccountTimeout"
-                },
-                {
-                    "Name" : "verifyEmail",
-                    "Default" : true
-                },
-                {
-                    "Name" : "verifyPhone",
-                    "Default" : false
-                },
-                {
-                    "Name" : "loginAliases",
-                    "Default" : [
-                        "email"
-                    ]
-                },
-                {
-                    "Name" : "clientGenerateSecret",
-                    "Default" : false
-                },
-                {
-                    "Name" : "clientTokenValidity",
-                    "Default" : 30
-                },
-                {
-                    "Name" : "allowUnauthIds",
-                    "Default" : false
-                }
-                {
-                    "Name" : "passwordPolicy",
-                    "Children" : [
-                        {
-                           "Name" : "MinimumLength",
-                           "Default" : "8"
-                        },
-                        {
-                            "Name" : "Lowercase",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "Uppercase",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "Numbers",
-                            "Default" : true
-                        },
-                        {
-                            "Name" : "SpecialCharacters",
-                            "Default" : false
-                        }
-                    ] 
-                }
-            ],
-        "efs"  :
-            [
-            ]
-    }
-]
-
-[#-- Get the occurrences of versions/instances of a component/subcomponent --]
-[#function getOccurrences root deploymentUnit="" subComponentType=""]
-    [#if subComponentType?has_content]
-        [#local type = subComponentType]
-        [#local componentObject = root]
-        [#local subComponentId = [root.Id] ]
-        [#local subComponentName = [root.Name] ]
-    [#else]
-        [#local type = getComponentType(root)]
-        [#local componentObject = getComponentTypeObject(root)]
-        [#local subComponentId = [] ]
-        [#local subComponentName = [] ]
-    [/#if]
-    [#local attributes = componentAttributes[type]![] ]
-    [#local occurrences=[] ]
-    [#if componentObject.Instances?has_content]
-        [#list componentObject.Instances?values as instance]
-            [#if instance?is_hash && deploymentRequired(instance, deploymentUnit)]
-                [#local instanceId = getOccurrenceId(instance)]
-                [#local instanceName = getOccurrenceName(instance)]
-                [#if instance.Versions?has_content]
-                    [#list instance.Versions?values as version]
-                        [#if version?is_hash && deploymentRequired(version, deploymentUnit)]
-                            [#local versionId = getOccurrenceId(version)]
-                            [#local versionName = getOccurrenceName(version)]
-                            [#local occurrences +=
-                                [
-                                    {
-                                        "InstanceId" : instanceId,
-                                        "InstanceName" : instanceName,
-                                        "VersionId" : versionId,
-                                        "VersionName" : versionName,
-                                        "Internal" : {
-                                            "IdExtensions" : subComponentId + [instanceId, versionId],
-                                            "NameExtensions" : subComponentName + [instanceName, versionName]
-                                        }
-                                    } +
-                                    getCompositeObject(attributes, componentObject, instance, version)
-                                ]
-                            ]
-                        [/#if]
-                    [/#list]
-                [#else]
-                    [#local occurrences +=
-                        [
-                            {
-                                "InstanceId" : instanceId,
-                                "InstanceName" : instanceName,
-                                "VersionId" : "",
-                                "VersionName" : "",
-                                "Internal" : {
-                                    "IdExtensions" : subComponentId + [instanceId],
-                                    "NameExtensions" : subComponentName + [instanceName]
-                                }
-                            } +
-                            getCompositeObject(attributes, componentObject, instance)
-                        ]
-                    ]
-                [/#if]
-            [/#if]
-        [/#list]
-    [#else]
-        [#if componentObject.Versions?has_content]
-            [#list componentObject.Versions?values as version]
-                [#if version?is_hash && deploymentRequired(version, deploymentUnit)]
-                    [#local versionId = getOccurrenceId(version)]
-                    [#local versionName = getOccurrenceName(version)]
-                    [#local occurrences +=
-                        [
-                            {
-                                "InstanceId" : "",
-                                "InstanceName" : "",
-                                "VersionId" : versionId,
-                                "VersionName" : versionName,
-                                "Internal" : {
-                                    "IdExtensions" : subComponentId + [versionId],
-                                    "NameExtensions" : subComponentName + [versionName]
-                                }
-                            } +
-                            getCompositeObject(attributes, componentObject, version)
-                        ]
-                    ]
-                [/#if]
-            [/#list]
-        [#else]
-            [#if deploymentRequired(root, deploymentUnit)]
-                [#local occurrences +=
-                    [
-                        {
-                            "InstanceId" : "",
-                            "InstanceName" : "",
-                            "VersionId" : "",
-                            "VersionName" : "",
-                            "Internal" : {
-                                "IdExtensions" : subComponentId,
-                                "NameExtensions" : subComponentName
-                            }
-                        } +
-                        getCompositeObject(attributes, componentObject)
-                    ]
-                ]
-            [/#if]
-        [/#if]
-    [/#if]
-    [#return occurrences ]
-[/#function]
-
-[#function getLinkTarget occurrence link]
+[#function getOccurrenceState occurrence]
     [#local result = {} ]
-    [#local targetComponentType = "" ]
+    [@cfDebug listMode occurrence false /]
 
-    [#if link.Tier?lower_case == "external"]
+    [#if occurrence?has_content]
+        [#local core = occurrence.Core ]
+        [#local configuration = occurrence.Configuration ]
+
+        [#switch core.Type!""]
+            [#case "alb"]
+                [#local result = getALBState(occurrence)]
+                [#break]
+    
+            [#case "apigateway"]
+                [#local result = getAPIGatewayState(occurrence)]
+                [#break]
+
+            [#case "ecs"]
+                [#local result = getECSState(occurrence)]
+                [#break]
+    
+            [#case "efs"]
+                [#local result = getEFSState(occurrence)]
+                [#break]
+    
+            [#case "external"]
+                [#local result =
+                    {
+                        "Resources" : {
+                            "primary" : {
+                                "Id" : "externalXlink"
+                            }
+                        },
+                        "Attributes" : {}
+                    }
+                ]
+                [#list appSettingsObject!{} as name,value]
+                    [#local prefix = core.Component?upper_case + "_"]
+                    [#if name?upper_case?starts_with(prefix)]
+                        [#local result +=
+                        {
+                            "Attributes" : result.Attributes + { name?upper_case?remove_beginning(prefix) : value }
+                        } ]
+                    [/#if]
+                [/#list]
+                [#list ((credentialsObject[core.Tier + "-" + core.Component])!{})?values as credential]
+                    [#list credential as name,value]
+                        [#local result +=
+                            {
+                              "Attributes" : result.Attributes + { name?upper_case : value }
+                            }
+                        ]
+                    [/#list]
+                [/#list]
+                [#break]
+    
+            [#case "lambda"]
+                [#local result = getLambdaState(occurrence)]
+                [#break]
+    
+            [#case "rds"]
+                [#local result = getRDSState(occurrence)]
+                [#break]
+    
+            [#case "s3"]
+                [#local result = getS3State(occurrence)]
+                [#break]
+
+            [#case "service"]
+                [#local result = getServiceState(occurrence)]
+                [#break]
+    
+            [#case "spa"]
+                [#local result = getSPAState(occurrence)]
+                [#break]
+    
+            [#case "sqs"]
+                [#local result = getSQSState(occurrence)]
+                [#break]
+    
+            [#case "task"]
+                [#local result = getTaskState(occurrence)]
+                [#break]
+    
+            [#case "userpool"] 
+                [#local result = getUserPoolState(occurrence)]
+                [#break]
+        [/#switch]
+    [#else]
         [#local result = 
             {
-                "InstanceId" : "",
-                "InstanceName" : "",
-                "VersionId" : "",
-                "VersionName" : ""
-            } ]
-        [#local targetComponentType = "external" ]
-    [#else]
-        [#local targetComponent = getComponent(link.Tier, link.Component)]
-        [#if targetComponent?has_content]
-            [#local targetComponentType = getComponentType(targetComponent) ]
-            [#list getOccurrences(targetComponent) as targetOccurrence]
-                [#if targetOccurrence.VersionId?has_content]
-                    [#if (targetOccurrence.InstanceId != occurrence.InstanceId) ||
-                        (targetOccurrence.VersionId != occurrence.VersionId) ]
-                        [#continue]
-                    [/#if]
-                [/#if]
-                [#if targetOccurrence.InstanceId?has_content]
-                    [#if (targetOccurrence.InstanceId != occurrence.InstanceId) ]
-                        [#continue]
-                    [/#if]
-                [/#if]
-                [#local
-                    result =
-                        targetOccurrence +
-                        {
-                            "Type" : targetComponentType,
-                            "Tier" : link.Tier,
-                            "Component" : link.Component
-                        } ]
-            [/#list]
-        [/#if]
-    [/#if]
-
-    [#if !(result?has_content) ]
-        [@cfPostconditionFailed
-            listMode
-            "getLinkTarget"
-            {
-                "Occurrence" : occurrence,
-                "Link" : link
-            }
-            "Link not found" /]
-    [/#if]
-    [#return result ]
-[/#function]
-
-[#function getLinkTargetInformation target]
-    [#local result = {} ]
-    [@cfDebug listMode target false /]
-
-    [#if !(target?has_content)]
-        [#return
-            {
-                "ResourceId" : "unknown",
+                "Resources" : {
+                    "primary" : {
+                        "Id" : "unknown"
+                    }
+                },
                 "Attributes" : {
-                    "NOATTRIBUTES" : "link not found"
+                    "NOATTRIBUTES" : "Attributes not found"
                 }
             }
         ]
     [/#if]
-
-    [#local fqdn = ""]
-    [#local signingFqdn = ""]
-    [#if ((target.Certificate.Configured)!false) && 
-            ((target.Certificate.Enabled)!false) ]
-        [#local certificateObject = getCertificateObject(target.Certificate, segmentId, segmentName) ]
-        [#local hostName = getHostName(certificateObject, target.Tier, target.Component, target) ]
-        [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name) ]
-        [#local signingFqdn = formatDomainName(
-            formatName("sig4", hostName), certificateObject.Domain.Name) ] 
-    [/#if]
-    [#switch target.Type!""]
-        [#case "alb"]
-            [#local id =
-                formatALBId(
-                    target.Tier,
-                    target.Component,
-                    target) ]
-            [#local internalFqdn =
-                getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
-            [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
-            [#if (target.PortMappings![])?has_content]
-                [#local portMapping = target.PortMappings[0]?is_hash?then(
-                        target.PortMappings[0],
-                        {
-                            "Mapping" : target.PortMappings[0]
-                        }
-                    )]
     
-                [#local scheme =
-                    ((ports[portMappings[mappingObject.Mapping].Source].Certificate)!false)?then(
-                        "https",
-                        "http"
-                    )]
-            [#else]
-                [#local scheme = "?????" ]
-            [/#if]
-            [#local result =
-                {
-                    "ResourceId" : id,
-                    "Attributes" : {
-                        "FQDN" : fqdn,
-                        "URL" : scheme + "://" + fqdn,
-                        "INTERNAL_FQDN" : internalFqdn,
-                        "INTERNAL_URL" : scheme + "://" + internalFqdn
-                    }
-                }
-            ]
-            [#break]
+    [#return result ]
+[/#function]
 
-        [#case "apigateway"]
-            [#local id =
-                formatAPIGatewayId(
-                    target.Tier,
-                    target.Component,
-                    target)]
-            [#local internalFqdn =
-                formatDomainName(
-                    getExistingReference(id),
-                    "execute-api",
-                    regionId,
-                    "amazonaws.com") ]
-            [#local fqdn = valueIfContent(fqdn, fqdn, internalFqdn) ]
-            [#local signingFqdn = valueIfContent(signingFqdn, signingFqdn, internalFqdn) ]
-            [#local result =
-                {
-                    "ResourceId" : id,
-                    "Attributes" : {
-                        "FQDN" : fqdn,
-                        "URL" : "https://" + fqdn,
-                        "SIGNING_FQDN" : signingFqdn,
-                        "SIGNING_URL" : "https://" + signingFqdn,
-                        "INTERNAL_FQDN" : internalFqdn,
-                        "INTERNAL_URL" : "https://" + internalFqdn
-                    },
-                    "Policy" : apigatewayInvokePermission(id, target.VersionId)
-                }
-            ]
-            [#break]
+[#-- Get the occurrences of versions/instances of a component and any subcomponents --]
+[#function getOccurrences root tier component subComponentType=""]
 
-        [#case "external"]
-            [#local result =
-                {
-                    "ResourceId" : "externalXlink",
-                    "Attributes" : {}
-                }
-            ]
-            [#list appSettingsObject!{} as name,value]
-                [#local prefix = target.Component?upper_case + "_"]
-                [#if name?upper_case?starts_with(prefix)]
-                    [#local result +=
-                    {
-                      "Attributes" : result.Attributes + { name?upper_case?remove_beginning(prefix) : value }
-                    } ]
-                [/#if]
-            [/#list]
-            [#list ((credentialsObject[target.Tier + "-" + target.Component])!{})?values as credential]
-                [#list credential as name,value]
-                    [#local result +=
+    [#if !(root?has_content) ]
+        [#return [] ]
+    [/#if]
+    [#if subComponentType?has_content]
+        [#local type = subComponentType]
+        [#local componentObject = root ]
+        [#local subComponentId = [root.Id] ]
+        [#local subComponentName = [root.Name] ]
+        [#local contexts = [componentObject] ]
+    [#else]
+        [#local type = getComponentType(root)]
+        [#local componentObject = getComponentTypeObject(root) ]
+        [#local subComponentId = [] ]
+        [#local subComponentName = [] ]
+        [#local contexts = [root, componentObject] ]
+    [/#if]
+
+    [#-- Placeholder for code to deal with subComponents as subOccurrences --]
+    [#local parentOccurrence = {} ]
+
+    [#-- Add Export and DeploymentUnits as a standard attribute --]
+    [#local attributes =
+        (componentConfiguration[type]![]) +
+        [
+            {
+                "Name" : "Export",
+                "Default" : []
+            },
+            {
+                "Name" : "DeploymentUnits",
+                "Default" : []
+            }
+        ]
+    ]
+    [@cfDebug listMode attributes false /]
+
+    [#local occurrences=[] ]
+
+    [#list (componentObject.Instances!{"default" : {"Id" : "default"}})?values as instance]
+        [#if instance?is_hash ]
+            [#local instanceId = firstContent(getContextId(instance), (parentOccurrence.Core.Instance.Id)!"") ]
+            [#local instanceName = firstContent(getContextName(instance), (parentOccurrence.Core.Instance.Name)!"") ]
+
+            [#list (instance.Versions!{"default" : {"Id" : "default"}})?values as version]
+                [#if version?is_hash ]
+                    [#local versionId = firstContent(getContextId(version), (parentOccurrence.Core.Version.Id)!"") ]
+                    [#local versionName = firstContent(getContextName(version), (parentOccurrence.Core.Version.Id)!"") ]
+                    [#local contexts += [instance, version] ]
+                    [#local occurrence =
                         {
-                          "Attributes" : result.Attributes + { name?upper_case : value }
+                            "Core" : {
+                                "Type" : type,
+                                "Tier" : {
+                                    "Id" : getTierId(tier),
+                                    "Name" : getTierName(tier)
+                                },
+                                "Component" : {
+                                    "Id" : getComponentId(component),
+                                    "Name" : getComponentName(component)
+                                },
+                                "Instance" : {
+                                    "Id" : instanceId,
+                                    "Name" : instanceName
+                                },
+                                "Version" : {
+                                    "Id" : versionId,
+                                    "Name" : versionName
+                                },
+                                "Internal" : {
+                                    "IdExtensions" : subComponentId + [instanceId, versionId],
+                                    "NameExtensions" : subComponentName + [instanceName, versionName]
+                                }
+                            },
+                            "Configuration" : getCompositeObject(attributes, contexts)
                         }
                     ]
-                [/#list]
+                    [#local occurrences +=
+                        [
+                            occurrence +
+                            {
+                                "State" : getOccurrenceState(occurrence)
+                            }
+                        ]
+                    ]
+                    [#-- 
+                        [#local subOccurrences = [] ]
+                        [#list subComponents as subComponent]
+                            [#local subOccurrences +=
+                                getOccurrences(tier, component, subComponent.Type, contexts=[], occurrence]
+                        [/#list]
+                        [#local occurrences +=
+                            [
+                                occurrence +
+                                {
+                                    "Occurrences" : subOccurrences
+                                }
+                            ]
+                        ]
+                    --]
+                [/#if]
             [/#list]
-            [#break]
+        [/#if]
+    [/#list]
+    [#return occurrences ]
+[/#function]
 
-        [#case "lambda"]
-            [#local id =
-                formatLambdaId(
-                    target.Tier,
-                    target.Component,
-                    target)]
+[#function getLinkTarget occurrence link]
 
-            [#local result =
-                {
-                    "ResourceId" : id,
-                    "Attributes" : {
-                        "REGION" : regionId
+    [#if link.Tier?lower_case == "external"]
+        [#return
+            {
+                "Core" : {
+                    "Type" : "external",
+                    "Tier" : {
+                        "Id" : link.Tier,
+                        "Name" : link.Tier
+                    },
+                    "Component" : {
+                        "Id" : link.Component,
+                        "Name" : link.Component
+                    },
+                    "Instance" : {
+                        "Id" : "",
+                        "Name" : ""
+                    },
+                    "Version" : {
+                        "Id" : "",
+                        "Name" : ""
                     }
                 }
-            ]
-            [#break]
-
-        [#case "rds"]
-            [#local id =
-                formatRDSId(
-                    target.Tier,
-                    target.Component,
-                    target)]
-
-            [#local result =
-                {
-                    "ResourceId" : id,
-                    "Attributes" : {
-                        "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
-                        "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
-                        "NAME" : getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)
-                    }
-                }
-            ]
-            [#list (credentialsObject[target.Tier + "-" + target.Component].Login)!{} as name,value]
-                [#local result +=
-                    {
-                      "Attributes" : result.Attributes + { name?upper_case : value }
-                    }
-                ]
-            [/#list]
-            [#break]
-
-        [#case "sqs"]
-            [#local id =
-                formatComponentSQSId(
-                    target.Tier,
-                    target.Component,
-                    target)]
-            [#local result +=
-                {
-                    "ResourceId" : id,
-                    "Attributes" : {
-                        "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
-                        "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
-                        "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
-                        "REGION" : regionId
-                    }
-                }
-            ]
-            [#break]
-
-        [#case "s3"]
-            [#local id =
-                formatComponentS3Id(
-                    target.Tier,
-                    target.Component,
-                    target)]
-            [#local result +=
-                {
-                    "ResourceId" : id,
-                    "Attributes" : {
-                        "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
-                        "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
-                        "INTERNAL_FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
-                        "WEBSITE_URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
-                        "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
-                        "REGION" : regionId
-                    }
-                }
-            ]
-            [#break]
-
-        [#case "userpool"] 
-            [#local id = formatUserPoolId(target.Tier, target.Component) ]
-            [#local clientId = formatUserPoolClientId(target.Tier, target.Component) ]
-            [#local identityPoolId = formatIdentityPoolId(target.Tier, target.Component) ]
-            [#local result +=
-                {
-                    "ResourceId" : id,
-                    "Attributes" : {
-                        "USER_POOL" : getReference(id),
-                        "IDENTITY_POOL" : getReference(identityPoolId),
-                        "CLIENT" : getReference(clientId),
-                        "REGION" : regionId
-
-                    }
-                }
-            ]
-            [#break]
-    [/#switch]
+            }
+        ]
+    [/#if]
     
-    [#return result]
+    [#list getOccurrences(
+                getComponent(link.Tier, link.Component),
+                link.Tier,
+                link.Component) as targetOccurrence]
+        [#if targetOccurrence.Core.Version.Id?has_content]
+            [#if (targetOccurrence.Core.Instance.Id != occurrence.Core.Instance.Id) ||
+                (targetOccurrence.Core.Version.Id != occurrence.Core.Version.Id) ]
+                [#continue]
+            [/#if]
+        [/#if]
+        [#if targetOccurrence.Core.Instance.Id?has_content]
+            [#if (targetOccurrence.Core.Instance.Id != occurrence.Core.Instance.Id) ]
+                [#continue]
+            [/#if]
+        [/#if]
+        [#return targetOccurrence ]
+    [/#list]
+
+    [@cfPostconditionFailed
+        listMode
+        "getLinkTarget"
+        {
+            "Occurrence" : occurrence,
+            "Link" : link
+        }
+        "Link not found" /]
+
+    [#return {} ]
 [/#function]
 
 [#function getLinkTargets occurrence links={}]
     [#local result={} ]
-    [#list (valueIfContent(links, links, occurrence.Links!{}))?values as link]
+    [#list (valueIfContent(links, links, occurrence.Configuration.Links!{}))?values as link]
         [#if link?is_hash]
-            [#local linkInformation =
-                getLinkTargetInformation(getLinkTarget(occurrence, link)) ]
+            [#local linkState = getLinkTarget(occurrence, link).State!{} ]
             
             [#local result +=
                 valueIfContent(
                     {
-                        link.Name : linkInformation
+                        link.Name : linkState
                     },
-                    linkInformation
+                    linkState
                 )]
         [/#if]
     [/#list]
@@ -1456,8 +973,8 @@
                 valueIfTrue(certificateObject.Host, includes.Host),
                 valueIfTrue(getTierName(tier), includes.Tier),
                 valueIfTrue(getComponentName(component), includes.Component),
-                valueIfTrue(occurrence.InstanceName!"", includes.Instance),
-                valueIfTrue(occurrence.VersionName!"", includes.Version),
+                valueIfTrue(occurrence.Core.Instance.Name!"", includes.Instance),
+                valueIfTrue(occurrence.Core.Version.Name!"", includes.Version),
                 valueIfTrue(segmentName!"", includes.Segment),
                 valueIfTrue(environmentName!"", includes.Environment),
                 valueIfTrue(productName!"", includes.Product)

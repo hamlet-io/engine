@@ -1,8 +1,15 @@
 [#-- ALB --]
 [#if (componentType == "alb") && deploymentSubsetRequired("alb", true)]
 
-    [#list getOccurrences(component, deploymentUnit) as occurrence]
+    [#list requiredOccurrences(
+            getOccurrences(component, tier, component),
+            deploymentUnit) as occurrence]
 
+        [@cfDebug listMode occurrence false /]
+
+        [#assign core = occurrence.Core ]
+        [#assign configuration = occurrence.Configuration ]
+        
         [#assign albId = formatALBId(tier, component, occurrence)]
     
         [#assign albSecurityGroupId = formatALBSecurityGroupId(tier, component, occurrence)]
@@ -12,11 +19,11 @@
             component=component
             extensions=occurrence
         /]
-        [#list occurrence.PortMappings as mapping]
+        [#list configuration.PortMappings as mapping]
             [#assign mappingObject =
                 {
-                    "IPAddressGroups" : occurrence.IPAddressGroups,
-                    "Certificate" : occurrence.Certificate
+                    "IPAddressGroups" : configuration.IPAddressGroups,
+                    "Certificate" : configuration.Certificate
                 } +
                 mapping?is_hash?then(
                     mapping,
@@ -101,7 +108,7 @@
             tier=tier
             component=component
             securityGroups=albSecurityGroupId
-            logs=occurrence.Logs
+            logs=configuration.Logs
             bucket=operationsBucket
         /]
     [/#list]

@@ -64,3 +64,60 @@
                 s3Id,
                 queue)]
 [/#function]
+
+[#assign componentConfiguration +=
+    {
+        "s3" : [
+            {
+                "Name" : "Lifecycle",
+                "Children" : [
+                    {
+                        "Name" : "Expiration"
+                    }
+                ]
+            },
+            { 
+                "Name" : "Website",
+                "Children" : [
+                    {
+                        "Name"  : "Enabled",
+                        "Default" : true
+                    },
+                    {
+                        "Name": "Index",
+                        "Default": "index.html"
+                    },
+                    {
+                        "Name": "Error",
+                        "Default": ""
+                    }
+                ]
+            }
+            "Style",
+            "Notifications"
+        ]
+    }]
+    
+[#function getS3State occurrence]
+    [#local core = occurrence.Core]
+
+    [#local id = formatComponentS3Id(core.Tier, core.Component, occurrence)]
+
+    [#return
+        {
+            "Resources" : {
+                "primary" : {
+                    "Id" : id
+                }
+            },
+            "Attributes" : {
+                "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
+                "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
+                "INTERNAL_FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
+                "WEBSITE_URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
+                "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
+                "REGION" : regionId
+            }
+        }
+    ]
+[/#function]
