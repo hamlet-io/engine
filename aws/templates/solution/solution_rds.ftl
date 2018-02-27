@@ -166,8 +166,7 @@
                         component)
                 outputs={}
             /]
-
-
+            
             [#switch alternative ]
 
                 [#case "replace1" ]
@@ -195,7 +194,6 @@
                         securityGroupId=getReference(rdsSecurityGroupId)
                         snapshotId=rdsRestoreSnapshot
                     /]
-
                     [#--
                     [@cfResource 
                         mode=listMode
