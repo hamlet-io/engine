@@ -267,7 +267,6 @@
                         securityGroupId=getReference(rdsSecurityGroupId)
                         snapshotId=rdsRestoreSnapshot
                     /]
-
                     [#--
                     [@cfResource 
                         mode=listMode
