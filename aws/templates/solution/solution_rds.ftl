@@ -166,31 +166,40 @@
                         component)
                 outputs={}
             /]
+            
+            [#switch alternative ]
 
-            [#if replacement?has_content && replacement == "replace1" ]
-               [@cfResource 
-                    mode=listMode
-                    id=rdsId
-                    type="AWS::RDS::DBInstance"
-                    properties=
-                        {
-                            "Engine": engine,
-                            "EngineVersion": engineVersion,
-                            "DBInstanceClass" : processorProfile.Processor,
-                            "AllocatedStorage": occurrence.Size,
-                            "StorageType" : "gp2",
-                            "Port" : port,
-                            "MasterUsername": rdsUsername,
-                            "MasterUserPassword": rdsPassword,
-                            "BackupRetentionPeriod" : occurrence.Backup.RetentionPeriod,
-                            "DBInstanceIdentifier": formatName(rdsFullName, "backup"),
-                            "DBName": productName,
-                            "DBSubnetGroupName": getReference(rdsSubnetGroupId),
-                            "DBParameterGroupName": getReference(rdsParameterGroupId),
-                            "OptionGroupName": getReference(rdsOptionGroupId),
-                            "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
-                        } +
-                        multiAZ?then(
+                [#case "replace1" ]
+
+                    [#assign rdsRestoreName=formatName(rdsFullName, "backup") ]
+
+                    [@createRDSInstance 
+                        mode=listMode
+                        id=rdsId
+                        name=rdsRestoreName
+                        engine=engine
+                        engineVersion=engineVersion
+                        processor=processorProfile.Processor
+                        size=occurrence.Size
+                        port=port
+                        multiAZ=multiAZ
+                        encrypted=occurrence.Encrypted
+                        masterUsername=rdsUsername
+                        masterPassword=rdsPassword
+                        databaseName=productName
+                        retentionPeriod=occurrence.Backup.RetentionPeriod
+                        subnetGroupId=getReference(rdsSubnetGroupId)
+                        parameterGroupId=getReference(rdsParameterGroupId)
+                        optionGroupId=getReference(rdsOptionGroupId)
+                        securityGroupId=getReference(rdsSecurityGroupId)
+                        snapshotId=rdsRestoreSnapshot
+                    /]
+                    [#--
+                    [@cfResource 
+                        mode=listMode
+                        id=rdsId
+                        type="AWS::RDS::DBInstance"
+                        properties=
                             {
                                 "MultiAZ": true
                             },
