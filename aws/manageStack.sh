@@ -133,7 +133,7 @@ function copy_config_file() {
   return 0
 }
 
-fucntion copy_contentnode_file() { 
+function copy_contentnode_file() { 
   local files="$1"; shift
   local engine="$1"; shift
   local url="$1"; shift

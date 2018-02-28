@@ -115,6 +115,9 @@
 [#assign PASSWORD_ATTRIBUTE_TYPE = "password" ]
 [#assign DATABASENAME_ATTRIBUTE_TYPE = "databasename" ]
 [#assign TOPICNAME_ATTRIBUTE_TYPE = "topicname" ]
+[#assign ENGINE_ATTRIBUTE_TYPE = "engine" ]
+[#assign BRANCH_ATTRIBUTE_TYPE = "branch" ]
+[#assign PREFIX_ATTRIBUTE_TYPE = "prefix" ]
 
 [#-- special attribute type to handle references --]
 [#assign REFERENCE_ATTRIBUTE_TYPE = "ref" ]
