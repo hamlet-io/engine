@@ -44,6 +44,14 @@
                     {
                         "Name" : "ErrorPage",
                         "Default" : "/index.html"
+                    },
+                    {
+                        "Name" : "DeniedPage",
+                        "Default" : ""
+                    },
+                    {
+                        "Name" : "NotFoundPage",
+                        "Default" : ""
                     }
                 ]
             },
