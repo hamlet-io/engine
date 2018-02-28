@@ -84,11 +84,17 @@
             customErrorResponses=getErrorResponse(
                                         404, 
                                         200,
-                                        configuration.CloudFront.ErrorPage) + 
+                                        (configuration.CloudFront.NotFoundPage)?has_content?then(
+                                            configuration.CloudFront.NotFoundPage,
+                                            configuration.CloudFront.ErrorPage
+                                        )) + 
                                 getErrorResponse(
                                         403, 
                                         200,
-                                        configuration.CloudFront.ErrorPage)
+                                        (configuration.CloudFront.DeniedPage)?has_content?then(
+                                            configuration.CloudFront.DeniedPage,
+                                            configuration.CloudFront.ErrorPage
+                                        ))
             defaultCacheBehaviour=spaCacheBehaviour
             defaultRootObject="index.html"
             logging=valueIfTrue(
