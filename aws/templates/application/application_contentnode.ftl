@@ -10,22 +10,25 @@
         [#assign configuration = occurrence.Configuration ]
 
         [#assign contentNodeId = formatContentHubNodeId(tier, component, occurrence) ]
-        [#assign pathObject = getPathObject(configuration.Path, segmentId, segmentName) ]
+        [#assign pathObject = getContentPath(occurrence, component) ]
 
-        [#if ! (occurrence.Links?has_content)]
+        [#if ! (configuration.Links?has_content)]
             [@cfPreconditionFailed listMode "contentnode" occurrence "No content hub link configured" /]
             [#break]
         [/#if]
 
-        [#list occurrence.Links?values as link]
+        [#list configuration.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
-                [#assign linkInformation = getLinkTargetInformation(linkTarget) ]
-                [#switch linkTarget.Type!""]
+                [#assign linkTargetCore = linkTarget.Core ]
+                [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+
+                [#switch linkTargetCore.Type!""]
                     [#case "contenthub"]
-                        [#if linkInformation.Engine == "git" ]
-                            [#assign branch = linkInformation.branch!""]
-                            [#assign url = linkInformation.url!""]
+                        [#if linkTargetAttributes.ENGINE == "git" ]
+                            [#assign branch = linkTargetAttributes.BRANCH!""]
+                            [#assign url = linkTargetAttributes.URL!""]
                         [/#if]
                         [#if deploymentSubsetRequired("prologue", false)]
                             [@cfScript
@@ -47,11 +50,11 @@
                                     "  #",
                                     "  # Sync with the operations bucket",
                                     "  copy_contentnode_file \"$\{tmpdir}/contentnode.zip\" " + 
-                                                linkInformation.Attributes.Engine + " " +
-                                                linkInformation.Attributes.URL + " " + 
-                                                linkInformation.Attributes.Prefix + " " +
-                                                pathObject.Path + " " +
-                                                branch,
+                                            "\"" + linkTargetAttributes.ENGINE + "\" " +
+                                            "\"" +    linkTargetAttributes.URL + "\" " + 
+                                            "\"" +    linkTargetAttributes.PREFIX + "\" " +
+                                            "\"" +    pathObject + "\" " +
+                                            "\"" +    linkTargetAttributes.BRANCH + "\" ",
                                     "}",
                                     "#",
                                     "get_contentnode_file"

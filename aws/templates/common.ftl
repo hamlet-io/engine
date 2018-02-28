@@ -1474,49 +1474,27 @@
 [/#function]
 
 [#-- Diretory Strucutre for ContentHubs --]
-[#function getPathObject start qualifiers...]
+[#function getContentPath occurrence component="" ]
 
-    [#local pathObject = 
-        getCompositeObject(
-            [
-                {
-                    "Name" : "Fixed",
-                    "Default" : ""
-                },
-                {
-                    "Name" : "IncludeInPath",
-                    "Children" : [
-                      "Product",
-                      "Environment",
-                      "Segment",
-                      "Tier",
-                      "Component",
-                      "Instance",
-                      "Version",
-                      "Fixed"
-                    ]
-                }
-            ],
-            asFlattenedArray(
-                getObjectAndQualifiers((blueprintObject.PathBehaviours)!{}, qualifiers) +
-                getObjectAndQualifiers((tenantObject.PathBehaviours)!{}, qualifiers) +
-                getObjectAndQualifiers((productObject.PathBehaviours)!{}, qualifiers) +
-                getObjectAncestry(paths, [productId, productName], qualifiers) +
-                getObjectAncestry(paths, start, qualifiers)
+    [#local pathObject = occurrence.Configuration.Path ]
+    [#local includes = pathObject.IncludeInPath]
+
+    [#return
+        valueIfTrue(
+            pathObject.Host,
+            pathObject.Host?has_content && (!(includes.Host)),
+            formatName(
+                valueIfTrue(pathObject.Host, includes.Host),
+                valueIfTrue(getTierName(tier), includes.Tier),
+                valueIfTrue(getComponentName(component), includes.Component),
+                valueIfTrue(occurrence.Core.Instance.Name!"", includes.Instance),
+                valueIfTrue(occurrence.Core.Version.Name!"", includes.Version),
+                valueIfTrue(segmentName!"", includes.Segment),
+                valueIfTrue(environmentName!"", includes.Environment),
+                valueIfTrue(productName!"", includes.Product)
             )
         )
     ]
-
-    [#return
-        pathObject +
-        {
-            "Path" : formatRelativePath(qualifiers)
-        }
-    ]
-[/#function]
-
-[#function getHostName component="" occurrence={}]
-
 [/#function]
 
 [#-- Output object as JSON --]
