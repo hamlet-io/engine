@@ -12,7 +12,7 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
-        [#assign resources = occurrence.state.Resources ]
+        [#assign resources = occurrence.State.Resources ]
 
         [#if ! (buildCommit?has_content)]
             [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
