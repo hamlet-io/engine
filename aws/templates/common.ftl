@@ -574,6 +574,14 @@
             [#case "apigateway"]
                 [#local result = getAPIGatewayState(occurrence)]
                 [#break]
+            
+            [#case "contenthub"]
+                [#local result = getContentHubState(occurrence)]
+                [#break]
+            
+            [#case "contentnode"]
+                [#local result = getContentNodeState(occurrence)]
+                [#break]
 
             [#case "ecs"]
                 [#local result = getECSState(occurrence)]
@@ -1024,6 +1032,10 @@
             "Path" : formatRelativePath(qualifiers)
         }
     ]
+[/#function]
+
+[#function getHostName component="" occurrence={}]
+
 [/#function]
 
 [#-- Output object as JSON --]
