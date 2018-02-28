@@ -155,6 +155,8 @@
     [#local configuration = occurrence.Configuration]
 
     [#local id = formatAPIGatewayId(core.Tier, core.Component, occurrence)]
+    [#local name = formatComponentFullName(core.Tier, core.Component, occurrence)]
+
     [#local internalFqdn =
         formatDomainName(
             getExistingReference(id),
@@ -177,7 +179,8 @@
         {
             "Resources" : {
                 "primary" : {
-                    "Id" : id
+                    "Id" : id,
+                    "Name" : name
                 }
             },
             "Attributes" : {

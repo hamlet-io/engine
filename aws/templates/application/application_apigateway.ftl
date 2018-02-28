@@ -12,20 +12,15 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
+        [#assign resources = occurrence.state.Resources ]
 
         [#if ! (buildCommit?has_content)]
             [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
             [#break]
         [/#if]
 
-        [#assign apiId    = formatAPIGatewayId(
-                                tier,
-                                component,
-                                occurrence)]
-        [#assign apiName  = formatComponentFullName(
-                                tier,
-                                component,
-                                occurrence)]
+        [#assign apiId    = resources["primary"].Id]
+        [#assign apiName  = resources["primary"].Name]
         [#assign deployId = formatAPIGatewayDeployId(
                                 tier,
                                 component,
@@ -54,6 +49,8 @@
         [#list configuration.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                [@cfDebug listMode linkTarget false /]
+
                 [#assign linkTargetCore = linkTarget.Core ]
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
@@ -81,28 +78,6 @@
                                         formatVariableName(link.Name, fn.Name, "LAMBDA") : fnName
                                     }
                                 ]
-                                [#if deploymentSubsetRequired("apigateway", true)]
-                                  [@cfResource
-                                      mode=listMode
-                                      id=
-                                          formatAPIGatewayLambdaPermissionId(
-                                              tier,
-                                              component,
-                                              link,
-                                              fn,
-                                              occurrence)
-                                      type="AWS::Lambda::Permission"
-                                      properties=
-                                          {
-                                              "Action" : "lambda:InvokeFunction",
-                                              "FunctionName" : fnName,
-                                              "Principal" : "apigateway.amazonaws.com",
-                                              "SourceArn" : formatInvokeApiGatewayArn(apiId, stageName)
-                                          }
-                                      outputs={}
-                                      dependencies=stageId
-                                  /]
-                                [/#if]
                             [/#if]
                         [/#list]
                         [#break]
@@ -125,7 +100,7 @@
                                     )
                                 ]
                                 roles=formatDependentIdentityPoolAuthRoleId(
-                                        formatIdentityPoolId(link.Tier, link.Component))
+                                        formatIdentityPoolId(linkTargetCore.Tier, linkTargetCore.Component))
                             /]
                         [/#if]
                         [#break]

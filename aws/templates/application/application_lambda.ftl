@@ -51,43 +51,80 @@
                     [#if link?is_hash]
                         [#assign linkTarget = getLinkTarget(occurrence, link) ]
                         [@cfDebug listMode linkTarget false /]
-                        [#switch linkTarget.Type!""]
-                            [#case "userpool"] 
-                                [#assign policyId = formatDependentPolicyId(
-                                                        lambdaId, 
-                                                        link.Name)]
 
-                                [#assign lamdbaFunctionPolicies = [] ]
+                        [#assign linkTargetCore = linkTarget.Core ]
+                        [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                        [#assign linkTargetResources = linkTarget.State.Resources ]
+
+                        [#assign policyId = formatDependentPolicyId(
+                                                lambdaId, 
+                                                link.Name)]
+
+                        [#assign lamdbaFunctionPolicies = [] ]
+
+                        [#list configuration.Functions?values as fn]
+                            [#if fn?is_hash]
+                                [#assign fnId =
+                                    formatLambdaFunctionId(
+                                        tier,
+                                        component,
+                                        fn,
+                                        occurrence)]
+                                [#assign fnName =
+                                    formatLambdaFunctionName(
+                                        tier,
+                                        component,
+                                        occurrence,
+                                        fn)]
+
+                                [#switch linkTargetCore.Type!""]
+                                    [#case "userpool"] 
       
-                                [#list configuration.Functions?values as fn]
-                                    [#if fn?is_hash]
-                                        [#assign lambdaFunctionId =
-                                            formatLambdaFunctionId(
-                                                tier,
-                                                component,
-                                                fn,
-                                                occurrence)]
-                                        
                                         [#assign lambdaFunctionPolicy = getPolicyStatement(
                                                     "lambda:InvokeFunction",
-                                                    formatLambdaArn(lambdaFunctionId)    
+                                                    formatLambdaArn(fnId)    
                                                 )]
-                                        [#assign lamdbaFunctionPolicies = lamdbaFunctionPolicies + [lambdaFunctionPolicy]]                                    
-                                    [/#if]
-                                [/#list]
+                                        [#assign lamdbaFunctionPolicies = lamdbaFunctionPolicies + [lambdaFunctionPolicy]]
+                                        [#break]
+
+                                    [#case "apigateway" ]
+                                        [#assign apiId = linkTargetResources["primary"].Id ]
+                                        [#if getExistingReference(apiId)?has_content]
+                                            [@cfResource
+                                                mode=listMode
+                                                id=
+                                                    formatAPIGatewayLambdaPermissionId(
+                                                        linkTargetCore.Tier,
+                                                        linkTargetCore.Component,
+                                                        link,
+                                                        fn,
+                                                        linkTarget)
+                                                type="AWS::Lambda::Permission"
+                                                properties=
+                                                    {
+                                                        "Action" : "lambda:InvokeFunction",
+                                                        "FunctionName" : fnName,
+                                                        "Principal" : "apigateway.amazonaws.com",
+                                                        "SourceArn" : formatInvokeApiGatewayArn(apiId)
+                                                    }
+                                                outputs={}
+                                            /]
+                                        [/#if]
+                                        [#break]
+                                [/#switch]
+                            [/#if]
+                        [/#list]
         
-                                [#if lamdbaFunctionPolicies?has_content ]
-                                    [@createPolicy 
-                                        mode=listMode
-                                        id=policyId
-                                        name=lambdaName
-                                        statements=lamdbaFunctionPolicies
-                                        roles=formatDependentIdentityPoolAuthRoleId(
-                                                formatIdentityPoolId(link.Tier, link.Component))
-                                    /]
-                                [/#if]
-                                [#break]
-                        [/#switch]
+                        [#if lamdbaFunctionPolicies?has_content ]
+                            [@createPolicy 
+                                mode=listMode
+                                id=policyId
+                                name=lambdaName
+                                statements=lamdbaFunctionPolicies
+                                roles=formatDependentIdentityPoolAuthRoleId(
+                                        formatIdentityPoolId(link.Tier, link.Component))
+                            /]
+                        [/#if]
                     [/#if]
                 [/#list]
             [/#if]
