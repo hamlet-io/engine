@@ -12,6 +12,7 @@
       {
         tenantObject.Id : {
           "Configuration" : tenantObject,
+          "Domains" : domains,
           "Products" : getTenantBlueprint() 
         } 
       }
@@ -25,21 +26,22 @@
     {
       productObject.Id : { 
         "Configuration" : productObject,
-        "Environments" : getProductBlueprint() 
+        "Solutions" : getProductBluePrint()  
       } 
     }]] 
   [#return result ]
 [/#function]
 
-[#function getProductBlueprint ]
-  [#local result= [
-    {
-      environmentObject.Id : { 
-        "Configuration" : environmentObject,
-        "Segments" : getEnvironmentBlueprint() 
-      }
-    }]]
-  [#return result ]
+[#function getProductBluePrint ]
+  [#local result = [
+      {
+        solutionObject.Id : { 
+          "Configuration": solutionObject,
+          "Segments" : getEnvironmentBlueprint()
+        }
+      } 
+  ]]
+  [#return result]
 [/#function]
 
 [#function getEnvironmentBlueprint ]
@@ -47,6 +49,8 @@
     {
       segmentObject.Id : {
         "Configuration" : segmentObject,
+        "Environment" : environmentObject,
+        "Account" : accountObject,
         "Tiers" : getSegmentBlueprint() 
       } 
     }]]
