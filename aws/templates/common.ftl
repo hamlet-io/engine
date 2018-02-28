@@ -561,40 +561,46 @@
     ]
 [/#function]
 
-[#-- Component attributes object can be extended dynamically by each component type --]
-[#assign componentAttributes =
-    {
-        "alb" :
-            [
-                {
-                    "Name" : "Logs",
-                    "Default" : false
-                },
-                {
-                    "Name" : "PortMappings",
-                    "Default" : []
-                },
-                {
-                    "Name" : "IPAddressGroups",
-                    "Default" : []
-                },
-                {
-                    "Name" : "Certificate",
-                    "Default" : {}
-                }
-            ],
-        "apigateway" :
-            [
-                {
-                    "Name" : "Links",
-                    "Default" : {}
-                },
-                {
-                    "Name" : "WAF",
-                    "Children" : [
-                        {
-                            "Name" : "Enabled",
-                            "Default" : true
+[#function getOccurrenceState occurrence]
+    [#local result = {} ]
+    [@cfDebug listMode occurrence false /]
+
+    [#if occurrence?has_content]
+        [#local core = occurrence.Core ]
+        [#local configuration = occurrence.Configuration ]
+
+        [#switch core.Type!""]
+            [#case "alb"]
+                [#local result = getALBState(occurrence)]
+                [#break]
+    
+            [#case "apigateway"]
+                [#local result = getAPIGatewayState(occurrence)]
+                [#break]
+            
+            [#case "contenthub"]
+                [#local result = getContentHubState(occurrence)]
+                [#break]
+            
+            [#case "contentnode"]
+                [#local result = getContentNodeState(occurrence)]
+                [#break]
+
+            [#case "ecs"]
+                [#local result = getECSState(occurrence)]
+                [#break]
+    
+            [#case "efs"]
+                [#local result = getEFSState(occurrence)]
+                [#break]
+    
+            [#case "external"]
+                [#local result =
+                    {
+                        "Resources" : {
+                            "primary" : {
+                                "Id" : "externalXlink"
+                            }
                         },
                         {
                             "Name" : "IPAddressGroups",
@@ -1507,6 +1513,10 @@
             "Path" : formatRelativePath(qualifiers)
         }
     ]
+[/#function]
+
+[#function getHostName component="" occurrence={}]
+
 [/#function]
 
 [#-- Output object as JSON --]
