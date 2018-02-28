@@ -17,3 +17,18 @@
                 resourceId,
                 extensions)]
 [/#function]
+
+[#assign componentConfiguration +=
+    {
+        "efs"  : [
+        ]
+    }]
+    
+[#function getEFSState occurrence]
+    [#return
+        {
+            "Resources" : {},
+            "Attributes" : {}
+        }
+    ]
+[/#function]
