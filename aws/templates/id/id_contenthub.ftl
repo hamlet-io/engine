@@ -68,7 +68,52 @@
 [#assign componentConfiguration +=
     {
         "contentnode" : [
-            "Path",
+            {
+                "Name" : "Path",
+                "Children" : [
+                    {
+                        "Name" : "Host",
+                        "Default" : ""
+                    },
+                    {
+                        "Name" : "IncludeInPath",
+                        "Children" : [
+                            {
+                                "Name" : "Host",
+                                "Default": false
+                            },
+                            {
+                                "Name" : "Tier",
+                                "Default": false
+                            },
+                            {
+                                "Name" : "Component",
+                                "Default" : false
+                            },
+                            {
+                                "Name" : "Instance",
+                                "Default" : false
+                            },
+                            {
+                                "Name" : "Version",
+                                "Default" : false
+                            },
+                            {
+                                "Name" : "Segment",
+                                "Default" : true
+                            },
+                            {
+                                "Name" : "Environment",
+                                "Default" : false
+                            },
+                            {
+                                "Name" : "Product",
+                                "Default" : true
+                            }
+                        ]
+                    }
+                ]
+            }
             {
                 "Name" : "Links",
                 "Default" : {}
