@@ -84,16 +84,14 @@
             customErrorResponses=getErrorResponse(
                                         404, 
                                         200,
-                                        cvalueIfContent(
-                                            configuration.CloudFront.NotFoundPage,
+                                        (configuration.CloudFront.NotFoundPage)?has_content?then(
                                             configuration.CloudFront.NotFoundPage,
                                             configuration.CloudFront.ErrorPage
                                         )) + 
                                 getErrorResponse(
                                         403, 
                                         200,
-                                        valueIfContent(
-                                            configuration.CloudFront.DeniedPage,
+                                        (configuration.CloudFront.DeniedPage)?has_content?then(
                                             configuration.CloudFront.DeniedPage,
                                             configuration.CloudFront.ErrorPage
                                         ))
