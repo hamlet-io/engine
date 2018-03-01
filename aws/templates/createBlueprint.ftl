@@ -5,7 +5,7 @@
 [#assign allDeploymentUnits = true]
 [#assign deploymentUnit = ""]
 
-[#function getIntegratorBlueprint]
+[#function getTenantBlueprint]
   [#local result=
   {
     "Tenants" : [
@@ -13,7 +13,7 @@
         tenantObject.Id : {
           "Configuration" : tenantObject,
           "Domains" : domains,
-          "Products" : getTenantBlueprint() 
+          "Products" : getProductBlueprint() 
         } 
       }
     ]
@@ -21,43 +21,53 @@
   [#return result ]
 [/#function]
 
-[#function getTenantBlueprint]
+[#function getProductBlueprint]
   [#local result= [
     {
       productObject.Id : { 
         "Configuration" : productObject,
-        "Solutions" : getProductBluePrint()  
+        "Environments" : getEnvironmentBlueprint()  
       } 
     }]] 
+    [#return result ]
+[/#function]
+
+[#function getEnvironmentBlueprint]
+  [#local result= [
+    {
+      environmentObject.Id : {
+        "Configuration" : environmentObject,
+        "Solutions" : getSolutionBlueprint()
+      }
+    }
+  ]]
   [#return result ]
 [/#function]
 
-[#function getProductBluePrint ]
-  [#local result = [
-      {
-        solutionObject.Id : { 
-          "Configuration": solutionObject,
-          "Segments" : getEnvironmentBlueprint()
-        }
-      } 
-  ]]
-  [#return result]
+[#function getSolutionBlueprint]
+  [#local result= [
+    {
+      solutionObject.Id : {
+        "Configuration" : solutionObject,
+        "Segments" : getSegmentBlueprint()
+      }
+    }]]
+    [#return result ]
 [/#function]
 
-[#function getEnvironmentBlueprint ]
+[#function getSegmentBlueprint ]
   [#local result=[
     {
       segmentObject.Id : {
         "Configuration" : segmentObject,
-        "Environment" : environmentObject,
         "Account" : accountObject,
-        "Tiers" : getSegmentBlueprint() 
+        "Tiers" : getTierBlueprint() 
       } 
     }]]
   [#return result ]
 [/#function]
 
-[#function getSegmentBlueprint ]
+[#function getTierBlueprint ]
   [#local result=[] ]
   [#list tiers as tier]
     [#local result += [ 
@@ -71,14 +81,14 @@
               "Id": tier.Id,
               "Name": tier.Name
             },
-            "Components" :  getTierBlueprint(tier)
+            "Components" :  getComponentBlueprint(tier)
         }
         }]]
   [/#list]
   [#return result ]
 [/#function]
 
-[#function getTierBlueprint tier]
+[#function getComponentBlueprint tier]
   [#local result=[] ]
   [#list tier.Components!{} as id,component]
     [#if component?is_hash]
@@ -106,7 +116,7 @@
 [/#function]
 
 [#if deploymentSubsetRequired("blueprint", true)]
-  [@toJSON getIntegratorBlueprint() /]
+  [@toJSON getTenantBlueprint() /]
 [/#if]
 
 
