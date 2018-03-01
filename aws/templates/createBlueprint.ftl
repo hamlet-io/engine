@@ -10,12 +10,11 @@
   {
     "Tenants" : [
       {
-        tenantObject.Id : {
-          "Configuration" : tenantObject,
-          "Domains" : domains,
-          "Products" : getProductBlueprint() 
-        } 
-      }
+        "Id" : tenantObject.Id,
+        "Configuration" : tenantObject,
+        "Domains" : domains,
+        "Products" : getProductBlueprint() 
+      } 
     ]
   }]
   [#return result ]
@@ -23,47 +22,46 @@
 
 [#function getProductBlueprint]
   [#local result= [
-    {
-      productObject.Id : { 
+      { 
+        "Id" : productObject.Id,
         "Configuration" : productObject,
         "Environments" : getEnvironmentBlueprint()  
       } 
-    }]] 
+    ]] 
     [#return result ]
 [/#function]
 
 [#function getEnvironmentBlueprint]
   [#local result= [
-    {
-      environmentObject.Id : {
+      {
+        "Id" : environmentObject.Id,
         "Configuration" : environmentObject,
         "Solutions" : getSolutionBlueprint()
       }
-    }
   ]]
   [#return result ]
 [/#function]
 
 [#function getSolutionBlueprint]
   [#local result= [
-    {
-      solutionObject.Id : {
+      {
+        "Id" : solutionObject.Id,
         "Configuration" : solutionObject,
         "Segments" : getSegmentBlueprint()
       }
-    }]]
+    ]]
     [#return result ]
 [/#function]
 
 [#function getSegmentBlueprint ]
   [#local result=[
-    {
-      segmentObject.Id : {
+      {
+        "Id" : segmentObject.Id,
         "Configuration" : segmentObject,
         "Account" : accountObject,
         "Tiers" : getTierBlueprint() 
       } 
-    }]]
+    ]]
   [#return result ]
 [/#function]
 
@@ -71,8 +69,8 @@
   [#local result=[] ]
   [#list tiers as tier]
     [#local result += [ 
-      {
-        tier.Id : {
+        {
+            "Id" : tier.Id,
             "Configuration" : {
               "Description": tier.Description,
               "NetworkACL": tier.NetworkACL,
@@ -82,7 +80,6 @@
               "Name": tier.Name
             },
             "Components" :  getComponentBlueprint(tier)
-        }
         }]]
   [/#list]
   [#return result ]
@@ -105,11 +102,9 @@
       [#local result +=
         [
           {
-            id : {
+              "Id" : id,
               "Occurrences" : getOccurrences(component, tier, component)
-              }
-          }
-        ] ]
+          }]]
     [/#if]
   [/#list]
   [#return  result ]
