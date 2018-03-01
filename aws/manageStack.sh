@@ -133,6 +133,77 @@ function copy_config_file() {
   return 0
 }
 
+function copy_contentnode_file() { 
+  local files="$1"; shift
+  local engine="$1"; shift
+  local url="$1"; shift
+  local prefix="$1"; shift
+  local nodepath="$1"; shift
+  local branch="$1"; shift
+
+  local contentnodedir="${tmpdir}/contentnode"
+  local contenthubdir="${tmpdir}/contenthub"
+  local hubpath="${contenthubdir}/${prefix}${nodepath}"
+
+  # Copy files into repo 
+  if [[ -f "${files}" ]]; then 
+
+    case ${engine} in 
+      git) 
+
+        # Copy files locally so we can synch with git
+        for file in "${files[@]}" ; do
+          if [[ -f "${file}" ]]; then
+            case "$(fileExtension "${file}")" in
+              zip)
+                unzip "${file}" -d "${contentnodedir}" || return $?
+                ;;
+              *)
+                cp "${file}" "${contentnodedir}" || return $?
+                ;;
+            esac
+          fi
+        done
+
+        # Clone the Repo
+        clone_git_repo "${url}" "${branch}" "${contenthubdir}" || return $?
+
+        case ${STACK_OPERATION} in 
+
+          delete) 
+            if [[ -n "${hubpath}" ]]; then
+              rm -rf "${hubpath}" || return $?
+            else 
+              fatal "Hub path not defined" 
+              return 1
+            fi
+          ;;
+          
+          create|update)
+            if [[ -n "${hubpath}" ]]; then
+              rm -rf "${hubpath}" || return $?
+              cp "${contentnodedir}/" "${hubpath}" || return $?
+            else
+              fatal "Hub path not defined"
+              return 1
+            fi
+          ;;
+        esac
+
+        # Commit Repo
+        push_git_repo "${url}" "${branch}" "origin" \
+            "ContentNodeDeployment-${PRODUCT}-${SEGMENT}-${DEPLOYMENT_UNIT}" \
+            "${GIT_USER}" "${GIT_EMAIL}" || return $?
+
+      ;;
+    esac 
+  else 
+    info "No files found to copy" 
+  fi
+
+  return 0
+}
+
 function copy_spa_file() {
 
   local files=()
