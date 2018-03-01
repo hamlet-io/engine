@@ -574,6 +574,14 @@
             [#case "apigateway"]
                 [#local result = getAPIGatewayState(occurrence)]
                 [#break]
+            
+            [#case "contenthub"]
+                [#local result = getContentHubState(occurrence)]
+                [#break]
+            
+            [#case "contentnode"]
+                [#local result = getContentNodeState(occurrence)]
+                [#break]
 
             [#case "ecs"]
                 [#local result = getECSState(occurrence)]
@@ -982,6 +990,30 @@
         )
     ]
 ]
+[/#function]
+
+[#-- Diretory Strucutre for ContentHubs --]
+[#function getContentPath occurrence component="" ]
+
+    [#local pathObject = occurrence.Configuration.Path ]
+    [#local includes = pathObject.IncludeInPath]
+
+    [#return
+        valueIfTrue(
+            pathObject.Host,
+            pathObject.Host?has_content && (!(includes.Host)),
+            formatName(
+                valueIfTrue(pathObject.Host, includes.Host),
+                valueIfTrue(getTierName(tier), includes.Tier),
+                valueIfTrue(getComponentName(component), includes.Component),
+                valueIfTrue(occurrence.Core.Instance.Name!"", includes.Instance),
+                valueIfTrue(occurrence.Core.Version.Name!"", includes.Version),
+                valueIfTrue(segmentName!"", includes.Segment),
+                valueIfTrue(environmentName!"", includes.Environment),
+                valueIfTrue(productName!"", includes.Product)
+            )
+        )
+    ]
 [/#function]
 
 [#-- Output object as JSON --]
