@@ -56,14 +56,14 @@
                                     credentialsObject[componentShortName]]
         [#assign rdsUsername = rdsCredentials.Login.Username]
         [#assign rdsPassword = rdsCredentials.Login.Password]
-        [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), ARN_ATTRIBUTE_TYPE) ]
+        [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE) ]
         [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE ) ]
 
+        [#assign noise = random.nextLong()?string.computer?replace("-","X")]
         [#assign rdsPreDeploySnapshotId = formatName(
                                             rdsFullName,
-                                            .now?replace(":","-")?replace(" ","-"),
-                                            "pre-deploy"
-                                            )]
+                                            noise,
+                                            "pre-deploy")]
 
         [#assign rdsSecurityGroupId = formatDependentComponentSecurityGroupId(
                                         tier, 
@@ -88,14 +88,14 @@
                         "function create_deploy_snapshot() {",
                         "# Create RDS snapshot",
                         "info \"Creating Pre-Deployment snapshot\"",
-                        "snapshot_arn=$(create_snapshot" + 
-                        " \"" +  region + "\" "
+                        "create_snapshot" + 
+                        " \"" + region + "\" " + 
                         " \"" + rdsFullName + "\" " + 
-                        " \"" + rdsPreDeploySnapshotId + "\" ) || return $?",
+                        " \"" + rdsPreDeploySnapshotId + "\" || return $?",
                         "create_pseudo_stack" + " " + 
                         "\"RDS Pre-Deploy Snapshot\"" + " " +
                         "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"snapshotX" + rdsId + "Xarn\" " + "\"$\{snapshot_arn}\" || return $?", 
+                        "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?", 
                         "}",
                         "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                         "create_deploy_snapshot || return $?"
