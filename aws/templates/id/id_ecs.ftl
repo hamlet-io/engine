@@ -84,7 +84,11 @@
     [#return
         {
             "Resources" : {},
-            "Attributes" : {}
+            "Attributes" : {},
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
         }
     ]
 [/#function]
@@ -93,7 +97,11 @@
     [#return
         {
             "Resources" : {},
-            "Attributes" : {}
+            "Attributes" : {},
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
         }
     ]
 [/#function]
@@ -102,7 +110,11 @@
     [#return
         {
             "Resources" : {},
-            "Attributes" : {}
+            "Attributes" : {},
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
         }
     ]
 [/#function]
