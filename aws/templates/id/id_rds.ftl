@@ -37,12 +37,23 @@
                 extensions)]
 [/#function]
 
+[#function formatDependentRDSSnapshotId resourceId extensions... ]
+    [#return formatDependentResourceId(
+                "snapshot",
+                resourceId,
+                extensions)]
+[/#function]
+
 [#assign componentConfiguration +=
     {
         "rds" : [
             "Engine",
             "EngineVersion",
             "Port",
+            {
+                "Name" : "Encrypted",
+                "Default" : false
+            },
             { 
                 "Name" : "Size",
                 "Default" : "20"
@@ -53,15 +64,15 @@
                     {
                         "Name" : "RetentionPeriod",
                         "Default" : 35
+                    },
+                    {
+                        "Name" : "SnapshotOnDeploy",
+                        "Default" : false
                     }
                 ]
-            },
-            {
-                "Name" : "SnapShotOnDeploy",
-                "Default" : true
             }
         ]
-    }]
+}]
     
 [#function getRDSState occurrence]
     [#local core = occurrence.Core]
@@ -89,11 +100,5 @@
             }
         ]
     [/#list]
-
     [#return result ]
-[#function formatDependentRDSSnapshotId resourceId extensions... ]
-    [#return formatDependentResourceId(
-                "snapshot",
-                resourceId,
-                extensions)]
 [/#function]
