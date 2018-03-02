@@ -139,7 +139,7 @@ function copy_contentnode_file() {
   local url="$1"; shift
   local prefix="$1"; shift
   local nodepath="$1"; shift
-  local branch="$1"; shift
+  local branch="$1"; 
 
   local contentnodedir="${tmpdir}/contentnode"
   local contenthubdir="${tmpdir}/contenthub"
