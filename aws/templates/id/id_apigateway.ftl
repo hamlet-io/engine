@@ -67,8 +67,8 @@
                 tier,
                 component,
                 extensions,
-                link,
-                fn)]
+                fn,
+                link)]
 [/#function]
 
 [#assign componentConfiguration +=
@@ -191,7 +191,18 @@
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn
             },
-            "Policy" : apigatewayInvokePermission(id, core.Version.Id)
+            "Roles" : {
+                "Outbound" : {
+                    "default" : "invoke",
+                    "invoke" : apigatewayInvokePermission(id, core.Version.Name)
+                },
+                "Inbound" : {
+                    "invoke" : {
+                        "Principal" : "apigateway.amazonaws.com",
+                        "SourceArn" : formatInvokeApiGatewayArn(id, core.Version.Name)
+                    }
+                }
+            }
         }
     ]
 [/#function]

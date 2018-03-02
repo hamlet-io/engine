@@ -599,11 +599,15 @@
                                 "Id" : "externalXlink"
                             }
                         },
-                        "Attributes" : {}
+                        "Attributes" : {},
+                        "Roles" : {
+                            "Inbound" : {},
+                            "Outbound" : {}
+                        }
                     }
                 ]
                 [#list appSettingsObject!{} as name,value]
-                    [#local prefix = core.Component?upper_case + "_"]
+                    [#local prefix = core.Component.Name?upper_case + "_"]
                     [#if name?upper_case?starts_with(prefix)]
                         [#local result +=
                         {
@@ -611,7 +615,7 @@
                         } ]
                     [/#if]
                 [/#list]
-                [#list ((credentialsObject[core.Tier + "-" + core.Component])!{})?values as credential]
+                [#list ((credentialsObject[core.Tier.Name + "-" + core.Component.Name])!{})?values as credential]
                     [#list credential as name,value]
                         [#local result +=
                             {
@@ -784,7 +788,7 @@
 [#function getLinkTarget occurrence link]
 
     [#if link.Tier?lower_case == "external"]
-        [#return
+        [#local targetOccurrence =
             {
                 "Core" : {
                     "Type" : "external",
@@ -804,8 +808,17 @@
                         "Id" : "",
                         "Name" : ""
                     }
-                }
+                },
+                "Configuration" : {}
             }
+        ]
+        [#return
+            targetOccurrence +
+            {
+                "State" : getOccurrenceState(targetOccurrence),
+                "Direction" : link.Direction!"outbound"
+            } +
+            attributeIfContent("Role", link.Role!"")
         ]
     [/#if]
     
@@ -824,7 +837,12 @@
                 [#continue]
             [/#if]
         [/#if]
-        [#return targetOccurrence ]
+        [#return
+            targetOccurrence +
+            {
+                "Direction" : link.Direction!"outbound"
+            } +
+            attributeIfContent("Role", link.Role!"")        ]
     [/#list]
 
     [@cfPostconditionFailed
@@ -843,18 +861,30 @@
     [#local result={} ]
     [#list (valueIfContent(links, links, occurrence.Configuration.Links!{}))?values as link]
         [#if link?is_hash]
-            [#local linkState = getLinkTarget(occurrence, link).State!{} ]
+            [#local linkTarget = getLinkTarget(occurrence, link)!{} ]
             
             [#local result +=
                 valueIfContent(
                     {
-                        link.Name : linkState
+                        link.Name : linkTarget
                     },
-                    linkState
+                    linkTarget
                 )]
         [/#if]
     [/#list]
     [#return result ]
+[/#function]
+
+[#function getLinkTargetsOutboundRoles LinkTargets]
+    [#local roles = [] ]
+    [#list LinkTargets?values as linkTarget]
+        [#local linkTargetOutboundRoles = (linkTarget.State.Roles.Outbound)!{} ]
+        [#local roleName = linkTarget.Role!linkTargetOutboundRoles["default"]!""]
+        [#local role = linkTargetOutboundRoles[roleName]!{} ]
+        [#if (linkTarget.Direction == "outbound") && role?has_content ]
+            [#local roles += asArray(role![]) ]
+        [/#if]
+    [/#list]
 [/#function]
 
 [#-- Get processor settings --]

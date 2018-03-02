@@ -64,6 +64,10 @@
                 "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
                 "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
                 "REGION" : regionId
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
             }
         }
     ]

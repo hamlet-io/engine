@@ -13,6 +13,7 @@
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
         [#assign resources = occurrence.State.Resources ]
+        [#assign roles = occurrence.State.Roles]
 
         [#if ! (buildCommit?has_content)]
             [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
@@ -88,17 +89,12 @@
                             [#assign policyId = formatDependentPolicyId(
                                                     apiId, 
                                                     link.Name)]
-        
+
                             [@createPolicy 
                                 mode=listMode
                                 id=policyId
                                 name=apiName
-                                statements=[
-                                    getPolicyStatement(
-                                        "execute-api:*",
-                                        formatInvokeApiGatewayArn(apiId, stageName)    
-                                    )
-                                ]
+                                statements=asFlattenedArray(roles.Outbound["invoke"])
                                 roles=formatDependentIdentityPoolAuthRoleId(
                                         formatIdentityPoolId(linkTargetCore.Tier, linkTargetCore.Component))
                             /]
