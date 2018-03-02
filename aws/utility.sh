@@ -715,9 +715,9 @@ function create_snapshot() {
 
 # -- Git Repo Management -- 
 function clone_git_repo() {
-  local repo_url "$1"; shift
-  local repo_branch "$1"; shift
-  local local_dir "$1"; 
+  local repo_url="$1"; shift
+  local repo_branch="$1"; shift
+  local local_dir="$1"; 
 
   [[ (-z "${repo_url}") ||
       (-z "${repo_branch}") ||
@@ -732,12 +732,12 @@ function clone_git_repo() {
 }
 
 function push_git_repo() { 
-  local repo_url "$1"; shift
-  local repo_branch "$1"; shift
-  local repo_remote "$1"; shift
-  local commit_message "$1"; shift
-  local git_user "$1"; shift
-  local git_email "$1"; 
+  local repo_url="$1"; shift
+  local repo_branch="$1"; shift
+  local repo_remote="$1"; shift
+  local commit_message="$1"; shift
+  local git_user="$1"; shift
+  local git_email="$1"; 
 
     [[ (-z "${repo_url}") ||
         (-z "${repo_branch}") ||
