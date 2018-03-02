@@ -430,10 +430,7 @@
                                                 dns),
                                             formatName(
                                                 configuration.Publish.DnsNamePrefix,
-                                                formatComponentBucketName(
-                                                    tier,
-                                                    component,
-                                                    occurrence))
+                                                formatOccurrenceBucketName(occurrence))
                                             )]    
             
             [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]

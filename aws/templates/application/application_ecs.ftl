@@ -204,6 +204,20 @@
                         /]
                         [#assign dependencies += [policyId] ]
                     [/#if]
+
+                    [#assign linkPolicies = getLinkTargetsOutboundRoles(container.Links) ]
+
+                    [#if linkPolicies?has_content]
+                        [#assign policyId = formatDependentPolicyId(taskId, container.Id, "links")]
+                        [@createPolicy
+                            mode=listMode
+                            id=policyId
+                            name="links"
+                            statements=linkPolicies
+                            roles=roleId
+                        /]
+                        [#assign dependencies += [policyId] ]
+                    [/#if]
                 [/#list]
             [/#if]
         [#else]
