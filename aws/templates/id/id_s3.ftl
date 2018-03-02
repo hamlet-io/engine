@@ -24,11 +24,12 @@
                 extensions)]
 [/#function]
 
-[#function formatComponentS3Id tier component extensions...]
+[#function formatOccurrenceS3Id occurrence extensions...]
     [#return formatComponentResourceId(
                 S3_RESOURCE_TYPE,
-                tier,
-                component,
+                occurrence.Core.Tier,
+                occurrence.Core.Component,
+                occurrence,
                 extensions)]
 [/#function]
 
@@ -101,13 +102,18 @@
 [#function getS3State occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatComponentS3Id(core.Tier, core.Component, occurrence)]
+    [#local id = formatOccurrenceS3Id(occurrence)]
+    [#local name = formatOccurrenceBucketName(occurrence) ]
 
     [#return
         {
             "Resources" : {
                 "primary" : {
-                    "Id" : id
+                    "Id" : id,
+                    "Name" :
+                        firstContent(
+                            getExistingReference(id, NAME_ATTRIBUTE_TYPE),
+                            name)
                 }
             },
             "Attributes" : {

@@ -885,6 +885,7 @@
             [#local roles += asArray(role![]) ]
         [/#if]
     [/#list]
+    [#return roles]
 [/#function]
 
 [#-- Get processor settings --]
