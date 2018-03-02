@@ -87,7 +87,7 @@
                     [
                         "function create_deploy_snapshot() {",
                         "# Create RDS snapshot",
-                        "info \"Creating Pre-Deployment snapshot\"",
+                        "info \"Creating Pre-Deployment snapshot... \"",
                         "create_snapshot" + 
                         " \"" + region + "\" " + 
                         " \"" + rdsFullName + "\" " + 
