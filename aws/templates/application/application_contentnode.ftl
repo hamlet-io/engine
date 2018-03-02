@@ -25,6 +25,7 @@
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
                 [#switch linkTargetCore.Type!""]
+                    [#case "external"]
                     [#case "contenthub"]
                         [#if linkTargetAttributes.ENGINE == "git" ]
                             [#assign branch = linkTargetAttributes.BRANCH!""]
