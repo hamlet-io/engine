@@ -173,88 +173,46 @@
             /]
             
             [#switch alternative ]
-
                 [#case "replace1" ]
-
-                    [#assign rdsRestoreName=formatName(rdsFullName, "backup") ]
-
-                    [@createRDSInstance 
-                        mode=listMode
-                        id=rdsId
-                        name=rdsRestoreName
-                        engine=engine
-                        engineVersion=engineVersion
-                        processor=processorProfile.Processor
-                        size=configuration.Size
-                        port=port
-                        multiAZ=multiAZ
-                        encrypted=configuration.Encrypted
-                        masterUsername=rdsUsername
-                        masterPassword=rdsPassword
-                        databaseName=productName
-                        retentionPeriod=configuration.Backup.RetentionPeriod
-                        snapshotId=valueIfTrue(
+                    [#assign rdsFullName=formatName(rdsFullName, "backup") ]
+                    [#assign snapshotId = valueIfTrue(
                             rdsPreDeploySnapshotId,
                             configuration.Backup.SnapshotOnDeploy,
-                            rdsRestoreSnapshot)
-                        subnetGroupId=getReference(rdsSubnetGroupId)
-                        parameterGroupId=getReference(rdsParameterGroupId)
-                        optionGroupId=getReference(rdsOptionGroupId)
-                        securityGroupId=getReference(rdsSecurityGroupId)
-                    /]
+                            rdsRestoreSnapshot)]
                 [#break]
 
                 [#case "replace2"]
-                    [@createRDSInstance 
-                        mode=listMode
-                        id=rdsId
-                        name=rdsFullName
-                        engine=engine
-                        engineVersion=engineVersion
-                        processor=processorProfile.Processor
-                        size=configuration.Size
-                        port=port
-                        multiAZ=multiAZ
-                        encrypted=configuration.Encrypted
-                        masterUsername=rdsUsername
-                        masterPassword=rdsPassword
-                        databaseName=productName
-                        retentionPeriod=configuration.Backup.RetentionPeriod
-                        snapshotId=valueIfTrue(
+                    [#assign snapshotId = valueIfTrue(
                             rdsPreDeploySnapshotId,
                             configuration.Backup.SnapshotOnDeploy,
-                            "Flibberdy")
-                        subnetGroupId=getReference(rdsSubnetGroupId)
-                        parameterGroupId=getReference(rdsParameterGroupId)
-                        optionGroupId=getReference(rdsOptionGroupId)
-                        securityGroupId=getReference(rdsSecurityGroupId)
-                    /]
-           
+                            rdsRestoreSnapshot)]
                 [#break]
 
                 [#default]
-                    [@createRDSInstance 
-                        mode=listMode
-                        id=rdsId
-                        name=rdsFullName
-                        engine=engine
-                        engineVersion=engineVersion
-                        processor=processorProfile.Processor
-                        size=configuration.Size
-                        port=port
-                        multiAZ=multiAZ
-                        encrypted=configuration.Encrypted
-                        masterUsername=rdsUsername
-                        masterPassword=rdsPassword
-                        databaseName=productName
-                        retentionPeriod=configuration.Backup.RetentionPeriod
-                        snapshotId=rdsLastSnapshot
-                        subnetGroupId=getReference(rdsSubnetGroupId)
-                        parameterGroupId=getReference(rdsParameterGroupId)
-                        optionGroupId=getReference(rdsOptionGroupId)
-                        securityGroupId=getReference(rdsSecurityGroupId)
-                    /]
-                [/#switch]
+                    [#assign snapshotId = rdsLastSnapshot]
+            [/#switch]
+
+            [@createRDSInstance 
+                    mode=listMode
+                    id=rdsId
+                    name=rdsFullName
+                    engine=engine
+                    engineVersion=engineVersion
+                    processor=processorProfile.Processor
+                    size=configuration.Size
+                    port=port
+                    multiAZ=multiAZ
+                    encrypted=configuration.Encrypted
+                    masterUsername=rdsUsername
+                    masterPassword=rdsPassword
+                    databaseName=productName
+                    retentionPeriod=configuration.Backup.RetentionPeriod
+                    snapshotId=snapshotId
+                    subnetGroupId=getReference(rdsSubnetGroupId)
+                    parameterGroupId=getReference(rdsParameterGroupId)
+                    optionGroupId=getReference(rdsOptionGroupId)
+                    securityGroupId=getReference(rdsSecurityGroupId)
+                /]
         [/#if]
     [/#list]
 [/#if]
