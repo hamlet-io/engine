@@ -717,15 +717,13 @@ function create_snapshot() {
 function clone_git_repo() {
   local repo_url "$1"; shift
   local repo_branch "$1"; shift
-  local local_dir "$1"; shift
+  local local_dir "$1"; 
 
   [[ (-z "${repo_url}") ||
       (-z "${repo_branch}") ||
-      (-z "${local_dir}") ]] && fatalMandatory $$ return 1
+      (-z "${local_dir}") ]] && fatalMandatory && return 1
 
   trace "Cloning the ${repo_url} repo and checking out the ${repo_branch} branch ..."
-  [[ (-z "${repo_url}") ||
-      (-z "${repo_branch}") ]] && fatalMandatory && return 1
 
   git clone -b "${repo_branch}" "${repo_url}" "${local_dir}"
   RESULT=$? && [[ ${RESULT} -ne 0 ]] && fatal "Can't clone ${repo_url} repo" && return 1
@@ -739,7 +737,7 @@ function push_git_repo() {
   local repo_remote "$1"; shift
   local commit_message "$1"; shift
   local git_user "$1"; shift
-  local git_email "$1"; shift
+  local git_email "$1"; 
 
     [[ (-z "${repo_url}") ||
         (-z "${repo_branch}") ||
