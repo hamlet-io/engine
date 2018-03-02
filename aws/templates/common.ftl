@@ -1047,7 +1047,7 @@
         )
     ]
     
-    [#if pathObject.Style = "Single" ] 
+    [#if pathObject.Style = "single" ] 
         [#return formatName(path) ]
     [#else]
         [#return formatRelativePath(path)]

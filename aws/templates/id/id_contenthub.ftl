@@ -77,7 +77,7 @@
                     },
                     {
                         "Name" : "Style",
-                        "Default" : "Single"
+                        "Default" : "single"
                     },
                     {
                         "Name" : "IncludeInPath",
