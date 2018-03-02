@@ -27,10 +27,6 @@
                 [#switch linkTargetCore.Type!""]
                     [#case "external"]
                     [#case "contenthub"]
-                        [#if linkTargetAttributes.ENGINE == "git" ]
-                            [#assign branch = linkTargetAttributes.BRANCH!""]
-                            [#assign url = linkTargetAttributes.URL!""]
-                        [/#if]
                         [#if deploymentSubsetRequired("prologue", false)]
                             [@cfScript
                                 mode=listMode
@@ -52,7 +48,7 @@
                                     "  # Sync with the operations bucket",
                                     "  copy_contentnode_file \"$\{tmpdir}/contentnode.zip\" " + 
                                             "\"" + linkTargetAttributes.ENGINE + "\" " +
-                                            "\"" +    linkTargetAttributes.URL + "\" " + 
+                                            "\"" +    linkTargetAttributes.REPOSITORY + "\" " + 
                                             "\"" +    linkTargetAttributes.PREFIX + "\" " +
                                             "\"" +    pathObject + "\" " +
                                             "\"" +    linkTargetAttributes.BRANCH + "\" ",

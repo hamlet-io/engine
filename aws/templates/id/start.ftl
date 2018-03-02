@@ -115,7 +115,7 @@
 [#assign PASSWORD_ATTRIBUTE_TYPE = "password" ]
 [#assign DATABASENAME_ATTRIBUTE_TYPE = "databasename" ]
 [#assign TOPICNAME_ATTRIBUTE_TYPE = "topicname" ]
-[#assign ENGINE_ATTRIBUTE_TYPE = "engine" ]
+[#assign REPOSITORY_ATTRIBUTE_TYPE = "repository" ]
 [#assign BRANCH_ATTRIBUTE_TYPE = "branch" ]
 [#assign PREFIX_ATTRIBUTE_TYPE = "prefix" ]
 
