@@ -35,7 +35,7 @@
             occurrence.Core.Tier,
             occurrence.Core.Component,
             occurrence) ]
-    [#local sqsName = (core.Component.Name != "SQS")?then(
+    [#local name = (core.Component.Name != "SQS")?then(
                             formatName(
                                 core.Component.Name,
                                 occurrence),
@@ -46,14 +46,14 @@
                                 occurrence))]
 
     [#local dlqId = formatDependentResourceId(SQS_RESOURCE_TYPE, id, "dlq") ]
-    [#local dlqName = formatName(sqsName, "dlq")]
+    [#local dlqName = formatName(name, "dlq")]
 
     [#return
         {
             "Resources" : {
                 "primary" : {
                     "Id" : id,
-                    "Name" : sqsName
+                    "Name" : name
                 },
                 "dlq" : {
                     "Id" : dlqId,
