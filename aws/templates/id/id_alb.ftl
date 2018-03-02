@@ -117,6 +117,10 @@
                 "URL" : scheme + "://" + fqdn,
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : scheme + "://" + internalFqdn
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
             }
         }
     ]

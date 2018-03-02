@@ -67,8 +67,8 @@
                 tier,
                 component,
                 extensions,
-                link,
-                fn)]
+                fn,
+                link)]
 [/#function]
 
 [#assign componentConfiguration +=
@@ -155,6 +155,8 @@
     [#local configuration = occurrence.Configuration]
 
     [#local id = formatAPIGatewayId(core.Tier, core.Component, occurrence)]
+    [#local name = formatComponentFullName(core.Tier, core.Component, occurrence)]
+
     [#local internalFqdn =
         formatDomainName(
             getExistingReference(id),
@@ -177,7 +179,8 @@
         {
             "Resources" : {
                 "primary" : {
-                    "Id" : id
+                    "Id" : id,
+                    "Name" : name
                 }
             },
             "Attributes" : {
@@ -188,7 +191,18 @@
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn
             },
-            "Policy" : apigatewayInvokePermission(id, core.Version.Id)
+            "Roles" : {
+                "Outbound" : {
+                    "default" : "invoke",
+                    "invoke" : apigatewayInvokePermission(id, core.Version.Name)
+                },
+                "Inbound" : {
+                    "invoke" : {
+                        "Principal" : "apigateway.amazonaws.com",
+                        "SourceArn" : formatInvokeApiGatewayArn(id, core.Version.Name)
+                    }
+                }
+            }
         }
     ]
 [/#function]

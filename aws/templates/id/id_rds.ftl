@@ -90,6 +90,10 @@
                 "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
                 "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
                 "NAME" : getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
             }
         }
     ]
