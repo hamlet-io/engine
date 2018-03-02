@@ -59,10 +59,9 @@
         [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE) ]
         [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE ) ]
 
-        [#assign noise = random.nextLong()?string.computer?replace("-","X")]
         [#assign rdsPreDeploySnapshotId = formatName(
                                             rdsFullName,
-                                            noise,
+                                            runId,
                                             "pre-deploy")]
 
         [#assign rdsSecurityGroupId = formatDependentComponentSecurityGroupId(
@@ -224,7 +223,7 @@
                         snapshotId=valueIfTrue(
                             rdsPreDeploySnapshotId,
                             configuration.Backup.SnapshotOnDeploy,
-                            rdsRestoreSnapshot)
+                            "Flibberdy")
                         subnetGroupId=getReference(rdsSubnetGroupId)
                         parameterGroupId=getReference(rdsParameterGroupId)
                         optionGroupId=getReference(rdsOptionGroupId)
