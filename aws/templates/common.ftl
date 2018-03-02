@@ -1028,22 +1028,31 @@
     [#local pathObject = occurrence.Configuration.Path ]
     [#local includes = pathObject.IncludeInPath]
 
-    [#return
-        valueIfTrue(
-            pathObject.Host,
+    [#local path =  valueIfTrue(
+            [
+                pathObject.Host
+            ],
             pathObject.Host?has_content && (!(includes.Host)),
-            formatName(
-                valueIfTrue(pathObject.Host, includes.Host),
+            [
+                valueIfTrue(productName!"", includes.Product),
+                valueIfTrue(solutionObject.Id!"", includes.Solution),
+                valueIfTrue(environmentName!"", includes.Environment),
+                valueIfTrue(segmentName!"", includes.Segment),
                 valueIfTrue(getTierName(tier), includes.Tier),
                 valueIfTrue(getComponentName(component), includes.Component),
                 valueIfTrue(occurrence.Core.Instance.Name!"", includes.Instance),
                 valueIfTrue(occurrence.Core.Version.Name!"", includes.Version),
-                valueIfTrue(segmentName!"", includes.Segment),
-                valueIfTrue(environmentName!"", includes.Environment),
-                valueIfTrue(productName!"", includes.Product)
-            )
+                valueIfTrue(pathObject.Host, includes.Host)
+            ]
         )
     ]
+    
+    [#if pathObject.Style = "Single" ] 
+        [#return formatName(path) ]
+    [#else]
+        [#return formatRelativePath(path)]
+    [/#if]
+
 [/#function]
 
 [#-- Output object as JSON --]
