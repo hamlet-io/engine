@@ -68,12 +68,12 @@
 [/#macro]
 
 [#function getLinkResourceId link]
-    [#return (context.Links[link].Resources["primary"].Id)!"" ]
+    [#return (context.Links[link].State.Resources["primary"].Id)!"" ]
 [/#function]
 
 [#function addLinkVariablesToContext context name link attributes rawName=false]
     [#local result = context ]
-    [#local linkAttributes = (context.Links[link].Attributes)!{} ]  
+    [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]  
     [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
     [#if linkAttributes?has_content]
         [#list attributeList as attribute]
@@ -246,8 +246,11 @@
 [#function getTaskContainers tier component task]
     
     [#local containers = [] ]
+    
+    [#local core = task.Core ]
+    [#local configuration = task.Configuration ]
 
-    [#list (task.Containers!{})?values as container]
+    [#list (configuration.Containers!{})?values as container]
         [#if container?is_hash]
 
             [#local portMappings = [] ]
@@ -271,11 +274,11 @@
                         [#local instanceMatch = {}]
                         [#if targetComponent?has_content]
                             [#list getOccurrences(targetComponent, targetTierId, targetComponentId) as targetOccurrence]
-                                [#if task.Core.Instance.Id == targetOccurrence.Core.Instance.Id]
-                                    [#if task.Core.Version.Id == targetOccurrence.Core.Version.Id]
+                                [#if core.Instance.Id == targetOccurrence.Core.Instance.Id]
+                                    [#if core.Version.Id == targetOccurrence.Core.Version.Id]
                                         [#local instanceAndVersionMatch = targetOccurrence]
                                     [#else]
-                                        [#if (task.Core.Version.Id?has_content) &&
+                                        [#if (core.Version.Id?has_content) &&
                                                 (!(targetOccurrence.Core.Version.Id?has_content))]
                                             [#local instanceMatch = targetOccurrence]
                                         [/#if]
@@ -291,9 +294,9 @@
                         [#else]
                             [#if instanceMatch?has_content && (targetType == "alb")]
                                 [#local targetLoadBalancer = instanceMatch]
-                                [#local targetGroup = task.Version.Id]
+                                [#local targetGroup = core.Version.Id]
                                 [#local targetPath =
-                                    "/" + task.Version.Id + 
+                                    "/" + core.Version.Id + 
                                     (port.LB.Path)?has_content?then(
                                         port.LB.Path,
                                         "/*"
@@ -390,8 +393,8 @@
                 {
                     "Id" : getContainerId(container),
                     "Name" : getContainerName(container),
-                    "Instance" : task.Instance.Id,
-                    "Version" : task.Version.Id,
+                    "Instance" : core.Instance.Id,
+                    "Version" : core.Version.Id,
                     "Essential" : true,
                     "Image" :
                         formatRelativePath(

@@ -12,20 +12,16 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
+        [#assign resources = occurrence.State.Resources ]
+        [#assign roles = occurrence.State.Roles]
 
         [#if ! (buildCommit?has_content)]
             [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
             [#break]
         [/#if]
 
-        [#assign apiId    = formatAPIGatewayId(
-                                tier,
-                                component,
-                                occurrence)]
-        [#assign apiName  = formatComponentFullName(
-                                tier,
-                                component,
-                                occurrence)]
+        [#assign apiId    = resources["primary"].Id]
+        [#assign apiName  = resources["primary"].Name]
         [#assign deployId = formatAPIGatewayDeployId(
                                 tier,
                                 component,
@@ -54,6 +50,8 @@
         [#list configuration.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                [@cfDebug listMode linkTarget false /]
+
                 [#assign linkTargetCore = linkTarget.Core ]
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
@@ -81,28 +79,6 @@
                                         formatVariableName(link.Name, fn.Name, "LAMBDA") : fnName
                                     }
                                 ]
-                                [#if deploymentSubsetRequired("apigateway", true)]
-                                  [@cfResource
-                                      mode=listMode
-                                      id=
-                                          formatAPIGatewayLambdaPermissionId(
-                                              tier,
-                                              component,
-                                              link,
-                                              fn,
-                                              occurrence)
-                                      type="AWS::Lambda::Permission"
-                                      properties=
-                                          {
-                                              "Action" : "lambda:InvokeFunction",
-                                              "FunctionName" : fnName,
-                                              "Principal" : "apigateway.amazonaws.com",
-                                              "SourceArn" : formatInvokeApiGatewayArn(apiId, stageName)
-                                          }
-                                      outputs={}
-                                      dependencies=stageId
-                                  /]
-                                [/#if]
                             [/#if]
                         [/#list]
                         [#break]
@@ -113,19 +89,14 @@
                             [#assign policyId = formatDependentPolicyId(
                                                     apiId, 
                                                     link.Name)]
-        
+
                             [@createPolicy 
                                 mode=listMode
                                 id=policyId
                                 name=apiName
-                                statements=[
-                                    getPolicyStatement(
-                                        "execute-api:*",
-                                        formatInvokeApiGatewayArn(apiId, stageName)    
-                                    )
-                                ]
+                                statements=asFlattenedArray(roles.Outbound["invoke"])
                                 roles=formatDependentIdentityPoolAuthRoleId(
-                                        formatIdentityPoolId(link.Tier, link.Component))
+                                        formatIdentityPoolId(linkTargetCore.Tier, linkTargetCore.Component))
                             /]
                         [/#if]
                         [#break]

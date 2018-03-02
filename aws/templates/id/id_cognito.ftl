@@ -139,7 +139,10 @@
                 "IDENTITY_POOL" : getReference(identityPoolId),
                 "CLIENT" : getReference(clientId),
                 "REGION" : regionId
-
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
             }
         }
     ]

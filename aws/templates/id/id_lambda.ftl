@@ -84,6 +84,10 @@
             },
             "Attributes" : {
                 "REGION" : regionId
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
             }
         }
     ]
