@@ -727,10 +727,10 @@ function clone_git_repo() {
       (-z "${repo_branch}") ||
       (-z "${local_dir}") ]] && fatalMandatory && return 1
 
-  trace "Cloning the ${repo_url} repo and checking out the ${repo_branch} branch ..."
-
   local credentials_var="${repo_provider^^}_CREDENTIALS"
-  local repo_url="https://${!credentials_var}@${repo_host}/${repo_path} ${INTEGRATOR_DIR}"
+  local repo_url="https://${!credentials_var}@${repo_host}/${repo_path}"
+
+  trace "Cloning the ${repo_url} repo and checking out the ${repo_branch} branch ..."
 
   git clone -b "${repo_branch}" "${repo_url}" "${local_dir}"
   RESULT=$? && [[ ${RESULT} -ne 0 ]] && fatal "Can't clone ${repo_url} repo" && return 1

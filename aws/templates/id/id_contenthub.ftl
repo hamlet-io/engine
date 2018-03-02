@@ -34,7 +34,7 @@
                 "Default" : "master"
             },
             {
-                "Name" : "Repoistory",
+                "Name" : "Repository",
                 "Default" : ""
             }
         ]
