@@ -76,11 +76,28 @@
                         "Default" : ""
                     },
                     {
+                        "Name" : "Style",
+                        "Default" : "single"
+                    },
+                    {
                         "Name" : "IncludeInPath",
                         "Children" : [
+
                             {
-                                "Name" : "Host",
-                                "Default": false
+                                "Name" : "Product",
+                                "Default" : true
+                            },
+                            {
+                                "Name" : "Environment",
+                                "Default" : false
+                            },
+                            {
+                                "Name" : "Solution",
+                                "Default" : false
+                            },
+                            {
+                                "Name" : "Segment",
+                                "Default" : true
                             },
                             {
                                 "Name" : "Tier",
@@ -99,16 +116,8 @@
                                 "Default" : false
                             },
                             {
-                                "Name" : "Segment",
-                                "Default" : true
-                            },
-                            {
-                                "Name" : "Environment",
-                                "Default" : false
-                            },
-                            {
-                                "Name" : "Product",
-                                "Default" : true
+                                "Name" : "Host",
+                                "Default": false
                             }
                         ]
                     }
