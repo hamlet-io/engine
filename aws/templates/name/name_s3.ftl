@@ -13,13 +13,17 @@
             vpc?remove_beginning("vpc-"))]
 [/#function]
 
-[#function formatComponentBucketName tier component extensions...]
+[#function formatOccurrenceBucketName occurrence extensions...]
     [#return
         formatName(
             valueIfTrue(
                 (tenantObject.Name)!"",
                 (segmentObject.S3.IncludeTenant)!false,
                 ""),
-            formatComponentFullName(tier, component, extensions),
+            formatComponentFullName(
+                occurrence.Core.Tier,
+                occurrence.Core.Component,
+                occurrence
+                extensions),
             vpc?remove_beginning("vpc-"))]
 [/#function]

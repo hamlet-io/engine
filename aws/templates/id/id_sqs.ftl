@@ -2,27 +2,6 @@
 
 [#assign SQS_RESOURCE_TYPE = "sqs" ]
 
-[#function formatSQSId ids...]
-    [#return formatResourceId(
-                SQS_RESOURCE_TYPE,
-                ids)]
-[/#function]
-
-[#function formatDependentSQSId resourceId extensions...]
-    [#return formatDependentResourceId(
-                SQS_RESOURCE_TYPE,
-                resourceId,
-                extensions)]
-[/#function]
-
-[#function formatComponentSQSId tier component extensions...]
-    [#return formatComponentResourceId(
-                SQS_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
-
 [#assign componentConfiguration +=
     {
         "sqs" : [
@@ -50,13 +29,35 @@
 [#function getSQSState occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatComponentSQSId(core.Tier, core.Component, occurrence)]
+    [#local id =
+        formatComponentResourceId(
+            SQS_RESOURCE_TYPE,
+            occurrence.Core.Tier,
+            occurrence.Core.Component,
+            occurrence) ]
+    [#local name = (core.Component.Name != "SQS")?then(
+                            formatName(
+                                core.Component.Name,
+                                occurrence),
+                            formatName(
+                                productName,
+                                segmentName,
+                                componentName,
+                                occurrence))]
+
+    [#local dlqId = formatDependentResourceId(SQS_RESOURCE_TYPE, id, "dlq") ]
+    [#local dlqName = formatName(name, "dlq")]
 
     [#return
         {
             "Resources" : {
                 "primary" : {
-                    "Id" : id
+                    "Id" : id,
+                    "Name" : name
+                },
+                "dlq" : {
+                    "Id" : dlqId,
+                    "Name" : dlqName
                 }
             },
             "Attributes" : {
@@ -67,7 +68,11 @@
             },
             "Roles" : {
                 "Inbound" : {},
-                "Outbound" : {}
+                "Outbound" : {
+                    "all" : sqsAllPermission(id),
+                    "produce" : sqsProducePermission(id),
+                    "consume" : sqsConsumePermission(id)
+                }
             }
         }
     ]

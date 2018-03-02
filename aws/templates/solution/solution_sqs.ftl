@@ -10,26 +10,13 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
+        [#assign resources = occurrence.State.Resources ]
 
-        [#assign sqsId = formatComponentSQSId(
-                            tier,
-                            component,
-                            occurrence)]
-        [#assign dlqId = formatDependentSQSId(
-                            sqsId,
-                            "dlq")]
-        [#assign sqsName = (sqs.Name != "SQS")?then(
-                                formatName(
-                                    sqs.Name,
-                                    occurrence),
-                                formatName(
-                                    productName,
-                                    segmentName,
-                                    componentName,
-                                    occurrence))]
-        [#assign dlqName = formatName(
-                            sqsName,
-                            "dlq")]
+        [#assign sqsId = resources["primary"].Id ]
+        [#assign sqsName = resources["primary"].Name ]
+        [#assign dlqId = resources["dlq"].Id ]
+        [#assign dlqName = resources["dlq"].Name ]
+
         [#assign sqsDimensions =
             [
                 {
