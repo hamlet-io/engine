@@ -802,4 +802,5 @@ function push_git_repo() {
             fatal "Can't push the ${repo_url} repo changes to upstream repo ${repo_remote}" && return 1
     fi
 
+  return 0
 }
