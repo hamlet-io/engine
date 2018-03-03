@@ -192,6 +192,7 @@ function copy_contentnode_file() {
         esac
 
         # Commit Repo
+        cd "${contenthubdir}"
         push_git_repo "${host}/${path}" "${branch}" "origin" \
             "ContentNodeDeployment-${PRODUCT}-${SEGMENT}-${DEPLOYMENT_UNIT}" \
             "${GIT_USER}" "${GIT_EMAIL}" || return $?
