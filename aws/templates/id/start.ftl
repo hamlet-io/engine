@@ -118,6 +118,7 @@
 [#assign ENGINE_ATTRIBUTE_TYPE = "engine" ]
 [#assign BRANCH_ATTRIBUTE_TYPE = "branch" ]
 [#assign PREFIX_ATTRIBUTE_TYPE = "prefix" ]
+[#assign LASTRESTORE_ATTRIBUTE_TYPE = "lastrestore" ]
 
 [#-- special attribute type to handle references --]
 [#assign REFERENCE_ATTRIBUTE_TYPE = "ref" ]

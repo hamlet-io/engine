@@ -18,6 +18,13 @@ function parse_stack_filename() {
     stack_region="${BASH_REMATCH[4]}"
     return 0
   fi
+  if contains "$(fileName "${file}")" "([a-z0-9]+)-(.+-.+)-(.+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)"; then
+    stack_level="${BASH_REMATCH[1]}"
+    stack_deployment_unit="${BASH_REMATCH[2]}"
+    stack_region="${BASH_REMATCH[4]}"
+    stack_account=""
+    return 0
+  fi
   if contains "$(fileName "${file}")" "([a-z0-9]+)-(.+)-([a-z]{2}-[a-z]+-[1-9])(-pseudo)?-(.+)"; then
     stack_level="${BASH_REMATCH[1]}"
     stack_deployment_unit="${BASH_REMATCH[2]}"
