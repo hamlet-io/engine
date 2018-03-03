@@ -2,53 +2,91 @@
 [#include "setContext.ftl" ]
 
 [#assign listMode = "blueprint"]
-
 [#assign allDeploymentUnits = true]
-[#assign includeRaw = false]
-
-[#function getAggregatorBlueprint ]
-  [#local result={} ]
-  [#return
-    result?has_content?then(
-      { "Integrators" : result },
-      getIntegratorBlueprint())
-  ]
-[/#function]
-
-[#function getIntegratorBlueprint]
-  [#local result={ tenantId : getTenantBlueprint() } ]
-  [#return { "Tenants" : result } ]
-[/#function]
+[#assign deploymentUnit = ""]
 
 [#function getTenantBlueprint]
-  [#local result={ productId : getProductBlueprint() } ]
-  [#return { "Products" : result } ]
+  [#local result=
+  {
+    "Tenants" : [
+      {
+        "Id" : tenantObject.Id,
+        "Configuration" : tenantObject,
+        "Domains" : domains,
+        "Products" : getProductBlueprint() 
+      } 
+    ]
+  }]
+  [#return result ]
 [/#function]
 
-[#function getProductBlueprint ]
-  [#local result={ environmentId : getEnvironmentBlueprint() } ]
-  [#return { "Environments" : result } ]
+[#function getProductBlueprint]
+  [#local result= [
+      { 
+        "Id" : productObject.Id,
+        "Configuration" : productObject,
+        "Environments" : getEnvironmentBlueprint()  
+      } 
+    ]] 
+    [#return result ]
 [/#function]
 
-[#function getEnvironmentBlueprint ]
-  [#local result={ segmentId : getSegmentBlueprint() } ]
-  [#return { "Segments" : result } ]
+[#function getEnvironmentBlueprint]
+  [#local result= [
+      {
+        "Id" : environmentObject.Id,
+        "Configuration" : environmentObject,
+        "Solutions" : getSolutionBlueprint()
+      }
+  ]]
+  [#return result ]
+[/#function]
+
+[#function getSolutionBlueprint]
+  [#local result= [
+      {
+        "Id" : solutionObject.Id,
+        "Configuration" : solutionObject,
+        "Segments" : getSegmentBlueprint()
+      }
+    ]]
+    [#return result ]
 [/#function]
 
 [#function getSegmentBlueprint ]
-  [#local result={} ]
-  [#list tiers as tier]
-    [#assign tierId = tier.Id]
-    [#assign tierName = tier.Name]
-    [#local result+={ tierId : getTierBlueprint(tier) } ]
-  [/#list]
-  [#return 
-    { "Tiers" : result} +
-    includeRaw?then({ "Raw" : tiers }, {}) ]
+  [#local result=[
+      {
+        "Id" : segmentObject.Id,
+        "Configuration" : segmentObject,
+        "Account" : accountObject,
+        "Tiers" : getTierBlueprint() 
+      } 
+    ]]
+  [#return result ]
 [/#function]
 
-[#function getTierBlueprint tier]
-  [#local result={} ]
+[#function getTierBlueprint ]
+  [#local result=[] ]
+  [#list tiers as tier]
+    [#local result += [ 
+        {
+            "Id" : tier.Id,
+            "Configuration" : {
+              "Description": tier.Description,
+              "NetworkACL": tier.NetworkACL,
+              "RouteTable": tier.RouteTable,
+              "Title": tier.Title,
+              "Id": tier.Id,
+              "Name": tier.Name
+            },
+            "Components" :  getComponentBlueprint(tier)
+        }]]
+  [/#list]
+  [#return result ]
+[/#function]
+
+[#function getComponentBlueprint tier]
+  [#local result=[] ]
   [#list tier.Components!{} as id,component]
     [#if component?is_hash]
       [#assign componentTemplates = {} ]
@@ -60,25 +98,20 @@
       [#assign componentShortNameWithType = formatComponentShortNameWithType(tier, component)]
       [#assign componentShortFullName = formatComponentShortFullName(tier, component)]
       [#assign componentFullName = formatComponentFullName(tier, component)]
-      
+
       [#local result +=
-        {
-          id : {
-            "Id" : componentId,
-            "Name" : componentName,
-            "Type" : componentType,
-            "Occurrences" : getOccurrences(component, tier, component)
-          }
-        } ]
+        [
+          {
+              "Id" : id,
+              "Occurrences" : getOccurrences(component, tier, component)
+          }]]
     [/#if]
   [/#list]
-  [#return
-    { "Components" : result} +
-    includeRaw?then({"Raw" : tier.Components!{}},{}) ]
+  [#return  result ]
 [/#function]
 
 [#if deploymentSubsetRequired("blueprint", true)]
-  [@toJSON getAggregatorBlueprint() /]
+  [@toJSON getTenantBlueprint() /]
 [/#if]
 
 
