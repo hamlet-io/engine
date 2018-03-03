@@ -183,7 +183,7 @@ function copy_contentnode_file() {
           create|update)
             if [[ -n "${hubpath}" ]]; then
               rm -rf "${hubpath}" || return $?
-              cp "${contentnodedir}/" "${hubpath}" || return $?
+              cp -R "${contentnodedir}/" "${hubpath}" || return $?
             else
               fatal "Hub path not defined"
               return 1
