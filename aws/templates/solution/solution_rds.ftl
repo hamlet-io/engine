@@ -53,9 +53,16 @@
         [#assign rdsParameterGroupId = formatRDSParameterGroupId(tier, component, occurrence)]
         [#assign rdsOptionGroupId = formatRDSOptionGroupId(tier, component, occurrence)]
         [#assign rdsCredentials = credentialsObject[componentShortNameWithType]!
-                                    credentialsObject[componentShortName]!{}]
-        [#assign rdsUsername = (rdsCredentials.Login.Username)!""]
-        [#assign rdsPassword = (rdsCredentials.Login.Password)!""]
+                                    credentialsObject[componentShortName]]
+        [#assign rdsUsername = rdsCredentials.Login.Username]
+        [#assign rdsPassword = rdsCredentials.Login.Password]
+        [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE) ]
+        [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE ) ]
+
+        [#assign rdsPreDeploySnapshotId = formatName(
+                                            rdsFullName,
+                                            runId,
+                                            "pre-deploy")]
 
         [#assign rdsSecurityGroupId = formatDependentComponentSecurityGroupId(
                                         tier, 
@@ -72,24 +79,24 @@
         [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
         [#if deploymentSubsetRequired("prologue", false)]
-            [#if configuration.SnapShotOnDeploy ]
+            [#if configuration.Backup.SnapshotOnDeploy ]
                 [@cfScript
                     mode=listMode
                     content=
                     [
                         "function create_deploy_snapshot() {",
                         "# Create RDS snapshot",
-                        "info \"Creating Pre-Deployment snapshot\"",
-                        "snapshot_arn=$(create_snapshot" + " \"" + 
-                        region + "\" \"" + 
-                        rdsFullName + "\" " + 
-                        "\"pre-deploy\" ) || return $?",
+                        "info \"Creating Pre-Deployment snapshot... \"",
+                        "create_snapshot" + 
+                        " \"" + region + "\" " + 
+                        " \"" + rdsFullName + "\" " + 
+                        " \"" + rdsPreDeploySnapshotId + "\" || return $?",
                         "create_pseudo_stack" + " " + 
                         "\"RDS Pre-Deploy Snapshot\"" + " " +
                         "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"snapshotX" + rdsId + "\" " + "\"$\{snapshot_arn}\" || return $?", 
+                        "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?", 
                         "}",
-                        "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-snapshot-pseudo-stack.json\" ",
+                        "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                         "create_deploy_snapshot || return $?"
                     ]
                 /]
@@ -164,50 +171,48 @@
                         component)
                 outputs={}
             /]
+            
+            [#switch alternative ]
+                [#case "replace1" ]
+                    [#assign rdsFullName=formatName(rdsFullName, "backup") ]
+                    [#assign snapshotId = valueIfTrue(
+                            rdsPreDeploySnapshotId,
+                            configuration.Backup.SnapshotOnDeploy,
+                            rdsRestoreSnapshot)]
+                [#break]
 
-            [@cfResource
-                mode=listMode
-                id=rdsId
-                type="AWS::RDS::DBInstance"
-                properties=
-                    {
-                        "Engine": engine,
-                        "EngineVersion": engineVersion,
-                        "DBInstanceClass" : processorProfile.Processor,
-                        "AllocatedStorage": configuration.Size,
-                        "StorageType" : "gp2",
-                        "Port" : port,
-                        "MasterUsername": rdsUsername,
-                        "MasterUserPassword": rdsPassword,
-                        "BackupRetentionPeriod" : configuration.Backup.RetentionPeriod,
-                        "DBInstanceIdentifier": rdsFullName,
-                        "DBName": productName,
-                        "DBSubnetGroupName": getReference(rdsSubnetGroupId),
-                        "DBParameterGroupName": getReference(rdsParameterGroupId),
-                        "OptionGroupName": getReference(rdsOptionGroupId),
-                        "VPCSecurityGroups":[getReference(rdsSecurityGroupId)]
-                    } +
-                    multiAZ?then(
-                        {
-                            "MultiAZ": true
-                        },
-                        {
-                            "AvailabilityZone" : zones[0].AWSZone
-                        }
-                    )
-                tags=
-                    getCfTemplateCoreTags(
-                        rdsFullName,
-                        tier,
-                        component)
-                outputs=
-                    RDS_OUTPUT_MAPPINGS +
-                    {
-                        DATABASENAME_ATTRIBUTE_TYPE : { 
-                            "Value" : productName
-                        }
-                    }
-            /]
+                [#case "replace2"]
+                    [#assign snapshotId = valueIfTrue(
+                            rdsPreDeploySnapshotId,
+                            configuration.Backup.SnapshotOnDeploy,
+                            rdsRestoreSnapshot)]
+                [#break]
+
+                [#default]
+                    [#assign snapshotId = rdsLastSnapshot]
+            [/#switch]
+
+            [@createRDSInstance 
+                    mode=listMode
+                    id=rdsId
+                    name=rdsFullName
+                    engine=engine
+                    engineVersion=engineVersion
+                    processor=processorProfile.Processor
+                    size=configuration.Size
+                    port=port
+                    multiAZ=multiAZ
+                    encrypted=configuration.Encrypted
+                    masterUsername=rdsUsername
+                    masterPassword=rdsPassword
+                    databaseName=productName
+                    retentionPeriod=configuration.Backup.RetentionPeriod
+                    snapshotId=snapshotId
+                    subnetGroupId=getReference(rdsSubnetGroupId)
+                    parameterGroupId=getReference(rdsParameterGroupId)
+                    optionGroupId=getReference(rdsOptionGroupId)
+                    securityGroupId=getReference(rdsSecurityGroupId)
+                /]
         [/#if]
     [/#list]
 [/#if]

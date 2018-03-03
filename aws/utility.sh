@@ -235,6 +235,34 @@ function findFile() {
   return 1
 }
 
+function findFiles() { 
+  
+  local restore_nullglob="$(shopt -p nullglob)"
+  local restore_globstar="$(shopt -p globstar)"
+  shopt -s nullglob globstar
+
+  # Note that any spaces in file specs must be escaped
+  local matches=($@)
+
+  ${restore_nullglob}
+  ${restore_globstar}
+
+  local file_match="false"
+
+  for match in "${matches[@]}"; do
+    if [[ -f "${match}" ]]; then 
+      echo "${match}"  
+      local file_match="true"
+    fi
+  done
+
+  if [[ "${file_match}" == "true" ]]; then 
+    return 0
+  fi
+
+  return 1
+}
+
 # -- Temporary file management --
 
 # OS Temporary directory
@@ -693,13 +721,8 @@ function delete_oai_credentials() {
 function create_snapshot() { 
   local region="$1"; shift
   local db_identifier="$1"; shift
-  local snapshot_suffix="$1"; shift
+  local db_snapshot_identifier="$1"; shift
   
-  db_snapshot_identifier="${db_identifier}-$(date -u +%Y-%m-%d-%H-%M-%S)"
-  if [[ -n "${snapshot_suffix}" ]]; then
-    db_snapshot_identifier="${db_snapshot_identifier}-${snapshot_suffix}"
-  fi
-
   # Check that the database exists
   db_info=$(aws --region "${region}" rds describe-db-instances --db-instance-identifier ${db_identifier} )
 
@@ -708,10 +731,9 @@ function create_snapshot() {
     aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
     db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
   fi
-  echo -n "$(echo "${db_snapshot}" | jq -r '.DBSnapshots[0].DBSnapshotArn' )" 
-  
-  return 0
+  echo -n "$(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )" 
 }
+
 
 # -- Git Repo Management -- 
 function clone_git_repo() {

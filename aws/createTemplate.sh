@@ -271,6 +271,10 @@ function process_template() {
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
   [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
+  
+  # Create a random string to use as the run identifier
+  run_id="$(cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)"
+  args+=("-v" "runId=${run_id}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
