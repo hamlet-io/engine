@@ -235,6 +235,34 @@ function findFile() {
   return 1
 }
 
+function findFiles() { 
+  
+  local restore_nullglob="$(shopt -p nullglob)"
+  local restore_globstar="$(shopt -p globstar)"
+  shopt -s nullglob globstar
+
+  # Note that any spaces in file specs must be escaped
+  local matches=($@)
+
+  ${restore_nullglob}
+  ${restore_globstar}
+
+  local file_match="false"
+
+  for match in "${matches[@]}"; do
+    if [[ -f "${match}" ]]; then 
+      echo "${match}"  
+      local file_match="true"
+    fi
+  done
+
+  if [[ "${file_match}" == "true" ]]; then 
+    return 0
+  fi
+
+  return 1
+}
+
 # -- Temporary file management --
 
 # OS Temporary directory
