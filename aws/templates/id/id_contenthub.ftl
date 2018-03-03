@@ -27,14 +27,14 @@
             "Prefix",
             {
                 "Name" : "Engine",
-                "Default" : "git"
+                "Default" : "github"
             },
             {
                 "Name" : "Branch",
                 "Default" : "master"
             },
             {
-                "Name" : "URL",
+                "Name" : "Repository",
                 "Default" : ""
             }
         ]
@@ -56,7 +56,7 @@
             },
             "Attributes" : {
                 "ENGINE" : getExistingReference(id, ENGINE_ATTRIBUTE_TYPE),
-                "URL"    : getExistingReference(id, URL_ATTRIBUTE_TYPE),
+                "REPOSITORY" : getExistingReference(id, REPOSITORY_ATTRIBUTE_TYPE),
                 "BRANCH" : getExistingReference(id, BRANCH_ATTRIBUTE_TYPE),
                 "PREFIX" : getExistingReference(id, PREFIX_ATTRIBUTE_TYPE)
             }

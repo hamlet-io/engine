@@ -11,17 +11,7 @@
         [#assign configuration = occurrence.Configuration ]
 
         [#assign contentHubId = formatContentHubHubId(tier, component, occurrence)]
-        [#assign contentHubEngine = configuration.Engine ]
         [#assign contentHubPrefix = configuration.Prefix ]
-
-        [#-- Engine Specifc Configuration --]
-        [#if configuration.Engine == "git" ]
-            [#assign contentHubBranch = configuration.Branch ]
-            [#assign contentHubURL = configuration.URL]
-        [#else]
-            [#assign contentHubBranch = "" ]
-            [#assign contentHubURL = ""]
-        [/#if]
 
         [#if deploymentSubsetRequired("prologue", false)]
             [@cfScript
@@ -33,10 +23,10 @@
                         "create_pseudo_stack" + " " + 
                         "\"Content Hub Deployment\"" + " " +
                         "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"" + contentHubId + "Xengine\" \"" + contentHubEngine + "\" " +  
-                        "\"" + contentHubId + "Xurl\" \"" + contentHubURL + "\" " +
+                        "\"" + contentHubId + "Xengine\" \"" + configuration.Engine + "\" " +  
+                        "\"" + contentHubId + "Xrepository\" \"" + configuration.Repository + "\" " +
                         "\"" + contentHubId + "Xprefix\" \"" + contentHubPrefix + "\" " +
-                        "\"" + contentHubId + "Xbranch\" \"" + contentHubBranch + "\" " +
+                        "\"" + contentHubId + "Xbranch\" \"" + configuration.Branch + "\" " +
                         "|| return $?", 
                     "}",
                     "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",

@@ -737,13 +737,20 @@ function create_snapshot() {
 
 # -- Git Repo Management -- 
 function clone_git_repo() {
-  local repo_url="$1"; shift
+  local repo_provider="$1"; shift
+  local repo_host="$1"; shift
+  local repo_path="$1"; shift
   local repo_branch="$1"; shift
   local local_dir="$1"; 
 
-  [[ (-z "${repo_url}") ||
+  [[  (-z "${repo_provider}") ||
+      (-z "${repo_host}") ||
+      (-z "${repo_path}") ||
       (-z "${repo_branch}") ||
       (-z "${local_dir}") ]] && fatalMandatory && return 1
+
+  local credentials_var="${repo_provider^^}_CREDENTIALS"
+  local repo_url="https://${!credentials_var}@${repo_host}/${repo_path}"
 
   trace "Cloning the ${repo_url} repo and checking out the ${repo_branch} branch ..."
 

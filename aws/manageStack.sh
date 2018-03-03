@@ -136,7 +136,7 @@ function copy_config_file() {
 function copy_contentnode_file() { 
   local files="$1"; shift
   local engine="$1"; shift
-  local url="$1"; shift
+  local path="$1"; shift
   local prefix="$1"; shift
   local nodepath="$1"; shift
   local branch="$1"; 
@@ -149,7 +149,7 @@ function copy_contentnode_file() {
   if [[ -f "${files}" ]]; then 
 
     case ${engine} in 
-      git) 
+      github) 
 
         # Copy files locally so we can synch with git
         for file in "${files[@]}" ; do
@@ -166,7 +166,8 @@ function copy_contentnode_file() {
         done
 
         # Clone the Repo
-        clone_git_repo "${url}" "${branch}" "${contenthubdir}" || return $?
+        local host="github.com"
+        clone_git_repo "${engine}" "${host}" "${path}" "${branch}" "${contenthubdir}" || return $?
 
         case ${STACK_OPERATION} in 
 
@@ -191,7 +192,7 @@ function copy_contentnode_file() {
         esac
 
         # Commit Repo
-        push_git_repo "${url}" "${branch}" "origin" \
+        push_git_repo "${host}/${path}" "${branch}" "origin" \
             "ContentNodeDeployment-${PRODUCT}-${SEGMENT}-${DEPLOYMENT_UNIT}" \
             "${GIT_USER}" "${GIT_EMAIL}" || return $?
 
