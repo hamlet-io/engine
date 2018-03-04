@@ -577,7 +577,14 @@
 [/#function]
 
 [#function getOccurrenceState occurrence]
-    [#local result = {} ]
+    [#local result =
+        {
+            "Resources" : {},
+            "Attributes" : {
+                "NOATTRIBUTES" : "Attributes not found"
+            }
+        }
+    ]
 
     [#if occurrence?has_content]
         [#local core = occurrence.Core ]
@@ -675,15 +682,6 @@
                 [#local result = getUserPoolState(occurrence)]
                 [#break]
         [/#switch]
-    [#else]
-        [#local result = 
-            {
-                "Resources" : {},
-                "Attributes" : {
-                    "NOATTRIBUTES" : "Attributes not found"
-                }
-            }
-        ]
     [/#if]
 
     [#-- Update resource deployment status --]
