@@ -50,7 +50,7 @@
     [#return
         {
             "Resources" : {
-                "primary" : {
+                "hub" : {
                     "Id" : id
                 }
             },
@@ -140,7 +140,7 @@
     [#return
         {
             "Resources" : {
-                "primary" : {
+                "node" : {
                     "Id" : id
                 }
             },

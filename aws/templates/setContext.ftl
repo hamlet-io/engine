@@ -144,6 +144,7 @@
         [#assign environmentObject = environments[environmentId]]
         [#assign environmentName = environmentObject.Name]
         [#assign categoryId = segmentObject.Category!environmentObject.Category]
+        [#assign categoryName = segmentObject.Category!environmentObject.Category]
         [#assign categoryObject = categories[categoryId]]
     [/#if]
 

@@ -299,6 +299,15 @@
     [/#if]
 [/#function]
 
+[#-- Get the name for a zone --]
+[#function getZoneName zone]
+    [#if zone?is_hash]
+        [#return zone.Name]
+    [#else]
+        [#return zone]
+    [/#if]
+[/#function]
+
 [#-- Components --]
 
 [#-- Get the id for a component --]
@@ -560,7 +569,6 @@
 
 [#function getOccurrenceState occurrence]
     [#local result = {} ]
-    [@cfDebug listMode occurrence false /]
 
     [#if occurrence?has_content]
         [#local core = occurrence.Core ]
@@ -594,11 +602,7 @@
             [#case "external"]
                 [#local result =
                     {
-                        "Resources" : {
-                            "primary" : {
-                                "Id" : "externalXlink"
-                            }
-                        },
+                        "Resources" : {},
                         "Attributes" : {},
                         "Roles" : {
                             "Inbound" : {},
@@ -629,7 +633,11 @@
             [#case "lambda"]
                 [#local result = getLambdaState(occurrence)]
                 [#break]
-    
+
+            [#case "function"]
+                [#local result = getFunctionState(occurrence)]
+                [#break]
+
             [#case "rds"]
                 [#local result = getRDSState(occurrence)]
                 [#break]
@@ -661,47 +669,85 @@
     [#else]
         [#local result = 
             {
-                "Resources" : {
-                    "primary" : {
-                        "Id" : "unknown"
-                    }
-                },
+                "Resources" : {},
                 "Attributes" : {
                     "NOATTRIBUTES" : "Attributes not found"
                 }
             }
         ]
     [/#if]
-    
+
+    [#-- Update resource deployment status --]
+    [#list result.Resources as alias,resource]
+        [#local result +=
+            {
+                "Resources" :
+                    result.Resources +
+                    {
+                        alias :
+                          resource +
+                          {
+                              "Deployed" : getExistingReference(resource.Id)?has_content
+                          }
+                    }
+            } ]
+    [/#list]
     [#return result ]
 [/#function]
 
-[#-- Get the occurrences of versions/instances of a component and any subcomponents --]
-[#function getOccurrences root tier component subComponentType=""]
+[#function getOccurrenceConfigurationAttributes type]
+    [#local configuration = componentConfiguration[type]![] ]
 
-    [#if !(root?has_content) ]
+    [#return
+        configuration?is_hash?then(
+            configuration.Attributes![],
+            configuration) ]
+[/#function]
+
+[#function getOccurrenceSubComponents type]
+    [#local configuration = componentConfiguration[type]![] ]
+
+    [#return
+        configuration?is_hash?then(
+            configuration.Components![],
+            []) ]
+[/#function]
+
+[#-- Get the occurrences of versions/instances of a component--]
+[#function getOccurrencesInternal component tier={} parentOccurrence={} parentContexts=[] componentType="" ]
+
+    [#if !(component?has_content) ]
         [#return [] ]
     [/#if]
-    [#if subComponentType?has_content]
-        [#local type = subComponentType]
-        [#local componentObject = root ]
-        [#local subComponentId = [root.Id] ]
-        [#local subComponentName = [root.Name] ]
-        [#local contexts = [componentObject] ]
+
+    [#local contexts = asArray(parentContexts) + [component] ]
+
+    [#if tier?has_content]
+        [#local tierId = getTierId(tier) ]
+        [#local tierName = getTierName(tier) ]
+        [#local componentId = getComponentId(component) ]
+        [#local componentName = getComponentName(component) ]
+        [#local subComponentId = "" ]
+        [#local subComponentName = "" ]
+        [#local type = getComponentType(component) ]
+        [#local typeObject = getComponentTypeObject(component) ]
+        [#local contexts += [typeObject] ]
     [#else]
-        [#local type = getComponentType(root)]
-        [#local componentObject = getComponentTypeObject(root) ]
-        [#local subComponentId = [] ]
-        [#local subComponentName = [] ]
-        [#local contexts = [root, componentObject] ]
+        [#local tierId = parentOccurrence.Core.Tier.Id ]
+        [#local tierName = parentOccurrence.Core.Tier.Name ]
+        [#local componentId = parentOccurrence.Core.Component.Id ]
+        [#local componentName = parentOccurrence.Core.Component.Name ]
+        [#local subComponentId = getComponentId(component) ]
+        [#local subComponentName = getComponentName(component) ]
+        [#local type = componentType ]
+        [#local typeObject = component ]
     [/#if]
 
-    [#-- Placeholder for code to deal with subComponents as subOccurrences --]
-    [#local parentOccurrence = {} ]
+    [#local attributes = getOccurrenceConfigurationAttributes(type) ]
+    [#local subComponents = getOccurrenceSubComponents(type) ]
 
-    [#-- Add Export and DeploymentUnits as a standard attribute --]
-    [#local attributes =
-        (componentConfiguration[type]![]) +
+    [#-- Add Export and DeploymentUnits as standard attributes --]
+    [#local attributes +=
         [
             {
                 "Name" : "Export",
@@ -713,76 +759,120 @@
             }
         ]
     ]
-    [@cfDebug listMode attributes false /]
 
     [#local occurrences=[] ]
 
-    [#list (componentObject.Instances!{"default" : {"Id" : "default"}})?values as instance]
+    [#list (typeObject.Instances!{"default" : {"Id" : "default"}})?values as instance]
         [#if instance?is_hash ]
-            [#local instanceId = firstContent(getContextId(instance), (parentOccurrence.Core.Instance.Id)!"") ]
-            [#local instanceName = firstContent(getContextName(instance), (parentOccurrence.Core.Instance.Name)!"") ]
+            [#local instanceId = getContextId(instance) ]
+            [#local instanceName = getContextName(instance) ]
 
             [#list (instance.Versions!{"default" : {"Id" : "default"}})?values as version]
                 [#if version?is_hash ]
-                    [#local versionId = firstContent(getContextId(version), (parentOccurrence.Core.Version.Id)!"") ]
-                    [#local versionName = firstContent(getContextName(version), (parentOccurrence.Core.Version.Id)!"") ]
+                    [#local versionId = getContextId(version) ]
+                    [#local versionName = getContextName(version) ]
                     [#local contexts += [instance, version] ]
                     [#local occurrence =
                         {
                             "Core" : {
                                 "Type" : type,
                                 "Tier" : {
-                                    "Id" : getTierId(tier),
-                                    "Name" : getTierName(tier)
+                                    "Id" : tierId,
+                                    "Name" : tierName
                                 },
                                 "Component" : {
-                                    "Id" : getComponentId(component),
-                                    "Name" : getComponentName(component)
+                                    "Id" : componentId,
+                                    "Name" : componentName
                                 },
                                 "Instance" : {
-                                    "Id" : instanceId,
-                                    "Name" : instanceName
+                                    "Id" : firstContent(instanceId, (parentOccurrence.Core.Instance.Id)!""),
+                                    "Name" : firstContent(instanceName, (parentOccurrence.Core.Instance.Name)!"")
                                 },
                                 "Version" : {
-                                    "Id" : versionId,
-                                    "Name" : versionName
+                                    "Id" : firstContent(versionId, (parentOccurrence.Core.Version.Id)!""),
+                                    "Name" : firstContent(versionName, (parentOccurrence.Core.Version.Name)!"")
                                 },
                                 "Internal" : {
-                                    "IdExtensions" : subComponentId + [instanceId, versionId],
-                                    "NameExtensions" : subComponentName + [instanceName, versionName]
+                                    "IdExtensions" : [subComponentId, instanceId, versionId],
+                                    "NameExtensions" : [subComponentName, instanceName, versionName]
                                 }
-                            },
+                            } +
+                            attributeIfContent(
+                                "SubComponent",
+                                subComponentId,
+                                {
+                                    "Id" : subComponentId,
+                                    "Name" : subComponentName
+                                }
+                            ),
                             "Configuration" : getCompositeObject(attributes, contexts)
                         }
                     ]
+                    [#local occurrence +=
+                        {
+                            "Core" :
+                                occurrence.Core +
+                                {
+                                    "Id" :
+                                        valueIfContent(
+                                            formatId(
+                                                (parentOccurrence.Core.Id)!"",
+                                                occurrence.Core.Internal.IdExtensions),
+                                            parentOccurrence,
+                                            formatId(
+                                                occurrence.Core.Tier,
+                                                occurrence.Core.Component,
+                                                occurrence.Core.Internal.NameExtensions)),
+                                    "Name" :
+                                        valueIfContent(
+                                            formatName(
+                                                (parentOccurrence.Core.Name)!"",
+                                                occurrence.Core.Internal.IdExtensions),
+                                            parentOccurrence,
+                                            formatName(
+                                                occurrence.Core.Tier,
+                                                occurrence.Core.Component,
+                                                occurrence.Core.Internal.NameExtensions))
+                                }
+                        } ]
+                    [#local occurrence += { "State" : getOccurrenceState(occurrence) } ]
+
+                    [#local subOccurrences = [] ]
+                    [#list subComponents as subComponent]
+                        [#if ((typeObject[subComponent.Component])!"")?has_content ]
+                            [#list typeObject[subComponent.Component]?values as subComponentInstance ]
+                                [#if subComponentInstance?is_hash]
+                                    [#local
+                                        subOccurrences +=
+                                            getOccurrencesInternal(
+                                                subComponentInstance,
+                                                {},
+                                                occurrence,
+                                                contexts,
+                                                subComponent.Type)
+                                    ]
+                                [/#if]
+                            [/#list]
+                        [/#if]
+                    [/#list]
+
                     [#local occurrences +=
                         [
                             occurrence +
-                            {
-                                "State" : getOccurrenceState(occurrence)
-                            }
+                            attributeIfContent("Occurrences", subOccurrences)
                         ]
                     ]
-                    [#-- 
-                        [#local subOccurrences = [] ]
-                        [#list subComponents as subComponent]
-                            [#local subOccurrences +=
-                                getOccurrences(tier, component, subComponent.Type, contexts=[], occurrence]
-                        [/#list]
-                        [#local occurrences +=
-                            [
-                                occurrence +
-                                {
-                                    "Occurrences" : subOccurrences
-                                }
-                            ]
-                        ]
-                    --]
                 [/#if]
             [/#list]
         [/#if]
     [/#list]
+
     [#return occurrences ]
+[/#function]
+
+[#-- Get the occurrences of versions/instances of a component --]
+[#function getOccurrences tier component ]
+    [#return getOccurrencesInternal(component, tier) ]
 [/#function]
 
 [#function getLinkTarget occurrence link]
@@ -823,26 +913,64 @@
     [/#if]
     
     [#list getOccurrences(
-                getComponent(link.Tier, link.Component),
-                link.Tier,
-                link.Component) as targetOccurrence]
-        [#if targetOccurrence.Core.Version.Id?has_content]
-            [#if (targetOccurrence.Core.Instance.Id != occurrence.Core.Instance.Id) ||
-                (targetOccurrence.Core.Version.Id != occurrence.Core.Version.Id) ]
+                getTier(link.Tier),
+                getComponent(link.Tier, link.Component)) as targetOccurrence]
+        [@cfDebug listMode targetOccurrence false /]
+
+        [#local core = targetOccurrence.Core ]
+
+        [#local targetSubOccurrences = [targetOccurrence] ]
+        [#local subComponentId = "" ]
+
+        [#-- Check if suboccurrence linking is required --]
+        [#local subComponents = getOccurrenceSubComponents(core.Type) ]
+        [#list subComponents as subComponent]
+            [#local linkAttribute = subComponent.Link!"" ]
+            [#local subComponentId = link[linkAttribute]!"" ]
+            [#if subComponentId?has_content ]
+                [#local targetSubOccurrences = targetOccurrence.Occurrences![] ]
+                [#break]
+            [/#if]
+        [/#list]
+
+        [#-- Legacy support for links to lambda without explicit function --]
+        [#if targetOccurrence.Occurrences?has_content &&
+                subComponentId == "" && 
+                (core.Type == LAMBDA_COMPONENT_TYPE) ]
+            [#local subComponentId = (targetOccurrence.Occurrences[0].Core.SubComponent.Id)!"" ]
+        [/#if]
+
+        [#if subComponentId?has_content]
+            [#local targetSubOccurrences = targetOccurrence.Occurrences![] ]
+        [/#if]
+
+        [#list targetSubOccurrences as targetSubOccurrence]
+            [#local core = targetSubOccurrence.Core ]
+
+            [#-- Subcomponent checking --]
+            [#if subComponentId?has_content &&
+                    (subComponentId != (core.SubComponent.Id)!"") ]
                 [#continue]
             [/#if]
-        [/#if]
-        [#if targetOccurrence.Core.Instance.Id?has_content]
-            [#if (targetOccurrence.Core.Instance.Id != occurrence.Core.Instance.Id) ]
-                [#continue]
+
+            [#if core.Version.Id?has_content]
+                [#if (core.Instance.Id != occurrence.Core.Instance.Id) ||
+                    (core.Version.Id != occurrence.Core.Version.Id) ]
+                    [#continue]
+                [/#if]
             [/#if]
-        [/#if]
-        [#return
-            targetOccurrence +
-            {
-                "Direction" : link.Direction!"outbound"
-            } +
-            attributeIfContent("Role", link.Role!"")        ]
+            [#if core.Instance.Id?has_content]
+                [#if (core.Instance.Id != occurrence.Core.Instance.Id) ]
+                    [#continue]
+                [/#if]
+            [/#if]
+            [#return
+                targetSubOccurrence +
+                {
+                    "Direction" : link.Direction!"outbound"
+                } +
+                attributeIfContent("Role", link.Role!"") ]
+        [/#list]
     [/#list]
 
     [@cfPostconditionFailed
@@ -854,7 +982,17 @@
         }
         "Link not found" /]
 
-    [#return {} ]
+    [#return
+        {
+            "Core" : {},
+            "Configuration" : {},
+            "State" : {
+                "Resources" : {},
+                "Attributes" : {},
+                "Roles" : {}
+            },
+            "Direction" : ""
+        } ]
 [/#function]
 
 [#function getLinkTargets occurrence links={}]
@@ -1023,7 +1161,7 @@
 ]
 [/#function]
 
-[#-- Diretory Strucutre for ContentHubs --]
+[#-- Diretory Structure for ContentHubs --]
 [#function getContentPath occurrence component="" ]
 
     [#local pathObject = occurrence.Configuration.Path ]

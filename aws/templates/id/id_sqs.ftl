@@ -51,7 +51,7 @@
     [#return
         {
             "Resources" : {
-                "primary" : {
+                "queue" : {
                     "Id" : id,
                     "Name" : name
                 },

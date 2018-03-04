@@ -82,7 +82,7 @@
     [#local result =
         {
             "Resources" : {
-                "primary" : {
+                "db" : {
                     "Id" : id
                 }
             },

@@ -1,11 +1,8 @@
 [#-- API Gateway --]
 
 [#if (componentType == "apigateway")]
-    [#assign apigateway = component.APIGateway]
-    [#-- Non-repeating text to ensure deploy happens every time --]
-    [#assign noise = random.nextLong()?string.computer?replace("-","X")]
     [#list requiredOccurrences(
-            getOccurrences(component, tier, component),
+            getOccurrences(tier, component),
             deploymentUnit) as occurrence]
 
         [@cfDebug listMode occurrence false /]
@@ -20,13 +17,15 @@
             [#break]
         [/#if]
 
-        [#assign apiId    = resources["primary"].Id]
-        [#assign apiName  = resources["primary"].Name]
+        [#assign apiId    = resources["gateway"].Id]
+        [#assign apiName  = resources["gateway"].Name]
+
+        [#-- Use runId to ensure deploy happens every time --]
         [#assign deployId = formatAPIGatewayDeployId(
                                 tier,
                                 component,
                                 occurrence,
-                                noise)]
+                                runId)]
         [#assign stageId  = formatAPIGatewayStageId(
                                 tier,
                                 component,
@@ -54,6 +53,7 @@
 
                 [#assign linkTargetCore = linkTarget.Core ]
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                [#assign linkTargetResources = linkTarget.State.Resources ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
                 [#switch linkTargetCore.Type!""]
@@ -65,22 +65,15 @@
                         ]
                         [#break]
 
-                    [#case "lambda"]
-                        [#list linkTargetConfiguration.Functions?values as fn]
-                            [#if fn?is_hash]
-                                [#assign fnName =
-                                    formatLambdaFunctionName(
-                                        getTier(linkTargetCore.Tier.Id),
-                                        linkTargetCore.Component.Id,
-                                        linkTarget,
-                                        fn)]
-                                [#assign stageVariables +=
-                                    {
-                                        formatVariableName(link.Name, fn.Name, "LAMBDA") : fnName
-                                    }
-                                ]
-                            [/#if]
-                        [/#list]
+                    [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
+                        [#assign stageVariables +=
+                            {
+                                formatVariableName(
+                                    link.Name,
+                                    linkTargetCore.SubComponent.Name,
+                                    "LAMBDA") : linkTargetResources["function"].Name
+                            }
+                        ]
                         [#break]
 
                     [#case "userpool"] 
@@ -411,17 +404,9 @@
         [/#if]
         
         [#if configuration.Publish.Configured && configuration.Publish.Enabled ]
-            [#assign docsS3BucketId = formatComponentS3Id(
-                                        tier,
-                                        component,
-                                        occurrence,
-                                        "docs")]
+            [#assign docsS3BucketId = formatS3Id(core.Id, "docs")]
             
-            [#assign docsS3BucketPolicyId = formatBucketPolicyId(
-                                        tier,
-                                        component,
-                                        occurrence,
-                                        "docs")]
+            [#assign docsS3BucketPolicyId = formatBucketPolicyId(core.Id, "docs") ]
 
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
             [#assign docsS3BucketName = (configuration.Certificate.Configured && configuration.Certificate.Enabled)?then(

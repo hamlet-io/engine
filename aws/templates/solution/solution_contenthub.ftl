@@ -1,8 +1,7 @@
 [#if (componentType == "contenthub") ]
-    [#assign contenthub = component.contenthub]
 
     [#list requiredOccurrences(
-        getOccurrences(component, tier, component),
+        getOccurrences(tier, component),
         deploymentUnit) as occurrence]
 
         [@cfDebug listMode occurrence false /]

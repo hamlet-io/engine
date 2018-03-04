@@ -108,7 +108,7 @@
     [#return
         {
             "Resources" : {
-                "primary" : {
+                "lb" : {
                     "Id" : id
                 }
             },
