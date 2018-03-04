@@ -275,7 +275,16 @@
         [#local tierId = tier ]
     [/#if]
 
-    [#return (blueprintObject.Tiers[tierId])!{} ]
+    [#-- Special processing for the "all" tier --]
+    [#if tierId == "all"]
+        [#return
+          {
+              "Id" : "all",
+              "Name" : "all"
+          } ]
+    [#else]
+        [#return (blueprintObject.Tiers[tierId])!{} ]
+    [/#if]
 [/#function]
 
 [#-- Get the id for a tier --]
