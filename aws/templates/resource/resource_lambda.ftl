@@ -21,12 +21,7 @@
 
 [#assign outputMappings +=
     {
-        LAMBDA_FUNCTION_RESOURCE_TYPE : LAMBDA_FUNCTION_OUTPUT_MAPPINGS
-    }
-]
-
-[#assign outputMappings +=
-    {
+        LAMBDA_FUNCTION_RESOURCE_TYPE : LAMBDA_FUNCTION_OUTPUT_MAPPINGS,
         LAMBDA_PERMISSION_RESOURCE_TYPE : LAMBDA_PERMISSION_OUTPUT_MAPPINGS
     }
 ]
@@ -66,7 +61,7 @@
     /]
 [/#macro]
 
-[#macro createLambdaPermission mode id targetId sourcePrincipal sourceId dependencies=""]
+[#macro createLambdaPermission mode id targetId source={} sourcePrincipal="" sourceId="" dependencies=""]
     [@cfResource
         mode=mode
         id=id
@@ -74,10 +69,16 @@
         properties=
             {
                 "FunctionName" : getReference(targetId),
-                "Action" : "lambda:InvokeFunction",
-                "Principal" : sourcePrincipal,
-                "SourceArn" : getReference(sourceId, ARN_ATTRIBUTE_TYPE)
-            }
+                "Action" : "lambda:InvokeFunction"
+            } +
+            valueIfContent(
+                source,
+                source,
+                {
+                    "Principal" : sourcePrincipal,
+                    "SourceArn" : getReference(sourceId, ARN_ATTRIBUTE_TYPE)
+                }
+            )
         outputs=LAMBDA_PERMISSION_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]

@@ -61,16 +61,6 @@
                 extensions)]
 [/#function]
 
-[#function formatAPIGatewayLambdaPermissionId tier component link fn extensions...]
-    [#return formatComponentResourceId(
-                "apiLambdaPermission",
-                tier,
-                component,
-                extensions,
-                fn,
-                link)]
-[/#function]
-
 [#assign componentConfiguration +=
     {
         "apigateway" : [
@@ -178,7 +168,7 @@
     [#return
         {
             "Resources" : {
-                "primary" : {
+                "gateway" : {
                     "Id" : id,
                     "Name" : name
                 }

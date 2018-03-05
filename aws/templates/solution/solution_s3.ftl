@@ -1,10 +1,9 @@
 [#-- S3 --]
 
 [#if (componentType == "s3") && deploymentSubsetRequired("s3", true)]
-    [#assign s3 = component.S3]
 
     [#list requiredOccurrences(
-            getOccurrences(component, tier, component),
+            getOccurrences(tier, component),
             deploymentUnit) as occurrence]
 
         [@cfDebug listMode occurrence false /]
@@ -13,8 +12,8 @@
         [#assign configuration = occurrence.Configuration ]
         [#assign resources = occurrence.State.Resources ]
 
-        [#assign s3Id = resources["primary"].Id ]
-        [#assign s3Name = resources["primary"].Name ]
+        [#assign s3Id = resources["bucket"].Id ]
+        [#assign s3Name = resources["bucket"].Name ]
 
         [#assign sqsIds = [] ]
         [#assign sqsNotifications = [] ]
@@ -28,7 +27,7 @@
                             "Tier" : queue.Tier!tier,
                             "Component" : queue.Component!queue.Id
                         }) ]
-                [#assign sqsId = (linkTarget.State.Resources["primary"].Id)!"" ]
+                [#assign sqsId = (linkTarget.State.Resources["queue"].Id)!"" ]
                 [#if sqsId?has_content]
                     [#assign sqsIds += [sqsId] ]
                     [#assign sqsNotifications +=

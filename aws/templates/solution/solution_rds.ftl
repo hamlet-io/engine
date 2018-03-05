@@ -1,10 +1,8 @@
 [#-- RDS --]
 [#if (componentType == "rds") ]
 
-    [#assign db = component.RDS]
-    
     [#list requiredOccurrences(
-            getOccurrences(component, tier, component),
+            getOccurrences(tier, component),
             deploymentUnit) as occurrence]
 
         [@cfDebug listMode occurrence false /]

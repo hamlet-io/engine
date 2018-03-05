@@ -67,8 +67,8 @@
     [/#if]
 [/#macro]
 
-[#function getLinkResourceId link]
-    [#return (context.Links[link].State.Resources["primary"].Id)!"" ]
+[#function getLinkResourceId link alias]
+    [#return (context.Links[link].State.Resources[alias].Id)!"" ]
 [/#function]
 
 [#function addLinkVariablesToContext context name link attributes rawName=false]
@@ -243,12 +243,15 @@
     ]
 [/#function]
 
-[#function getTaskContainers tier component task]
-    
-    [#local containers = [] ]
-    
+[#function getTaskContainers task]
+
     [#local core = task.Core ]
     [#local configuration = task.Configuration ]
+
+    [#local tier = core.Tier ]
+    [#local component = core.Component ]
+
+    [#local containers = [] ]
 
     [#list (configuration.Containers!{})?values as container]
         [#if container?is_hash]
@@ -273,7 +276,7 @@
                         [#local instanceAndVersionMatch = {}]
                         [#local instanceMatch = {}]
                         [#if targetComponent?has_content]
-                            [#list getOccurrences(targetComponent, targetTierId, targetComponentId) as targetOccurrence]
+                            [#list getOccurrences(getTier(targetTierId), targetComponent) as targetOccurrence]
                                 [#if core.Instance.Id == targetOccurrence.Core.Instance.Id]
                                     [#if core.Version.Id == targetOccurrence.Core.Version.Id]
                                         [#local instanceAndVersionMatch = targetOccurrence]

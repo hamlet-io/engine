@@ -2,28 +2,9 @@
 
 [#assign ECS_RESOURCE_TYPE = "ecs" ]
 
-[#function formatECSId tier component]
-    [#return formatComponentResourceId(
-                ECS_RESOURCE_TYPE,
-                tier,
-                component)]
-[/#function]
-
-[#function formatECSServiceId tier component service]
-    [#return formatComponentResourceId(
-                "ecsService",
-                tier,
-                component,
-                service)]
-[/#function]
-
-[#function formatECSTaskId tier component task]
-    [#return formatComponentResourceId(
-                "ecsTask",
-                tier,
-                component,
-                task)]
-[/#function]
+[#assign ECS_COMPONENT_TYPE = "ecs" ]
+[#assign SERVICE_COMPONENT_TYPE = "service" ]
+[#assign TASK_COMPONENT_TYPE = "task" ]
 
 [#function formatECSRoleId tier component]
     [#-- TODO: Use formatDependentRoleId() --]
@@ -48,13 +29,35 @@
 
 [#assign componentConfiguration +=
     {
-        "ecs" : [
-            {
-                "Name" : "ClusterWideStorage",
-                "Default" : false
-            }
-        ],
-        "service" : [
+        ECS_COMPONENT_TYPE : {
+            "Attributes" : [
+                {
+                    "Name" : "ClusterWideStorage",
+                    "Default" : false
+                },
+                {
+                    "Name" : "FixedIP",
+                    "Default" : false
+                },
+                {
+                    "Name" : "LogDriver",
+                    "Default" : "awslogs"
+                }
+            ],
+            "Components" : [
+                {
+                    "Type" : SERVICE_COMPONENT_TYPE,
+                    "Component" : "Services",
+                    "Link" : "Service"
+                },
+                {
+                    "Type" : TASK_COMPONENT_TYPE,
+                    "Component" : "Tasks",
+                    "Link" : "Task"
+                }
+            ]
+        },
+        SERVICE_COMPONENT_TYPE : [
             {
                 "Name" : "DesiredCount",
                 "Default" : -1
@@ -68,7 +71,7 @@
                 "Default" : true
             }
         ],
-        "task" : [
+        TASK_COMPONENT_TYPE : [
             {
                 "Name" : "Containers",
                 "Default" : {}
@@ -81,22 +84,36 @@
     }]
     
 [#function getECSState occurrence]
+    [#local core = occurrence.Core ]
     [#return
         {
-            "Resources" : {},
-            "Attributes" : {},
-            "Roles" : {
-                "Inbound" : {},
-                "Outbound" : {}
-            }
-        }
-    ]
-[/#function]
-
-[#function getTaskState occurrence]
-    [#return
-        {
-            "Resources" : {},
+            "Resources" : {
+                "cluster" : {
+                    "Id" : formatResourceId(ECS_RESOURCE_TYPE, core.Id),
+                    "Name" : formatSegmentFullName(core.Name)
+                },
+                "securityGroup" : {
+                    "Id" : formatECSSecurityGroupId(core.Tier, core.Component)
+                },
+                "role" : {
+                    "Id" : formatECSRoleId(core.Tier, core.Component)
+                },
+                "serviceRole" : {
+                    "Id" : formatECSServiceRoleId(core.Tier, core.Component)
+                },
+                "instanceProfile" : {
+                    "Id" : formatEC2InstanceProfileId(core.Tier, core.Component)
+                },
+                "autoScaleGroup" : {
+                    "Id" : formatEC2AutoScaleGroupId(core.Tier, core.Component)
+                },
+                "launchConfig" : {
+                    "Id" : formatEC2LaunchConfigId(core.Tier, core.Component)
+                },
+                "logGroup" : {
+                    "Id" : formatECSServiceRoleId(core.Tier, core.Component)
+                }
+            },
             "Attributes" : {},
             "Roles" : {
                 "Inbound" : {},
@@ -107,9 +124,35 @@
 [/#function]
 
 [#function getServiceState occurrence]
+    [#local core = occurrence.Core ]
     [#return
         {
-            "Resources" : {},
+            "Resources" : {
+                "service" : {
+                    "Id" : formatResourceId("ecsService", core.Id)
+                },
+                "task" : {
+                    "Id" : formatResourceId("ecsTask", core.Id)
+                }
+            },
+            "Attributes" : {},
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        }
+    ]
+[/#function]
+
+[#function getTaskState occurrence]
+    [#local core = occurrence.Core ]
+    [#return
+        {
+            "Resources" : {
+                "task" : {
+                    "Id" : formatResourceId("ecsTask", core.Id)
+                }
+            },
             "Attributes" : {},
             "Roles" : {
                 "Inbound" : {},

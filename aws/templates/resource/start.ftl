@@ -221,45 +221,45 @@
         ) +
         [
             { "Key" : "cot:configuration", "Value" : configurationReference },
-            { "Key" : "cot:tenant", "Value" : tenantId },
-            { "Key" : "cot:account", "Value" : accountId }
+            { "Key" : "cot:tenant", "Value" : tenantName },
+            { "Key" : "cot:account", "Value" : accountName }
         ] +
         productId?has_content?then(
             [
-                { "Key" : "cot:product", "Value" : productId }
+                { "Key" : "cot:product", "Value" : productName }
             ],
             []
         ) +
         segmentId?has_content?then(
             [
-                { "Key" : "cot:segment", "Value" : segmentId }
+                { "Key" : "cot:segment", "Value" : segmentName }
             ],
             []
         ) +
         environmentId?has_content?then(
             [
-                { "Key" : "cot:environment", "Value" : environmentId }
+                { "Key" : "cot:environment", "Value" : environmentName }
             ],
             []
         ) +
         [
-            { "Key" : "cot:category", "Value" : categoryId }
+            { "Key" : "cot:category", "Value" : categoryName }
         ] +
         tier?has_content?then(
             [
-                { "Key" : "cot:tier", "Value" : getTierId(tier) }
+                { "Key" : "cot:tier", "Value" : getTierName(tier) }
             ],
             []
         ) +
         component?has_content?then(
             [
-                { "Key" : "cot:component", "Value" : getComponentId(component) }
+                { "Key" : "cot:component", "Value" : getComponentName(component) }
             ],
             []
         ) +
         zone?has_content?then(
             [
-                { "Key" : "cot:zone", "Value" : getZoneId(zone) }
+                { "Key" : "cot:zone", "Value" : getZoneName(zone) }
             ],
             []
         ) + 
