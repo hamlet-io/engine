@@ -1,5 +1,5 @@
 [#-- RDS --]
-[#if (componentType == "rds") ]
+[#if (componentType == "rds")]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -50,8 +50,15 @@
         [#assign rdsSubnetGroupId = formatRDSSubnetGroupId(tier, component, occurrence)]
         [#assign rdsParameterGroupId = formatRDSParameterGroupId(tier, component, occurrence)]
         [#assign rdsOptionGroupId = formatRDSOptionGroupId(tier, component, occurrence)]
-        [#assign rdsCredentials = credentialsObject[componentShortNameWithType]!
-                                    credentialsObject[componentShortName]]
+        [#assign rdsCredentials =
+            credentialsObject[componentShortNameWithType]!
+            credentialsObject[componentShortName]!
+            {
+                "Login" : {
+                    "Username" : "Not provided",
+                    "Password" : "Not provided"
+                }
+            } ]
         [#assign rdsUsername = rdsCredentials.Login.Username]
         [#assign rdsPassword = rdsCredentials.Login.Password]
         [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE) ]
