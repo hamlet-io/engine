@@ -795,7 +795,8 @@
                                 },
                                 "Component" : {
                                     "Id" : componentId,
-                                    "Name" : componentName
+                                    "Name" : componentName,
+                                    "Type" : type
                                 },
                                 "Instance" : {
                                     "Id" : firstContent(instanceId, (parentOccurrence.Core.Instance.Id)!""),
