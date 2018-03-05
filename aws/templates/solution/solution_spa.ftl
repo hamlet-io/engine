@@ -1,10 +1,9 @@
 [#-- Single Page App --]
 
 [#if (componentType == "spa") && deploymentSubsetRequired("spa", true)]
-    [#assign spa = component.SPA]
 
     [#list requiredOccurrences(
-            getOccurrences(component, tier, component),
+            getOccurrences(tier, component),
             deploymentUnit) as occurrence]
 
         [@cfDebug listMode occurrence false /]

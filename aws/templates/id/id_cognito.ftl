@@ -130,7 +130,7 @@
     [#return
         {
             "Resources" : {
-                "primary" : {
+                "pool" : {
                     "Id" : id
                 }
             },

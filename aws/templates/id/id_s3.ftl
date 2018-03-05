@@ -108,7 +108,7 @@
     [#return
         {
             "Resources" : {
-                "primary" : {
+                "bucket" : {
                     "Id" : id,
                     "Name" :
                         firstContent(

@@ -2,7 +2,7 @@
 [#if (componentType == "alb") && deploymentSubsetRequired("alb", true)]
 
     [#list requiredOccurrences(
-            getOccurrences(component, tier, component),
+            getOccurrences(tier, component),
             deploymentUnit) as occurrence]
 
         [@cfDebug listMode occurrence false /]

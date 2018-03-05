@@ -1,9 +1,8 @@
 [#-- SQS --]
 [#if (componentType == "sqs") && deploymentSubsetRequired("sqs", true)]
-    [#assign sqs = component.SQS]
 
     [#list requiredOccurrences(
-            getOccurrences(component, tier, component),
+            getOccurrences(tier, component),
             deploymentUnit) as occurrence]
 
         [@cfDebug listMode occurrence false /]
@@ -12,8 +11,8 @@
         [#assign configuration = occurrence.Configuration ]
         [#assign resources = occurrence.State.Resources ]
 
-        [#assign sqsId = resources["primary"].Id ]
-        [#assign sqsName = resources["primary"].Name ]
+        [#assign sqsId = resources["queue"].Id ]
+        [#assign sqsName = resources["queue"].Name ]
         [#assign dlqId = resources["dlq"].Id ]
         [#assign dlqName = resources["dlq"].Name ]
 

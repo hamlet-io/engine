@@ -103,7 +103,7 @@
         [
           {
               "Id" : id,
-              "Occurrences" : getOccurrences(component, tier, component)
+              "Occurrences" : getOccurrences(tier, component)
           }]]
     [/#if]
   [/#list]

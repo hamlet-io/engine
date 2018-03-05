@@ -1,9 +1,8 @@
 [#-- EFS --]
 [#if componentType == "efs" && deploymentSubsetRequired("efs", true) ]
-    [#assign efs = component.EFS]
 
     [#list requiredOccurrences(
-            getOccurrences(component, tier, component),
+            getOccurrences(tier, component),
             deploymentUnit) as occurrence]
 
         [@cfDebug listMode occurrence false /]

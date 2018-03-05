@@ -1,24 +1,18 @@
 [#if componentType = "lambda"]
 
     [#list requiredOccurrences(
-            getOccurrences(component, tier, component),
+            getOccurrences(tier, component),
             deploymentUnit) as occurrence ]
 
         [@cfDebug listMode occurrence false /]
 
-        [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
-
-        [#if configuration.Functions?is_hash]
-        
-            [#assign lambdaId = formatLambdaId(
-                                    core.Tier,
-                                    core.Component,
-                                    occurrence)]
-            [#assign lambdaName = formatLambdaName(
-                                    core.Tier,
-                                    core.Component,
-                                    occurrence)]
+        [#list occurrence.Occurrences as fn]
+            [#assign core = fn.Core ]
+            [#assign configuration = fn.Configuration ]
+            [#assign resources = fn.State.Resources ]
+    
+            [#assign fnId = resources["function"].Id ]
+            [#assign fnName = resources["function"].Name ]
 
             [#assign containerId =
                 configuration.Container?has_content?then(
@@ -32,7 +26,7 @@
                     "Instance" : core.Instance.Id,
                     "Version" : core.Version.Id,
                     "Environment" :
-                        standardEnvironment(core.Tier, core.Component, occurrence, "WEB"),
+                        standardEnvironment(core.Tier, core.Component, fn, "WEB"),
                     "S3Bucket" : getRegistryEndPoint("lambda"),
                     "S3Key" : 
                         formatRelativePath(
@@ -41,14 +35,13 @@
                             buildCommit,
                             "lambda.zip"
                         ),
-                    "Links" : getLinkTargets(occurrence),
+                    "Links" : getLinkTargets(fn),
                     "DefaultLinkVariables" : true
                 }
             ]
 
             [#if deploymentSubsetRequired("lambda", true)]
                 [#list context.Links as linkName,linkTarget]
-                    [@cfDebug listMode linkTarget false /]
                     
                     [#assign linkTargetCore = linkTarget.Core ]
                     [#assign linkTargetConfiguration = linkTarget.Configuration ]
@@ -56,75 +49,32 @@
                     [#assign linkTargetRoles = linkTarget.State.Roles ]
                     [#assign linkDirection = linkTarget.Direction ]
 
-                    [#assign policyId = formatDependentPolicyId(
-                                            lambdaId, 
-                                            linkName)]
-
-                    [#assign lamdbaFunctionPolicies = [] ]
-
-                    [#list configuration.Functions?values as fn]
-                        [#if fn?is_hash]
-                            [#assign fnId =
-                                formatLambdaFunctionId(
-                                    core.Tier,
-                                    core.Component,
-                                    fn,
-                                    occurrence)]
-                            [#assign fnName =
-                                formatLambdaFunctionName(
-                                    core.Tier,
-                                    core.Component,
-                                    occurrence,
-                                    fn)]
-
-                            [#switch linkTargetCore.Type!""]
-                                [#case "userpool"] 
-  
-                                    [#assign lambdaFunctionPolicy = getPolicyStatement(
+                    [#switch linkTargetCore.Type!""]
+                        [#case "userpool"] 
+                            [@createPolicy 
+                                mode=listMode
+                                id=formatDependentPolicyId(fnId, "link", linkName)
+                                name=fnName
+                                statements=[getPolicyStatement(
                                                 "lambda:InvokeFunction",
-                                                formatLambdaArn(fnId)    
-                                            )]
-                                    [#assign lamdbaFunctionPolicies = lamdbaFunctionPolicies + [lambdaFunctionPolicy]]
-                                    [#break]
+                                                formatLambdaArn(fnId))]
+                                roles=formatDependentIdentityPoolAuthRoleId(
+                                        formatIdentityPoolId(linkTargetCore.Tier, linkTargetCore.Component))
+                            /]
+                            [#break]
 
-                                [#case "apigateway" ]
-                                    [#assign apiId = linkTargetResources["primary"].Id ]
-                                    [#if getExistingReference(apiId)?has_content &&
-                                            (linkDirection == "inbound")]
-                                        [@cfResource
-                                            mode=listMode
-                                            id=
-                                                formatAPIGatewayLambdaPermissionId(
-                                                    core.Tier,
-                                                    core.Component,
-                                                    linkName,
-                                                    fn,
-                                                    occurrence)
-                                            type="AWS::Lambda::Permission"
-                                            properties=
-                                                {
-                                                    "Action" : "lambda:InvokeFunction",
-                                                    "FunctionName" : fnName
-                                                } +
-                                                linkTargetRoles.Inbound["invoke"]
-                                            outputs={}
-                                        /]
-                                    [/#if]
-                                    [#break]
-                            [/#switch]
-                        [/#if]
-                    [/#list]
-    
-                    [#if lamdbaFunctionPolicies?has_content ]
-                        [@createPolicy 
-                            mode=listMode
-                            id=policyId
-                            name=lambdaName
-                            statements=lamdbaFunctionPolicies
-                            roles=formatDependentIdentityPoolAuthRoleId(
-                                    formatIdentityPoolId(link.Tier, link.Component))
-                        /]
-                    [/#if]
+                        [#case "apigateway" ]
+                            [#if linkTargetResources["gateway"].Deployed &&
+                                    (linkDirection == "inbound")]
+                                [@createLambdaPermission
+                                    mode=listMode
+                                    id=formatLambdaPermissionId(fn, "link", linkName)
+                                    targetId=fnId
+                                    source=linkTargetRoles.Inbound["invoke"]
+                                /]
+                            [/#if]
+                            [#break]
+                    [/#switch]    
                 [/#list]
             [/#if]
 
@@ -137,7 +87,7 @@
                 [#assign context = addDefaultLinkVariablesToContext(context) ]
             [/#if]
 
-            [#assign roleId = formatDependentRoleId(lambdaId)]
+            [#assign roleId = formatDependentRoleId(fnId)]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                 [#-- Create a role under which the function will run and attach required policies --]
                 [#-- The role is mandatory though there may be no policies attached to it --]
@@ -153,7 +103,7 @@
                 /]
                 
                 [#if context.Policy?has_content]
-                    [#assign policyId = formatDependentPolicyId(lambdaId, context)]
+                    [#assign policyId = formatDependentPolicyId(fnId)]
                     [@createPolicy
                         mode=listMode
                         id=policyId
@@ -166,7 +116,7 @@
                 [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
 
                 [#if linkPolicies?has_content]
-                    [#assign policyId = formatDependentPolicyId(lambdaId, "links")]
+                    [#assign policyId = formatDependentPolicyId(fnId, "links")]
                     [@createPolicy
                         mode=listMode
                         id=policyId
@@ -184,94 +134,59 @@
                         mode=listMode
                         tier=tier
                         component=component
-                        resourceId=lambdaId
-                        resourceName=lambdaName  /]
+                        resourceId=fnId
+                        resourceName=fnName  /]
                 [/#if]
 
-                [#list configuration.Functions?values as fn]
-                    [#if fn?is_hash]
-                        [#assign lambdaFunctionId =
-                            formatLambdaFunctionId(
-                                tier,
-                                component,
-                                fn,
-                                occurrence)]
+                [@createLambdaFunction
+                    mode=listMode
+                    id=fnId
+                    container=context +
+                        {
+                            "Handler" : configuration.Handler,
+                            "RunTime" : configuration.RunTime,
+                            "MemorySize" : configuration.Memory,
+                            "Timeout" : configuration.Timeout,
+                            "UseSegmentKey" : configuration.UseSegmentKey,
+                            "Name" : fnName,
+                            "Description" : fnName
+                        }
+                    roleId=roleId
+                    securityGroupIds=
+                        (vpc?has_content && configuration.VPCAccess)?then(
+                            formatDependentSecurityGroupId(fnId),
+                            []
+                        )
+                    subnetIds=
+                        (vpc?has_content && configuration.VPCAccess)?then(
+                            getSubnets(core.Tier, false),
+                            []
+                        )
+                    dependencies=roleId
+                /]
+                
+                [#list (configuration.Schedules!{})?values as schedule ]
+                    [#if schedule?is_hash]
+                        [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
     
-                        [#assign lambdaFunctionName =
-                            formatLambdaFunctionName(
-                                tier,
-                                component,
-                                occurrence,
-                                fn)]
-                                
-                        [@createLambdaFunction
+                        [@createScheduleEventRule
                             mode=listMode
-                            id=lambdaFunctionId
-                            container=context +
-                                {
-                                    "Handler" : fn.Handler!configuration.Handler,
-                                    "RunTime" : fn.RunTime!configuration.RunTime,
-                                    "MemorySize" : fn.Memory!fn.MemorySize!configuration.Memory,
-                                    "Timeout" : fn.Timeout!configuration.Timeout,
-                                    "UseSegmentKey" : fn.UseSegmentKey!configuration.UseSegmentKey,
-                                    "Name" : lambdaFunctionName,
-                                    "Description" : lambdaFunctionName
-                                }
-                            roleId=roleId
-                            securityGroupIds=
-                                (vpc?has_content && configuration.VPCAccess)?then(
-                                    formatDependentSecurityGroupId(lambdaId),
-                                    []
-                                )
-                            subnetIds=
-                                (vpc?has_content && configuration.VPCAccess)?then(
-                                    getSubnets(tier, false),
-                                    []
-                                )
-                            dependencies=roleId
+                            id=scheduleRuleId
+                            targetId=fnId
+                            enabled=schedule.Enabled
+                            scheduleExpression=schedule.Expression
+                            path=schedule.InputPath
+                            dependencies=fnId
                         /]
-                        
-                        [#list (fn.Schedules!{})?values as schedule ]
-                            [#if schedule?is_hash ]
-
-                                [#assign eventRuleId =
-                                    formatEventRuleId(
-                                        tier,
-                                        component,
-                                        fn,
-                                        occurrence,
-                                        schedule.Id
-                                        )]
-            
-                                [#assign lambdaPermissionId =
-                                    formatLambdaPermissionId(
-                                        tier,
-                                        component,
-                                        fn,
-                                        occurrence,
-                                        schedule.Id
-                                        )]
-                                
-                                [@createScheduleEventRule
-                                    mode=listMode
-                                    id=eventRuleId
-                                    targetId=lambdaFunctionId
-                                    enabled=schedule.Enabled
-                                    scheduleExpression=schedule.Expression
-                                    path=schedule.InputPath
-                                    dependencies=lambdaFunctionId
-                                /]
-
-                                [@createLambdaPermission
-                                    mode=listMode
-                                    id=lambdaPermissionId
-                                    targetId=lambdaFunctionId
-                                    sourcePrincipal="events.amazonaws.com"
-                                    sourceId=eventRuleId
-                                    dependencies=eventRuleId
-                                /]
-                            [/#if]
-                        [/#list]
+    
+                        [@createLambdaPermission
+                            mode=listMode
+                            id=formatLambdaPermissionId(fn, "schedule", schedule.Id)
+                            targetId=fnId
+                            sourcePrincipal="events.amazonaws.com"
+                            sourceId=scheduleRuleId
+                            dependencies=scheduleRuleId
+                        /]
                     [/#if]
                 [/#list]
                 
@@ -279,6 +194,6 @@
                 [#assign containerListMode = listMode]
                 [#include containerList?ensure_starts_with("/")]
             [/#if]
-        [/#if]
+        [/#list]
     [/#list]
 [/#if]
