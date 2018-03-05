@@ -862,7 +862,7 @@
       "Network" : {
           "Enabled" : true,
           "RouteTable": "external"
-      },
+      }
     },
     "docs": {
       "Title": "Docs Tier",

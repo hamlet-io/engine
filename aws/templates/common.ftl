@@ -268,6 +268,7 @@
 [#-- Tiers --]
 
 [#-- Get a tier --]
+[#assign tiers = [] ]
 [#function getTier tier]
     [#if tier?is_hash]
         [#local tierId = (tier.Id)!"" ]
@@ -1173,7 +1174,7 @@
 ]
 [/#function]
 
-[#-- Diretory Structure for ContentHubs --]
+[#-- Directory Structure for ContentHubs --]
 [#function getContentPath occurrence component="" ]
 
     [#local pathObject = occurrence.Configuration.Path ]

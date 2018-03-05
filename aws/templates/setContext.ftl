@@ -174,7 +174,6 @@
 [/#if]
 
 [#-- Required tiers --]
-[#assign tiers = [] ]
 [#list segmentObject.Tiers.Order as tierId]
     [#assign blueprintTier = (blueprintObject.Tiers[tierId])!{}]
     [#if ! (blueprintTier?has_content) ]
@@ -195,7 +194,7 @@
                         {
                             "Index" : networkTier?index,
                             "RouteTable" : internetAccess?then(blueprintTier.Network.RouteTable!"internal", "internal"),
-                            "NetworkACL" : blueprintTier.Network.NetworkACL!"open"),
+                            "NetworkACL" : blueprintTier.Network.NetworkACL!"open"
                         } ]
                     [#break]
                 [/#if]
