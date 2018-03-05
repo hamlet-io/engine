@@ -273,7 +273,7 @@ function process_template() {
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
   
   # Create a random string to use as the run identifier
-  run_id="$(dd bs=64 count=1 if=/dev/urandom  | base64 | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)"
+  run_id="$(dd bs=128 count=1 if=/dev/urandom  | base64 | env LC_CTYPE=C tr -dc 'a-z0-9' | fold -w 10 | head -n 1)"
   args+=("-v" "runId=${run_id}")
 
   # Include the template composites
