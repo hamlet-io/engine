@@ -739,68 +739,80 @@
     "web": {
       "Title": "Web Tier",
       "Description": "Supports HMI",
-      "RouteTable": "internal",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true
+      }
     },
     "api": {
       "Title": "API Tier",
       "Description": "Supports externally exposed APIs",
-      "RouteTable": "internal",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true
+      }
     },
     "msg": {
       "Title": "Messaging Tier",
       "Name": "messaging",
       "Description": "Supports system-to-system based interactions/services",
-      "RouteTable": "internal",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true
+      }
     },
     "app": {
       "Title": "Applications Tier",
       "Name": "application",
       "Description": "Supports application logic execution",
-      "RouteTable": "internal",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true
+      }
     },
     "db": {
       "Title": "Database Tier",
       "Name": "database",
       "Description": "Supports long term storage of content and customer data",
-      "RouteTable": "internal",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true
+      }
     },
     "dir": {
       "Title": "Directories Tier",
       "Name": "directories",
       "Description": "Supports directories or domain controllers",
-      "RouteTable": "internal",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true
+      }
     },
     "ana": {
       "Title": "Analytics Tier",
       "Name": "analytics",
       "Description": "Suports things like search engines",
-      "RouteTable": "internal",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true
+      }
     },
     "elb": {
       "Title": "External Load Balancer Tier",
       "Description": "Publically accessible application load balancers",
-      "RouteTable": "external",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true,
+          "RouteTable": "external"
+      }
     },
     "ilb": {
       "Title": "Internal Load Balancer Tier",
       "Description": "Internally accessible application load balancers",
-      "RouteTable": "internal",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true
+      }
     },
     "mgmt": {
       "Title": "Management Tier",
       "Name": "management",
       "Description": "Supports ssh based host access and internet access for internal hosts",
-      "RouteTable": "external",
-      "NetworkACL": "open",
+      "Network" : {
+          "Enabled" : true,
+          "RouteTable": "external"
+      },
       "Components": {
         "seg-cert": {
           "DeploymentUnits": [
@@ -846,10 +858,16 @@
     },
     "shared": {
       "Title": "Shared Tier",
-      "Name": "shared",
       "Description": "Shared Tier",
-      "RouteTable": "external",
-      "NetworkACL": "open"
+      "Network" : {
+          "Enabled" : true,
+          "RouteTable": "external"
+      }
+    },
+    "docs": {
+      "Title": "Docs Tier",
+      "Description": "Non-network Tier For documentation generation",
+      "Name" : "documentation"
     }
   },
   "RouteTables": {
@@ -1188,13 +1206,43 @@
     }
   },
   "Segment": {
-    "CIDR": {
-      "Address": "10.0.0.0",
-      "Mask": 16
+    "Network" : {
+      "CIDR": {
+        "Address": "10.0.0.0",
+        "Mask": 16
+      },
+      "InternetAccess": true,
+      "DNSSupport": true,
+      "DNSHostnames": true,
+      "Tiers": {
+        "Order": [
+          "web",
+          "msg",
+          "app",
+          "db",
+          "dir",
+          "ana",
+          "api",
+          "spare",
+          "elb",
+          "ilb",
+          "spare",
+          "spare",
+          "spare",
+          "spare",
+          "spare",
+          "mgmt"
+        ]
+      },
+      "Zones": {
+        "Order": [
+          "a",
+          "b",
+          "spare",
+          "spare"
+        ]
+      }
     },
-    "InternetAccess": true,
-    "DNSSupport": true,
-    "DNSHostnames": true,
     "NAT": {
       "Enabled": true,
       "MultiAZ": false,
@@ -1214,30 +1262,17 @@
     "RotateKey": true,
     "Tiers": {
       "Order": [
+        "elb",
+        "api",
         "web",
         "msg",
+        "dir",
+        "ilb",
         "app",
         "db",
-        "dir",
         "ana",
-        "api",
-        "spare",
-        "elb",
-        "ilb",
-        "spare",
-        "spare",
-        "spare",
-        "spare",
-        "spare",
-        "mgmt"
-      ]
-    },
-    "Zones": {
-      "Order": [
-        "a",
-        "b",
-        "spare",
-        "spare"
+        "mgmt",
+        "docs"
       ]
     }
   },

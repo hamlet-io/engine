@@ -73,8 +73,9 @@
             "Id" : tier.Id,
             "Configuration" : {
               "Description": tier.Description,
-              "NetworkACL": tier.NetworkACL,
-              "RouteTable": tier.RouteTable,
+              "Network": tier.Network.Enabled,
+              "NetworkACL": tier.Network.NetworkACL,
+              "RouteTable": tier.Network.RouteTable,
               "Title": tier.Title,
               "Id": tier.Id,
               "Name": tier.Name
