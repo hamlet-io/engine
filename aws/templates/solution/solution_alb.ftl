@@ -66,7 +66,7 @@
             [#assign cidr =
                 cidr?has_content?then(
                     cidr,
-                    (tier.RouteTable == "external")?then(
+                    (tier.Network.RouteTable == "external")?then(
                         [],
                         segmentObject.CIDR.Address + "/" +segmentObject.CIDR.Mask
                     )) ]

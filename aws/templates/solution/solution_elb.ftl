@@ -74,7 +74,7 @@
                     "Timeout" : (elb.HealthCheck.Timeout)!destination.HealthCheck.Timeout
                 },
                 "Scheme" :
-                    (tier.RouteTable == "external")?then(
+                    (tier.Network.RouteTable == "external")?then(
                         "internet-facing",
                         "internal"
                     ),

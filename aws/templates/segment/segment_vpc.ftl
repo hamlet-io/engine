@@ -70,7 +70,7 @@
             mode=listMode
             id=vpcId
             name=formatVPCName()
-            cidr=segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask
+            cidr=segmentObject.Network.CIDR.Address + "/" + segmentObject.Network.CIDR.Mask
             dnsSupport=dnsSupport
             dnsHostnames=dnsHostnames
         /]
@@ -91,8 +91,12 @@
         
         [#-- Define route tables --]
         [#assign solutionRouteTables = []]
-        [#list tiers as tier]
-            [#assign routeTable = routeTables[tier.RouteTable]]
+        [#list segmentObject.Network.Tiers.Order as tierId]
+            [#assign networkTier = getTier(tierId) ]
+            [#if ! (networkTier?has_content) ]
+                [#continue]
+            [/#if]
+            [#assign routeTable = routeTables[networkTier.Network.RouteTable]]
             [#list zones as zone]
                 [#assign routeTableId = formatRouteTableId(routeTable,natPerAZ?string(zone.Id,""))]
                 [#assign routeTableName = formatRouteTableName(routeTable,natPerAZ?string(zone.Id,""))]
@@ -146,8 +150,12 @@
         
         [#-- Define network ACLs --]
         [#assign solutionNetworkACLs = []]
-        [#list tiers as tier]
-            [#assign networkACL = networkACLs[tier.NetworkACL]]
+        [#list segmentObject.Network.Tiers.Order as tierId]
+            [#assign networkTier = getTier(tierId) ]
+            [#if ! (networkTier?has_content) ]
+                [#continue]
+            [/#if]
+            [#assign networkACL = networkACLs[networkTier.Network.NetworkACL]]
             [#assign networkACLId = formatNetworkACLId(networkACL)]
             [#assign networkACLName = formatNetworkACLName(networkACL)]
             [#if !solutionNetworkACLs?seq_contains(networkACLId)]
@@ -182,15 +190,19 @@
         [/#list]
     
         [#-- Define subnets --]
-        [#list tiers as tier]
-            [#assign routeTable = routeTables[tier.RouteTable]]
-            [#assign networkACL = networkACLs[tier.NetworkACL]]
+        [#list segmentObject.Network.Tiers.Order as tierId]
+            [#assign networkTier = getTier(tierId) ]
+            [#if ! (networkTier?has_content) ]
+                [#continue]
+            [/#if]
+            [#assign routeTable = routeTables[networkTier.Network.RouteTable]]
+            [#assign networkACL = networkACLs[networkTier.Network.NetworkACL]]
             [#list zones as zone]
                 [#assign networkACLId = formatNetworkACLId(networkACL)]
                 [#assign routeTableId = formatRouteTableId(routeTable,natPerAZ?string(zone.Id,""))]
-                [#assign subnetId = formatSubnetId(tier, zone)]
-                [#assign subnetName = formatSubnetName(tier, zone)]
-                [#assign subnetAddress = addressOffset + (tier.Index * addressesPerTier) + (zone.Index * addressesPerZone)]
+                [#assign subnetId = formatSubnetId(networkTier, zone)]
+                [#assign subnetName = formatSubnetName(networkTier, zone)]
+                [#assign subnetAddress = addressOffset + (networkTier.Network.Index * addressesPerTier) + (zone.Index * addressesPerZone)]
                 [#assign routeTableAssociationId = formatRouteTableAssociationId(subnetId)]
                 [#assign networkACLAssociationId = formatNetworkACLAssociationId(subnetId)]
                 [@createSubnet
@@ -198,7 +210,7 @@
                     id=subnetId
                     name=subnetName
                     vpcId=vpcId
-                    tier=tier
+                    tier=networkTier
                     zone=zone
                     cidr=baseAddress[0] + "." + baseAddress[1] + "." + (subnetAddress/256)?int + "." + subnetAddress%256 + "/" + subnetMask
                     private=routeTable.Private!false
@@ -606,8 +618,12 @@
                         eipId=eipId
                     /]
                     [#assign updatedRouteTables = []]
-                    [#list tiers as tier]
-                        [#assign routeTable = routeTables[tier.RouteTable]]
+                    [#list segmentObject.Network.Tiers.Order as tierId]
+                        [#assign networkTier = getTier(tierId) ]
+                        [#if ! (networkTier?has_content) ]
+                            [#continue]
+                        [/#if]
+                        [#assign routeTable = routeTables[networkTier.Network.RouteTable]]
                         [#if routeTable.Private!false]
                             [#assign routeTableId = formatRouteTableId(routeTable,natPerAZ?string(zone.Id,""))]
                             [#if !updatedRouteTables?seq_contains(routeTableId)]

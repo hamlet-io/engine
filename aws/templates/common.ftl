@@ -268,6 +268,7 @@
 [#-- Tiers --]
 
 [#-- Get a tier --]
+[#assign tiers = [] ]
 [#function getTier tier]
     [#if tier?is_hash]
         [#local tierId = (tier.Id)!"" ]
@@ -282,9 +283,14 @@
               "Id" : "all",
               "Name" : "all"
           } ]
-    [#else]
-        [#return (blueprintObject.Tiers[tierId])!{} ]
     [/#if]
+
+    [#list tiers as knownTier]
+        [#if knownTier.Id == tierId]
+            [#return knownTier]
+        [/#if]
+    [/#list]
+    [#return {} ]
 [/#function]
 
 [#-- Get the id for a tier --]
@@ -1168,7 +1174,7 @@
 ]
 [/#function]
 
-[#-- Diretory Structure for ContentHubs --]
+[#-- Directory Structure for ContentHubs --]
 [#function getContentPath occurrence component="" ]
 
     [#local pathObject = occurrence.Configuration.Path ]
