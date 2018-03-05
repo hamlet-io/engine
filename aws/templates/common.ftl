@@ -282,9 +282,14 @@
               "Id" : "all",
               "Name" : "all"
           } ]
-    [#else]
-        [#return (blueprintObject.Tiers[tierId])!{} ]
     [/#if]
+
+    [#list tiers as knownTier]
+        [#if knownTier.Id == tierId]
+            [#return knownTier]
+        [/#if]
+    [/#list]
+    [#return {} ]
 [/#function]
 
 [#-- Get the id for a tier --]

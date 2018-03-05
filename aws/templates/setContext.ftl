@@ -105,18 +105,18 @@
     [#assign segments += {segmentId : segmentObject} ]
 
     [#assign vpc = getExistingReference(formatVPCId())]
-    [#assign baseAddress = segmentObject.CIDR.Address?split(".")]
+    [#assign network = segmentObject.Network!segmentObject ]
+    [#assign baseAddress = network.CIDR.Address?split(".")]
     [#assign addressOffset = baseAddress[2]?number*256 + baseAddress[3]?number]
-    [#assign addressesPerTier = powersOf2[getPowerOf2(powersOf2[32 - segmentObject.CIDR.Mask]/(segmentObject.Tiers.Order?size))]]
-    [#assign addressesPerZone = powersOf2[getPowerOf2(addressesPerTier / (segmentObject.Zones.Order?size))]]
+    [#assign addressesPerTier = powersOf2[getPowerOf2(powersOf2[32 - network.CIDR.Mask]/(network.Tiers.Order?size))]]
+    [#assign addressesPerZone = powersOf2[getPowerOf2(addressesPerTier / (network.Zones.Order?size))]]
     [#assign subnetMask = 32 - powersOf2?seq_index_of(addressesPerZone)]
-
-    [#assign dnsSupport = segmentObject.DNSSupport]
-    [#assign dnsHostnames = segmentObject.DNSHostnames]
+    [#assign dnsSupport = network.DNSSupport]
+    [#assign dnsHostnames = network.DNSHostnames]
 
     [#assign rotateKeys = (segmentObject.RotateKeys)!true]
 
-    [#assign internetAccess = segmentObject.InternetAccess]
+    [#assign internetAccess = network.InternetAccess]
 
     [#assign natEnabled = internetAccess && ((segmentObject.NAT.Enabled)!true)]
     [#assign natHosted = (segmentObject.NAT.Hosted)!false]
@@ -176,23 +176,38 @@
 [#-- Required tiers --]
 [#assign tiers = [] ]
 [#list segmentObject.Tiers.Order as tierId]
-    [#assign tier = getTier(tierId)]
-    [#if tier.Components?has_content || ((tier.Required)!false)]
-        [#assign tiers +=
-            [
-                tier +
-                {
-                    "Index" : tierId?index,
-                    "RouteTable" : internetAccess?then(tier.RouteTable, "internal")
-                }
-            ]
-        ]
+    [#assign blueprintTier = (blueprintObject.Tiers[tierId])!{}]
+    [#if ! (blueprintTier?has_content) ]
+        [#continue]
+    [/#if]
+    [#assign tierNetwork =
+        {
+            "Enabled" : false,
+            "RouteTable" : "internal",
+            "NetworkACL" : "open"
+        } ]
+    [#if blueprintTier.Components?has_content || ((blueprintTier.Required)!false)]
+        [#if (blueprintTier.Network.Enabled)!false ]
+            [#list segmentObject.Network.Tiers.Order![] as networkTier]
+                [#if networkTier == tierId]
+                    [#assign tierNetwork =
+                        blueprintTier.Network +
+                        {
+                            "Index" : networkTier?index,
+                            "RouteTable" : internetAccess?then(blueprintTier.Network.RouteTable!"internal", "internal"),
+                            "NetworkACL" : blueprintTier.Network.NetworkACL!"open"),
+                        } ]
+                    [#break]
+                [/#if]
+            [/#list]
+        [/#if]
+        [#assign tiers += [ blueprintTier +  { "Network" : tierNetwork } ] ]
     [/#if]
 [/#list]
 
 [#-- Required zones --]
 [#assign zones = [] ]
-[#list segmentObject.Zones.Order as zoneId]
+[#list segmentObject.Network.Zones.Order as zoneId]
     [#if regions[region].Zones[zoneId]?has_content]
         [#assign zone = regions[region].Zones[zoneId] ]
         [#assign zones +=

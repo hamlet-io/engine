@@ -67,7 +67,7 @@
         properties=
             {
                 "Subnets" : getSubnets(tier),
-                "Scheme" : (tier.RouteTable == "external")?then("internet-facing","internal"),
+                "Scheme" : (tier.Network.RouteTable == "external")?then("internet-facing","internal"),
                 "SecurityGroups": getReferences(securityGroups),
                 "Name" : shortName
             } +

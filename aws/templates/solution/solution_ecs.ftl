@@ -345,7 +345,7 @@
                                 []
                             ),
                         "IamInstanceProfile" : getReference(ecsInstanceProfileId),
-                        "AssociatePublicIpAddress" : (tier.RouteTable == "external"),
+                        "AssociatePublicIpAddress" : (tier.Network.RouteTable == "external"),
                         "UserData" : {
                             "Fn::Base64" : {
                                 "Fn::Join" : [
