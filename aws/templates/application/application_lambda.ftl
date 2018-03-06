@@ -135,7 +135,8 @@
                         tier=tier
                         component=component
                         resourceId=fnId
-                        resourceName=fnName  /]
+                        resourceName=fnName
+                        description=formatName("lambda", fnName) /]
                 [/#if]
 
                 [@createLambdaFunction
