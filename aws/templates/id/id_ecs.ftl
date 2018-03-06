@@ -111,7 +111,7 @@
                     "Id" : formatEC2LaunchConfigId(core.Tier, core.Component)
                 },
                 "logGroup" : {
-                    "Id" : formatECSServiceRoleId(core.Tier, core.Component)
+                    "Id" : formatComponentLogGroupId(core.Tier, core.Component)
                 }
             },
             "Attributes" : {},
