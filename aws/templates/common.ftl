@@ -1176,8 +1176,9 @@
 [/#function]
 
 [#-- Directory Structure for ContentHubs --]
-[#function getContentPath occurrence component="" ]
+[#function getContentPath occurrence ]
 
+    [#local core = occurrence.Core ]
     [#local pathObject = occurrence.Configuration.Path ]
     [#local includes = pathObject.IncludeInPath]
 
@@ -1191,10 +1192,10 @@
                 valueIfTrue(solutionObject.Id!"", includes.Solution),
                 valueIfTrue(environmentName!"", includes.Environment),
                 valueIfTrue(segmentName!"", includes.Segment),
-                valueIfTrue(getTierName(tier), includes.Tier),
-                valueIfTrue(getComponentName(component), includes.Component),
-                valueIfTrue(occurrence.Core.Instance.Name!"", includes.Instance),
-                valueIfTrue(occurrence.Core.Version.Name!"", includes.Version),
+                valueIfTrue(getTierName(core.Tier), includes.Tier),
+                valueIfTrue(getComponentName(core.Component), includes.Component),
+                valueIfTrue(core.Instance.Name!"", includes.Instance),
+                valueIfTrue(core.Version.Name!"", includes.Version),
                 valueIfTrue(pathObject.Host, includes.Host)
             ]
         )

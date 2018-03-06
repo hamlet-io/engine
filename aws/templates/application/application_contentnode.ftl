@@ -10,7 +10,7 @@
         [#assign configuration = occurrence.Configuration ]
 
         [#assign contentNodeId = formatContentHubNodeId(tier, component, occurrence) ]
-        [#assign pathObject = getContentPath(occurrence, component) ]
+        [#assign pathObject = getContentPath(occurrence) ]
 
         [#if ! (configuration.Links?has_content)]
             [@cfPreconditionFailed listMode "contentnode" occurrence "No content hub link configured" /]
