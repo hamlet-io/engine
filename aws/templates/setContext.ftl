@@ -166,6 +166,7 @@
 [#if blueprintObject.Solution?has_content]
     [#assign solutionObject = blueprintObject.Solution]
     [#assign solnMultiAZ = solutionObject.MultiAZ!(environmentObject.MultiAZ)!false]
+    [#assign RDSAutoMinorVersionUpgrade = (segmentObject.RDS.AutoMinorVersionUpgrade)!(solutionObject.RDS.AutoMinorVersionUpgrade)!(environmentObject.RDS.AutoMinorVersionUpgrade)!true]
     [#assign natPerAZ = natEnabled &&
                         (
                             (natHosted && solnMultiAZ) ||
