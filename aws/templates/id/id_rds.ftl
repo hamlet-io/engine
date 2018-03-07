@@ -70,7 +70,8 @@
                         "Default" : false
                     }
                 ]
-            }
+            },
+            "AutoMinorVersionUpgrade"
         ]
 }]
     
