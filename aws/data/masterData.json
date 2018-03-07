@@ -680,6 +680,9 @@
       "Description": "Kind of obvious...",
       "Category": "prod",
       "MultiAZ": true,
+      "RDS": {
+        "AutoMinorVersionUpgrade": false
+      },
       "Operations": {
         "Expiration": 365,
         "FlowLogs": {

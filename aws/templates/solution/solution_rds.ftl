@@ -217,6 +217,7 @@
                     parameterGroupId=getReference(rdsParameterGroupId)
                     optionGroupId=getReference(rdsOptionGroupId)
                     securityGroupId=getReference(rdsSecurityGroupId)
+                    autoMinorVersionUpgrade = configuration.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
                 /]
         [/#if]
     [/#list]

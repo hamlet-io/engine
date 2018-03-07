@@ -40,6 +40,7 @@
     component=""     
     dependencies="" 
     outputId=""
+    autoMinorVersionUpgrade=true
 ]
     [@cfResource 
     mode=listMode
@@ -51,6 +52,7 @@
             "EngineVersion": engineVersion,
             "DBInstanceClass" : processor,
             "AllocatedStorage": size,
+            "AutoMinorVersionUpgrade": autoMinorVersionUpgrade,
             "StorageType" : "gp2",
             "Port" : port,
             "BackupRetentionPeriod" : retentionPeriod,
