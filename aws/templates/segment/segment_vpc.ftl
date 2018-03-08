@@ -596,7 +596,7 @@
                     [
                         {
                             "Port" : "all",
-                            "CIDR" : [segmentObject.CIDR.Address + "/" + segmentObject.CIDR.Mask]
+                            "CIDR" : [segmentObject.Network.CIDR.Address + "/" + segmentObject.Network.CIDR.Mask]
                         }
                     ]
                 vpcId=natInVpc?then(vpcId,"")
