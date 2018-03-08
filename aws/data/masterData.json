@@ -23,7 +23,7 @@
         "Centos": {
           "NAT": "ami-2c593d4a",
           "EC2": "ami-ceafcba8",
-          "ECS": "ami-e3166185"
+          "ECS": "ami-68ef940e"
         }
       }
     },
@@ -50,7 +50,7 @@
         "Centos": {
           "NAT": "ami-c52f8fab",
           "EC2": "ami-863090e8",
-          "ECS": "ami-0acc6e64"
+          "ECS": "ami-a5dd70cb"
         }
       }
     },
@@ -77,7 +77,7 @@
         "Centos": {
           "NAT": "ami-c2e9bead",
           "EC2": "ami-531a4c3c",
-          "ECS": "ami-ca8ad9a5"
+          "ECS": "ami-2e461a41"
         }
       }
     },
@@ -106,7 +106,7 @@
         "Centos": {
           "NAT": "ami-270f735b",
           "EC2": "ami-68097514",
-          "ECS": "ami-66c98f1a"
+          "ECS": "ami-0a622c76"
         }
       }
     },
@@ -139,7 +139,7 @@
         "Centos": {
           "NAT": "ami-3d28d45f",
           "EC2": "ami-942dd1f6",
-          "ECS": "ami-36867d54"
+          "ECS": "ami-ee884f8c"
         }
       }
     },
@@ -166,7 +166,7 @@
         "Centos": {
           "NAT": "ami-2b4acf4f",
           "EC2": "ami-a954d1cd",
-          "ECS": "ami-4b9c182f"
+          "ECS": "ami-5ac94e3e"
         }
       }
     },
@@ -219,7 +219,7 @@
         "Centos": {
           "NAT": "ami-5756ca38",
           "EC2": "ami-5652ce39",
-          "ECS": "ami-63cbae0c"
+          "ECS": "ami-0799fa68"
         }
       }
     },
@@ -252,7 +252,7 @@
         "Centos": {
           "NAT": "ami-a136a9d8",
           "EC2": "ami-d834aba1",
-          "ECS": "ami-880d64f1"
+          "ECS": "ami-0693ed7f"
         }
       }
     },
@@ -279,7 +279,7 @@
         "Centos": {
           "NAT": "ami-87312ae3",
           "EC2": "ami-403e2524",
-          "ECS": "ami-42a64325"
+          "ECS": "ami-f4e20693"
         }
       }
     },
@@ -306,7 +306,7 @@
         "Centos": {
           "NAT": "ami-0fe35572",
           "EC2": "ami-8ee056f3",
-          "ECS": "ami-6fa21412"
+          "ECS": "ami-698b3d14"
         }
       }
     },
@@ -339,7 +339,7 @@
         "Centos": {
           "NAT": "ami-be1f52d2",
           "EC2": "ami-84175ae8",
-          "ECS": "ami-69f7b805"
+          "ECS": "ami-d44008b8"
         }
       }
     },
@@ -378,7 +378,7 @@
         "Centos": {
           "NAT": "ami-8d7655f7",
           "EC2": "ami-97785bed",
-          "ECS": "ami-5e414e24"
+          "ECS": "ami-a7a242da"
         }
       }
     },
@@ -411,7 +411,7 @@
         "Centos": {
           "NAT": "ami-fc3b1199",
           "EC2": "ami-f63b1193",
-          "ECS": "ami-67ab9e02"
+          "ECS": "ami-b86a5ddd"
         }
       }
     },
@@ -464,7 +464,7 @@
         "Centos": {
           "NAT": "ami-394e4c59",
           "EC2": "ami-824c4ee2",
-          "ECS": "ami-00898660"
+          "ECS": "ami-9ad4dcfa"
         }
       }
     },
@@ -497,7 +497,7 @@
         "Centos": {
           "NAT": "ami-35d6664d",
           "EC2": "ami-f2d3638a",
-          "ECS": "ami-10ed6968"
+          "ECS": "ami-92e06fea"
         }
       }
     }
@@ -742,79 +742,79 @@
     "web": {
       "Title": "Web Tier",
       "Description": "Supports HMI",
-      "Network" : {
-          "Enabled" : true
+      "Network": {
+        "Enabled": true
       }
     },
     "api": {
       "Title": "API Tier",
       "Description": "Supports externally exposed APIs",
-      "Network" : {
-          "Enabled" : true
+      "Network": {
+        "Enabled": true
       }
     },
     "msg": {
       "Title": "Messaging Tier",
       "Name": "messaging",
       "Description": "Supports system-to-system based interactions/services",
-      "Network" : {
-          "Enabled" : true
+      "Network": {
+        "Enabled": true
       }
     },
     "app": {
       "Title": "Applications Tier",
       "Name": "application",
       "Description": "Supports application logic execution",
-      "Network" : {
-          "Enabled" : true
+      "Network": {
+        "Enabled": true
       }
     },
     "db": {
       "Title": "Database Tier",
       "Name": "database",
       "Description": "Supports long term storage of content and customer data",
-      "Network" : {
-          "Enabled" : true
+      "Network": {
+        "Enabled": true
       }
     },
     "dir": {
       "Title": "Directories Tier",
       "Name": "directories",
       "Description": "Supports directories or domain controllers",
-      "Network" : {
-          "Enabled" : true
+      "Network": {
+        "Enabled": true
       }
     },
     "ana": {
       "Title": "Analytics Tier",
       "Name": "analytics",
       "Description": "Suports things like search engines",
-      "Network" : {
-          "Enabled" : true
+      "Network": {
+        "Enabled": true
       }
     },
     "elb": {
       "Title": "External Load Balancer Tier",
       "Description": "Publically accessible application load balancers",
-      "Network" : {
-          "Enabled" : true,
-          "RouteTable": "external"
+      "Network": {
+        "Enabled": true,
+        "RouteTable": "external"
       }
     },
     "ilb": {
       "Title": "Internal Load Balancer Tier",
       "Description": "Internally accessible application load balancers",
-      "Network" : {
-          "Enabled" : true
+      "Network": {
+        "Enabled": true
       }
     },
     "mgmt": {
       "Title": "Management Tier",
       "Name": "management",
       "Description": "Supports ssh based host access and internet access for internal hosts",
-      "Network" : {
-          "Enabled" : true,
-          "RouteTable": "external"
+      "Network": {
+        "Enabled": true,
+        "RouteTable": "external"
       },
       "Components": {
         "seg-cert": {
@@ -862,15 +862,15 @@
     "shared": {
       "Title": "Shared Tier",
       "Description": "Shared Tier",
-      "Network" : {
-          "Enabled" : true,
-          "RouteTable": "external"
+      "Network": {
+        "Enabled": true,
+        "RouteTable": "external"
       }
     },
     "docs": {
       "Title": "Docs Tier",
       "Description": "Non-network Tier For documentation generation",
-      "Name" : "documentation"
+      "Name": "documentation"
     }
   },
   "RouteTables": {
@@ -1209,7 +1209,7 @@
     }
   },
   "Segment": {
-    "Network" : {
+    "Network": {
       "CIDR": {
         "Address": "10.0.0.0",
         "Mask": 16
