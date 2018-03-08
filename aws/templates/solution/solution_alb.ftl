@@ -68,7 +68,7 @@
                     cidr,
                     (tier.Network.RouteTable == "external")?then(
                         [],
-                        segmentObject.CIDR.Address + "/" +segmentObject.CIDR.Mask
+                        segmentObject.Network.CIDR.Address + "/" +segmentObject.Network.CIDR.Mask
                     )) ]
                         
             [@createSecurityGroupIngress
