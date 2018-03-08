@@ -9,8 +9,9 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
+        [#assign resources = occurrence.State.Resources ]
         
-        [#assign albId = formatALBId(tier, component, occurrence)]
+        [#assign albId = resources["lb"].Id ]
     
         [#assign albSecurityGroupId = formatALBSecurityGroupId(tier, component, occurrence)]
         [@createComponentSecurityGroup
