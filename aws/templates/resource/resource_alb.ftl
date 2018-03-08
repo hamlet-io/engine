@@ -115,7 +115,7 @@
                 {
                     "Certificates" : [
                         {
-                            "CertificateArn" : getReference(certificateId, ARN_ATTRIBUTE_TYPE)
+                            "CertificateArn" : getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
                         }
                     ],
                     "SslPolicy" : "ELBSecurityPolicy-TLS-1-2-2017-01"

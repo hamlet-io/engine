@@ -81,7 +81,7 @@
     [#local core = occurrence.Core]
     [#local configuration = occurrence.Configuration]
 
-    [#local id = formatALBId(core.Tier, core.Component, occurrence) ]
+    [#local id = formatResourceId(ALB_RESOURCE_TYPE, core.Id) ]
     [#local internalFqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
 
     [#if (configuration.PortMappings![])?has_content]
