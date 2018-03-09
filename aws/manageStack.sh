@@ -445,18 +445,27 @@ function process_stack() {
 
                     #Wait for change set to be processed 
                     aws --region ${REGION} cloudformation wait change-set-create-complete \
-                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" || return $?          
+                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" &>/dev/null  
 
                     # Check ChangeSet for results 
                     aws --region ${REGION} cloudformation describe-change-set \
                         --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}"  > "${potential_change_file}" 2>/dev/null || return $?
-
-                    # Running 
-                    aws --region ${REGION} cloudformation execute-change-set \
-                        --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > /dev/null || return $?
-
-                    wait_for_stack_execution
                     
+                    if [[ $( jq  -r '.Status == "FAILED"' < "${potential_change_file}" ) == "true" ]]; then
+
+                      cat "${potential_change_file}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
+                        warning "No further updates needed for stack ${STACK_NAME}. Treating as successful.\n" ||
+                        cat "${potential_change_file}"; return ${exit_status}; 
+                    
+                    else
+
+                      # Running 
+                      aws --region ${REGION} cloudformation execute-change-set \
+                          --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" > /dev/null || return $?
+
+                      wait_for_stack_execution
+                    
+                    fi
                   done
               
               else
