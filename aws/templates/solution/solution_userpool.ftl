@@ -17,21 +17,37 @@
     [#assign smsVerification = false]
     [#assign schema = [] ]
 
+    [@cfDebug listMode appSettingsObject false /]
+
     [#assign emailVerificationMessage = ""]
-    [#if appSettingsObject.UserPool?has_content &&  (appSettingsObject.UserPool.EmailVerificationMessage)?has_content ]
+    [#if (appSettingsObject.UserPool.EmailVerificationMessage)?has_content ]
         [#assign emailVerificationMessage = appSettingsObject.UserPool.EmailVerificationMessage ]
     [/#if]
 
     [#assign emailVerificationSubject = ""]
-    [#if appSettingsObject.UserPool?has_content && appSettingsObject.UserPool.EmailVerificationSubject?has_content ]
+    [#if (appSettingsObject.UserPool.EmailVerificationSubject)?has_content ]
         [#assign emailVerificationSubject = appSettingsObject.UserPool.EmailVerificationSubject ]
     [/#if]
 
     [#assign smsVerificationMessage = ""]
-    [#if appSettingsObject.UserPool?has_content &&  appSettingsObject.UserPool.smsVerificationMessage?has_content ]
-        [#assign emailVerificationSubject = appSettingsObject.UserPool.smsVerificationMessage ]
+    [#if (appSettingsObject.UserPool.SMSVerificationMessage)?has_content ]
+        [#assign emailVerificationSubject = appSettingsObject.UserPool.SMSVerificationMessage ]
     [/#if]
 
+    [#assign emailInviteMessage = "" ]
+    [#if (appSettingsObject.UserPool.EmailInviteMessage)?has_content ]
+        [#assign emailInviteMessage = appSettingsObject.UserPool.EmailInviteMessage ]
+    [/#if]
+
+    [#assign emailInviteSubject = "" ]
+    [#if (appSettingsObject.UserPool.EmailInviteSubject)?has_content ]
+        [#assign emailInviteSubject = appSettingsObject.UserPool.EmailInviteSubject ]
+    [/#if]
+
+    [#assign smsInviteMessage = ""] 
+    [#if (appSettingsObject.UserPool.SMSInviteMessage)?has_content ]
+        [#assign smsInviteMessage = appSettingsObject.UserPool.SMSInviteMessage ]
+    [/#if]
 
     [#if (userpool.MFA?has_content && userpool.MFA) || (userpool.VerifyPhone?has_content && userpool.VerifyPhone)]
         [#if deploymentSubsetRequired("iam", true) &&
@@ -92,6 +108,9 @@
         emailVerificationMessage=emailVerificationMessage
         emailVerificationSubject=emailVerificationSubject
         smsVerificationMessage=smsVerificationMessage
+        emailInviteMessage=emailInviteMessage
+        emailInviteSubject=emailInviteSubject
+        smsInviteMessage=smsInviteMessage
         autoVerify=(userpool.verifyEmail || smsVerification)?then(
             getUserPoolAutoVerification(userpool.verifyEmail, smsVerification),
             []
