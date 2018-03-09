@@ -324,10 +324,7 @@ function wait_for_stack_execution() {
       # Watch for roll backs 
       egrep "*ROLLBACK_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && \
         { warning "Stack ${STACK_NAME} could not complete and a rollback was performed"; exit_status=1; break;}
-
-      egrep "ROLLBACK_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && \
-        { warning "Stack ${STACK_NAME} could not complete and a rollback was performed"; exit_status=1; break;}
-
+        
       # Watch for failures
       egrep "*FAILED\"" "${stack_status_file}" >/dev/null 2>&1 && \
         { fatal "Stack ${STACK_NAME} failed, fix stack before retrying"; exit_status=255; break;}
