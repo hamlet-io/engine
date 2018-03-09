@@ -321,6 +321,14 @@ function wait_for_stack_execution() {
       grep "${status_attribute}" "${STACK}" > "${stack_status_file}"
       cat "${stack_status_file}"
 
+      # Watch for roll backs 
+      egrep "*ROLLBACK_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && \
+        { warning "Stack ${STACK_NAME} could not complete and a rollback was performed"; exit_status=1; break;}
+        
+      # Watch for failures
+      egrep "*FAILED\"" "${stack_status_file}" >/dev/null 2>&1 && \
+        { fatal "Stack ${STACK_NAME} failed, fix stack before retrying"; exit_status=255; break;}
+
       # Finished if complete
       egrep "(${operation_to_check})_COMPLETE\"" "${stack_status_file}" >/dev/null 2>&1 && \
         { [[ -f "${potential_change_file}" ]] && cp "${potential_change_file}" "${CHANGE}"; break; }
@@ -342,7 +350,7 @@ function wait_for_stack_execution() {
         grep -q "No updates are to be performed" < "${stack_status_file}" &&
           warning "No updates needed for stack ${STACK_NAME}. Treating as successful.\n"; break ||
           { cat "${stack_status_file}"; return ${exit_status}; }
-        ;;
+      ;;
       *) 
       return ${exit_status} ;;
     esac
@@ -517,8 +525,22 @@ function main() {
   [[ -f "${CONFIG}" ]] && \
     { info "Copying config file ..." && copy_config_file "${CONFIG}" || return $?; }
 
+  process_stack_status=0
   # Process the stack
-  [[ -f "${TEMPLATE}" ]] && { process_stack || return $?; }
+  if [[ -f "${TEMPLATE}" ]]; then 
+     process_stack || process_stack_status=$?
+  fi
+
+    # Check to see if the work has already been completed
+    case ${process_stack_status} in
+      0) 
+        info "${STACK_OPERATION} completed for ${STACK_NAME}"
+      ;;
+      *) 
+        fatal "Change set for ${STACK_NAME} did not complete"
+        return ${process_stack_status} 
+      ;;
+    esac
   
   # Run the epilogue script if present
   # Refresh the stack outputs in case something from the just created stack is needed
