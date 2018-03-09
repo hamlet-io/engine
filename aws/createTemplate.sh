@@ -273,6 +273,7 @@ function process_template() {
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
   
   # Create a random string to use as the run identifier
+  info "Creating run identifier ...\n"
   run_id="$(dd bs=128 count=1 if=/dev/urandom  | base64 | env LC_CTYPE=C tr -dc 'a-z0-9' | fold -w 10 | head -n 1)"
   args+=("-v" "runId=${run_id}")
 
@@ -327,45 +328,57 @@ function process_template() {
       ${GENERATION_DIR}/freemarker.sh \
         -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
 
-      # Process the results - ignore whitespace only files
-      if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -gt 0 ]]; then
-        case "$(fileExtension "${template_result_file}")" in
-          sh)
-            # Strip out the whitespace added by freemarker
-            sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
-            ;;
-      
-          json)
-            if [[ -f "${output_file}" ]]; then
-              # Ignore if only the metadata/timestamps have changed
-              jq_pattern="del(.Metadata)"
-              sed_patterns=("-e" "s/${request_reference}//g")
-              sed_patterns+=("-e" "s/${configuration_reference}//g")
-              sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
-
-              existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
-              [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
-
-              existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
-              [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
-
-              cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
-              cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
-
-              diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
-                info "Ignoring unchanged ${file_description} file ...\n" ||
-                jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
-            else
-              jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
-            fi
-            ;;
-        esac
-      else
+      # Ignore whitespace only files
+      if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -eq 0 ]]; then
         info "Ignoring empty ${file_description} file ...\n"
 
         # Remove any previous version
         [[ -f "${output_file}" ]] && rm "${output_file}"
+
+        continue
       fi
+
+      case "$(fileExtension "${template_result_file}")" in
+        sh)
+          # Strip out the whitespace added by freemarker
+          sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
+          ;;
+    
+        json)
+          # Detect any exceptions during generation
+          jq -r ".Exceptions | select(.!=null)" < "${template_result_file}" > "${template_result_file}-exceptions"
+          if [[ -s "${template_result_file}-exceptions" ]]; then
+            fatal "Exceptions occurred during template generation. Details follow...\n"
+            cat "${template_result_file}-exceptions" >&2
+            return 1
+          fi
+
+          if [[ ! -f "${output_file}" ]]; then
+            # First generation - just format
+            jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
+            continue
+          fi
+
+          # Ignore if only the metadata/timestamps have changed
+          jq_pattern="del(.Metadata)"
+          sed_patterns=("-e" "s/${request_reference}//g")
+          sed_patterns+=("-e" "s/${configuration_reference}//g")
+          sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
+
+          existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
+          [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
+
+          existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
+          [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
+
+          cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
+          cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+
+          diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
+            info "Ignoring unchanged ${file_description} file ...\n" ||
+            jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
+          ;;
+      esac
     done
   done
 
