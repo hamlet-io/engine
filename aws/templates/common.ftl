@@ -434,35 +434,63 @@
                             [attribute.Name]),
                         [attribute])) ]
 
+            [#local mandatory = attribute?is_hash?then(attribute.Mandatory!false, false) ]
+            [#local defaultProvided = attribute?is_hash?then(attribute.Default??, false) ]
             [#local children = attribute?is_hash?then(attribute.Children![], []) ]
             [#local populateMissingChildren = attribute?is_hash?then(attribute.PopulateMissingChildren!true, true) ]
     
             [#-- Look for the first name alternative --]
-            [#local firstName = ""]
+            [#local providedName = ""]
+            [#local providedValue = ""]
             [#list attributeNames as attributeName]
                 [#if attributeName == "*"]
-                    [#local firstName = "*"]
+                    [#local providedName = "*"]
                 [/#if]
-                [#if firstName?has_content]
+                [#if providedName?has_content]
                     [#break]
                 [#else]
                     [#list candidates?reverse as object]
                         [#if object[attributeName]??]
-                            [#local firstName = attributeName]
+                            [#local providedName = attributeName ]
+                            [#local providedValue = object[attributeName] ]
                             [#break]
                         [/#if]
                     [/#list]
                 [/#if]
             [/#list]
-            [#if firstName == "*"]
+
+            [#-- Name wildcard means include all candidate objects --]
+            [#if providedName == "*"]
                 [#break]
             [/#if]
-    
+
+            [#-- Throw an exception if a mandatory attribute is missing --]
+            [#if mandatory && ( !(providedName?has_content) ) ]
+                [@cfException
+                    mode=listMode
+                    description="Mandatory attribute missing"
+                    context=
+                        {
+                            "ExpectedNames" : attributeNames,
+                            "CandidateObjects" : objects
+                        }
+                /]
+
+                [#-- Provide a value so hopefully generation completes successfully --]
+                [#if children?has_content]
+                    [#local populateMissingChildren = true ]
+                [#else]
+                    [#-- providedName just needs to have content --]
+                    [#local providedName = "default" ]
+                    [#local providedValue = "Mandatory value missing" ]
+                [/#if]
+            [/#if]
+
             [#if children?has_content]
                 [#local childObjects = [] ]
                 [#list candidates as object]
-                    [#if object[firstName]??]
-                        [#local childObjects += [object[firstName]] ]
+                    [#if object[providedName]??]
+                        [#local childObjects += [object[providedName]] ]
                     [/#if]
                 [/#list]
                 [#if populateMissingChildren || childObjects?has_content]
@@ -471,7 +499,7 @@
                             attributeNames[0] :
                                 populateMissingChildren?then(
                                     {
-                                        "Configured" : firstName?has_content
+                                        "Configured" : providedName?has_content
                                     },
                                     {}
                                 ) +
@@ -481,22 +509,14 @@
                     ]
                 [/#if]
             [#else]
-                [#local valueProvided = false ]
-                [#list candidates?reverse as object]
-                    [#if object[firstName]??]
-                        [#local attributeValue = object[firstName] ]
-                        [#local valueProvided = true ]
-                        [#break]
-                    [/#if]
-                [/#list]
-                [#if valueProvided]
+                [#if providedName?has_content ]
                     [#local result +=
                         {
-                            attributeNames[0] : attributeValue
+                            attributeNames[0] : providedValue
                         }
                     ]
                 [#else]
-                    [#if attribute?is_hash && attribute.Default?? ]
+                    [#if defaultProvided ]
                         [#local result += 
                             {
                                 attributeNames[0] : attribute.Default
@@ -506,7 +526,7 @@
                 [/#if]
             [/#if]
         [/#list]
-        [#if firstName != "*"]
+        [#if providedName != "*"]
             [#return result ]
         [/#if]
     [/#if]
