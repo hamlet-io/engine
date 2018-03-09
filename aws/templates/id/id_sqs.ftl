@@ -29,21 +29,8 @@
 [#function getSQSState occurrence]
     [#local core = occurrence.Core]
 
-    [#local id =
-        formatComponentResourceId(
-            SQS_RESOURCE_TYPE,
-            occurrence.Core.Tier,
-            occurrence.Core.Component,
-            occurrence) ]
-    [#local name = (core.Component.Name != "SQS")?then(
-                            formatName(
-                                core.Component.Name,
-                                occurrence),
-                            formatName(
-                                productName,
-                                segmentName,
-                                componentName,
-                                occurrence))]
+    [#local id = formatResourceId(SQS_RESOURCE_TYPE, core.Id) ]
+    [#local name = formatSegmentFullName(core.Name) ]
 
     [#local dlqId = formatDependentResourceId(SQS_RESOURCE_TYPE, id, "dlq") ]
     [#local dlqName = formatName(name, "dlq")]
