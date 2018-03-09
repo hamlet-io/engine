@@ -226,8 +226,8 @@ if [[ -n "${PRODUCT}" ]]; then
     
     # deployment unit specific appsettings
     if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
-        # Confirm it is an application level deployment unit
-        if isValidUnit "application" "${DEPLOYMENT_UNIT}"; then
+        # Confirm it is an solution or application level deployment unit before checking appsettings
+        if isValidUnit "application" "${DEPLOYMENT_UNIT}" || isValidUnit "solution" "${DEPLOYMENT_UNIT}"; then
             export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"   
 
             # Legacy naming to support products using the term "slice" or "unit" instead of "deployment_unit"
@@ -247,19 +247,6 @@ if [[ -n "${PRODUCT}" ]]; then
             fileContentsInEnv "BUILD_REFERENCE" \
                 "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.json \
                 "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.ref
-        fi
-
-        # Some solution units require environment/unit level settings.
-        if isValidUnit "solution" "${DEPLOYMENT_UNIT}"; then 
-            export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"
-
-            addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/appsettings*.json
-            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
-                addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/appsettings*.json
-
-            addToArrayHead "CREDENTIALS_ARRAY" "${SEGMENT_CREDENTIALS_DIR}/${DEPLOYMENT_UNIT}"/credentials*.json
-            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
-                addToArrayHead "CREDENTIALS_ARRAY"  "${SEGMENT_CREDENTIALS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/credentials*.json
         fi
     fi
     
