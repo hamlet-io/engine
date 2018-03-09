@@ -150,6 +150,9 @@
     smsVerificationMessage=""
     emailVerificationMessage=""
     emailVerificationSubject=""
+    smsInviteMessage=""
+    emailInviteMessage=""
+    emailInviteSubject=""
     tier="" 
     component="" 
     loginAliases=[] 
@@ -182,9 +185,9 @@
                                                 adminCreatesUser, 
                                                 unusedTimeout,
                                                 getUserPoolInviteMessageTemplate(
-                                                    emailVerificationMessage,
-                                                    emailVerificationSubject,
-                                                    smsVerificationMessage))
+                                                    emailInviteMessage,
+                                                    emailInviteSubject,
+                                                    smsInviteMessage))
             } + 
             attributeIfContent(
                 "Policies",
