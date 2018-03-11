@@ -51,17 +51,16 @@
 
                     [#switch linkTargetCore.Type!""]
                         [#case "userpool"] 
-                            [@createPolicy 
-                                mode=listMode
-                                id=formatDependentPolicyId(fnId, "link", linkName)
-                                name=fnName
-                                statements=[getPolicyStatement(
-                                                "lambda:InvokeFunction",
-                                                formatLambdaArn(fnId))]
-                                roles=formatDependentIdentityPoolAuthRoleId(
-                                        formatIdentityPoolId(linkTargetCore.Tier, linkTargetCore.Component))
-                            /]
-                            [#break]
+                            [#if linkTargetResources["userpool"].Deployed &&
+                                    (linkDirection == "inbound")]
+                                [@createLambdaPermission
+                                    mode=listMode
+                                    id=formatLambdaPermissionId(fn, "link", linkName)
+                                    targetId=fnId
+                                    source=linkTargetRoles.Inbound["invoke"]
+                                /]
+                            [/#if]
+                        [#break]
 
                         [#case "apigateway" ]
                             [#if linkTargetResources["gateway"].Deployed &&
@@ -73,7 +72,7 @@
                                     source=linkTargetRoles.Inbound["invoke"]
                                 /]
                             [/#if]
-                            [#break]
+                        [#break]
                     [/#switch]    
                 [/#list]
             [/#if]

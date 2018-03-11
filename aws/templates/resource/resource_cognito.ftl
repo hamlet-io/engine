@@ -159,7 +159,8 @@
     autoVerify=[]
     schema=[]
     smsConfiguration={}
-    passwordPolicy={}  
+    passwordPolicy={}
+    lambdaTriggers={}  
     dependencies="" 
     outputId=""
 ]
@@ -218,8 +219,12 @@
                 emailVerificationSubject
              ) + 
              attributeIfContent ( 
-                 "SmsVerificationMessage",
-                 smsVerificationMessage
+                "SmsVerificationMessage",
+                smsVerificationMessage
+             ) + 
+             attributeIfContent (
+                "LambdaConfig",
+                lambdaTriggers
              )
         outputs=USERPOOL_OUTPUT_MAPPINGS
         outputId=outputId

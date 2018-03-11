@@ -1,20 +1,20 @@
 [#-- Cognito User Pool --]
 
-[#function formatUserPoolName tier component ]
+[#function formatUserPoolName tier component extensions... ]
     [#return formatName(
         formatComponentFullName(
             tier,
             component))]
 [/#function]
 
-[#function formatUserPoolClientName tier component ]
+[#function formatUserPoolClientName tier component extensions... ]
     [#return formatName( 
         formatComponentFullName(
             tier,
             component))]
 [/#function]
 
-[#function formatIdentityPoolName tier component ]
+[#function formatIdentityPoolName tier component extensions... ]
     [#return formatId(
         productName,
         segmentName,

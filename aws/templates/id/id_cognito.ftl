@@ -4,6 +4,8 @@
 [#assign USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient" ]
 [#assign IDENTITYPOOL_RESOURCE_TYPE = "identitypool" ]
 
+[#assign USERPOOL_COMPONENT_TYPE = "userpool"]
+
 [#function formatUserPoolId tier component extensions...]
     [#return formatComponentResourceId(
                 USERPOOL_RESOURCE_TYPE,
@@ -55,7 +57,7 @@
 
 [#assign componentConfiguration +=
     {
-        "userpool" : [
+        USERPOOL_COMPONENT_TYPE : [
             { 
                 "Name" : "MFA",
                 "Default" : false
@@ -90,33 +92,37 @@
                 "Default" : 30
             },
             {
-                "Name" : "allowUnauthIds",
+                "Name" : "allowUnauthenticatedIds",
                 "Default" : false
             }
             {
                 "Name" : "passwordPolicy",
                 "Children" : [
                     {
-                       "Name" : "MinimumLength",
-                       "Default" : "8"
+                       "Name" : "minimumLength",
+                       "Default" : "10"
                     },
                     {
-                        "Name" : "Lowercase",
+                        "Name" : "lowercase",
                         "Default" : true
                     },
                     {
-                        "Name" : "Uppercase",
+                        "Name" : "uppercase",
                         "Default" : true
                     },
                     {
-                        "Name" : "Numbers",
+                        "Name" : "numbers",
                         "Default" : true
                     },
                     {
-                        "Name" : "SpecialCharacters",
-                        "Default" : false
+                        "Name" : "specialCharacters",
+                        "Default" : true
                     }
                 ] 
+            },
+            {
+                "Name" : "Links",
+                "Default" : {}
             }
         ]
     }]
@@ -141,7 +147,12 @@
                 "REGION" : regionId
             },
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "invoke" : {
+                        "Principal" : "cognito-idp.amazonaws.com",
+                        "SourceArn" : getReference(id,ARN_ATTRIBUTE_TYPE)
+                    }
+                },
                 "Outbound" : {}
             }
         }
