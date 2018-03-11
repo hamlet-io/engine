@@ -92,13 +92,7 @@
     [#if component?is_hash]
       [#assign componentTemplates = {} ]
       [#assign componentId = getComponentId(component)]
-      [#assign componentName = getComponentName(component)]
       [#assign componentType = getComponentType(component)]
-      [#assign componentIdStem = formatComponentId(tier, component)]
-      [#assign componentShortName = formatComponentShortName(tier, component)]
-      [#assign componentShortNameWithType = formatComponentShortNameWithType(tier, component)]
-      [#assign componentShortFullName = formatComponentShortFullName(tier, component)]
-      [#assign componentFullName = formatComponentFullName(tier, component)]
 
       [#local result +=
         [

@@ -51,8 +51,8 @@
         [#assign rdsParameterGroupId = formatRDSParameterGroupId(tier, component, occurrence)]
         [#assign rdsOptionGroupId = formatRDSOptionGroupId(tier, component, occurrence)]
         [#assign rdsCredentials =
-            credentialsObject[componentShortNameWithType]!
-            credentialsObject[componentShortName]!
+            credentialsObject[formatComponentShortNameWithType(tier, component)]!
+            credentialsObject[formatComponentShortName(tier, component)]!
             {
                 "Login" : {
                     "Username" : "Not provided",

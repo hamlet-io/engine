@@ -12,7 +12,7 @@
                             component,
                             occurrence)]
         
-        [#assign efsFullName = componentFullName]
+        [#assign efsFullName = formatComponentFullName(tier, component) ]
 
         [#assign efsMountTargetId = formatDependentEFSMountTargetId(
                                         efsId)]

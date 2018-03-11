@@ -512,37 +512,29 @@
     [#list tiers as tier]
         [#assign tierId = tier.Id]
         [#assign tierName = tier.Name]
-        [#if tier.Components??]
-            [#list tier.Components?values as component]
-                [#if deploymentRequired(component, deploymentUnit)]
-                    [#assign componentTemplates = {} ]
-                    [#assign componentId = getComponentId(component)]
-                    [#assign componentName = getComponentName(component)]
-                    [#assign componentType = getComponentType(component)]
-                    [#assign componentIdStem = formatComponentId(tier, component)]
-                    [#assign componentShortName = formatComponentShortName(tier, component)]
-                    [#assign componentShortNameWithType = formatComponentShortNameWithType(tier, component)]
-                    [#assign componentShortFullName = formatComponentShortFullName(tier, component)]
-                    [#assign componentFullName = formatComponentFullName(tier, component)]
-                    [#assign dashboardRows = []]
-                    [#assign multiAZ = component.MultiAZ!solnMultiAZ]
-                    [#list asArray(compositeLists) as compositeList]
-                        [#include compositeList?ensure_starts_with("/")]
-                    [/#list]
-                    [#if dashboardRows?has_content]
-                        [#assign dashboardComponents += [
-                                {
-                                    "Title" : component.Title?has_content?then(
-                                                component.Title,
-                                                formatComponentName(tier, component)),
-                                    "Rows" : dashboardRows
-                                }
-                            ]
+        [#list (tier.Components!{})?values as component]
+            [#if deploymentRequired(component, deploymentUnit)]
+                [#assign componentTemplates = {} ]
+                [#assign componentId = getComponentId(component)]
+                [#assign componentType = getComponentType(component)]
+                [#assign dashboardRows = []]
+                [#assign multiAZ = component.MultiAZ!solnMultiAZ]
+                [#list asArray(compositeLists) as compositeList]
+                    [#include compositeList?ensure_starts_with("/")]
+                [/#list]
+                [#if dashboardRows?has_content]
+                    [#assign dashboardComponents += [
+                            {
+                                "Title" : component.Title?has_content?then(
+                                            component.Title,
+                                            formatComponentName(tier, component)),
+                                "Rows" : dashboardRows
+                            }
                         ]
-                    [/#if]
+                    ]
                 [/#if]
-            [/#list]
-        [/#if]
+            [/#if]
+        [/#list]
     [/#list]
 [/#macro]
 
