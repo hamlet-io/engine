@@ -409,6 +409,7 @@
                             )
                         ),
                     "MemoryReservation" : container.Memory,
+                    "MaximumMemory" : container.MaximumMemory!container.MemoryReservation*2,
                     "LogDriver" : logDriver,
                     "LogOptions" : logOptions,
                     "Environment" :
@@ -425,7 +426,6 @@
                 } +
                 attributeIfContent("ImageVersion", container.Version!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
-                attributeIfContent("MaximumMemory", container.MaximumMemory!"") +
                 attributeIfContent("PortMappings", portMappings)
             ]
 
