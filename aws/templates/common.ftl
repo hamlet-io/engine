@@ -641,7 +641,8 @@
                         } ]
                     [/#if]
                 [/#list]
-                [#list ((credentialsObject[core.Tier.Name + "-" + core.Component.Name])!{})?values as credential]
+
+                [#list ((credentialsObject[formatName(core.Tier, core.Component)])!{})?values as credential]
                     [#list credential as name,value]
                         [#local result +=
                             {
@@ -929,6 +930,7 @@
     [#list getOccurrences(
                 getTier(link.Tier),
                 getComponent(link.Tier, link.Component)) as targetOccurrence]
+
         [@cfDebug listMode targetOccurrence false /]
 
         [#local core = targetOccurrence.Core ]
