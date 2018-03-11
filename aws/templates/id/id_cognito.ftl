@@ -100,15 +100,15 @@
                        "Default" : "10"
                     },
                     {
-                        "Name" : "Lowercase",
+                        "Name" : "lowercase",
                         "Default" : true
                     },
                     {
-                        "Name" : "Uppercase",
+                        "Name" : "uppercase",
                         "Default" : true
                     },
                     {
-                        "Name" : "Numbers",
+                        "Name" : "numbers",
                         "Default" : true
                     },
                     {
