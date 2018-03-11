@@ -11,6 +11,9 @@
         [#list requiredOccurrences(
                 occurrence.Occurrences![],
                 deploymentUnit) as subOccurrence]
+
+            [@cfDebug listMode subOccurrence false /]
+
             [#assign core = subOccurrence.Core ]
             [#assign configuration = subOccurrence.Configuration ]
             [#assign resources = subOccurrence.State.Resources]

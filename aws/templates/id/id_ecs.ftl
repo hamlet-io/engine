@@ -27,6 +27,87 @@
                 component)]
 [/#function]
 
+[#assign
+    containerChildrenConfiguration = [
+        {
+            "Name" : "Cpu",
+            "Default" : ""
+        },
+        {
+            "Name" : "Links",
+            "Subobjects" : true,
+            "Children" : linkChildrenConfiguration
+        },
+        {
+            "Name" : "LocalLogging",
+            "Default" : false
+        },
+        {
+            "Name" : "LogDriver"
+        },
+        {
+            "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
+            "Default" : ""
+        },
+        {
+            "Name" : ["MemoryReservation", "Memory", "ReservedMemory"],
+            "Mandatory" : true
+        },
+        {
+            "Name" : "Ports",
+            "Subobjects" : true,
+            "Children" : [
+                "Container",
+                {
+                    "Name" : "DynamicHostPort",
+                    "Default" : false
+                },
+                {
+                    "Name" : "ELB",
+                    "Default" : ""
+                },
+                {
+                    "Name" : "LB",
+                    "Children" : [
+                        {
+                            "Name" : "Component",
+                            "Mandatory" : true
+                        },
+                        {
+                            "Name" : "Path",
+                            "Default" : ""
+                        },
+                        {
+                            "Name" : "Port",
+                            "Default" : ""
+                        },
+                        {
+                            "Name" : "PortMapping",
+                            "Default" : ""
+                        },
+                        {
+                            "Name" : "Priority",
+                            "Default" : 100
+                        },
+                        {
+                            "Name" : "TargetGroup",
+                            "Default" : ""
+                        },
+                        {
+                            "Name" : "Tier",
+                            "Mandatory" : true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Name" : "Version",
+            "Default" : ""
+        }
+    ]
+]
+
 [#assign componentConfiguration +=
     {
         ECS_COMPONENT_TYPE : {
@@ -59,12 +140,13 @@
         },
         SERVICE_COMPONENT_TYPE : [
             {
-                "Name" : "DesiredCount",
-                "Default" : -1
+                "Name" : "Containers",
+                "Subobjects" : true,
+                "Children" : containerChildrenConfiguration
             },
             {
-                "Name" : "Containers",
-                "Default" : {}
+                "Name" : "DesiredCount",
+                "Default" : -1
             },
             {
                 "Name" : "UseTaskRole",
@@ -74,14 +156,16 @@
         TASK_COMPONENT_TYPE : [
             {
                 "Name" : "Containers",
-                "Default" : {}
+                "Subobjects" : true,
+                "Children" : containerChildrenConfiguration
             },
             {
                 "Name" : "UseTaskRole",
                 "Default" : true
             } 
         ]
-    }]
+    }
+]
     
 [#function getECSState occurrence]
     [#local core = occurrence.Core ]
