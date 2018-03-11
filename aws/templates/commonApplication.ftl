@@ -253,193 +253,188 @@
 
     [#local containers = [] ]
 
-    [#list (configuration.Containers!{})?values as container]
-        [#if container?is_hash]
-
-            [#local portMappings = [] ]
-            [#list (container.Ports!{})?values as port]
-                [#if port?is_hash]
-                    [#local targetLoadBalancer = {} ]
-                    [#local targetTierId = (port.LB.Tier)!port.ELB?has_content?then("elb", "") ]
-                    [#local targetComponentId = port.LB.Component!port.ELB?has_content?then(port.ELB, "") ]
-                    [#local targetGroup = (port.LB.TargetGroup)!""]
-                    [#local targetPath = (port.LB.Path)!""]
-                    [#local targetType = port.ELB?has_content?then("elb", "alb")]
-                    
-                    [#if targetTierId?has_content && targetComponentId?has_content]
-                        [#-- Work out which occurrence to use --]
-                        [#local targetComponent =
-                            getComponent(
-                                targetTierId,
-                                targetComponentId,
-                                targetType)]
-                        [#local instanceAndVersionMatch = {}]
-                        [#local instanceMatch = {}]
-                        [#if targetComponent?has_content]
-                            [#list getOccurrences(getTier(targetTierId), targetComponent) as targetOccurrence]
-                                [#if core.Instance.Id == targetOccurrence.Core.Instance.Id]
-                                    [#if core.Version.Id == targetOccurrence.Core.Version.Id]
-                                        [#local instanceAndVersionMatch = targetOccurrence]
-                                    [#else]
-                                        [#if (core.Version.Id?has_content) &&
-                                                (!(targetOccurrence.Core.Version.Id?has_content))]
-                                            [#local instanceMatch = targetOccurrence]
-                                        [/#if]
-                                    [/#if]
+    [#list configuration.Containers?values as container]
+        [#local portMappings = [] ]
+        [#list container.Ports?values as port]
+            [#local targetLoadBalancer = {} ]
+            [#local targetTierId = (port.LB.Tier)!port.ELB ]
+            [#local targetComponentId = (port.LB.Component)!port.ELB ]
+            [#local targetGroup = port.LB.TargetGroup]
+            [#local targetPath = port.LB.Path]
+            [#local targetPort = port.LB.Port]
+            [#local targetPortMapping = port.LB.PortMapping]
+            [#local targetType = port.ELB?has_content?then("elb", "alb")]
+            
+            [#if targetTierId?has_content && targetComponentId?has_content]
+                [#-- Work out which occurrence to use --]
+                [#local targetComponent =
+                    getComponent(
+                        targetTierId,
+                        targetComponentId,
+                        targetType)]
+                [#local instanceAndVersionMatch = {}]
+                [#local instanceMatch = {}]
+                [#if targetComponent?has_content]
+                    [#list getOccurrences(getTier(targetTierId), targetComponent) as targetOccurrence]
+                        [#if core.Instance.Id == targetOccurrence.Core.Instance.Id]
+                            [#if core.Version.Id == targetOccurrence.Core.Version.Id]
+                                [#local instanceAndVersionMatch = targetOccurrence]
+                            [#else]
+                                [#if (core.Version.Id?has_content) &&
+                                        (!(targetOccurrence.Core.Version.Id?has_content))]
+                                    [#local instanceMatch = targetOccurrence]
                                 [/#if]
-                            [/#list]
-                        [/#if]
-                        [#if instanceAndVersionMatch?has_content]
-                            [#local targetLoadBalancer = instanceAndVersionMatch]
-                            [#if (targetType == "alb") && (!(targetGroup?has_content))]
-                                [#local targetGroup = "default"]
-                            [/#if]
-                        [#else]
-                            [#if instanceMatch?has_content && (targetType == "alb")]
-                                [#local targetLoadBalancer = instanceMatch]
-                                [#local targetGroup = core.Version.Id]
-                                [#local targetPath =
-                                    "/" + core.Version.Id + 
-                                    (port.LB.Path)?has_content?then(
-                                        port.LB.Path,
-                                        "/*"
-                                    )
-                                ]
                             [/#if]
                         [/#if]
-                            
-                        [#local targetPort =
-                            (port.LB.Port)?has_content?then(
-                                port.LB.Port,
-                                (port.LB.PortMapping)?has_content?then(
-                                    portMappings[port.LB.PortMapping].Source,
-                                    port.Id
-                                )
-                            )]
-                    [/#if]
-
-                    [#local portMappings +=
-                        [
-                            {
-                                "ContainerPort" :
-                                    port.Container?has_content?then(
-                                        port.Container,
-                                        port.Id
-                                    ),
-                                "HostPort" : port.Id,
-                                "DynamicHostPort" : port.DynamicHostPort!false
-                            } +
-                            valueIfContent(
-                                {
-                                    "LoadBalancer" :
-                                        {
-                                            "Tier" : targetTierId,
-                                            "Component" : targetComponentId,
-                                            "Instance" : targetLoadBalancer.Instance.Id,
-                                            "Version" : targetLoadBalancer.Version.Id
-                                        } +
-                                        valueIfContent(
-                                            {
-                                                "TargetGroup" : targetGroup,
-                                                "Port" : targetPort,
-                                                "Priority" : (port.LB.Priority)!100,
-                                                "Path" : targetPath
-                                            },
-                                            targetGroup
-                                        )
-                                },
-                                targetLoadBalancer
-                            )
-                        ]
-                    ]
+                    [/#list]
                 [/#if]
-            [/#list]
-            
-            [#local logDriver = 
-                (container.LogDriver)!
-                (appSettingsObject.Docker.LogDriver)!
-                (
-                    ((appSettingsObject.Docker.LocalLogging)!false) ||
-                    (container.LocalLogging!false)
-                )?then(
-                    "json-file",
-                    "awslogs"
-                )]
-                
-            [#local logOptions = 
-                logDriver?switch(
-                    "fluentd", 
-                    {
-                        "tag" : concatenate(
-                                    [
-                                        "docker",
-                                        productId,
-                                        segmentId,
-                                        tier.Id,
-                                        component.Id,
-                                        container.Id
-                                    ],
-                                    "."
-                                )
-                    },
-                    "awslogs",
-                    {
-                        "awslogs-group":
-                            getReference(formatComponentLogGroupId(tier, component)),
-                        "awslogs-region": regionId,
-                        "awslogs-stream-prefix": formatName(task)
-                    },
-                    {}
-                )]
-
-            [#assign context = 
-                {
-                    "Id" : getContainerId(container),
-                    "Name" : getContainerName(container),
-                    "Instance" : core.Instance.Id,
-                    "Version" : core.Version.Id,
-                    "Essential" : true,
-                    "Image" :
-                        formatRelativePath(
-                            getRegistryEndPoint("docker"),
-                            productName,
-                            formatName(
-                                buildDeploymentUnit,
-                                buildCommit!"build_commit_missing"
-                            )
-                        ),
-                    "MemoryReservation" : container.Memory,
-                    "LogDriver" : logDriver,
-                    "LogOptions" : logOptions,
-                    "Environment" :
-                        standardEnvironment(
-                            tier,
-                            component,
-                            task,
-                            getContainerMode(container)) +
-                        {
-                            "AWS_REGION" : regionId
-                        },
-                    "Links" : getLinkTargets(task, container.Links!{}),
-                    "DefaultLinkVariables" : true
-                } +
-                attributeIfContent("ImageVersion", container.Version!"") +
-                attributeIfContent("Cpu", container.Cpu!"") +
-                attributeIfContent("MaximumMemory", container.MaximumMemory!"") +
-                attributeIfContent("PortMappings", portMappings)
-            ]
-
-            [#-- Add in container specifics including override of defaults --]
-            [#assign containerListMode = "model"]
-            [#assign containerId = formatContainerFragmentId(task, container)]
-            [#include containerList]
-            
-            [#if context.DefaultLinkVariables]
-                [#assign context = addDefaultLinkVariablesToContext(context) ]
+                [#if instanceAndVersionMatch?has_content]
+                    [#local targetLoadBalancer = instanceAndVersionMatch]
+                    [#if (targetType == "alb") && (!(targetGroup?has_content))]
+                        [#local targetGroup = "default"]
+                    [/#if]
+                [#else]
+                    [#if instanceMatch?has_content && (targetType == "alb")]
+                        [#local targetLoadBalancer = instanceMatch]
+                        [#local targetGroup = core.Version.Id]
+                        [#local targetPath =
+                            "/" + core.Version.Id + 
+                            valueIfContent(targetPath, targetPath, "/*") ]
+                    [/#if]
+                [/#if]
+                    
+                [#local targetPort =
+                    valueIfContent(
+                        targetPort,
+                        targetPort,
+                        valueIfContent(
+                            (portMappings[targetPortMapping].Source)!"",
+                            targetPortMapping,
+                            port.Id
+                        )
+                    ) ]
             [/#if]
 
-            [#local containers += [context] ]
+            [#local portMappings +=
+                [
+                    {
+                        "ContainerPort" :
+                            port.Container?has_content?then(
+                                port.Container,
+                                port.Id
+                            ),
+                        "HostPort" : port.Id,
+                        "DynamicHostPort" : port.DynamicHostPort
+                    } +
+                    valueIfContent(
+                        {
+                            "LoadBalancer" :
+                                {
+                                    "Tier" : targetTierId,
+                                    "Component" : targetComponentId,
+                                    "Instance" : targetLoadBalancer.Instance.Id,
+                                    "Version" : targetLoadBalancer.Version.Id
+                                } +
+                                valueIfContent(
+                                    {
+                                        "TargetGroup" : targetGroup,
+                                        "Port" : targetPort,
+                                        "Priority" : port.LB.Priority,
+                                        "Path" : targetPath
+                                    },
+                                    targetGroup
+                                )
+                        },
+                        targetLoadBalancer
+                    )
+                ]
+            ]
+        [/#list]
+        
+        [#local logDriver = 
+            (container.LogDriver)!
+            (appSettingsObject.Docker.LogDriver)!
+            (
+                ((appSettingsObject.Docker.LocalLogging)!false) ||
+                (container.LocalLogging!false)
+            )?then(
+                "json-file",
+                "awslogs"
+            )]
+            
+        [#local logOptions = 
+            logDriver?switch(
+                "fluentd", 
+                {
+                    "tag" : concatenate(
+                                [
+                                    "docker",
+                                    productId,
+                                    segmentId,
+                                    tier.Id,
+                                    component.Id,
+                                    container.Id
+                                ],
+                                "."
+                            )
+                },
+                "awslogs",
+                {
+                    "awslogs-group":
+                        getReference(formatComponentLogGroupId(tier, component)),
+                    "awslogs-region": regionId,
+                    "awslogs-stream-prefix": formatName(task)
+                },
+                {}
+            )]
+
+        [#assign context = 
+            {
+                "Id" : getContainerId(container),
+                "Name" : getContainerName(container),
+                "Instance" : core.Instance.Id,
+                "Version" : core.Version.Id,
+                "Essential" : true,
+                "Image" :
+                    formatRelativePath(
+                        getRegistryEndPoint("docker"),
+                        productName,
+                        formatName(
+                            buildDeploymentUnit,
+                            buildCommit!"build_commit_missing"
+                        )
+                    ),
+                "MemoryReservation" : container.MemoryReservation,
+                "LogDriver" : logDriver,
+                "LogOptions" : logOptions,
+                "Environment" :
+                    standardEnvironment(
+                        tier,
+                        component,
+                        task,
+                        getContainerMode(container)) +
+                    {
+                        "AWS_REGION" : regionId
+                    },
+                "Links" : getLinkTargets(task, container.Links),
+                "DefaultLinkVariables" : true
+            } +
+            attributeIfContent("ImageVersion", container.Version) +
+            attributeIfContent("Cpu", container.Cpu) +
+            attributeIfContent("MaximumMemory", container.MaximumMemory) +
+            attributeIfContent("PortMappings", portMappings)
+        ]
+
+        [#-- Add in container specifics including override of defaults --]
+        [#assign containerListMode = "model"]
+        [#assign containerId = formatContainerFragmentId(task, container)]
+        [#include containerList]
+        
+        [#if context.DefaultLinkVariables]
+            [#assign context = addDefaultLinkVariablesToContext(context) ]
         [/#if]
+
+        [#local containers += [context] ]
     [/#list]
     [#return containers]
 [/#function]

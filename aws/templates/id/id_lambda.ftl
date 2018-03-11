@@ -34,20 +34,41 @@
             ]
         },
         LAMBDA_FUNCTION_COMPONENT_TYPE : [
-            "RunTime",
             "Container",
-            "Handler",
+            {
+                "Name" : "Handler",
+                "Mandatory" : true
+            },
             {
                 "Name" : "Links",
-                "Default" : {}
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             },
             {
                 "Name" : ["Memory", "MemorySize"],
                 "Default" : 0
             },
             {
+                "Name" : "RunTime",
+                "Mandatory" : true
+            },
+            {
                 "Name" : "Schedules",
-                "Default" : {}
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Name" : "Enabled",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "Expression",
+                        "Default" : "rate(30 minutes)"
+                    },
+                    {
+                        "Name" : "InputPath",
+                        "Default" : "/healthcheck"
+                    }
+                ]
             },
             {
                 "Name" : "Timeout",
