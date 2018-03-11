@@ -2,6 +2,41 @@
 
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
+[#assign
+    filterChildrenConfiguration = [
+        "Tenant",
+        "Product",
+        {
+            "Name" : "Tier",
+            "Mandatory" : true
+        },
+        {
+            "Name" : "Component",
+            "Mandatory" : true
+        },
+        {
+            "Name" : ["Function", "Subcomponent"]
+        },
+        {
+            "Name" : ["Service", "Subcomponent"]
+        },
+        {
+            "Name" : ["Task", "Subcomponent"]
+        },
+        "Instance",
+        "Version"
+    ]
+]
+
+[#assign
+    linkChildrenConfiguration =
+        filterChildrenConfiguration +
+        [
+            "Role",
+            "Direction"
+        ]
+]
+
 
 [#include idList]
 [#include nameList]

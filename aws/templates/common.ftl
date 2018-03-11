@@ -49,7 +49,7 @@
             [#return default]
         [/#if]
     [/#list]
-        
+
     [#return descendent]
 [/#function]
 
@@ -59,7 +59,7 @@
       [#return
         object +
         {
-          effectivePath?first : 
+          effectivePath?first :
             setDescendent(
               object[effectivePath?first]!{},
               descendent,
@@ -180,7 +180,7 @@
 [/#function]
 
 [#function deploymentSubsetRequired subset default=false]
-    [#return 
+    [#return
         deploymentUnitSubset?has_content?then(
             deploymentUnitSubset?lower_case?contains(subset),
             default
@@ -223,7 +223,7 @@
             "appdata",
             (appSettingsObject.FilePrefixes.AppData)!
                 (appSettingsObject.DefaultFilePrefix)!
-                deploymentUnit)]     
+                deploymentUnit)]
 [/#function]
 
 [#function getAppDataPublicFilePrefix ]
@@ -235,7 +235,7 @@
                 (appSettingsObject.DefaultFilePrefix)!
                 deploymentUnit)]
     [#else]
-        [#return 
+        [#return
             ""
         ]
     [/#if]
@@ -425,7 +425,7 @@
 
     [#if attributes?has_content]
         [#list asFlattenedArray(attributes) as attribute]
-            [#local attributeNames = 
+            [#local attributeNames =
                 attribute?is_sequence?then(
                     attribute,
                     attribute?is_hash?then(
@@ -434,79 +434,142 @@
                             [attribute.Name]),
                         [attribute])) ]
 
+            [#local mandatory = attribute?is_hash?then(attribute.Mandatory!false, false) ]
+            [#local defaultProvided = attribute?is_hash?then(attribute.Default??, false) ]
             [#local children = attribute?is_hash?then(attribute.Children![], []) ]
+            [#local subobjects = attribute?is_hash?then(attribute.Subobjects!false, false) ]
             [#local populateMissingChildren = attribute?is_hash?then(attribute.PopulateMissingChildren!true, true) ]
-    
+
             [#-- Look for the first name alternative --]
-            [#local firstName = ""]
+            [#local providedName = ""]
+            [#local providedValue = ""]
             [#list attributeNames as attributeName]
                 [#if attributeName == "*"]
-                    [#local firstName = "*"]
+                    [#local providedName = "*"]
                 [/#if]
-                [#if firstName?has_content]
+                [#if providedName?has_content]
                     [#break]
                 [#else]
                     [#list candidates?reverse as object]
                         [#if object[attributeName]??]
-                            [#local firstName = attributeName]
+                            [#local providedName = attributeName ]
+                            [#local providedValue = object[attributeName] ]
                             [#break]
                         [/#if]
                     [/#list]
                 [/#if]
             [/#list]
-            [#if firstName == "*"]
+
+            [#-- Name wildcard means include all candidate objects --]
+            [#if providedName == "*"]
                 [#break]
             [/#if]
-    
+
+            [#-- Throw an exception if a mandatory attribute is missing --]
+            [#if mandatory && ( !(providedName?has_content) ) ]
+                [@cfException
+                    mode=listMode
+                    description="Mandatory attribute missing"
+                    context=
+                        {
+                            "ExpectedNames" : attributeNames,
+                            "CandidateObjects" : objects
+                        }
+                /]
+
+                [#-- Provide a value so hopefully generation completes successfully --]
+                [#if children?has_content]
+                    [#local populateMissingChildren = true ]
+                [#else]
+                    [#-- providedName just needs to have content --]
+                    [#local providedName = "default" ]
+                    [#local providedValue = "Mandatory value missing" ]
+                [/#if]
+            [/#if]
+
             [#if children?has_content]
                 [#local childObjects = [] ]
                 [#list candidates as object]
-                    [#if object[firstName]??]
-                        [#local childObjects += [object[firstName]] ]
+                    [#if object[providedName]??]
+                        [#local childObjects += [object[providedName]] ]
                     [/#if]
                 [/#list]
                 [#if populateMissingChildren || childObjects?has_content]
-                    [#local result +=
-                        {
-                            attributeNames[0] :
-                                populateMissingChildren?then(
-                                    {
-                                        "Configured" : firstName?has_content
-                                    },
-                                    {}
-                                ) +
-                                getCompositeObject(children, childObjects)
-                        }
-                        
-                    ]
+                    [#local attributeResult = {} ]
+                    [#if subobjects ]
+                        [#local subobjectKeys = [] ]
+                        [#list childObjects as childObject]
+                            [#list childObject as key,value]
+                                [#if value?is_hash]
+                                    [#local subobjectKeys += [key] ]
+                                [/#if]
+                            [/#list]
+                        [/#list]
+
+                        [#list subobjectKeys as subobjectKey ]
+                            [#if subobjectKey == "Configuration" ]
+                                [#continue]
+                            [/#if]
+                            [#local subobjectValues = [] ]
+                            [#list childObjects as childObject ]
+                                [#local subobjectValues +=
+                                    [
+                                        childObject.Configuration!{},
+                                        childObject[subobjectKey]!{}
+                                    ]
+                                ]
+                            [/#list]
+                            [#local attributeResult +=
+                                {
+                                  subobjectKey :
+                                      getCompositeObject(
+                                          [
+                                              {
+                                                  "Name" : "Id",
+                                                  "Mandatory" : true
+                                              },
+                                              {
+                                                  "Name" : "Name",
+                                                  "Mandatory" : true
+                                              }
+                                          ] +
+                                          children,
+                                          subobjectValues)
+                                }
+                            ]
+                        [/#list]
+                    [#else]
+                        [#local attributeResult =
+                            populateMissingChildren?then(
+                                {
+                                    "Configured" : providedName?has_content
+                                },
+                                {}
+                            ) +
+                            getCompositeObject(children, childObjects)
+                        ]
+                    [/#if]
+                    [#local result += { attributeNames[0] : attributeResult } ]
                 [/#if]
             [#else]
-                [#local valueProvided = false ]
-                [#list candidates?reverse as object]
-                    [#if object[firstName]??]
-                        [#local attributeValue = object[firstName] ]
-                        [#local valueProvided = true ]
-                        [#break]
-                    [/#if]
-                [/#list]
-                [#if valueProvided]
+                [#if providedName?has_content ]
                     [#local result +=
                         {
-                            attributeNames[0] : attributeValue
+                            attributeNames[0] : providedValue
                         }
                     ]
                 [#else]
-                    [#if attribute?is_hash && attribute.Default?? ]
-                        [#local result += 
+                    [#if defaultProvided ]
+                        [#local result +=
                             {
                                 attributeNames[0] : attribute.Default
                             }
-                        ]          
+                        ]
                     [/#if]
                 [/#if]
             [/#if]
         [/#list]
-        [#if firstName != "*"]
+        [#if providedName != "*"]
             [#return result ]
         [/#if]
     [/#if]
@@ -514,7 +577,7 @@
     [#list candidates as object]
         [#local result += object?is_hash?then(object, {}) ]
     [/#list]
-    [#return result ] 
+    [#return result ]
 [/#function]
 
 [#function getObjectAndQualifiers object qualifiers...]
@@ -600,15 +663,15 @@
             [#case "alb"]
                 [#local result = getALBState(occurrence)]
                 [#break]
-    
+
             [#case "apigateway"]
                 [#local result = getAPIGatewayState(occurrence)]
                 [#break]
-            
+
             [#case "contenthub"]
                 [#local result = getContentHubState(occurrence)]
                 [#break]
-            
+
             [#case "contentnode"]
                 [#local result = getContentNodeState(occurrence)]
                 [#break]
@@ -616,11 +679,11 @@
             [#case "ecs"]
                 [#local result = getECSState(occurrence)]
                 [#break]
-    
+
             [#case "efs"]
                 [#local result = getEFSState(occurrence)]
                 [#break]
-    
+
             [#case "external"]
                 [#local result =
                     {
@@ -651,7 +714,7 @@
                     [/#list]
                 [/#list]
                 [#break]
-    
+
             [#case "lambda"]
                 [#local result = getLambdaState(occurrence)]
                 [#break]
@@ -663,7 +726,7 @@
             [#case "rds"]
                 [#local result = getRDSState(occurrence)]
                 [#break]
-    
+
             [#case "s3"]
                 [#local result = getS3State(occurrence)]
                 [#break]
@@ -671,20 +734,20 @@
             [#case "service"]
                 [#local result = getServiceState(occurrence)]
                 [#break]
-    
+
             [#case "spa"]
                 [#local result = getSPAState(occurrence)]
                 [#break]
-    
+
             [#case "sqs"]
                 [#local result = getSQSState(occurrence)]
                 [#break]
-    
+
             [#case "task"]
                 [#local result = getTaskState(occurrence)]
                 [#break]
-    
-            [#case "userpool"] 
+
+            [#case "userpool"]
                 [#local result = getUserPoolState(occurrence)]
                 [#break]
         [/#switch]
@@ -853,21 +916,37 @@
 
                     [#local subOccurrences = [] ]
                     [#list subComponents as subComponent]
-                        [#if ((typeObject[subComponent.Component])!"")?has_content ]
-                            [#list typeObject[subComponent.Component]?values as subComponentInstance ]
-                                [#if subComponentInstance?is_hash]
-                                    [#local
-                                        subOccurrences +=
-                                            getOccurrencesInternal(
-                                                subComponentInstance,
-                                                {},
-                                                occurrence,
-                                                contexts,
-                                                subComponent.Type)
-                                    ]
+                        [#-- Subcomponent instances can either be under a Components --]
+                        [#-- attribute or directly under the subcomponent object.    --]
+                        [#-- For the latter case, any default configuration must be  --]
+                        [#-- under a Configuration attribute to avoid the            --]
+                        [#-- configuration being treated as subcomponent instances.  --]
+                        [#local subComponentInstances =
+                            (typeObject[subComponent.Component].Components)!
+                            (typeObject[subComponent.Component])!
+                            {}
+                        ]
+                        [#list subComponentInstances as key,subComponentInstance ]
+                            [#if subComponentInstance?is_hash ]
+                                [#if key == "Configuration" ]
+                                    [#continue]
                                 [/#if]
-                            [/#list]
-                        [/#if]
+                                [#local
+                                    subOccurrences +=
+                                        getOccurrencesInternal(
+                                            subComponentInstance,
+                                            {},
+                                            occurrence,
+                                            contexts +
+                                                [
+                                                    typeObject[subComponent.Component],
+                                                    typeObject[subComponent.Component].Configuration!{}
+                                                ],
+                                            subComponent.Type
+                                        )
+                                ]
+                            [/#if]
+                        [/#list]
                     [/#list]
 
                     [#local occurrences +=
@@ -925,7 +1004,7 @@
             attributeIfContent("Role", link.Role!"")
         ]
     [/#if]
-    
+
     [#list getOccurrences(
                 getTier(link.Tier),
                 getComponent(link.Tier, link.Component)) as targetOccurrence]
@@ -949,7 +1028,7 @@
 
         [#-- Legacy support for links to lambda without explicit function --]
         [#if targetOccurrence.Occurrences?has_content &&
-                subComponentId == "" && 
+                subComponentId == "" &&
                 (core.Type == LAMBDA_COMPONENT_TYPE) ]
             [#local subComponentId = (targetOccurrence.Occurrences[0].Core.SubComponent.Id)!"" ]
         [/#if]
@@ -1014,7 +1093,7 @@
     [#list (valueIfContent(links, links, occurrence.Configuration.Links!{}))?values as link]
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link)!{} ]
-            
+
             [#local result +=
                 valueIfContent(
                     {
@@ -1110,7 +1189,7 @@
 
 [#function getCertificateObject start qualifiers...]
 
-    [#local certificateObject = 
+    [#local certificateObject =
         getCompositeObject(
             [
                 "External",
@@ -1200,8 +1279,8 @@
             ]
         )
     ]
-    
-    [#if pathObject.Style = "single" ] 
+
+    [#if pathObject.Style = "single" ]
         [#return formatName(path) ]
     [#else]
         [#return formatRelativePath(path)]
@@ -1242,4 +1321,4 @@
 
 [#macro toJSON obj escaped=false]
     ${getJSON(obj, escaped)}[/#macro]
-        
+

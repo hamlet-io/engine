@@ -165,29 +165,27 @@
                     dependencies=roleId
                 /]
                 
-                [#list (configuration.Schedules!{})?values as schedule ]
-                    [#if schedule?is_hash]
-                        [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
-    
-                        [@createScheduleEventRule
-                            mode=listMode
-                            id=scheduleRuleId
-                            targetId=fnId
-                            enabled=schedule.Enabled
-                            scheduleExpression=schedule.Expression
-                            path=schedule.InputPath
-                            dependencies=fnId
-                        /]
-    
-                        [@createLambdaPermission
-                            mode=listMode
-                            id=formatLambdaPermissionId(fn, "schedule", schedule.Id)
-                            targetId=fnId
-                            sourcePrincipal="events.amazonaws.com"
-                            sourceId=scheduleRuleId
-                            dependencies=scheduleRuleId
-                        /]
-                    [/#if]
+                [#list configuration.Schedules?values as schedule ]
+                    [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
+
+                    [@createScheduleEventRule
+                        mode=listMode
+                        id=scheduleRuleId
+                        targetId=fnId
+                        enabled=schedule.Enabled
+                        scheduleExpression=schedule.Expression
+                        path=schedule.InputPath
+                        dependencies=fnId
+                    /]
+
+                    [@createLambdaPermission
+                        mode=listMode
+                        id=formatLambdaPermissionId(fn, "schedule", schedule.Id)
+                        targetId=fnId
+                        sourcePrincipal="events.amazonaws.com"
+                        sourceId=scheduleRuleId
+                        dependencies=scheduleRuleId
+                    /]
                 [/#list]
                 
                 [#-- Pick any extra macros in the container fragment --]

@@ -17,7 +17,7 @@
     }
 ]
 
-[#macro createScheduleEventRule mode id targetId enabled=false scheduleExpression="rate(30 minutes)" path="/healthcheck" dependencies=""]
+[#macro createScheduleEventRule mode id targetId enabled scheduleExpression path dependencies=""]
 
     [#if enabled ] 
         [#assign state = "ENABLED" ]
