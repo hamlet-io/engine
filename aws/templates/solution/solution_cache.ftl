@@ -32,7 +32,7 @@
     [#assign cacheId = formatCacheId(
                         tier,
                         component)]
-    [#assign cacheFullName = componentFullName]
+    [#assign cacheFullName = formatComponentFullName(tier, component) ]
     [#assign cacheSubnetGroupId = formatCacheSubnetGroupId(tier, component)]
     [#assign cacheParameterGroupId = formatCacheParameterGroupId(tier, component)]
 

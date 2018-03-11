@@ -5,7 +5,7 @@
     [#assign loadBalanced = ec2.LoadBalanced!false]
     [#assign dockerHost = ec2.DockerHost!false]
 
-    [#assign ec2FullName = formatName(tenantId, componentFullName) ]
+    [#assign ec2FullName = formatName(tenantId, formatComponentFullName(tier, component)) ]
     [#assign ec2SecurityGroupId = formatEC2SecurityGroupId(tier, component)]
     [#assign ec2RoleId = formatEC2RoleId(tier, component)]
     [#assign ec2InstanceProfileId = formatEC2InstanceProfileId(tier, component)]

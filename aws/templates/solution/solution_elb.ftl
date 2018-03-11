@@ -3,8 +3,8 @@
     [#assign elb = component.ELB]
 
     [#assign elbId = formatELBId(tier, component)]
-    [#assign elbFullName = componentFullName]
-    [#assign elbShortFullName = componentShortFullName]
+    [#assign elbFullName = formatComponentFullName(tier, component) ]
+    [#assign elbShortFullName = formatComponentShortFullName(tier, component)]
     [#assign securityGroupId = formatComponentSecurityGroupId(tier, component) ]
     [#assign healthCheckDestination = ports[portMappings[elb.PortMappings[0]].Destination] ]
 
