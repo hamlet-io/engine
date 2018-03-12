@@ -50,8 +50,8 @@
                     [#assign linkDirection = linkTarget.Direction ]
 
                     [#switch linkTargetCore.Type!""]
-                        [#case "userpool"] 
-                            [#if linkTargetResources["userpool"].Deployed &&
+                        [#case USERPOOL_COMPONENT_TYPE] 
+                            [#if linkTargetResources[USERPOOL_COMPONENT_TYPE].Deployed &&
                                     (linkDirection == "inbound")]
                                 [@createLambdaPermission
                                     mode=listMode
