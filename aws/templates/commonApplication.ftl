@@ -52,7 +52,7 @@
     [#return
         context +
         {
-            "Environment" : 
+            "Environment" :
                 (context.Environment!{}) +
                 {
                     formatVariableName(name) : (value?is_hash || value?is_sequence)?then(getJSON(value, true), value)
@@ -73,7 +73,7 @@
 
 [#function addLinkVariablesToContext context name link attributes rawName=false]
     [#local result = context ]
-    [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]  
+    [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]
     [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
     [#if linkAttributes?has_content]
         [#list attributeList as attribute]
@@ -124,7 +124,7 @@
     [@Variable
         name=id
         value=getDescendent(
-                  credentialsObject, 
+                  credentialsObject,
                   "ERROR: Missing credential id",
                   path?is_string?then(path?split("."), path) + [idAttribute]) /]
   [/#if]
@@ -132,7 +132,7 @@
     [@Variable
         name=secret
         value=getDescendent(
-                  credentialsObject, 
+                  credentialsObject,
                   "ERROR: Missing credential secret",
                   path?is_string?then(path?split("."), path) + [secretAttribute]) /]
   [/#if]
@@ -183,7 +183,7 @@
         [#assign context +=
             {
                 "Volumes" :
-                    (context.Volumes!{}) + 
+                    (context.Volumes!{}) +
                     {
                         name : {
                             "ContainerPath" : containerPath,
@@ -239,9 +239,9 @@
         } +
         attributeIfContent("APP_RUN_MODE", mode) +
         attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
-        attributeIfContent("APP_REFERENCE", appReference!"") + 
+        attributeIfContent("APP_REFERENCE", appReference!"") +
         attributeIfContent("APPDATA_PUBLIC_PREFIX" getAppDataPublicFilePrefix()) +
-        attributeIfContent("SES_REGION", (productObject.SES.Region)!"")        
+        attributeIfContent("SES_REGION", (productObject.SES.Region)!"")
     ]
 [/#function]
 
@@ -266,7 +266,7 @@
             [#local targetPort = port.LB.Port]
             [#local targetPortMapping = port.LB.PortMapping]
             [#local targetType = port.ELB?has_content?then("elb", "alb")]
-            
+
             [#if targetTierId?has_content && targetComponentId?has_content]
                 [#-- Work out which occurrence to use --]
                 [#local targetComponent =
@@ -300,11 +300,11 @@
                         [#local targetLoadBalancer = instanceMatch]
                         [#local targetGroup = core.Version.Id]
                         [#local targetPath =
-                            "/" + core.Version.Id + 
+                            "/" + core.Version.Id +
                             valueIfContent(targetPath, targetPath, "/*") ]
                     [/#if]
                 [/#if]
-                    
+
                 [#local targetPort =
                     valueIfContent(
                         targetPort,
@@ -352,8 +352,8 @@
                 ]
             ]
         [/#list]
-        
-        [#local logDriver = 
+
+        [#local logDriver =
             (container.LogDriver)!
             (appSettingsObject.Docker.LogDriver)!
             (
@@ -363,10 +363,10 @@
                 "json-file",
                 "awslogs"
             )]
-            
-        [#local logOptions = 
+
+        [#local logOptions =
             logDriver?switch(
-                "fluentd", 
+                "fluentd",
                 {
                     "tag" : concatenate(
                                 [
@@ -390,7 +390,7 @@
                 {}
             )]
 
-        [#assign context = 
+        [#assign context =
             {
                 "Id" : getContainerId(container),
                 "Name" : getContainerName(container),
@@ -405,7 +405,7 @@
                             buildDeploymentUnit,
                             buildCommit!"build_commit_missing"
                         )
-                    ),                
+                    ),
                 "MemoryReservation" : container.MemoryReservation,
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
@@ -442,7 +442,7 @@
         [#assign containerListMode = "model"]
         [#assign containerId = formatContainerFragmentId(task, container)]
         [#include containerList]
-        
+
         [#if context.DefaultLinkVariables]
             [#assign context = addDefaultLinkVariablesToContext(context) ]
         [/#if]
@@ -451,7 +451,7 @@
     [/#list]
     [#return containers]
 [/#function]
-    
+
 [#-- Initialisation --]
 
 [#if buildReference?has_content]
