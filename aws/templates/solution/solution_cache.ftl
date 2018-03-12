@@ -63,7 +63,7 @@
         mode=listMode
         id=cacheSecurityGroupIngressId
         port=cache.Port
-        cidr="0.0.0.0"
+        cidr="0.0.0.0/0"
         groupId=cacheSecurityGroupId
     /]
 
