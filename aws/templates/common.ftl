@@ -668,6 +668,10 @@
                 [#local result = getAPIGatewayState(occurrence)]
                 [#break]
 
+            [#case "cache"]
+                [#local result = getCacheState(occurrence)]
+                [#break]
+
             [#case "contenthub"]
                 [#local result = getContentHubState(occurrence)]
                 [#break]
@@ -886,6 +890,16 @@
                             "Configuration" : getCompositeObject(attributes, contexts)
                         }
                     ]
+                    [#local occurrenceName=
+                        valueIfContent(
+                            formatName(
+                                (parentOccurrence.Core.Name)!"",
+                                occurrence.Core.Internal.IdExtensions),
+                            parentOccurrence,
+                            formatName(
+                                occurrence.Core.Tier,
+                                occurrence.Core.Component,
+                                occurrence.Core.Internal.NameExtensions)) ]
                     [#local occurrence +=
                         {
                             "Core" :
@@ -901,16 +915,8 @@
                                                 occurrence.Core.Tier,
                                                 occurrence.Core.Component,
                                                 occurrence.Core.Internal.NameExtensions)),
-                                    "Name" :
-                                        valueIfContent(
-                                            formatName(
-                                                (parentOccurrence.Core.Name)!"",
-                                                occurrence.Core.Internal.IdExtensions),
-                                            parentOccurrence,
-                                            formatName(
-                                                occurrence.Core.Tier,
-                                                occurrence.Core.Component,
-                                                occurrence.Core.Internal.NameExtensions))
+                                    "Name" : occurrenceName,
+                                    "FullName" : formatSegmentFullName(occurrenceName)
                                 }
                         } ]
                     [#local occurrence += { "State" : getOccurrenceState(occurrence) } ]

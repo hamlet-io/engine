@@ -94,7 +94,7 @@
             "Resources" : {
                 "lambda" : {
                     "Id" : formatResourceId(LAMBDA_RESOURCE_TYPE, core.Id),
-                    "Name" : formatSegmentFullName(core.Name)
+                    "Name" : core.FullName
                 }
             },
             "Attributes" : {
@@ -116,7 +116,7 @@
             "Resources" : {
                 "function" : {
                     "Id" : formatResourceId(LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id),
-                    "Name" : formatSegmentFullName(core.Name)
+                    "Name" : core.FullName
                 }
             },
             "Attributes" : {

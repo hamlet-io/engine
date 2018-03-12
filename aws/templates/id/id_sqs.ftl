@@ -30,7 +30,7 @@
     [#local core = occurrence.Core]
 
     [#local id = formatResourceId(SQS_RESOURCE_TYPE, core.Id) ]
-    [#local name = formatSegmentFullName(core.Name) ]
+    [#local name = core.FullName ]
 
     [#local dlqId = formatDependentResourceId(SQS_RESOURCE_TYPE, id, "dlq") ]
     [#local dlqName = formatName(name, "dlq")]
