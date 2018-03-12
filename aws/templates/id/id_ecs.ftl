@@ -46,8 +46,7 @@
             "Name" : "LogDriver"
         },
         {
-            "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
-            "Default" : ""
+            "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"]
         },
         {
             "Name" : ["MemoryReservation", "Memory", "ReservedMemory"],
