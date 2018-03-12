@@ -216,6 +216,8 @@
     [/#if]
 [/#macro]
 
+[#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
+
 [#function standardEnvironment tier component occurrence mode=""]
     [#return
         {
@@ -403,7 +405,7 @@
                             buildDeploymentUnit,
                             buildCommit!"build_commit_missing"
                         )
-                    ),
+                    ),                
                 "MemoryReservation" : container.MemoryReservation,
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
@@ -421,7 +423,18 @@
             } +
             attributeIfContent("ImageVersion", container.Version) +
             attributeIfContent("Cpu", container.Cpu) +
-            attributeIfContent("MaximumMemory", container.MaximumMemory) +
+            attributeIfTrue(
+                "MaximumMemory",
+                container.MaximumMemory?has_content &&
+                    container.MaximumMemory?is_number &&
+                    container.MaximumMemory > 0,
+                container.MaximumMemory!""
+            ) +
+            attributeIfTrue(
+                "MaximumMemory",
+                !container.MaximumMemory??,
+                container.MemoryReservation*ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER
+            ) +
             attributeIfContent("PortMappings", portMappings)
         ]
 
