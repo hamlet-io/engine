@@ -173,7 +173,7 @@
             "Resources" : {
                 "cluster" : {
                     "Id" : formatResourceId(ECS_RESOURCE_TYPE, core.Id),
-                    "Name" : formatSegmentFullName(core.Name)
+                    "Name" : core.FullName
                 },
                 "securityGroup" : {
                     "Id" : formatECSSecurityGroupId(core.Tier, core.Component)
