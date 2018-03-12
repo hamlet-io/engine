@@ -979,7 +979,7 @@
     [#return getOccurrencesInternal(component, tier) ]
 [/#function]
 
-[#function getLinkTarget occurrence link allowNotFound=false ]
+[#function getLinkTarget occurrence link ]
 
     [#if link.Tier?lower_case == "external"]
         [#local targetOccurrence =
@@ -1081,16 +1081,14 @@
         [/#list]
     [/#list]
 
-    [#if !allowNotFound ]
-        [@cfPostconditionFailed
-            listMode
-            "getLinkTarget"
-            {
-                "Occurrence" : occurrence,
-                "Link" : link
-            }
-            "Link not found" /]
-    [/#if]
+    [@cfPostconditionFailed
+        listMode
+        "getLinkTarget"
+        {
+            "Occurrence" : occurrence,
+            "Link" : link
+        }
+        "Link not found" /]
 
     [#return
         {

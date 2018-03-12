@@ -76,7 +76,7 @@
                         ]
                         [#break]
 
-                    [#case "userpool"] 
+                    [#case USERPOOL_COMPONENT_TYPE] 
                         [#if deploymentSubsetRequired("apigateway", true)]
         
                             [#assign policyId = formatDependentPolicyId(
@@ -88,8 +88,7 @@
                                 id=policyId
                                 name=apiName
                                 statements=asFlattenedArray(roles.Outbound["invoke"])
-                                roles=formatDependentIdentityPoolAuthRoleId(
-                                        formatIdentityPoolId(linkTargetCore.Tier, linkTargetCore.Component))
+                                roles=linkTargetResources["authrole"].Id
                             /]
                         [/#if]
                         [#break]

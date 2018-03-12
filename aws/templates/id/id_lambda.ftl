@@ -123,8 +123,8 @@
             },
             "Attributes" : {
                 "REGION" : regionId,
-                "ARN" : getExistingReference("id",ARN_ATTRIBUTE_TYPE)!"",
-                "NAME" : getExistingReference("id",NAME_ATTRIBUTE_TYPE)!""
+                "ARN" : getExistingReference(id,ARN_ATTRIBUTE_TYPE),
+                "NAME" : getExistingReference(id,NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Inbound" : {},

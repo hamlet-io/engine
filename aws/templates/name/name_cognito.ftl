@@ -1,24 +1,28 @@
 [#-- Cognito User Pool --]
 
-[#function formatUserPoolName tier component extensions... ]
+[#function formatUserPoolName occurrence extensions... ]
     [#return formatName(
         formatComponentFullName(
-            tier,
-            component))]
+            occurrence.Core.Tier,
+            occurrence.Core.Component,
+            occurrence,
+            extensions))]
 [/#function]
 
-[#function formatUserPoolClientName tier component extensions... ]
+[#function formatUserPoolClientName occurrence extensions... ]
     [#return formatName( 
         formatComponentFullName(
-            tier,
-            component))]
+            occurrence.Core.Tier,
+            occurrence.Core.Component,
+            occurrence,
+            extensions))]
 [/#function]
 
-[#function formatIdentityPoolName tier component extensions... ]
+[#function formatIdentityPoolName occurrence extensions... ]
     [#return formatId(
         productName,
         segmentName,
-        getTierId(tier),
-        getComponentId(component)
-    )]
+        occurrence.Core.Tier,
+        occurrence.Core.Component,
+        extensions)]
 [/#function]

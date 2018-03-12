@@ -6,27 +6,30 @@
 
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
 
-[#function formatUserPoolId tier component extensions...]
+[#function formatUserPoolId occurrence extensions...]
     [#return formatComponentResourceId(
-                USERPOOL_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
-
-[#function formatUserPoolClientId tier component extensions... ]
-    [#return formatComponentResourceId(
-            USERPOOL_CLIENT_RESOURCE_TYPE,
-            tier,
-            component,
+            USERPOOL_RESOURCE_TYPE,
+            occurrence.Core.Tier,
+            occurrence.Core.Component,
+            occurrence
             extensions)]
 [/#function]
 
-[#function formatIdentityPoolId tier component extensions... ]
+[#function formatUserPoolClientId occurrence extensions... ]
+    [#return formatComponentResourceId(
+            USERPOOL_CLIENT_RESOURCE_TYPE,
+            occurrence.Core.Tier,
+            occurrence.Core.Component,
+            occurrence
+            extensions)]
+[/#function]
+
+[#function formatIdentityPoolId occurrence extensions... ]
     [#return formatComponentResourceId(
             IDENTITYPOOL_RESOURCE_TYPE,
-            tier,
-            component,
+            occurrence.Core.Tier,
+            occurrence.Core.Component,
+            occurrence
             extensions)]
 [/#function]
 
@@ -63,66 +66,67 @@
                 "Default" : false
             },
             {
-                "Name" : "adminCreatesUser",
+                "Name" : "AdminCreatesUser",
                 "Default" : true
             },
             {
-                "Name" : "unusedAccountTimeout"
+                "Name" : "UnusedAccountTimeout"
             },
             {
-                "Name" : "verifyEmail",
+                "Name" : "VerifyEmail",
                 "Default" : true
             },
             {
-                "Name" : "verifyPhone",
+                "Name" : "VerifyPhone",
                 "Default" : false
             },
             {
-                "Name" : "loginAliases",
+                "Name" : "LoginAliases",
                 "Default" : [
                     "email"
                 ]
             },
             {
-                "Name" : "clientGenerateSecret",
+                "Name" : "ClientGenerateSecret",
                 "Default" : false
             },
             {
-                "Name" : "clientTokenValidity",
+                "Name" : "ClientTokenValidity",
                 "Default" : 30
             },
             {
-                "Name" : "allowUnauthenticatedIds",
+                "Name" : "AllowUnauthenticatedIds",
                 "Default" : false
             }
             {
-                "Name" : "passwordPolicy",
+                "Name" : "PasswordPolicy",
                 "Children" : [
                     {
-                       "Name" : "minimumLength",
+                       "Name" : "MinimumLength",
                        "Default" : "10"
                     },
                     {
-                        "Name" : "lowercase",
+                        "Name" : "Lowercase",
                         "Default" : true
                     },
                     {
-                        "Name" : "uppercase",
+                        "Name" : "Uppercase",
                         "Default" : true
                     },
                     {
-                        "Name" : "numbers",
+                        "Name" : "Numbers",
                         "Default" : true
                     },
                     {
-                        "Name" : "specialCharacters",
+                        "Name" : "SpecialCharacters",
                         "Default" : true
                     }
                 ] 
             },
             {
                 "Name" : "Links",
-                "Default" : {}
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
     }]
@@ -130,27 +134,56 @@
 [#function getUserPoolState occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatUserPoolId(core.Tier, core.Component) ]
-    [#local clientId = formatUserPoolClientId(core.Tier, core.Component) ]
-    [#local identityPoolId = formatIdentityPoolId(core.Tier, core.Component) ]
+    [#assign userPoolId = formatUserPoolId(occurrence)]
+    [#assign userPoolClientId = formatUserPoolClientId(occurrence)]
+    [#assign userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
+    [#assign identityPoolId = formatIdentityPoolId(occurrence)]
+    [#assign identityPoolUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(identityPoolId)]
+    [#assign identityPoolAuthRoleId = formatDependentIdentityPoolAuthRoleId(identityPoolId)]
+    [#assign identityPoolRoleMappingId = formatDependentIdentityPoolRoleMappingId(identityPoolId)]
+    [#assign userPoolName = formatUserPoolName(occurrence)]
+    [#assign identityPoolName = formatIdentityPoolName(occurrence)]
+    [#assign userPoolClientName = formatUserPoolClientName(occurrence) ]
+    
     [#return
         {
             "Resources" : {
-                "pool" : {
-                    "Id" : id
+                "userpool" : {
+                    "Id" : userPoolId,
+                    "Name" : userPoolName
+                },
+                "client" : {
+                    "Id" : userPoolClientId,
+                    "Name" : userPoolClientName
+                },
+                "identitypool" : { 
+                    "Id" : identityPoolId,
+                    "Name" : identityPoolName
+                },
+                "userpoolrole" : {
+                    "Id" : userPoolRoleId
+                },
+                "unauthrole" : { 
+                    "Id" : identityPoolUnAuthRoleId
+                },
+                "authrole" : {
+                    "Id" : identityPoolAuthRoleId
+                },
+                "rolemapping" : {
+                    "Id" : identityPoolRoleMappingId
                 }
             },
             "Attributes" : {
-                "USER_POOL" : getReference(id),
+                "USER_POOL" : getReference(userPoolId),
                 "IDENTITY_POOL" : getReference(identityPoolId),
-                "CLIENT" : getReference(clientId),
+                "CLIENT" : getReference(userPoolClientId),
                 "REGION" : regionId
             },
             "Roles" : {
                 "Inbound" : {
                     "invoke" : {
                         "Principal" : "cognito-idp.amazonaws.com",
-                        "SourceArn" : getReference(id,ARN_ATTRIBUTE_TYPE)
+                        "SourceArn" : getReference(userPoolId,ARN_ATTRIBUTE_TYPE)
                     }
                 },
                 "Outbound" : {}

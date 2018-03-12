@@ -9,17 +9,19 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
+        [#assign resources = occurrence.State.Resources ]
 
-        [#assign userPoolId = formatUserPoolId(tier, component, occurrence)]
-        [#assign userPoolClientId = formatUserPoolClientId(tier, component, occurrence)]
-        [#assign userPoolRoleId = formatComponentRoleId(tier, component, occurrence)]
-        [#assign identityPoolId = formatIdentityPoolId(tier,component, occurrence)]
-        [#assign identityPoolUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(identityPoolId)]
-        [#assign identityPoolAuthRoleId = formatDependentIdentityPoolAuthRoleId(identityPoolId)]
-        [#assign identityPoolRoleMappingId = formatDependentIdentityPoolRoleMappingId(identityPoolId)]
-        [#assign userPoolName = formatUserPoolName(tier, component, occurrence)]
-        [#assign identityPoolName = formatIdentityPoolName(tier, component, occurrence)]
-        [#assign userPoolClientName = formatUserPoolClientName(tier, component, occurrence) ]
+        [#assign userPoolId = resources["userpool"].Id ]
+        [#assign userPoolName = resources["userpool"].Name ]
+        [#assign userPoolClientId = resources["client"].Id ]
+        [#assign userPoolClientName = resources["client"].Name ]
+        [#assign userPoolRoleId = resources["userpoolrole"].Id ]
+        [#assign identityPoolId = resources["identitypool"].Id ]
+        [#assign identityPoolName = resources["identitypool"].Name ]
+        [#assign identityPoolUnAuthRoleId = resources["unauthrole"].Id ]
+        [#assign identityPoolAuthRoleId = resources["authrole"].Id ]
+        [#assign identityPoolRoleMappingId = resources["rolemapping"].Id ]
+
         [#assign dependencies = [] ]
         [#assign smsVerification = false]
         [#assign schema = [] ]
@@ -27,37 +29,44 @@
 
         [@cfDebug listMode appSettingsObject false /]
 
-        [#assign emailVerificationMessage = ""]
-        [#if (appSettingsObject.UserPool.EmailVerificationMessage)?has_content ]
-            [#assign emailVerificationMessage = appSettingsObject.UserPool.EmailVerificationMessage ]
-        [/#if]
+        [#assign emailVerificationMessage =
+            valueIfContent(
+            appSettingsObject.UserPool.EmailVerificationMessage!"",
+            appSettingsObject.UserPool.EmailVerificationMessage!"",
+            "") ]
 
-        [#assign emailVerificationSubject = ""]
-        [#if (appSettingsObject.UserPool.EmailVerificationSubject)?has_content ]
-            [#assign emailVerificationSubject = appSettingsObject.UserPool.EmailVerificationSubject ]
-        [/#if]
+            
+        [#assign emailVerificationSubject =
+            valueIfContent(
+            appSettingsObject.UserPool.EmailVerificationSubject!"",
+            appSettingsObject.UserPool.EmailVerificationSubject!"",
+            "") ]
 
-        [#assign smsVerificationMessage = ""]
-        [#if (appSettingsObject.UserPool.SMSVerificationMessage)?has_content ]
-            [#assign emailVerificationSubject = appSettingsObject.UserPool.SMSVerificationMessage ]
-        [/#if]
+        [#assign smsVerificationMessage =
+            valueIfContent(
+            appSettingsObject.UserPool.SMSVerificationMessage!"",
+            appSettingsObject.UserPool.SMSVerificationMessage!"",
+            "") ]
 
-        [#assign emailInviteMessage = "" ]
-        [#if (appSettingsObject.UserPool.EmailInviteMessage)?has_content ]
-            [#assign emailInviteMessage = appSettingsObject.UserPool.EmailInviteMessage ]
-        [/#if]
+        [#assign emailInviteMessage =
+            valueIfContent(
+            appSettingsObject.UserPool.EmailInviteMessage!"",
+            appSettingsObject.UserPool.EmailInviteMessage!"",
+            "") ]
 
-        [#assign emailInviteSubject = "" ]
-        [#if (appSettingsObject.UserPool.EmailInviteSubject)?has_content ]
-            [#assign emailInviteSubject = appSettingsObject.UserPool.EmailInviteSubject ]
-        [/#if]
+        [#assign emailInviteSubject =
+            valueIfContent(
+            appSettingsObject.UserPool.EmailInviteSubject!"",
+            appSettingsObject.UserPool.EmailInviteSubject!"",
+            "") ]
 
-        [#assign smsInviteMessage = ""] 
-        [#if (appSettingsObject.UserPool.SMSInviteMessage)?has_content ]
-            [#assign smsInviteMessage = appSettingsObject.UserPool.SMSInviteMessage ]
-        [/#if]
+        [#assign smsInviteMessage =
+            valueIfContent(
+            appSettingsObject.UserPool.SMSInviteMessage!"",
+            appSettingsObject.UserPool.SMSInviteMessage!"",
+            "") ]
 
-        [#if ( (configuration.MFA) || ( configuration.verifyPhone)) ]
+        [#if ( (configuration.MFA) || ( configuration.VerifyPhone)) ]
             [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(userPoolId) ]
 
@@ -89,7 +98,7 @@
             [#assign smsVerification = true]
         [/#if]
 
-        [#if configuration.verifyEmail || ( configuration.loginAliases.seq_contains("email") ) ]
+        [#if configuration.VerifyEmail || ( configuration.LoginAliases.seq_contains("email") ) ]
                 [#assign emailSchema = getUserPoolSchemaObject( 
                                             "email",
                                             "String",
@@ -99,20 +108,20 @@
         [/#if]
 
         [#list configuration.Links?values as link]
-            [#if link?is_hash]
-                [#assign linkTarget = getLinkTarget(occurrence, link, true) ]
-                [@cfDebug listMode linkTarget false /]
+            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+            [@cfDebug listMode linkTarget false /]
 
-                [#assign linkTargetCore = linkTarget.Core ]
-                [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                [#assign linkTargetResources = linkTarget.State.Resources ]
-                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#assign linkTargetCore = linkTarget.Core ]
+            [#assign linkTargetConfiguration = linkTarget.Configuration ]
+            [#assign linkTargetResources = linkTarget.State.Resources ]
+            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
-                [#switch linkTargetCore.Type!""]
-                    [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
-
+            [#switch linkTargetCore.Type!""]
+                [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
+                    
+                    [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed ]
                         [#-- Cognito Userpool Event Triggers --]
-                        [#switch link.Name ]
+                        [#switch link.Name?lower_case ]
                             [#case "createauthchallenge" ]
                                 [#assign userPoolTriggerConfig =  userPoolTriggerConfig +
                                     attributeIfContent (
@@ -178,9 +187,9 @@
                                 ]
                             [#break]
                         [/#switch]
-                    [#break]
-                [/#switch]
-            [/#if]
+                    [/#if]
+                [#break]
+            [/#switch]
         [/#list]
 
         [@createUserPool 
@@ -195,8 +204,8 @@
                     component)
             dependencies=dependencies
             mfa=configuration.MFA
-            adminCreatesUser=configuration.adminCreatesUser
-            unusedTimeout=configuration.unusedAccountTimeout
+            adminCreatesUser=configuration.AdminCreatesUser
+            unusedTimeout=configuration.UnusedAccountTimeout
             schema=schema
             emailVerificationMessage=emailVerificationMessage
             emailVerificationSubject=emailVerificationSubject
@@ -205,19 +214,19 @@
             emailInviteSubject=emailInviteSubject
             smsInviteMessage=smsInviteMessage
             lambdaTriggers=userPoolTriggerConfig
-            autoVerify=(configuration.verifyEmail || smsVerification)?then(
-                getUserPoolAutoVerification(configuration.verifyEmail, smsVerification),
+            autoVerify=(configuration.VerifyEmail || smsVerification)?then(
+                getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification),
                 []
             )
-            loginAliases=((configuration.loginAliases)?has_content)?then(
-                    [configuration.loginAliases],
+            loginAliases=((configuration.LoginAliases)?has_content)?then(
+                    [configuration.LoginAliases],
                     [])
             passwordPolicy=getUserPoolPasswordPolicy( 
-                    configuration.passwordPolicy.minimumLength, 
-                    configuration.passwordPolicy.lowercase,
-                    configuration.passwordPolicy.uppsercase,
-                    configuration.passwordPolicy.numbers,
-                    configuration.passwordPolicy.specialCharacters)
+                    configuration.PasswordPolicy.MinimumLength, 
+                    configuration.PasswordPolicy.Lowercase,
+                    configuration.PasswordPolicy.Uppsercase,
+                    configuration.PasswordPolicy.Numbers,
+                    configuration.PasswordPolicy.SpecialCharacters)
             smsConfiguration=((smsConfig)?has_content)?then(
                 smsConfig,
                 {})
@@ -231,8 +240,8 @@
             id=userPoolClientId
             name=userPoolClientName
             userPoolId=userPoolId
-            generateSecret=configuration.clientGenerateSecret
-            tokenValidity=configuration.clientTokenValidity
+            generateSecret=configuration.ClientGenerateSecret
+            tokenValidity=configuration.ClientTokenValidity
         /]
 
         [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
@@ -245,7 +254,7 @@
             id=identityPoolId
             name=identityPoolName
             cognitoIdProviders=cognitoIdentityPoolProvider
-            allowUnauthenticatedIdentities=configuration.allowUnauthenticatedIds
+            allowUnauthenticatedIdentities=configuration.AllowUnauthenticatedIds
         /]
 
         [@createRole
