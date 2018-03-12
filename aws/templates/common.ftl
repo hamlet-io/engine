@@ -979,7 +979,7 @@
     [#return getOccurrencesInternal(component, tier) ]
 [/#function]
 
-[#function getLinkTarget occurrence link ]
+[#function getLinkTarget occurrence link]
 
     [#if link.Tier?lower_case == "external"]
         [#local targetOccurrence =
