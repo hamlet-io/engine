@@ -1,8 +1,8 @@
 [#-- Cognito UserPool --]
 
 [#assign USERPOOL_RESOURCE_TYPE = "userpool"]
-[#assign USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient" ]
-[#assign IDENTITYPOOL_RESOURCE_TYPE = "identitypool" ]
+[#assign USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient"]
+[#assign IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
 
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
 
@@ -15,7 +15,7 @@
             extensions)]
 [/#function]
 
-[#function formatUserPoolClientId occurrence extensions... ]
+[#function formatUserPoolClientId occurrence extensions...]
     [#return formatComponentResourceId(
             USERPOOL_CLIENT_RESOURCE_TYPE,
             occurrence.Core.Tier,
@@ -24,7 +24,7 @@
             extensions)]
 [/#function]
 
-[#function formatIdentityPoolId occurrence extensions... ]
+[#function formatIdentityPoolId occurrence extensions...]
     [#return formatComponentResourceId(
             IDENTITYPOOL_RESOURCE_TYPE,
             occurrence.Core.Tier,
@@ -40,7 +40,7 @@
             extensions)]
 [/#function]
 
-[#function formatDependentIdentityPoolUnAuthRoleId resourceId extensions... ]
+[#function formatDependentIdentityPoolUnAuthRoleId resourceId extensions...]
     [#return 
         formatDependentRoleId(
             resourceId,
@@ -49,7 +49,7 @@
     ]
 [/#function]
 
-[#function formatDependentIdentityPoolAuthRoleId resourceId extensions... ]
+[#function formatDependentIdentityPoolAuthRoleId resourceId extensions...]
     [#return 
         formatDependentRoleId(
                 resourceId,
@@ -143,7 +143,7 @@
     [#assign identityPoolRoleMappingId = formatDependentIdentityPoolRoleMappingId(identityPoolId)]
     [#assign userPoolName = formatUserPoolName(occurrence)]
     [#assign identityPoolName = formatIdentityPoolName(occurrence)]
-    [#assign userPoolClientName = formatUserPoolClientName(occurrence) ]
+    [#assign userPoolClientName = formatUserPoolClientName(occurrence)]
     
     [#return
         {

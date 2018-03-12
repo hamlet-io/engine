@@ -1,6 +1,6 @@
 [#-- Cognito User Pool --]
 
-[#function formatUserPoolName occurrence extensions... ]
+[#function formatUserPoolName occurrence extensions...]
     [#return formatName(
         formatComponentFullName(
             occurrence.Core.Tier,
@@ -9,7 +9,7 @@
             extensions))]
 [/#function]
 
-[#function formatUserPoolClientName occurrence extensions... ]
+[#function formatUserPoolClientName occurrence extensions...]
     [#return formatName( 
         formatComponentFullName(
             occurrence.Core.Tier,
@@ -18,7 +18,7 @@
             extensions))]
 [/#function]
 
-[#function formatIdentityPoolName occurrence extensions... ]
+[#function formatIdentityPoolName occurrence extensions...]
     [#return formatId(
         productName,
         segmentName,

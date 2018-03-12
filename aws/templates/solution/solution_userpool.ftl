@@ -7,25 +7,25 @@
 
         [@cfDebug listMode occurrence false /]
 
-        [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
-        [#assign resources = occurrence.State.Resources ]
+        [#assign core = occurrence.Core]
+        [#assign configuration = occurrence.Configuration]
+        [#assign resources = occurrence.State.Resources]
 
-        [#assign userPoolId = resources["userpool"].Id ]
-        [#assign userPoolName = resources["userpool"].Name ]
-        [#assign userPoolClientId = resources["client"].Id ]
-        [#assign userPoolClientName = resources["client"].Name ]
-        [#assign userPoolRoleId = resources["userpoolrole"].Id ]
-        [#assign identityPoolId = resources["identitypool"].Id ]
-        [#assign identityPoolName = resources["identitypool"].Name ]
-        [#assign identityPoolUnAuthRoleId = resources["unauthrole"].Id ]
-        [#assign identityPoolAuthRoleId = resources["authrole"].Id ]
-        [#assign identityPoolRoleMappingId = resources["rolemapping"].Id ]
+        [#assign userPoolId = resources["userpool"].Id]
+        [#assign userPoolName = resources["userpool"].Name]
+        [#assign userPoolClientId = resources["client"].Id]
+        [#assign userPoolClientName = resources["client"].Name]
+        [#assign userPoolRoleId = resources["userpoolrole"].Id]
+        [#assign identityPoolId = resources["identitypool"].Id]
+        [#assign identityPoolName = resources["identitypool"].Name]
+        [#assign identityPoolUnAuthRoleId = resources["unauthrole"].Id]
+        [#assign identityPoolAuthRoleId = resources["authrole"].Id]
+        [#assign identityPoolRoleMappingId = resources["rolemapping"].Id]
 
-        [#assign dependencies = [] ]
+        [#assign dependencies = []]
         [#assign smsVerification = false]
-        [#assign schema = [] ]
-        [#assign userPoolTriggerConfig = {} ]
+        [#assign schema = []]
+        [#assign userPoolTriggerConfig = {}]
 
         [@cfDebug listMode appSettingsObject false /]
 
@@ -33,47 +33,47 @@
             valueIfContent(
             appSettingsObject.UserPool.EmailVerificationMessage!"",
             appSettingsObject.UserPool.EmailVerificationMessage!"",
-            "") ]
+            "")]
 
             
         [#assign emailVerificationSubject =
             valueIfContent(
             appSettingsObject.UserPool.EmailVerificationSubject!"",
             appSettingsObject.UserPool.EmailVerificationSubject!"",
-            "") ]
+            "")]
 
         [#assign smsVerificationMessage =
             valueIfContent(
             appSettingsObject.UserPool.SMSVerificationMessage!"",
             appSettingsObject.UserPool.SMSVerificationMessage!"",
-            "") ]
+            "")]
 
         [#assign emailInviteMessage =
             valueIfContent(
             appSettingsObject.UserPool.EmailInviteMessage!"",
             appSettingsObject.UserPool.EmailInviteMessage!"",
-            "") ]
+            "")]
 
         [#assign emailInviteSubject =
             valueIfContent(
             appSettingsObject.UserPool.EmailInviteSubject!"",
             appSettingsObject.UserPool.EmailInviteSubject!"",
-            "") ]
+            "")]
 
         [#assign smsInviteMessage =
             valueIfContent(
             appSettingsObject.UserPool.SMSInviteMessage!"",
             appSettingsObject.UserPool.SMSInviteMessage!"",
-            "") ]
+            "")]
 
-        [#if ( (configuration.MFA) || ( configuration.VerifyPhone)) ]
+        [#if ((configuration.MFA) || ( configuration.VerifyPhone))]
             [#if deploymentSubsetRequired("iam", true) &&
-            isPartOfCurrentDeploymentUnit(userPoolId) ]
+            isPartOfCurrentDeploymentUnit(userPoolId)]
 
                 [@createRole
                     mode=listMode
                     id=userPoolRoleId
-                    trustedServices=["cognito-idp.amazonaws.com" ]
+                    trustedServices=["cognito-idp.amazonaws.com"]
                     policies=
                         [
                             getPolicyDocument(
@@ -89,8 +89,7 @@
                                             true,
                                             true)]
                 [#assign schema = schema + [ phoneSchema ]]
-
-                )]
+            )]
 
             [/#if]
 
@@ -98,7 +97,7 @@
             [#assign smsVerification = true]
         [/#if]
 
-        [#if configuration.VerifyEmail || ( configuration.LoginAliases.seq_contains("email") ) ]
+        [#if configuration.VerifyEmail || ( configuration.LoginAliases.seq_contains("email"))]
                 [#assign emailSchema = getUserPoolSchemaObject( 
                                             "email",
                                             "String",
@@ -108,21 +107,21 @@
         [/#if]
 
         [#list configuration.Links?values as link]
-            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+            [#assign linkTarget = getLinkTarget(occurrence, link)]
             [@cfDebug listMode linkTarget false /]
 
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#assign linkTargetCore = linkTarget.Core]
+            [#assign linkTargetConfiguration = linkTarget.Configuration]
+            [#assign linkTargetResources = linkTarget.State.Resources]
+            [#assign linkTargetAttributes = linkTarget.State.Attributes]
 
             [#switch linkTargetCore.Type!""]
-                [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
+                [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
                     
-                    [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed ]
+                    [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
                         [#-- Cognito Userpool Event Triggers --]
-                        [#switch link.Name?lower_case ]
-                            [#case "createauthchallenge" ]
+                        [#switch link.Name?lower_case]
+                            [#case "createauthchallenge"]
                                 [#assign userPoolTriggerConfig =  userPoolTriggerConfig +
                                     attributeIfContent (
                                         "CreateAuthChallenge",
@@ -130,7 +129,7 @@
                                     )
                                 ]
                             [#break]
-                            [#case "custommessage" ]
+                            [#case "custommessage"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
                                         "CustomMessage",
@@ -138,7 +137,7 @@
                                     )
                                 ]
                             [#break]
-                            [#case "defineauthchallenge" ]
+                            [#case "defineauthchallenge"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
                                         "DefineAuthChallenge",
@@ -146,7 +145,7 @@
                                     )
                                 ]
                             [#break]
-                            [#case "postauthentication" ]
+                            [#case "postauthentication"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
                                         "PostAuthentication",
@@ -154,7 +153,7 @@
                                     )
                                 ]
                             [#break]
-                            [#case "postconfirmation" ]
+                            [#case "postconfirmation"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
                                         "PostConfirmation",
@@ -162,7 +161,7 @@
                                     )
                                 ]
                             [#break]
-                            [#case "preauthentication" ]
+                            [#case "preauthentication"]
                                 [#assign userPoolTriggerConfig =  userPoolTriggerConfig +
                                     attributeIfContent (
                                         "PreAuthentication",
@@ -170,7 +169,7 @@
                                     )
                                 ]
                             [#break]
-                            [#case "presignup" ]
+                            [#case "presignup"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
                                     attributeIfContent (
                                         "PreSignUp",
@@ -178,7 +177,7 @@
                                     )
                                 ]
                             [#break]
-                            [#case "verifyauthchallengeresponse" ]
+                            [#case "verifyauthchallengeresponse"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
                                     attributeIfContent (
                                         "VerifyAuthChallengeResponse",
