@@ -9,47 +9,57 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
+        [#assign resources = occurrence.State.Resources ]
 
-        [#assign engine = configuration.Engine!""]
+        [#assign engine = configuration.Engine]
         [#switch engine]
             [#case "mysql"]
                 [#assign engineVersion =
-                    configuration.EngineVersion?has_content?then(
-                        configuration.EngineVersion,
+                    valueIfContent(
+                        configuration.EngineVersion!"",
+                        configuration.EngineVersion!"",
                         "5.6"
                     )
                 ]
                 [#assign family = "mysql" + engineVersion]
-                [#assign port = ports[configuration.Port].Port?has_content?then(
-                    ports[configuration.Port].Port,
-                    "3306"
-                )]
-                
-            [#break]
+                [#assign port = configuration.Port!"mysql" ]
+                [#if (ports[port].Port)?has_content]
+                    [#assign port = ports[port].Port ]
+                [#else]
+                    [@cfException listMode "Unknown Port" port /]
+                [/#if]                
+                [#break]
 
             [#case "postgres"]
                 [#assign engineVersion =
-                    configuration.EngineVersion?has_content?then(
-                        configuration.EngineVersion,
+                    valueIfContent(
+                        configuration.EngineVersion!"",
+                        configuration.EngineVersion!"",
                         "9.4"
                     )
                 ]
                 [#assign family = "postgres" + engineVersion]
-                [#assign port = ports[configuration.Port].Port?has_content?then(
-                    ports[configuration.Port].Port,
-                    "5432"
-                )]
-            [#break]
+                [#assign port = configuration.Port!"postgresql" ]
+                [#if (ports[port].Port)?has_content]
+                    [#assign port = ports[port].Port ]
+                [#else]
+                    [@cfException listMode "Unknown Port" port /]
+                [/#if]
+                [#break]
 
             [#default]
-                [@cfPreconditionFailed listMode "solution_rds" occurrence "No Engine Provided" /]
+                [@cfPreconditionFailed listMode "solution_rds" occurrence "Unsupported engine provided" /]
+                [#assign engineVersion = "unknown" ]
+                [#assign family = "unknown" ]
+                [#assign port = "unknown" ]
+                [#break]
         [/#switch]
 
-        [#assign rdsId = formatRDSId(tier, component, occurrence)]
-        [#assign rdsFullName = formatComponentFullName(tier, component, occurrence)]
-        [#assign rdsSubnetGroupId = formatRDSSubnetGroupId(tier, component, occurrence)]
-        [#assign rdsParameterGroupId = formatRDSParameterGroupId(tier, component, occurrence)]
-        [#assign rdsOptionGroupId = formatRDSOptionGroupId(tier, component, occurrence)]
+        [#assign rdsId = resources["db"].Id ]
+        [#assign rdsFullName = resources["db"].Name ]
+        [#assign rdsSubnetGroupId = resources["subnetGroup"].Id ]
+        [#assign rdsParameterGroupId = resources["parameterGroup"].Id ]
+        [#assign rdsOptionGroupId = resources["optionGroup"].Id ]
         [#assign rdsCredentials =
             credentialsObject[formatComponentShortNameWithType(tier, component)]!
             credentialsObject[formatComponentShortName(tier, component)]!

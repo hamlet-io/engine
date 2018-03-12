@@ -5,37 +5,7 @@
 [#assign RDS_PARAMETER_GROUP_RESOURCE_TYPE = "rdsParameterGroup" ]
 [#assign RDS_OPTION_GROUP_RESOURCE_TYPE = "rdsOptionGroup" ]
 
-[#function formatRDSId tier component extensions...]
-    [#return formatComponentResourceId(
-                RDS_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
-
-[#function formatRDSSubnetGroupId tier component extensions...]
-    [#return formatComponentResourceId(
-                RDS_SUBNET_GROUP_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
-
-[#function formatRDSParameterGroupId tier component extensions...]
-    [#return formatComponentResourceId(
-                RDS_PARAMETER_GROUP_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
-
-[#function formatRDSOptionGroupId tier component extensions...]
-    [#return formatComponentResourceId(
-                RDS_OPTION_GROUP_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
+[#assign RDS_COMPONENT_TYPE = "rds" ]
 
 [#function formatDependentRDSSnapshotId resourceId extensions... ]
     [#return formatDependentResourceId(
@@ -46,8 +16,11 @@
 
 [#assign componentConfiguration +=
     {
-        "rds" : [
-            "Engine",
+        RDS_COMPONENT_TYPE : [
+            {
+                "Name" : "Engine",
+                "Mandatory" : true
+            },
             "EngineVersion",
             "Port",
             {
@@ -78,13 +51,23 @@
 [#function getRDSState occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatRDSId(core.Tier, core.Component, occurrence)]
+    [#local id = formatResourceId(RDS_RESOURCE_TYPE, core.Id) ]
 
     [#local result =
         {
             "Resources" : {
                 "db" : {
-                    "Id" : id
+                    "Id" : id,
+                    "Name" : core.FullName
+                },
+                "subnetGroup" : {
+                    "Id" : formatResourceId(RDS_SUBNET_GROUP_RESOURCE_TYPE, core.Id)
+                },
+                "parameterGroup" : {
+                    "Id" : formatResourceId(RDS_PARAMETER_GROUP_RESOURCE_TYPE, core.Id)
+                },
+                "optionGroup" : {
+                    "Id" : formatResourceId(RDS_OPTION_GROUP_RESOURCE_TYPE, core.Id)
                 }
             },
             "Attributes" : {
