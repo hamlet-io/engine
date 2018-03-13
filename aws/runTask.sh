@@ -99,9 +99,9 @@ ENV_STRUCTURE="${ENV_STRUCTURE}]"
 checkInSegmentDirectory
 
 # Extract key identifiers
-RID=$(getJSONValue "COMPOSITE_BLUEPRINT" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Id")
-CID=$(getJSONValue "COMPOSITE_BLUEPRINT" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .Id")
-KID=$(getJSONValue "COMPOSITE_BLUEPRINT" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .ECS.Tasks[] | objects | select(.Name==\"${TASK}\") | .Id")
+RID=$(getJSONValue "${COMPOSITE_BLUEPRINT}" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Id")
+CID=$(getJSONValue "${COMPOSITE_BLUEPRINT}" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .Id")
+KID=$(getJSONValue "${COMPOSITE_BLUEPRINT}" ".Tiers[] | objects | select(.Name==\"${TIER}\") | .Components[] | objects | select(.Name==\"${COMPONENT}\") | .ECS.Tasks[] | objects | select(.Name==\"${TASK}\") | .Id")
 
 # Remove component type
 CID="${CID%-*}"
