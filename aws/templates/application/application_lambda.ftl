@@ -51,7 +51,9 @@
 
                     [#switch linkTargetCore.Type!""]
                         [#case USERPOOL_COMPONENT_TYPE] 
-                            [#if linkTargetResources[USERPOOL_COMPONENT_TYPE].Deployed &&
+                        [#case "apigateway"]
+                        [@cfDebug listMode  linkTargetResources true /]
+                            [#if linkTargetResources[(linkTargetCore.Type)].Deployed &&
                                     (linkDirection == "inbound")]
                                 [@createLambdaPermission
                                     mode=listMode
@@ -60,19 +62,7 @@
                                     source=linkTargetRoles.Inbound["invoke"]
                                 /]
                             [/#if]
-                        [#break]
-
-                        [#case "apigateway" ]
-                            [#if linkTargetResources["gateway"].Deployed &&
-                                    (linkDirection == "inbound")]
-                                [@createLambdaPermission
-                                    mode=listMode
-                                    id=formatLambdaPermissionId(fn, "link", linkName)
-                                    targetId=fnId
-                                    source=linkTargetRoles.Inbound["invoke"]
-                                /]
-                            [/#if]
-                        [#break]
+                            [#break]
                     [/#switch]    
                 [/#list]
             [/#if]

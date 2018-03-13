@@ -7,30 +7,24 @@
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
 
 [#function formatUserPoolId occurrence extensions...]
-    [#return formatComponentResourceId(
-            USERPOOL_RESOURCE_TYPE,
-            occurrence.Core.Tier,
-            occurrence.Core.Component,
-            occurrence
-            extensions)]
+    [#return formatResourceId(
+        USERPOOL_RESOURCE_TYPE,
+        occurrence.Core.Id, 
+        extensions)]
 [/#function]
 
 [#function formatUserPoolClientId occurrence extensions...]
-    [#return formatComponentResourceId(
-            USERPOOL_CLIENT_RESOURCE_TYPE,
-            occurrence.Core.Tier,
-            occurrence.Core.Component,
-            occurrence
-            extensions)]
+    [#return formatResourceId(
+        USERPOOL_CLIENT_RESOURCE_TYPE,
+        occurrence.Core.Id, 
+        extensions)]
 [/#function]
 
 [#function formatIdentityPoolId occurrence extensions...]
-    [#return formatComponentResourceId(
-            IDENTITYPOOL_RESOURCE_TYPE,
-            occurrence.Core.Tier,
-            occurrence.Core.Component,
-            occurrence
-            extensions)]
+    [#return formatResourceId(
+        IDENTITYPOOL_RESOURCE_TYPE,
+        occurrence.Core.Id, 
+        extensions)]
 [/#function]
 
 [#function formatDependentIdentityPoolRoleMappingId resourceId extensions...]

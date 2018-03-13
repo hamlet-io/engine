@@ -17,8 +17,8 @@
             [#break]
         [/#if]
 
-        [#assign apiId    = resources["gateway"].Id]
-        [#assign apiName  = resources["gateway"].Name]
+        [#assign apiId    = resources["apigateway"].Id]
+        [#assign apiName  = resources["apigateway"].Name]
 
         [#-- Use runId to ensure deploy happens every time --]
         [#assign deployId = formatAPIGatewayDeployId(
