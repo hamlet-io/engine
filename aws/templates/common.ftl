@@ -1049,6 +1049,9 @@
             [#local targetSubOccurrences = targetOccurrence.Occurrences![] ]
         [/#if]
 
+        [#local versionToMatch = link.Version!occurrence.Core.Version.Id ]
+        [#local instanceToMatch = link.Instance!occurrence.Core.Instance.Id ]
+
         [#list targetSubOccurrences as targetSubOccurrence]
             [#local core = targetSubOccurrence.Core ]
 
@@ -1059,13 +1062,13 @@
             [/#if]
 
             [#if core.Version.Id?has_content]
-                [#if (core.Instance.Id != occurrence.Core.Instance.Id) ||
-                    (core.Version.Id != occurrence.Core.Version.Id) ]
+                [#if (core.Instance.Id != instanceToMatch) ||
+                    (core.Version.Id != versionToMatch) ]
                     [#continue]
                 [/#if]
             [/#if]
             [#if core.Instance.Id?has_content]
-                [#if (core.Instance.Id != occurrence.Core.Instance.Id) ]
+                [#if (core.Instance.Id != instanceToMatch) ]
                     [#continue]
                 [/#if]
             [/#if]
