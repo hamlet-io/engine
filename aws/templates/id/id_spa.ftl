@@ -52,6 +52,23 @@
                     {
                         "Name" : "NotFoundPage",
                         "Default" : ""
+                    },
+                    {
+                        "Name" : "CachingTTL",
+                        "Children" : [
+                            {
+                                "Name" : "Default",
+                                "Default" : 600
+                            },
+                            {
+                                "Name" : "Maximum",
+                                "Default" : 31536000
+                            },
+                            {
+                                "Name" : "Minimum",
+                                "Default" : 0
+                            }
+                        ]
                     }
                 ]
             },
