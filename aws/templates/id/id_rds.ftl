@@ -107,22 +107,5 @@
             }
         }
     ]
-    [#list
-        (
-            credentialsObject[formatComponentShortNameWithType(core.Tier, core.Component)]!
-            credentialsObject[formatComponentShortName(core.Tier, core.Component)]!
-            {
-                "Login" : {
-                    "Username" : "Not provided",
-                    "Password" : "Not provided"
-                }
-            }
-        ).Login as name,value]
-        [#local result +=
-            {
-              "Attributes" : result.Attributes + { name?upper_case : value }
-            }
-        ]
-    [/#list]
     [#return result ]
 [/#function]
