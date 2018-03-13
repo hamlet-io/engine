@@ -135,7 +135,7 @@
     [#local core = occurrence.Core]
     [#local configuration = occurrence.Configuration]
 
-    [#local id = formatContentHubHubId(core.Tier, core.Component, occurrence)]
+    [#local id = formatContentHubNodeId(core.Tier, core.Component, occurrence)]
 
     [#return
         {
@@ -145,7 +145,7 @@
                 }
             },
             "Attributes" : {
-                "PATH" : configuration.Path
+                "PATH" : getContentPath(occurrence)
             }
         }
     ]

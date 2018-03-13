@@ -150,6 +150,7 @@
 
     [#local id = formatAPIGatewayId(core.Tier, core.Component, occurrence)]
     [#local name = formatComponentFullName(core.Tier, core.Component, occurrence)]
+    [#local docsBucketId = formatS3Id(core.Id, "docs")]
 
     [#local internalFqdn =
         formatDomainName(
@@ -197,8 +198,8 @@
                 "SIGNING_FQDN" : signingFqdn,
                 "SIGNING_URL" : "https://" + signingFqdn + versionPath,
                 "INTERNAL_FQDN" : internalFqdn,
-                "INTERNAL_URL" : "https://" + internalFqdn + versionPath,
-                "INTERNAL_PATH" : internalPath
+                "INTERNAL_URL" : "https://" + internalFqdn,
+                "DOCS_URL" : "http://" + getExistingReference(docsBucketId,NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Outbound" : {
