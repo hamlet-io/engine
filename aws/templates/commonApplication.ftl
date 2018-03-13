@@ -42,6 +42,11 @@
             attributeIfContent("ImageVersion", version)
         ]
     [/#if]
+
+    [#-- Ensure we don't trigger the build commit missing exception --]
+    [#if image?has_content]
+        [#assign buildCommit = image ]
+    [/#if]
 [/#macro]
 
 [#function formatVariableName parts...]
@@ -447,6 +452,11 @@
 
         [#if context.DefaultLinkVariables]
             [#assign context = addDefaultLinkVariablesToContext(context) ]
+        [/#if]
+
+        [#-- Ensure the image has been defined --]
+        [#if !buildCommit?has_content]
+            [@cfException listMode "Build commit missing" /]
         [/#if]
 
         [#local containers += [context] ]
