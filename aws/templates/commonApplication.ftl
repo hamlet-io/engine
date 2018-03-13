@@ -238,7 +238,7 @@
             "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
             "CREDENTIALS_PREFIX" : getCredentialsFilePrefix()
         } +
-        attributeIfContent("SUBCOMPONENT", core.SubComponent!"") +
+        attributeIfContent("SUBCOMPONENT", core.SubComponent.Name!"") +
         attributeIfContent("APP_RUN_MODE", mode) +
         attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
         attributeIfContent("APP_REFERENCE", appReference!"") +
