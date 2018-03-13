@@ -48,7 +48,16 @@
             },
             "Attributes" : {
                 "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
-                "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE)
+                "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
+                "URL" :
+                    valueIfTrue(
+                        "redis://",
+                        occurrence.Configuration.Engine == "redis",
+                        "memcached://"
+                    ) +
+                    getExistingReference(id, DNS_ATTRIBUTE_TYPE) +
+                    ":" +
+                    getExistingReference(id, PORT_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Inbound" : {},
