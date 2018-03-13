@@ -940,7 +940,7 @@
         "Processor": "t2.micro"
       },
       "ECS": {
-        "Processor": "t2.micro",
+        "Processor": "t2.medium",
         "MinPerZone": 1,
         "MaxPerZone": 1,
         "DesiredPerZone": 1
