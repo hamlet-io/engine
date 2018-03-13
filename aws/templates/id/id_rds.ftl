@@ -50,8 +50,31 @@
     
 [#function getRDSState occurrence]
     [#local core = occurrence.Core]
-
     [#local id = formatResourceId(RDS_RESOURCE_TYPE, core.Id) ]
+
+    [#local engine = occurrence.Configuration.Engine]
+    [#local fqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE)]
+    [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
+    [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
+
+    [#local login = {} ]
+    [#list
+        (
+            credentialsObject[formatComponentShortNameWithType(core.Tier, core.Component)]!
+            credentialsObject[formatComponentShortName(core.Tier, core.Component)]!
+            {
+                "Login" : {
+                    "Username" : "Not provided",
+                    "Password" : "Not provided"
+                }
+            }
+        ).Login as name,value]
+        [#local login +=
+            { 
+                name?upper_case : value 
+            }
+        ]
+    [/#list]
 
     [#local result =
         {
@@ -71,9 +94,12 @@
                 }
             },
             "Attributes" : {
-                "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
-                "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
-                "NAME" : getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)
+                "FQDN" : fqdn,
+                "PORT" : port,
+                "NAME" : name,
+                "USERNAME" : login.USERNAME,
+                "PASSWORD" : login.PASSWORD,
+                "URL" : engine + "://" + login.USERNAME + ":" + login.PASSWORD + "@" + fqdn + ":" + port + "/" + name 
             },
             "Roles" : {
                 "Inbound" : {},
@@ -81,22 +107,5 @@
             }
         }
     ]
-    [#list
-        (
-            credentialsObject[formatComponentShortNameWithType(core.Tier, core.Component)]!
-            credentialsObject[formatComponentShortName(core.Tier, core.Component)]!
-            {
-                "Login" : {
-                    "Username" : "Not provided",
-                    "Password" : "Not provided"
-                }
-            }
-        ).Login as name,value]
-        [#local result +=
-            {
-              "Attributes" : result.Attributes + { name?upper_case : value }
-            }
-        ]
-    [/#list]
     [#return result ]
 [/#function]
