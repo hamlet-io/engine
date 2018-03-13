@@ -219,16 +219,17 @@
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
 [#function standardEnvironment tier component occurrence mode=""]
+    [#local core = occurrence.Core ]
     [#return
         {
             "TEMPLATE_TIMESTAMP" : .now?iso_utc,
             "PRODUCT" : productName,
             "ENVIRONMENT" : environmentName,
             "SEGMENT" : segmentName,
-            "TIER" : getTierName(tier),
-            "COMPONENT" : getComponentName(component),
-            "COMPONENT_INSTANCE" : occurrence.Core.Instance.Name,
-            "COMPONENT_VERSION" : occurrence.Core.Version.Name,
+            "TIER" : core.Tier.Name,
+            "COMPONENT" : core.Component.Name,
+            "COMPONENT_INSTANCE" : core.Instance.Name,
+            "COMPONENT_VERSION" : core.Version.Name,
             "REQUEST_REFERENCE" : requestReference,
             "CONFIGURATION_REFERENCE" : configurationReference,
             "APPDATA_BUCKET" : dataBucket,
@@ -237,6 +238,7 @@
             "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
             "CREDENTIALS_PREFIX" : getCredentialsFilePrefix()
         } +
+        attributeIfContent("SUBCOMPONENT", core.SubComponent!"") +
         attributeIfContent("APP_RUN_MODE", mode) +
         attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
         attributeIfContent("APP_REFERENCE", appReference!"") +
@@ -256,7 +258,7 @@
     [#local containers = [] ]
 
     [#list configuration.Containers?values as container]
-        [#local portMappings = [] ]
+        [#local containerPortMappings = [] ]
         [#list container.Ports?values as port]
             [#local targetLoadBalancer = {} ]
             [#local targetTierId = (port.LB.Tier)!port.ELB ]
@@ -301,28 +303,27 @@
                         [#local targetGroup = core.Version.Id]
                         [#local targetPath =
                             "/" + core.Version.Id +
-                            valueIfContent(targetPath, targetPath, "/*") ]
+                            contentIfContent(targetPath, "/*") ]
                     [/#if]
                 [/#if]
 
                 [#local targetPort =
-                    valueIfContent(
-                        targetPort,
+                    contentIfContent(
                         targetPort,
                         valueIfContent(
-                            (portMappings[targetPortMapping].Source)!"",
-                            targetPortMapping,
+                            (portMappings[targetPortMapping!""].Source)!"",
+                            targetPortMapping!"",
                             port.Id
                         )
                     ) ]
             [/#if]
 
-            [#local portMappings +=
+            [#local containerPortMappings +=
                 [
                     {
                         "ContainerPort" :
-                            port.Container?has_content?then(
-                                port.Container,
+                            contentIfContent(
+                                port.Container!"",
                                 port.Id
                             ),
                         "HostPort" : port.Id,
@@ -334,8 +335,8 @@
                                 {
                                     "Tier" : targetTierId,
                                     "Component" : targetComponentId,
-                                    "Instance" : targetLoadBalancer.Instance.Id,
-                                    "Version" : targetLoadBalancer.Version.Id
+                                    "Instance" : targetLoadBalancer.Core.Instance.Id,
+                                    "Version" : targetLoadBalancer.Core.Version.Id
                                 } +
                                 valueIfContent(
                                     {
@@ -407,9 +408,10 @@
                         )
                     ),
                 "MemoryReservation" : container.MemoryReservation,
+                "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
-                "Environment" :
+                "Environment" : 
                     standardEnvironment(
                         tier,
                         component,
@@ -435,7 +437,7 @@
                 !container.MaximumMemory??,
                 container.MemoryReservation*ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER
             ) +
-            attributeIfContent("PortMappings", portMappings)
+            attributeIfContent("PortMappings", containerPortMappings)
         ]
 
         [#-- Add in container specifics including override of defaults --]
