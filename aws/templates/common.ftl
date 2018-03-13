@@ -80,6 +80,10 @@
     [#return valueIfTrue(value, content?has_content, otherwise) ]
 [/#function]
 
+[#function contentIfContent value otherwise={}]
+    [#return valueIfTrue(value, value?has_content, otherwise) ]
+[/#function]
+
 [#function attributeIfTrue attribute condition value]
     [#return valueIfTrue({attribute : value}, condition) ]
 [/#function]
