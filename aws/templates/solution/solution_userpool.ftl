@@ -128,7 +128,7 @@
                                         linkTargetAttributes.ARN
                                     )
                                 ]
-                            [#break]
+                                [#break]
                             [#case "custommessage"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
@@ -136,7 +136,7 @@
                                         linkTargetAttributes.ARN
                                     )
                                 ]
-                            [#break]
+                                [#break]
                             [#case "defineauthchallenge"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
@@ -144,7 +144,7 @@
                                         linkTargetAttributes.ARN
                                     )
                                 ]
-                            [#break]
+                                [#break]
                             [#case "postauthentication"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
@@ -152,7 +152,7 @@
                                         linkTargetAttributes.ARN
                                     )
                                 ]
-                            [#break]
+                                [#break]
                             [#case "postconfirmation"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
@@ -160,7 +160,7 @@
                                         linkTargetAttributes.ARN
                                     )
                                 ]
-                            [#break]
+                                [#break]
                             [#case "preauthentication"]
                                 [#assign userPoolTriggerConfig =  userPoolTriggerConfig +
                                     attributeIfContent (
@@ -168,7 +168,7 @@
                                         linkTargetAttributes.ARN
                                     )
                                 ]
-                            [#break]
+                                [#break]
                             [#case "presignup"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
                                     attributeIfContent (
@@ -176,7 +176,7 @@
                                         linkTargetAttributes.ARN
                                     )
                                 ]
-                            [#break]
+                                [#break]
                             [#case "verifyauthchallengeresponse"]
                                 [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
                                     attributeIfContent (
@@ -184,10 +184,10 @@
                                         linkTargetAttributes.ARN
                                     )
                                 ]
-                            [#break]
+                                [#break]
                         [/#switch]
                     [/#if]
-                [#break]
+                    [#break]
             [/#switch]
         [/#list]
 
