@@ -176,6 +176,7 @@
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn,
+                "DOCS_URL" : "http://docs." + fqdn,
                 "SIGNING_FQDN" : signingFqdn,
                 "SIGNING_URL" : "https://" + signingFqdn,
                 "INTERNAL_FQDN" : internalFqdn,
