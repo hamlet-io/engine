@@ -64,7 +64,8 @@
                 "Default" : true
             },
             {
-                "Name" : "UnusedAccountTimeout"
+                "Name" : "UnusedAccountTimeout",
+                "Default" : 7
             },
             {
                 "Name" : "VerifyEmail",
@@ -91,7 +92,7 @@
             {
                 "Name" : "AllowUnauthenticatedIds",
                 "Default" : false
-            }
+            },
             {
                 "Name" : "PasswordPolicy",
                 "Children" : [
@@ -119,8 +120,7 @@
             },
             {
                 "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
+                "Default" : {}
             }
         ]
     }]
