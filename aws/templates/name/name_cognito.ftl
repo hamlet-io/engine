@@ -9,5 +9,5 @@
 [/#function]
 
 [#function formatIdentityPoolName occurrence extensions...]
-    [#return formatSegmentFullName(occurrence.Core.Name, extensions) ]
+    [#return formatSegmentFullName(occurrence.Core.Name, extensions)?replace("-","X") ]
 [/#function]

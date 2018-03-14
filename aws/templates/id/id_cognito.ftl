@@ -120,7 +120,8 @@
             },
             {
                 "Name" : "Links",
-                "Default" : {}
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
     }]
