@@ -17,8 +17,8 @@
             [#break]
         [/#if]
 
-        [#assign apiId    = resources["gateway"].Id]
-        [#assign apiName  = resources["gateway"].Name]
+        [#assign apiId    = resources["apigateway"].Id]
+        [#assign apiName  = resources["apigateway"].Name]
 
         [#-- Use runId to ensure deploy happens every time --]
         [#assign deployId = formatAPIGatewayDeployId(
@@ -76,7 +76,7 @@
                         ]
                         [#break]
 
-                    [#case "userpool"] 
+                    [#case USERPOOL_COMPONENT_TYPE] 
                         [#if deploymentSubsetRequired("apigateway", true)]
         
                             [#assign policyId = formatDependentPolicyId(
@@ -88,8 +88,7 @@
                                 id=policyId
                                 name=apiName
                                 statements=asFlattenedArray(roles.Outbound["invoke"])
-                                roles=formatDependentIdentityPoolAuthRoleId(
-                                        formatIdentityPoolId(linkTargetCore.Tier, linkTargetCore.Component))
+                                roles=linkTargetResources["authrole"].Id
                             /]
                         [/#if]
                         [#break]

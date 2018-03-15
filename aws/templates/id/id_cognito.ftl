@@ -1,31 +1,30 @@
 [#-- Cognito UserPool --]
 
 [#assign USERPOOL_RESOURCE_TYPE = "userpool"]
-[#assign USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient" ]
-[#assign IDENTITYPOOL_RESOURCE_TYPE = "identitypool" ]
+[#assign USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient"]
+[#assign IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
 
-[#function formatUserPoolId tier component extensions...]
-    [#return formatComponentResourceId(
-                USERPOOL_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
+[#assign USERPOOL_COMPONENT_TYPE = "userpool"]
+
+[#function formatUserPoolId occurrence extensions...]
+    [#return formatResourceId(
+        USERPOOL_RESOURCE_TYPE,
+        occurrence.Core.Id, 
+        extensions)]
 [/#function]
 
-[#function formatUserPoolClientId tier component extensions... ]
-    [#return formatComponentResourceId(
-            USERPOOL_CLIENT_RESOURCE_TYPE,
-            tier,
-            component,
-            extensions)]
+[#function formatUserPoolClientId occurrence extensions...]
+    [#return formatResourceId(
+        USERPOOL_CLIENT_RESOURCE_TYPE,
+        occurrence.Core.Id, 
+        extensions)]
 [/#function]
 
-[#function formatIdentityPoolId tier component extensions... ]
-    [#return formatComponentResourceId(
-            IDENTITYPOOL_RESOURCE_TYPE,
-            tier,
-            component,
-            extensions)]
+[#function formatIdentityPoolId occurrence extensions...]
+    [#return formatResourceId(
+        IDENTITYPOOL_RESOURCE_TYPE,
+        occurrence.Core.Id, 
+        extensions)]
 [/#function]
 
 [#function formatDependentIdentityPoolRoleMappingId resourceId extensions...]
@@ -35,7 +34,7 @@
             extensions)]
 [/#function]
 
-[#function formatDependentIdentityPoolUnAuthRoleId resourceId extensions... ]
+[#function formatDependentIdentityPoolUnAuthRoleId resourceId extensions...]
     [#return 
         formatDependentRoleId(
             resourceId,
@@ -44,7 +43,7 @@
     ]
 [/#function]
 
-[#function formatDependentIdentityPoolAuthRoleId resourceId extensions... ]
+[#function formatDependentIdentityPoolAuthRoleId resourceId extensions...]
     [#return 
         formatDependentRoleId(
                 resourceId,
@@ -55,50 +54,51 @@
 
 [#assign componentConfiguration +=
     {
-        "userpool" : [
+        USERPOOL_COMPONENT_TYPE : [
             { 
                 "Name" : "MFA",
                 "Default" : false
             },
             {
-                "Name" : "adminCreatesUser",
+                "Name" : "AdminCreatesUser",
                 "Default" : true
             },
             {
-                "Name" : "unusedAccountTimeout"
+                "Name" : "UnusedAccountTimeout",
+                "Default" : 7
             },
             {
-                "Name" : "verifyEmail",
+                "Name" : "VerifyEmail",
                 "Default" : true
             },
             {
-                "Name" : "verifyPhone",
+                "Name" : "VerifyPhone",
                 "Default" : false
             },
             {
-                "Name" : "loginAliases",
+                "Name" : "LoginAliases",
                 "Default" : [
                     "email"
                 ]
             },
             {
-                "Name" : "clientGenerateSecret",
+                "Name" : "ClientGenerateSecret",
                 "Default" : false
             },
             {
-                "Name" : "clientTokenValidity",
+                "Name" : "ClientTokenValidity",
                 "Default" : 30
             },
             {
-                "Name" : "allowUnauthIds",
+                "Name" : "AllowUnauthenticatedIds",
                 "Default" : false
-            }
+            },
             {
-                "Name" : "passwordPolicy",
+                "Name" : "PasswordPolicy",
                 "Children" : [
                     {
                        "Name" : "MinimumLength",
-                       "Default" : "8"
+                       "Default" : "10"
                     },
                     {
                         "Name" : "Lowercase",
@@ -114,9 +114,14 @@
                     },
                     {
                         "Name" : "SpecialCharacters",
-                        "Default" : false
+                        "Default" : true
                     }
                 ] 
+            },
+            {
+                "Name" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
     }]
@@ -124,24 +129,58 @@
 [#function getUserPoolState occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatUserPoolId(core.Tier, core.Component) ]
-    [#local clientId = formatUserPoolClientId(core.Tier, core.Component) ]
-    [#local identityPoolId = formatIdentityPoolId(core.Tier, core.Component) ]
+    [#assign userPoolId = formatUserPoolId(occurrence)]
+    [#assign userPoolClientId = formatUserPoolClientId(occurrence)]
+    [#assign userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
+    [#assign identityPoolId = formatIdentityPoolId(occurrence)]
+    [#assign identityPoolUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(identityPoolId)]
+    [#assign identityPoolAuthRoleId = formatDependentIdentityPoolAuthRoleId(identityPoolId)]
+    [#assign identityPoolRoleMappingId = formatDependentIdentityPoolRoleMappingId(identityPoolId)]
+    [#assign userPoolName = formatUserPoolName(occurrence)]
+    [#assign identityPoolName = formatIdentityPoolName(occurrence)]
+    [#assign userPoolClientName = formatUserPoolClientName(occurrence)]
+    
     [#return
         {
             "Resources" : {
-                "pool" : {
-                    "Id" : id
+                "userpool" : {
+                    "Id" : userPoolId,
+                    "Name" : userPoolName
+                },
+                "client" : {
+                    "Id" : userPoolClientId,
+                    "Name" : userPoolClientName
+                },
+                "identitypool" : { 
+                    "Id" : identityPoolId,
+                    "Name" : identityPoolName
+                },
+                "userpoolrole" : {
+                    "Id" : userPoolRoleId
+                },
+                "unauthrole" : { 
+                    "Id" : identityPoolUnAuthRoleId
+                },
+                "authrole" : {
+                    "Id" : identityPoolAuthRoleId
+                },
+                "rolemapping" : {
+                    "Id" : identityPoolRoleMappingId
                 }
             },
             "Attributes" : {
-                "USER_POOL" : getReference(id),
+                "USER_POOL" : getReference(userPoolId),
                 "IDENTITY_POOL" : getReference(identityPoolId),
-                "CLIENT" : getReference(clientId),
+                "CLIENT" : getReference(userPoolClientId),
                 "REGION" : regionId
             },
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "invoke" : {
+                        "Principal" : "cognito-idp.amazonaws.com",
+                        "SourceArn" : getReference(userPoolId,ARN_ATTRIBUTE_TYPE)
+                    }
+                },
                 "Outbound" : {}
             }
         }

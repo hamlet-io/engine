@@ -1,11 +1,11 @@
 [#-- Lambda --]
 
-[#assign LAMBDA_RESOURCE_TYPE = "lambda" ]
-[#assign LAMBDA_FUNCTION_RESOURCE_TYPE = "lambda" ]
-[#assign LAMBDA_PERMISSION_RESOURCE_TYPE = "permission" ]
+[#assign LAMBDA_RESOURCE_TYPE = "lambda"]
+[#assign LAMBDA_FUNCTION_RESOURCE_TYPE = "lambda"]
+[#assign LAMBDA_PERMISSION_RESOURCE_TYPE = "permission"]
 
-[#assign LAMBDA_COMPONENT_TYPE = "lambda" ]
-[#assign LAMBDA_FUNCTION_COMPONENT_TYPE = "function" ]
+[#assign LAMBDA_COMPONENT_TYPE = "lambda"]
+[#assign LAMBDA_FUNCTION_COMPONENT_TYPE = "function"]
 
 [#function formatLambdaPermissionId occurrence extensions...]
     [#return formatResourceId(
@@ -111,6 +111,8 @@
 [#function getFunctionState occurrence]
     [#local core = occurrence.Core]
 
+    [#assign id = formatResourceId(LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
+
     [#return
         {
             "Resources" : {
@@ -120,7 +122,9 @@
                 }
             },
             "Attributes" : {
-                "REGION" : regionId
+                "REGION" : regionId,
+                "ARN" : getExistingReference(id,ARN_ATTRIBUTE_TYPE),
+                "NAME" : getExistingReference(id,NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Inbound" : {},

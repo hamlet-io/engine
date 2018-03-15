@@ -1,209 +1,309 @@
 [#-- Cognito User Pool --]
 [#if (componentType == "userpool") && deploymentSubsetRequired("userpool", true)]
     
-    [#assign userpool = component.UserPool]
+    [#list requiredOccurrences(
+        getOccurrences(tier, component),
+        deploymentUnit) as occurrence]
 
-    [#assign userPoolId = formatUserPoolId(tier, component)]
-    [#assign userPoolClientId = formatUserPoolClientId(tier, component)]
-    [#assign userPoolRoleId = formatComponentRoleId(tier, component)]
-    [#assign identityPoolId = formatIdentityPoolId(tier,component)]
-    [#assign identityPoolUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(identityPoolId)]
-    [#assign identityPoolAuthRoleId = formatDependentIdentityPoolAuthRoleId(identityPoolId)]
-    [#assign identityPoolRoleMappingId = formatDependentIdentityPoolRoleMappingId(identityPoolId)]
-    [#assign userPoolName = formatUserPoolName(tier, component)]
-    [#assign identityPoolName = formatIdentityPoolName(tier, component)]
-    [#assign userPoolClientName = formatUserPoolClientName(tier, component) ]
-    [#assign dependencies = [] ]
-    [#assign smsVerification = false]
-    [#assign schema = [] ]
+        [@cfDebug listMode occurrence false /]
 
-    [@cfDebug listMode appSettingsObject false /]
+        [#assign core = occurrence.Core]
+        [#assign configuration = occurrence.Configuration]
+        [#assign resources = occurrence.State.Resources]
 
-    [#assign emailVerificationMessage = ""]
-    [#if (appSettingsObject.UserPool.EmailVerificationMessage)?has_content ]
-        [#assign emailVerificationMessage = appSettingsObject.UserPool.EmailVerificationMessage ]
-    [/#if]
+        [#assign userPoolId = resources["userpool"].Id]
+        [#assign userPoolName = resources["userpool"].Name]
+        [#assign userPoolClientId = resources["client"].Id]
+        [#assign userPoolClientName = resources["client"].Name]
+        [#assign userPoolRoleId = resources["userpoolrole"].Id]
+        [#assign identityPoolId = resources["identitypool"].Id]
+        [#assign identityPoolName = resources["identitypool"].Name]
+        [#assign identityPoolUnAuthRoleId = resources["unauthrole"].Id]
+        [#assign identityPoolAuthRoleId = resources["authrole"].Id]
+        [#assign identityPoolRoleMappingId = resources["rolemapping"].Id]
 
-    [#assign emailVerificationSubject = ""]
-    [#if (appSettingsObject.UserPool.EmailVerificationSubject)?has_content ]
-        [#assign emailVerificationSubject = appSettingsObject.UserPool.EmailVerificationSubject ]
-    [/#if]
+        [#assign dependencies = []]
+        [#assign smsVerification = false]
+        [#assign schema = []]
+        [#assign userPoolTriggerConfig = {}]
 
-    [#assign smsVerificationMessage = ""]
-    [#if (appSettingsObject.UserPool.SMSVerificationMessage)?has_content ]
-        [#assign emailVerificationSubject = appSettingsObject.UserPool.SMSVerificationMessage ]
-    [/#if]
+        [@cfDebug listMode appSettingsObject false /]
 
-    [#assign emailInviteMessage = "" ]
-    [#if (appSettingsObject.UserPool.EmailInviteMessage)?has_content ]
-        [#assign emailInviteMessage = appSettingsObject.UserPool.EmailInviteMessage ]
-    [/#if]
+        [#assign emailVerificationMessage =
+            valueIfContent(
+            appSettingsObject.UserPool.EmailVerificationMessage!"",
+            appSettingsObject.UserPool.EmailVerificationMessage!"",
+            "")]
 
-    [#assign emailInviteSubject = "" ]
-    [#if (appSettingsObject.UserPool.EmailInviteSubject)?has_content ]
-        [#assign emailInviteSubject = appSettingsObject.UserPool.EmailInviteSubject ]
-    [/#if]
+            
+        [#assign emailVerificationSubject =
+            valueIfContent(
+            appSettingsObject.UserPool.EmailVerificationSubject!"",
+            appSettingsObject.UserPool.EmailVerificationSubject!"",
+            "")]
 
-    [#assign smsInviteMessage = ""] 
-    [#if (appSettingsObject.UserPool.SMSInviteMessage)?has_content ]
-        [#assign smsInviteMessage = appSettingsObject.UserPool.SMSInviteMessage ]
-    [/#if]
+        [#assign smsVerificationMessage =
+            valueIfContent(
+            appSettingsObject.UserPool.SMSVerificationMessage!"",
+            appSettingsObject.UserPool.SMSVerificationMessage!"",
+            "")]
 
-    [#if (userpool.MFA?has_content && userpool.MFA) || (userpool.VerifyPhone?has_content && userpool.VerifyPhone)]
-        [#if deploymentSubsetRequired("iam", true) &&
-        isPartOfCurrentDeploymentUnit(userPoolId) ]
+        [#assign emailInviteMessage =
+            valueIfContent(
+            appSettingsObject.UserPool.EmailInviteMessage!"",
+            appSettingsObject.UserPool.EmailInviteMessage!"",
+            "")]
 
-            [@createRole
-                mode=listMode
-                id=userPoolRoleId
-                trustedServices=["cognito-idp.amazonaws.com" ]
-                policies=
-                    [
-                        getPolicyDocument(
-                            snsPublishPermission(),
-                            "smsVerification" 
-                        )
-                    ]
-            /]
+        [#assign emailInviteSubject =
+            valueIfContent(
+            appSettingsObject.UserPool.EmailInviteSubject!"",
+            appSettingsObject.UserPool.EmailInviteSubject!"",
+            "")]
 
-            [#assign phoneSchema = getUserPoolSchemaObject( 
-                                        "phone_number",
-                                        "String",
-                                        true,
-                                        true)]
-            [#assign schema = schema + [ phoneSchema ]]
+        [#assign smsInviteMessage =
+            valueIfContent(
+            appSettingsObject.UserPool.SMSInviteMessage!"",
+            appSettingsObject.UserPool.SMSInviteMessage!"",
+            "")]
 
+        [#if ((configuration.MFA) || ( configuration.VerifyPhone))]
+            [#if deploymentSubsetRequired("iam", true) &&
+            isPartOfCurrentDeploymentUnit(userPoolId)]
+
+                [@createRole
+                    mode=listMode
+                    id=userPoolRoleId
+                    trustedServices=["cognito-idp.amazonaws.com"]
+                    policies=
+                        [
+                            getPolicyDocument(
+                                snsPublishPermission(),
+                                "smsVerification" 
+                            )
+                        ]
+                /]
+
+                [#assign phoneSchema = getUserPoolSchemaObject( 
+                                            "phone_number",
+                                            "String",
+                                            true,
+                                            true)]
+                [#assign schema = schema + [ phoneSchema ]]
             )]
 
+            [/#if]
+
+            [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
+            [#assign smsVerification = true]
         [/#if]
 
-        [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
-        [#assign smsVerification = true]
-    [/#if]
+        [#if configuration.VerifyEmail || ( configuration.LoginAliases.seq_contains("email"))]
+                [#assign emailSchema = getUserPoolSchemaObject( 
+                                            "email",
+                                            "String",
+                                            true,
+                                            true)]
+                [#assign schema = schema +  [ emailSchema ]]
+        [/#if]
 
-    [#if userpool.verifyEmail || ( userpool.loginAliases?has_content && userpool.loginAliases.seq_contains("email") ) ]
-            [#assign emailSchema = getUserPoolSchemaObject( 
-                                        "email",
-                                        "String",
-                                        true,
-                                        true)]
-            [#assign schema = schema +  [ emailSchema ]]
-    [/#if]
+        [#list configuration.Links?values as link]
+            [#assign linkTarget = getLinkTarget(occurrence, link)]
+            [@cfDebug listMode linkTarget false /]
 
-    [@createUserPool 
-        mode=listMode
-        component=component
-        tier=tier
-        id=userPoolId
-        name=userPoolName
-        tags=getCfTemplateCoreTags(
-                userPoolName,
-                tier,
-                component)
-        dependencies=dependencies
-        mfa=userpool.MFA
-        adminCreatesUser=userpool.adminCreatesUser
-        unusedTimeout=userpool.unusedAccountTimeout
-        schema=schema
-        emailVerificationMessage=emailVerificationMessage
-        emailVerificationSubject=emailVerificationSubject
-        smsVerificationMessage=smsVerificationMessage
-        emailInviteMessage=emailInviteMessage
-        emailInviteSubject=emailInviteSubject
-        smsInviteMessage=smsInviteMessage
-        autoVerify=(userpool.verifyEmail || smsVerification)?then(
-            getUserPoolAutoVerification(userpool.verifyEmail, smsVerification),
-            []
-        )
-        loginAliases=((userpool.loginAliases)?has_content)?then(
-            [userpool.loginAliases],
-            [])
-        passwordPolicy=((userpool.passwordPolicy)?has_content)?then(
-            getUserPoolPasswordPolicy( userpool.passwordPolicy.minimumLength, 
-                                        userpool.passwordPolicy.lowercase,
-                                        userpool.passwordPolicy.uppsercase,
-                                        userpool.passwordPolicy.numbers,
-                                        userpool.passwordPolicy.specialCharacters),
-            {})
-        smsConfiguration=((smsConfig)?has_content)?then(
-            smsConfig,
-            {})
-    /]
+            [#assign linkTargetCore = linkTarget.Core]
+            [#assign linkTargetConfiguration = linkTarget.Configuration]
+            [#assign linkTargetResources = linkTarget.State.Resources]
+            [#assign linkTargetAttributes = linkTarget.State.Attributes]
 
-    [@createUserPoolClient 
-        mode=listMode
-        component=component
-        tier=tier
-        dependencies=dependencies
-        id=userPoolClientId
-        name=userPoolClientName
-        userPoolId=userPoolId
-        generateSecret=userpool.clientGenerateSecret
-        tokenValidity=userpool.clientTokenValidity
+            [#switch linkTargetCore.Type!""]
+                [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
+                    
+                    [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
+                        [#-- Cognito Userpool Event Triggers --]
+                        [#switch link.Name?lower_case]
+                            [#case "createauthchallenge"]
+                                [#assign userPoolTriggerConfig =  userPoolTriggerConfig +
+                                    attributeIfContent (
+                                        "CreateAuthChallenge",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                            [#case "custommessage"]
+                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
+                                    attributeIfContent (
+                                        "CustomMessage",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                            [#case "defineauthchallenge"]
+                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
+                                    attributeIfContent (
+                                        "DefineAuthChallenge",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                            [#case "postauthentication"]
+                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
+                                    attributeIfContent (
+                                        "PostAuthentication",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                            [#case "postconfirmation"]
+                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
+                                    attributeIfContent (
+                                        "PostConfirmation",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                            [#case "preauthentication"]
+                                [#assign userPoolTriggerConfig =  userPoolTriggerConfig +
+                                    attributeIfContent (
+                                        "PreAuthentication",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                            [#case "presignup"]
+                                [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
+                                    attributeIfContent (
+                                        "PreSignUp",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                            [#case "verifyauthchallengeresponse"]
+                                [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
+                                    attributeIfContent (
+                                        "VerifyAuthChallengeResponse",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                        [/#switch]
+                    [/#if]
+                    [#break]
+            [/#switch]
+        [/#list]
 
-    /]
-
-    [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
-
-    [@createIdentityPool 
-        mode=listMode
-        component=component
-        tier=tier
-        dependencies=dependencies
-        id=identityPoolId
-        name=identityPoolName
-        cognitoIdProviders=cognitoIdentityPoolProvider
-        allowUnauthenticatedIdentities=userpool.allowUnauthIds
-    /]
-
-    [@createRole
-        mode=listMode
-        id=identityPoolUnAuthRoleId
-        policies=[
-            getPolicyDocument(
-                getUserPoolUnAuthPolicy(),
-                "DefaultUnAuthIdentityRole"
+        [@createUserPool 
+            mode=listMode
+            component=component
+            tier=tier
+            id=userPoolId
+            name=userPoolName
+            tags=getCfTemplateCoreTags(
+                    userPoolName,
+                    tier,
+                    component)
+            dependencies=dependencies
+            mfa=configuration.MFA
+            adminCreatesUser=configuration.AdminCreatesUser
+            unusedTimeout=configuration.UnusedAccountTimeout
+            schema=schema
+            emailVerificationMessage=emailVerificationMessage
+            emailVerificationSubject=emailVerificationSubject
+            smsVerificationMessage=smsVerificationMessage
+            emailInviteMessage=emailInviteMessage
+            emailInviteSubject=emailInviteSubject
+            smsInviteMessage=smsInviteMessage
+            lambdaTriggers=userPoolTriggerConfig
+            autoVerify=(configuration.VerifyEmail || smsVerification)?then(
+                getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification),
+                []
             )
-        ]
-        federatedServices="cognito-identity.amazonaws.com"
-        condition={
-              "StringEquals": {
-                "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-              },
-              "ForAnyValue:StringLike": {
-                "cognito-identity.amazonaws.com:amr": "unauthenticated"
-              }
-        }
-    /]
+            loginAliases=((configuration.LoginAliases)?has_content)?then(
+                    [configuration.LoginAliases],
+                    [])
+            passwordPolicy=getUserPoolPasswordPolicy( 
+                    configuration.PasswordPolicy.MinimumLength, 
+                    configuration.PasswordPolicy.Lowercase,
+                    configuration.PasswordPolicy.Uppsercase,
+                    configuration.PasswordPolicy.Numbers,
+                    configuration.PasswordPolicy.SpecialCharacters)
+            smsConfiguration=((smsConfig)?has_content)?then(
+                smsConfig,
+                {})
+        /]
 
-    [@createRole 
-        mode=listMode
-        id=identityPoolAuthRoleId
-        policies=[
-            getPolicyDocument(
-                getUserPoolAuthPolicy(),
-                "DefaultAuthIdentityRole"
-            )
-        ]
-        federatedServices="cognito-identity.amazonaws.com"
-        condition={
-              "StringEquals": {
-                "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-              },
-              "ForAnyValue:StringLike": {
-                "cognito-identity.amazonaws.com:amr": "authenticated"
-              }
-        }
-    /]
+        [@createUserPoolClient 
+            mode=listMode
+            component=component
+            tier=tier
+            dependencies=dependencies
+            id=userPoolClientId
+            name=userPoolClientName
+            userPoolId=userPoolId
+            generateSecret=configuration.ClientGenerateSecret
+            tokenValidity=configuration.ClientTokenValidity
+        /]
 
-    [@createIdentityPoolRoleMapping
-        mode=listMode
-        component=component
-        tier=tier
-        id=identityPoolRoleMappingId
-        identityPoolId=getReference(identityPoolId)
-        authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
-        unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
-    /]
+        [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
 
+        [@createIdentityPool 
+            mode=listMode
+            component=component
+            tier=tier
+            dependencies=dependencies
+            id=identityPoolId
+            name=identityPoolName
+            cognitoIdProviders=cognitoIdentityPoolProvider
+            allowUnauthenticatedIdentities=configuration.AllowUnauthenticatedIds
+        /]
+
+        [@createRole
+            mode=listMode
+            id=identityPoolUnAuthRoleId
+            policies=[
+                getPolicyDocument(
+                    getUserPoolUnAuthPolicy(),
+                    "DefaultUnAuthIdentityRole"
+                )
+            ]
+            federatedServices="cognito-identity.amazonaws.com"
+            condition={
+                "StringEquals": {
+                    "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
+                },
+                "ForAnyValue:StringLike": {
+                    "cognito-identity.amazonaws.com:amr": "unauthenticated"
+                }
+            }
+        /]
+
+        [@createRole 
+            mode=listMode
+            id=identityPoolAuthRoleId
+            policies=[
+                getPolicyDocument(
+                    getUserPoolAuthPolicy(),
+                    "DefaultAuthIdentityRole"
+                )
+            ]
+            federatedServices="cognito-identity.amazonaws.com"
+            condition={
+                "StringEquals": {
+                    "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
+                },
+                "ForAnyValue:StringLike": {
+                    "cognito-identity.amazonaws.com:amr": "authenticated"
+                }
+            }
+        /]
+
+        [@createIdentityPoolRoleMapping
+            mode=listMode
+            component=component
+            tier=tier
+            id=identityPoolRoleMappingId
+            identityPoolId=getReference(identityPoolId)
+            authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
+            unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
+        /]
+    [/#list]
 [/#if]
