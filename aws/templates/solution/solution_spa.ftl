@@ -50,7 +50,14 @@
                 cfAccess,
                 formatAbsolutePath(getAppSettingsFilePrefix()))]
 
-        [#assign spaCacheBehaviour = getCFSPACacheBehaviour(spaOrigin) ]
+        [#assign spaCacheBehaviour = getCFSPACacheBehaviour(
+            spaOrigin, 
+            "", 
+            {
+                "Default" : configuration.CloudFront.CachingTTL.Default,
+                "Max" : configuration.CloudFront.CachingTTL.Maximum,
+                "Min" : configuration.CloudFront.CachingTTL.Minimum
+            })]
         [#assign configCacheBehaviour = getCFSPACacheBehaviour(configOrigin, "/config/*", {"Default" : 60}) ]
 
         [#assign restrictions = {} ]
