@@ -136,6 +136,10 @@
                         "Default" : []
                     }
                 ]
+            },
+            {
+                "Name" : "IncludePathInUrls",
+                "Default" : true
             }
         ]
     }]
@@ -165,6 +169,19 @@
             [#local signingFqdn = internalFqdn]
     [/#if]
 
+    [#-- Paths are tricky as sometimes the API gateway "consumes" version path. --]
+    [#-- So the caller needs to provide it but the implementer doesn't see it.  --]
+    [#local versionPath =
+        valueIfTrue(
+            "/" + core.Version.Id,
+            configuration.IncludePathInUrls,
+            ""
+        ) ]
+
+    [#-- For now assume the path is seen by the implementation --]
+    [#-- A later change will refine this once behaviour of the --]
+    [#-- API Gateway is confirmed                              --]
+    [#local internalPath = core.Version.Id ]
     [#return
         {
             "Resources" : {
@@ -175,12 +192,13 @@
             },
             "Attributes" : {
                 "FQDN" : fqdn,
-                "URL" : "https://" + fqdn,
+                "URL" : "https://" + fqdn + versionPath,
                 "DOCS_URL" : "http://docs." + fqdn,
                 "SIGNING_FQDN" : signingFqdn,
-                "SIGNING_URL" : "https://" + signingFqdn,
+                "SIGNING_URL" : "https://" + signingFqdn + versionPath,
                 "INTERNAL_FQDN" : internalFqdn,
-                "INTERNAL_URL" : "https://" + internalFqdn
+                "INTERNAL_URL" : "https://" + internalFqdn + versionPath,
+                "INTERNAL_PATH" : internalPath
             },
             "Roles" : {
                 "Outbound" : {
