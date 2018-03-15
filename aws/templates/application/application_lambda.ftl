@@ -52,7 +52,6 @@
                     [#switch linkTargetCore.Type!""]
                         [#case USERPOOL_COMPONENT_TYPE] 
                         [#case "apigateway"]
-                        [@cfDebug listMode  linkTargetResources true /]
                             [#if linkTargetResources[(linkTargetCore.Type)].Deployed &&
                                     (linkDirection == "inbound")]
                                 [@createLambdaPermission
