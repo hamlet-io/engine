@@ -185,7 +185,7 @@
     [#return
         {
             "Resources" : {
-                "gateway" : {
+                "apigateway" : {
                     "Id" : id,
                     "Name" : name
                 }
