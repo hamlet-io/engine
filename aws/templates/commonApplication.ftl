@@ -268,59 +268,54 @@
             [#local targetLoadBalancer = {} ]
             [#local targetTierId = (port.LB.Tier)!port.ELB ]
             [#local targetComponentId = (port.LB.Component)!port.ELB ]
-            [#local targetGroup = port.LB.TargetGroup]
-            [#local targetPath = port.LB.Path]
-            [#local targetPort = port.LB.Port]
-            [#local targetPortMapping = port.LB.PortMapping]
-            [#local targetType = port.ELB?has_content?then("elb", "alb")]
+            [#local targetLink =
+                {
+                    "Tier" : targetTierId,
+                    "Component" : targetComponentId
+                } +
+                attributeIfContent("Instance", port.LB.Instance!core.Instance.Id) +
+                attributeIfContent("Version", port.LB.Version!core.Version.Id) ]
+
+            [@cfDebug listMode targetLink false /]
 
             [#if targetTierId?has_content && targetComponentId?has_content]
-                [#-- Work out which occurrence to use --]
-                [#local targetComponent =
-                    getComponent(
-                        targetTierId,
-                        targetComponentId,
-                        targetType)]
-                [#local instanceAndVersionMatch = {}]
-                [#local instanceMatch = {}]
-                [#if targetComponent?has_content]
-                    [#list getOccurrences(getTier(targetTierId), targetComponent) as targetOccurrence]
-                        [#if core.Instance.Id == targetOccurrence.Core.Instance.Id]
-                            [#if core.Version.Id == targetOccurrence.Core.Version.Id]
-                                [#local instanceAndVersionMatch = targetOccurrence]
+                [#local targetLoadBalancer = getLinkTarget(task, targetLink) ]
+
+                [@cfDebug listMode targetLoadBalancer false /]
+
+                [#if targetLoadBalancer?has_content ]
+
+                    [#local targetGroup = port.LB.TargetGroup]
+                    [#local targetPath = port.LB.Path]
+                    [#local targetPort = port.LB.Port]
+                    [#local targetPortMapping = port.LB.PortMapping]
+                    [#local targetPort =
+                        contentIfContent(
+                            targetPort,
+                            valueIfContent(
+                                (portMappings[targetPortMapping!""].Source)!"",
+                                targetPortMapping!"",
+                                port.Id
+                            )
+                        ) ]
+                    [#if targetLoadBalancer.Core.Type == "alb" ]
+                        [#if targetPath?has_content]
+                            [#-- target group name must be provided if path provided --]
+                            [#if !targetGroup?has_content]
+                                [@cfException
+                                    listMode "No target group for provided path" occurrence /]
+                                [#local targetGroup = "default" ]
+                            [/#if]
+                        [#else]
+                            [#if core.Version.Name?has_content]
+                                [#local targetPath = "/" + core.Version.Name + "/*" ]
+                                [#local targetGroup = core.Version.Name ]
                             [#else]
-                                [#if (core.Version.Id?has_content) &&
-                                        (!(targetOccurrence.Core.Version.Id?has_content))]
-                                    [#local instanceMatch = targetOccurrence]
-                                [/#if]
+                                [#local targetGroup = "default" ]
                             [/#if]
                         [/#if]
-                    [/#list]
-                [/#if]
-                [#if instanceAndVersionMatch?has_content]
-                    [#local targetLoadBalancer = instanceAndVersionMatch]
-                    [#if (targetType == "alb") && (!(targetGroup?has_content))]
-                        [#local targetGroup = "default"]
-                    [/#if]
-                [#else]
-                    [#if instanceMatch?has_content && (targetType == "alb")]
-                        [#local targetLoadBalancer = instanceMatch]
-                        [#local targetGroup = core.Version.Id]
-                        [#local targetPath =
-                            "/" + core.Version.Id +
-                            contentIfContent(targetPath, "/*") ]
                     [/#if]
                 [/#if]
-
-                [#local targetPort =
-                    contentIfContent(
-                        targetPort,
-                        valueIfContent(
-                            (portMappings[targetPortMapping!""].Source)!"",
-                            targetPortMapping!"",
-                            port.Id
-                        )
-                    ) ]
             [/#if]
 
             [#local containerPortMappings +=
@@ -416,7 +411,7 @@
                 "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
-                "Environment" : 
+                "Environment" :
                     standardEnvironment(
                         tier,
                         component,
@@ -461,6 +456,9 @@
 
         [#local containers += [context] ]
     [/#list]
+
+    [@cfDebug listMode containers false /]
+
     [#return containers]
 [/#function]
 

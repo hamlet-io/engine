@@ -85,7 +85,7 @@
     [#local internalFqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
 
     [#if (configuration.PortMappings![])?has_content]
-        [#local portMapping = configuration.PortMappings[0]?is_hash?then(
+        [#local mappingObject = configuration.PortMappings[0]?is_hash?then(
                 configuration.PortMappings[0],
                 {
                     "Mapping" : configuration.PortMappings[0]
