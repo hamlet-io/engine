@@ -264,12 +264,16 @@
 
     [#list configuration.Containers?values as container]
         [#local containerPortMappings = [] ]
+        [#local containerLinks = container.Links ]
         [#list container.Ports?values as port]
             [#local targetLoadBalancer = {} ]
             [#local targetTierId = (port.LB.Tier)!port.ELB ]
             [#local targetComponentId = (port.LB.Component)!port.ELB ]
+            [#local targetLinkName = port.LB.LinkName ]
             [#local targetLink =
                 {
+                    "Id" : targetLinkName,
+                    "Name" : targetLinkName,
                     "Tier" : targetTierId,
                     "Component" : targetComponentId
                 } +
@@ -315,6 +319,8 @@
                             [/#if]
                         [/#if]
                     [/#if]
+
+                    [#local containerLinks += { targetLinkName : targetLink } ]
                 [/#if]
             [/#if]
 
@@ -420,7 +426,7 @@
                     {
                         "AWS_REGION" : regionId
                     },
-                "Links" : getLinkTargets(task, container.Links),
+                "Links" : getLinkTargets(task, containerLinks),
                 "DefaultLinkVariables" : true
             } +
             attributeIfContent("ImageVersion", container.Version) +
