@@ -74,6 +74,10 @@
                         },
                         "Instance",
                         {
+                            "Name" : "LinkName",
+                            "Default" : "lb"
+                        },
+                        {
                             "Name" : "Path",
                             "Default" : ""
                         },
