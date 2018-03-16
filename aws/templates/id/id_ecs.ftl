@@ -72,6 +72,7 @@
                             "Name" : "Component",
                             "Mandatory" : true
                         },
+                        "Instance",
                         {
                             "Name" : "Path",
                             "Default" : ""
@@ -95,7 +96,8 @@
                         {
                             "Name" : "Tier",
                             "Mandatory" : true
-                        }
+                        },
+                        "Version"
                     ]
                 }
             ]
