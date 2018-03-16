@@ -981,6 +981,20 @@
 
 [#function getLinkTarget occurrence link]
 
+    [#local instanceToMatch = link.Instance!occurrence.Core.Instance.Id ]
+    [#local versionToMatch = link.Version!occurrence.Core.Version.Id ]
+
+    [@cfDebug
+        listMode
+        {
+            "Text" : "Getting link Target",
+            "Occurrence" : occurrence,
+            "Link" : link,
+            "EffectiveInstance" : instanceToMatch,
+            "EffectiveVersion" : versionToMatch
+        }
+        false
+    /]
     [#if link.Tier?lower_case == "external"]
         [#local targetOccurrence =
             {
@@ -1020,7 +1034,14 @@
                 getTier(link.Tier),
                 getComponent(link.Tier, link.Component)) as targetOccurrence]
 
-        [@cfDebug listMode targetOccurrence false /]
+        [@cfDebug
+            listMode
+            {
+                "Text" : "Possible link target",
+                "Occurrence" : targetOccurrence
+            }
+            false
+        /]
 
         [#local core = targetOccurrence.Core ]
 
@@ -1049,9 +1070,6 @@
             [#local targetSubOccurrences = targetOccurrence.Occurrences![] ]
         [/#if]
 
-        [#local versionToMatch = link.Version!occurrence.Core.Version.Id ]
-        [#local instanceToMatch = link.Instance!occurrence.Core.Instance.Id ]
-
         [#list targetSubOccurrences as targetSubOccurrence]
             [#local core = targetSubOccurrence.Core ]
 
@@ -1061,17 +1079,16 @@
                 [#continue]
             [/#if]
 
-            [#if core.Version.Id?has_content]
-                [#if (core.Instance.Id != instanceToMatch) ||
-                    (core.Version.Id != versionToMatch) ]
-                    [#continue]
-                [/#if]
+            [#-- Match needs to be exact                            --]
+            [#-- If occurrences don't match, overrides can be added --]
+            [#-- to the link.                                       --]
+            [#if (core.Instance.Id != instanceToMatch) ||
+                (core.Version.Id != versionToMatch) ]
+                [#continue]
             [/#if]
-            [#if core.Instance.Id?has_content]
-                [#if (core.Instance.Id != instanceToMatch) ]
-                    [#continue]
-                [/#if]
-            [/#if]
+
+            [@cfDebug listMode "Link matched target" false /]
+
             [#return
                 targetSubOccurrence +
                 {
@@ -1108,7 +1125,6 @@
     [#list (valueIfContent(links, links, occurrence.Configuration.Links!{}))?values as link]
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link)!{} ]
-
             [#local result +=
                 valueIfContent(
                     {
