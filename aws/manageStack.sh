@@ -288,14 +288,14 @@ function wait_for_stack_execution() {
     case ${STACK_OPERATION} in 
       update)
         status_attribute="StackStatus"
-        opertation_to_check="UPDATE"
+        operation_to_check="UPDATE"
         aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
         exit_status=$?
       ;;
 
       create)
         status_attribute="StackStatus"
-        opertation_to_check="CREATE"
+        operation_to_check="CREATE"
         aws --region ${REGION} cloudformation describe-stacks --stack-name "${STACK_NAME}" > "${STACK}" 2>/dev/null
         exit_status=$?
       ;;
