@@ -22,6 +22,18 @@
     [#return asArray(arg, true) ]
 [/#function]
 
+[#function getUniqueArrayElements args...]
+    [#local result = [] ]
+    [#list args as arg]
+        [#list asFlattenedArray(arg) as member]
+            [#if !result?seq_contains(member) ]
+                [#local result += [member] ]
+            [/#if]
+        [/#list]
+    [/#list]
+    [#return result ]
+[/#function]
+
 [#function asString arg attribute]
     [#return
         arg?is_string?then(

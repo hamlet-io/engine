@@ -3,9 +3,9 @@
 [#-- Format an ARN --]
 [#function formatTypedArnResource resourceType resource resourceSeparator=":"]
     [#return
-        { 
+        {
             "Fn::Join": [
-                resourceSeparator, 
+                resourceSeparator,
                 [
                     resourceType,
                     resource
@@ -18,9 +18,9 @@
 
 [#function formatArn partition service region account resource]
     [#return
-        { 
+        {
             "Fn::Join": [
-                ":", 
+                ":",
                 [
                     "arn",
                     partition,
@@ -79,7 +79,7 @@
                     "Level" : stackOutputs.Level,
                     "DeploymentUnit" : stackOutputs.DeploymentUnit,
                     "Id" : id,
-                    "Value" : stackOutputs[outputId]                     
+                    "Value" : stackOutputs[outputId]
                 }
             ]
         [/#if]
@@ -88,11 +88,11 @@
 [/#function]
 
 [#function getStackOutput id deploymentUnit="" region="" account=""]
-    [#local result = 
+    [#local result =
         getStackOutputObject(
             id,
             deploymentUnit,
-            region, 
+            region,
             account
         )
     ]
@@ -108,7 +108,7 @@
 [#function isPartOfDeploymentUnit resourceId deploymentUnit deploymentUnitSubset]
     [#local resourceObject = getStackOutputObject(resourceId)]
     [#local
-        currentDeploymentUnit = 
+        currentDeploymentUnit =
             deploymentUnit +
             deploymentUnitSubset?has_content?then(
                 "-" + deploymentUnitSubset?lower_case,
@@ -172,7 +172,7 @@
                 [#if (mapping.Attribute)?has_content]
                     [#return
                         {
-                            "Fn::GetAtt" : [resourceId, mapping.Attribute] 
+                            "Fn::GetAtt" : [resourceId, mapping.Attribute]
                         }
                     ]
                 [/#if]
@@ -209,7 +209,7 @@
 [/#function]
 
 [#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false]
-    [#local result = 
+    [#local result =
         [
             { "Key" : "cot:request", "Value" : requestReference }
         ] +
@@ -262,7 +262,7 @@
                 { "Key" : "cot:zone", "Value" : getZoneName(zone) }
             ],
             []
-        ) + 
+        ) +
         name?has_content?then(
             [
                 { "Key" : "Name", "Value" : name }
@@ -308,7 +308,7 @@
                 [#local resourceOutputs = (componentTemplates[resourceId].Outputs)!{}]
                 [#assign componentTemplates +=
                     {
-                        resourceId : 
+                        resourceId :
                             ((componentTemplates[resourceId])!{}) +
                             {
                                 "Outputs" : resourceOutputs + output
@@ -322,8 +322,8 @@
 
 [#macro cfResource
             mode
-            id 
-            type 
+            id
+            type
             properties={}
             tags=[]
             outputs=getCfTemplateDefaultOutputs()
@@ -343,7 +343,7 @@
         [#case "definition"]
             [#local definition =
                 {
-                    id : 
+                    id :
                         {
                             "Type" : type
                         } +
@@ -352,7 +352,7 @@
                             "Properties",
                             properties?has_content || tags?has_content,
                             properties + attributeIfContent("Tags", tags)) +
-                        attributeIfContent("DependsOn", localDependencies) + 
+                        attributeIfContent("DependsOn", localDependencies) +
                         attributeIfContent("DeletionPolicy", deletionPolicy)
                 }
             ]
@@ -360,7 +360,7 @@
             [#if componentTemplates??]
                 [#assign componentTemplates +=
                     {
-                        id : 
+                        id :
                             ((componentTemplates[id])!{}) +
                             {
                                 "Definition" : definition
@@ -393,7 +393,7 @@
                             value.Value?has_content?then(
                                 value.Value,
                                 {
-                                    "Fn::GetAtt" : [id, value.Attribute] 
+                                    "Fn::GetAtt" : [id, value.Attribute]
                                 }
                             )
                         ),
@@ -458,7 +458,7 @@
                     {
                         "Description" : description,
                         "Context" : context
-                    } + 
+                    } +
                     valueIfContent(
                         {
                             "Detail" : detail
@@ -539,7 +539,7 @@
 [/#macro]
 
 [#macro cfTemplate level include="" compositeLists=[]]
-    
+
     [#-- Resources --]
     [#assign templateResources = {} ]
     [#assign debugResources = [] ]
@@ -599,10 +599,10 @@
                       "Account" :{"Value" : { "Ref" : "AWS::AccountId" }},
                       "Region" : {"Value" : { "Ref" : "AWS::Region" }},
                       "Level" : {"Value" : level},
-                      "DeploymentUnit" : 
+                      "DeploymentUnit" :
                           {
                               "Value" :
-                                  deploymentUnit + 
+                                  deploymentUnit +
                                   (
                                       (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
                                       (deploymentUnitSubset?has_content)
@@ -629,7 +629,7 @@
     [#elseif templateScript?has_content]
       #!/bin/bash
       [#list templateScript as line]
-          ${line}       
+          ${line}
       [/#list]
     [#elseif templateConfig?has_content]
         [@toJSON templateConfig /]
