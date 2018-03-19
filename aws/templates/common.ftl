@@ -521,7 +521,6 @@
                                 [/#if]
                             [/#list]
                         [/#list]
-
                         [#list subobjectKeys as subobjectKey ]
                             [#if subobjectKey == "Configuration" ]
                                 [#continue]
@@ -1115,28 +1114,20 @@
         "getLinkTarget"
         {
             "Occurrence" : occurrence,
-            "Link" : link
+            "Link" : link,
+            "EffectiveInstance" : instanceToMatch,
+            "EffectiveVersion" : versionToMatch
         }
         "Link not found" /]
 
-    [#return
-        {
-            "Core" : {},
-            "Configuration" : {},
-            "State" : {
-                "Resources" : {},
-                "Attributes" : {},
-                "Roles" : {}
-            },
-            "Direction" : ""
-        } ]
+    [#return {} ]
 [/#function]
 
 [#function getLinkTargets occurrence links={}]
     [#local result={} ]
     [#list (valueIfContent(links, links, occurrence.Configuration.Links!{}))?values as link]
         [#if link?is_hash]
-            [#local linkTarget = getLinkTarget(occurrence, link)!{} ]
+            [#local linkTarget = getLinkTarget(occurrence, link) ]
             [#local result +=
                 valueIfContent(
                     {

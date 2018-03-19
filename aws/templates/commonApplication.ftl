@@ -277,8 +277,8 @@
                     "Tier" : targetTierId,
                     "Component" : targetComponentId
                 } +
-                attributeIfContent("Instance", port.LB.Instance!core.Instance.Id) +
-                attributeIfContent("Version", port.LB.Version!core.Version.Id) ]
+                attributeIfContent("Instance", port.LB.Instance!"") +
+                attributeIfContent("Version", port.LB.Version!"") ]
 
             [@cfDebug listMode targetLink false /]
 
@@ -324,40 +324,39 @@
                 [/#if]
             [/#if]
 
-            [#local containerPortMappings +=
-                [
+            [#local containerPortMapping =
+                {
+                    "ContainerPort" :
+                        contentIfContent(
+                            port.Container!"",
+                            port.Id
+                        ),
+                    "HostPort" : port.Id,
+                    "DynamicHostPort" : port.DynamicHostPort
+                } ]
+            [#if targetLoadBalancer?has_content]
+                [#local containerPortMapping +=
                     {
-                        "ContainerPort" :
-                            contentIfContent(
-                                port.Container!"",
-                                port.Id
-                            ),
-                        "HostPort" : port.Id,
-                        "DynamicHostPort" : port.DynamicHostPort
-                    } +
-                    valueIfContent(
-                        {
-                            "LoadBalancer" :
+                        "LoadBalancer" :
+                            {
+                                "Tier" : targetTierId,
+                                "Component" : targetComponentId,
+                                "Instance" : targetLoadBalancer.Core.Instance.Id,
+                                "Version" : targetLoadBalancer.Core.Version.Id
+                            } +
+                            valueIfContent(
                                 {
-                                    "Tier" : targetTierId,
-                                    "Component" : targetComponentId,
-                                    "Instance" : targetLoadBalancer.Core.Instance.Id,
-                                    "Version" : targetLoadBalancer.Core.Version.Id
-                                } +
-                                valueIfContent(
-                                    {
-                                        "TargetGroup" : targetGroup,
-                                        "Port" : targetPort,
-                                        "Priority" : port.LB.Priority,
-                                        "Path" : targetPath
-                                    },
-                                    targetGroup
-                                )
-                        },
-                        targetLoadBalancer
-                    )
+                                    "TargetGroup" : targetGroup,
+                                    "Port" : targetPort,
+                                    "Priority" : port.LB.Priority,
+                                    "Path" : targetPath
+                                },
+                                targetGroup
+                            )
+                    }
                 ]
-            ]
+            [/#if]
+            [#local containerPortMappings += [containerPortMapping] ]
         [/#list]
 
         [#local logDriver =

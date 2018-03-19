@@ -49,7 +49,7 @@
                     [#assign linkTargetRoles = linkTarget.State.Roles ]
                     [#assign linkDirection = linkTarget.Direction ]
 
-                    [#switch linkTargetCore.Type!""]
+                    [#switch linkTargetCore.Type]
                         [#case USERPOOL_COMPONENT_TYPE] 
                         [#case "apigateway"]
                             [#if linkTargetResources[(linkTargetCore.Type)].Deployed &&
