@@ -108,14 +108,19 @@
 
         [#list configuration.Links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link)]
+
             [@cfDebug listMode linkTarget false /]
+
+            [#if !linkTarget?has_content]
+                [#continue]
+            [/#if]
 
             [#assign linkTargetCore = linkTarget.Core]
             [#assign linkTargetConfiguration = linkTarget.Configuration]
             [#assign linkTargetResources = linkTarget.State.Resources]
             [#assign linkTargetAttributes = linkTarget.State.Attributes]
 
-            [#switch linkTargetCore.Type!""]
+            [#switch linkTargetCore.Type]
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
                     
                     [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
