@@ -20,11 +20,18 @@
         [#list configuration.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
+
+                [@cfDebug listMode linkTarget false /]
+
+                [#if !linkTarget?has_content]
+                    [#continue]
+                [/#if]
+
                 [#assign linkTargetCore = linkTarget.Core ]
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
-                [#switch linkTargetCore.Type!""]
+                [#switch linkTargetCore.Type]
                     [#case "external"]
                     [#case "contenthub"]
                         [#if deploymentSubsetRequired("prologue", false)]

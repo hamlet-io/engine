@@ -27,6 +27,10 @@
                             "Tier" : queue.Tier!tier,
                             "Component" : queue.Component!queue.Id
                         }) ]
+                [#if !linkTarget?has_content]
+                    [#continue]
+                [/#if]
+
                 [#assign sqsId = (linkTarget.State.Resources["queue"].Id)!"" ]
                 [#if sqsId?has_content]
                     [#assign sqsIds += [sqsId] ]
