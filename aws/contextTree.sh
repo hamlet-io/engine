@@ -265,6 +265,15 @@ function findGen3TenantDir() {
     "tenant.json"
 }
 
+function findGen3TenantInfrastructureDir() {
+  local root_dir="$1"; shift
+  local tenant="$1"; shift
+
+  findDir "${root_dir}" \
+    "infrastructure/**/${tenant}" \
+    "${tenant}/infrastructure"
+}
+
 function findGen3AccountDir() {
   local root_dir="$1"; shift
   local account="$1"; shift
