@@ -311,7 +311,10 @@
                                 [#local targetGroup = "default" ]
                             [/#if]
                         [#else]
-                            [#if core.Version.Name?has_content]
+                            [#-- Create target group for container if it --]
+                            [#-- is versioned and load balancer isn't    --]
+                            [#if core.Version.Name?has_content &&
+                                    !targetLoadBalancer.Core.Version.Name?has_content]
                                 [#local targetPath = "/" + core.Version.Name + "/*" ]
                                 [#local targetGroup = core.Version.Name ]
                             [#else]
