@@ -270,6 +270,9 @@
             [#local targetTierId = (port.LB.Tier)!port.ELB ]
             [#local targetComponentId = (port.LB.Component)!port.ELB ]
             [#local targetLinkName = port.LB.LinkName ]
+            [#-- Need to be careful to allow an empty value for --]
+            [#-- Instance/Version to be explicitly provided and --]
+            [#-- correctly handled in getLinkTarget             --]
             [#local targetLink =
                 {
                     "Id" : targetLinkName,
@@ -277,8 +280,8 @@
                     "Tier" : targetTierId,
                     "Component" : targetComponentId
                 } +
-                attributeIfContent("Instance", port.LB.Instance!"") +
-                attributeIfContent("Version", port.LB.Version!"") ]
+                attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
+                attributeIfTrue("Version", port.LB.Version??, port.LB.Version!"") ]
 
             [@cfDebug listMode targetLink false /]
 
