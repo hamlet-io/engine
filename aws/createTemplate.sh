@@ -170,6 +170,7 @@ function process_template() {
   case "${level}" in
     blueprint)
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${SEGMENT}/bp"
+      pass_list=("template")
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
 
       # Blueprint applies across accounts and regions
