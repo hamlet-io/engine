@@ -397,7 +397,7 @@ function process_stack() {
           aws --region ${REGION} cloudformation create-change-set \
               --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" \
               --template-body "file://${stripped_template_file}" \
-              --capabilities CAPABILITY_IAM &>/dev/null || return $?
+              --capabilities CAPABILITY_IAM > /dev/null || return $?
 
           #Wait for change set to be processed 
           aws --region ${REGION} cloudformation wait change-set-create-complete \
@@ -416,7 +416,7 @@ function process_stack() {
             # Check ChangeSet for results 
             aws --region ${REGION} cloudformation describe-change-set \
                 --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" > "${potential_change_file}" 2>/dev/null || return $?
-
+            
             if [[ $( jq  -r '.Status == "FAILED"' < "${potential_change_file}" ) == "true" ]]; then
 
               cat "${potential_change_file}" | jq -r '.StatusReason' | grep -q "The submitted information didn't contain changes." &&
