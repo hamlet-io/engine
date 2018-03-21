@@ -36,21 +36,10 @@
       {
         "Id" : environmentObject.Id,
         "Configuration" : environmentObject,
-        "Solutions" : getSolutionBlueprint()
+        "Segments" : getSegmentBlueprint()
       }
   ]]
   [#return result ]
-[/#function]
-
-[#function getSolutionBlueprint]
-  [#local result= [
-      {
-        "Id" : solutionObject.Id,
-        "Configuration" : solutionObject,
-        "Segments" : getSegmentBlueprint()
-      }
-    ]]
-    [#return result ]
 [/#function]
 
 [#function getSegmentBlueprint ]
@@ -59,6 +48,7 @@
         "Id" : segmentObject.Id,
         "Configuration" : segmentObject,
         "Account" : accountObject,
+        "Solution" : solutionObject,
         "Tiers" : getTierBlueprint() 
       } 
     ]]
@@ -90,16 +80,26 @@
   [#local result=[] ]
   [#list tier.Components!{} as id,component]
     [#if component?is_hash]
-      [#assign componentTemplates = {} ]
-      [#assign componentId = getComponentId(component)]
-      [#assign componentType = getComponentType(component)]
+
+      [#-- Only include deployed Occurrences --]
+      [#local occurrences = getOccurrences(tier, component) ]
+      [#local deployedOccurrences = [] ]
+
+      [#list getOccurrences(tier, component) as occurrence ]
+        [#list occurrence.State.Resources?values as resource ]
+          [#if resource.Deployed ]
+            [#local deployedOccurrences += [ occurrence ]]
+            [#continue]
+          [/#if]
+        [/#list]
+      [/#list]
 
       [#local result +=
         [
           {
-              "Id" : id,
-              "Occurrences" : getOccurrences(tier, component)
-          }]]
+            "Id" : id,
+            "Occurrences" : deployedOccurrences
+        }]]
     [/#if]
   [/#list]
   [#return  result ]
