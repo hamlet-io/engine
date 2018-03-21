@@ -169,7 +169,9 @@ function process_template() {
 
   case "${level}" in
     blueprint)
+    
       pass_list=("template")
+      passes=("template")
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
 
       # Blueprint applies across accounts and regions
