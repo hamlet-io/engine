@@ -220,7 +220,7 @@
                     encrypted=configuration.Encrypted
                     masterUsername=rdsUsername
                     masterPassword=rdsPassword
-                    databaseName=productName
+                    databaseName=configuration.DatabaseName!productName
                     retentionPeriod=configuration.Backup.RetentionPeriod
                     snapshotId=snapshotId
                     subnetGroupId=getReference(rdsSubnetGroupId)
