@@ -94,11 +94,30 @@
         [/#list]
       [/#list]
 
+      [#local cleanedOccurrences = []]
+      [#list deployedOccurrences as occurrence ] 
+        [#list occurrence.State.Attributes as key, value ]
+          [#if key?lower_case == "password" || key?lower_case?contains("key") ]
+              [#local cleanAttributes += 
+                {
+                  key : "***"
+                }
+              ]
+            [#else]
+              [#local cleanAttributes += 
+                {
+                  key : value
+                }
+              ]
+          [/#if]
+        [/#list]
+      [/#list]
+
       [#local result +=
         [
           {
             "Id" : id,
-            "Occurrences" : deployedOccurrences
+            "Occurrences" : cleanedOccurrences
         }]]
     [/#if]
   [/#list]
