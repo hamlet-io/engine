@@ -44,7 +44,8 @@
                     }
                 ]
             },
-            "AutoMinorVersionUpgrade"
+            "AutoMinorVersionUpgrade",
+            "DatabaseName"
         ]
 }]
     
