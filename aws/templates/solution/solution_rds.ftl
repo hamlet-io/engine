@@ -114,7 +114,17 @@
                         "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?", 
                         "}",
                         "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
-                        "create_deploy_snapshot || return $?"
+                        "create_deploy_snapshot || return $?" + 
+                        
+                        (configuration.Encrypted)?then(
+                            "function encrypt_snapshot() {",
+                            "# Encrypt Snapshot",
+                            "info \"Encrypting Snapshot if required... \"",
+                            "encrypt_snapshot" + 
+                            " \"" + region + "\"
+                            
+                        )
+
                     ]
                 /]
             [/#if]

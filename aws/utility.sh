@@ -734,6 +734,52 @@ function create_snapshot() {
   echo -n "$(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )"
 }
 
+function encrypt_snapshot() { 
+  local region="$1"; shift
+  local db_snapshot_identifier="$1"; shift
+  local kms_key_id="$1"; shift 
+
+  # Check the snapshot status 
+  snapshot_info=$(aws --region "${region}" describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $? )
+
+  if [[ -n "${snapshot_info}" ]]; then 
+    if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Status == "Available"') ]]; then
+
+      if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Encrypted == false') ]]; then 
+
+        info "Creating encrypted snapshot of ${db_snapshot_identifier}"
+        # create encrypted snapshot
+        aws --region "${region}" rds copy-db-snapshot \
+          --source-db-snapshot-identifier "${db_snapshot_identifier}" \
+          --target-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
+          --kms-key-id "${kms_key_id}" > /dev/null 2>&1 || return $?
+        aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "encrypted-${db_snapshot_identifier}" > /dev/null 2>&1  || return $?
+
+        # delete the original snapshot
+        aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}"  > /dev/null 2>&1  || return $?
+        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "${db_snapshot_identifier}" > /dev/null 2>&1  || return $? 
+
+        # Copy snapshot back to original identifier
+        aws --region "${region}" rds copy-db-snapshot \
+          --source-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
+          --target-db-snapshot-identifier "${db_snapshot_identifier}" > /dev/null 2>&1 || return $?
+        aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}" > /dev/null 2>&1  || return $?
+
+        return 0
+
+      else 
+        info "Snapshot ${db_snapshot_identifier} already encrypted"
+        return 128
+        
+      fi
+    s
+    else 
+      fatal "Snapshot had an issue $(echo "${snapshot_info}")"
+      return 255 
+    fi
+  fi
+}
+
 
 # -- Git Repo Management --
 function clone_git_repo() {
