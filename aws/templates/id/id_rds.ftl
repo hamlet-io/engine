@@ -14,6 +14,13 @@
                 extensions)]
 [/#function]
 
+[#function formatDependentRDSManualSnapshotId resourceId extensions... ]
+    [#return formatDependentResourceId(
+                "manualsnapshot",
+                resourceId,
+                extensions)]
+[/#function]
+
 [#assign componentConfiguration +=
     {
         RDS_COMPONENT_TYPE : [
@@ -25,7 +32,7 @@
             "Port",
             {
                 "Name" : "Encrypted",
-                "Default" : false
+                "Default" : true
             },
             { 
                 "Name" : "Size",
@@ -40,7 +47,7 @@
                     },
                     {
                         "Name" : "SnapshotOnDeploy",
-                        "Default" : false
+                        "Default" : true
                     }
                 ]
             },
