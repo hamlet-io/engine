@@ -32,7 +32,7 @@
             "Port",
             {
                 "Name" : "Encrypted",
-                "Default" : true
+                "Default" : false
             },
             { 
                 "Name" : "Size",
