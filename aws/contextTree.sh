@@ -270,7 +270,6 @@ function findGen3TenantInfrastructureDir() {
   local tenant="$1"; shift
 
   findDir "${root_dir}" \
-    "infrastructure/**/${tenant}" \
     "${tenant}/infrastructure"
 }
 
