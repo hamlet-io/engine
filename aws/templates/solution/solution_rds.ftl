@@ -95,7 +95,7 @@
         [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
         [#if deploymentSubsetRequired("prologue", false)]
-            [#-- If a manual snapshot has been added the pseudo stack has be replaced with an automated one --]
+            [#-- If a manual snapshot has been added the pseudo stack output should be replaced with an automated one --]
             [#if configuration.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content ]
                 [@cfScript
                     mode=listMode
