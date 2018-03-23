@@ -62,7 +62,7 @@
                     },
                     {
                         "Name" : "Expression",
-                        "Default" : "rate(30 minutes)"
+                        "Default" : "rate(6 minutes)"
                     },
                     {
                         "Name" : "InputPath",
