@@ -296,7 +296,7 @@
           "x-amazon-apigateway-authtype": "awsSigv4"
         }
         [#if integrationsObject.userPoolArns?has_content ]
-            [#list integrationsObject.userPoolArns?keys as key, value]
+            [#list integrationsObject.userPoolArns as key, value]
                 [#if key == account ]
                     ,"${defaultCognitoPoolName}": {
                         "type": "apiKey",
