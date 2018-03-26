@@ -295,19 +295,23 @@
           "in": "header",
           "x-amazon-apigateway-authtype": "awsSigv4"
         }
-        [#if integrationsObject.userPoolArn?has_content ]
-            ,"${defaultCognitoPoolName}": {
-                "type": "apiKey",
-                "name": "${defaultCognitoAuthHeader}",
-                "in": "header",
-                "x-amazon-apigateway-authtype": "cognito_user_pools",
-                "x-amazon-apigateway-authorizer": {
-                    "type": "cognito_user_pools",
-                    "providerARNs": [
-                            "${integrationsObject.userPoolArn}"
-                    ]
-                }
-            }
+        [#if integrationsObject.userPoolArns?has_content ]
+            [#list integrationsObject.userPoolArns?keys as key, value]
+                [#if key == account ]
+                    ,"${defaultCognitoPoolName}": {
+                        "type": "apiKey",
+                        "name": "${defaultCognitoAuthHeader}",
+                        "in": "header",
+                        "x-amazon-apigateway-authtype": "cognito_user_pools",
+                        "x-amazon-apigateway-authorizer": {
+                            "type": "cognito_user_pools",
+                            "providerARNs": [
+                                    "${value}"
+                            ]
+                        }
+                    }
+                [/#if]
+            [/#list]
         [/#if]
 
     },
