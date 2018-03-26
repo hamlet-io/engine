@@ -81,14 +81,14 @@
                         ]
                         [#break]
 
-                    [#case USERPOOL_COMPONENT_TYPE] 
+                    [#case USERPOOL_COMPONENT_TYPE]
                         [#if deploymentSubsetRequired("apigateway", true)]
-        
+
                             [#assign policyId = formatDependentPolicyId(
-                                                    apiId, 
+                                                    apiId,
                                                     link.Name)]
 
-                            [@createPolicy 
+                            [@createPolicy
                                 mode=listMode
                                 id=policyId
                                 name=apiName
@@ -110,7 +110,7 @@
                         getReference(apiId),
                         "/",
                         stageName
-                    ]                       
+                    ]
                 ]
             }
         ]
@@ -143,7 +143,7 @@
                                 tier,
                                 component,
                                 occurrence)]
-                        
+
         [#assign certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
         [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
         [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
@@ -154,7 +154,7 @@
                 mode=listMode
                 id=apiId
                 type="AWS::ApiGateway::RestApi"
-                properties= 
+                properties=
                     {
                         "BodyS3Location" : {
                             "Bucket" : getRegistryEndPoint("swagger"),
@@ -177,19 +177,19 @@
                 mode=listMode
                 id=deployId
                 type="AWS::ApiGateway::Deployment"
-                properties= 
+                properties=
                     {
                         "RestApiId": getReference(apiId),
                         "StageName": "default"
                     }
                 outputs={}
-                dependencies=apiId                       
+                dependencies=apiId
             /]
             [@cfResource
                 mode=listMode
                 id=stageId
                 type="AWS::ApiGateway::Stage"
-                properties= 
+                properties=
                     {
                         "DeploymentId" : getReference(deployId),
                         "RestApiId" : getReference(apiId),
@@ -201,11 +201,11 @@
                               "DataTraceEnabled": true
                             }
                         ],
-                        "StageName" : stageName                         
+                        "StageName" : stageName
                     } +
                     attributeIfContent("Variables", stageVariables)
                 outputs={}
-                dependencies=deployId                       
+                dependencies=deployId
             /]
             [@createSegmentCountLogMetric
                     listMode,
@@ -228,7 +228,7 @@
                 dependencies=[invalidLogMetricId]
             /]
 
-    
+
             [#if configuration.CloudFront.Configured && configuration.CloudFront.Enabled]
                 [#assign origin =
                     getCFAPIGatewayOrigin(
@@ -252,7 +252,7 @@
                 [@createCFDistribution
                     mode=listMode
                     id=cfId
-                    dependencies=stageId     
+                    dependencies=stageId
                     aliases=
                         (configuration.Certificate.Configured && configuration.Certificate.Enabled)?then(
                             [dns],
@@ -289,7 +289,7 @@
                     mode=listMode
                     id=usagePlanId
                     type="AWS::ApiGateway::UsagePlan"
-                    properties= 
+                    properties=
                         {
                             "ApiStages" : [
                                 {
@@ -300,18 +300,18 @@
                             "UsagePlanName" : usagePlanName
                         }
                     outputs={}
-                    dependencies=stageId                       
+                    dependencies=stageId
                 /]
 
                 [#if configuration.WAF.Configured &&
                         configuration.WAF.Enabled &&
                         ipAddressGroupsUsage["waf"]?has_content ]
                     [#assign wafGroups = [] ]
-                    [#assign wafRuleDefault = 
+                    [#assign wafRuleDefault =
                                 configuration.WAF.RuleDefault?has_content?then(
                                     configuration.WAF.RuleDefault,
                                     "ALLOW")]
-                    [#assign wafDefault = 
+                    [#assign wafDefault =
                                 configuration.WAF.Default?has_content?then(
                                     configuration.WAF.Default,
                                     "BLOCK")]
@@ -323,17 +323,17 @@
                             [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
                                 [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
                                 [#if usageGroup.IsOpen]
-                                    [#assign wafRuleDefault = 
+                                    [#assign wafRuleDefault =
                                         configuration.WAF.RuleDefault?has_content?then(
                                             configuration.WAF.RuleDefault,
                                             "COUNT")]
-                                    [#assign wafDefault = 
+                                    [#assign wafDefault =
                                             configuration.WAF.Default?has_content?then(
                                                 configuration.WAF.Default,
                                                 "ALLOW")]
                                 [/#if]
                                 [#if usageGroup.CIDR?has_content]
-                                    [#assign wafGroups += 
+                                    [#assign wafGroups +=
                                                 group?is_hash?then(
                                                     [group],
                                                     [{"Id" : groupId}]
@@ -344,11 +344,11 @@
                     [#else]
                         [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
                             [#if usageGroup.IsOpen]
-                                [#assign wafRuleDefault = 
+                                [#assign wafRuleDefault =
                                     configuration.WAF.RuleDefault?has_content?then(
                                         configuration.WAF.RuleDefault,
                                         "COUNT")]
-                                [#assign wafDefault = 
+                                [#assign wafDefault =
                                         configuration.WAF.Default?has_content?then(
                                             configuration.WAF.Default,
                                             "ALLOW")]
@@ -358,7 +358,7 @@
                             [/#if]
                         [/#list]
                     [/#if]
-        
+
                     [#assign wafRules = []]
                     [#list wafGroups as group]
                         [#assign wafRules += [
@@ -369,7 +369,7 @@
                             ]
                         ]
                     [/#list]
-                    [@createWAFAcl 
+                    [@createWAFAcl
                         mode=listMode
                         id=wafAclId
                         name=wafAclName
@@ -383,7 +383,7 @@
                         mode=listMode
                         id=domainId
                         type="AWS::ApiGateway::DomainName"
-                        properties= 
+                        properties=
                             {
                                 "CertificateArn": getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1"),
                                 "DomainName" : dns
@@ -394,7 +394,7 @@
                         mode=listMode
                         id=basePathMappingId
                         type="AWS::ApiGateway::BasePathMapping"
-                        properties= 
+                        properties=
                             {
                                 "DomainName" : dns,
                                 "RestApiId" : getReference(apiId),
@@ -406,10 +406,10 @@
                 [/#if]
             [/#if]
         [/#if]
-        
+
         [#if configuration.Publish.Configured && configuration.Publish.Enabled ]
             [#assign docsS3BucketId = formatS3Id(core.Id, "docs")]
-            
+
             [#assign docsS3BucketPolicyId = formatBucketPolicyId(core.Id, "docs") ]
 
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
@@ -420,24 +420,14 @@
                                             formatName(
                                                 configuration.Publish.DnsNamePrefix,
                                                 formatOccurrenceBucketName(occurrence))
-                                            )]    
-            
-            [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
-                [#assign docsCIDRList = [] ]
+                                            )]
 
-                [#if ipAddressGroupsUsage["publish"]?has_content ]
-                    [#list configuration.Publish.IPAddressGroups as group]
-                        [#assign groupId = group?is_hash?then(
-                                        group.Id,
-                                        group)]
-                        
-                        [#if (ipAddressGroupsUsage["publish"][groupId])?has_content]
-                            [#assign docsCIDRList +=  (ipAddressGroupsUsage["publish"][groupId]).CIDR ]
-                        [/#if]
-                    [/#list]
-                [/#if]
-                
-                [#assign docsS3IPWhitelist = s3IPAccessCondition(docsCIDRList)]                  
+            [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
+                [#assign docsS3IPWhitelist =
+                    s3IPAccessCondition(
+                        getUsageCIDRs(
+                            "publish",
+                            configuration.Publish.IPAddressGroups)) ]
 
                 [@createBucketPolicy
                     mode=listMode
@@ -460,7 +450,7 @@
                     name=docsS3BucketName
                     websiteConfiguration=docsS3WebsiteConfiguration
                 /]
-            [/#if]  
+            [/#if]
 
             [#if deploymentSubsetRequired("epilogue", false)]
                 [@cfScript
@@ -471,7 +461,7 @@
                         "  #",
                         "  # Fetch the apidoc file",
                         "  copyFilesFromBucket" + " " +
-                            regionId + " " + 
+                            regionId + " " +
                             getRegistryEndPoint("swagger") + " " +
                             formatRelativePath(
                                 getRegistryPrefix("swagger") + productName,
@@ -480,7 +470,7 @@
                         "   \"$\{tmpdir}\" || return $?",
                         "  #",
                         "  # Insert host in Doc File ",
-                        "  add_host_to_apidoc" + " " + 
+                        "  add_host_to_apidoc" + " " +
                             dns + " " +
                         "  \"$\{tmpdir}/apidoc.zip\"  || return $?",
                         "  # Sync to the API Doc bucket",
@@ -493,7 +483,7 @@
                 /]
             [/#if]
         [/#if]
-        
+
         [#switch listMode]
             [#case "dashboard"]
                 [#if getExistingReference(apiId)?has_content]
