@@ -106,12 +106,17 @@
       [#local deployedOccurrences = [] ]
 
       [#list getOccurrences(tier, component) as occurrence ]
+        [#local deployed = false]
         [#list occurrence.State.Resources?values as resource ]
           [#if resource.Deployed ]
-            [#local deployedOccurrences += [ occurrence ] ]
-            [#continue]
+              [#local deployed = true]
+              [#continue]
           [/#if]
         [/#list]
+        
+        [#if deployed ]
+          [#local deployedOccurrences += [ occurrence ] ]
+        [/#if]
       [/#list]
 
       [#local cleanedOccurrences = [] ]
