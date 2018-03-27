@@ -216,6 +216,7 @@
                 "SIGNING_URL" : "https://" + signingFqdn + versionPath,
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn + versionPath,
+                "INTERNAL_PATH" : internalPath,
                 "DOCS_URL" : "http://" + getExistingReference(docsId, NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
