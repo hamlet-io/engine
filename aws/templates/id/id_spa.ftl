@@ -1,8 +1,9 @@
 [#-- SPA --]
+[#assign SPA_COMPONENT_TYPE = "spa"]
 
 [#assign componentConfiguration +=
     {
-        "spa" : [
+        SPA_COMPONENT_TYPE : [
             {
                 "Name" : "Links",
                 "Default" : {}
@@ -91,7 +92,8 @@
     [#local core = occurrence.Core]
     [#local configuration = occurrence.Configuration]
 
-    [#assign cfId  = formatComponentCFDistributionId(core.Tier, core.Component,occurrence)]
+    [#assign cfId  = formatComponentCFDistributionId(core.Tier, core.Component, occurrence)]
+    [#assign cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
 
     [#if configuration.Certificate.Configured && configuration.Certificate.Enabled ]
             [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
@@ -103,7 +105,22 @@
 
     [#return
         {
-            "Resources" : {},
+            "Resources" : {
+                "cf" : {
+                    "Id" : cfId,
+                    "Name" : cfName
+                },
+                "cforiginspa" : {
+                    "Id" : "spa"
+                },
+                "cforiginconfig" : { 
+                    "Id" : "config"
+                },
+                "wafacl" : { 
+                    "Id" : formatDependentWAFAclId(cfId),
+                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence)
+                }
+            },
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn

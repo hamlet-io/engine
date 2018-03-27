@@ -1,29 +1,13 @@
 [#-- CONTENTHUB --]
+[#assign CONTENTHUB_HUB_COMPONENT_TYPE = "contenthub"]
+[#assign CONTENTHUB_NODE_COMPONENT_TYPE = "contentnode"]
 
-[#assign CONTENTHUB_HUB_RESOURCE_TYPE = "contenthub" ]
-[#assign CONTENTHUB_NODE_RESOURCE_TYPE = "contentnode" ]
-
-[#function formatContentHubHubId tier component extensions...]
-    [#return formatComponentResourceId(
-                CONTENTHUB_HUB_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
-
-
-[#function formatContentHubNodeId tier component extensions...]
-    [#return formatComponentResourceId(
-                CONTENTHUB_NODE_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
-
+[#assign CONTENTHUB_RESOURCE_TYPE = "contenthub"]
+[#assign CONTENTNODE_RESOURCE_TYPE = "contentnode"]
 
 [#assign componentConfiguration +=
     {
-        "contenthub" : [
+        CONTENTHUB_HUB_COMPONENT_TYPE : [
             "Prefix",
             {
                 "Name" : "Engine",
@@ -40,17 +24,16 @@
         ]
     }]
 
-    
 [#function getContentHubState occurrence]
     [#local core = occurrence.Core]
     [#local configuration = occurrence.Configuration]
 
-    [#local id = formatContentHubHubId(core.Tier, core.Component, occurrence)]
+    [#local id = formatResourceId(CONTENTHUB_RESOURCE_TYPE, core.Id)]
 
     [#return
         {
             "Resources" : {
-                "hub" : {
+                "contenthub" : {
                     "Id" : id
                 }
             },
@@ -64,10 +47,9 @@
     ]
 [/#function]
 
-
 [#assign componentConfiguration +=
     {
-        "contentnode" : [
+        CONTENTHUB_NODE_COMPONENT_TYPE : [
             {
                 "Name" : "Path",
                 "Children" : [
@@ -130,17 +112,16 @@
         ]
     }]
 
-    
 [#function getContentNodeState occurrence]
     [#local core = occurrence.Core]
     [#local configuration = occurrence.Configuration]
 
-    [#local id = formatContentHubNodeId(core.Tier, core.Component, occurrence)]
+    [#local id = formatResourceId(CONTENTNODE_RESOURCE_TYPE, core.Id)]
 
     [#return
         {
             "Resources" : {
-                "node" : {
+                "contentnode" : {
                     "Id" : id
                 }
             },

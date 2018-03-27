@@ -6,10 +6,11 @@
 
         [@cfDebug listMode occurrence false /]
 
-        [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign core = occurrence.Core]
+        [#assign configuration = occurrence.Configuration]
+        [#assign resources = occurrence.State.Resources]
 
-        [#assign contentHubId = formatContentHubHubId(tier, component, occurrence)]
+        [#assign contentHubId = resources["contenthub"].Id]
         [#assign contentHubPrefix = configuration.Prefix ]
 
         [#if deploymentSubsetRequired("prologue", false)]

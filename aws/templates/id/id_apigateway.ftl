@@ -1,69 +1,35 @@
 [#-- API Gateway --]
 
-[#assign APIGATEWAY_RESOURCE_TYPE = "api" ]
+[#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
 
-[#function formatAPIGatewayId tier component extensions...]
-    [#return formatComponentResourceId(
-                APIGATEWAY_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
+[#assign APIGATEWAY_RESOURCE_TYPE = "apigateway"]
+[#assign APIGATEWAY_DEPLOY_RESOURCE_TYPE = "apiDeploy"]
+[#assign APIGATEWAY_STAGE_RESOURCE_TYPE = "apiStage"]
+[#assign APIGATEWAY_DOMAIN_RESOURCE_TYPE = "apiDomain"]
+[#assign APIGATEWAY_AUTHORIZER_RESOURCE_TYPE = "apiAuthorizer"]
+[#assign APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE = "apiBasePathMapping"]
+[#assign APIGATEWAY_USAGEPLAN_RESOURCE_TYPE = "apiUsagePlan"]
+[#assign APIGATEWAY_APIKEY_RESOURCE_TYPE = "apiKey"]
 
-[#function formatAPIGatewayDeployId tier component extensions...]
-    [#return formatComponentResourceId(
-                "apiDeploy",
-                tier,
-                component,
-                extensions)]
-[/#function]
+[#assign APIGATEWAY_DOCS_EXTENSION = "docs"]
 
-[#function formatAPIGatewayStageId tier component extensions...]
-    [#return formatComponentResourceId(
-                "apiStage",
-                tier,
-                component,
-                extensions)]
-[/#function]
-
-[#function formatDependentAPIGatewayDomainId resourceId extensions...]
+[#function formatDependentAPIGatewayAuthorizerId resourceId extensions...]
     [#return formatDependentResourceId(
-                "apiDomain",
-                resourceId,
-                extensions)]
-[/#function]
-
-[#function formatDependentAPIGatewayAuthorizerId resourceId extensions... ]
-    [#return formatDependentResourceId(
-                "apiAuthorizer",
-                resourceId,
-                extensions)] 
-[/#function]
-
-[#function formatDependentAPIGatewayBasePathMappingId resourceId extensions...]
-    [#return formatDependentResourceId(
-                "apiBasePathMapping",
-                resourceId,
-                extensions)]
-[/#function]
-
-[#function formatDependentAPIGatewayUsagePlanId resourceId extensions...]
-    [#return formatDependentResourceId(
-                "apiUsagePlan",
+                APIGATEWAY_AUTHORIZER_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatDependentAPIGatewayAPIKeyId resourceId extensions...]
     [#return formatDependentResourceId(
-                "apiKey",
+                APIGATEWAY_APIKEY_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#assign componentConfiguration +=
     {
-        "apigateway" : [
+        APIGATEWAY_COMPONENT_TYPE : [
             {
                 "Name" : "Links",
                 "Default" : {}
@@ -143,28 +109,38 @@
             }
         ]
     }]
-    
+
 [#function getAPIGatewayState occurrence]
     [#local core = occurrence.Core]
     [#local configuration = occurrence.Configuration]
 
-    [#local id = formatAPIGatewayId(core.Tier, core.Component, occurrence)]
-    [#local name = formatComponentFullName(core.Tier, core.Component, occurrence)]
-    [#local docsBucketId = formatS3Id(core.Id, "docs")]
+    [#local apiId = formatResourceId("api", core.Id)]
+    
+    [#-- Resource Id doesn't follow the resource type for backwards compatability --]
+    [#if getExistingReference(formatResourceId("api", core.Id))?has_content ]
+        [#local apiId = formatResourceId("api", core.Id)]
+    [#else ]
+        [#local apiId = formatResourceId("APIGATEWAY_RESOURCE_TYPE", core.Id)]
+    [/#if]
+    
+    [#local apiName = formatComponentFullName(core.Tier, core.Component, occurrence)]
+    [#local stageId = formatResourceId( APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
+
+    [#local docsId = formatS3Id(core.Id, APIGATEWAY_DOCS_EXTENSION)]
+    [#local cfId = formatDependentCFDistributionId(apiId)]
 
     [#local internalFqdn =
         formatDomainName(
-            getExistingReference(id),
+            getExistingReference(apiId),
             "execute-api",
             regionId,
             "amazonaws.com") ]
 
     [#if configuration.Certificate.Configured && configuration.Certificate.Enabled ]
-            [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
-            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence) ]
+            [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName)]
+            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence)]
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
-            [#local signingFqdn = formatDomainName(formatName("sig4", hostName), certificateObject.Domain.Name) ] 
-
+            [#local signingFqdn = formatDomainName(formatName("sig4", hostName), certificateObject.Domain.Name)] 
     [#else]
             [#local fqdn = internalFqdn]
             [#local signingFqdn = internalFqdn]
@@ -187,29 +163,70 @@
         {
             "Resources" : {
                 "apigateway" : {
-                    "Id" : id,
-                    "Name" : name
+                    "Id" : apiId,
+                    "Name" : apiName
+                },
+                "apideploy" : {
+                    "Id" : formatResourceId(APIGATEWAY_DEPLOY_RESOURCE_TYPE, core.Id, runId)
+                },
+                "apistage" : {
+                    "Id" : stageId,
+                    "Name" : core.Version.Name
+                },
+                "apidomain" : {
+                    "Id" : formatDependentResourceId(APIGATEWAY_DOMAIN_RESOURCE_TYPE, apiId)
+                },
+                "apibasepathmapping" : { 
+                    "Id" : formatDependentResourceId(APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, stageId)
+                },
+                "apiusageplan" : {
+                    "Id" : formatDependentResourceId(APIGATEWAY_USAGEPLAN_RESOURCE_TYPE, cfId),
+                    "Name" : formatComponentFullName(core.Tier, core.Component, occurrence)
+                },
+                "invalidlogmetric" : {
+                    "Id" : formatDependentLogMetricId(stageId, "invalid"),
+                    "Name" : "Invalid"
+                },
+                "invalidalarm" : {
+                    "Id" : formatDependentAlarmId(stageId, "invalid"),
+                    "Name" : formatComponentAlarmName(core.Tier, core.Component, occurrence,"invalid")
+                },
+                "cf" : {
+                    "Id" : cfId,
+                    "Name" : formatComponentCFDistributionName(core.Tier, core.Component, occurrence)
+                },
+                "cforigin" : {
+                    "Id" : "apigateway"
+                },
+                "wafacl" : { 
+                    "Id" : formatDependentWAFAclId(apiId),
+                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence)
+                },
+                "docs" : {
+                    "Id" : docsId
+                },
+                "docspolicy" : {
+                    "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_DOCS_EXTENSION)
                 }
             },
             "Attributes" : {
                 "FQDN" : fqdn,
-                "URL" : "https://" + fqdn + versionPath,
-                "DOCS_URL" : "http://docs." + fqdn,
+                "URL" : "https://" + fqdn,
                 "SIGNING_FQDN" : signingFqdn,
                 "SIGNING_URL" : "https://" + signingFqdn + versionPath,
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn,
-                "DOCS_URL" : "http://" + getExistingReference(docsBucketId,NAME_ATTRIBUTE_TYPE)
+                "DOCS_URL" : "http://" + getExistingReference(docsId, NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Outbound" : {
                     "default" : "invoke",
-                    "invoke" : apigatewayInvokePermission(id, core.Version.Name)
+                    "invoke" : apigatewayInvokePermission(apiId, core.Version.Name)
                 },
                 "Inbound" : {
                     "invoke" : {
                         "Principal" : "apigateway.amazonaws.com",
-                        "SourceArn" : formatInvokeApiGatewayArn(id, core.Version.Name)
+                        "SourceArn" : formatInvokeApiGatewayArn(apiId, core.Version.Name)
                     }
                 }
             }
