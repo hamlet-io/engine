@@ -120,11 +120,11 @@
     [#if getExistingReference(formatResourceId("api", core.Id))?has_content ]
         [#local apiId = formatResourceId("api", core.Id)]
     [#else ]
-        [#local apiId = formatResourceId("APIGATEWAY_RESOURCE_TYPE", core.Id)]
+        [#local apiId = formatResourceId(APIGATEWAY_RESOURCE_TYPE, core.Id)]
     [/#if]
     
     [#local apiName = formatComponentFullName(core.Tier, core.Component, occurrence)]
-    [#local stageId = formatResourceId( APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
+    [#local stageId = formatResourceId(APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
 
     [#local docsId = formatS3Id(core.Id, APIGATEWAY_DOCS_EXTENSION)]
     [#local cfId = formatDependentCFDistributionId(apiId)]
