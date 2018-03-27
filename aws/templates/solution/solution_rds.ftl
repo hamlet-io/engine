@@ -71,8 +71,11 @@
             } ]
         [#assign rdsUsername = rdsCredentials.Login.Username]
         [#assign rdsPassword = rdsCredentials.Login.Password]
-        [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE) ]
-        [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE ) ]
+        [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
+        [#assign rdsManualSnapshot = getExistingReference(formatDependentRDSManualSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
+        [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE )]
+
+        [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
 
         [#assign rdsPreDeploySnapshotId = formatName(
                                             rdsFullName,
@@ -94,13 +97,14 @@
         [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
         [#if deploymentSubsetRequired("prologue", false)]
-            [#if configuration.Backup.SnapshotOnDeploy ]
+            [#-- If a manual snapshot has been added the pseudo stack output should be replaced with an automated one --]
+            [#if configuration.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content ]
                 [@cfScript
                     mode=listMode
                     content=
                     [
-                        "function create_deploy_snapshot() {",
                         "# Create RDS snapshot",
+                        "function create_deploy_snapshot() {",
                         "info \"Creating Pre-Deployment snapshot... \"",
                         "create_snapshot" + 
                         " \"" + region + "\" " + 
@@ -112,8 +116,22 @@
                         "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?", 
                         "}",
                         "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
-                        "create_deploy_snapshot || return $?"
-                    ]
+                        "create_deploy_snapshot || return $?" 
+                    ] +
+                    configuration.Encrypted?then(
+                        [
+                            "# Encrypt RDS snapshot",
+                            "function convert_plaintext_snapshot() {",
+                            "info \"Checking Snapshot Encryption... \"",
+                            "encrypt_snapshot" + 
+                            " \"" + region + "\" " +
+                            " \"" + rdsPreDeploySnapshotId + "\" " +
+                            " \"" + segmentKMSKey + "\" || return $?",
+                            "}",
+                            "convert_plaintext_snapshot || return $?"
+                        ],
+                        []
+                    )
                 /]
             [/#if]
         [/#if]
@@ -190,21 +208,33 @@
             [#switch alternative ]
                 [#case "replace1" ]
                     [#assign rdsFullName=formatName(rdsFullName, "backup") ]
-                    [#assign snapshotId = valueIfTrue(
-                            rdsPreDeploySnapshotId,
-                            configuration.Backup.SnapshotOnDeploy,
-                            rdsRestoreSnapshot)]
+                    [#if rdsManualSnapshot?has_content ]
+                        [#assign snapshotId = rdsManualSnapshot ]
+                    [#else]
+                        [#assign snapshotId = valueIfTrue(
+                                rdsPreDeploySnapshotId,
+                                configuration.Backup.SnapshotOnDeploy,
+                                rdsRestoreSnapshot)]
+                    [/#if]
                 [#break]
 
                 [#case "replace2"]
+                    [#if rdsManualSnapshot?has_content ]
+                        [#assign snapshotId = rdsManualSnapshot ]
+                    [#else]
                     [#assign snapshotId = valueIfTrue(
                             rdsPreDeploySnapshotId,
                             configuration.Backup.SnapshotOnDeploy,
                             rdsRestoreSnapshot)]
+                    [/#if]
                 [#break]
 
                 [#default]
-                    [#assign snapshotId = rdsLastSnapshot]
+                    [#if rdsManualSnapshot?has_content ]
+                        [#assign snapshotId = rdsManualSnapshot ]
+                    [#else]
+                        [#assign snapshotId = rdsLastSnapshot]
+                    [/#if]
             [/#switch]
 
             [@createRDSInstance 

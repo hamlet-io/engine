@@ -727,13 +727,74 @@ function create_snapshot() {
   db_info=$(aws --region "${region}" rds describe-db-instances --db-instance-identifier ${db_identifier} )
 
   if [[ -n "${db_info}" ]]; then
-    aws --region "${region}" rds create-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}" --db-instance-identifier "${db_identifier}" > /dev/null 2>&1 || return $?
+    aws --region "${region}" rds create-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}" --db-instance-identifier "${db_identifier}" 1> /dev/null || return $?
     aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
     db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
   fi
-  echo -n "$(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )"
+  info "Snapshot Created - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )"
 }
 
+function encrypt_snapshot() { 
+  local region="$1"; shift
+  local db_snapshot_identifier="$1"; shift
+  local kms_key_id="$1"; shift 
+
+  # Check the snapshot status 
+  snapshot_info=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $? )
+
+  if [[ -n "${snapshot_info}" ]]; then 
+    if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Status == "Available"') ]]; then
+
+      if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Encrypted') == false ]]; then 
+
+        info "Converting snapshot ${db_snapshot_identifier} to an encrypted snapshot"
+
+        # create encrypted snapshot
+        aws --region "${region}" rds copy-db-snapshot \
+          --source-db-snapshot-identifier "${db_snapshot_identifier}" \
+          --target-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
+          --kms-key-id "${kms_key_id}" 1> /dev/null || return $?
+
+        info "Waiting for temp encrypted snapshot to become available..."
+        sleep 2
+        aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "encrypted-${db_snapshot_identifier}" || return $?
+
+        info "Removing plaintext snapshot..."
+        # delete the original snapshot
+        aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}"  1> /dev/null || return $?
+        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "${db_snapshot_identifier}"  || return $? 
+
+        # Copy snapshot back to original identifier
+        info "Renaming encrypted snapshot..."
+        aws --region "${region}" rds copy-db-snapshot \
+          --source-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
+          --target-db-snapshot-identifier "${db_snapshot_identifier}" 1> /dev/null || return $?
+        
+        sleep 2
+        aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
+        
+        # Remove the encrypted temp snapshot
+        aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  1> /dev/null || return $?
+        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  || return $? 
+
+        db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
+        info "Snapshot Converted - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime + " Encrypted: " + (.Encrypted|tostring)' )"
+
+        return 0
+
+      else 
+
+        echo "Snapshot ${db_snapshot_identifier} already encrypted"
+        return 0
+        
+      fi
+    
+    else 
+      echo "Snapshot not in a usuable state $(echo "${snapshot_info}")"
+      return 255 
+    fi
+  fi
+}
 
 # -- Git Repo Management --
 function clone_git_repo() {

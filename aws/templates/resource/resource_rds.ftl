@@ -70,7 +70,7 @@
                 "AvailabilityZone" : zones[0].AWSZone
             }
         ) + 
-        encrypted?then(
+        (!(snapshotId?has_content) && encrypted)?then(
             {
                 "StorageEncrypted" : true,
                 "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
