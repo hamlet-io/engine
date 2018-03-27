@@ -75,6 +75,8 @@
         [#assign rdsManualSnapshot = getExistingReference(formatDependentRDSManualSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
         [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE )]
 
+        [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
+
         [#assign rdsPreDeploySnapshotId = formatName(
                                             rdsFullName,
                                             runId,
@@ -101,8 +103,8 @@
                     mode=listMode
                     content=
                     [
-                        "function create_deploy_snapshot() {",
                         "# Create RDS snapshot",
+                        "function create_deploy_snapshot() {",
                         "info \"Creating Pre-Deployment snapshot... \"",
                         "create_snapshot" + 
                         " \"" + region + "\" " + 
@@ -114,18 +116,22 @@
                         "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?", 
                         "}",
                         "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
-                        "create_deploy_snapshot || return $?" + 
-                        
-                        (configuration.Encrypted)?then(
-                            "function encrypt_snapshot() {",
-                            "# Encrypt Snapshot",
-                            "info \"Encrypting Snapshot if required... \"",
+                        "create_deploy_snapshot || return $?" 
+                    ] +
+                    configuration.Encrypted?then(
+                        [
+                            "# Encrypt RDS snapshot",
+                            "function convert_plaintext_snapshot() {",
+                            "info \"Checking Snapshot Encryption... \"",
                             "encrypt_snapshot" + 
-                            " \"" + region + "\"
-                            
-                        )
-
-                    ]
+                            " \"" + region + "\" " +
+                            " \"" + rdsPreDeploySnapshotId + "\" " +
+                            " \"" + segmentKMSKey + "\" || return $?",
+                            "}",
+                            "convert_plaintext_snapshot || return $?"
+                        ],
+                        []
+                    )
                 /]
             [/#if]
         [/#if]
