@@ -115,20 +115,15 @@
         [/#list]
         
         [#if deployed ]
-          [#local deployedOccurrences += [ occurrence ] ]
+          [#local deployedOccurrences += [ getCleanedOccurrence(occurrence) ] ]
         [/#if]
-      [/#list]
-
-      [#local cleanedOccurrences = [] ]
-      [#list deployedOccurrences as occurrence ] 
-        [#local cleanedOccurrences += [ getCleanedOccurrence(occurrence)]]
       [/#list]
 
       [#local result += [
         {
           "Id" : id,
           "Type" : componentType,
-          "Occurrences" : cleanedOccurrences
+          "Occurrences" : deployedOccurrences
         } ] ]
 
     [/#if]
