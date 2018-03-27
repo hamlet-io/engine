@@ -5,6 +5,23 @@
 [#assign allDeploymentUnits = true]
 [#assign deploymentUnit = ""]
 
+[#function getCleanedAttributes attributes ]
+  [#local result={} ] 
+  [#list attributes as key, value]
+    [#local result += 
+      valueIfTrue(
+        { key : "***" },
+        key?lower_case?contains("password") || key?lower_case?contains("key"),
+        { key: value } ) ]      
+  [/#list]
+  [#return result]
+[/#function]
+
+[#function getCleanedOccurrence occurrence ] 
+  [#return 
+    occurrence + { "State" : occurrence.State + { "Attributes" : getCleanedAttributes(occurrence.State.Attributes) } } ]
+[/#function]
+
 [#function getTenantBlueprint]
   [#local result=
   {
@@ -79,27 +96,36 @@
 [#function getComponentBlueprint tier]
   [#local result=[] ]
   [#list tier.Components!{} as id,component]
+
     [#if component?is_hash]
+
+      [#local componentType = getComponentType(component)]
 
       [#-- Only include deployed Occurrences --]
       [#local occurrences = getOccurrences(tier, component) ]
       [#local deployedOccurrences = [] ]
 
       [#list getOccurrences(tier, component) as occurrence ]
+        [#local deployed = false]
         [#list occurrence.State.Resources?values as resource ]
           [#if resource.Deployed ]
-            [#local deployedOccurrences += [ occurrence ]]
-            [#continue]
+              [#local deployed = true]
+              [#continue]
           [/#if]
         [/#list]
+        
+        [#if deployed ]
+          [#local deployedOccurrences += [ getCleanedOccurrence(occurrence) ] ]
+        [/#if]
       [/#list]
 
-      [#local result +=
-        [
-          {
-            "Id" : id,
-            "Occurrences" : deployedOccurrences
-        }]]
+      [#local result += [
+        {
+          "Id" : id,
+          "Type" : componentType,
+          "Occurrences" : deployedOccurrences
+        } ] ]
+
     [/#if]
   [/#list]
   [#return  result ]
