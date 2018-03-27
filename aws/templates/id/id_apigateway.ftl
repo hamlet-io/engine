@@ -211,7 +211,7 @@
             },
             "Attributes" : {
                 "FQDN" : fqdn,
-                "URL" : "https://" + fqdn,
+                "URL" : "https://" + fqdn + versionPath,
                 "SIGNING_FQDN" : signingFqdn,
                 "SIGNING_URL" : "https://" + signingFqdn + versionPath,
                 "INTERNAL_FQDN" : internalFqdn,
