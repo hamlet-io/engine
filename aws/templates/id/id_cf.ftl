@@ -1,5 +1,6 @@
 [#-- CloudFront --]
 
+[#-- Resources --]
 [#assign AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE = "cf" ]
 [#assign AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE = "cfaccess" ]
 [#assign AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE = "cforigin" ]

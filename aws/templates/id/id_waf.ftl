@@ -1,5 +1,6 @@
 [#-- Web Application Firewall --]
 
+[#-- Resources --]
 [#assign AWS_WAF_IPSET_RESOURCE_TYPE = "wafIpSet" ]
 [#assign AWS_WAF_RULE_RESOURCE_TYPE = "wafRule" ]
 [#assign AWS_WAF_ACL_RESOURCE_TYPE = "wafAcl" ]

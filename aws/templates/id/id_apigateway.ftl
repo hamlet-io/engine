@@ -1,8 +1,6 @@
 [#-- API Gateway --]
 
-[#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
-[#assign APIGATEWAY_DOCS_EXTENSION = "docs"]
-
+[#-- Resources --]
 [#assign AWS_APIGATEWAY_RESOURCE_TYPE = "apigateway"]
 [#assign AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE = "apiDeploy"]
 [#assign AWS_APIGATEWAY_STAGE_RESOURCE_TYPE = "apiStage"]
@@ -25,6 +23,10 @@
                 resourceId,
                 extensions)]
 [/#function]
+
+[#-- Component --]
+[#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
+[#assign APIGATEWAY_COMPONENT_DOCS_EXTENSION = "docs"]
 
 [#assign componentConfiguration +=
     {
@@ -125,7 +127,7 @@
     [#local apiName = formatComponentFullName(core.Tier, core.Component, occurrence)]
     [#local stageId = formatResourceId(AWS_APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
 
-    [#local docsId = formatS3Id(core.Id, APIGATEWAY_DOCS_EXTENSION)]
+    [#local docsId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION)]
     [#local cfId = formatDependentCFDistributionId(apiId)]
 
     [#local internalFqdn =
@@ -217,7 +219,7 @@
                     "Type" : AWS_S3_RESOURCE_TYPE
                 },
                 "docspolicy" : {
-                    "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_DOCS_EXTENSION),
+                    "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION),
                     "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
                 }
             },

@@ -1,6 +1,6 @@
 [#-- S3 --]
-[#assign S3_COMPONENT_TYPE = "s3" ]
 
+[#-- Resources --]
 [#assign AWS_S3_RESOURCE_TYPE = "s3" ]
 [#assign AWS_S3_BUCKET_POLICY_RESOURCE_TYPE="bucketpolicy" ]
 
@@ -66,6 +66,10 @@
                 s3Id,
                 queue)]
 [/#function]
+
+
+[#-- Component --]
+[#assign S3_COMPONENT_TYPE = "s3" ]
 
 [#assign componentConfiguration +=
     {
