@@ -10,42 +10,37 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
+        [#assign resources = occurrence.State.Resources]
 
         [#assign certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
         [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
         [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
         [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
   
-        [#assign cfId  = formatComponentCFDistributionId(
-                                tier,
-                                component,
-                                occurrence)]
-                                
-        [#assign cfName  = formatComponentCFDistributionName(
-                                tier,
-                                component,
-                                occurrence)]
+        [#assign cfId               = resources["cf"].Id]         
+        [#assign cfName             = resources["cf"].Name]
+        [#assign cfSPAOriginId      = resources["cforiginspa"].Id]
+        [#assign cfConfigOriginId   = resources["cforiginconfig"].Id]
 
-        [#assign cfAccess =
-            getExistingReference(formatDependentCFAccessId(formatS3OperationsId()))]
-        [#assign cfAccess = valueIfContent(cfAccess, cfAccess, "ERROR_CLOUDFRONT_ACCESS_IDENTITY_NOT_FOUND")]
-        
-        [#assign wafAclId  = formatDependentWAFAclId(cfId)]
+        [#if ! (getExistingReference(formatDependentCFAccessId(formatS3OperationsId()))?has_content)]
+            [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
+            [#break]
+        [/#if]
 
-        [#assign wafAclName  = formatComponentWAFAclName(
-                                tier,
-                                component,
-                                occurrence)]
+        [#assign cfAccess = getExistingReference(formatDependentCFAccessId(formatS3OperationsId()))]
+
+        [#assign wafAclId       = resources["wafacl"].Id]
+        [#assign wafAclName     = resources["wafacl"].Name]
 
         [#assign spaOrigin =       
             getCFS3Origin(
-                "spa",
+                cfSPAOriginId,
                 operationsBucket,
                 cfAccess,
                 formatAbsolutePath(getAppSettingsFilePrefix(), "spa"))]
         [#assign configOrigin =       
             getCFS3Origin(
-                "config",
+                cfConfigOriginId,
                 operationsBucket,
                 cfAccess,
                 formatAbsolutePath(getAppSettingsFilePrefix()))]
