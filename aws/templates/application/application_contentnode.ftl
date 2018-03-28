@@ -8,8 +8,9 @@
 
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
+        [#assign resources = occurrence.State.Resources]
 
-        [#assign contentNodeId = formatContentHubNodeId(tier, component, occurrence) ]
+        [#assign contentNodeId = resources["contentnode"].Id ]
         [#assign pathObject = getContentPath(occurrence) ]
 
         [#if ! (configuration.Links?has_content)]

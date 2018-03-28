@@ -17,20 +17,13 @@
             [#break]
         [/#if]
 
-        [#assign apiId    = resources["apigateway"].Id]
-        [#assign apiName  = resources["apigateway"].Name]
+        [#assign apiId      = resources["apigateway"].Id]
+        [#assign apiName    = resources["apigateway"].Name]
 
         [#-- Use runId to ensure deploy happens every time --]
-        [#assign deployId = formatAPIGatewayDeployId(
-                                tier,
-                                component,
-                                occurrence,
-                                runId)]
-        [#assign stageId  = formatAPIGatewayStageId(
-                                tier,
-                                component,
-                                occurrence)]
-        [#assign stageName = core.Version.Name]
+        [#assign deployId   = resources["apideploy"].Id]
+        [#assign stageId    = resources["apistage"].Id]
+        [#assign stageName  = resources["apistage"].Name]
         [#assign stageDimensions =
             [
                 {
@@ -114,40 +107,28 @@
                 ]
             }
         ]
-        [#assign invalidLogMetricId = formatDependentLogMetricId(stageId, "invalid")]
-        [#assign invalidLogMetricName = "Invalid"]
-        [#assign invalidAlarmId = formatDependentAlarmId(stageId, "invalid")]
-        [#assign invalidAlarmName = formatComponentAlarmName(
-                                        tier,
-                                        component,
-                                        occurrence,
-                                        "invalid")]
-        [#assign domainId  = formatDependentAPIGatewayDomainId(apiId)]
-        [#assign basePathMappingId  = formatDependentAPIGatewayBasePathMappingId(stageId)]
 
-        [#assign cfId  = formatDependentCFDistributionId(
-                                apiId)]
-        [#assign cfName  = formatComponentCFDistributionName(
-                                tier,
-                                component,
-                                occurrence)]
-        [#assign cfOriginId = "apigateway" ]
-        [#assign wafAclId  = formatDependentWAFAclId(
-                                apiId)]
-        [#assign wafAclName  = formatComponentWAFAclName(
-                                tier,
-                                component,
-                                occurrence)]
-        [#assign usagePlanId  = formatDependentAPIGatewayUsagePlanId(cfId)]
-        [#assign usagePlanName = formatComponentUsagePlanName(
-                                tier,
-                                component,
-                                occurrence)]
+        [#assign domainId               = resources["apidomain"].Id]
+        [#assign basePathMappingId      = resources["apibasepathmapping"].Id]
 
-        [#assign certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
-        [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
-        [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
-        [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
+        [#assign invalidLogMetricId     = resources["invalidlogmetric"].Id]
+        [#assign invalidLogMetricName   = resources["invalidlogmetric"].Name]
+        [#assign invalidAlarmId         = resources["invalidalarm"].Id]
+        [#assign invalidAlarmName       = resources["invalidalarm"].Name]
+
+        [#assign cfId                   = resources["cf"].Id]
+        [#assign cfName                 = resources["cf"].Name]
+        [#assign cfOriginId             = resources["cforigin"].Id]
+        [#assign wafAclId               = resources["wafacl"].Id]
+        [#assign wafAclName             = resources["wafacl"].Name]
+
+        [#assign usagePlanId            = resources["apiusageplan"].Id]
+        [#assign usagePlanName          = resources["apiusageplan"].Name]
+
+        [#assign certificateObject      = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
+        [#assign hostName               = getHostName(certificateObject, tier, component, occurrence) ]
+        [#assign dns                    = formatDomainName(hostName, certificateObject.Domain.Name) ]
+        [#assign certificateId          = formatDomainCertificateId(certificateObject, hostName) ]
 
         [#if deploymentSubsetRequired("apigateway", true)]
             [@cfResource
@@ -227,7 +208,6 @@
                 dimensions=stageDimensions
                 dependencies=[invalidLogMetricId]
             /]
-
 
             [#if configuration.CloudFront.Configured && configuration.CloudFront.Enabled]
                 [#assign origin =
@@ -408,9 +388,8 @@
         [/#if]
 
         [#if configuration.Publish.Configured && configuration.Publish.Enabled ]
-            [#assign docsS3BucketId = formatS3Id(core.Id, "docs")]
-
-            [#assign docsS3BucketPolicyId = formatBucketPolicyId(core.Id, "docs") ]
+            [#assign docsS3BucketId = resources["docs"].Id]
+            [#assign docsS3BucketPolicyId = resources["docspolicy"].Id ]
 
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
             [#assign docsS3BucketName = (configuration.Certificate.Configured && configuration.Certificate.Enabled)?then(
