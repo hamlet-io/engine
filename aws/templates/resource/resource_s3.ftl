@@ -64,7 +64,7 @@
 
 [#assign outputMappings +=
     {
-        S3_RESOURCE_TYPE : S3_OUTPUT_MAPPINGS
+        AWS_S3_RESOURCE_TYPE : S3_OUTPUT_MAPPINGS
     }
 ]
 

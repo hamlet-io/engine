@@ -109,20 +109,20 @@
                 "cf" : {
                     "Id" : cfId,
                     "Name" : cfName,
-                    "Type" : CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
+                    "Type" : AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
                 },
                 "cforiginspa" : {
                     "Id" : "spa",
-                    "Type" : CLOUDFRONT_ORIGIN_RESOURCE_TYPE
+                    "Type" : AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE
                 },
                 "cforiginconfig" : { 
                     "Id" : "config",
-                    "Type" : CLOUDFRONT_ORIGIN_RESOURCE_TYPE
+                    "Type" : AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE
                 },
                 "wafacl" : { 
                     "Id" : formatDependentWAFAclId(cfId),
                     "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
-                    "Type" : WAF_ACL_RESOURCE_TYPE
+                    "Type" : AWS_WAF_ACL_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
