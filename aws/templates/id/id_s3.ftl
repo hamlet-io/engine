@@ -1,7 +1,8 @@
 [#-- S3 --]
+[#assign S3_COMPONENT_TYPE = "s3" ]
 
 [#assign S3_RESOURCE_TYPE = "s3" ]
-[#assign BUCKET_POLICY_RESOURCE_TYPE="bucketpolicy" ]
+[#assign S3_BUCKET_POLICY_RESOURCE_TYPE="bucketpolicy" ]
 
 [#function formatS3Id ids...]
     [#return formatResourceId(
@@ -49,13 +50,13 @@
 
 [#function formatBucketPolicyId ids...]
     [#return formatResourceId(
-                BUCKET_POLICY_RESOURCE_TYPE,
+                S3_BUCKET_POLICY_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentBucketPolicyId resourceId extensions...]
     [#return formatDependentResourceId(
-                BUCKET_POLICY_RESOURCE_TYPE,
+                S3_BUCKET_POLICY_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
@@ -68,7 +69,7 @@
 
 [#assign componentConfiguration +=
     {
-        "s3" : [
+        S3_COMPONENT_TYPE : [
             {
                 "Name" : "Lifecycle",
                 "Children" : [
@@ -113,7 +114,8 @@
                     "Name" :
                         firstContent(
                             getExistingReference(id, NAME_ATTRIBUTE_TYPE),
-                            name)
+                            name),
+                    "Type" : S3_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

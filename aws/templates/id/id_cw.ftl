@@ -1,24 +1,26 @@
 [#-- CloudWatch --]
 
-[#assign LOG_GROUP_RESOURCE_TYPE = "lg" ]
-[#assign DASHBOARD_RESOURCE_TYPE = "dashboard" ]
+[#assign CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE = "lg" ]
+[#assign CLOUDWATCH_DASHBOARD_RESOURCE_TYPE = "dashboard" ]
+[#assign CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE = "lmetric" ]
+[#assign CLOUDWATCH_ALARM_RESOURCE_TYPE = "alarm" ]
 
 [#function formatLogGroupId ids...]
     [#return formatResourceId(
-                LOG_GROUP_RESOURCE_TYPE,
+                CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentLogGroupId resourceId extensions...]
     [#return formatDependentResourceId(
-                LOG_GROUP_RESOURCE_TYPE,
+                CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatComponentLogGroupId tier component extensions...]
     [#return formatComponentResourceId(
-                LOG_GROUP_RESOURCE_TYPE,
+                CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -26,32 +28,32 @@
 
 [#function formatLogMetricId ids...]
     [#return formatResourceId(
-                "lmetric",
+                CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentLogMetricId resourceId extensions...]
     [#return formatDependentResourceId(
-                "lmetric",
+                CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatSegmentCWDashboardId extensions...]
     [#return formatSegmentResourceId(
-                DASHBOARD_RESOURCE_TYPE,
+                CLOUDWATCH_DASHBOARD_RESOURCE_TYPE,
                 extensions)]
 [/#function]
 
 [#function formatAlarmId ids...]
     [#return formatResourceId(
-                "alarm",
+                CLOUDWATCH_ALARM_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentAlarmId resourceId extensions...]
     [#return formatDependentResourceId(
-                "alarm",
+                CLOUDWATCH_ALARM_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]

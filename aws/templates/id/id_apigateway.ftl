@@ -164,49 +164,62 @@
             "Resources" : {
                 "apigateway" : {
                     "Id" : apiId,
-                    "Name" : apiName
+                    "Name" : apiName,
+                    "Type" : APIGATEWAY_RESOURCE_TYPE
                 },
                 "apideploy" : {
-                    "Id" : formatResourceId(APIGATEWAY_DEPLOY_RESOURCE_TYPE, core.Id, runId)
+                    "Id" : formatResourceId(APIGATEWAY_DEPLOY_RESOURCE_TYPE, core.Id, runId),
+                    "Type" : APIGATEWAY_DEPLOY_RESOURCE_TYPE
                 },
                 "apistage" : {
                     "Id" : stageId,
-                    "Name" : core.Version.Name
+                    "Name" : core.Version.Name,
+                    "Type" : APIGATEWAY_STAGE_RESOURCE_TYPE
                 },
                 "apidomain" : {
-                    "Id" : formatDependentResourceId(APIGATEWAY_DOMAIN_RESOURCE_TYPE, apiId)
+                    "Id" : formatDependentResourceId(APIGATEWAY_DOMAIN_RESOURCE_TYPE, apiId),
+                    "Type" : APIGATEWAY_DOMAIN_RESOURCE_TYPE
                 },
                 "apibasepathmapping" : { 
-                    "Id" : formatDependentResourceId(APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, stageId)
+                    "Id" : formatDependentResourceId(APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, stageId),
+                    "Type" : APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE
                 },
                 "apiusageplan" : {
                     "Id" : formatDependentResourceId(APIGATEWAY_USAGEPLAN_RESOURCE_TYPE, cfId),
-                    "Name" : formatComponentFullName(core.Tier, core.Component, occurrence)
+                    "Name" : formatComponentFullName(core.Tier, core.Component, occurrence),
+                    "Type" : APIGATEWAY_USAGEPLAN_RESOURCE_TYPE
                 },
                 "invalidlogmetric" : {
                     "Id" : formatDependentLogMetricId(stageId, "invalid"),
-                    "Name" : "Invalid"
+                    "Name" : "Invalid",
+                    "Type" : CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
                 },
                 "invalidalarm" : {
                     "Id" : formatDependentAlarmId(stageId, "invalid"),
-                    "Name" : formatComponentAlarmName(core.Tier, core.Component, occurrence,"invalid")
+                    "Name" : formatComponentAlarmName(core.Tier, core.Component, occurrence,"invalid"),
+                    "Type" : CLOUDWATCH_ALARM_RESOURCE_TYPE
                 },
                 "cf" : {
                     "Id" : cfId,
-                    "Name" : formatComponentCFDistributionName(core.Tier, core.Component, occurrence)
+                    "Name" : formatComponentCFDistributionName(core.Tier, core.Component, occurrence),
+                    "Type" : CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
                 },
                 "cforigin" : {
                     "Id" : "apigateway"
+                    "Type" : CLOUDFRONT_ORIGIN_RESOURCE_TYPE
                 },
                 "wafacl" : { 
                     "Id" : formatDependentWAFAclId(apiId),
-                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence)
+                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
+                    "Type" : WAF_ACL_RESOURCE_TYPE
                 },
                 "docs" : {
-                    "Id" : docsId
+                    "Id" : docsId,
+                    "Type" : S3_RESOURCE_TYPE
                 },
                 "docspolicy" : {
-                    "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_DOCS_EXTENSION)
+                    "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_DOCS_EXTENSION),
+                    "Type" : S3_BUCKET_POLICY_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

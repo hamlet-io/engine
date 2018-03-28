@@ -108,17 +108,21 @@
             "Resources" : {
                 "cf" : {
                     "Id" : cfId,
-                    "Name" : cfName
+                    "Name" : cfName,
+                    "Type" : CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
                 },
                 "cforiginspa" : {
-                    "Id" : "spa"
+                    "Id" : "spa",
+                    "Type" : CLOUDFRONT_ORIGIN_RESOURCE_TYPE
                 },
                 "cforiginconfig" : { 
-                    "Id" : "config"
+                    "Id" : "config",
+                    "Type" : CLOUDFRONT_ORIGIN_RESOURCE_TYPE
                 },
                 "wafacl" : { 
                     "Id" : formatDependentWAFAclId(cfId),
-                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence)
+                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
+                    "Type" : WAF_ACL_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
