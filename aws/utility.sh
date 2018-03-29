@@ -123,6 +123,20 @@ function contains() {
   [[ "${string}" =~ ${pattern} ]]
 }
 
+function generateComplexString() { 
+  # String suitable for a password - Alphanumeric and special characters
+  local length="$1"; shift 
+
+  echo "$(dd bs=256 count=1 if=/dev/urandom | base64 | env LC_CTYPE=C tr -dc '[:punct:][:alnum:]' | tr -d '@"/'  | fold -w "${length}" | head -n 1)" || return $?
+}
+
+function generateSimpleString() { 
+  # Simple string - Alphanumeric only
+  local length="$1"; shift 
+
+  echo "$(dd bs=256 count=1 if=/dev/urandom | base64 | env LC_CTYPE=C tr -dc '[:alnum:]' | fold -w "${length}" | head -n 1)" || return $?
+}
+
 # -- File manipulation --
 
 function formatPath() {
@@ -540,6 +554,25 @@ function addJSONAncestorObjects() {
   runJQ "${pattern}" < "${file}"
 }
 
+# -- KMS --
+function decrypt_kms_string() { 
+  local value="$1"; shift
+
+  local tmpdir="$( getTempDir "kms_XXX" )"
+  local file="$( getTempFile "XXX" "${tmpdir}" )"
+  echo "${value}" | base64 --decode > "${file}"
+  aws kms decrypt --ciphertext-blob fileb://${file} --output text --query Plaintext | base64 --decode || return $?
+}
+
+function encrypt_kms_string() { 
+  local region="$1"; shift
+  local value="$1"; shift 
+  local kms_key_id="$1"; shift 
+
+  aws kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text || return $?
+}
+
+
 # -- S3 --
 
 function isBucketAccessible() {
@@ -606,7 +639,6 @@ function deleteTreeFromBucket() {
 }
 
 # -- PKI --
-
 function create_pki_credentials() {
   local dir="$1"; shift
 
@@ -637,6 +669,7 @@ function delete_pki_credentials() {
 
   ${restore_nullglob}
 }
+
 # -- SSH --
 
 function update_ssh_credentials() {
@@ -794,6 +827,15 @@ function encrypt_snapshot() {
       return 255 
     fi
   fi
+}
+
+function set_rds_master_password() { 
+  local region="$1"; shift
+  local db_identifier="$1"; shift
+  local password="$1"; shift 
+
+  info "Resetting master password for RDS instance ${db_identifier}"
+  aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null || return $?
 }
 
 # -- Git Repo Management --
