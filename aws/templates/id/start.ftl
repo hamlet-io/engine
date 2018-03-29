@@ -113,6 +113,7 @@
 [#assign PORT_ATTRIBUTE_TYPE = "port" ]
 [#assign USERNAME_ATTRIBUTE_TYPE = "username" ]
 [#assign PASSWORD_ATTRIBUTE_TYPE = "password" ]
+[#assign GENERATEDPASSWORD_ATTRIBUTE_TYPE = "generatedpassword" ]
 [#assign DATABASENAME_ATTRIBUTE_TYPE = "databasename" ]
 [#assign TOPICNAME_ATTRIBUTE_TYPE = "topicname" ]
 [#assign REPOSITORY_ATTRIBUTE_TYPE = "repository" ]

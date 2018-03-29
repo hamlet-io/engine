@@ -34,6 +34,23 @@
                 "Name" : "Encrypted",
                 "Default" : false
             },
+            {
+                "Name" : "GenerateCredentials",
+                "Children" : [
+                    {
+                        "Name" : "Enabled",
+                        "Default" : false
+                    },
+                    {
+                        "Name" : "MasterUserName",
+                        "Default" : "root"
+                    }
+                    {
+                        "Name" : "CharacterLength",
+                        "Default" : 20
+                    }
+                ]
+            },
             { 
                 "Name" : "Size",
                 "Default" : "20"
@@ -66,23 +83,30 @@
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
 
     [#local login = {} ]
-    [#list
-        (
-            credentialsObject[formatComponentShortNameWithType(core.Tier, core.Component)]!
-            credentialsObject[formatComponentShortName(core.Tier, core.Component)]!
-            {
-                "Login" : {
-                    "Username" : "Not provided",
-                    "Password" : "Not provided"
+    [#if occurrence.Configuration.GenerateCredentials.Enabled ]
+        [#local login += {
+            "USERNAME" : occurrence.Configuration.GenerateCredentials.MasterUserName,
+            "PASSWORD" : getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE)
+        }]
+    [#else]
+        [#list
+            (
+                credentialsObject[formatComponentShortNameWithType(core.Tier, core.Component)]!
+                credentialsObject[formatComponentShortName(core.Tier, core.Component)]!
+                {
+                    "Login" : {
+                        "Username" : "Not provided",
+                        "Password" : "Not provided"
+                    }
                 }
-            }
-        ).Login as name,value]
-        [#local login +=
-            { 
-                name?upper_case : value 
-            }
-        ]
-    [/#list]
+            ).Login as name,value]
+            [#local login +=
+                { 
+                    name?upper_case : value 
+                }
+            ]
+        [/#list]
+    [/#if]
 
     [#local result =
         {
