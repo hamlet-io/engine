@@ -123,6 +123,20 @@ function contains() {
   [[ "${string}" =~ ${pattern} ]]
 }
 
+function generateComplexString() { 
+  # String suitable for a password - Alphanumeric and special characters
+  local length="$1"; shift 
+
+  echo "$(dd bs=256 count=1 if=/dev/urandom | base64 | env LC_CTYPE=C tr -dc '[:punct:][:alnum:]' | fold -w "${length}" | head -n 1)" || return $?
+}
+
+function generateSimpleString() { 
+  # Simple string - Alphanumeric only
+  local length="$1"; shift 
+
+  echo "$(dd bs=256 count=1 if=/dev/urandom | base64 | env LC_CTYPE=C tr -dc '[:alnum:]' | fold -w "${length}" | head -n 1)" || return $?
+}
+
 # -- File manipulation --
 
 function formatPath() {
@@ -540,6 +554,35 @@ function addJSONAncestorObjects() {
   runJQ "${pattern}" < "${file}"
 }
 
+# -- KMS --
+function decryptKMSString() { 
+  local value="$1"; shift
+
+  local tmpdir="$( getTempDir "kms_XXX" )"
+  local file="$( getTempFile "XXX" "${tmpdir}" )"
+
+  echo "${value}" | base64 --decode > "${file}"
+  aws kms decrypt --ciphertext-blob fileb://${file} --output text --query Plaintext | base64 --decode || return $?
+}
+
+function encryptKMSString() { 
+  local region="$1"; shift
+  local value="$1"; shift 
+  local kms_key_id="$1"; shift 
+
+  aws kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text || return $?
+}
+
+function generateKMSEncryptedPassword() { 
+  local region="$1"; shift
+  local password_length="$1"; shift
+  local kms_key_id="$1"; shift 
+
+  password="$(generateComplexString ${password_length})"
+  
+  encryptKMSString "${region}" "${password}" "${kms_key_id}"
+} 
+
 # -- S3 --
 
 function isBucketAccessible() {
@@ -606,7 +649,6 @@ function deleteTreeFromBucket() {
 }
 
 # -- PKI --
-
 function create_pki_credentials() {
   local dir="$1"; shift
 
@@ -637,6 +679,7 @@ function delete_pki_credentials() {
 
   ${restore_nullglob}
 }
+
 # -- SSH --
 
 function update_ssh_credentials() {
