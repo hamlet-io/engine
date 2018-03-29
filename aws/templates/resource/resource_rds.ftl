@@ -97,7 +97,7 @@ outputs=
     RDS_OUTPUT_MAPPINGS +
     {
         DATABASENAME_ATTRIBUTE_TYPE : { 
-            "Value" : productName
+            "Value" : databaseName
         }
     } +
     attributeIfContent(
