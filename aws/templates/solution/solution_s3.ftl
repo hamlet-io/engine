@@ -9,7 +9,7 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
 
         [#assign s3Id = resources["bucket"].Id ]
@@ -18,7 +18,7 @@
         [#assign sqsIds = [] ]
         [#assign sqsNotifications = [] ]
         [#assign dependencies = [] ]
-        [#list ((configuration.Notifications.SQS)!{})?values as queue]
+        [#list ((solution.Notifications.SQS)!{})?values as queue]
             [#if queue?is_hash]
                 [#assign linkTarget =
                     getLinkTarget(
@@ -60,13 +60,13 @@
             tier=tier
             component=component
             lifecycleRules=
-                (configuration.Lifecycle.Configured && (configuration.Lifecycle.Expiration!operationsExpiration)?has_content)?then(
-                    getS3LifecycleExpirationRule(configuration.Lifecycle.Expiration!operationsExpiration),
+                (solution.Lifecycle.Configured && (solution.Lifecycle.Expiration!operationsExpiration)?has_content)?then(
+                    getS3LifecycleExpirationRule(solution.Lifecycle.Expiration!operationsExpiration),
                     [])
             sqsNotifications=sqsNotifications
             websiteConfiguration=
-                (configuration.Website.Configured && configuration.Website.Enabled)?then(
-                    getS3WebsiteConfiguration(configuration.Website.Index, configuration.Website.Error),
+                (solution.Website.Configured && solution.Website.Enabled)?then(
+                    getS3WebsiteConfiguration(solution.Website.Index, solution.Website.Error),
                     {})
             dependencies=dependencies
         /]

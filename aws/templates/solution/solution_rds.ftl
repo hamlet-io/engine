@@ -8,21 +8,21 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
 
-        [#assign engine = configuration.Engine]
+        [#assign engine = solution.Engine]
         [#switch engine]
             [#case "mysql"]
                 [#assign engineVersion =
                     valueIfContent(
-                        configuration.EngineVersion!"",
-                        configuration.EngineVersion!"",
+                        solution.EngineVersion!"",
+                        solution.EngineVersion!"",
                         "5.6"
                     )
                 ]
                 [#assign family = "mysql" + engineVersion]
-                [#assign port = configuration.Port!"mysql" ]
+                [#assign port = solution.Port!"mysql" ]
                 [#if (ports[port].Port)?has_content]
                     [#assign port = ports[port].Port ]
                 [#else]
@@ -33,13 +33,13 @@
             [#case "postgres"]
                 [#assign engineVersion =
                     valueIfContent(
-                        configuration.EngineVersion!"",
-                        configuration.EngineVersion!"",
+                        solution.EngineVersion!"",
+                        solution.EngineVersion!"",
                         "9.4"
                     )
                 ]
                 [#assign family = "postgres" + engineVersion]
-                [#assign port = configuration.Port!"postgresql" ]
+                [#assign port = solution.Port!"postgresql" ]
                 [#if (ports[port].Port)?has_content]
                     [#assign port = ports[port].Port ]
                 [#else]
@@ -222,6 +222,7 @@
             [#switch alternative ]
                 [#case "replace1" ]
                     [#assign rdsFullName=formatName(rdsFullName, "backup") ]
+<<<<<<< HEAD
                     [#if rdsManualSnapshot?has_content ]
                         [#assign snapshotId = rdsManualSnapshot ]
                     [#else]
@@ -230,6 +231,12 @@
                                 configuration.Backup.SnapshotOnDeploy,
                                 rdsRestoreSnapshot)]
                     [/#if]
+=======
+                    [#assign snapshotId = valueIfTrue(
+                            rdsPreDeploySnapshotId,
+                            solution.Backup.SnapshotOnDeploy,
+                            rdsRestoreSnapshot)]
+>>>>>>> Move solution configuration to a subdirectory
                 [#break]
 
                 [#case "replace2"]
@@ -238,7 +245,7 @@
                     [#else]
                     [#assign snapshotId = valueIfTrue(
                             rdsPreDeploySnapshotId,
-                            configuration.Backup.SnapshotOnDeploy,
+                            solution.Backup.SnapshotOnDeploy,
                             rdsRestoreSnapshot)]
                     [/#if]
                 [#break]
@@ -258,20 +265,20 @@
                     engine=engine
                     engineVersion=engineVersion
                     processor=processorProfile.Processor
-                    size=configuration.Size
+                    size=solution.Size
                     port=port
                     multiAZ=multiAZ
-                    encrypted=configuration.Encrypted
+                    encrypted=solution.Encrypted
                     masterUsername=rdsUsername
                     masterPassword=rdsPassword
-                    databaseName=configuration.DatabaseName!productName
-                    retentionPeriod=configuration.Backup.RetentionPeriod
+                    databaseName=solution.DatabaseName!productName
+                    retentionPeriod=solution.Backup.RetentionPeriod
                     snapshotId=snapshotId
                     subnetGroupId=getReference(rdsSubnetGroupId)
                     parameterGroupId=getReference(rdsParameterGroupId)
                     optionGroupId=getReference(rdsOptionGroupId)
                     securityGroupId=getReference(rdsSecurityGroupId)
-                    autoMinorVersionUpgrade = configuration.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
+                    autoMinorVersionUpgrade = solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
                 /]
         [/#if]
 

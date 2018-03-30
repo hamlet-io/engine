@@ -52,7 +52,7 @@
                 "URL" :
                     valueIfTrue(
                         "redis://",
-                        occurrence.Configuration.Engine == "redis",
+                        occurrence.Configuration.Solution.Engine == "redis",
                         "memcached://"
                     ) +
                     getExistingReference(id, DNS_ATTRIBUTE_TYPE) +

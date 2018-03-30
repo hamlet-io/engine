@@ -7,11 +7,11 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
 
         [#assign containerId =
-            configuration.Container?has_content?then(
-                configuration.Container,
+            solution.Container?has_content?then(
+                solution.Container,
                 getComponentId(component)                            
             ) ]
         [#assign context = 

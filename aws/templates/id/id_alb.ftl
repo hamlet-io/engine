@@ -79,20 +79,20 @@
     
 [#function getALBState occurrence]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(ALB_RESOURCE_TYPE, core.Id) ]
     [#local internalFqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
 
-    [#if (configuration.PortMappings![])?has_content]
-        [#local mappingObject = configuration.PortMappings[0]?is_hash?then(
-                configuration.PortMappings[0],
+    [#if (solution.PortMappings![])?has_content]
+        [#local mappingObject = solution.PortMappings[0]?is_hash?then(
+                solution.PortMappings[0],
                 {
-                    "Mapping" : configuration.PortMappings[0]
+                    "Mapping" : solution.PortMappings[0]
                 }
             )]
         [#if (ports[portMappings[mappingObject.Mapping].Source].Certificate)!false ]
-            [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
+            [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentId, segmentName) ]
             [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence) ]
             
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]

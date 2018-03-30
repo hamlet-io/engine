@@ -7,18 +7,18 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources]
 
         [#assign contentNodeId = resources["contentnode"].Id ]
         [#assign pathObject = getContentPath(occurrence) ]
 
-        [#if ! (configuration.Links?has_content)]
+        [#if ! (solution.Links?has_content)]
             [@cfPreconditionFailed listMode "contentnode" occurrence "No content hub link configured" /]
             [#break]
         [/#if]
 
-        [#list configuration.Links?values as link]
+        [#list solution.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
 

@@ -15,7 +15,7 @@
             [@cfDebug listMode subOccurrence false /]
 
             [#assign core = subOccurrence.Core ]
-            [#assign configuration = subOccurrence.Configuration ]
+            [#assign solution = subOccurrence.Configuration.Solution ]
             [#assign resources = subOccurrence.State.Resources]
 
             [#assign taskId = resources["task"].Id ]
@@ -143,8 +143,8 @@
                         id=serviceId
                         ecsId=ecsId
                         desiredCount=
-                            (configuration.DesiredCount >= 0)?then(
-                                configuration.DesiredCount,
+                            (solution.DesiredCount >= 0)?then(
+                                solution.DesiredCount,
                                 multiAZ?then(zones?size,1)
                             )
                         taskId=taskId
@@ -157,7 +157,7 @@
     
             [#assign dependencies = [] ]
     
-            [#if configuration.UseTaskRole]
+            [#if solution.UseTaskRole]
                 [#assign roleId = formatDependentRoleId(taskId) ]
                 [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                     [@createRole 
@@ -208,7 +208,7 @@
                 /]
     
                 [#-- Pick any extra macros in the container fragments --]
-                [#list (configuration.Containers!{})?values as container]
+                [#list (solution.Containers!{})?values as container]
                     [#assign containerListMode = listMode]
                     [#assign containerId = formatContainerFragmentId(occurrence, container)]
                     [#include containerList?ensure_starts_with("/")]

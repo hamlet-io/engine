@@ -112,7 +112,7 @@
 
 [#function getAPIGatewayState occurrence]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local apiId = formatResourceId("api", core.Id)]
     
@@ -136,9 +136,9 @@
             regionId,
             "amazonaws.com") ]
 
-    [#if configuration.Certificate.Configured && configuration.Certificate.Enabled ]
-            [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName)]
-            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence)]
+    [#if solution.Certificate.Configured && solution.Certificate.Enabled ]
+            [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentId, segmentName) ]
+            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence) ]
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
             [#local signingFqdn = formatDomainName(formatName("sig4", hostName), certificateObject.Domain.Name)] 
     [#else]
@@ -151,7 +151,7 @@
     [#local versionPath =
         valueIfTrue(
             "/" + core.Version.Id,
-            configuration.IncludePathInUrls,
+            solution.IncludePathInUrls,
             ""
         ) ]
 

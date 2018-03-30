@@ -8,7 +8,7 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
         
         [#assign albId = resources["lb"].Id ]
@@ -20,11 +20,11 @@
             component=component
             extensions=occurrence
         /]
-        [#list configuration.PortMappings as mapping]
+        [#list solution.PortMappings as mapping]
             [#assign mappingObject =
                 {
-                    "IPAddressGroups" : configuration.IPAddressGroups,
-                    "Certificate" : configuration.Certificate
+                    "IPAddressGroups" : solution.IPAddressGroups,
+                    "Certificate" : solution.Certificate
                 } +
                 mapping?is_hash?then(
                     mapping,
@@ -109,7 +109,7 @@
             tier=tier
             component=component
             securityGroups=albSecurityGroupId
-            logs=configuration.Logs
+            logs=solution.Logs
             bucket=operationsBucket
         /]
     [/#list]

@@ -8,7 +8,7 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
 
         [#assign sqsId = resources["queue"].Id ]
@@ -26,8 +26,8 @@
         ]
 
         [#assign dlqRequired =
-            (configuration.DeadLetterQueue.Configured &&
-                configuration.DeadLetterQueue.Enabled) ||
+            (solution.DeadLetterQueue.Configured &&
+                solution.DeadLetterQueue.Enabled) ||
             ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
         [#if dlqRequired]
             [@createSQSQueue
@@ -42,16 +42,16 @@
             mode=listMode
             id=sqsId
             name=sqsName
-            delay=configuration.DelaySeconds
-            maximumSize=configuration.MaximumMessageSize
-            retention=configuration.MessageRetentionPeriod
-            receiveWait=configuration.ReceiveMessageWaitTimeSeconds
-            visibilityTimout=configuration.VisibilityTimeout
+            delay=solution.DelaySeconds
+            maximumSize=solution.MaximumMessageSize
+            retention=solution.MessageRetentionPeriod
+            receiveWait=solution.ReceiveMessageWaitTimeSeconds
+            visibilityTimout=solution.VisibilityTimeout
             dlq=valueIfTrue(dlqId, dlqRequired, "")
             dlqReceives=
                 valueIfTrue(
-                  configuration.DeadLetterQueue.MaxReceives,
-                  configuration.DeadLetterQueue.MaxReceives > 0,
+                  solution.DeadLetterQueue.MaxReceives,
+                  solution.DeadLetterQueue.MaxReceives > 0,
                   (environmentObject.Operations.DeadLetterQueue.MaxReceives)!3)
         /]
 

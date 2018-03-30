@@ -26,7 +26,7 @@
 
 [#function getContentHubState occurrence]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(CONTENTHUB_RESOURCE_TYPE, core.Id)]
 
@@ -114,7 +114,7 @@
 
 [#function getContentNodeState occurrence]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(CONTENTNODE_RESOURCE_TYPE, core.Id)]
 

@@ -8,7 +8,7 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
 
         [#assign ecsId = resources["cluster"].Id ]
@@ -20,9 +20,9 @@
         [#assign ecsLaunchConfigId = resources["launchConfig"].Id ]
         [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
         [#assign ecsLogGroupId = resources["logGroup"].Id ]
-        [#assign defaultLogDriver = configuration.LogDriver ]
-        [#assign fixedIP = configuration.FixedIP ]
-        [#assign ecsClusterWideStorage = configuration.ClusterWideStorage ]
+        [#assign defaultLogDriver = solution.LogDriver ]
+        [#assign fixedIP = solution.FixedIP ]
+        [#assign ecsClusterWideStorage = solution.ClusterWideStorage ]
     
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ecsRoleId)]

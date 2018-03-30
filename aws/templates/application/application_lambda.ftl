@@ -8,15 +8,15 @@
 
         [#list occurrence.Occurrences as fn]
             [#assign core = fn.Core ]
-            [#assign configuration = fn.Configuration ]
+            [#assign solution = fn.Configuration.Solution ]
             [#assign resources = fn.State.Resources ]
     
             [#assign fnId = resources["function"].Id ]
             [#assign fnName = resources["function"].Name ]
 
             [#assign containerId =
-                configuration.Container?has_content?then(
-                    configuration.Container,
+                solution.Container?has_content?then(
+                    solution.Container,
                     getComponentId(core.Component)
                 ) ]
             [#assign context = 
@@ -84,7 +84,7 @@
                     id=roleId
                     trustedServices=["lambda.amazonaws.com"]
                     managedArns=
-                        (vpc?has_content && configuration.VPCAccess)?then(
+                        (vpc?has_content && solution.VPCAccess)?then(
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
                         )
@@ -117,7 +117,7 @@
 
             [#if deploymentSubsetRequired("lambda", true)]
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
-                [#if vpc?has_content && configuration.VPCAccess]
+                [#if vpc?has_content && solution.VPCAccess]
                     [@createDependentSecurityGroup 
                         mode=listMode
                         tier=tier
@@ -131,29 +131,29 @@
                     id=fnId
                     container=context +
                         {
-                            "Handler" : configuration.Handler,
-                            "RunTime" : configuration.RunTime,
-                            "MemorySize" : configuration.Memory,
-                            "Timeout" : configuration.Timeout,
-                            "UseSegmentKey" : configuration.UseSegmentKey,
+                            "Handler" : solution.Handler,
+                            "RunTime" : solution.RunTime,
+                            "MemorySize" : solution.Memory,
+                            "Timeout" : solution.Timeout,
+                            "UseSegmentKey" : solution.UseSegmentKey,
                             "Name" : fnName,
                             "Description" : fnName
                         }
                     roleId=roleId
                     securityGroupIds=
-                        (vpc?has_content && configuration.VPCAccess)?then(
+                        (vpc?has_content && solution.VPCAccess)?then(
                             formatDependentSecurityGroupId(fnId),
                             []
                         )
                     subnetIds=
-                        (vpc?has_content && configuration.VPCAccess)?then(
+                        (vpc?has_content && solution.VPCAccess)?then(
                             getSubnets(core.Tier, false),
                             []
                         )
                     dependencies=roleId
                 /]
                 
-                [#list configuration.Schedules?values as schedule ]
+                [#list solution.Schedules?values as schedule ]
                     [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
 
                     [@createScheduleEventRule
