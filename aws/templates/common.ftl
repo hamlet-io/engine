@@ -194,7 +194,7 @@
 [#function requiredOccurrences occurrences deploymentUnit]
     [#local result = [] ]
     [#list asFlattenedArray(occurrences) as occurrence]
-        [#if deploymentRequired(occurrence.Configuration, deploymentUnit, false) ]
+        [#if deploymentRequired(occurrence.Configuration.Solution, deploymentUnit, false) ]
             [#local result += [occurrence] ]
         [/#if]
     [/#list]
@@ -702,7 +702,6 @@
 
     [#if occurrence?has_content]
         [#local core = occurrence.Core ]
-        [#local configuration = occurrence.Configuration ]
 
         [#switch core.Type!""]
             [#case ALB_COMPONENT_TYPE]
@@ -856,7 +855,9 @@
     [#return result]
 [/#function]
 
-[#-- Get the occurrences of versions/instances of a component--]
+[#-- Get the occurrences of versions/instances of a component           --]
+[#-- This function should NOT be called directly - it is for the use of --]
+[#-- other functions in this file                                       --]
 [#function getOccurrencesInternal component tier={} parentOccurrence={} parentContexts=[] componentType="" ]
 
     [#if !(component?has_content) ]
@@ -954,7 +955,9 @@
                                     "Name" : subComponentName
                                 }
                             ),
-                            "Configuration" : getCompositeObject(attributes, contexts)
+                            "Configuration" : {
+                                "Solution" : getCompositeObject(attributes, contexts)
+                            }
                         }
                     ]
                     [#local occurrenceId=
@@ -1194,7 +1197,7 @@
 
 [#function getLinkTargets occurrence links={}]
     [#local result={} ]
-    [#list (valueIfContent(links, links, occurrence.Configuration.Links!{}))?values as link]
+    [#list (valueIfContent(links, links, occurrence.Configuration.Solution.Links!{}))?values as link]
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
             [#local result +=
@@ -1362,7 +1365,7 @@
 [#function getContentPath occurrence ]
 
     [#local core = occurrence.Core ]
-    [#local pathObject = occurrence.Configuration.Path ]
+    [#local pathObject = occurrence.Configuration.Solution.Path ]
     [#local includes = pathObject.IncludeInPath]
 
     [#local path =  valueIfTrue(

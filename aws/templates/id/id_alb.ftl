@@ -129,6 +129,7 @@
 
 [#function getALBState occurrence]
     [#local core = occurrence.Core]
+
     [#local id = formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) ]
 
     [#return
@@ -154,17 +155,16 @@
 
 [#function getALBPortState occurrence parent]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local internalFqdn = parent.State.Attributes["INTERNAL_FQDN"] ]
 
-    [#local sourcePort = (ports[portMappings[configuration.Mapping].Source])!{} ]
+    [#local sourcePort = (ports[portMappings[solution.Mapping].Source])!{} ]
 
     [#local id = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id) ]
 
-
     [#if (sourcePort.Certificate)!false ]
-        [#local certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
+        [#local certificateObject = getCertificateObject(solution.Certificate, segmentId, segmentName) ]
         [#local hostName = getHostName(certificateObject, occurrence) ]
 
         [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]

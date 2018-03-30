@@ -80,7 +80,7 @@
     [#local core = occurrence.Core]
     [#local id = formatResourceId(AWS_RDS_RESOURCE_TYPE, core.Id) ]
 
-    [#local engine = occurrence.Configuration.Engine]
+    [#local engine = occurrence.Configuration.Solution.Engine]
     [#local fqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE)]
     [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]

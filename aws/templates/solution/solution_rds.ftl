@@ -9,38 +9,38 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
 
-        [#assign engine = configuration.Engine]
+        [#assign engine = solution.Engine]
         [#switch engine]
             [#case "mysql"]
                 [#assign engineVersion =
                     valueIfContent(
-                        configuration.EngineVersion!"",
-                        configuration.EngineVersion!"",
+                        solution.EngineVersion!"",
+                        solution.EngineVersion!"",
                         "5.6"
                     )
                 ]
                 [#assign family = "mysql" + engineVersion]
-                [#assign port = configuration.Port!"mysql" ]
+                [#assign port = solution.Port!"mysql" ]
                 [#if (ports[port].Port)?has_content]
                     [#assign port = ports[port].Port ]
                 [#else]
                     [@cfException listMode "Unknown Port" port /]
-                [/#if]                
+                [/#if]
                 [#break]
 
             [#case "postgres"]
                 [#assign engineVersion =
                     valueIfContent(
-                        configuration.EngineVersion!"",
-                        configuration.EngineVersion!"",
+                        solution.EngineVersion!"",
+                        solution.EngineVersion!"",
                         "9.4"
                     )
                 ]
                 [#assign family = "postgres" + engineVersion]
-                [#assign port = configuration.Port!"postgresql" ]
+                [#assign port = solution.Port!"postgresql" ]
                 [#if (ports[port].Port)?has_content]
                     [#assign port = ports[port].Port ]
                 [#else]
@@ -100,11 +100,11 @@
                                             "pre-deploy")]
 
         [#assign rdsSecurityGroupId = formatDependentComponentSecurityGroupId(
-                                        tier, 
+                                        tier,
                                         component,
                                         rdsId)]
         [#assign rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
-                                                rdsSecurityGroupId, 
+                                                rdsSecurityGroupId,
                                                 port)]
         [#assign rdsTags = getCfTemplateCoreTags(
                                         rdsFullName,
@@ -117,24 +117,24 @@
             [@cfScript
                 mode=listMode
                 content=
-                [] + 
+                [] +
                 [#-- If a manual snapshot has been added the pseudo stack output should be replaced with an automated one --]
                 (configuration.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content)?then(
                     [
                         "# Create RDS snapshot",
                         "function create_deploy_snapshot() {",
                         "info \"Creating Pre-Deployment snapshot... \"",
-                        "create_snapshot" + 
-                        " \"" + region + "\" " + 
-                        " \"" + rdsFullName + "\" " + 
+                        "create_snapshot" +
+                        " \"" + region + "\" " +
+                        " \"" + rdsFullName + "\" " +
                         " \"" + rdsPreDeploySnapshotId + "\" || return $?",
-                        "create_pseudo_stack" + " " + 
+                        "create_pseudo_stack" + " " +
                         "\"RDS Pre-Deploy Snapshot\"" + " " +
                         "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?", 
+                        "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?",
                         "}",
                         "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
-                        "create_deploy_snapshot || return $?" 
+                        "create_deploy_snapshot || return $?"
                     ],
                     []) +
                 (configuration.Backup.SnapshotOnDeploy && configuration.Encrypted)?then(
@@ -142,7 +142,7 @@
                         "# Encrypt RDS snapshot",
                         "function convert_plaintext_snapshot() {",
                         "info \"Checking Snapshot Encryption... \"",
-                        "encrypt_snapshot" + 
+                        "encrypt_snapshot" +
                         " \"" + region + "\" " +
                         " \"" + rdsPreDeploySnapshotId + "\" " +
                         " \"" + segmentKMSKey + "\" || return $?",
@@ -161,7 +161,7 @@
                 resourceId=rdsId
                 resourceName=rdsFullName
             /]
-                
+
             [@createSecurityGroupIngress
                 mode=listMode
                 id=rdsSecurityGroupIngressId
@@ -169,7 +169,7 @@
                 cidr="0.0.0.0/0"
                 groupId=rdsSecurityGroupId
             /]
-            
+
             [@cfResource
                 mode=listMode
                 id=rdsSubnetGroupId
@@ -221,7 +221,7 @@
                         component)
                 outputs={}
             /]
-            
+
             [#switch alternative ]
                 [#case "replace1" ]
                     [#assign rdsFullName=formatName(rdsFullName, "backup") ]
@@ -230,7 +230,7 @@
                     [#else]
                         [#assign snapshotId = valueIfTrue(
                                 rdsPreDeploySnapshotId,
-                                configuration.Backup.SnapshotOnDeploy,
+                                solution.Backup.SnapshotOnDeploy,
                                 rdsRestoreSnapshot)]
                     [/#if]
                 [#break]
@@ -241,7 +241,7 @@
                     [#else]
                     [#assign snapshotId = valueIfTrue(
                             rdsPreDeploySnapshotId,
-                            configuration.Backup.SnapshotOnDeploy,
+                            solution.Backup.SnapshotOnDeploy,
                             rdsRestoreSnapshot)]
                     [/#if]
                 [#break]
@@ -254,27 +254,27 @@
                     [/#if]
             [/#switch]
 
-            [@createRDSInstance 
+            [@createRDSInstance
                     mode=listMode
                     id=rdsId
                     name=rdsFullName
                     engine=engine
                     engineVersion=engineVersion
                     processor=processorProfile.Processor
-                    size=configuration.Size
+                    size=solution.Size
                     port=port
                     multiAZ=multiAZ
-                    encrypted=configuration.Encrypted
+                    encrypted=solution.Encrypted
                     masterUsername=rdsUsername
                     masterPassword=rdsPassword
                     databaseName=rdsDatabaseName
-                    retentionPeriod=configuration.Backup.RetentionPeriod
+                    retentionPeriod=solution.Backup.RetentionPeriod
                     snapshotId=snapshotId
                     subnetGroupId=getReference(rdsSubnetGroupId)
                     parameterGroupId=getReference(rdsParameterGroupId)
                     optionGroupId=getReference(rdsOptionGroupId)
                     securityGroupId=getReference(rdsSecurityGroupId)
-                    autoMinorVersionUpgrade = configuration.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
+                    autoMinorVersionUpgrade = solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
                 /]
         [/#if]
 
@@ -284,84 +284,84 @@
             [@cfScript
                 mode=listMode
                 content=
-                [] + 
+                [] +
                 ( configuration.GenerateCredentials.Enabled && !(rdsEncryptedPassword?has_content))?then(
                     [
                         "# Generate Master Password",
                         "function generate_master_password() {",
                         "info \"Generating Master Password... \"",
-                        "master_password=\"$(generateComplexString" + 
+                        "master_password=\"$(generateComplexString" +
                         " \"" + rdsPasswordLength + "\" )\"",
-                        "encrypted_master_password=\"$(encrypt_kms_string" + 
+                        "encrypted_master_password=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{master_password}\" " +
                         " \"" + segmentKMSKey + "\" || return $?)\"",
                         "info \"Setting Master Password... \"",
                         "set_rds_master_password" +
-                        " \"" + region + "\" " + 
-                        " \"" + rdsFullName + "\" " + 
+                        " \"" + region + "\" " +
+                        " \"" + rdsFullName + "\" " +
                         " \"$\{master_password}\" || return $?",
-                        "create_pseudo_stack" + " " + 
-                        "\"RDS Master Password\"" + " " + 
-                        "\"$\{password_pseudo_stack_file}\"" + " " + 
-                        "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" || return $?", 
+                        "create_pseudo_stack" + " " +
+                        "\"RDS Master Password\"" + " " +
+                        "\"$\{password_pseudo_stack_file}\"" + " " +
+                        "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" || return $?",
                         "info \"Generating URL... \"",
-                        "rds_url=\"$(get_rds_url" + 
-                        " \"" + engine + "\" " + 
-                        " \"" + rdsUsername + "\" " + 
+                        "rds_url=\"$(get_rds_url" +
+                        " \"" + engine + "\" " +
+                        " \"" + rdsUsername + "\" " +
                         " \"$\{master_password}\" " +
-                        " \"" + rdsFQDN + "\" " + 
-                        " \"" + port?c + "\" " + 
+                        " \"" + rdsFQDN + "\" " +
+                        " \"" + port?c + "\" " +
                         " \"" + rdsDatabaseName + "\" || return $?)\"",
                         "encrypted_rds_url=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{rds_url}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\"", 
-                        "create_pseudo_stack" + " " + 
-                        "\"RDS Connection URL\"" + " " + 
-                        "\"$\{url_pseudo_stack_file}\"" + " " + 
+                        " \"" + segmentKMSKey + "\" || return $?)\"",
+                        "create_pseudo_stack" + " " +
+                        "\"RDS Connection URL\"" + " " +
+                        "\"$\{url_pseudo_stack_file}\"" + " " +
                         "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
                         "}",
                         "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\" ",
                         "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
                         "generate_master_password || return $?"
                     ],
-                    []) + 
+                    []) +
                 (rdsEncryptedPassword?has_content)?then(
                     [
                         "# Reset Master Password",
                         "function reset_master_password() {",
                         "info \"Getting Master Password... \"",
                         "encrypted_master_password=\"" + rdsEncryptedPassword + "\"",
-                        "master_password=\"$(decrypt_kms_string" + 
+                        "master_password=\"$(decrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{encrypted_master_password}\" || return $?)\"",
                         "info \"Resetting Master Password... \"",
                         "set_rds_master_password" +
-                        " \"" + region + "\" " + 
-                        " \"" + rdsFullName + "\" " + 
+                        " \"" + region + "\" " +
+                        " \"" + rdsFullName + "\" " +
                         " \"$\{master_password}\" || return $?",
                         "info \"Generating URL... \"",
-                        "rds_url=\"$(get_rds_url" + 
-                        " \"" + engine + "\" " + 
-                        " \"" + rdsUsername + "\" " + 
+                        "rds_url=\"$(get_rds_url" +
+                        " \"" + engine + "\" " +
+                        " \"" + rdsUsername + "\" " +
                         " \"$\{master_password}\" " +
-                        " \"" + rdsFQDN + "\" " + 
-                        " \"" + port?c + "\" " + 
+                        " \"" + rdsFQDN + "\" " +
+                        " \"" + port?c + "\" " +
                         " \"" + rdsDatabaseName + "\" || return $?)\"",
                         "encrypted_rds_url=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{rds_url}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\"", 
-                        "create_pseudo_stack" + " " + 
-                        "\"RDS Connection URL\"" + " " + 
-                        "\"$\{url_pseudo_stack_file}\"" + " " + 
+                        " \"" + segmentKMSKey + "\" || return $?)\"",
+                        "create_pseudo_stack" + " " +
+                        "\"RDS Connection URL\"" + " " +
+                        "\"$\{url_pseudo_stack_file}\"" + " " +
                         "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
                         "}",
                         "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
                         "reset_master_password || return $?"
                     ],
-                []) 
+                [])
             /]
         [/#if]
     [/#list]

@@ -8,7 +8,7 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
         [#assign roles = occurrence.State.Roles]
@@ -40,7 +40,7 @@
         [#assign stageVariables = {} ]
         [#assign userPoolArns = [] ]
 
-        [#list configuration.Links?values as link]
+        [#list solution.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
@@ -234,8 +234,8 @@
                 ]
                 [#assign defaultCacheBehaviour = getCFAPIGatewayCacheBehaviour(origin) ]
                 [#assign restrictions = {} ]
-                [#if configuration.CloudFront.CountryGroups?has_content]
-                    [#list asArray(configuration.CloudFront.CountryGroups) as countryGroup]
+                [#if solution.CloudFront.CountryGroups?has_content]
+                    [#list asArray(solution.CloudFront.CountryGroups) as countryGroup]
                         [#assign group = (countryGroups[countryGroup])!{}]
                         [#if group.Locations?has_content]
                             [#assign restrictions +=
@@ -265,15 +265,15 @@
                                 occurrence
                             )
                         ),
-                        configuration.CloudFront.EnableLogging)
+                        solution.CloudFront.EnableLogging)
                     origins=origin
                     restrictions=valueIfContent(
                         restrictions,
                         restrictions)
                     wafAclId=valueIfTrue(
                         wafAclId,
-                        (configuration.WAF.Configured &&
-                            configuration.WAF.Enabled &&
+                        (solution.WAF.Configured &&
+                            solution.WAF.Enabled &&
                             ipAddressGroupsUsage["waf"]?has_content))
                 /]
                 [@cfResource
@@ -296,29 +296,29 @@
 
                 [#if wafPresent && ipAddressGroupsUsage["waf"]?has_content ]
                     [#assign wafGroups = [] ]
-                    [#assign wafRuleDefault =
-                                configuration.WAF.RuleDefault?has_content?then(
-                                    configuration.WAF.RuleDefault,
+                    [#assign wafRuleDefault = 
+                                solution.WAF.RuleDefault?has_content?then(
+                                    solution.WAF.RuleDefault,
                                     "ALLOW")]
-                    [#assign wafDefault =
-                                configuration.WAF.Default?has_content?then(
-                                    configuration.WAF.Default,
+                    [#assign wafDefault = 
+                                solution.WAF.Default?has_content?then(
+                                    solution.WAF.Default,
                                     "BLOCK")]
-                    [#if configuration.WAF.IPAddressGroups?has_content]
-                        [#list configuration.WAF.IPAddressGroups as group]
+                    [#if solution.WAF.IPAddressGroups?has_content]
+                        [#list solution.WAF.IPAddressGroups as group]
                             [#assign groupId = group?is_hash?then(
                                             group.Id,
                                             group)]
                             [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
                                 [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
                                 [#if usageGroup.IsOpen]
-                                    [#assign wafRuleDefault =
-                                        configuration.WAF.RuleDefault?has_content?then(
-                                            configuration.WAF.RuleDefault,
+                                    [#assign wafRuleDefault = 
+                                        solution.WAF.RuleDefault?has_content?then(
+                                            solution.WAF.RuleDefault,
                                             "COUNT")]
-                                    [#assign wafDefault =
-                                            configuration.WAF.Default?has_content?then(
-                                                configuration.WAF.Default,
+                                    [#assign wafDefault = 
+                                            solution.WAF.Default?has_content?then(
+                                                solution.WAF.Default,
                                                 "ALLOW")]
                                 [/#if]
                                 [#if usageGroup.CIDR?has_content]
@@ -333,13 +333,13 @@
                     [#else]
                         [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
                             [#if usageGroup.IsOpen]
-                                [#assign wafRuleDefault =
-                                    configuration.WAF.RuleDefault?has_content?then(
-                                        configuration.WAF.RuleDefault,
+                                [#assign wafRuleDefault = 
+                                    solution.WAF.RuleDefault?has_content?then(
+                                        solution.WAF.RuleDefault,
                                         "COUNT")]
-                                [#assign wafDefault =
-                                        configuration.WAF.Default?has_content?then(
-                                            configuration.WAF.Default,
+                                [#assign wafDefault = 
+                                        solution.WAF.Default?has_content?then(
+                                            solution.WAF.Default,
                                             "ALLOW")]
                             [/#if]
                             [#if usageGroup.CIDR?has_content]
@@ -395,6 +395,10 @@
                 /]
             [/#if]
         [/#if]
+
+        [#if solution.Publish.Configured && solution.Publish.Enabled ]
+            [#assign docsS3BucketId = resources["docs"].Id]
+            [#assign docsS3BucketPolicyId = resources["docspolicy"].Id ]
 
         [#if publishPresent ]
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]

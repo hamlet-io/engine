@@ -126,7 +126,7 @@
 
 [#function getAPIGatewayState occurrence]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local apiId = formatResourceId("api", core.Id)]
 
@@ -166,11 +166,11 @@
     [#local certificateId = "" ]
     [#local docsName =
             formatName(
-                configuration.Publish.DnsNamePrefix,
+                solution.Publish.DnsNamePrefix,
                 formatOccurrenceBucketName(occurrence))]
 
     [#if certificatePresent ]
-        [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName)]
+        [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentId, segmentName)]
         [#local hostName = getHostName(certificateObject, occurrence)]
         [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 

@@ -8,7 +8,7 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
-        [#assign configuration = occurrence.Configuration]
+        [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
 
         [#assign userPoolId                 = resources["userpool"].Id]
@@ -70,7 +70,7 @@
             appSettingsObject.UserPool.SMSInviteMessage!"",
             "")]
 
-        [#if ((configuration.MFA) || ( configuration.VerifyPhone))]
+        [#if ((solution.MFA) || ( solution.VerifyPhone))]
 
             [#assign phoneSchema = getUserPoolSchemaObject( 
                                         "phone_number",
@@ -83,7 +83,7 @@
             [#assign smsVerification = true]
         [/#if]
 
-        [#if configuration.VerifyEmail || ( configuration.LoginAliases.seq_contains("email"))]
+        [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
                     [#assign emailSchema = getUserPoolSchemaObject( 
                                                 "email",
                                                 "String",
@@ -92,7 +92,7 @@
                     [#assign schema = schema +  [ emailSchema ]]
         [/#if]
 
-        [#list configuration.Links?values as link]
+        [#list solution.Links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link)]
 
             [@cfDebug listMode linkTarget false /]
@@ -206,7 +206,7 @@
 
         [#assign userPoolManualTriggerString = userPoolManualTriggerString?join(",")]
 
-        [#if ((configuration.MFA) || ( configuration.VerifyPhone))]
+        [#if ((solution.MFA) || ( solution.VerifyPhone))]
             [#if (deploymentSubsetRequired("iam", true) || deploymentSubsetRequired("userpool", true)) &&
                 isPartOfCurrentDeploymentUnit(userPoolId)]
 
@@ -241,9 +241,9 @@
                         tier,
                         component)
                 dependencies=dependencies
-                mfa=configuration.MFA
-                adminCreatesUser=configuration.AdminCreatesUser
-                unusedTimeout=configuration.UnusedAccountTimeout
+                mfa=solution.MFA
+                adminCreatesUser=solution.AdminCreatesUser
+                unusedTimeout=solution.UnusedAccountTimeout
                 schema=schema
                 emailVerificationMessage=emailVerificationMessage
                 emailVerificationSubject=emailVerificationSubject
@@ -252,19 +252,19 @@
                 emailInviteSubject=emailInviteSubject
                 smsInviteMessage=smsInviteMessage
                 lambdaTriggers=userPoolTriggerConfig
-                autoVerify=(configuration.VerifyEmail || smsVerification)?then(
-                    getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification),
+                autoVerify=(solution.VerifyEmail || smsVerification)?then(
+                    getUserPoolAutoVerification(solution.VerifyEmail, smsVerification),
                     []
                 )
-                loginAliases=((configuration.LoginAliases)?has_content)?then(
-                        [configuration.LoginAliases],
+                loginAliases=((solution.LoginAliases)?has_content)?then(
+                        [solution.LoginAliases],
                         [])
                 passwordPolicy=getUserPoolPasswordPolicy( 
-                        configuration.PasswordPolicy.MinimumLength, 
-                        configuration.PasswordPolicy.Lowercase,
-                        configuration.PasswordPolicy.Uppsercase,
-                        configuration.PasswordPolicy.Numbers,
-                        configuration.PasswordPolicy.SpecialCharacters)
+                        solution.PasswordPolicy.MinimumLength, 
+                        solution.PasswordPolicy.Lowercase,
+                        solution.PasswordPolicy.Uppsercase,
+                        solution.PasswordPolicy.Numbers,
+                        solution.PasswordPolicy.SpecialCharacters)
                 smsConfiguration=((smsConfig)?has_content)?then(
                     smsConfig,
                     {})
@@ -278,8 +278,8 @@
                 id=userPoolClientId
                 name=userPoolClientName
                 userPoolId=userPoolId
-                generateSecret=configuration.ClientGenerateSecret
-                tokenValidity=configuration.ClientTokenValidity
+                generateSecret=solution.ClientGenerateSecret
+                tokenValidity=solution.ClientTokenValidity
             /]
 
             [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
@@ -292,7 +292,7 @@
                 id=identityPoolId
                 name=identityPoolName
                 cognitoIdProviders=cognitoIdentityPoolProvider
-                allowUnauthenticatedIdentities=configuration.AllowUnauthenticatedIds
+                allowUnauthenticatedIdentities=solution.AllowUnauthenticatedIds
             /]
 
             [@createRole
