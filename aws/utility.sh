@@ -148,27 +148,29 @@ function formatPath() {
 function filePath() {
   local file="$1"; shift
 
-  echo "${file%/*}"
+  contains "${file}" "/" &&
+    echo -n "${file%/*}" ||
+    echo -n ""
 }
 
 function fileName() {
   local file="$1"; shift
 
-  echo "${file##*/}"
+  echo -n "${file##*/}"
 }
 
 function fileBase() {
   local file="$1"; shift
 
   local name="$(fileName "${file}")"
-  echo "${name%.*}"
+  echo -n "${name%.*}"
 }
 
 function fileExtension() {
   local file="$1"; shift
 
   local name="$(fileName "${file}")"
-  echo "${name##*.}"
+  echo -n "${name##*.}"
 }
 
 function fileContents() {
@@ -275,63 +277,6 @@ function findFiles() {
   fi
 
   return 1
-}
-
-# -- Temporary file management --
-
-# OS Temporary directory
-function getOSTempRootDir() {
-  uname | grep -iq "MINGW64" &&
-    echo -n "c:/tmp" ||
-    echo -n "$(filePath $(mktemp -u -t tmp.XXXXXXXXXX))"
-}
-
-# Default implementation - can be overriden by caller
-function getTempRootDir() {
-  getOSTempRootDir
-}
-
-function getTempDir() {
-  local template="$1"; shift
-  local temp_path="$1"; shift
-
-  [[ -z "${template}" ]] && template="XXX"
-  [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
-
-  [[ -n "${temp_path}" ]] &&
-    mktemp -d "${temp_path}/${template}" ||
-    mktemp -d "$(getOSTempRootDir)/${template}"
-}
-
-function getTempFile() {
-  local template="$1"; shift
-  local temp_path="$1"; shift
-
-  [[ -z "${template}" ]] && template="XXX"
-  [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
-
-  [[ -n "${temp_path}" ]] &&
-    mktemp    "${temp_path}/${template}" ||
-    mktemp -t "${template}"
-}
-
-function cleanup() {
-  local root_dir="${1:-.}"
-
-  find "${root_dir}" -name "composite_*" -delete
-  find "${root_dir}" -name "STATUS.txt" -delete
-  find "${root_dir}" -name "stripped_*" -delete
-  find "${root_dir}" -name "ciphertext*" -delete
-  find "${root_dir}" -name "temp_*" -type f -delete
-
-  # Handle cleanup of temporary directories
-  temp_dirs=($(find "${root_dir}" -name "temp_*" -type d))
-  for temp_dir in "${temp_dirs[@]}"; do
-    # Subdir may already have been deleted by parent temporary directory
-    if [[ -e "${temp_dir}" ]]; then
-      rm -rf "${temp_dir}"
-    fi
-  done
 }
 
 # -- Array manipulation --
@@ -449,21 +394,44 @@ function reverseArray() {
   fi
 }
 
-function addToArrayWithPrefix() {
+function addToArrayInternal() {
   if namedef_supported; then
     local -n array="$1"; shift
   else
     local array_name="$1"; shift
     eval "local array=(\"\${${array_name}[@]}\")"
   fi
+  local type="$1"; shift
   local prefix="$1"; shift
   local elements=("$@")
 
   for element in "${elements[@]}"; do
     if [[ -n "${element}" ]]; then
-      array+=("${prefix}${element}")
+      [[ "${type,,}" == "stack" ]] &&
+        array=("${prefix}${element}" "${array[@]}") ||
+        array+=("${prefix}${element}")
     fi
   done
+
+  ! namedef_supported && eval "${array_name}=(\"\${array[@]}\")"
+}
+
+function removeFromArrayInternal() {
+  if namedef_supported; then
+    local -n array="$1"; shift
+  else
+    local array_name="$1"; shift
+    eval "local array=(\"\${${array_name}[@]}\")"
+  fi
+  local type="$1"; shift
+  local count="${1:-1}"; shift
+
+  local remaining=$(( ${#array[@]} - ${count} ))
+  [[ ${remaining} -lt 0 ]] && remaining=0
+
+  [[ "${type,,}" == "stack" ]] &&
+    array=("${array[@]:${count}}") ||
+    array=("${array[@]:0:${remaining}}")
 
   ! namedef_supported && eval "${array_name}=(\"\${array[@]}\")"
 }
@@ -472,33 +440,122 @@ function addToArray() {
   local array="$1"; shift
   local elements=("$@")
 
-  addToArrayWithPrefix "${array}" "" "${elements[@]}"
-}
-
-function addToArrayHeadWithPrefix() {
-  if namedef_supported; then
-    local -n array="$1"; shift
-  else
-    local array_name="$1"; shift
-    eval "local array=(\"\${${array_name}[@]}\")"
-  fi
-  local prefix="$1"; shift
-  local elements=("$@")
-
-  for element in "${elements[@]}"; do
-    if [[ -n "${element}" ]]; then
-      array=("${prefix}${element}" "${array[@]}")
-    fi
-  done
-
-  ! namedef_supported && eval "${array_name}=(\"\${array[@]}\")"
+  addToArrayInternal "${array}" "array" "" "${elements[@]}"
 }
 
 function addToArrayHead() {
   local array="$1"; shift
   local elements=("$@")
 
-  addToArrayHeadWithPrefix "${array}" "" "${elements[@]}"
+  addToArrayInternal "${array}" "stack" "" "${elements[@]}"
+}
+
+function removeFromArray() {
+  local array="$1"; shift
+  local count="$1"; shift
+
+  removeFromArrayInternal "${array}" "array" "${count}"
+}
+
+function removeFromArrayHead() {
+  local array="$1"; shift
+  local count="$1"; shift
+
+  removeFromArrayInternal "${array}" "stack" "${count}"
+}
+
+function pushStack() {
+  local array="$1"; shift
+  local elements=("$@")
+
+  addToArrayHead "${array}" "${elements[@]}"
+}
+
+function popStack() {
+  local array="$1"; shift
+  local count="$1"; shift
+
+  removeFromArrayHead "${array}" "${count}"
+}
+
+# -- Temporary file management --
+
+# OS Temporary directory
+function getOSTempRootDir() {
+  uname | grep -iq "MINGW64" &&
+    echo -n "c:/tmp" ||
+    echo -n "$(filePath $(mktemp -u -t tmp.XXXXXXXXXX))"
+}
+
+# Default implementation - can be overriden by caller
+function getTempRootDir() {
+  getOSTempRootDir
+}
+
+function getTempDir() {
+  local template="$1"; shift
+  local temp_path="$1"; shift
+
+  [[ -z "${template}" ]] && template="XXX"
+  [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
+
+  [[ -n "${temp_path}" ]] &&
+    mktemp -d "${temp_path}/${template}" ||
+    mktemp -d "$(getOSTempRootDir)/${template}"
+}
+
+export tmp_dir_stack=()
+
+function pushTempDir() {
+  local template="$1"; shift
+
+  local tmp_dir="$( getTempDir "${template}" "${tmp_dir_stack[0]}" )"
+
+  pushStack "tmp_dir_stack" "${tmp_dir}"
+}
+
+function popTempDir() {
+  local count="${1:-1}"; shift
+
+  local index=$(( $count - 1 ))
+  local tmp_dir="${tmp_dir_stack[@]:${index}:1}"
+
+  popStack "tmp_dir_stack" "${count}"
+}
+
+function getCurrentTempDir() {
+  echo -n "${tmp_dir_stack[@]:0:1}"
+}
+
+function getTempFile() {
+  local template="$1"; shift
+  local temp_path="$1"; shift
+
+  [[ -z "${template}" ]] && template="XXX"
+  [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
+
+  [[ -n "${temp_path}" ]] &&
+    mktemp    "${temp_path}/${template}" ||
+    mktemp -t "${template}"
+}
+
+function cleanup() {
+  local root_dir="${1:-.}"
+
+  find "${root_dir}" -name "composite_*" -delete
+  find "${root_dir}" -name "STATUS.txt" -delete
+  find "${root_dir}" -name "stripped_*" -delete
+  find "${root_dir}" -name "ciphertext*" -delete
+  find "${root_dir}" -name "temp_*" -type f -delete
+
+  # Handle cleanup of temporary directories
+  temp_dirs=($(find "${root_dir}" -name "temp_*" -type d))
+  for temp_dir in "${temp_dirs[@]}"; do
+    # Subdir may already have been deleted by parent temporary directory
+    if [[ -e "${temp_dir}" ]]; then
+      rm -rf "${temp_dir}"
+    fi
+  done
 }
 
 # -- Cli file generation -- 
@@ -519,23 +576,56 @@ function runJQ() {
   local arguments=("$@")
 
   # TODO(mfl): remove once path length limitations in jq are fixed
-  local tmpdir="$( getTempDir "jq_XXX" )"
+
+  local file_seen="false"
+  local tmp_dir="."
   local modified_arguments=()
-  local index=0
 
   for argument in "${arguments[@]}"; do
     if [[ -f "${argument}" ]]; then
-      local file="$( getTempFile "XXX" "${tmpdir}" )"
+      if [[ "${file_seen}" != "true" ]]; then
+        pushTempDir "runjq_XXX"
+        local tmp_dir="$( getCurrentTempDir )"
+        file_seen="true"
+      fi
+      local file="$( getTempFile "XXX" "${tmp_dir}" )"
       cp "${argument}" "${file}" > /dev/null
       modified_arguments+=("./$(fileName "${file}" )")
     else
       modified_arguments+=("${argument}")
     fi
-    ((index++))
   done
 
   # TODO(mfl): Add -L once path length limitations fixed
-  (cd ${tmpdir}; jq "${modified_arguments[@]}")
+  (cd ${tmp_dir}; jq "${modified_arguments[@]}"); code=$?
+  [[ "${file_seen}" == "true" ]] && popTempDir
+  return ${code}
+}
+
+function jqMergeFilter() {
+  local files=("$@")
+
+  local command_line=""
+  local index=0
+
+  for f in "${files[@]}"; do
+    [[ "${index}" > 0 ]] && command_line+=" * "
+    command_line+=".[${index}]"
+    index=$(( $index + 1 ))
+  done
+
+  echo -n "${command_line}"
+}
+
+function jqMerge() {
+  local files=("$@")
+
+  if [[ "${#files[@]}" -gt 0 ]]; then
+    runJQ -s "$( jqMergeFilter "${files[@]}" )" "${files[@]}"
+  else
+    echo -n "{}"
+    return 0
+  fi
 }
 
 function getJSONValue() {
@@ -560,10 +650,65 @@ function addJSONAncestorObjects() {
   local pattern="."
 
   for (( index=${#ancestors[@]}-1 ; index >= 0 ; index-- )) ; do
-    pattern="{\"${ancestors[index]}\" : ${pattern} }"
+    [[ -n "${ancestors[index]}" ]] && pattern="{\"${ancestors[index]}\" : ${pattern} }"
   done
 
   runJQ "${pattern}" < "${file}"
+}
+
+function convertFilesToJSONObject() {
+  local base_ancestors=($1); shift
+  local prefixes=($1); shift
+  local as_file="${1:-false}";shift
+  local files=("$@")
+
+  pushTempDir "convertFilesToJSONObject_XXX"
+  local tmp_dir="$( getCurrentTempDir )"
+  local base_file="${tmp_dir}/base.json"
+  local processed_files=("${base_file}")
+
+  echo -n "{}" > "${base_file}"
+
+  for file in "${files[@]}"; do
+
+    local source_file="${file}"
+    local attribute="$( fileBase "${file}" | tr "-" "_" )"
+
+    if [[ "${as_file}" == "true" ]]; then
+      source_file="$(getTempFile "asfile_${attribute,,}_XXX.json" "${tmp_dir}")"
+      echo -n "{\"${attribute^^}\" : {\"AsFile\" : \"${file}\" }}" > "${source_file}" || return 1
+    else
+      case "$(fileExtension "${file}")" in
+        json)
+          ;;
+
+        escjson)
+          source_file="$(getTempFile "escjson_${attribute,,}_XXX.json" "${tmp_dir}")"
+          runJQ \
+            "{\"${attribute^^}\" : {\"Value\" : tojson, \"FromFile\" : \"${file}\" }}" \
+            "${file}" > "${source_file}" || return 1
+          ;;
+
+        *)
+          # Assume raw input
+          source_file="$(getTempFile "raw_${attribute,,}_XXX.json" "${tmp_dir}")"
+          runJQ -sR \
+            "{\"${attribute^^}\" : {\"Value\" : ., \"FromFile\" : \"${file}\" }}" \
+            "${file}" > "${source_file}" || return 1
+          ;;
+
+      esac
+    fi
+
+    local file_ancestors=("${prefixes[@]}" $(filePath "${file}" | tr "./" " ") )
+    local processed_file="$(getTempFile "processed_XXX.json" "${tmp_dir}")"
+    addJSONAncestorObjects "${source_file}" "${base_ancestors[@]}" $(join "-" "${file_ancestors[@]}") > "${processed_file}" || return 1
+    processed_files+=("${processed_file}")
+  done
+
+  jqMerge "${processed_files[@]}"; code=$?
+  popTempDir
+  return ${code}
 }
 
 # -- KMS --
@@ -629,7 +774,7 @@ function syncFilesToBucket() {
   fi
   local optional_arguments=("$@")
 
-  local tmpdir="$( getTempDir "s3_sync_XXX")"
+  local tmp_dir="$( getTempDir "s3_sync_XXX")"
 
 
   # Copy files locally so we can synch with S3, potentially including deletes
@@ -637,17 +782,17 @@ function syncFilesToBucket() {
     if [[ -f "${file}" ]]; then
       case "$(fileExtension "${file}")" in
         zip)
-          unzip "${file}" -d "${tmpdir}"
+          unzip "${file}" -d "${tmp_dir}"
           ;;
         *)
-          cp "${file}" "${tmpdir}"
+          cp "${file}" "${tmp_dir}"
           ;;
       esac
     fi
   done
 
   # Now synch with s3
-  aws --region ${region} s3 sync "${optional_arguments[@]}" "${tmpdir}/" "s3://${bucket}/${prefix}${prefix:+/}"
+  aws --region ${region} s3 sync "${optional_arguments[@]}" "${tmp_dir}/" "s3://${bucket}/${prefix}${prefix:+/}"
 }
 
 function deleteTreeFromBucket() {

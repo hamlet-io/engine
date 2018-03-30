@@ -296,6 +296,7 @@ function process_template() {
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
   args+=("-v" "credentials=${COMPOSITE_CREDENTIALS}")
   args+=("-v" "appsettings=${COMPOSITE_APPSETTINGS}")
+  args+=("-v" "settings=${COMPOSITE_SETTINGS}")
   args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")

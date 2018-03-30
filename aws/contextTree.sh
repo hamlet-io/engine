@@ -101,7 +101,134 @@ EOF
   runJQ --indent 4 "." < "${temp_file}" > "${file}"
 }
 
+function assemble_settings() {
+  local result_file="${1:-${COMPOSITE_SETTINGS}}";shift
+  local root_dir="${1:-${ROOT_DIR}}"
+
+  pushTempDir "assemble_settings_XXX"
+  local tmp_dir="$( getCurrentTempDir )"
+  local tmp_file_list=()
+
+  local id
+  local name
+  local tmp_file
+
+  # Process accounts
+  readarray -t account_files < <(find "${root_dir}" -name account.json)
+
+  # Settings
+  for account_file in "${account_files[@]}"; do
+
+    id="$(getJSONValue "${account_file}" ".Account.Id")"
+    name="$(getJSONValue "${account_file}" ".Account.Name")"
+    [[ -z "${name}" ]] && name="${id}"
+    [[ (-n "${ACCOUNT}") && ("${ACCOUNT,,}" != "${name,,}") ]] && continue
+
+    pushd "$(filePath "${account_file}")/appsettings" > /dev/null 2>&1 || continue
+
+    tmp_file="$( getTempFile "account_XXX" "${tmp_dir}")"
+    readarray -t setting_files < <(find . -type f -name "appsettings.json" )
+    convertFilesToJSONObject "AppSettings Accounts" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+    tmp_file_list+=("${tmp_file}")
+    popd > /dev/null
+  done
+
+  # Process products
+  readarray -t product_files < <(find "${root_dir}" -name product.json)
+
+  # Settings
+  for product_file in "${product_files[@]}"; do
+
+    id="$(getJSONValue "${product_file}" ".Product.Id")"
+    name="$(getJSONValue "${product_file}" ".Product.Name")"
+    [[ -z "${name}" ]] && name="${id}"
+    [[ (-n "${PRODUCT}") && ("${PRODUCT,,}" != "${name,,}") ]] && continue
+
+    pushd "$(filePath "${product_file}")/appsettings" > /dev/null 2>&1 || continue
+
+    # Appsettings
+    readarray -t setting_files < <(find . -type f \( -not -name "build.json" -and -not -name "*.ref" -and -not -path "*/asFile/*" \) )
+    if ! arrayIsEmpty "setting_files" ; then
+      tmp_file="$( getTempFile "product_appsettings_XXX" "${tmp_dir}")"
+      convertFilesToJSONObject "AppSettings Products" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file_list+=("${tmp_file}")
+    fi
+
+    # Builds
+    readarray -t setting_files < <(find . -type f \( -name "build.json" -and -not -path "*/asFile/*" \) )
+    if ! arrayIsEmpty "setting_files" ; then
+      tmp_file="$( getTempFile "product_builds_XXX" "${tmp_dir}")"
+      convertFilesToJSONObject "Builds Products" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file_list+=("${tmp_file}")
+    fi
+
+    # References
+    readarray -t setting_files < <(find . -type f \( -name "*.ref" -and -not -path "*/asFile/*" \) )
+    if ! arrayIsEmpty "setting_files" ; then
+      tmp_file="$( getTempFile "product_references_XXX" "${tmp_dir}")"
+      convertFilesToJSONObject "Builds Products" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file_list+=("${tmp_file}")
+    fi
+
+    # asFiles
+    readarray -t setting_files < <(find . -type f \( -path "*/asFile/*" \) )
+    if ! arrayIsEmpty "setting_files" ; then
+      tmp_file="$( getTempFile "product_appsettings_asfile_XXX" "${tmp_dir}")"
+      convertFilesToJSONObject "AppSettings Products" "${id}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file_list+=("${tmp_file}")
+    fi
+
+    popd > /dev/null
+
+  done
+
+  # App credentials
+  for product_file in "${product_files[@]}"; do
+
+    id="$(getJSONValue "${product_file}" ".Product.Id")"
+    name="$(getJSONValue "${product_file}" ".Product.Name")"
+    [[ -z "${name}" ]] && name="${id}"
+    [[ (-n "${PRODUCT}") && ("${PRODUCT,,}" != "${name,,}") ]] && continue
+
+    pushd "$(findGen3ProductInfrastructureDir "${root_dir}" "${name}")/credentials" > /dev/null 2>&1 || continue
+
+    # Credentials
+    readarray -t setting_files < <(find . -type f \( -name "credentials.json" -and -not -path "*/asFile/*" \) )
+    if ! arrayIsEmpty "setting_files" ; then
+      tmp_file="$( getTempFile "product_credentials_XXX" "${tmp_dir}")"
+      convertFilesToJSONObject "Credentials Products" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file_list+=("${tmp_file}")
+    fi
+
+    # asFiles
+    readarray -t setting_files < <(find . -type f \( -path "*/asFile/*" \) )
+    if ! arrayIsEmpty "setting_files" ; then
+      tmp_file="$( getTempFile "product_credentials_asfile_XXX" "${tmp_dir}")"
+      convertFilesToJSONObject "Credentials Products" "${id}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file_list+=("${tmp_file}")
+    fi
+
+    popd > /dev/null
+
+  done
+
+  # Generate the merged output
+  jqMerge "${tmp_file_list[@]}" > "${result_file}"; code=$?
+  popTempDir
+  return ${code}
+}
+
+function assemble_credentials() {
+  local result_file="${1:-${COMPOSITE_CREDENTIALS}}"
+
+  pushd "${PRODUCT_CREDENTIALS_DIR}" > /dev/null
+  readarray -t files < <(find -name credentials.json)
+  convertFilesToJSONObject "" "${PRODUCT}" "${files[@]}" > "${result_file}"
+  popd > /dev/null
+}
+
 function assemble_composite_stack_outputs() {
+  local result_file="${1:-${COMPOSITE_STACK_OUTPUTS}}"
 
   # Create the composite stack outputs
   local restore_nullglob=$(shopt -p nullglob)
@@ -144,14 +271,14 @@ function assemble_composite_stack_outputs() {
     debug "MODIFIED_STACK_OUTPUTS=${modified_stack_array[*]}"
     ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o ${COMPOSITE_STACK_OUTPUTS} "${modified_stack_array[@]}"
   else
-    echo "[]" > ${COMPOSITE_STACK_OUTPUTS}
+    echo "[]" > ${result_file}
   fi
 }
 
 function getCompositeStackOutput() {
   local file="$1"; shift
   local keys=("$@")
-  
+
   local patterns=()
 
   for key in "${keys[@]}"; do
@@ -208,7 +335,7 @@ function syncCMDBFilesToOperationsBucket() {
   local base_dir="$1"; shift
   local prefix="$1"; shift
   local optional_arguments=("$@")
-  
+
   local restore_nullglob=$(shopt -p nullglob)
   shopt -s nullglob
 
@@ -352,12 +479,12 @@ function findGen3Dirs() {
   local root_dir="$1"; shift
   local tenant="${1:-${TENANT}}"; shift
   local account="${1:-${ACCOUNT}}"; shift
-  local product="${1:-${PRODUCT}}"; shift     
+  local product="${1:-${PRODUCT}}"; shift
   local segment="${1:-${SEGMENT}}"; shift
   local prefix="$1"; shift
 
   setGen3DirEnv "ROOT_DIR" "${prefix}" "${root_dir}"
-      
+
   setGen3DirEnv "TENANT_DIR" "${prefix}" \
     "$(findGen3TenantDir "${root_dir}" "${tenant}" )" || return 1
 
@@ -426,7 +553,7 @@ function fatalProductOrSegmentDirectory() {
 function isValidUnit() {
   local level="${1,,}"; shift
   local unit="${1,,}"; shift
-  
+
   local result=0
 
   # Known levels
@@ -451,7 +578,7 @@ function isValidUnit() {
     declare -ga SOLUTION_UNITS_ARRAY=(${unit})
     declare -ga SEGMENT_UNITS_ARRAY=("iam" "lg" "eip" "s3" "cmk" "cert" "vpc" "nat" "ssh" "dns" "eipvpc" "eips3vpc")
     declare -ga MULTIPLE_UNITS_ARRAY=("iam" "dashboard")
-  
+
     # Apply explicit unit lists and check for presence of unit
     # Allow them to be separated by commas or spaces in line with the separator
     # definitions in setContext.sh for the automation framework
@@ -463,7 +590,7 @@ function isValidUnit() {
       eval "declare UNITS_ARRAY=(\"\${${level^^}_UNITS_ARRAY[@]}\")"
     fi
     [[ -n "${UNITS_SOURCE}" ]] && IFS=", " read -ra UNITS_ARRAY <<< "${UNITS_SOURCE}"
-  
+
     # Return result
     grep -iw "${unit}" <<< "${UNITS_ARRAY[*]}" >/dev/null 2>&1
     result=$?
