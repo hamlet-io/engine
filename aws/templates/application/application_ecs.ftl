@@ -13,7 +13,6 @@
                 deploymentUnit) as subOccurrence]
 
             [@cfDebug listMode subOccurrence false /]
-            [#continue]
 
             [#assign core = subOccurrence.Core ]
             [#assign solution = subOccurrence.Configuration.Solution ]

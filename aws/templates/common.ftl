@@ -80,7 +80,10 @@
         }
       ]
     [#else]
-      [#return object + { id : object[id]!{} + descendent } ]
+      [#if object[id]?? && object[id]?is_hash]
+          [#return object + { id : object[id] + descendent } ]
+      [/#if]
+      [#return object + { id : descendent } ]
     [/#if]
 [/#function]
 
@@ -789,14 +792,14 @@
             [#if value.Value??]
                 [#local result += {formatSettingName(prefix,key) : value} ]
             [#else]
-                [#local result += asFlattenedSettings(value, formatSettingName(prefix,key)) ]
+                [#local result += asFlattenedSettings(value, formatSettingName(prefix, key)) ]
             [/#if]
             [#continue]
         [/#if]
         [#if value?is_sequence]
             [#continue]
         [/#if]
-        [#local result += {formatSettingName(prefix,key) : {"Value" : value}} ]
+        [#local result += {formatSettingName(prefix, key) : {"Value" : value}} ]
     [/#list]
     [#return result]
 [/#function]
@@ -878,11 +881,18 @@
         asFlattenedSettings(occurrenceSettings) +
         attributeIfContent(
             "BUILD_REFERENCE",
-            occurrenceBuild.Commit!occurrenceBuild.commit!""
+            occurrenceBuild.Commit!occurrenceBuild.commit!"",
+            {"Value" : occurrenceBuild.Commit!occurrenceBuild.commit!""}
+        ) +
+        attributeIfContent(
+            "BUILD_DEPLOYMENT_UNIT",
+            occurrenceBuild.Reference!"",
+            {"Value" : occurrenceBuild.Reference!""}
         ) +
         attributeIfContent(
             "APP_REFERENCE"
-            occurrenceBuild.Tag!occurrenceBuild.tag!""
+            occurrenceBuild.Tag!occurrenceBuild.tag!"",
+            {"Value" : occurrenceBuild.Tag!occurrenceBuild.tag!""}
         ) ]
 [/#function]
 
@@ -946,27 +956,39 @@
         ) ]
 [/#function]
 
+[#function getOccurrenceSettingValue occurrence name emptyIfNotProvided=false]
+    [#return getOccurrenceSetting(occurrence, name, emptyIfNotProvided).Value]
+[/#function]
+
 [#function getOccurrenceBuildReference occurrence]
     [#return
         contentIfContent(
-            getOccurrenceSetting(occurrence, "BUILD_REFERENCE", true),
+            getOccurrenceSettingValue(occurrence, "BUILD_REFERENCE", true),
             "Exception: Build Reference Missing") ]
 [/#function]
 
-[#function getOccurrenceSettingValue occurrence name emptyIfNotProvided=false]
-    [#return getOccurrenceSetting(occurrence, name, emptyIfNotProvided).Value]
+[#function getOccurrenceBuildUnit occurrence]
+    [#return
+        contentIfContent(
+            getOccurrenceSettingValue(occurrence, "BUILD_DEPLOYMENT_UNIT", true),
+            occurrence.Configuration.Solution.DeploymentUnits[0]!"Exception: Build unit not found."
+        ) ]
 [/#function]
 
 [#function getSettingsAsEnvironment settings sensitive=false obfuscate=false]
     [#local result = {} ]
     [#list settings as key,value]
-        [#if sensitive && value.Sensitive!false]
-            [#local result += { key : valueIfTrue("****",obfuscate, value.Value)} ]
-            [#continue]
-        [/#if]
-        [#if (!sensitive) && !(value.Sensitive!false)]
-            [#local result += { key : value.Value} ]
-            [#continue]
+        [#if value?is_hash]
+            [#if sensitive && value.Sensitive!false]
+                [#local result += { key : valueIfTrue("****", obfuscate, value.Value)} ]
+                [#continue]
+            [/#if]
+            [#if (!sensitive) && !(value.Sensitive!false)]
+                [#local result += { key : value.Value} ]
+                [#continue]
+            [/#if]
+        [#else]
+            [#local result += { key, "Exception:Internal error - setting is not a hash" } ]
         [/#if]
     [/#list]
     [#return result ]
@@ -1085,10 +1107,10 @@
                                 },
                                 "Extensions" : {
                                     "Id" :
-                                        (parentOccurrence.Core.Extensions.Id)![tierId, componentId] +
+                                        ((parentOccurrence.Core.Extensions.Id)![tierId, componentId]) +
                                         [subComponentId, instanceId, versionId],
                                     "Name" :
-                                        (parentOccurrence.Core.Extension.Name)![tierName, componentName] +
+                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentName]) +
                                         [subComponentName, instanceName, versionName]
                                 }
 

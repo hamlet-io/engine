@@ -31,7 +31,7 @@
                     "S3Key" : 
                         formatRelativePath(
                             getRegistryPrefix("lambda", occurrence) + productName,
-                            buildDeploymentUnit,
+                            getOccurrenceBuildUnit(occurrence),
                             getOccurrenceBuildReference(occurrence),
                             "lambda.zip"
                         ),

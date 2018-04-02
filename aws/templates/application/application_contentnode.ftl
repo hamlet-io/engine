@@ -49,7 +49,7 @@
                                         getRegistryEndPoint("contentnode", occurrence) + " " +
                                         formatRelativePath(
                                             getRegistryPrefix("contentnode", occurrence) + productName,
-                                            buildDeploymentUnit,
+                                            getOccurrenceBuildUnit(occurrence),
                                             getOccurrenceBuildReference(occurrence)) + " " +
                                         "   \"$\{tmpdir}\" || return $?",
                                     "  #",

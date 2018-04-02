@@ -137,7 +137,7 @@
                             "Key" : formatRelativePath(
                                         getRegistryPrefix("swagger", occurrence),
                                         productName,
-                                        buildDeploymentUnit,
+                                        getOccurrenceBuildUnit(occurrence),
                                         getOccurrenceBuildReference(occurrence),
                                         "swagger-" +
                                             region +
@@ -209,7 +209,10 @@
                     getCFAPIGatewayOrigin(
                         cfOriginId,
                         apiId,
-                        getCFHTTPHeader("x-api-key",credentialsObject.APIGateway.API.AccessKey)
+                        getCFHTTPHeader(
+                            "x-api-key",
+                            getOccurrenceSettingValue(occurrence, ["APIGateway" , "API", "AccessKey"])
+                        )
                     )
                 ]
                 [#assign defaultCacheBehaviour = getCFAPIGatewayCacheBehaviour(origin) ]
@@ -401,7 +404,7 @@
                     s3IPAccessCondition(
                         getUsageCIDRs(
                             "publish",
-                            configuration.Publish.IPAddressGroups)) ]
+                            solution.Publish.IPAddressGroups)) ]
 
                 [@createBucketPolicy
                     mode=listMode
@@ -439,7 +442,7 @@
                             getRegistryEndPoint("swagger", occurrence) + " " +
                             formatRelativePath(
                                 getRegistryPrefix("swagger", occurrence) + productName,
-                                buildDeploymentUnit,
+                                getOccurrenceBuildUnit(occurrence),
                                 getOccurrenceBuildReference(occurrence)) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                         "  #",

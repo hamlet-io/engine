@@ -75,6 +75,8 @@
     
 [#function getRDSState occurrence]
     [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+
     [#local id = formatResourceId(RDS_RESOURCE_TYPE, core.Id) ]
 
     [#local engine = occurrence.Configuration.Solution.Engine]
@@ -82,8 +84,8 @@
     [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
 
-    [#if occurrence.Solution.GenerateCredentials.Enabled ]
-        [#local masterUsername = occurrence.Configuration.GenerateCredentials.MasterUserName ]
+    [#if solution.GenerateCredentials.Enabled ]
+        [#local masterUsername = solution.GenerateCredentials.MasterUserName ]
         [#local masterPassword = getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE) ]
     [#else]
         [#local masterUsername = getOccurrenceSettingValue(occurrence, "MASTER_USERNAME") ]

@@ -61,8 +61,9 @@
                           regionId + " " + 
                           getRegistryEndPoint("spa", occurrence) + " " +
                           formatRelativePath(
-                              getRegistryPrefix("spa", occurrence) + productName,
-                              buildDeploymentUnit,
+                              getRegistryPrefix("spa", occurrence),
+                              productName,
+                              getOccurrenceBuildUnit(occurrence),
                               getOccurrenceBuildReference(occurrence)) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                       "  #",
