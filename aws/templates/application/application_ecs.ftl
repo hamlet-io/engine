@@ -14,7 +14,7 @@
                 occurrence.Occurrences![],
                 deploymentUnit) as subOccurrence]
 
-            [@cfDebug listMode subOccurrence true /]
+            [@cfDebug listMode subOccurrence false /]
             [#continue]
 
             [#assign core = subOccurrence.Core ]
