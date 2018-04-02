@@ -1,6 +1,6 @@
 [#-- Cognito User Pool --]
 [#if (componentType == "userpool") && deploymentSubsetRequired("userpool", true)]
-    
+
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
@@ -28,34 +28,22 @@
         [#assign userPoolTriggerConfig = {}]
 
         [#assign emailVerificationMessage =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationMessage], true)
-            ) ]
-            
+            getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationMessage], true) ]
+
         [#assign emailVerificationSubject =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationSubject], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationSubject], true) ]
 
         [#assign smsVerificationMessage =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, SMSVerificationMessage], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, SMSVerificationMessage], true) ]
 
         [#assign emailInviteMessage =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteMessage], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteMessage], true) ]
 
         [#assign emailInviteSubject =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteSubject], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteSubject], true) ]
 
         [#assign smsInviteMessage =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, SMSInviteMessage], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, SMSInviteMessage], true) ]
 
         [#if ((solution.MFA) || ( solution.VerifyPhone))]
             [#if deploymentSubsetRequired("iam", true) &&
@@ -69,12 +57,12 @@
                         [
                             getPolicyDocument(
                                 snsPublishPermission(),
-                                "smsVerification" 
+                                "smsVerification"
                             )
                         ]
                 /]
 
-                [#assign phoneSchema = getUserPoolSchemaObject( 
+                [#assign phoneSchema = getUserPoolSchemaObject(
                                             "phone_number",
                                             "String",
                                             true,
@@ -89,7 +77,7 @@
         [/#if]
 
         [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
-                [#assign emailSchema = getUserPoolSchemaObject( 
+                [#assign emailSchema = getUserPoolSchemaObject(
                                             "email",
                                             "String",
                                             true,
@@ -113,7 +101,7 @@
 
             [#switch linkTargetCore.Type]
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
-                    
+
                     [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
                         [#-- Cognito Userpool Event Triggers --]
                         [#switch link.Name?lower_case]
@@ -166,7 +154,7 @@
                                 ]
                                 [#break]
                             [#case "presignup"]
-                                [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
+                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
                                         "PreSignUp",
                                         linkTargetAttributes.ARN
@@ -174,7 +162,7 @@
                                 ]
                                 [#break]
                             [#case "verifyauthchallengeresponse"]
-                                [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
+                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
                                     attributeIfContent (
                                         "VerifyAuthChallengeResponse",
                                         linkTargetAttributes.ARN
@@ -187,7 +175,7 @@
             [/#switch]
         [/#list]
 
-        [@createUserPool 
+        [@createUserPool
             mode=listMode
             component=component
             tier=tier
@@ -216,8 +204,8 @@
             loginAliases=((solution.LoginAliases)?has_content)?then(
                     [solution.LoginAliases],
                     [])
-            passwordPolicy=getUserPoolPasswordPolicy( 
-                    solution.PasswordPolicy.MinimumLength, 
+            passwordPolicy=getUserPoolPasswordPolicy(
+                    solution.PasswordPolicy.MinimumLength,
                     solution.PasswordPolicy.Lowercase,
                     solution.PasswordPolicy.Uppsercase,
                     solution.PasswordPolicy.Numbers,
@@ -227,7 +215,7 @@
                 {})
         /]
 
-        [@createUserPoolClient 
+        [@createUserPoolClient
             mode=listMode
             component=component
             tier=tier
@@ -241,7 +229,7 @@
 
         [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
 
-        [@createIdentityPool 
+        [@createIdentityPool
             mode=listMode
             component=component
             tier=tier
@@ -272,7 +260,7 @@
             }
         /]
 
-        [@createRole 
+        [@createRole
             mode=listMode
             id=identityPoolAuthRoleId
             policies=[

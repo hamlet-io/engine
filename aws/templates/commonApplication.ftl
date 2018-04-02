@@ -6,19 +6,17 @@
     [#return
         contentIfContent(
             getOccurrenceSettingValue(
-                occurrence,
-                formatSettingName("Registries", type, "Endpoint"), true),
+                occurrence, ["Registries", type, "Endpoint"], true),
             contentIfContent(
                 getOccurrenceSettingValue(
-                    occurrence,
-                    formatSettingName("Registries", type, "Registry"), true),
+                    occurrence, ["Registries", type, "Registry"], true),
                 "Exception: Unknown registry of type " + type
             )
         ) ]
 [/#function]
 
 [#function getRegistryPrefix type occurrence ]
-    [#return getOccurrenceSettingValue(occurrence, settingName, true) ]
+    [#return getOccurrenceSettingValue(occurrence, ["Registries", type, "Prefix"], true) ]
 [/#function]
 
 [#function getContainerId container]
