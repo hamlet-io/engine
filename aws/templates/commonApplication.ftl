@@ -72,7 +72,7 @@
     [#return (context.Links[link].State.Resources[alias].Id)!"" ]
 [/#function]
 
-[#function addLinkVariablesToContext context name link attributes rawName=false]
+[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false]
     [#local result = context ]
     [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]
     [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
@@ -85,7 +85,11 @@
                     (linkAttributes[attribute?upper_case])!"") ]
         [/#list]
     [#else]
-        [#local result = addVariableToContext(result, name, "Exception: No attributes found") ]
+        [#if ignoreIfNotDefined]
+            [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
+        [#else]
+            [#local result = addVariableToContext(result, name, "Exception: No attributes found for link " + link) ]
+        [/#if]
     [/#if]
     [#return result]
 [/#function]
@@ -98,10 +102,10 @@
     [#return result]
 [/#function]
 
-[#macro Link name link attributes=[] rawName=false]
+[#macro Link name link attributes=[] rawName=false ignoreIfNotDefined=false]
     [#if (containerListMode!"") == "model"]
         [#assign context =
-            addLinkVariablesToContext(context, name, link, attributes, rawName) ]
+            addLinkVariablesToContext(context, name, link, attributes, rawName, ignoreIfNotDefined) ]
     [/#if]
 [/#macro]
 
@@ -373,7 +377,7 @@
                     formatRelativePath(
                         productName,
                         formatName(
-                            buildDeploymentUnit,
+                            getOccurrenceBuildUnit(task),
                             getOccurrenceBuildReference(task)
                         )
                     ),

@@ -106,7 +106,7 @@
                 content=
                 [] +
                 [#-- If a manual snapshot has been added the pseudo stack output should be replaced with an automated one --]
-                (configuration.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content)?then(
+                (solution.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content)?then(
                     [
                         "# Create RDS snapshot",
                         "function create_deploy_snapshot() {",
@@ -124,7 +124,7 @@
                         "create_deploy_snapshot || return $?"
                     ],
                     []) +
-                (configuration.Backup.SnapshotOnDeploy && configuration.Encrypted)?then(
+                (solution.Backup.SnapshotOnDeploy && solution.Encrypted)?then(
                     [
                         "# Encrypt RDS snapshot",
                         "function convert_plaintext_snapshot() {",
@@ -272,7 +272,7 @@
                 mode=listMode
                 content=
                 [] +
-                ( configuration.GenerateCredentials.Enabled && !(rdsEncryptedPassword?has_content))?then(
+                ( solution.GenerateCredentials.Enabled && !(rdsEncryptedPassword?has_content))?then(
                     [
                         "# Generate Master Password",
                         "function generate_master_password() {",

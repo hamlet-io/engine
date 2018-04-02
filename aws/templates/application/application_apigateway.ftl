@@ -151,7 +151,7 @@
                             "Key" : formatRelativePath(
                                         getRegistryPrefix("swagger", occurrence),
                                         productName,
-                                        buildDeploymentUnit,
+                                        getOccurrenceBuildUnit(occurrence),
                                         getOccurrenceBuildReference(occurrence),
                                         "swagger-" +
                                             region +
@@ -403,7 +403,7 @@
                     s3IPAccessCondition(
                         getUsageCIDRs(
                             "publish",
-                            configuration.Publish.IPAddressGroups)) ]
+                            solution.Publish.IPAddressGroups)) ]
 
                 [@createBucketPolicy
                     mode=listMode
@@ -441,7 +441,7 @@
                             getRegistryEndPoint("swagger", occurrence) + " " +
                             formatRelativePath(
                                 getRegistryPrefix("swagger", occurrence) + productName,
-                                buildDeploymentUnit,
+                                getOccurrenceBuildUnit(occurrence),
                                 getOccurrenceBuildReference(occurrence)) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                         "  #",
