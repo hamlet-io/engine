@@ -610,8 +610,6 @@ function upgrade_shared_build_ref() {
   local legacy_file="$1"; shift
   local upgraded_file="$1"; shift
 
-  local reference="$()"
-
   echo -n "{\"Reference\" : \"" > "${upgraded_file}"
   cat "${legacy_file}" >> "${upgraded_file}"
   echo -n "\"}" >> "${upgraded_file}"

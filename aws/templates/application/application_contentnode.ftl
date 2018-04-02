@@ -52,7 +52,7 @@
                                         formatRelativePath(
                                             getRegistryPrefix("contentnode", occurrence) + productName,
                                             buildDeploymentUnit,
-                                            getOccurrenceBuildReference(task)) + " " +
+                                            getOccurrenceBuildReference(occurrence)) + " " +
                                         "   \"$\{tmpdir}\" || return $?",
                                     "  #",
                                     "  # Sync with the operations bucket",

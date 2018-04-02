@@ -34,34 +34,22 @@
         [@cfDebug listMode appSettingsObject false /]
 
         [#assign emailVerificationMessage =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationMessage], true)
-            ) ]
-            
+            getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationMessage], true) ]
+
         [#assign emailVerificationSubject =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationSubject], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationSubject], true) ]
 
         [#assign smsVerificationMessage =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, SMSVerificationMessage], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, SMSVerificationMessage], true) ]
 
         [#assign emailInviteMessage =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteMessage], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteMessage], true) ]
 
         [#assign emailInviteSubject =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteSubject], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteSubject], true) ]
 
         [#assign smsInviteMessage =
-            contentIfContent(
-                getOccurrenceSettingValue(occurrence, [UserPool, SMSInviteMessage], true)
-            ) ]
+            getOccurrenceSettingValue(occurrence, [UserPool, SMSInviteMessage], true) ]
 
         [#if ((solution.MFA) || ( solution.VerifyPhone))]
 
@@ -101,7 +89,7 @@
 
             [#switch linkTargetCore.Type]
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
-                    
+
                     [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
                         [#-- Cognito Userpool Event Triggers --]
                         [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
@@ -215,8 +203,6 @@
                                 )
                             ]
                     /]
-
-
                 )]
 
             [/#if]
