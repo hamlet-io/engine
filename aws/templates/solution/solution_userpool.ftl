@@ -34,41 +34,34 @@
         [@cfDebug listMode appSettingsObject false /]
 
         [#assign emailVerificationMessage =
-            valueIfContent(
-            appSettingsObject.UserPool.EmailVerificationMessage!"",
-            appSettingsObject.UserPool.EmailVerificationMessage!"",
-            "")]
-
+            contentIfContent(
+                getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationMessage], true)
+            ) ]
             
         [#assign emailVerificationSubject =
-            valueIfContent(
-            appSettingsObject.UserPool.EmailVerificationSubject!"",
-            appSettingsObject.UserPool.EmailVerificationSubject!"",
-            "")]
+            contentIfContent(
+                getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationSubject], true)
+            ) ]
 
         [#assign smsVerificationMessage =
-            valueIfContent(
-            appSettingsObject.UserPool.SMSVerificationMessage!"",
-            appSettingsObject.UserPool.SMSVerificationMessage!"",
-            "")]
+            contentIfContent(
+                getOccurrenceSettingValue(occurrence, [UserPool, SMSVerificationMessage], true)
+            ) ]
 
         [#assign emailInviteMessage =
-            valueIfContent(
-            appSettingsObject.UserPool.EmailInviteMessage!"",
-            appSettingsObject.UserPool.EmailInviteMessage!"",
-            "")]
+            contentIfContent(
+                getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteMessage], true)
+            ) ]
 
         [#assign emailInviteSubject =
-            valueIfContent(
-            appSettingsObject.UserPool.EmailInviteSubject!"",
-            appSettingsObject.UserPool.EmailInviteSubject!"",
-            "")]
+            contentIfContent(
+                getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteSubject], true)
+            ) ]
 
         [#assign smsInviteMessage =
-            valueIfContent(
-            appSettingsObject.UserPool.SMSInviteMessage!"",
-            appSettingsObject.UserPool.SMSInviteMessage!"",
-            "")]
+            contentIfContent(
+                getOccurrenceSettingValue(occurrence, [UserPool, SMSInviteMessage], true)
+            ) ]
 
         [#if ((solution.MFA) || ( solution.VerifyPhone))]
 

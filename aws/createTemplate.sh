@@ -344,6 +344,14 @@ function process_template() {
         continue
       fi
 
+      # Check for exception strings in the output
+      grep "Exception:" < "${template_result_file}" > "${template_result_file}-exceptionstrings"
+      if [[ -s "${template_result_file}-exceptionstrings"  ]]; then
+        fatal "Exceptions occurred during template generation. Details follow...\n"
+        cat "${template_result_file}-exceptionstrings" >&2
+        return 1
+      fi
+          
       case "$(fileExtension "${template_result_file}")" in
         sh)
           # Strip out the whitespace added by freemarker

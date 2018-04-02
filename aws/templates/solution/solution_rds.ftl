@@ -11,6 +11,7 @@
         [#assign core = occurrence.Core ]
         [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
+        [#assign attributes = occurrence.State.Attributes ]
 
         [#assign engine = solution.Engine]
         [#switch engine]
@@ -62,30 +63,16 @@
         [#assign rdsParameterGroupId = resources["parameterGroup"].Id ]
         [#assign rdsOptionGroupId = resources["optionGroup"].Id ]
 
-        [#assign rdsDatabaseName = configuration.DatabaseName!productName]
+        [#assign rdsDatabaseName = solution.DatabaseName!productName]
 
-        [#if configuration.GenerateCredentials.Enabled ]
-            [#assign rdsUsername = configuration.GenerateCredentials.MasterUserName]
-            [#assign rdsPasswordLength = configuration.GenerateCredentials.CharacterLength]
+        [#if solution.GenerateCredentials.Enabled ]
+            [#assign rdsUsername = solution.GenerateCredentials.MasterUserName]
+            [#assign rdsPasswordLength = solution.GenerateCredentials.CharacterLength]
             [#assign rdsPassword = "DummyPassword" ]
             [#assign rdsEncryptedPassword = getExistingReference(rdsId, GENERATEDPASSWORD_ATTRIBUTE_TYPE)]
         [#else]
-            [#assign rdsCredentials =
-            credentialsObject[formatComponentShortNameWithType(tier, component)]!
-            credentialsObject[formatComponentShortName(tier, component)]!
-            {
-                "Login" : {
-                    "Username" : "Not provided",
-                    "Password" : "Not provided"
-                }
-            } ]
-            [#assign rdsUsername = rdsCredentials.Login.Username]
-            [#assign rdsPassword = rdsCredentials.Login.Password]
-            [#assign rdsEncryptedPassword = getExistingReference(rdsId, GENERATEDPASSWORD_ATTRIBUTE_TYPE)]
-        [/#if]
-
-        [#if rdsUsername == 'Not provided' || rdsPassword == 'Not provided' ]
-            [@cfPreconditionFailed listMode "solution_rds" occurrence "Invalid Credentials" /]
+            [#assign rdsUsername = attributes.USERNAME ]
+            [#assign rdsPassword = attributes.PASSWORD ]
         [/#if]
 
         [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]

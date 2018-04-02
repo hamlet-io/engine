@@ -48,11 +48,11 @@
                                     "  # Fetch the spa zip file",
                                     "  copyFilesFromBucket" + " " +
                                         regionId + " " + 
-                                        getRegistryEndPoint("contentnode") + " " +
+                                        getRegistryEndPoint("contentnode", occurrence) + " " +
                                         formatRelativePath(
-                                            getRegistryPrefix("contentnode") + productName,
+                                            getRegistryPrefix("contentnode", occurrence) + productName,
                                             buildDeploymentUnit,
-                                            buildCommit) + " " +
+                                            getOccurrenceBuildReference(task)) + " " +
                                         "   \"$\{tmpdir}\" || return $?",
                                     "  #",
                                     "  # Sync with the operations bucket",

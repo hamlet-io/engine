@@ -126,9 +126,9 @@ function assemble_settings() {
 
     pushd "$(filePath "${account_file}")/appsettings" > /dev/null 2>&1 || continue
 
-    tmp_file="$( getTempFile "account_XXX" "${tmp_dir}")"
+    tmp_file="$( getTempFile "account_appsettings_XXX.json" "${tmp_dir}")"
     readarray -t setting_files < <(find . -type f -name "appsettings.json" )
-    convertFilesToJSONObject "AppSettings Accounts" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+    convertFilesToJSONObject "AppSettings Accounts" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
     tmp_file_list+=("${tmp_file}")
     popd > /dev/null
   done
@@ -147,34 +147,26 @@ function assemble_settings() {
     pushd "$(filePath "${product_file}")/appsettings" > /dev/null 2>&1 || continue
 
     # Appsettings
-    readarray -t setting_files < <(find . -type f \( -not -name "build.json" -and -not -name "*.ref" -and -not -path "*/asFile/*" \) )
+    readarray -t setting_files < <(find . -type f \( -not -name "*build.json" -and -not -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_appsettings_XXX" "${tmp_dir}")"
-      convertFilesToJSONObject "AppSettings Products" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file="$( getTempFile "product_appsettings_XXX.json" "${tmp_dir}")"
+      convertFilesToJSONObject "AppSettings Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
     # Builds
-    readarray -t setting_files < <(find . -type f \( -name "build.json" -and -not -path "*/asFile/*" \) )
+    readarray -t setting_files < <(find . -type f \( -name "*build.json" -and -not -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_builds_XXX" "${tmp_dir}")"
-      convertFilesToJSONObject "Builds Products" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
-      tmp_file_list+=("${tmp_file}")
-    fi
-
-    # References
-    readarray -t setting_files < <(find . -type f \( -name "*.ref" -and -not -path "*/asFile/*" \) )
-    if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_references_XXX" "${tmp_dir}")"
-      convertFilesToJSONObject "Builds Products" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file="$( getTempFile "product_builds_XXX.json" "${tmp_dir}")"
+      convertFilesToJSONObject "Builds Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
     # asFiles
     readarray -t setting_files < <(find . -type f \( -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_appsettings_asfile_XXX" "${tmp_dir}")"
-      convertFilesToJSONObject "AppSettings Products" "${id}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file="$( getTempFile "product_appsettings_asfile_XXX.json" "${tmp_dir}")"
+      convertFilesToJSONObject "AppSettings Products" "${name}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
@@ -195,16 +187,16 @@ function assemble_settings() {
     # Credentials
     readarray -t setting_files < <(find . -type f \( -name "credentials.json" -and -not -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_credentials_XXX" "${tmp_dir}")"
-      convertFilesToJSONObject "Credentials Products" "${id}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file="$( getTempFile "product_credentials_XXX.json" "${tmp_dir}")"
+      convertFilesToJSONObject "Credentials Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
     # asFiles
     readarray -t setting_files < <(find . -type f \( -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_credentials_asfile_XXX" "${tmp_dir}")"
-      convertFilesToJSONObject "Credentials Products" "${id}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
+      tmp_file="$( getTempFile "product_credentials_asfile_XXX.json" "${tmp_dir}")"
+      convertFilesToJSONObject "Credentials Products" "${name}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
@@ -596,4 +588,130 @@ function isValidUnit() {
     result=$?
   fi
   return ${result}
+}
+
+# -- Upgrade CMDB --
+
+function upgrade_build_ref() {
+  local legacy_file="$1"; shift
+  local upgraded_file="$1"; shift
+
+  IFS= " " read -ra build_array < "${legacy_file}"
+  [[ -z "${build_Array[0]}" ]] && fatal "Unable to upgrade build reference in ${file}" && return 1
+
+  echo -n "{\"Commit\" : \"${build_array[0]}\"" > "${upgraded_file}"
+  [[-n "${build_array[1]}" ]] && echo -n ", \"Tag\" : \"${build_array[1]}\"" >> "${upgraded_file}"
+  echo -n ", \"Formats\" : [\"docker\"]}" >> "${upgraded_file}"
+
+  return 0
+}
+
+function upgrade_shared_build_ref() {
+  local legacy_file="$1"; shift
+  local upgraded_file="$1"; shift
+
+  local reference="$()"
+
+  echo -n "{\"Reference\" : \"" > "${upgraded_file}"
+  cat "${legacy_file}" >> "${upgraded_file}"
+  echo -n "\"}" >> "${upgraded_file}"
+
+  return 0
+}
+
+function upgrade_credentials() {
+  local legacy_file="$1"; shift
+  local upgraded_file="$1"; shift
+
+    if [[ "$(jq ".Credentials | length" < "${legacy_file}" )" -gt 0 ]]; then
+      runJQ ".Credentials" "${legacy_file}"  > "${upgraded_file}"
+    else
+      cat "${legacy_file}" > "${upgraded_file}"
+    fi
+}
+
+function upgrade_cmdb() {
+  local root_dir="${1:-${ROOT_DIR}}";shift
+  local dry_run="$1";shift
+
+  pushTempDir "upgrade_cmdb_XXX"
+  local tmp_dir="$( getCurrentTempDir )"
+  local tmp_file
+
+  local upgrade_needed="false"
+  local upgrade_succeeded="true"
+
+  # All build references now in json format
+  readarray -t legacy_files < <(find "${root_dir}" -type f -name "build.ref" )
+  for legacy_file in "${legacy_files[@]}"; do
+    upgrade_needed="true"
+    trace "Upgrading ${legacy_file} ..."
+    tmp_file="$(getTempFile "build_XXX.json" "${tmp_dir}")"
+    upgrade_build_ref "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
+
+    if [[ -n "${dry_run}" ]]; then
+      willLog "trace" && { echo; cat "${tmp_file}"; echo; }
+      continue
+    fi
+    cp "${tmp_file}" "$(filePath "${legacy_file}")/build.json" || { upgrade_succeeded="false"; continue; }
+    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+  done
+
+  # All shared build references now in json format
+  readarray -t legacy_files < <(find "${root_dir}" -type f -name "*.ref" )
+  for legacy_file in "${legacy_files[@]}"; do
+    upgrade_needed="true"
+    trace "Upgrading ${legacy_file} ..."
+    tmp_file="$(getTempFile "shared_XXX.json" "${tmp_dir}")"
+    upgrade_shared_build_ref "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
+
+    if [[ -n "${dry_run}" ]]; then
+      willLog "trace" && { echo; cat "${tmp_file}"; echo; }
+      continue
+    fi
+    cp "${tmp_file}" "$(filePath "${legacy_file}")/shared_build.json" || { upgrade_succeeded="false"; continue; }
+    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+  done
+
+  # Strip top level "Credentials" attribute from credentials
+  readarray -t legacy_files < <(find "${root_dir}" -type f -name "credentials.json" )
+  for legacy_file in "${legacy_files[@]}"; do
+    if [[ "$(jq ".Credentials | length" < "${legacy_file}" )" -gt 0 ]]; then
+      upgrade_needed="true"
+      trace "Upgrading ${legacy_file} ..."
+      tmp_file="$(getTempFile "credentials_XXX.json" "${tmp_dir}")"
+      upgrade_credentials "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
+
+      if [[ -n "${dry_run}" ]]; then
+        willLog "trace" && { echo; cat "${tmp_file}"; echo; }
+        continue
+      fi
+      cp "${tmp_file}" "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+    fi
+  done
+
+  # Change of naming from "container" to "segment"
+  readarray -t legacy_files < <(find "${root_dir}" -type f -name "container.json" )
+  for legacy_file in "${legacy_files[@]}"; do
+    upgrade_needed="true"
+    trace "Upgrading ${legacy_file} ..."
+    tmp_file="$(getTempFile "container_XXX.json" "${tmp_dir}")"
+    cp "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
+
+    if [[ -n "${dry_run}" ]]; then
+      willLog "trace" && { echo; cat "${tmp_file}"; echo; }
+      continue
+    fi
+    git_mv "${legacy_file}" "$(filePath "${legacy_file}")/segment.json" || { upgrade_succeeded="false"; continue; }
+  done
+
+  popTempDir
+
+  # Is an upgrade needed?
+  if [[ -n "${dry_run}" ]]; then
+    [[ "${upgrade_needed}" == "false" ]]
+  else
+    [[ "${upgrade_succeeded}" == "true" ]]
+  fi
+  return $?
 }

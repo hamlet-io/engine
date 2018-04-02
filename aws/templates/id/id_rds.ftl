@@ -54,7 +54,7 @@
                     }
                 ]
             },
-            { 
+            {
                 "Name" : "Size",
                 "Default" : "20"
             },
@@ -75,7 +75,7 @@
             "DatabaseName"
         ]
 }]
-    
+
 [#function getRDSState occurrence]
     [#local core = occurrence.Core]
     [#local id = formatResourceId(AWS_RDS_RESOURCE_TYPE, core.Id) ]
@@ -85,32 +85,14 @@
     [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
 
-    [#local login = {} ]
-    [#if occurrence.Configuration.GenerateCredentials.Enabled ]
-        [#local login += {
-            "USERNAME"  : occurrence.Configuration.GenerateCredentials.MasterUserName,
-            "PASSWORD"  : getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE)
-        }]
+    [#if occurrence.Solution.GenerateCredentials.Enabled ]
+        [#local masterUsername = occurrence.Configuration.GenerateCredentials.MasterUserName ]
+        [#local masterPassword = getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE) ]
         [#local url = getExistingReference(id, URL_ATTRIBUTE_TYPE) ]
     [#else]
-        [#list
-            (
-                credentialsObject[formatComponentShortNameWithType(core.Tier, core.Component)]!
-                credentialsObject[formatComponentShortName(core.Tier, core.Component)]!
-                {
-                    "Login" : {
-                        "Username" : "Not provided",
-                        "Password" : "Not provided"
-                    }
-                }
-            ).Login as name,value]
-            [#local login +=
-                { 
-                    name?upper_case : value 
-                }
-            ]
-        [/#list]
-        [#local url = engine + "://" + login.USERNAME + ":" + login.PASSWORD + "@" + fqdn + ":" + port + "/" + name]
+        [#local masterUsername = getOccurrenceSettingValue(occurrence, "MASTER_USERNAME") ]
+        [#local masterPassword = getOccurrenceSettingValue(occurrence, "MASTER_PASSWORD") ]
+        [#local url = engine + "://" + masterUsername + ":" + masterPassword + "@" + fqdn + ":" + port + "/" + name]
     [/#if]
 
     [#local result =
@@ -139,8 +121,8 @@
                 "FQDN" : fqdn,
                 "PORT" : port,
                 "NAME" : name,
-                "USERNAME" : login.USERNAME,
-                "PASSWORD" : login.PASSWORD,
+                "USERNAME" : masterUsername,
+                "PASSWORD" : masterPassword,
                 "URL" : url
             },
             "Roles" : {

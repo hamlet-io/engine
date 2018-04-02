@@ -24,10 +24,12 @@
                 "Version" : core.Version.Id,
                 "Environment" : 
                     {
-                        "TEMPLATE_TIMESTAMP" : .now?iso_utc
+                        "TEMPLATE_TIMESTAMP" : .now?iso_utc,
+                        "BUILD_REFERENCE" : getOccurrenceBuildReference(occurrence)
                     } +
-                    attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
-                    attributeIfContent("APP_REFERENCE", appReference!""),
+                    attributeIfContent(
+                        "APP_REFERENCE", 
+                        getOccurrenceSettingValue(occurrence, "APP_REFERENCE", true)),
                 "Links" : getLinkTargets(occurrence),
                 "DefaultLinkVariables" : false
             }
@@ -59,11 +61,11 @@
                       "  # Fetch the spa zip file",
                       "  copyFilesFromBucket" + " " +
                           regionId + " " + 
-                          getRegistryEndPoint("spa") + " " +
+                          getRegistryEndPoint("spa", occurrence) + " " +
                           formatRelativePath(
-                              getRegistryPrefix("spa") + productName,
+                              getRegistryPrefix("spa", occurrence) + productName,
                               buildDeploymentUnit,
-                              buildCommit) + " " +
+                              getOccurrenceBuildReference(occurrence)) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                       "  #",
                       "  # Sync with the operations bucket",
