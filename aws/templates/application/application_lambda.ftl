@@ -26,13 +26,13 @@
                     "Instance" : core.Instance.Id,
                     "Version" : core.Version.Id,
                     "Environment" :
-                        standardEnvironment(core.Tier, core.Component, fn, "WEB"),
-                    "S3Bucket" : getRegistryEndPoint("lambda"),
+                        standardEnvironment(fn, "WEB"),
+                    "S3Bucket" : getRegistryEndPoint("lambda", occurrence),
                     "S3Key" : 
                         formatRelativePath(
-                            getRegistryPrefix("lambda") + productName,
+                            getRegistryPrefix("lambda", occurrence) + productName,
                             buildDeploymentUnit,
-                            buildCommit,
+                            getOccurrenceBuildReference(occurrence),
                             "lambda.zip"
                         ),
                     "Links" : getLinkTargets(fn),

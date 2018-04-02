@@ -12,11 +12,6 @@
         [#assign resources = occurrence.State.Resources ]
         [#assign roles = occurrence.State.Roles]
 
-        [#if ! (buildCommit?has_content)]
-            [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
-            [#break]
-        [/#if]
-
         [#assign apiId      = resources["apigateway"].Id]
         [#assign apiName    = resources["apigateway"].Name]
 
@@ -58,7 +53,7 @@
                     [#case "alb"]
                         [#assign stageVariables +=
                             {
-                                formatVariableName(link.Name, "DOCKER") : linkTargetAttributes.FQDN
+                                formatSettingName(link.Name, "DOCKER") : linkTargetAttributes.FQDN
                             }
                         ]
                         [#break]
@@ -66,7 +61,7 @@
                     [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
                         [#assign stageVariables +=
                             {
-                                formatVariableName(
+                                formatSettingName(
                                     link.Name,
                                     linkTargetCore.SubComponent.Name,
                                     "LAMBDA") : linkTargetResources["function"].Name
@@ -107,7 +102,6 @@
                 ]
             }
         ]
-<<<<<<< HEAD
 
         [#assign domainId               = resources["apidomain"].Id]
         [#assign basePathMappingId      = resources["apibasepathmapping"].Id]
@@ -139,12 +133,12 @@
                 properties=
                     {
                         "BodyS3Location" : {
-                            "Bucket" : getRegistryEndPoint("swagger"),
+                            "Bucket" : getRegistryEndPoint("swagger", occurrence),
                             "Key" : formatRelativePath(
-                                        getRegistryPrefix("swagger"),
+                                        getRegistryPrefix("swagger", occurrence),
                                         productName,
                                         buildDeploymentUnit,
-                                        buildCommit,
+                                        getOccurrenceBuildReference(occurrence),
                                         "swagger-" +
                                             region +
                                             "-" +
@@ -387,7 +381,6 @@
                 [/#if]
             [/#if]
         [/#if]
-<<<<<<< HEAD
 
         [#if solution.Publish.Configured && solution.Publish.Enabled ]
             [#assign docsS3BucketId = resources["docs"].Id]
@@ -442,12 +435,12 @@
                         "  #",
                         "  # Fetch the apidoc file",
                         "  copyFilesFromBucket" + " " +
-                            regionId + " " +
-                            getRegistryEndPoint("swagger") + " " +
+                            regionId + " " + 
+                            getRegistryEndPoint("swagger", occurrence) + " " +
                             formatRelativePath(
-                                getRegistryPrefix("swagger") + productName,
+                                getRegistryPrefix("swagger", occurrence) + productName,
                                 buildDeploymentUnit,
-                                buildCommit) + " " +
+                                getOccurrenceBuildReference(occurrence)) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                         "  #",
                         "  # Insert host in Doc File ",

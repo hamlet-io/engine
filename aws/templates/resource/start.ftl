@@ -179,7 +179,7 @@
             [#else]
                 [#return
                     {
-                        "Mapping" : "ERROR_UNKNOWN_RESOURCE_TYPE",
+                        "Mapping" : "Exception: Unknown Resource Type",
                         "ResourceId" : resourceId,
                         "ResourceType" : resourceType
                     }
@@ -589,9 +589,7 @@
                       "RequestReference" : requestReference,
                       "ConfigurationReference" : configurationReference
                   } +
-                  attributeIfContent("CostCentre", accountObject.CostCentre!"") +
-                  attributeIfContent("BuildReference", buildCommit!"") +
-                  attributeIfContent("AppReference", appReference!""),
+                  attributeIfContent("CostCentre", accountObject.CostCentre!""),
               "Resources" : templateResources,
               "Outputs" :
                   templateOutputs +

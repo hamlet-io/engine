@@ -31,6 +31,14 @@ debug "TMPDIR=${GENERATION_TMPDIR}"
 # Much of the logic in this script relies on this setting
 shopt -s nullglob
 
+# Check the root of the context tree can be located
+export GENERATION_DATA_DIR=$(findGen3RootDir "$(pwd)") ||
+  { fatal "Can't locate the root of the directory tree."; exit 1; }
+
+# Check the cmdb doesn't need upgrading
+# upgrade_cmdb "${GENERATION_DATA_DIR}" "dryrun" ||
+#  { fatal "CMDB upgrade needed."; exit 1; }
+
 # Generate the list of files constituting the composites based on the contents
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
@@ -53,7 +61,7 @@ done
 # Check if the current directory gives any clue to the context
 pushd "$(pwd)" >/dev/null
 
-if [[ (-f "segment.json") || (-f "container.json") ]]; then
+if [[ (-f "segment.json") ]]; then
     # segment directory
     export LOCATION="${LOCATION:-segment}"
     export SEGMENT_DIR="$(pwd)"
@@ -61,7 +69,6 @@ if [[ (-f "segment.json") || (-f "container.json") ]]; then
 
     addToArrayHead "BLUEPRINT_ARRAY" \
         "${SEGMENT_DIR}"/segment*.json \
-        "${SEGMENT_DIR}"/container*.json \
         "${SEGMENT_DIR}"/solution*.json
 
     # Segment based composite fragments
@@ -94,7 +101,6 @@ if [[ -f "account.json" ]]; then
     # An account directory may also have no product information e.g.
     # in the case of production environments in dedicated accounts.
     export LOCATION="${LOCATION:-account}"
-    export GENERATION_DATA_DIR="$(findGen3RootDir)"
 fi
 
 if [[ -f "product.json" ]]; then
@@ -116,24 +122,17 @@ if [[ -f "product.json" ]]; then
         "${PRODUCT_DIR}"/ipaddressgroups*.json \
         "${PRODUCT_DIR}"/countrygroups*.json \
         "${PRODUCT_DIR}"/product.json
-
-    export GENERATION_DATA_DIR="$(findGen3RootDir)"
 fi
 
 if [[ -f "integrator.json" ]]; then
     export LOCATION="${LOCATION:-integrator}"
-    export GENERATION_DATA_DIR="$(pwd)"
     export INTEGRATOR="$(fileName "$(pwd)")"
 fi
 
 if [[ (-f "root.json") ||
         ((-d config) && (-d infrastructure)) ]]; then
     export LOCATION="${LOCATION:-root}"
-    export GENERATION_DATA_DIR="$(pwd)"
 fi
-
-[[ -z "${GENERATION_DATA_DIR}" ]] &&
-    fatalLocation "Can't locate the root of the directory tree." && exit 1
 
 cd "${GENERATION_DATA_DIR}"
 [[ -z "${ACCOUNT}" ]] && export ACCOUNT="$(fileName "${GENERATION_DATA_DIR}")"
@@ -321,16 +320,5 @@ fi
 
 # Handle some MINGW peculiarities
 uname | grep -iq "MINGW64" && export MINGW64="true"
-
-# Detect if within a git repo
-git status >/dev/null 2>&1
-if [[ $? -eq 0 ]]; then
-    export WITHIN_GIT_REPO="true"
-    export FILE_MV="git mv"
-    export FILE_RM="git rm"
-else
-    export FILE_MV="mv"
-    export FILE_RM="rm"
-fi
 
 debug "--- finished setContext.sh ---\n"

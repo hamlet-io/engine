@@ -46,6 +46,9 @@
 
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
+[#assign settingsObject =
+    settings?has_content?then(settings?eval, {}) ]
+
 [#assign credentialsObject =
     credentials?has_content?then((credentials?eval).Credentials, {}) ]
 

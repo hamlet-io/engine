@@ -65,11 +65,15 @@
             [
                 {
                     "Name" : container.Name,
-                    "Image" : container.Image +
+                    "Image" :
+                        formatRelativePath(
+                            container.RegistryEndPoint,
+                            container.Image +
                                 container.ImageVersion?has_content?then(
                                     ":" + container.ImageVersion,
                                     ""
-                                ),
+                                )
+                            ),
                     "Essential" : container.Essential,
                     "MemoryReservation" : container.MemoryReservation,
                     "LogConfiguration" : 

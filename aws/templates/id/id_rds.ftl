@@ -82,30 +82,12 @@
     [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
 
-    [#local login = {} ]
-    [#if occurrence.Configuration.GenerateCredentials.Enabled ]
-        [#local login += {
-            "USERNAME" : occurrence.Configuration.GenerateCredentials.MasterUserName,
-            "PASSWORD" : getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE)
-        }]
+    [#if occurrence.Solution.GenerateCredentials.Enabled ]
+        [#local masterUsername = occurrence.Configuration.GenerateCredentials.MasterUserName ]
+        [#local masterPassword = getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE) ]
     [#else]
-        [#list
-            (
-                credentialsObject[formatComponentShortNameWithType(core.Tier, core.Component)]!
-                credentialsObject[formatComponentShortName(core.Tier, core.Component)]!
-                {
-                    "Login" : {
-                        "Username" : "Not provided",
-                        "Password" : "Not provided"
-                    }
-                }
-            ).Login as name,value]
-            [#local login +=
-                { 
-                    name?upper_case : value 
-                }
-            ]
-        [/#list]
+        [#local masterUsername = getOccurrenceSettingValue(occurrence, "MASTER_USERNAME") ]
+        [#local masterPassword = getOccurrenceSettingValue(occurrence, "MASTER_PASSWORD") ]
     [/#if]
 
     [#local result =
@@ -129,9 +111,9 @@
                 "FQDN" : fqdn,
                 "PORT" : port,
                 "NAME" : name,
-                "USERNAME" : login.USERNAME,
-                "PASSWORD" : login.PASSWORD,
-                "URL" : engine + "://" + login.USERNAME + ":" + login.PASSWORD + "@" + fqdn + ":" + port + "/" + name 
+                "USERNAME" : masterUsername,
+                "PASSWORD" : masterPassword,
+                "URL" : engine + "://" + masterUsername + ":" + masterPassword + "@" + fqdn + ":" + port + "/" + name 
             },
             "Roles" : {
                 "Inbound" : {},

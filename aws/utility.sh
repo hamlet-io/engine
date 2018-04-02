@@ -13,59 +13,100 @@ function namedef_supported() {
 
 # -- Error handling  --
 
+export LOG_LEVEL_DEBUG="debug"
+export LOG_LEVEL_TRACE="trace"
+export LOG_LEVEL_INFORMATION="info"
+export LOG_LEVEL_WARNING="warn"
+export LOG_LEVEL_ERROR="error"
+export LOG_LEVEL_FATAL="fatal"
+
+declare -A LOG_LEVEL_ORDER
+LOG_LEVEL_ORDER=(
+  ["${LOG_LEVEL_DEBUG}"]="0"
+  ["${LOG_LEVEL_TRACE}"]="1"
+  ["${LOG_LEVEL_INFORMATION}"]="3"
+  ["${LOG_LEVEL_WARNING}"]="5"
+  ["${LOG_LEVEL_ERROR}"]="7"
+  ["${LOG_LEVEL_FATAL}"]="9"
+)
+
+function checkLogLevel() {
+  local level="$1"
+
+  [[ (-n "${level}") && (-n "${LOG_LEVEL_ORDER[${level}]}") ]] && { echo -n "${level}"; return 0; }
+  [[ -n "${GENERATION_DEBUG}" ]] && { echo -n "${LOG_LEVEL_DEBUG}"; return 0; }
+  echo -n "${LOG_LEVEL_INFORMATION}"
+  return 0
+}
+
+# Default implementation - can be overriden by caller
+function getLogLevel() {
+  checkLogLevel
+}
+
+# Default implementation - can be overriden by caller but must honour parameter order
+function outputLogEntry() {
+  local severity="${1^}"; shift
+  local parts=("$@")
+
+  echo -e "\n(${severity})" "${parts[@]}"
+  return 0
+}
+
+function willLog() {
+  local severity="$1"
+
+  [[ ${LOG_LEVEL_ORDER[$(getLogLevel)]} -le ${LOG_LEVEL_ORDER[${severity}]} ]]
+}
+
 function message() {
   local severity="$1"; shift
   local parts=("$@")
 
-  echo -e "\n(${severity})" "${parts[@]}"
+  if willLog "${severity}"; then
+    outputLogEntry "${severity}" "${parts[@]}"
+  else
+    return 0
+  fi
 }
 
 function locationMessage() {
-  local parts=("$@")
+  local restore_nullglob=$(shopt -p nullglob)
+  local restore_globstar=$(shopt -p globstar)
+  shopt -u nullglob globstar
 
-  echo -n "${parts[@]}" "Are we in the right place?"
+  echo -n "$@" "Are we in the right place?"
+
+  ${restore_nullglob}
+  ${restore_globstar}
 }
 
 function cantProceedMessage() {
-  local parts=("$@")
-
-  echo -n "${parts[@]}" "Nothing to do."
+  echo -n "$@" "Nothing to do."
 }
 
 function debug() {
-  local parts=("$@")
-
-  [[ -n "${GENERATION_DEBUG}" ]] && message "Debug" "${parts[@]}"
+  message "${LOG_LEVEL_DEBUG}" "$@"
 }
 
 function trace() {
-  local parts=("$@")
-
-  [[ "$(getLogLevel)" == "trace" ]] && message "Trace" "${parts[@]}"
+  message "${LOG_LEVEL_TRACE}" "$@"
 }
 
 function info() {
-  local parts=("$@")
-
-  message "Info" "${parts[@]}"
+  message "${LOG_LEVEL_INFORMATION}" "$@"
 }
 
 function warning() {
-  local parts=("$@")
-
-  message "Warning" "${parts[@]}"
+  message "${LOG_LEVEL_WARNING}" "$@"
 }
 
 function error() {
-  local parts=("$@")
-
-  message "Error" "${parts[@]}" >&2
+  message "${LOG_LEVEL_ERROR}" "$@" >&2
 }
 
 function fatal() {
-  local parts=("$@")
-
-  message "Fatal" "${parts[@]}" >&2
+  message "${LOG_LEVEL_FATAL}" "$@" >&2
 }
 
 function fatalOption() {
@@ -81,19 +122,15 @@ function fatalOptionArgument() {
 }
 
 function fatalCantProceed() {
-  local parts=("$@")
-
-  fatal "$(cantProceedMessage "${parts[@]}")"
+  fatal "$(cantProceedMessage "$@")"
 }
 
 function fatalLocation() {
-  local parts=("$@")
-
   local restore_nullglob=$(shopt -p nullglob)
   local restore_globstar=$(shopt -p globstar)
   shopt -u nullglob globstar
 
-  fatal "$(locationMessage "${parts[@]}")"
+  fatal "$(locationMessage "$@")"
 
   ${restore_nullglob}
   ${restore_globstar}
@@ -140,9 +177,7 @@ function generateSimpleString() {
 # -- File manipulation --
 
 function formatPath() {
-  local parts=("$@")
-
-  join "/" "${parts[@]}"
+  join "/" "$@"
 }
 
 function filePath() {
@@ -647,7 +682,7 @@ function addJSONAncestorObjects() {
 function convertFilesToJSONObject() {
   local base_ancestors=($1); shift
   local prefixes=($1); shift
-  local as_file="${1:-false}";shift
+  local as_file="$1";shift
   local files=("$@")
 
   pushTempDir "convertFilesToJSONObject_XXX"
@@ -664,7 +699,7 @@ function convertFilesToJSONObject() {
 
     if [[ "${as_file}" == "true" ]]; then
       source_file="$(getTempFile "asfile_${attribute,,}_XXX.json" "${tmp_dir}")"
-      echo -n "{\"${attribute^^}\" : {\"AsFile\" : \"${file}\" }}" > "${source_file}" || return 1
+      echo -n "{\"${attribute^^}\" : {\"Value\" : \"$(fileName "${file}")\", \"AsFile\" : \"${file}\" }}" > "${source_file}" || return 1
     else
       case "$(fileExtension "${file}")" in
         json)
@@ -983,6 +1018,10 @@ function set_rds_master_password() {
 }
 
 # -- Git Repo Management --
+function in_git_repo() {
+  git status >/dev/null 2>&1
+}
+
 function clone_git_repo() {
   local repo_provider="$1"; shift
   local repo_host="$1"; shift
@@ -1051,3 +1090,12 @@ function push_git_repo() {
 
   return 0
 }
+
+function git_mv() {
+  in_git_repo && git mv "$@" || mv "$@"
+}
+
+function git_rm() {
+  in_git_repo && git rm "$@" || rm "$@"
+}
+
