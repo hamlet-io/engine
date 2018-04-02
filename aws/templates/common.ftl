@@ -909,6 +909,9 @@
 
             [#local settingsContext = (settingsObject.AppSettings.Products[formatSegmentFullName(alternative)])!{} ]
             [#local settingsContexts += valueIfContent([settingsContext], settingsContext, []) ]
+
+            [#local settingsContext = (settingsObject.AppSettings.Products[formatSegmentFullName(alternative,"asfile")])!{} ]
+            [#local settingsContexts += valueIfContent([settingsContext], settingsContext, []) ]
         [/#if]
     [/#list]
     [#local occurrenceBuild = getCompositeObject({ "Name" : "*" }, buildContexts) ]
@@ -949,6 +952,9 @@
     [#list alternatives as alternative]
         [#if alternative?has_content]
             [#local credentialsContext = (settingsObject.Credentials.Products[formatSegmentFullName(alternative)])!{} ]
+            [#local credentialsContexts += valueIfContent([credentialsContext], credentialsContext, []) ]
+
+            [#local credentialsContext = (settingsObject.Credentials.Products[formatSegmentFullName(alternative, "asfile")])!{} ]
             [#local credentialsContexts += valueIfContent([credentialsContext], credentialsContext, []) ]
         [/#if]
     [/#list]
@@ -1009,6 +1015,25 @@
             getOccurrenceSettingValue(occurrence, "BUILD_DEPLOYMENT_UNIT", true),
             occurrence.Configuration.Solution.DeploymentUnits[0]!"Exception: Build unit not found."
         ) ]
+[/#function]
+
+[#function getAsFileSettings settings ]
+    [#local result = {} ]
+    [#list settings as key,value]
+        [#if value?is_hash]
+            [#if value.asFile!false]
+                [#local result += { key : valueIfTrue("****", obfuscate, value.Value)} ]
+                [#continue]
+            [/#if]
+            [#if (!sensitive) && !(value.Sensitive!false)]
+                [#local result += { key : value.Value} ]
+                [#continue]
+            [/#if]
+        [#else]
+            [#local result += { key, "Exception:Internal error - setting is not a hash" } ]
+        [/#if]
+    [/#list]
+    [#return result ]
 [/#function]
 
 [#function getSettingsAsEnvironment settings sensitive=false obfuscate=false]

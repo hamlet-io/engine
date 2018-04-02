@@ -737,7 +737,7 @@ function convertFilesToJSONObject() {
 
     local file_ancestors=("${prefixes[@]}" $(filePath "${file}" | tr "./" " ") )
     local processed_file="$(getTempFile "processed_XXX.json" "${tmp_dir}")"
-    addJSONAncestorObjects "${source_file}" "${base_ancestors[@]}" $(join "-" "${file_ancestors[@]}") > "${processed_file}" || return 1
+    addJSONAncestorObjects "${source_file}" "${base_ancestors[@]}" $(join "-" "${file_ancestors[@]}" | tr "[:upper:]" "[:lower:]") > "${processed_file}" || return 1
     processed_files+=("${processed_file}")
   done
 
