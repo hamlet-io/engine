@@ -46,8 +46,11 @@
 
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
+
+[#-- Legacy credentials formats had a top level Credentials attribute --]
 [#assign credentialsObject =
-    credentials?has_content?then((credentials?eval).Credentials, {}) ]
+    credentials?has_content?then(credentials?eval, {}) ]
+[#assign credentialsObject += credentialsObject.Credentials!{} ]
 
 [#assign appSettingsObject =
     appsettings?has_content?then(appsettings?eval, {}) ]
