@@ -28,7 +28,11 @@
     [#return
         {
             "Resources" : {},
-            "Attributes" : {}
+            "Attributes" : {},
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
         }
     ]
 [/#function]
