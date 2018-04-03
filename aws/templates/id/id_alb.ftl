@@ -1,13 +1,14 @@
 [#-- ALB --]
 
-[#assign ALB_RESOURCE_TYPE = "alb" ]
-[#assign ALB_LISTENER_RESOURCE_TYPE = "listener" ]
-[#assign ALB_LISTENER_RULE_RESOURCE_TYPE = "listenerRule" ]
-[#assign ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
+[#-- Resources --]
+[#assign AWS_ALB_RESOURCE_TYPE = "alb" ]
+[#assign AWS_ALB_LISTENER_RESOURCE_TYPE = "listener" ]
+[#assign AWS_ALB_LISTENER_RULE_RESOURCE_TYPE = "listenerRule" ]
+[#assign AWS_ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
 
 [#function formatALBId tier component extensions...]
     [#return formatComponentResourceId(
-                ALB_RESOURCE_TYPE,
+                AWS_ALB_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -15,7 +16,7 @@
 
 [#function formatALBListenerId tier component source extensions...]
     [#return formatComponentResourceId(
-                ALB_LISTENER_RESOURCE_TYPE,
+                AWS_ALB_LISTENER_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions,
@@ -24,7 +25,7 @@
 
 [#function formatALBListenerRuleId tier component source name extensions...]
     [#return formatComponentResourceId(
-                ALB_LISTENER_RULE_RESOURCE_TYPE, 
+                AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, 
                 tier,
                 component,
                 extensions,
@@ -34,7 +35,7 @@
 
 [#function formatALBTargetGroupId tier component source name extensions...]
     [#return formatComponentResourceId(
-                ALB_TARGET_GROUP_RESOURCE_TYPE,
+                AWS_ALB_TARGET_GROUP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions,
@@ -55,9 +56,12 @@
                 source.Port)]
 [/#function]
 
+
+[#-- Components --]
+[#assign ALB_COMPONENT_TYPE = "alb"]
 [#assign componentConfiguration +=
     {
-        "alb" : [
+        ALB_COMPONENT_TYPE : [
             {
                 "Name" : "Logs",
                 "Default" : false
@@ -81,7 +85,7 @@
     [#local core = occurrence.Core]
     [#local configuration = occurrence.Configuration]
 
-    [#local id = formatResourceId(ALB_RESOURCE_TYPE, core.Id) ]
+    [#local id = formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) ]
     [#local internalFqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
 
     [#if (configuration.PortMappings![])?has_content]
@@ -108,8 +112,9 @@
     [#return
         {
             "Resources" : {
-                "lb" : {
-                    "Id" : id
+                "lb" : { 
+                    "Id" : id,
+                    "Type" : AWS_ALB_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
