@@ -127,6 +127,10 @@
             },
             "Attributes" : {
                 "PATH" : getContentPath(occurrence)
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
             }
         }
     ]

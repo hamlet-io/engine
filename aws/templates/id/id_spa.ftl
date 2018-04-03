@@ -124,6 +124,10 @@
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
             }
         }
     ]
