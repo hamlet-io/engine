@@ -652,11 +652,11 @@ function upgrade_cmdb() {
       continue
     fi
     cp "${tmp_file}" "$(filePath "${legacy_file}")/build.json" || { upgrade_succeeded="false"; continue; }
-    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+#    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
   done
 
   # All shared build references now in json format
-  readarray -t legacy_files < <(find "${root_dir}" -type f -name "*.ref" )
+  readarray -t legacy_files < <(find "${root_dir}" -type f \( -name "*.ref" -and -not -name "build.ref" \) )
   for legacy_file in "${legacy_files[@]}"; do
     upgrade_needed="true"
     trace "Upgrading ${legacy_file} ..."
@@ -668,7 +668,7 @@ function upgrade_cmdb() {
       continue
     fi
     cp "${tmp_file}" "$(filePath "${legacy_file}")/shared_build.json" || { upgrade_succeeded="false"; continue; }
-    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+#    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
   done
 
   # Strip top level "Credentials" attribute from credentials
@@ -700,7 +700,8 @@ function upgrade_cmdb() {
       willLog "trace" && { echo; cat "${tmp_file}"; echo; }
       continue
     fi
-    git_mv "${legacy_file}" "$(filePath "${legacy_file}")/segment.json" || { upgrade_succeeded="false"; continue; }
+    cp "${legacy_file}" "$(filePath "${legacy_file}")/segment.json" || { upgrade_succeeded="false"; continue; }
+#    git_rm "${legacy_file}"  || { upgrade_succeeded="false"; continue; }
   done
 
   popTempDir
