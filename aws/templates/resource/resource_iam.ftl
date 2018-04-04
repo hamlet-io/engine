@@ -114,7 +114,7 @@
 ]
 [#assign outputMappings +=
     {
-        ROLE_RESOURCE_TYPE : ROLE_OUTPUT_MAPPINGS
+        AWS_IAM_ROLE_RESOURCE_TYPE : ROLE_OUTPUT_MAPPINGS
     }
 ]
 

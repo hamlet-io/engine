@@ -1,10 +1,9 @@
 [#-- ECS --]
 
-[#assign ECS_RESOURCE_TYPE = "ecs" ]
-
-[#assign ECS_COMPONENT_TYPE = "ecs" ]
-[#assign SERVICE_COMPONENT_TYPE = "service" ]
-[#assign TASK_COMPONENT_TYPE = "task" ]
+[#-- Resources --]
+[#assign AWS_ECS_RESOURCE_TYPE = "ecs" ]
+[#assign AWS_ECS_TASK_RESOURCE_TYPE = "ecsTask"]
+[#assign AWS_ECS_SERVICE_RESOURCE_TYPE = "ecsService"]
 
 [#function formatECSRoleId tier component]
     [#-- TODO: Use formatDependentRoleId() --]
@@ -26,6 +25,12 @@
                 tier,
                 component)]
 [/#function]
+
+
+[#-- Components --]
+[#assign ECS_COMPONENT_TYPE = "ecs" ]
+[#assign SERVICE_COMPONENT_TYPE = "service" ]
+[#assign TASK_COMPONENT_TYPE = "task" ]
 
 [#assign
     containerChildrenConfiguration = [
@@ -179,28 +184,36 @@
             "Resources" : {
                 "cluster" : {
                     "Id" : formatResourceId(ECS_RESOURCE_TYPE, core.Id),
-                    "Name" : core.FullName
+                    "Name" : core.FullName,
+                    "Type" : AWS_ECS_RESOURCE_TYPE
                 },
                 "securityGroup" : {
-                    "Id" : formatECSSecurityGroupId(core.Tier, core.Component)
+                    "Id" : formatECSSecurityGroupId(core.Tier, core.Component),
+                    "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
                 "role" : {
-                    "Id" : formatECSRoleId(core.Tier, core.Component)
+                    "Id" : formatECSRoleId(core.Tier, core.Component),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "serviceRole" : {
-                    "Id" : formatECSServiceRoleId(core.Tier, core.Component)
+                    "Id" : formatECSServiceRoleId(core.Tier, core.Component),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "instanceProfile" : {
-                    "Id" : formatEC2InstanceProfileId(core.Tier, core.Component)
+                    "Id" : formatEC2InstanceProfileId(core.Tier, core.Component),
+                    "Type" : AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE
                 },
                 "autoScaleGroup" : {
-                    "Id" : formatEC2AutoScaleGroupId(core.Tier, core.Component)
+                    "Id" : formatEC2AutoScaleGroupId(core.Tier, core.Component),
+                    "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
                 "launchConfig" : {
-                    "Id" : formatEC2LaunchConfigId(core.Tier, core.Component)
+                    "Id" : formatEC2LaunchConfigId(core.Tier, core.Component),
+                    "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
                 },
                 "logGroup" : {
-                    "Id" : formatComponentLogGroupId(core.Tier, core.Component)
+                    "Id" : formatComponentLogGroupId(core.Tier, core.Component),
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {},
@@ -218,10 +231,12 @@
         {
             "Resources" : {
                 "service" : {
-                    "Id" : formatResourceId("ecsService", core.Id)
+                    "Id" : formatResourceId(AWS_ECS_SERVICE_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_ECS_SERVICE_RESOURCE_TYPE
                 },
                 "task" : {
-                    "Id" : formatResourceId("ecsTask", core.Id)
+                    "Id" : formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
             },
             "Attributes" : {},
@@ -239,7 +254,8 @@
         {
             "Resources" : {
                 "task" : {
-                    "Id" : formatResourceId("ecsTask", core.Id)
+                    "Id" : formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
             },
             "Attributes" : {},

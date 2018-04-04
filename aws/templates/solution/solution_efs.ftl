@@ -1,5 +1,5 @@
 [#-- EFS --]
-[#if componentType == "efs" && deploymentSubsetRequired("efs", true) ]
+[#if componentType == EFS_COMPONENT_TYPE && deploymentSubsetRequired("efs", true) ]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -7,26 +7,19 @@
 
         [@cfDebug listMode occurrence false /]
 
-        [#assign efsId = formatEFSId(
-                            tier, 
-                            component,
-                            occurrence)]
-        
-        [#assign efsFullName = formatComponentFullName(tier, component) ]
+        [#assign core = occurrence.Core]
+        [#assign configuration = occurrence.Configuration]
+        [#assign resources = occurrence.State.Resources]
 
-        [#assign efsMountTargetId = formatDependentEFSMountTargetId(
-                                        efsId)]
+        [#assign efsId              = resources["efs"].Id]
+        [#assign efsFullName        = resources["efs"].Name]
+        [#assign efsMountTargetId   = resources["efsMountTarget"].Id]
+        [#assign efsSecurityGroupId = resources["secGroup"].Id]
         
-        [#assign efsSecurityGroupId = formatComponentSecurityGroupId(
-                                        tier, 
-                                        component,
-                                        "efs")]
-
         [@createComponentSecurityGroup
             mode=listMode
             tier=tier
             component=component
-            extensions="efs"
         /]
         
         [@createEFS 

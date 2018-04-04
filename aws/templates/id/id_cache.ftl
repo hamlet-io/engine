@@ -39,17 +39,25 @@
             "Resources" : {
                 "cache" : {
                     "Id" : id,
-                    "Name" : core.FullName
+                    "Name" : core.FullName,
+                    "Type" : AWS_CACHE_RESOURCE_TYPE
                 },
                 "subnetGroup" : {
-                    "Id" : formatResourceId(AWS_CACHE_SUBNET_GROUP_RESOURCE_TYPE, core.Id)
+                    "Id" : formatResourceId(AWS_CACHE_SUBNET_GROUP_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_CACHE_SUBNET_GROUP_RESOURCE_TYPE
                 },
                 "parameterGroup" : {
-                    "Id" : formatResourceId(AWS_CACHE_PARAMETER_GROUP_RESOURCE_TYPE, core.Id)
+                    "Id" : formatResourceId(AWS_CACHE_PARAMETER_GROUP_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_CACHE_PARAMETER_GROUP_RESOURCE_TYPE
+                },
+                "secGroup" : {
+                    "Id" : formatSecurityGroupId(core.Id),
+                    "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
-                "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
+                "ENGINE" : occurrence.Configuration.Engine,
+                "FQDN"  : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
                 "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
                 "URL" :
                     valueIfTrue(

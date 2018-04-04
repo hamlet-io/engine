@@ -4,7 +4,7 @@
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
-
+        
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]

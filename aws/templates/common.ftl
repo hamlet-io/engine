@@ -743,6 +743,10 @@
                 [#local result = getFunctionState(occurrence)]
                 [#break]
 
+            [#case "ec2"]
+                [#local result = getEc2State(occurrence)]
+                [#break]
+
             [#case "rds"]
                 [#local result = getRDSState(occurrence)]
                 [#break]

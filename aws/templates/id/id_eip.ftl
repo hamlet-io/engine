@@ -1,24 +1,24 @@
 [#-- EIP --]
 
-[#assign EIP_RESOURCE_TYPE = "eip" ]
-[#assign EIP_ASSOCIATION_RESOURCE_TYPE = "eipAssoc" ]
+[#assign AWS_EIP_RESOURCE_TYPE = "eip" ]
+[#assign AWS_EIP_ASSOCIATION_RESOURCE_TYPE = "eipAssoc" ]
 
 [#function formatEIPId ids...]
     [#return formatResourceId(
-                EIP_RESOURCE_TYPE,
+                AWS_EIP_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentEIPId resourceId extensions...]
     [#return formatDependentResourceId(
-                EIP_RESOURCE_TYPE,
+                AWS_EIP_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatComponentEIPId tier component extensions...]
     [#return formatComponentResourceId(
-                EIP_RESOURCE_TYPE,
+                AWS_EIP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -26,7 +26,7 @@
 
 [#function formatComponentEIPAssociationId tier component extensions...]
     [#return formatComponentResourceId(
-                EIP_ASSOCIATION_RESOURCE_TYPE,
+                AWS_EIP_ASSOCIATION_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]

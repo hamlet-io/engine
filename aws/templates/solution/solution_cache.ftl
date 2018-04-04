@@ -54,15 +54,14 @@
                 [#assign engineVersion = "unknown" ]
                 [#assign family = "unknown" ]
                 [#assign port = "unknown" ]
-        [/#switch]                                                 
+        [/#switch]                    
 
         [#assign cacheId = resources["cache"].Id ]
         [#assign cacheFullName = resources["cache"].Name ]
         [#assign cacheSubnetGroupId = resources["subnetGroup"].Id ]
         [#assign cacheParameterGroupId = resources["parameterGroup"].Id ]
-    
-        [#assign cacheSecurityGroupId = formatDependentSecurityGroupId(
-                                            cacheId)]
+        [#assign cacheSecurityGroupId = resources["secGroup"].Id ]
+
         [#assign cacheSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                                 cacheSecurityGroupId, 
                                                 port)]

@@ -43,13 +43,6 @@
                 name)]
 [/#function]
 
-[#function formatALBSecurityGroupId tier component extensions...]
-    [#return formatComponentSecurityGroupId(
-                tier,
-                component,
-                extensions)]
-[/#function]
-
 [#function formatALBListenerSecurityGroupIngressId resourceId source ]
     [#return formatDependentSecurityGroupIngressId(
                 resourceId,
@@ -115,6 +108,10 @@
                 "lb" : { 
                     "Id" : id,
                     "Type" : AWS_ALB_RESOURCE_TYPE
+                },
+                "secgroup" : {
+                    "Id" : formatSecurityGroupId(core.Id),
+                    "TYPE" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

@@ -1,16 +1,18 @@
 [#-- VPC --]
 
-[#assign VPC_ROUTE_TABLE_RESOURCE_TYPE = "routeTable" ]
+[#assign AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE = "routeTable" ]
+[#assign AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE = "securityGroup" ]
+[#assign AWS_VPC_SECURITY_GROUP_INGRESS_RESOURCE_TYPE = "securityGroupIngress" ]
 
 [#function formatSecurityGroupId ids...]
     [#return formatResourceId(
-                "securityGroup",
+                AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentSecurityGroupId resourceId extensions...]
     [#return formatDependentResourceId(
-                "securityGroup",
+                AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
@@ -21,7 +23,7 @@
 [#-- but different types                                           --]
 [#function formatComponentSecurityGroupId tier component extensions...]
     [#return formatComponentResourceId(
-                "securityGroup",
+                AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -41,7 +43,7 @@
 
 [#function formatSecurityGroupIngressId ids...]
     [#return formatResourceId(
-                "securityGroupIngress",
+                AWS_VPC_SECURITY_GROUP_INGRESS_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
@@ -58,7 +60,7 @@
 
 [#function formatComponentSecurityGroupIngressId tier component extensions...]
     [#return formatComponentResourceId(
-                "securityGroupIngress",
+                AWS_VPC_SECURITY_GROUP_INGRESS_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
@@ -139,7 +141,7 @@
 
 [#function formatRouteTableId ids...]
     [#return formatResourceId(
-            VPC_ROUTE_TABLE_RESOURCE_TYPE,
+            AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE,
             ids)]
 [/#function]
 

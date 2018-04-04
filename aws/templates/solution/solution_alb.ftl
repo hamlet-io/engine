@@ -12,8 +12,8 @@
         [#assign resources = occurrence.State.Resources ]
         
         [#assign albId = resources["lb"].Id ]
-    
-        [#assign albSecurityGroupId = formatALBSecurityGroupId(tier, component, occurrence)]
+        [#assign albSecurityGroupId = resources["secgroup"].Id]
+
         [@createComponentSecurityGroup
             mode=listMode
             tier=tier
@@ -43,6 +43,7 @@
                             sourcePort,
                             "default",
                             occurrence)]
+
             [@createTargetGroup
                 mode=listMode
                 id=albTargetGroupId
@@ -63,6 +64,7 @@
                     getUsageCIDRs(
                         source,
                         mappingObject.IPAddressGroups) ]
+
             [#-- Internal ILBs may not have explicit IP Address Groups --]
             [#assign cidr =
                 cidr?has_content?then(

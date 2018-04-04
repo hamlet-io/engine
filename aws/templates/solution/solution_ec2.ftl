@@ -1,49 +1,59 @@
 [#-- EC2 --]
 [#if componentType == "ec2"]
-    [#assign ec2 = component.EC2]
-    [#assign fixedIP = ec2.FixedIP!false]
-    [#assign loadBalanced = ec2.LoadBalanced!false]
-    [#assign dockerHost = ec2.DockerHost!false]
+    [#list requiredOccurrences(
+        getOccurrences(tier, component),
+        deploymentUnit) as occurrence]
+        
+        [@cfDebug listMode occurrence false /]
 
-    [#assign ec2FullName = formatName(tenantId, formatComponentFullName(tier, component)) ]
-    [#assign ec2SecurityGroupId = formatEC2SecurityGroupId(tier, component)]
-    [#assign ec2RoleId = formatEC2RoleId(tier, component)]
-    [#assign ec2InstanceProfileId = formatEC2InstanceProfileId(tier, component)]
-    [#assign ec2ELBId = formatELBId("elb", component)]
-    
-    [#assign ingressRules = []]
-    [#list ec2.Ports![] as port]
-        [#assign nextPort = port?is_hash?then(port.Port, port)]
-        [#assign portCIDRs = getUsageCIDRs(
-                            nextPort,
-                            port?is_hash?then(port.IPAddressGroups![], []))]
-        [#if portCIDRs?has_content]
-            [#assign ingressRules +=
-                [{
-                    "Port" : nextPort,
-                    "CIDR" : portCIDRs
-                }]]
+        [#assign core = occurrence.Core]
+        [#assign configuration = occurrence.Configuration]
+        [#assign resources = occurrence.State.Resources]
+
+        [#assign fixedIP = configuration.FixedIP]
+        [#assign loadBalanced = configuration.LoadBalanced]
+        [#assign dockerHost = configuration.DockerHost]
+
+        [#assign ec2FullName            = resources["ec2Instance"].Name ]
+        [#assign ec2SecurityGroupId     = resources["secGroup"].Id]
+        [#assign ec2RoleId              = resources["ec2Role"].Id]
+        [#assign ec2InstanceProfileId   = resources["instanceProfile"].Id]
+        [#assign ec2ELBId               = resources["ec2ELB"].Id]
+
+        [#assign ingressRules = []]
+        
+        [#list configuration.Ports as port]
+            [#assign nextPort = port?is_hash?then(port.Port, port)]
+            [#assign portCIDRs = getUsageCIDRs(
+                                nextPort,
+                                port?is_hash?then(port.IPAddressGroups![], []))]
+            [#if portCIDRs?has_content]
+                [#assign ingressRules +=
+                    [{
+                        "Port" : nextPort,
+                        "CIDR" : portCIDRs
+                    }]]
+            [/#if]
+        [/#list]    
+
+        [#if deploymentSubsetRequired("iam", true) &&
+                isPartOfCurrentDeploymentUnit(ec2RoleId)]
+            [@createRole
+                mode=listMode
+                id=ec2RoleId
+                trustedServices=["ec2.amazonaws.com" ]
+                policies=
+                    [
+                        getPolicyDocument(
+                            s3ListPermission(codeBucket) +
+                                s3ReadPermission(codeBucket) +
+                                s3ListPermission(operationsBucket) +
+                                s3WritePermission(operationsBucket, "DOCKERLogs") +
+                                s3WritePermission(operationsBucket, "Backups"),
+                            "basic")
+                    ]
+            /]
         [/#if]
-    [/#list]    
-
-    [#if deploymentSubsetRequired("iam", true) &&
-            isPartOfCurrentDeploymentUnit(ec2RoleId)]
-        [@createRole
-            mode=listMode
-            id=ec2RoleId
-            trustedServices=["ec2.amazonaws.com" ]
-            policies=
-                [
-                    getPolicyDocument(
-                        s3ListPermission(codeBucket) +
-                            s3ReadPermission(codeBucket) +
-                            s3ListPermission(operationsBucket) +
-                            s3WritePermission(operationsBucket, "DOCKERLogs") +
-                            s3WritePermission(operationsBucket, "Backups"),
-                        "basic")
-                ]
-        /]
-    [/#if]
 
     [#if deploymentSubsetRequired("ec2", true)]
     
@@ -84,7 +94,7 @@
                                         tier,
                                         component,
                                         zone)]
-                [#-- Support backwards compatability with existing installs --] 
+              [#-- Support backwards compatability with existing installs --] 
                 [#if !(getExistingReference(ec2EIPId)?has_content)]
                     [#assign ec2EIPId = formatComponentEIPId(
                                             tier,
@@ -106,7 +116,7 @@
                 [#assign dailyUpdateCron = 'echo \\"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
                 [#if environmentId == "prod"]
                     [#-- for production update only security packages --]
-                    [#assign updateCommand += " --security"]
+                   [#assign updateCommand += " --security"]
                     [#assign dailyUpdateCron = 'echo \\"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
                 [/#if]
                 
@@ -321,5 +331,7 @@
                 [/#if]
             [/#if]
         [/#list]
-    [/#if]
+        [/#if]
+    [/#list]
+
 [/#if]

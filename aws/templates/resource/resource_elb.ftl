@@ -12,6 +12,6 @@
 ]
 [#assign outputMappings +=
     {
-        ELB_RESOURCE_TYPE : ELB_OUTPUT_MAPPINGS
+        AWS_ELB_RESOURCE_TYPE : ELB_OUTPUT_MAPPINGS
     }
 ]
