@@ -1,5 +1,6 @@
 [#-- EIP --]
 
+[#-- Resources --]
 [#assign AWS_EIP_RESOURCE_TYPE = "eip" ]
 [#assign AWS_EIP_ASSOCIATION_RESOURCE_TYPE = "eipAssoc" ]
 

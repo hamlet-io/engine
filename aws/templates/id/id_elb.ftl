@@ -11,5 +11,3 @@
                 component,
                 extensions)]
 [/#function]
-
-[#-- Attributes --]

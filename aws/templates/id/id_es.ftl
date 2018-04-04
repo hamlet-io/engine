@@ -1,10 +1,11 @@
 [#-- ElasticSearch --]
 
-[#assign ES_RESOURCE_TYPE = "es" ]
+[#-- Resources --]
+[#assign AWS_ES_RESOURCE_TYPE = "es" ]
 
 [#function formatElasticSearchId tier component extensions...]
     [#return formatComponentResourceId(
-                ES_RESOURCE_TYPE,
+                AWS_ES_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]

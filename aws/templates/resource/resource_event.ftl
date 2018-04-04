@@ -13,7 +13,7 @@
 
 [#assign outputMappings +=
     {
-        EVENT_RULE_RESOURCE_TYPE : EVENT_RULE_OUTPUT_MAPPINGS
+        AWS_EVENT_RULE_RESOURCE_TYPE : EVENT_RULE_OUTPUT_MAPPINGS
     }
 ]
 
