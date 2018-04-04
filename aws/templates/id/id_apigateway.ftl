@@ -24,7 +24,7 @@
                 extensions)]
 [/#function]
 
-[#-- Component --]
+[#-- Components --]
 [#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
 [#assign APIGATEWAY_COMPONENT_DOCS_EXTENSION = "docs"]
 

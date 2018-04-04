@@ -1,4 +1,4 @@
-[#if (componentType == "contenthub") ]
+[#if (componentType == CONTENTHUB_HUB_COMPONENT_TYPE) ]
 
     [#list requiredOccurrences(
         getOccurrences(tier, component),

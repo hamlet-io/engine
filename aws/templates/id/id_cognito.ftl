@@ -6,7 +6,6 @@
 [#assign AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
 [#assign AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE = "rolemapping"]
 
-
 [#-- Components --]
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
 [#assign USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION = "unauth" ]

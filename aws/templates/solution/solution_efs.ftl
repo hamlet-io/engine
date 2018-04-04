@@ -1,5 +1,5 @@
 [#-- EFS --]
-[#if componentType == EFS_COMPONENT_TYPE && deploymentSubsetRequired("efs", true) ]
+[#if componentType == EFS_COMPONENT_TYPE  ]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -16,26 +16,28 @@
         [#assign efsMountTargetId   = resources["efsMountTarget"].Id]
         [#assign efsSecurityGroupId = resources["secGroup"].Id]
         
-        [@createComponentSecurityGroup
-            mode=listMode
-            tier=tier
-            component=component
-        /]
-        
-        [@createEFS 
-            mode=listMode
-            tier=tier
-            id=efsId
-            name=efsFullName
-            component=component
-        /]
+        [#if deploymentSubsetRequired("efs", true) ]
+            [@createComponentSecurityGroup
+                mode=listMode
+                tier=tier
+                component=component
+            /]
+            
+            [@createEFS 
+                mode=listMode
+                tier=tier
+                id=efsId
+                name=efsFullName
+                component=component
+            /]
 
-        [@createEFSMountTarget
-            mode=listMode
-            tier=tier
-            efsId=efsId
-            securityGroups=efsSecurityGroupId
-            dependencies=[efsId,efsSecurityGroupId]
-        /]
+            [@createEFSMountTarget
+                mode=listMode
+                tier=tier
+                efsId=efsId
+                securityGroups=efsSecurityGroupId
+                dependencies=[efsId,efsSecurityGroupId]
+            /]
+        [/#if ]
     [/#list]
 [/#if]

@@ -1,4 +1,6 @@
 [#-- SPA --]
+
+[#-- Componets --]
 [#assign SPA_COMPONENT_TYPE = "spa"]
 
 [#assign componentConfiguration +=

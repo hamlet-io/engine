@@ -703,6 +703,14 @@
                 [#local result = getEFSState(occurrence)]
                 [#break]
 
+            [#case "elb"]
+                [#local result = getELBState(occurrence)]
+                [#break]
+
+            [#case "es"]
+                [#local result = getESState(occurrence)]
+                [#break]
+
             [#case "external"]
                 [#local result =
                     {

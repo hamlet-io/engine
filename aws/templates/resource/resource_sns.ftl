@@ -29,7 +29,7 @@
 ]
 [#assign outputMappings +=
     {
-        SNS_TOPIC_RESOURCE_TYPE : SNS_TOPIC_OUTPUT_MAPPINGS
+        AWS_SNS_TOPIC_RESOURCE_TYPE : SNS_TOPIC_OUTPUT_MAPPINGS
     }
 ]
 

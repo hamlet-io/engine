@@ -1,125 +1,129 @@
 [#-- ElasticSearch --]
-[#if (componentType == "elasticsearch" ||
-        (componentType == "es")) && deploymentSubsetRequired("es", true)]
-    [#assign es = component.ES!component.ElasticSearch]
-    [#assign esId = formatElasticSearchId(
-                        tier,
-                        component)]
+[#if (componentType == ES_COMPONENT_TYPE || componentType == "elasticsearch" || componentType == "es") ]
 
-    [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
-    [#assign master = processorProfile.Master!{}]
+    [#list requiredOccurrences(
+        getOccurrences(tier, component),
+        deploymentUnit) as occurrence]
+        
+        [@cfDebug listMode occurrence false /]
 
-    [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
-    [#assign volume = (storageProfile.Volumes["codeontap"])!{}]
+        [#assign core = occurrence.Core]
+        [#assign configuration = occurrence.Configuration]
+        [#assign resources = occurrence.State.Resources]
 
-    [#assign esCIDRs =
-                getUsageCIDRs(
-                    "es",
-                    es.IPAddressGroups![])]
-    [#list zones as zone]
-        [#assign zoneIP =
-            getExistingReference(
-                formatComponentEIPId("mgmt", "nat", zone),
-                IP_ADDRESS_ATTRIBUTE_TYPE
-            )
-        ]
-        [#if zoneIP?has_content]
-            [#assign esCIDRs += [zoneIP] ]
-        [/#if]
-    [/#list]
-    [#list 1..20 as i]
-        [#assign externalIP =
-            getExistingReference(
-                formatComponentEIPId("mgmt", "nat", "external" + i)
-            )
-        ]
-        [#if externalIP?has_content]
-            [#assign esCIDRs += [externalIP] ]
-        [/#if]
-    [/#list]
+        [#assign esId = resources["es"].Id]
 
-    [#assign esAdvancedOptions = {} ]
-    [#list es.AdvancedOptions as option]
-        [#assign esAdvancedOptions +=
-            {
-                option.Id : option.Value
-            }
-        ]
-    [/#list]
+        [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
+        [#assign master = processorProfile.Master!{}]
 
-    [#-- In order to permit updates to the security policy, don't name the domain. --]
-    [#-- Use tags in the console to find the right one --]
-    [#-- "DomainName" : "${productName}-${segmentId}-${tierId}-${componentId}", --]
+        [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
+        [#assign volume = (storageProfile.Volumes["codeontap"])!{}]
+        [#assign esCIDRs =
+                    getUsageCIDRs(
+                        "es",
+                        configuration.IPAddressGroups)]
+        [#list zones as zone]
+            [#assign zoneIP =
+                getExistingReference(
+                    formatComponentEIPId("mgmt", "nat", zone),
+                    IP_ADDRESS_ATTRIBUTE_TYPE
+                )
+            ]
+            [#if zoneIP?has_content]
+                [#assign esCIDRs += [zoneIP] ]
+            [/#if]
+        [/#list]
+        [#list 1..20 as i]
+            [#assign externalIP =
+                getExistingReference(
+                    formatComponentEIPId("mgmt", "nat", "external" + i)
+                )
+            ]
+            [#if externalIP?has_content]
+                [#assign esCIDRs += [externalIP] ]
+            [/#if]
+        [/#list]
 
-
-    [@cfResource
-        mode=listMode
-        id=esId
-        type="AWS::Elasticsearch::Domain"
-        properties=
-            {
-                "AccessPolicies" :
-                    getPolicyDocumentContent(
-                        getPolicyStatement(
-                            "es:*",
-                            "*",
-                            {
-                                "AWS": "*"
-                            },
-                            attributeIfContent(
-                                "IpAddress",
-                                esCIDRs,
-                                {
-                                    "aws:SourceIp": esCIDRs
-                                })
-                        )
-                    ),
-                "ElasticsearchVersion" :
-                    es.Version?has_content?then(
-                        es.Version,
-                        "2.3"
-                    ),
-                "ElasticsearchClusterConfig" :
-                    {
-                        "InstanceType" : processorProfile.Processor,
-                        "ZoneAwarenessEnabled" : multiAZ,
-                        "InstanceCount" :
-                            multiAZ?then(
-                                processorProfile.CountPerZone * zones?size,
-                                processorProfile.CountPerZone
-                            )
-                    } +
-                    master?has_content?then(
-                        {
-                            "DedicatedMasterEnabled" : true,
-                            "DedicatedMasterCount" : master.Count,
-                            "DedicatedMasterType" : master.Processor
-                        },
-                        {
-                            "DedicatedMasterEnabled" : false
-                        }
-                    )
-            } + 
-            attributeIfContent("AdvancedOptions", esAdvancedOptions) +
-            attributeIfContent("SnapshotOptions", (es.Snapshot.Hour)!"", es.Snapshot.Hour) +
-            attributeIfContent(
-                "EBSOptions",
-                volume,
+        [#assign esAdvancedOptions = {} ]
+        [#list configuration.AdvancedOptions as option]
+            [#assign esAdvancedOptions +=
                 {
-                    "EBSEnabled" : true,
-                    "VolumeSize" : volume.Size,
-                    "VolumeType" :
-                        volume.Type?has_content?then(
-                            volume.Type,
-                            "gp2"
-                        )
-                } +
-                attributeIfContent("Iops", volume.Iops!""))
-        tags=
-            getCfTemplateCoreTags(
-                "",
-                tier,
-                component)
-        outputs=ES_OUTPUT_MAPPINGS
-    /]
+                    option.Id : option.Value
+                }
+            ]
+        [/#list]
+
+        [#-- In order to permit updates to the security policy, don't name the domain. --]
+        [#-- Use tags in the console to find the right one --]
+        [#-- "DomainName" : "${productName}-${segmentId}-${tierId}-${componentId}", --]
+
+        [#if deploymentSubsetRequired("es", true)]
+            [@cfResource
+                mode=listMode
+                id=esId
+                type="AWS::Elasticsearch::Domain"
+                properties=
+                    {
+                        "AccessPolicies" :
+                            getPolicyDocumentContent(
+                                getPolicyStatement(
+                                    "es:*",
+                                    "*",
+                                    {
+                                        "AWS": "*"
+                                    },
+                                    attributeIfContent(
+                                        "IpAddress",
+                                        esCIDRs,
+                                        {
+                                            "aws:SourceIp": esCIDRs
+                                        })
+                                )
+                            ),
+                        "ElasticsearchVersion" : configuration.Version,
+                        "ElasticsearchClusterConfig" :
+                            {
+                                "InstanceType" : processorProfile.Processor,
+                                "ZoneAwarenessEnabled" : multiAZ,
+                                "InstanceCount" :
+                                    multiAZ?then(
+                                        processorProfile.CountPerZone * zones?size,
+                                        processorProfile.CountPerZone
+                                    )
+                            } +
+                            master?has_content?then(
+                                {
+                                    "DedicatedMasterEnabled" : true,
+                                    "DedicatedMasterCount" : master.Count,
+                                    "DedicatedMasterType" : master.Processor
+                                },
+                                {
+                                    "DedicatedMasterEnabled" : false
+                                }
+                            )
+                    } + 
+                    attributeIfContent("AdvancedOptions", esAdvancedOptions) +
+                    attributeIfContent("SnapshotOptions", configuration.Snapshot.Hour, configuration.Snapshot.Hour) +
+                    attributeIfContent(
+                        "EBSOptions",
+                        volume,
+                        {
+                            "EBSEnabled" : true,
+                            "VolumeSize" : volume.Size,
+                            "VolumeType" :
+                                volume.Type?has_content?then(
+                                    volume.Type,
+                                    "gp2"
+                                )
+                        } +
+                        attributeIfContent("Iops", volume.Iops!""))
+                tags=
+                    getCfTemplateCoreTags(
+                        "",
+                        tier,
+                        component)
+                outputs=ES_OUTPUT_MAPPINGS
+            /]
+        [/#if]
+    [/#list]
 [/#if]

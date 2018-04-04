@@ -1,5 +1,5 @@
 [#-- ECS --]
-[#if componentType == "ecs"]
+[#if componentType == ECS_COMPONENT_TYPE]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),

@@ -19,7 +19,6 @@
             getReference(lambdaId))]
 [/#function]
 
-
 [#-- Components --]
 [#assign LAMBDA_COMPONENT_TYPE = "lambda"]
 [#assign LAMBDA_FUNCTION_COMPONENT_TYPE = "function"]
@@ -97,7 +96,8 @@
             "Resources" : {
                 "lambda" : {
                     "Id" : formatResourceId(AWS_LAMBDA_RESOURCE_TYPE, core.Id),
-                    "Name" : core.FullName
+                    "Name" : core.FullName,
+                    "Type" : AWS_LAMBDA_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
@@ -121,7 +121,8 @@
             "Resources" : {
                 "function" : {
                     "Id" : id,
-                    "Name" : core.FullName
+                    "Name" : core.FullName,
+                    "Type" : AWS_LAMBDA_FUNCTION_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

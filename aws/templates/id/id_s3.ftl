@@ -68,7 +68,7 @@
 [/#function]
 
 
-[#-- Component --]
+[#-- Components --]
 [#assign S3_COMPONENT_TYPE = "s3" ]
 
 [#assign componentConfiguration +=

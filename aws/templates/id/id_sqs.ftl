@@ -1,10 +1,14 @@
 [#-- SQS --]
 
-[#assign SQS_RESOURCE_TYPE = "sqs" ]
+[#-- Resources --]
+[#assign AWS_SQS_RESOURCE_TYPE = "sqs" ]
+
+[#-- Components --]
+[#assign SQS_COMPONENT_TYPE = "sqs"]
 
 [#assign componentConfiguration +=
     {
-        "sqs" : [
+        SQS_COMPONENT_TYPE : [
             "DelaySeconds",
             "MaximumMessageSize",
             "MessageRetentionPeriod",
@@ -29,10 +33,10 @@
 [#function getSQSState occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatResourceId(SQS_RESOURCE_TYPE, core.Id) ]
+    [#local id = formatResourceId(AWS_SQS_RESOURCE_TYPE, core.Id) ]
     [#local name = core.FullName ]
 
-    [#local dlqId = formatDependentResourceId(SQS_RESOURCE_TYPE, id, "dlq") ]
+    [#local dlqId = formatDependentResourceId(AWS_SQS_RESOURCE_TYPE, id, "dlq") ]
     [#local dlqName = formatName(name, "dlq")]
 
     [#return
@@ -40,11 +44,13 @@
             "Resources" : {
                 "queue" : {
                     "Id" : id,
-                    "Name" : name
+                    "Name" : name,
+                    "Type" : AWS_SQS_RESOURCE_TYPE
                 },
                 "dlq" : {
                     "Id" : dlqId,
-                    "Name" : dlqName
+                    "Name" : dlqName,
+                    "Type" : AWS_SQS_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

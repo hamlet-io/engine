@@ -1,5 +1,5 @@
 [#-- Cache --]
-[#if componentType == "cache" ]
+[#if componentType == CACHE_COMPONENT_TYPE ]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),

@@ -111,7 +111,7 @@
                 },
                 "secgroup" : {
                     "Id" : formatSecurityGroupId(core.Id),
-                    "TYPE" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
+                    "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

@@ -1,5 +1,6 @@
 [#-- VPC --]
 
+[#-- Resources --]
 [#assign AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE = "routeTable" ]
 [#assign AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE = "securityGroup" ]
 [#assign AWS_VPC_SECURITY_GROUP_INGRESS_RESOURCE_TYPE = "securityGroupIngress" ]
