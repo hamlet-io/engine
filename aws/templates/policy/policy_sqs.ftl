@@ -1,22 +1,30 @@
 [#-- SQS --]
 
-[#function getSqsStatement actions id principals="" conditions=""]
+[#function getSqsStatement actions id="" principals="" conditions=""]
     [#return
         [
             getPolicyStatement(
                 actions,
-                getReference(id, ARN_ATTRIBUTE_TYPE),
+                valueIfContent(
+                    getReference(id, ARN_ATTRIBUTE_TYPE),
+                    id,
+                    formatRegionalArn("sqs", "*")),
                 principals,
                 conditions)
         ]
     ]
 [/#function]
 
+[#function sqsListQueuesPermission]
+    [#return getSqsStatement("sqs:ListQueues") ]
+[/#function]
+
 [#function sqsAdminPermission id]
     [#return
         getSqsStatement(
             "sqs:*",
-            id)]
+            id) +
+        sqsListQueuesPermission() ]
 [/#function]
 
 [#function sqsAllPermission id]
@@ -30,7 +38,8 @@
                 "sqs:Get*",
                 "sqs:List*"
             ],
-            id)]
+            id) +
+        sqsListQueuesPermission() ]
 [/#function]
 
 [#function sqsProducePermission id]
@@ -41,7 +50,8 @@
                 "sqs:Get*",
                 "sqs:List*"
             ],
-            id)]
+            id) +
+        sqsListQueuesPermission() ]
 [/#function]
 
 [#function sqsConsumePermission id]
@@ -54,7 +64,8 @@
                 "sqs:Get*",
                 "sqs:List*"
             ],
-            id)]
+            id) +
+        sqsListQueuesPermission() ]
 [/#function]
 
 [#function sqsWritePermission id]
