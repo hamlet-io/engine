@@ -1,5 +1,5 @@
 [#-- Cognito User Pool --]
-[#if (componentType == "userpool") ]
+[#if componentType == USERPOOL_COMPONENT_TYPE ]
     
     [#list requiredOccurrences(
         getOccurrences(tier, component),
@@ -341,7 +341,6 @@
             [@cfScript
                 mode=listMode
                 content=
-                [] +
                 [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
                 (userPoolManualTriggerConfig?has_content)?then(
                     [
