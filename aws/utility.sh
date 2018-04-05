@@ -572,6 +572,15 @@ function encrypt_kms_string() {
   aws kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text || return $?
 }
 
+# -- Cognito -- 
+
+function add_cognito_lambda_triggers() { 
+  local region="$1"; shift 
+  local userpoolid="$1"; shift
+  local lambdaconfig"$1"; shift 
+
+  aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --lambda-config "${lambdaconfig}" || return $? 
+}
 
 # -- S3 --
 
