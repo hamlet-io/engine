@@ -1,5 +1,5 @@
 [#-- Cognito User Pool --]
-[#if (componentType == USERPOOL_COMPONENT_TYPE) && deploymentSubsetRequired("userpool", true)]
+[#if (componentType == "userpool") ]
     
     [#list requiredOccurrences(
         getOccurrences(tier, component),
@@ -26,7 +26,8 @@
         [#assign smsVerification = false]
         [#assign schema = []]
         [#assign userPoolTriggerConfig = {}]
-
+        [#assign userPoolManualTriggerConfig = {}]
+                
         [@cfDebug listMode appSettingsObject false /]
 
         [#assign emailVerificationMessage =
@@ -67,43 +68,25 @@
             "")]
 
         [#if ((configuration.MFA) || ( configuration.VerifyPhone))]
-            [#if deploymentSubsetRequired("iam", true) &&
-            isPartOfCurrentDeploymentUnit(userPoolId)]
 
-                [@createRole
-                    mode=listMode
-                    id=userPoolRoleId
-                    trustedServices=["cognito-idp.amazonaws.com"]
-                    policies=
-                        [
-                            getPolicyDocument(
-                                snsPublishPermission(),
-                                "smsVerification" 
-                            )
-                        ]
-                /]
-
-                [#assign phoneSchema = getUserPoolSchemaObject( 
-                                            "phone_number",
-                                            "String",
-                                            true,
-                                            true)]
-                [#assign schema = schema + [ phoneSchema ]]
-            )]
-
-            [/#if]
+            [#assign phoneSchema = getUserPoolSchemaObject( 
+                                        "phone_number",
+                                        "String",
+                                        true,
+                                        true)]
+            [#assign schema = schema + [ phoneSchema ]]
 
             [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
             [#assign smsVerification = true]
         [/#if]
 
         [#if configuration.VerifyEmail || ( configuration.LoginAliases.seq_contains("email"))]
-                [#assign emailSchema = getUserPoolSchemaObject( 
-                                            "email",
-                                            "String",
-                                            true,
-                                            true)]
-                [#assign schema = schema +  [ emailSchema ]]
+                    [#assign emailSchema = getUserPoolSchemaObject( 
+                                                "email",
+                                                "String",
+                                                true,
+                                                true)]
+                    [#assign schema = schema +  [ emailSchema ]]
         [/#if]
 
         [#list configuration.Links?values as link]
@@ -190,125 +173,189 @@
                                     )
                                 ]
                                 [#break]
+                            [#case "pretokengeneration"]
+                                [#assign userPoolManualTriggerConfig = userPoolManualTriggerConfig +
+                                    attributeIfContent (
+                                        "PreTokenGeneration",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
+                            [#case "usermigration"]
+                                [#assign userPoolManualTriggerConfig = userPoolManualTriggerConfig +
+                                    attributeIfContent (
+                                        "UserMigration",
+                                        linkTargetAttributes.ARN
+                                    )
+                                ]
+                                [#break]
                         [/#switch]
                     [/#if]
-                    [#break]
+                [#break]
             [/#switch]
         [/#list]
 
-        [@createUserPool 
-            mode=listMode
-            component=component
-            tier=tier
-            id=userPoolId
-            name=userPoolName
-            tags=getCfTemplateCoreTags(
-                    userPoolName,
-                    tier,
-                    component)
-            dependencies=dependencies
-            mfa=configuration.MFA
-            adminCreatesUser=configuration.AdminCreatesUser
-            unusedTimeout=configuration.UnusedAccountTimeout
-            schema=schema
-            emailVerificationMessage=emailVerificationMessage
-            emailVerificationSubject=emailVerificationSubject
-            smsVerificationMessage=smsVerificationMessage
-            emailInviteMessage=emailInviteMessage
-            emailInviteSubject=emailInviteSubject
-            smsInviteMessage=smsInviteMessage
-            lambdaTriggers=userPoolTriggerConfig
-            autoVerify=(configuration.VerifyEmail || smsVerification)?then(
-                getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification),
-                []
-            )
-            loginAliases=((configuration.LoginAliases)?has_content)?then(
-                    [configuration.LoginAliases],
-                    [])
-            passwordPolicy=getUserPoolPasswordPolicy( 
-                    configuration.PasswordPolicy.MinimumLength, 
-                    configuration.PasswordPolicy.Lowercase,
-                    configuration.PasswordPolicy.Uppsercase,
-                    configuration.PasswordPolicy.Numbers,
-                    configuration.PasswordPolicy.SpecialCharacters)
-            smsConfiguration=((smsConfig)?has_content)?then(
-                smsConfig,
-                {})
-        /]
+        [#assign userPoolManualTriggerString = getJSON(userPoolManualTriggerConfig, true)]
 
-        [@createUserPoolClient 
-            mode=listMode
-            component=component
-            tier=tier
-            dependencies=dependencies
-            id=userPoolClientId
-            name=userPoolClientName
-            userPoolId=userPoolId
-            generateSecret=configuration.ClientGenerateSecret
-            tokenValidity=configuration.ClientTokenValidity
-        /]
+        [#if ((configuration.MFA) || ( configuration.VerifyPhone))]
+            [#if (deploymentSubsetRequired("iam", true) || deploymentSubsetRequired("userpool", true)) &&
+                isPartOfCurrentDeploymentUnit(userPoolId)]
 
-        [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
+                    [@createRole
+                        mode=listMode
+                        id=userPoolRoleId
+                        trustedServices=["cognito-idp.amazonaws.com"]
+                        policies=
+                            [
+                                getPolicyDocument(
+                                    snsPublishPermission(),
+                                    "smsVerification" 
+                                )
+                            ]
+                    /]
 
-        [@createIdentityPool 
-            mode=listMode
-            component=component
-            tier=tier
-            dependencies=dependencies
-            id=identityPoolId
-            name=identityPoolName
-            cognitoIdProviders=cognitoIdentityPoolProvider
-            allowUnauthenticatedIdentities=configuration.AllowUnauthenticatedIds
-        /]
 
-        [@createRole
-            mode=listMode
-            id=identityPoolUnAuthRoleId
-            policies=[
-                getPolicyDocument(
-                    getUserPoolUnAuthPolicy(),
-                    "DefaultUnAuthIdentityRole"
+                )]
+
+            [/#if]
+        [/#if]
+
+        [#if deploymentSubsetRequired("userpool", true) ]
+            [@createUserPool 
+                mode=listMode
+                component=component
+                tier=tier
+                id=userPoolId
+                name=userPoolName
+                tags=getCfTemplateCoreTags(
+                        userPoolName,
+                        tier,
+                        component)
+                dependencies=dependencies
+                mfa=configuration.MFA
+                adminCreatesUser=configuration.AdminCreatesUser
+                unusedTimeout=configuration.UnusedAccountTimeout
+                schema=schema
+                emailVerificationMessage=emailVerificationMessage
+                emailVerificationSubject=emailVerificationSubject
+                smsVerificationMessage=smsVerificationMessage
+                emailInviteMessage=emailInviteMessage
+                emailInviteSubject=emailInviteSubject
+                smsInviteMessage=smsInviteMessage
+                lambdaTriggers=userPoolTriggerConfig
+                autoVerify=(configuration.VerifyEmail || smsVerification)?then(
+                    getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification),
+                    []
                 )
-            ]
-            federatedServices="cognito-identity.amazonaws.com"
-            condition={
-                "StringEquals": {
-                    "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-                },
-                "ForAnyValue:StringLike": {
-                    "cognito-identity.amazonaws.com:amr": "unauthenticated"
-                }
-            }
-        /]
+                loginAliases=((configuration.LoginAliases)?has_content)?then(
+                        [configuration.LoginAliases],
+                        [])
+                passwordPolicy=getUserPoolPasswordPolicy( 
+                        configuration.PasswordPolicy.MinimumLength, 
+                        configuration.PasswordPolicy.Lowercase,
+                        configuration.PasswordPolicy.Uppsercase,
+                        configuration.PasswordPolicy.Numbers,
+                        configuration.PasswordPolicy.SpecialCharacters)
+                smsConfiguration=((smsConfig)?has_content)?then(
+                    smsConfig,
+                    {})
+            /]
 
-        [@createRole 
-            mode=listMode
-            id=identityPoolAuthRoleId
-            policies=[
-                getPolicyDocument(
-                    getUserPoolAuthPolicy(),
-                    "DefaultAuthIdentityRole"
+            [@createUserPoolClient 
+                mode=listMode
+                component=component
+                tier=tier
+                dependencies=dependencies
+                id=userPoolClientId
+                name=userPoolClientName
+                userPoolId=userPoolId
+                generateSecret=configuration.ClientGenerateSecret
+                tokenValidity=configuration.ClientTokenValidity
+            /]
+
+            [#assign cognitoIdentityPoolProvider = getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )]
+
+            [@createIdentityPool 
+                mode=listMode
+                component=component
+                tier=tier
+                dependencies=dependencies
+                id=identityPoolId
+                name=identityPoolName
+                cognitoIdProviders=cognitoIdentityPoolProvider
+                allowUnauthenticatedIdentities=configuration.AllowUnauthenticatedIds
+            /]
+
+            [@createRole
+                mode=listMode
+                id=identityPoolUnAuthRoleId
+                policies=[
+                    getPolicyDocument(
+                        getUserPoolUnAuthPolicy(),
+                        "DefaultUnAuthIdentityRole"
+                    )
+                ]
+                federatedServices="cognito-identity.amazonaws.com"
+                condition={
+                    "StringEquals": {
+                        "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
+                    },
+                    "ForAnyValue:StringLike": {
+                        "cognito-identity.amazonaws.com:amr": "unauthenticated"
+                    }
+                }
+            /]
+
+            [@createRole 
+                mode=listMode
+                id=identityPoolAuthRoleId
+                policies=[
+                    getPolicyDocument(
+                        getUserPoolAuthPolicy(),
+                        "DefaultAuthIdentityRole"
+                    )
+                ]
+                federatedServices="cognito-identity.amazonaws.com"
+                condition={
+                    "StringEquals": {
+                        "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
+                    },
+                    "ForAnyValue:StringLike": {
+                        "cognito-identity.amazonaws.com:amr": "authenticated"
+                    }
+                }
+            /]
+
+            [@createIdentityPoolRoleMapping
+                mode=listMode
+                component=component
+                tier=tier
+                id=identityPoolRoleMappingId
+                identityPoolId=getReference(identityPoolId)
+                authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
+                unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
+            /]
+        [/#if]
+        
+        [#if deploymentSubsetRequired("epilogue", false)]
+            [@cfScript
+                mode=listMode
+                content=
+                [] +
+                [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
+                (userPoolManualTriggerConfig?has_content)?then(
+                    [
+                        "# Add Manual Cognito Triggers",
+                        "info \"Adding Cognito Triggers that are not part of cloudformation\""
+                        "add_cognito_lambda_triggers" +
+                        " \"" + region + "\" " + 
+                        " \"" + getExistingReference(userPoolId) + "\" " + 
+                        " \"" + userPoolManualTriggerString + "\" " + 
+                        " || return $?"
+                    ],
+                    []
                 )
-            ]
-            federatedServices="cognito-identity.amazonaws.com"
-            condition={
-                "StringEquals": {
-                    "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-                },
-                "ForAnyValue:StringLike": {
-                    "cognito-identity.amazonaws.com:amr": "authenticated"
-                }
-            }
-        /]
-
-        [@createIdentityPoolRoleMapping
-            mode=listMode
-            component=component
-            tier=tier
-            id=identityPoolRoleMappingId
-            identityPoolId=getReference(identityPoolId)
-            authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
-            unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
-        /]
+            /]
+        [/#if]
     [/#list]
 [/#if]
