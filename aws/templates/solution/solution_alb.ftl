@@ -1,4 +1,5 @@
 [#-- ALB --]
+
 [#if (componentType == ALB_COMPONENT_TYPE) ]
 
     [#list requiredOccurrences(

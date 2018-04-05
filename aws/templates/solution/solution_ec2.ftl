@@ -1,4 +1,5 @@
 [#-- EC2 --]
+
 [#if componentType == EC2_COMPONENT_TYPE]
     [#list requiredOccurrences(
         getOccurrences(tier, component),

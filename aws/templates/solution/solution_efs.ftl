@@ -1,4 +1,5 @@
 [#-- EFS --]
+
 [#if componentType == EFS_COMPONENT_TYPE  ]
 
     [#list requiredOccurrences(

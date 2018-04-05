@@ -1,6 +1,6 @@
 [#-- Single Page App --]
 
-[#if (componentType == "spa") && deploymentSubsetRequired("spa", true)]
+[#if (componentType == SPA_COMPONENT_TYPE) && deploymentSubsetRequired("spa", true)]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),

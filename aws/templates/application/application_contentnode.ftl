@@ -1,3 +1,5 @@
+[#-- Content Node --]
+
 [#if componentType = "contentnode"]
 
     [#list requiredOccurrences(

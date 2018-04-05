@@ -1,4 +1,5 @@
 [#-- Cache --]
+
 [#if componentType == CACHE_COMPONENT_TYPE ]
 
     [#list requiredOccurrences(

@@ -1,4 +1,5 @@
 [#-- ECS --]
+
 [#if componentType == ECS_COMPONENT_TYPE]
 
     [#list requiredOccurrences(

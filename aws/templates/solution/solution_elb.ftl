@@ -1,5 +1,6 @@
 [#-- ELB --]
-[#if (componentType == "elb") ]
+
+[#if componentType == ELB_COMPONENT_TYPE ]
 
     [#list requiredOccurrences(
         getOccurrences(tier, component),

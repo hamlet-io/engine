@@ -29,8 +29,8 @@
 
 [#-- Components --]
 [#assign ECS_COMPONENT_TYPE = "ecs" ]
-[#assign SERVICE_COMPONENT_TYPE = "service" ]
-[#assign TASK_COMPONENT_TYPE = "task" ]
+[#assign ECS_SERVICE_COMPONENT_TYPE = "service" ]
+[#assign ECS_TASK_COMPONENT_TYPE = "task" ]
 
 [#assign
     containerChildrenConfiguration = [
@@ -137,18 +137,18 @@
             ],
             "Components" : [
                 {
-                    "Type" : SERVICE_COMPONENT_TYPE,
+                    "Type" : ECS_SERVICE_COMPONENT_TYPE,
                     "Component" : "Services",
                     "Link" : "Service"
                 },
                 {
-                    "Type" : TASK_COMPONENT_TYPE,
+                    "Type" : ECS_TASK_COMPONENT_TYPE,
                     "Component" : "Tasks",
                     "Link" : "Task"
                 }
             ]
         },
-        SERVICE_COMPONENT_TYPE : [
+        ECS_SERVICE_COMPONENT_TYPE : [
             {
                 "Name" : "Containers",
                 "Subobjects" : true,
@@ -163,7 +163,7 @@
                 "Default" : true
             }
         ],
-        TASK_COMPONENT_TYPE : [
+        ECS_TASK_COMPONENT_TYPE : [
             {
                 "Name" : "Containers",
                 "Subobjects" : true,

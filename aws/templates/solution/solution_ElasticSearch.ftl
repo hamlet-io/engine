@@ -1,4 +1,5 @@
 [#-- ElasticSearch --]
+
 [#if (componentType == ES_COMPONENT_TYPE || componentType == "elasticsearch" || componentType == "es") ]
 
     [#list requiredOccurrences(

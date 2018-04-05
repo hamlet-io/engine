@@ -1,5 +1,5 @@
 [#-- Cognito User Pool --]
-[#if (componentType == "userpool") && deploymentSubsetRequired("userpool", true)]
+[#if (componentType == USERPOOL_COMPONENT_TYPE) && deploymentSubsetRequired("userpool", true)]
     
     [#list requiredOccurrences(
         getOccurrences(tier, component),

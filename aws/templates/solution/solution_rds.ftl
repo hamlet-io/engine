@@ -1,5 +1,6 @@
 [#-- RDS --]
-[#if (componentType == "rds")]
+
+[#if (componentType == RDS_COMPONENT_TYPE)]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),

@@ -92,7 +92,7 @@
         ]
     }]
 
-[#function getEc2State occurrence]
+[#function getEC2State occurrence]
     [#local core = occurrence.Core]
 
     [#local ec2ELBId = formatELBId("elb", core.Id) ]

@@ -1,6 +1,6 @@
 [#-- S3 --]
 
-[#if (componentType == "s3") && deploymentSubsetRequired("s3", true)]
+[#if (componentType == S3_COMPONENT_TYPE) && deploymentSubsetRequired("s3", true)]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
