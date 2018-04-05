@@ -16,11 +16,6 @@
         }
     }
 ]
-[#assign outputMappings +=
-    {
-        SQS_RESOURCE_TYPE : SQS_OUTPUT_MAPPINGS
-    }
-]
 
 [#macro createWAFIPSet mode id name cidr]
     [#local ipSetDescriptors = [] ]

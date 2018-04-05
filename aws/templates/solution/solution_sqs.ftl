@@ -1,5 +1,5 @@
 [#-- SQS --]
-[#if (componentType == "sqs") && deploymentSubsetRequired("sqs", true)]
+[#if (componentType == SQS_COMPONENT_TYPE) && deploymentSubsetRequired("sqs", true)]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),

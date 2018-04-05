@@ -1,15 +1,13 @@
 [#-- Lambda --]
 
-[#assign LAMBDA_RESOURCE_TYPE = "lambda"]
-[#assign LAMBDA_FUNCTION_RESOURCE_TYPE = "lambda"]
-[#assign LAMBDA_PERMISSION_RESOURCE_TYPE = "permission"]
-
-[#assign LAMBDA_COMPONENT_TYPE = "lambda"]
-[#assign LAMBDA_FUNCTION_COMPONENT_TYPE = "function"]
+[#-- Resources --]
+[#assign AWS_LAMBDA_RESOURCE_TYPE = "lambda"]
+[#assign AWS_LAMBDA_FUNCTION_RESOURCE_TYPE = "lambda"]
+[#assign AWS_LAMBDA_PERMISSION_RESOURCE_TYPE = "permission"]
 
 [#function formatLambdaPermissionId occurrence extensions...]
     [#return formatResourceId(
-                LAMBDA_PERMISSION_RESOURCE_TYPE,
+                AWS_LAMBDA_PERMISSION_RESOURCE_TYPE,
                 occurrence.Core.Id,
                 extensions)]
 [/#function]
@@ -20,6 +18,10 @@
             "lambda",
             getReference(lambdaId))]
 [/#function]
+
+[#-- Components --]
+[#assign LAMBDA_COMPONENT_TYPE = "lambda"]
+[#assign LAMBDA_FUNCTION_COMPONENT_TYPE = "function"]
 
 [#assign componentConfiguration +=
     {
@@ -93,8 +95,9 @@
         {
             "Resources" : {
                 "lambda" : {
-                    "Id" : formatResourceId(LAMBDA_RESOURCE_TYPE, core.Id),
-                    "Name" : core.FullName
+                    "Id" : formatResourceId(AWS_LAMBDA_RESOURCE_TYPE, core.Id),
+                    "Name" : core.FullName,
+                    "Type" : AWS_LAMBDA_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
@@ -111,14 +114,15 @@
 [#function getFunctionState occurrence]
     [#local core = occurrence.Core]
 
-    [#assign id = formatResourceId(LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
+    [#assign id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
 
     [#return
         {
             "Resources" : {
                 "function" : {
-                    "Id" : formatResourceId(LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id),
-                    "Name" : core.FullName
+                    "Id" : id,
+                    "Name" : core.FullName,
+                    "Type" : AWS_LAMBDA_FUNCTION_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

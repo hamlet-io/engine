@@ -1,11 +1,10 @@
 [#-- RDS --]
 
-[#assign RDS_RESOURCE_TYPE = "rds" ]
-[#assign RDS_SUBNET_GROUP_RESOURCE_TYPE = "rdsSubnetGroup" ]
-[#assign RDS_PARAMETER_GROUP_RESOURCE_TYPE = "rdsParameterGroup" ]
-[#assign RDS_OPTION_GROUP_RESOURCE_TYPE = "rdsOptionGroup" ]
-
-[#assign RDS_COMPONENT_TYPE = "rds" ]
+[#-- Resources --]
+[#assign AWS_RDS_RESOURCE_TYPE = "rds" ]
+[#assign AWS_RDS_SUBNET_GROUP_RESOURCE_TYPE = "rdsSubnetGroup" ]
+[#assign AWS_RDS_PARAMETER_GROUP_RESOURCE_TYPE = "rdsParameterGroup" ]
+[#assign AWS_RDS_OPTION_GROUP_RESOURCE_TYPE = "rdsOptionGroup" ]
 
 [#function formatDependentRDSSnapshotId resourceId extensions... ]
     [#return formatDependentResourceId(
@@ -20,6 +19,10 @@
                 resourceId,
                 extensions)]
 [/#function]
+
+
+[#-- Components --]
+[#assign RDS_COMPONENT_TYPE = "rds" ]
 
 [#assign componentConfiguration +=
     {
@@ -75,7 +78,7 @@
     
 [#function getRDSState occurrence]
     [#local core = occurrence.Core]
-    [#local id = formatResourceId(RDS_RESOURCE_TYPE, core.Id) ]
+    [#local id = formatResourceId(AWS_RDS_RESOURCE_TYPE, core.Id) ]
 
     [#local engine = occurrence.Configuration.Engine]
     [#local fqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE)]
@@ -113,16 +116,20 @@
             "Resources" : {
                 "db" : {
                     "Id" : id,
-                    "Name" : core.FullName
+                    "Name" : core.FullName,
+                    "Type" : AWS_RDS_RESOURCE_TYPE
                 },
                 "subnetGroup" : {
-                    "Id" : formatResourceId(RDS_SUBNET_GROUP_RESOURCE_TYPE, core.Id)
+                    "Id" : formatResourceId(AWS_RDS_SUBNET_GROUP_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_RDS_SUBNET_GROUP_RESOURCE_TYPE
                 },
                 "parameterGroup" : {
-                    "Id" : formatResourceId(RDS_PARAMETER_GROUP_RESOURCE_TYPE, core.Id)
+                    "Id" : formatResourceId(AWS_RDS_PARAMETER_GROUP_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_RDS_PARAMETER_GROUP_RESOURCE_TYPE
                 },
                 "optionGroup" : {
-                    "Id" : formatResourceId(RDS_OPTION_GROUP_RESOURCE_TYPE, core.Id)
+                    "Id" : formatResourceId(AWS_RDS_OPTION_GROUP_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_RDS_OPTION_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

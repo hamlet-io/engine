@@ -1,3 +1,5 @@
+[#-- SPA --]
+
 [#if componentType = "spa"]
 
     [#list requiredOccurrences(

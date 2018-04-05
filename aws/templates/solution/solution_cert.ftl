@@ -1,4 +1,5 @@
 [#-- Certificate --]
+
 [#if (componentType == "cert") && deploymentSubsetRequired("cert", true)]
     [#assign acm = component.Cert]
     [#assign certId = formatComponentCertificateId(

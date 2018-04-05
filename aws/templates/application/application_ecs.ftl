@@ -1,3 +1,5 @@
+[#-- ECS --]
+
 [#if componentType == "ecs"]
     [#list getOccurrences(tier, component) as occurrence ]
 
@@ -21,7 +23,7 @@
             [#assign taskId = resources["task"].Id ]
             [#assign containers = getTaskContainers(subOccurrence) ]
 
-            [#if core.Type == SERVICE_COMPONENT_TYPE]
+            [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
         
                 [#assign serviceId = resources["service"].Id  ]
                 [#assign serviceDependencies = []]

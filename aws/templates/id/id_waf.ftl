@@ -1,24 +1,25 @@
 [#-- Web Application Firewall --]
 
-[#assign WAF_IPSET_RESOURCE_TYPE = "wafIpSet" ]
-[#assign WAF_RULE_RESOURCE_TYPE = "wafRule" ]
-[#assign WAF_ACL_RESOURCE_TYPE = "wafAcl" ]
+[#-- Resources --]
+[#assign AWS_WAF_IPSET_RESOURCE_TYPE = "wafIpSet" ]
+[#assign AWS_WAF_RULE_RESOURCE_TYPE = "wafRule" ]
+[#assign AWS_WAF_ACL_RESOURCE_TYPE = "wafAcl" ]
 
 [#function formatWAFIPSetId group]
     [#return formatAccountResourceId(
-                WAF_IPSET_RESOURCE_TYPE,
+                AWS_WAF_IPSET_RESOURCE_TYPE,
                 group)]
 [/#function]
 
 [#function formatWAFRuleId ids...]
     [#return formatResourceId(
-                WAF_RULE_RESOURCE_TYPE,
+                AWS_WAF_RULE_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentWAFRuleId resourceId extensions...]
     [#return formatDependentResourceId(
-                WAF_RULE_RESOURCE_TYPE,
+                AWS_WAF_RULE_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
@@ -30,13 +31,13 @@
 
 [#function formatWAFAclId ids...]
     [#return formatResourceId(
-                WAF_ACL_RESOURCE_TYPE,
+                AWS_WAF_ACL_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentWAFAclId resourceId extensions...]
     [#return formatDependentResourceId(
-                WAF_ACL_RESOURCE_TYPE,
+                AWS_WAF_ACL_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]

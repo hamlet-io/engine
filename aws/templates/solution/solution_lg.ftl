@@ -1,4 +1,5 @@
 [#-- ECS Log Group --]
+
 [#if componentType == "lg"]
     [#assign componentLogGroupId = formatComponentLogGroupId(tier, component)]
     [#if deploymentSubsetRequired("lg", true) &&

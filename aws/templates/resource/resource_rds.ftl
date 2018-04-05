@@ -15,7 +15,7 @@
 ]
 [#assign outputMappings +=
     {
-        RDS_RESOURCE_TYPE : RDS_OUTPUT_MAPPINGS
+        AWS_RDS_RESOURCE_TYPE : RDS_OUTPUT_MAPPINGS
     }
 ]
 
