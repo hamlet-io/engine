@@ -11,16 +11,16 @@
         [#assign configuration = occurrence.Configuration]
         [#assign resources = occurrence.State.Resources]
 
-        [#assign userPoolId = resources["userpool"].Id]
-        [#assign userPoolName = resources["userpool"].Name]
-        [#assign userPoolClientId = resources["client"].Id]
-        [#assign userPoolClientName = resources["client"].Name]
-        [#assign userPoolRoleId = resources["userpoolrole"].Id]
-        [#assign identityPoolId = resources["identitypool"].Id]
-        [#assign identityPoolName = resources["identitypool"].Name]
-        [#assign identityPoolUnAuthRoleId = resources["unauthrole"].Id]
-        [#assign identityPoolAuthRoleId = resources["authrole"].Id]
-        [#assign identityPoolRoleMappingId = resources["rolemapping"].Id]
+        [#assign userPoolId                 = resources["userpool"].Id]
+        [#assign userPoolName               = resources["userpool"].Name]
+        [#assign userPoolClientId           = resources["client"].Id]
+        [#assign userPoolClientName         = resources["client"].Name]
+        [#assign userPoolRoleId             = resources["userpoolrole"].Id]
+        [#assign identityPoolId             = resources["identitypool"].Id]
+        [#assign identityPoolName           = resources["identitypool"].Name]
+        [#assign identityPoolUnAuthRoleId   = resources["unauthrole"].Id]
+        [#assign identityPoolAuthRoleId     = resources["authrole"].Id]
+        [#assign identityPoolRoleMappingId  = resources["rolemapping"].Id]
 
         [#assign dependencies = []]
         [#assign smsVerification = false]
@@ -110,7 +110,7 @@
                         [#-- Cognito Userpool Event Triggers --]
                         [#switch link.Name?lower_case]
                             [#case "createauthchallenge"]
-                                [#assign userPoolTriggerConfig =  userPoolTriggerConfig +
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "CreateAuthChallenge",
                                         linkTargetAttributes.ARN
@@ -118,7 +118,7 @@
                                 ]
                                 [#break]
                             [#case "custommessage"]
-                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "CustomMessage",
                                         linkTargetAttributes.ARN
@@ -126,7 +126,7 @@
                                 ]
                                 [#break]
                             [#case "defineauthchallenge"]
-                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "DefineAuthChallenge",
                                         linkTargetAttributes.ARN
@@ -134,7 +134,7 @@
                                 ]
                                 [#break]
                             [#case "postauthentication"]
-                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "PostAuthentication",
                                         linkTargetAttributes.ARN
@@ -142,7 +142,7 @@
                                 ]
                                 [#break]
                             [#case "postconfirmation"]
-                                [#assign userPoolTriggerConfig = userPoolTriggerConfig +
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "PostConfirmation",
                                         linkTargetAttributes.ARN
@@ -150,7 +150,7 @@
                                 ]
                                 [#break]
                             [#case "preauthentication"]
-                                [#assign userPoolTriggerConfig =  userPoolTriggerConfig +
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "PreAuthentication",
                                         linkTargetAttributes.ARN
@@ -158,7 +158,7 @@
                                 ]
                                 [#break]
                             [#case "presignup"]
-                                [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
+                                [#assign userPoolTriggerConfig += 
                                     attributeIfContent (
                                         "PreSignUp",
                                         linkTargetAttributes.ARN
@@ -166,7 +166,7 @@
                                 ]
                                 [#break]
                             [#case "verifyauthchallengeresponse"]
-                                [#assign userPoolTriggerConfig = userPoolTriggerConfig + 
+                                [#assign userPoolTriggerConfig += 
                                     attributeIfContent (
                                         "VerifyAuthChallengeResponse",
                                         linkTargetAttributes.ARN
@@ -174,7 +174,7 @@
                                 ]
                                 [#break]
                             [#case "pretokengeneration"]
-                                [#assign userPoolManualTriggerConfig = userPoolManualTriggerConfig +
+                                [#assign userPoolManualTriggerConfig +=
                                     attributeIfContent (
                                         "PreTokenGeneration",
                                         linkTargetAttributes.ARN
@@ -182,7 +182,7 @@
                                 ]
                                 [#break]
                             [#case "usermigration"]
-                                [#assign userPoolManualTriggerConfig = userPoolManualTriggerConfig +
+                                [#assign userPoolManualTriggerConfig +=
                                     attributeIfContent (
                                         "UserMigration",
                                         linkTargetAttributes.ARN
