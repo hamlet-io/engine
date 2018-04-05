@@ -1,11 +1,12 @@
 [#-- EFS --]
 
-[#assign EFS_RESOURCE_TYPE = "efs" ]
-[#assign EFS_MOUNTTARGET_RESOURCE_TYPE = "efsMountTarget" ]
+[#-- Resources --]
+[#assign AWS_EFS_RESOURCE_TYPE = "efs" ]
+[#assign AWS_EFS_MOUNTTARGET_RESOURCE_TYPE = "efsMountTarget" ]
 
 [#function formatEFSId tier component extensions...]
     [#return formatComponentResourceId(
-        EFS_RESOURCE_TYPE
+        AWS_EFS_RESOURCE_TYPE
         tier,
         component,
         extensions)]
@@ -13,26 +14,47 @@
 
 [#function formatDependentEFSMountTargetId resourceId extensions...]
     [#return formatDependentResourceId(
-                EFS_MOUNTTARGET_RESOURCE_TYPE
+                AWS_EFS_MOUNTTARGET_RESOURCE_TYPE
                 resourceId,
                 extensions)]
 [/#function]
 
+[#-- Components --]
+
+[#assign EFS_COMPONENT_TYPE = "efs" ]
+
 [#assign componentConfiguration +=
     {
-        "efs"  : [
-        ]
+        EFS_COMPONENT_TYPE  : {
+
+        }
+        
     }]
     
 [#function getEFSState occurrence]
+
+    [#local core = occurrence.Core]
+
+    [#local efsId = formatEFSId( core.Tier, core.Component, occurrence) ]
+
     [#return
         {
-            "Resources" : {},
-            "Attributes" : {},
-            "Roles" : {
-                "Inbound" : {},
-                "Outbound" : {}
-            }
+            "Resources" : {
+                "efs" : {
+                    "Id" : efsId,
+                    "Name" : formatComponentFullName(core.Tier, core.Component, occurrence),
+                    "Type" : AWS_EFS_RESOURCE_TYPE
+                },
+                "efsMountTarget" : { 
+                    "Id" : formatDependentResourceId(AWS_EFS_MOUNTTARGET_RESOURCE_TYPE, efsId),
+                    "Type" : AWS_EFS_MOUNTTARGET_RESOURCE_TYPE
+                },
+                "secGroup" : { 
+                    "Id" : formatSecurityGroupId(core.Id),
+                    "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
+                }
+            },
+            "Attributes" : {}
         }
     ]
 [/#function]

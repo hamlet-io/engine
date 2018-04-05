@@ -1,32 +1,33 @@
 [#-- S3 --]
 
-[#assign S3_RESOURCE_TYPE = "s3" ]
-[#assign BUCKET_POLICY_RESOURCE_TYPE="bucketpolicy" ]
+[#-- Resources --]
+[#assign AWS_S3_RESOURCE_TYPE = "s3" ]
+[#assign AWS_S3_BUCKET_POLICY_RESOURCE_TYPE="bucketpolicy" ]
 
 [#function formatS3Id ids...]
     [#return formatResourceId(
-            S3_RESOURCE_TYPE,
+            AWS_S3_RESOURCE_TYPE,
             ids)]
 [/#function]
 
 [#-- TODO: Remove when use of "container" is removed --]
 [#function formatContainerS3Id type extensions...]
     [#return formatContainerResourceId(
-                S3_RESOURCE_TYPE,
+                AWS_S3_RESOURCE_TYPE,
                 type,
                 extensions)]
 [/#function]
 
 [#function formatSegmentS3Id type extensions...]
     [#return formatSegmentResourceId(
-                S3_RESOURCE_TYPE,
+                AWS_S3_RESOURCE_TYPE,
                 type,
                 extensions)]
 [/#function]
 
 [#function formatOccurrenceS3Id occurrence extensions...]
     [#return formatComponentResourceId(
-                S3_RESOURCE_TYPE,
+                AWS_S3_RESOURCE_TYPE,
                 occurrence.Core.Tier,
                 occurrence.Core.Component,
                 occurrence,
@@ -35,27 +36,27 @@
 
 [#function formatProductS3Id type extensions...]
     [#return formatProductResourceId(
-                S3_RESOURCE_TYPE,
+                AWS_S3_RESOURCE_TYPE,
                 type,
                 extensions)]
 [/#function]
 
 [#function formatAccountS3Id type extensions...]
     [#return formatAccountResourceId(
-                S3_RESOURCE_TYPE,
+                AWS_S3_RESOURCE_TYPE,
                 type,
                 extensions)]
 [/#function]
 
 [#function formatBucketPolicyId ids...]
     [#return formatResourceId(
-                BUCKET_POLICY_RESOURCE_TYPE,
+                AWS_S3_BUCKET_POLICY_RESOURCE_TYPE,
                 ids)]
 [/#function]
 
 [#function formatDependentBucketPolicyId resourceId extensions...]
     [#return formatDependentResourceId(
-                BUCKET_POLICY_RESOURCE_TYPE,
+                AWS_S3_BUCKET_POLICY_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
@@ -66,9 +67,13 @@
                 queue)]
 [/#function]
 
+
+[#-- Components --]
+[#assign S3_COMPONENT_TYPE = "s3" ]
+
 [#assign componentConfiguration +=
     {
-        "s3" : [
+        S3_COMPONENT_TYPE : [
             {
                 "Name" : "Lifecycle",
                 "Children" : [
@@ -113,7 +118,8 @@
                     "Name" :
                         firstContent(
                             getExistingReference(id, NAME_ATTRIBUTE_TYPE),
-                            name)
+                            name),
+                    "Type" : AWS_S3_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

@@ -1,10 +1,10 @@
 [#-- Cognito User Pool --]
-[#if (componentType == "userpool") && deploymentSubsetRequired("userpool", true)]
+[#if (componentType == USERPOOL_COMPONENT_TYPE) && deploymentSubsetRequired("userpool", true)]
     
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
-
+        
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]

@@ -1,56 +1,15 @@
 [#-- Cognito UserPool --]
 
-[#assign USERPOOL_RESOURCE_TYPE = "userpool"]
-[#assign USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient"]
-[#assign IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
+[#-- Resources --]
+[#assign AWS_COGNITO_USERPOOL_RESOURCE_TYPE = "userpool"]
+[#assign AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient"]
+[#assign AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
+[#assign AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE = "rolemapping"]
 
+[#-- Components --]
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
-
-[#function formatUserPoolId occurrence extensions...]
-    [#return formatResourceId(
-        USERPOOL_RESOURCE_TYPE,
-        occurrence.Core.Id, 
-        extensions)]
-[/#function]
-
-[#function formatUserPoolClientId occurrence extensions...]
-    [#return formatResourceId(
-        USERPOOL_CLIENT_RESOURCE_TYPE,
-        occurrence.Core.Id, 
-        extensions)]
-[/#function]
-
-[#function formatIdentityPoolId occurrence extensions...]
-    [#return formatResourceId(
-        IDENTITYPOOL_RESOURCE_TYPE,
-        occurrence.Core.Id, 
-        extensions)]
-[/#function]
-
-[#function formatDependentIdentityPoolRoleMappingId resourceId extensions...]
-    [#return formatDependentResourceId(
-            "rolemapping",
-            resourceId,
-            extensions)]
-[/#function]
-
-[#function formatDependentIdentityPoolUnAuthRoleId resourceId extensions...]
-    [#return 
-        formatDependentRoleId(
-            resourceId,
-            "unauth",
-            extensions)]
-    ]
-[/#function]
-
-[#function formatDependentIdentityPoolAuthRoleId resourceId extensions...]
-    [#return 
-        formatDependentRoleId(
-                resourceId,
-                "auth",
-                extensions)]
-    ]
-[/#function]
+[#assign USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION = "unauth" ]
+[#assign USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION = "auth" ]
 
 [#assign componentConfiguration +=
     {
@@ -129,43 +88,55 @@
 [#function getUserPoolState occurrence]
     [#local core = occurrence.Core]
 
-    [#assign userPoolId = formatUserPoolId(occurrence)]
-    [#assign userPoolClientId = formatUserPoolClientId(occurrence)]
+    [#assign userPoolId = formatResourceId(AWS_COGNITO_USERPOOL_RESOURCE_TYPE, core.Id)]
+    [#assign userPoolName = formatSegmentFullName(core.Name)]
+
+    [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
+    [#assign userPoolClientName = formatSegmentFullName(core.Name)]
+
+    [#assign identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
+    [#assign identityPoolName = formatSegmentFullName(core.Name)?replace("-","X")]
+
+    [#assign identityPoolRoleMappingId = formatDependentResourceId(AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE, identityPoolId)]
+
     [#assign userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
-    [#assign identityPoolId = formatIdentityPoolId(occurrence)]
-    [#assign identityPoolUnAuthRoleId = formatDependentIdentityPoolUnAuthRoleId(identityPoolId)]
-    [#assign identityPoolAuthRoleId = formatDependentIdentityPoolAuthRoleId(identityPoolId)]
-    [#assign identityPoolRoleMappingId = formatDependentIdentityPoolRoleMappingId(identityPoolId)]
-    [#assign userPoolName = formatUserPoolName(occurrence)]
-    [#assign identityPoolName = formatIdentityPoolName(occurrence)]
-    [#assign userPoolClientName = formatUserPoolClientName(occurrence)]
-    
+
+    [#assign identityPoolUnAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION )]
+    [#assign identityPoolAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION )]
+        
     [#return
         {
             "Resources" : {
                 "userpool" : {
                     "Id" : userPoolId,
-                    "Name" : userPoolName
+                    "Name" : userPoolName,
+                    "Type" : AWS_COGNITO_USERPOOL_RESOURCE_TYPE
                 },
                 "client" : {
                     "Id" : userPoolClientId,
-                    "Name" : userPoolClientName
+                    "Name" : userPoolClientName,
+                    "Type" : AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE
                 },
                 "identitypool" : { 
                     "Id" : identityPoolId,
-                    "Name" : identityPoolName
+                    "Name" : identityPoolName,
+                    "Type" : AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE
                 },
                 "userpoolrole" : {
-                    "Id" : userPoolRoleId
+                    "Id" : userPoolRoleId,
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "unauthrole" : { 
-                    "Id" : identityPoolUnAuthRoleId
+                    "Id" : identityPoolUnAuthRoleId,
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "authrole" : {
-                    "Id" : identityPoolAuthRoleId
+                    "Id" : identityPoolAuthRoleId,
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "rolemapping" : {
-                    "Id" : identityPoolRoleMappingId
+                    "Id" : identityPoolRoleMappingId,
+                    "Type" : AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

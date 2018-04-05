@@ -18,7 +18,7 @@
 ]
 [#assign outputMappings +=
     {
-        SQS_RESOURCE_TYPE : SQS_OUTPUT_MAPPINGS
+        AWS_SQS_RESOURCE_TYPE : SQS_OUTPUT_MAPPINGS
     }
 ]
 

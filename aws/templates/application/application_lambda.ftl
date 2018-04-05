@@ -1,3 +1,5 @@
+[#-- Lambda --]
+
 [#if componentType = "lambda"]
 
     [#list requiredOccurrences(

@@ -1,31 +1,32 @@
 [#-- API Gateway --]
 
-[#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
-
-[#assign APIGATEWAY_RESOURCE_TYPE = "apigateway"]
-[#assign APIGATEWAY_DEPLOY_RESOURCE_TYPE = "apiDeploy"]
-[#assign APIGATEWAY_STAGE_RESOURCE_TYPE = "apiStage"]
-[#assign APIGATEWAY_DOMAIN_RESOURCE_TYPE = "apiDomain"]
-[#assign APIGATEWAY_AUTHORIZER_RESOURCE_TYPE = "apiAuthorizer"]
-[#assign APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE = "apiBasePathMapping"]
-[#assign APIGATEWAY_USAGEPLAN_RESOURCE_TYPE = "apiUsagePlan"]
-[#assign APIGATEWAY_APIKEY_RESOURCE_TYPE = "apiKey"]
-
-[#assign APIGATEWAY_DOCS_EXTENSION = "docs"]
+[#-- Resources --]
+[#assign AWS_APIGATEWAY_RESOURCE_TYPE = "apigateway"]
+[#assign AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE = "apiDeploy"]
+[#assign AWS_APIGATEWAY_STAGE_RESOURCE_TYPE = "apiStage"]
+[#assign AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE = "apiDomain"]
+[#assign AWS_APIGATEWAY_AUTHORIZER_RESOURCE_TYPE = "apiAuthorizer"]
+[#assign AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE = "apiBasePathMapping"]
+[#assign AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE = "apiUsagePlan"]
+[#assign AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE = "apiKey"]
 
 [#function formatDependentAPIGatewayAuthorizerId resourceId extensions...]
     [#return formatDependentResourceId(
-                APIGATEWAY_AUTHORIZER_RESOURCE_TYPE,
+                AWS_APIGATEWAY_AUTHORIZER_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatDependentAPIGatewayAPIKeyId resourceId extensions...]
     [#return formatDependentResourceId(
-                APIGATEWAY_APIKEY_RESOURCE_TYPE,
+                AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]
+
+[#-- Components --]
+[#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
+[#assign APIGATEWAY_COMPONENT_DOCS_EXTENSION = "docs"]
 
 [#assign componentConfiguration +=
     {
@@ -120,13 +121,13 @@
     [#if getExistingReference(formatResourceId("api", core.Id))?has_content ]
         [#local apiId = formatResourceId("api", core.Id)]
     [#else ]
-        [#local apiId = formatResourceId(APIGATEWAY_RESOURCE_TYPE, core.Id)]
+        [#local apiId = formatResourceId(AWS_APIGATEWAY_RESOURCE_TYPE, core.Id)]
     [/#if]
     
     [#local apiName = formatComponentFullName(core.Tier, core.Component, occurrence)]
-    [#local stageId = formatResourceId(APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
+    [#local stageId = formatResourceId(AWS_APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
 
-    [#local docsId = formatS3Id(core.Id, APIGATEWAY_DOCS_EXTENSION)]
+    [#local docsId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION)]
     [#local cfId = formatDependentCFDistributionId(apiId)]
 
     [#local internalFqdn =
@@ -164,49 +165,62 @@
             "Resources" : {
                 "apigateway" : {
                     "Id" : apiId,
-                    "Name" : apiName
+                    "Name" : apiName,
+                    "Type" : AWS_APIGATEWAY_RESOURCE_TYPE
                 },
                 "apideploy" : {
-                    "Id" : formatResourceId(APIGATEWAY_DEPLOY_RESOURCE_TYPE, core.Id, runId)
+                    "Id" : formatResourceId(AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE, core.Id, runId),
+                    "Type" : AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE
                 },
                 "apistage" : {
                     "Id" : stageId,
-                    "Name" : core.Version.Name
+                    "Name" : core.Version.Name,
+                    "Type" : AWS_APIGATEWAY_STAGE_RESOURCE_TYPE
                 },
                 "apidomain" : {
-                    "Id" : formatDependentResourceId(APIGATEWAY_DOMAIN_RESOURCE_TYPE, apiId)
+                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE, apiId),
+                    "Type" : AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE
                 },
                 "apibasepathmapping" : { 
-                    "Id" : formatDependentResourceId(APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, stageId)
+                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, stageId),
+                    "Type" : AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE
                 },
                 "apiusageplan" : {
-                    "Id" : formatDependentResourceId(APIGATEWAY_USAGEPLAN_RESOURCE_TYPE, cfId),
-                    "Name" : formatComponentFullName(core.Tier, core.Component, occurrence)
+                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE, cfId),
+                    "Name" : formatComponentFullName(core.Tier, core.Component, occurrence),
+                    "Type" : AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE
                 },
                 "invalidlogmetric" : {
                     "Id" : formatDependentLogMetricId(stageId, "invalid"),
-                    "Name" : "Invalid"
+                    "Name" : "Invalid",
+                    "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
                 },
                 "invalidalarm" : {
                     "Id" : formatDependentAlarmId(stageId, "invalid"),
-                    "Name" : formatComponentAlarmName(core.Tier, core.Component, occurrence,"invalid")
+                    "Name" : formatComponentAlarmName(core.Tier, core.Component, occurrence,"invalid"),
+                    "Type" : AWS_CLOUDWATCH_ALARM_RESOURCE_TYPE
                 },
                 "cf" : {
                     "Id" : cfId,
-                    "Name" : formatComponentCFDistributionName(core.Tier, core.Component, occurrence)
+                    "Name" : formatComponentCFDistributionName(core.Tier, core.Component, occurrence),
+                    "Type" : AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
                 },
                 "cforigin" : {
-                    "Id" : "apigateway"
+                    "Id" : "apigateway",
+                    "Type" : AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE
                 },
                 "wafacl" : { 
                     "Id" : formatDependentWAFAclId(apiId),
-                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence)
+                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
+                    "Type" : AWS_WAF_ACL_RESOURCE_TYPE
                 },
                 "docs" : {
-                    "Id" : docsId
+                    "Id" : docsId,
+                    "Type" : AWS_S3_RESOURCE_TYPE
                 },
                 "docspolicy" : {
-                    "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_DOCS_EXTENSION)
+                    "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION),
+                    "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

@@ -28,7 +28,7 @@
 ]
 [#assign outputMappings +=
     {
-        CACHE_RESOURCE_TYPE : REDIS_OUTPUT_MAPPINGS
+        AWS_CACHE_RESOURCE_TYPE : REDIS_OUTPUT_MAPPINGS
     }
 ]
 

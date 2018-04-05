@@ -1,110 +1,124 @@
 [#-- ELB --]
-[#if (componentType == "elb") && deploymentSubsetRequired("elb", true)]
-    [#assign elb = component.ELB]
 
-    [#assign elbId = formatELBId(tier, component)]
-    [#assign elbFullName = formatComponentFullName(tier, component) ]
-    [#assign elbShortFullName = formatComponentShortFullName(tier, component)]
-    [#assign securityGroupId = formatComponentSecurityGroupId(tier, component) ]
-    [#assign healthCheckDestination = ports[portMappings[elb.PortMappings[0]].Destination] ]
+[#if componentType == ELB_COMPONENT_TYPE ]
 
-    [@createComponentSecurityGroup
-        mode=listMode
-        tier=tier
-        component=component /]
+    [#list requiredOccurrences(
+        getOccurrences(tier, component),
+        deploymentUnit) as occurrence]
+    
+         
+        [@cfDebug listMode occurrence false /]
+        [#assign core = occurrence.Core]
+        [#assign configuration = occurrence.Configuration]
+        [#assign resources = occurrence.State.Resources]
 
-    [#assign listeners = [] ]
-    [#list elb.PortMappings as mapping]
-        [#assign source = ports[portMappings[mapping].Source]]
-        [#assign destination = ports[portMappings[mapping].Destination]]
+        [#assign elbId              = resources["elb"].Id]
+        [#assign elbFullName        = resources["elb"].Name]
+        [#assign elbShortFullName   = resources["elb"].ShortName]
+        [#assign securityGroupId    = resources["secGroup"].Id]
         
-        [@createSecurityGroupIngress
-            mode=listMode
-            id=formatComponentSecurityGroupIngressId(tier, component,source.Port)
-            port=source.Port
-            cidr="0.0.0.0/0"
-            groupId=securityGroupId
-        /]
-        [#assign listeners +=
-            [
-                {
-                    "LoadBalancerPort" : source.Port,
-                    "Protocol" : source.Protocol,
-                    "InstancePort" : destination.Port,
-                    "InstanceProtocol" : destination.Protocol
-                } +
-                attributeIfTrue(
-                    "SSLCertificateId",
-                    source.Certificate!false,
-                    getExistingReference(formatCertificateId(certificateId))?has_content?then(
-                        getExistingReference(formatCertificateId(certificateId)),
-                        {
-                            "Fn::Join" : [
-                                "",
-                                [
-                                    "arn:aws:iam::",
-                                    {"Ref" : "AWS::AccountId"},
-                                    ":server-certificate/ssl/"
-                                    certificateId,
-                                    "/",
-                                    certificateId,
-                                    "-ssl"
-                                ]
-                            ]
-                        }
-                    ))
-            ]
-        ]
-    [/#list]
+        [#assign healthCheckDestination = ports[portMappings[configuration.PortMappings[0]].Destination] ]
+        
+        [#if deploymentSubsetRequired("elb", true)]
+            [@createComponentSecurityGroup
+                mode=listMode
+                tier=tier
+                component=component /]
 
-    [@cfResource
-        mode=listMode
-        id=elbId
-        type="AWS::ElasticLoadBalancing::LoadBalancer"
-        properties=
-            {
-                "Listeners" : listeners,
-                "HealthCheck" : {
-                    "Target" :
-                        (healthCheckDestination.HealthCheck.Protocol)!(healthCheckDestination.Protocol) + 
-                        ":" + destination.Port?c + (elb.HealthCheck.Path)!healthCheckDestination.HealthCheck.Path,
-                    "HealthyThreshold" : (elb.HealthCheck.HealthyThreshold)!destination.HealthCheck.HealthyThreshold,
-                    "UnhealthyThreshold" : (elb.HealthCheck.UnhealthyThreshold)!destination.HealthCheck.UnhealthyThreshold,
-                    "Interval" : (elb.HealthCheck.Interval)!destination.HealthCheck.Interval,
-                    "Timeout" : (elb.HealthCheck.Timeout)!destination.HealthCheck.Timeout
-                },
-                "Scheme" :
-                    (tier.Network.RouteTable == "external")?then(
-                        "internet-facing",
-                        "internal"
-                    ),
-                "SecurityGroups":[ getReference(securityGroupId) ],
-                "LoadBalancerName" : elbShortFullName
-            } +
-            multiAZ?then(
-                {
-                    "Subnets" : getSubnets(tier),
-                    "CrossZone" : true
-                },
-                {
-                    "Subnets" : getSubnets(tier)[0]
-                }
-            ) +
-            ((elb.Logs)!false)?then(
-                {
-                    "AccessLoggingPolicy" : {
-                        "EmitInterval" : 5,
-                        "Enabled" : true,
-                        "S3BucketName" : operationsBucket
-                    }
-                },
-                {}
-            )
-        tags=
-            getCfTemplateCoreTags(
-                elbFullName,
-                tier,
-                component)
-        outputs=ELB_OUTPUT_MAPPINGS
-    /]
+            [#assign listeners = [] ]
+            
+            [#list configuration.PortMappings as mapping]
+                [#assign source = ports[portMappings[mapping].Source]]
+                [#assign destination = ports[portMappings[mapping].Destination]]
+                
+                [@createSecurityGroupIngress
+                    mode=listMode
+                    id=formatComponentSecurityGroupIngressId(tier, component,source.Port)
+                    port=source.Port
+                    cidr="0.0.0.0/0"
+                    groupId=securityGroupId
+                /]
+                [#assign listeners +=
+                    [
+                        {
+                            "LoadBalancerPort" : source.Port,
+                            "Protocol" : source.Protocol,
+                            "InstancePort" : destination.Port,
+                            "InstanceProtocol" : destination.Protocol
+                        }  +
+                        attributeIfTrue(
+                            "SSLCertificateId",
+                            source.Certificate!false,
+                            getExistingReference(formatCertificateId(certificateId))?has_content?then(
+                                getExistingReference(formatCertificateId(certificateId)),
+                                {
+                                    "Fn::Join" : [
+                                        "",
+                                        [
+                                            "arn:aws:iam::",
+                                            {"Ref" : "AWS::AccountId"},
+                                            ":server-certificate/ssl/"
+                                            certificateId,
+                                            "/",
+                                            certificateId,
+                                            "-ssl"
+                                        ]
+                                    ]
+                                }
+                            )) 
+                    ]
+                ]
+            [/#list]
+            [@cfResource
+                mode=listMode
+                id=elbId
+                type="AWS::ElasticLoadBalancing::LoadBalancer"
+                properties=
+                    {
+                        "Listeners" : listeners,
+                        "HealthCheck" : {
+                            "Target" :
+                                (healthCheckDestination.HealthCheck.Protocol)!(healthCheckDestination.Protocol) + 
+                                ":" + destination.Port?c + (configuration.HealthCheck.Path)!healthCheckDestination.HealthCheck.Path,
+                            "HealthyThreshold" : (configuration.HealthCheck.HealthyThreshold)!destination.HealthCheck.HealthyThreshold,
+                            "UnhealthyThreshold" : (configuration.HealthCheck.UnhealthyThreshold)!destination.HealthCheck.UnhealthyThreshold,
+                            "Interval" : (configuration.HealthCheck.Interval)!destination.HealthCheck.Interval,
+                            "Timeout" : (configuration.HealthCheck.Timeout)!destination.HealthCheck.Timeout
+                        },
+                        "Scheme" :
+                            (tier.Network.RouteTable == "external")?then(
+                                "internet-facing",
+                                "internal"
+                            ),
+                        "SecurityGroups":[ getReference(securityGroupId) ],
+                        "LoadBalancerName" : elbShortFullName
+                    } +
+                    multiAZ?then(
+                        {
+                            "Subnets" : getSubnets(tier),
+                            "CrossZone" : true
+                        },
+                        {
+                            "Subnets" : getSubnets(tier)[0]
+                        }
+                    ) +
+                    (configuration.Logs)?then(
+                        {
+                            "AccessLoggingPolicy" : {
+                                "EmitInterval" : 5,
+                                "Enabled" : true,
+                                "S3BucketName" : operationsBucket
+                            }
+                        },
+                        {}
+                    )
+                tags=
+                    getCfTemplateCoreTags(
+                        elbFullName,
+                        tier,
+                        component)
+                outputs=ELB_OUTPUT_MAPPINGS
+            /]
+        [/#if]
+    [/#list]
 [/#if]

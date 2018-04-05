@@ -695,12 +695,24 @@
                 [#local result = getContentNodeState(occurrence)]
                 [#break]
 
+            [#case "ec2"]
+                [#local result = getEC2State(occurrence)]
+                [#break]
+
             [#case "ecs"]
                 [#local result = getECSState(occurrence)]
                 [#break]
 
             [#case "efs"]
                 [#local result = getEFSState(occurrence)]
+                [#break]
+
+            [#case "elb"]
+                [#local result = getELBState(occurrence)]
+                [#break]
+
+            [#case "es"]
+                [#local result = getESState(occurrence)]
                 [#break]
 
             [#case "external"]
@@ -735,12 +747,12 @@
                 [/#list]
                 [#break]
 
-            [#case "lambda"]
-                [#local result = getLambdaState(occurrence)]
-                [#break]
-
             [#case "function"]
                 [#local result = getFunctionState(occurrence)]
+                [#break]
+
+            [#case "lambda"]
+                [#local result = getLambdaState(occurrence)]
                 [#break]
 
             [#case "rds"]

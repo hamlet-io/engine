@@ -112,7 +112,7 @@
     [#if nonemptyIngressRules?has_content]
         [#local properties +=
             {
-                "SecurityGroupIngress" : nonemptyIngressRules
+                AWS_VPC_SECURITY_GROUP_INGRESS_RESOURCE_TYPE : nonemptyIngressRules
             }
         ]
     [/#if]
@@ -285,7 +285,7 @@
 ]
 [#assign outputMappings +=
     {
-        EIP_RESOURCE_TYPE : EIP_OUTPUT_MAPPINGS
+        AWS_EIP_RESOURCE_TYPE : EIP_OUTPUT_MAPPINGS
     }
 ]
 
