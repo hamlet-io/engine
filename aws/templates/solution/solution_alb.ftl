@@ -92,7 +92,7 @@
                                 occurrence)]
                                 
                 [#assign certificateObject = getCertificateObject(mappingObject.Certificate, segmentId, segmentName, sourcePort.Id, sourcePort.Name) ]
-                [#assign hostName = getHostName(certificateObject, tier, component, occurrence) ]
+                [#assign hostName = getHostName(certificateObject, occurrence) ]
                 [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
                 [@createALBListener

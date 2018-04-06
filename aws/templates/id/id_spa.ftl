@@ -99,7 +99,7 @@
 
     [#if configuration.Certificate.Configured && configuration.Certificate.Enabled ]
             [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
-            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence) ]
+            [#local hostName = getHostName(certificateObject, occurrence) ]
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
     [#else]
             [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]

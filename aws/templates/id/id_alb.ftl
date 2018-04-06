@@ -90,7 +90,7 @@
             )]
         [#if (ports[portMappings[mappingObject.Mapping].Source].Certificate)!false ]
             [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
-            [#local hostName = getHostName(certificateObject, core.Tier, core.Component, occurrence) ]
+            [#local hostName = getHostName(certificateObject, occurrence) ]
             
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
             [#local scheme = "https" ]

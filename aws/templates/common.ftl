@@ -1277,8 +1277,9 @@
     ]
 [/#function]
 
-[#function getHostName certificateObject tier="" component="" occurrence={}]
+[#function getHostName certificateObject occurrence]
 
+    [#local core = occurrence.Core ]
     [#local includes = certificateObject.IncludeInHost ]
 
     [#return
@@ -1287,10 +1288,10 @@
             certificateObject.Host?has_content && (!(includes.Host)),
             formatName(
                 valueIfTrue(certificateObject.Host, includes.Host),
-                valueIfTrue(getTierName(tier), includes.Tier),
-                valueIfTrue(getComponentName(component), includes.Component),
-                valueIfTrue(occurrence.Core.Instance.Name!"", includes.Instance),
-                valueIfTrue(occurrence.Core.Version.Name!"", includes.Version),
+                valueIfTrue(getTierName(core.Tier), includes.Tier),
+                valueIfTrue(getComponentName(core.Component), includes.Component),
+                valueIfTrue(core.Instance.Name!"", includes.Instance),
+                valueIfTrue(core.Version.Name!"", includes.Version),
                 valueIfTrue(segmentName!"", includes.Segment),
                 valueIfTrue(environmentName!"", includes.Environment),
                 valueIfTrue(productName!"", includes.Product)

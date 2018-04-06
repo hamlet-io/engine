@@ -5,7 +5,7 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        DNS_ATTRIBUTE_TYPE : { 
+        DNS_ATTRIBUTE_TYPE : {
             "Attribute" : "DomainName"
         }
     }
@@ -17,7 +17,7 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        CANONICAL_ID_ATTRIBUTE_TYPE : { 
+        CANONICAL_ID_ATTRIBUTE_TYPE : {
             "Attribute" : "S3CanonicalUserId"
         }
     }
@@ -39,7 +39,7 @@
                 "S3OriginConfig" : {
                     "OriginAccessIdentity" : "origin-access-identity/cloudfront/" + accessId
                 }
-            } + 
+            } +
             attributeIfContent("OriginPath", path)
         ]
     ]
@@ -68,29 +68,10 @@
                 "DomainName" : domain,
                 "Id" : id,
                 "CustomOriginConfig" : httpConfig
-            } + 
+            } +
             attributeIfContent("OriginCustomHeaders", asArray(headers)) +
             attributeIfContent("OriginPath", path)
         ]
-    ]
-[/#function]
-
-[#function getCFAPIGatewayOrigin id apiId headers=[] path=""]
-    [#return
-        getCFHTTPOrigin(
-            id,
-            {
-                "Fn::Join" : [
-                    ".",
-                    [
-                        getReference(apiId),
-                        "execute-api." + regionId + ".amazonaws.com"
-                    ]
-                ]
-            },
-            headers,
-            path
-        )
     ]
 [/#function]
 
@@ -114,14 +95,14 @@
                 "ForwardedValues" :
                     {
                         "QueryString" : forwarded.QueryString
-                    } + 
+                    } +
                     attributeIfContent("Cookies", forwarded.Cookies!"") +
                     attributeIfContent("Headers", forwarded.Headers!"") +
                     attributeIfContent("QueryStringCacheKeys", forwarded.QueryStringCacheKeys!""),
                 "SmoothStreaming" : smoothStreaming,
                 "TargetOriginId" : asString(origin, "Id"),
                 "ViewerProtocolPolicy" : viewerProtocolPolicy
-            } + 
+            } +
             attributeIfContent("PathPattern", path) +
             attributeIfContent("AllowedMethods", methods.Allowed![], asArray(methods.Allowed![])) +
             attributeIfContent("CachedMethods", methods.Cached![], asArray(methods.Cached![])) +
@@ -220,7 +201,7 @@
     [#return
         {
             "AcmCertificateArn" :
-                acmCertificateArn?has_content?then( 
+                acmCertificateArn?has_content?then(
                     acmCertificateArn,
                     formatRegionalArn(
                         "acm",
@@ -286,7 +267,7 @@
     restrictions={}
     wafAclId=""
 ]
-    [@cfResource 
+    [@cfResource
         mode=mode
         id=id
         type="AWS::CloudFront::Distribution"
