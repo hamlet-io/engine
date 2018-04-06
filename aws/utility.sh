@@ -556,12 +556,13 @@ function addJSONAncestorObjects() {
 
 # -- KMS --
 function decrypt_kms_string() { 
+  local region="$1"; shift
   local value="$1"; shift
 
   local tmpdir="$( getTempDir "kms_XXX" )"
   local file="$( getTempFile "XXX" "${tmpdir}" )"
   echo "${value}" | base64 --decode > "${file}"
-  aws kms decrypt --ciphertext-blob fileb://${file} --output text --query Plaintext | base64 --decode || return $?
+  aws --region "${region}" kms decrypt --ciphertext-blob fileb://${file} --output text --query Plaintext | base64 --decode || return $?
 }
 
 function encrypt_kms_string() { 
