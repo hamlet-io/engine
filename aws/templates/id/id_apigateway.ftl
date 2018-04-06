@@ -143,10 +143,10 @@
     [/#if]
     [#local apiName = formatComponentFullName(core.Tier, core.Component, occurrence)]
 
-    [#local stageId = formatResourceId(APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
+    [#local stageId = formatResourceId(AWS_APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
     [#local stageName = core.Version.Name]
 
-    [#local docsId = formatS3Id(core.Id, APIGATEWAY_DOCS_EXTENSION)]
+    [#local docsId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION)]
 
     [#local cfId = formatDependentCFDistributionId(apiId)]
 
@@ -210,13 +210,13 @@
                     "Type" : AWS_APIGATEWAY_STAGE_RESOURCE_TYPE
                 },
                 "apidomain" : {
-                    "Id" : formatDependentResourceId(APIGATEWAY_DOMAIN_RESOURCE_TYPE, apiId),
+                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE, apiId),
                     "Fqdn" : signingFqdn,
                     "CertificateId" : certificateId,
                     "Type" : AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE
                 },
                 "apibasepathmapping" : {
-                    "Id" : formatDependentResourceId(APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, stageId),
+                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, stageId),
                     "Stage" : mappingStage,
                     "Type" : AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE
                 },
