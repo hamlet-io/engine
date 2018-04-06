@@ -10,6 +10,7 @@
         [#assign core = occurrence.Core ]
         [#assign configuration = occurrence.Configuration ]
         [#assign resources = occurrence.State.Resources ]
+        [#assign attributes = occurrence.State.Attributes ]
         [#assign roles = occurrence.State.Roles]
 
         [#if ! (buildCommit?has_content)]
@@ -108,27 +109,40 @@
             }
         ]
 
+        [#assign certificatePresent     = configuration.Certificate.Configured && configuration.Certificate.Enabled ]
+
+        [#assign mappingPresent         = configuration.Mapping.Configured && configuration.Mapping.Enabled ]
         [#assign domainId               = resources["apidomain"].Id]
+        [#assign domainFqdn             = resources["apidomain"].Fqdn]
+        [#assign domainCertificateId    = resources["apidomain"].CertificateId]
         [#assign basePathMappingId      = resources["apibasepathmapping"].Id]
+        [#assign basePathMappingStage   = resources["apibasepathmapping"].Stage]
 
         [#assign invalidLogMetricId     = resources["invalidlogmetric"].Id]
         [#assign invalidLogMetricName   = resources["invalidlogmetric"].Name]
         [#assign invalidAlarmId         = resources["invalidalarm"].Id]
         [#assign invalidAlarmName       = resources["invalidalarm"].Name]
 
+        [#assign cfPresent              = configuration.Certificate.Configured && configuration.Certificate.Enabled ]
         [#assign cfId                   = resources["cf"].Id]
         [#assign cfName                 = resources["cf"].Name]
+        [#assign cfCertificateId        = resources["cf"].CertificateId]
+        [#assign cfFqdn                 = resources["cf"].Fqdn]
         [#assign cfOriginId             = resources["cforigin"].Id]
+        [#assign cfOriginFqdn           = resources["cforigin"].Fqdn]
+
+        [#assign wafPresent             = configuration.WAF.Configured && configuration.WAF.Enabled ]
         [#assign wafAclId               = resources["wafacl"].Id]
         [#assign wafAclName             = resources["wafacl"].Name]
 
         [#assign usagePlanId            = resources["apiusageplan"].Id]
         [#assign usagePlanName          = resources["apiusageplan"].Name]
 
-        [#assign certificateObject      = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
-        [#assign hostName               = getHostName(certificateObject, tier, component, occurrence) ]
-        [#assign dns                    = formatDomainName(hostName, certificateObject.Domain.Name) ]
-        [#assign certificateId          = formatDomainCertificateId(certificateObject, hostName) ]
+        [#assign publishPresent         = configuration.Publish.Configured && configuration.Publish.Enabled ]
+        [#assign docsS3BucketId         = resources["docs"].Id]
+        [#assign docsS3BucketName       = resources["docs"].Name]
+        [#assign docsS3BucketPolicyId   = resources["docspolicy"].Id ]
+
 
         [#if deploymentSubsetRequired("apigateway", true)]
             [@cfResource
@@ -154,6 +168,7 @@
                     }
                 outputs=APIGATEWAY_OUTPUT_MAPPINGS
             /]
+
             [@cfResource
                 mode=listMode
                 id=deployId
@@ -209,11 +224,11 @@
                 dependencies=[invalidLogMetricId]
             /]
 
-            [#if configuration.CloudFront.Configured && configuration.CloudFront.Enabled]
+            [#if cfPresent]
                 [#assign origin =
-                    getCFAPIGatewayOrigin(
+                    getCFHTTPOrigin(
                         cfOriginId,
-                        apiId,
+                        cfOriginFqdn,
                         getCFHTTPHeader("x-api-key",credentialsObject.APIGateway.API.AccessKey)
                     )
                 ]
@@ -233,16 +248,12 @@
                     mode=listMode
                     id=cfId
                     dependencies=stageId
-                    aliases=
-                        (configuration.Certificate.Configured && configuration.Certificate.Enabled)?then(
-                            [dns],
-                            []
-                        )
+                    aliases=valueIfTrue([cfFqdn], certificatePresent, [])
                     certificate=valueIfTrue(
                         getCFCertificate(
-                            certificateId,
+                            cfCertificateId,
                             configuration.CloudFront.AssumeSNI),
-                        configuration.Certificate.Configured && configuration.Certificate.Enabled)
+                        certificatePresent)
                     comment=cfName
                     defaultCacheBehaviour=defaultCacheBehaviour
                     logging=valueIfTrue(
@@ -283,9 +294,7 @@
                     dependencies=stageId
                 /]
 
-                [#if configuration.WAF.Configured &&
-                        configuration.WAF.Enabled &&
-                        ipAddressGroupsUsage["waf"]?has_content ]
+                [#if wafPresent && ipAddressGroupsUsage["waf"]?has_content ]
                     [#assign wafGroups = [] ]
                     [#assign wafRuleDefault =
                                 configuration.WAF.RuleDefault?has_content?then(
@@ -357,49 +366,38 @@
                         default=wafDefault
                         rules=wafRules /]
                 [/#if]
-            [#else]
-                [#if configuration.Certificate.Configured && configuration.Certificate.Enabled]
-                    [@cfResource
-                        mode=listMode
-                        id=domainId
-                        type="AWS::ApiGateway::DomainName"
-                        properties=
-                            {
-                                "CertificateArn": getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1"),
-                                "DomainName" : dns
-                            }
-                        outputs={}
-                    /]
-                    [@cfResource
-                        mode=listMode
-                        id=basePathMappingId
-                        type="AWS::ApiGateway::BasePathMapping"
-                        properties=
-                            {
-                                "DomainName" : dns,
-                                "RestApiId" : getReference(apiId),
-                                "Stage" : stageName
-                            }
-                        outputs={}
-                        dependencies=domainId
-                    /]
-                [/#if]
+            [/#if]
+
+            [#if certificatePresent && mappingPresent]
+                [@cfResource
+                    mode=listMode
+                    id=domainId
+                    type="AWS::ApiGateway::DomainName"
+                    properties=
+                        {
+                            "CertificateArn": getExistingReference(domainCertificateId, ARN_ATTRIBUTE_TYPE, "us-east-1"),
+                            "DomainName" : domainFqdn
+                        }
+                    outputs={}
+                /]
+                [@cfResource
+                    mode=listMode
+                    id=basePathMappingId
+                    type="AWS::ApiGateway::BasePathMapping"
+                    properties=
+                        {
+                            "DomainName" : domainFqdn,
+                            "RestApiId" : getReference(apiId)
+                        } +
+                        attributeIfContent("Stage", basePathMappingStage)
+                    outputs={}
+                    dependencies=domainId
+                /]
             [/#if]
         [/#if]
 
-        [#if configuration.Publish.Configured && configuration.Publish.Enabled ]
-            [#assign docsS3BucketId = resources["docs"].Id]
-            [#assign docsS3BucketPolicyId = resources["docspolicy"].Id ]
-
+        [#if publishPresent ]
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
-            [#assign docsS3BucketName = (configuration.Certificate.Configured && configuration.Certificate.Enabled)?then(
-                                            formatDomainName(
-                                                configuration.Publish.DnsNamePrefix,
-                                                dns),
-                                            formatName(
-                                                configuration.Publish.DnsNamePrefix,
-                                                formatOccurrenceBucketName(occurrence))
-                                            )]
 
             [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
                 [#assign docsS3IPWhitelist =
@@ -450,7 +448,7 @@
                         "  #",
                         "  # Insert host in Doc File ",
                         "  add_host_to_apidoc" + " " +
-                            dns + " " +
+                            attributes.FQDN + " " +
                         "  \"$\{tmpdir}/apidoc.zip\"  || return $?",
                         "  # Sync to the API Doc bucket",
                         "  copy_apidoc_file" + " " + docsS3BucketName + " " +
