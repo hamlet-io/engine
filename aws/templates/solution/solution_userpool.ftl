@@ -195,7 +195,12 @@
             [/#switch]
         [/#list]
 
-        [#assign userPoolManualTriggerString = getJSON(userPoolManualTriggerConfig, true)]
+        [#assign userPoolManualTriggerString = [] ] 
+        [#list userPoolManualTriggerConfig as key,value ]
+            [#assign userPoolManualTriggerString += [ key + "=" + value ]]
+        [/#list]
+
+        [#assign userPoolManualTriggerString = userPoolManualTriggerString?join(",")]
 
         [#if ((configuration.MFA) || ( configuration.VerifyPhone))]
             [#if (deploymentSubsetRequired("iam", true) || deploymentSubsetRequired("userpool", true)) &&
