@@ -313,6 +313,7 @@
                         "info \"Getting Master Password... \"",
                         "encrypted_master_password=\"" + rdsEncryptedPassword + "\"",
                         "master_password=\"$(decrypt_kms_string" + 
+                        " \"" + region + "\" " +
                         " \"$\{encrypted_master_password}\" || return $?)\"",
                         "info \"Resetting Master Password... \"",
                         "set_rds_master_password" +
