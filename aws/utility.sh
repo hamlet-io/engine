@@ -561,7 +561,7 @@ function decrypt_kms_string() {
   local tmpdir="$( getTempDir "kms_XXX" )"
   local file="$( getTempFile "XXX" "${tmpdir}" )"
   echo "${value}" | base64 --decode > "${file}"
-  aws kms decrypt --ciphertext-blob fileb://${file} --output text --query Plaintext | base64 --decode || return $?
+  aws --region ${region} kms decrypt --ciphertext-blob fileb://${file} --output text --query Plaintext | base64 --decode || return $?
 }
 
 function encrypt_kms_string() { 
@@ -569,7 +569,7 @@ function encrypt_kms_string() {
   local value="$1"; shift 
   local kms_key_id="$1"; shift 
 
-  aws kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text || return $?
+  aws --region ${region} kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text || return $?
 }
 
 # -- Cognito -- 
