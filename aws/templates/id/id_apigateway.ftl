@@ -72,6 +72,10 @@
                     {
                         "Name" : "CountryGroups",
                         "Default" : []
+                    },
+                    {
+                        "Name" : "Mapping",
+                        "Default" : false
                     }
                 ]
             },
@@ -142,6 +146,11 @@
     [#local cfId = formatDependentCFDistributionId(apiId)]
 
     [#local serviceName = "execute-api" ]
+    
+    [#local certificatePresent = configuration.Certificate.Configured && configuration.Certificate.Enabled ]
+    [#local mappingPresent     = configuration.Mapping.Configured && configuration.Mapping.Enabled ]
+    [#local cfPresent          = configuration.CloudFront.Configured && configuration.CloudFront.Enabled ]
+    [#local mappingPresent     = mappingPresent && (!cfPresent || configuration.CloudFront.Mapping) ]
 
     [#local internalFqdn =
         formatDomainName(
@@ -153,37 +162,37 @@
     [#local fqdn = internalFqdn]
     [#local signingFqdn = internalFqdn]
     [#local mappingStage = ""]
-    [#local versionPath = "/" + stageName]
+    [#local stagePath = "/" + stageName]
     [#local certificateId = "" ]
     [#local docsName =
             formatName(
                 configuration.Publish.DnsNamePrefix,
                 formatOccurrenceBucketName(occurrence))]
 
-    [#if configuration.Certificate.Configured && configuration.Certificate.Enabled ]
+    [#if certificatePresent ]
         [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName)]
         [#local hostName = getHostName(certificateObject, occurrence)]
         [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
-        [#if configuration.Mapping.Configured && configuration.Mapping.Enabled ]
+        [#if mappingPresent ]
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
             [#local docsName = formatDomainName(configuration.Publish.DnsNamePrefix, fqdn) ]
             [#local signingFqdn = fqdn]
             [#if configuration.Mapping.IncludeStage]
                 [#local mappingStage = stageName ]
-                [#local versionPath = "" ]
+                [#local stagePath = "" ]
             [/#if]
 
-            [#if configuration.CloudFront.Configured && configuration.CloudFront.Enabled]
+            [#if cfPresent ]
                 [#local signingFqdn = formatDomainName(formatName("sig4", hostName), certificateObject.Domain.Name)]
             [/#if]
         [#else]
-            [#if configuration.CloudFront.Configured && configuration.CloudFront.Enabled]
+            [#if cfPresent ]
                 [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
                 [#local docsName = formatDomainName(configuration.Publish.DnsNamePrefix, fqdn) ]
             [/#if]
         [/#if]
-    [/#if]
+    [/#if]                                                
 
     [#return
         {
@@ -257,12 +266,12 @@
             },
             "Attributes" : {
                 "FQDN" : fqdn,
-                "URL" : "https://" + fqdn + versionPath,
+                "URL" : "https://" + fqdn + stagePath,
                 "SIGNING_SERVICE_NAME" : serviceName,
                 "SIGNING_FQDN" : signingFqdn,
                 "INTERNAL_FQDN" : internalFqdn,
-                "INTERNAL_URL" : "https://" + internalFqdn + versionPath,
-                "INTERNAL_PATH" : versionPath,
+                "INTERNAL_URL" : "https://" + internalFqdn + stagePath,
+                "INTERNAL_PATH" : stagePath,
                 "DOCS_URL" : "http://" + getExistingReference(docsId, NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
