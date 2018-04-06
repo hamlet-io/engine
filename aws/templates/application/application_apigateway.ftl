@@ -123,7 +123,8 @@
         [#assign invalidAlarmId         = resources["invalidalarm"].Id]
         [#assign invalidAlarmName       = resources["invalidalarm"].Name]
 
-        [#assign cfPresent              = configuration.Certificate.Configured && configuration.Certificate.Enabled ]
+        [#assign cfPresent              = configuration.CloudFront.Configured && configuration.CloudFront.Enabled ]
+        [#assign mappingPresent         = mappingPresent && (!cfPresent || configuration.CloudFront.Mapping) ]
         [#assign cfId                   = resources["cf"].Id]
         [#assign cfName                 = resources["cf"].Name]
         [#assign cfCertificateId        = resources["cf"].CertificateId]
@@ -142,7 +143,6 @@
         [#assign docsS3BucketId         = resources["docs"].Id]
         [#assign docsS3BucketName       = resources["docs"].Name]
         [#assign docsS3BucketPolicyId   = resources["docspolicy"].Id ]
-
 
         [#if deploymentSubsetRequired("apigateway", true)]
             [@cfResource
