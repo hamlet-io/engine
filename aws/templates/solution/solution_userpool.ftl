@@ -108,9 +108,11 @@
                     
                     [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
                         [#-- Cognito Userpool Event Triggers --]
+                        [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
+                        [#-- If you add a trigger via the CLI the Cloudformation created triggers are removed --]
                         [#switch link.Name?lower_case]
                             [#case "createauthchallenge"]
-                                [#assign userPoolTriggerConfig +=
+                                [#assign userPoolManualTriggerConfig +=
                                     attributeIfContent (
                                         "CreateAuthChallenge",
                                         linkTargetAttributes.ARN
@@ -118,7 +120,7 @@
                                 ]
                                 [#break]
                             [#case "custommessage"]
-                                [#assign userPoolTriggerConfig +=
+                                [#assign userPoolManualTriggerConfig +=
                                     attributeIfContent (
                                         "CustomMessage",
                                         linkTargetAttributes.ARN
@@ -126,7 +128,7 @@
                                 ]
                                 [#break]
                             [#case "defineauthchallenge"]
-                                [#assign userPoolTriggerConfig +=
+                                [#assign userPoolManualTriggerConfig +=
                                     attributeIfContent (
                                         "DefineAuthChallenge",
                                         linkTargetAttributes.ARN
@@ -134,7 +136,7 @@
                                 ]
                                 [#break]
                             [#case "postauthentication"]
-                                [#assign userPoolTriggerConfig +=
+                                [#assign userPoolManualTriggerConfig +=
                                     attributeIfContent (
                                         "PostAuthentication",
                                         linkTargetAttributes.ARN
@@ -142,7 +144,7 @@
                                 ]
                                 [#break]
                             [#case "postconfirmation"]
-                                [#assign userPoolTriggerConfig +=
+                                [#assign userPoolManualTriggerConfig +=
                                     attributeIfContent (
                                         "PostConfirmation",
                                         linkTargetAttributes.ARN
@@ -150,7 +152,7 @@
                                 ]
                                 [#break]
                             [#case "preauthentication"]
-                                [#assign userPoolTriggerConfig +=
+                                [#assign userPoolManualTriggerConfig +=
                                     attributeIfContent (
                                         "PreAuthentication",
                                         linkTargetAttributes.ARN
@@ -158,7 +160,7 @@
                                 ]
                                 [#break]
                             [#case "presignup"]
-                                [#assign userPoolTriggerConfig += 
+                                [#assign userPoolManualTriggerConfig += 
                                     attributeIfContent (
                                         "PreSignUp",
                                         linkTargetAttributes.ARN
@@ -166,7 +168,7 @@
                                 ]
                                 [#break]
                             [#case "verifyauthchallengeresponse"]
-                                [#assign userPoolTriggerConfig += 
+                                [#assign userPoolManualTriggerConfig += 
                                     attributeIfContent (
                                         "VerifyAuthChallengeResponse",
                                         linkTargetAttributes.ARN
