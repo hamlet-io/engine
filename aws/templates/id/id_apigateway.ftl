@@ -116,15 +116,6 @@
                         "Default" : true
                     }
                 ]
-            },
-            {
-                "Name" : "Service",
-                "Children" : [
-                    {
-                        "Name" : "Name",
-                        "Default" : "execute-api"
-                    }
-                ]
             }
         ]
     }]
@@ -150,10 +141,12 @@
 
     [#local cfId = formatDependentCFDistributionId(apiId)]
 
+    [#local serviceName = "execute-api" ]
+
     [#local internalFqdn =
         formatDomainName(
             getExistingReference(apiId),
-            configuration.Service.Name,
+            serviceName,
             regionId,
             "amazonaws.com") ]
 
@@ -265,7 +258,7 @@
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn + versionPath,
-                "SIGNING_SERVICE_NAME" : configuration.Service.Name,
+                "SIGNING_SERVICE_NAME" : serviceName,
                 "SIGNING_FQDN" : signingFqdn,
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn + versionPath,
