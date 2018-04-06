@@ -183,7 +183,7 @@
         {
             "Resources" : {
                 "cluster" : {
-                    "Id" : formatResourceId(ECS_RESOURCE_TYPE, core.Id),
+                    "Id" : formatResourceId(AWS_ECS_RESOURCE_TYPE, core.Id),
                     "Name" : core.FullName,
                     "Type" : AWS_ECS_RESOURCE_TYPE
                 },
