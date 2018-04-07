@@ -128,7 +128,7 @@
             component
             resourceId
             resourceName
-            ingressRules=""]
+            ingressRules=[]]
     [@createSecurityGroup 
         mode=mode 
         tier=tier 
@@ -144,7 +144,7 @@
             tier
             component
             extensions=""
-            ingressRules=""]
+            ingressRules=[]]
     [@createSecurityGroup 
         mode=mode 
         tier=tier 
@@ -167,7 +167,7 @@
             resourceId
             resourceName
             extensions=""
-            ingressRules=""]
+            ingressRules=[]]
     [#local legacyId = formatComponentSecurityGroupId(
                         tier,
                         component,
