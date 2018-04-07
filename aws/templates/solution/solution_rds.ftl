@@ -308,7 +308,7 @@
                         " \"$\{master_password}\" " +
                         " \"" + rdsFQDN + "\" " + 
                         " \"" + port?c + "\" " + 
-                        " \"" + rdsDatabaseName + " \" || return $?)\"",
+                        " \"" + rdsDatabaseName + "\" || return $?)\"",
                         "encrypted_rds_url=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{rds_url}\" " +
