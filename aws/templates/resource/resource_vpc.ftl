@@ -88,18 +88,17 @@
     [/#list]
 [/#macro]
 
-[#macro createSecurityGroup mode tier component id name description="" ingressRules="" vpcId=""]
+[#macro createSecurityGroup mode tier component id name description="" ingressRules=[] vpcId=""]
     [#local nonemptyIngressRules = [] ]
-    [#if ingressRules?has_content && ingressRules?is_sequence]
-        [#list ingressRules as ingressRule]
-            [#if ingressRule.CIDR?has_content]
-                [#local nonemptyIngressRules +=
-                            getSecurityGroupIngressRules(
-                                ingressRule.Port,
-                                ingressRule.CIDR) ]
-            [/#if]
-        [/#list]
-    [/#if]
+    [#list asFlattenedArray(ingressRules) as ingressRule]
+        [#if ingressRule.CIDR?has_content]
+            [#local nonemptyIngressRules +=
+                        getSecurityGroupIngressRules(
+                            ingressRule.Port,
+                            ingressRule.CIDR) ]
+        [/#if]
+    [/#list]
+
     [#local properties =
         {
             "GroupDescription" : description?has_content?then(description, name),
@@ -107,15 +106,12 @@
                             getReference(vpcId),
                             vpc
                       )
-        }
+        } +
+        attributeIfContent(
+            "SecurityGroupIngress",
+            nonemptyIngressRules
+        )
     ]
-    [#if nonemptyIngressRules?has_content]
-        [#local properties +=
-            {
-                AWS_VPC_SECURITY_GROUP_INGRESS_RESOURCE_TYPE : nonemptyIngressRules
-            }
-        ]
-    [/#if]
 
     [@cfResource
         mode=mode
