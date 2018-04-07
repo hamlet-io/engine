@@ -1,5 +1,11 @@
 [#ftl]
 
+[#-- Utility arrays --]
+[#assign powersOf2 = [1] ]
+[#list 0..31 as index]
+    [#assign powersOf2 += [2*powersOf2[index]] ]
+[/#list]
+
 [#-- Utility functions --]
 
 [#function asArray arg flatten=false ]
@@ -1333,6 +1339,100 @@
         [#return formatRelativePath(path)]
     [/#if]
 
+[/#function]
+
+[#-- CIDRs --]
+[#function asCIDR value mask]
+    [#local remainder = value]
+    [#local result = []]
+    [#list 0..3 as index]
+        [#local result = [remainder % 256] + result]
+        [#local remainder = (remainder / 256)?int ]
+    [/#list]
+    [#return [result?join("."), mask]?join("/")]
+[/#function]
+
+[#function analyzeCIDR cidr ]
+    [#local re = cidr?matches(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/(\d{1,2})") ]
+    [#if !re ]
+        [#return {}]
+    [/#if]
+
+    [#local ip = re?groups[1] ]
+    [#local mask = re?groups[2]?number ]
+    [#local parts = re?groups[1]?split(".") ]
+    [#local partMasks = [] ]
+    [#list 0..3 as index]
+        [#local partMask = mask - 8*index ]
+        [#if partMask gte 8]
+            [#local partMask = 8 ]
+        [/#if]
+        [#if partMask lte 0]
+            [#local partMask = 0 ]
+        [/#if]
+        [#local partMasks += [partMask] ]
+    [/#list]
+
+    [#local base = [] ]
+    [#list 0..3 as index]
+        [#local partBits = partMasks[index] ]
+        [#local partValue = parts[index]?number ]
+        [#local baseValue = 0]
+        [#list 7..0 as bit]
+            [#if partBits lte 0]
+                [#break]
+            [/#if]
+            [#if partValue gte powersOf2[bit] ]
+                [#local baseValue += powersOf2[bit] ]
+                [#local partValue -= powersOf2[bit] ]
+            [/#if]
+            [#local partBits -= 1]
+        [/#list]
+        [#local base += [baseValue] ]
+    [/#list]
+    [#local offset = base[3] + 256*(base[2] + 256*(base[1] + 256*base[0])) ]
+
+    [#return
+        {
+            "IP" : ip,
+            "Mask" : mask,
+            "Parts" : parts,
+            "PartMasks" : partMasks,
+            "Base" : base,
+            "Offset" : offset
+        }
+    ]
+[/#function]
+
+[#function expandCIDR cidrs... ]
+    [#local boundaries=[8,16,24,32] ]
+    [#local boundaryOffsets=[24,16,8,0] ]
+    [#local result = [] ]
+    [#list asFlattenedArray(cidrs) as cidr]
+
+        [#local analyzedCIDR = analyzeCIDR(cidr) ]
+        [@cfDebug listMode analyzedCIDR false /]
+
+        [#if !analyzedCIDR?has_content]
+            [#continue]
+        [/#if]
+        [#list 0..boundaries?size-1 as index]
+            [#local boundary = boundaries[index] ]
+            [#if boundary == analyzedCIDR.Mask]
+                [#local result += [cidr] ]
+                [#break]
+            [/#if]
+            [#if boundary > analyzedCIDR.Mask]
+                [#local nextCIDR = analyzedCIDR.Offset ]
+                [#list 0..powersOf2[boundary - analyzedCIDR.Mask]-1 as increment]
+                    [#local result += [asCIDR(nextCIDR, boundary)] ]
+                    [#local nextCIDR += powersOf2[boundaryOffsets[index]] ]
+                [/#list]
+                [#break]
+            [/#if]
+        [/#list]
+    [/#list]
+    [#return result]
 [/#function]
 
 [#-- Output object as JSON --]

@@ -68,7 +68,6 @@
 [#assign processors = blueprintObject.Processors]
 [#assign ports = blueprintObject.Ports]
 [#assign portMappings = blueprintObject.PortMappings]
-[#assign powersOf2 = blueprintObject.PowersOf2]
 
 [#-- Regions --]
 [#if region?has_content]
