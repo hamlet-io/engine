@@ -89,7 +89,7 @@
     [#if occurrence.Configuration.GenerateCredentials.Enabled ]
         [#local login += {
             "USERNAME"  : occurrence.Configuration.GenerateCredentials.MasterUserName,
-            "PASSWORD"  : getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE),
+            "PASSWORD"  : getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE)
         }]
         [#local url = getExistingReference(id, URL_ATTRIBUTE_TYPE) ]
     [#else]
@@ -101,7 +101,6 @@
                     "Login" : {
                         "Username" : "Not provided",
                         "Password" : "Not provided"
-                        "URL" : 
                     }
                 }
             ).Login as name,value]
@@ -136,7 +135,7 @@
                 }
             },
             "Attributes" : {
-                "ENGINE" : engine
+                "ENGINE" : engine,
                 "FQDN" : fqdn,
                 "PORT" : port,
                 "NAME" : name,
