@@ -147,10 +147,10 @@
 
     [#local serviceName = "execute-api" ]
     
-    [#local certificatePresent = configuration.Certificate.Configured && configuration.Certificate.Enabled ]
-    [#local mappingPresent     = configuration.Mapping.Configured && configuration.Mapping.Enabled ]
-    [#local cfPresent          = configuration.CloudFront.Configured && configuration.CloudFront.Enabled ]
-    [#local mappingPresent     = mappingPresent && (!cfPresent || configuration.CloudFront.Mapping) ]
+    [#local certificatePresent = solution.Certificate.Configured && solution.Certificate.Enabled ]
+    [#local mappingPresent     = solution.Mapping.Configured && solution.Mapping.Enabled ]
+    [#local cfPresent          = solution.CloudFront.Configured && solution.CloudFront.Enabled ]
+    [#local mappingPresent     = mappingPresent && (!cfPresent || solution.CloudFront.Mapping) ]
 
     [#local internalFqdn =
         formatDomainName(
@@ -176,9 +176,9 @@
 
         [#if mappingPresent ]
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
-            [#local docsName = formatDomainName(configuration.Publish.DnsNamePrefix, fqdn) ]
+            [#local docsName = formatDomainName(solution.Publish.DnsNamePrefix, fqdn) ]
             [#local signingFqdn = fqdn]
-            [#if configuration.Mapping.IncludeStage]
+            [#if solution.Mapping.IncludeStage]
                 [#local mappingStage = stageName ]
                 [#local stagePath = "" ]
             [/#if]
@@ -189,7 +189,7 @@
         [#else]
             [#if cfPresent ]
                 [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
-                [#local docsName = formatDomainName(configuration.Publish.DnsNamePrefix, fqdn) ]
+                [#local docsName = formatDomainName(solution.Publish.DnsNamePrefix, fqdn) ]
             [/#if]
         [/#if]
     [/#if]                                                

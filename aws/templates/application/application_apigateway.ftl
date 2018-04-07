@@ -104,9 +104,9 @@
             }
         ]
 
-        [#assign certificatePresent     = configuration.Certificate.Configured && configuration.Certificate.Enabled ]
+        [#assign certificatePresent     = solution.Certificate.Configured && solution.Certificate.Enabled ]
 
-        [#assign mappingPresent         = configuration.Mapping.Configured && configuration.Mapping.Enabled ]
+        [#assign mappingPresent         = solution.Mapping.Configured && solution.Mapping.Enabled ]
         [#assign domainId               = resources["apidomain"].Id]
         [#assign domainFqdn             = resources["apidomain"].Fqdn]
         [#assign domainCertificateId    = resources["apidomain"].CertificateId]
@@ -118,8 +118,8 @@
         [#assign invalidAlarmId         = resources["invalidalarm"].Id]
         [#assign invalidAlarmName       = resources["invalidalarm"].Name]
 
-        [#assign cfPresent              = configuration.CloudFront.Configured && configuration.CloudFront.Enabled ]
-        [#assign mappingPresent         = mappingPresent && (!cfPresent || configuration.CloudFront.Mapping) ]
+        [#assign cfPresent              = solution.CloudFront.Configured && solution.CloudFront.Enabled ]
+        [#assign mappingPresent         = mappingPresent && (!cfPresent || solution.CloudFront.Mapping) ]
         [#assign cfId                   = resources["cf"].Id]
         [#assign cfName                 = resources["cf"].Name]
         [#assign cfCertificateId        = resources["cf"].CertificateId]
@@ -127,14 +127,14 @@
         [#assign cfOriginId             = resources["cforigin"].Id]
         [#assign cfOriginFqdn           = resources["cforigin"].Fqdn]
 
-        [#assign wafPresent             = configuration.WAF.Configured && configuration.WAF.Enabled ]
+        [#assign wafPresent             = solution.WAF.Configured && solution.WAF.Enabled ]
         [#assign wafAclId               = resources["wafacl"].Id]
         [#assign wafAclName             = resources["wafacl"].Name]
 
         [#assign usagePlanId            = resources["apiusageplan"].Id]
         [#assign usagePlanName          = resources["apiusageplan"].Name]
 
-        [#assign publishPresent         = configuration.Publish.Configured && configuration.Publish.Enabled ]
+        [#assign publishPresent         = solution.Publish.Configured && solution.Publish.Enabled ]
         [#assign docsS3BucketId         = resources["docs"].Id]
         [#assign docsS3BucketName       = resources["docs"].Name]
         [#assign docsS3BucketPolicyId   = resources["docspolicy"].Id ]
@@ -247,7 +247,7 @@
                     certificate=valueIfTrue(
                         getCFCertificate(
                             cfCertificateId,
-                            configuration.CloudFront.AssumeSNI),
+                            solution.CloudFront.AssumeSNI),
                         certificatePresent)
                     comment=cfName
                     defaultCacheBehaviour=defaultCacheBehaviour

@@ -9,7 +9,7 @@
          
         [@cfDebug listMode occurrence false /]
         [#assign core = occurrence.Core]
-        [#assign configuration = occurrence.Configuration]
+        [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
 
         [#assign elbId              = resources["lb"].Id]
@@ -17,7 +17,7 @@
         [#assign elbShortFullName   = resources["lb"].ShortName]
         [#assign securityGroupId    = resources["sg"].Id]
         
-        [#assign healthCheckDestination = ports[portMappings[configuration.PortMappings[0]].Destination] ]
+        [#assign healthCheckDestination = ports[portMappings[solution.PortMappings[0]].Destination] ]
         
         [#if deploymentSubsetRequired("elb", true)]
             [@createComponentSecurityGroup
@@ -27,7 +27,7 @@
 
             [#assign listeners = [] ]
             
-            [#list configuration.PortMappings as mapping]
+            [#list solution.PortMappings as mapping]
                 [#assign source = ports[portMappings[mapping].Source]]
                 [#assign destination = ports[portMappings[mapping].Destination]]
                 
@@ -79,11 +79,11 @@
                         "HealthCheck" : {
                             "Target" :
                                 (healthCheckDestination.HealthCheck.Protocol)!(healthCheckDestination.Protocol) + 
-                                ":" + destination.Port?c + (configuration.HealthCheck.Path)!healthCheckDestination.HealthCheck.Path,
-                            "HealthyThreshold" : (configuration.HealthCheck.HealthyThreshold)!destination.HealthCheck.HealthyThreshold,
-                            "UnhealthyThreshold" : (configuration.HealthCheck.UnhealthyThreshold)!destination.HealthCheck.UnhealthyThreshold,
-                            "Interval" : (configuration.HealthCheck.Interval)!destination.HealthCheck.Interval,
-                            "Timeout" : (configuration.HealthCheck.Timeout)!destination.HealthCheck.Timeout
+                                ":" + destination.Port?c + (solution.HealthCheck.Path)!healthCheckDestination.HealthCheck.Path,
+                            "HealthyThreshold" : (solution.HealthCheck.HealthyThreshold)!destination.HealthCheck.HealthyThreshold,
+                            "UnhealthyThreshold" : (solution.HealthCheck.UnhealthyThreshold)!destination.HealthCheck.UnhealthyThreshold,
+                            "Interval" : (solution.HealthCheck.Interval)!destination.HealthCheck.Interval,
+                            "Timeout" : (solution.HealthCheck.Timeout)!destination.HealthCheck.Timeout
                         },
                         "Scheme" :
                             (tier.Network.RouteTable == "external")?then(
@@ -102,7 +102,7 @@
                             "Subnets" : getSubnets(tier)[0]
                         }
                     ) +
-                    (configuration.Logs)?then(
+                    (solution.Logs)?then(
                         {
                             "AccessLoggingPolicy" : {
                                 "EmitInterval" : 5,

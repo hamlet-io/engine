@@ -8,12 +8,12 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
-        [#assign configuration = occurrence.Configuration]
+        [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
 
-        [#assign fixedIP = configuration.FixedIP]
-        [#assign loadBalanced = configuration.LoadBalanced]
-        [#assign dockerHost = configuration.DockerHost]
+        [#assign fixedIP = solution.FixedIP]
+        [#assign loadBalanced = solution.LoadBalanced]
+        [#assign dockerHost = solution.DockerHost]
 
         [#assign ec2FullName            = resources["ec2Instance"].Name ]
         [#assign ec2SecurityGroupId     = resources["sg"].Id]
@@ -23,7 +23,7 @@
 
         [#assign ingressRules = []]
 
-        [#list configuration.Ports as port]
+        [#list solution.Ports as port]
             [#assign nextPort = port?is_hash?then(port.Port, port)]
             [#assign portCIDRs = getUsageCIDRs(
                                 nextPort,
