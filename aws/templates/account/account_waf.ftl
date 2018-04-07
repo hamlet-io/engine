@@ -10,7 +10,7 @@
                 listMode,
                 ipSetId,
                 ipSetName,
-                cidrs
+                expandCIDR(cidrs)
             /]
             [@createWAFRule
                 listMode,
