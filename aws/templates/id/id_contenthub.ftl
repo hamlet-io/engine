@@ -41,10 +41,10 @@
                 }
             },
             "Attributes" : {
-                "ENGINE" : getExistingReference(id, ENGINE_ATTRIBUTE_TYPE),
-                "REPOSITORY" : getExistingReference(id, REPOSITORY_ATTRIBUTE_TYPE),
-                "BRANCH" : getExistingReference(id, BRANCH_ATTRIBUTE_TYPE),
-                "PREFIX" : getExistingReference(id, PREFIX_ATTRIBUTE_TYPE)
+                "ENGINE" : configuration.Engine,
+                "REPOSITORY" : configuration.Repository,
+                "BRANCH" : configuration.Branch,
+                "PREFIX" : configuration.Prefix
             }
         }
     ]
@@ -110,7 +110,7 @@
                         ]
                     }
                 ]
-            }
+            },
             {
                 "Name" : "Links",
                 "Default" : {}
