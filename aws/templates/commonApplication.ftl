@@ -427,7 +427,8 @@
                         task,
                         getContainerMode(container)) +
                     {
-                        "AWS_REGION" : regionId
+                        "AWS_REGION" : regionId,
+                        "AWS_DEFAULT_REGION" : regionId
                     },
                 "Links" : getLinkTargets(task, containerLinks),
                 "DefaultLinkVariables" : true
