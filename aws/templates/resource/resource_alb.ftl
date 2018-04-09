@@ -5,10 +5,10 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        DNS_ATTRIBUTE_TYPE : { 
+        DNS_ATTRIBUTE_TYPE : {
             "Attribute" : "DNSName"
         }
     }
@@ -19,7 +19,7 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "UseRef" : true
         }
     }
@@ -30,7 +30,7 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "UseRef" : true
         }
     }
@@ -41,10 +41,10 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        NAME_ATTRIBUTE_TYPE : { 
+        NAME_ATTRIBUTE_TYPE : {
             "Attribute" : "TargetGroupFullName"
         }
     }
@@ -87,7 +87,7 @@
                         "Key" : "access_logs.s3.prefix",
                         "Value" : ""
                     }
-                ]) 
+                ])
         tags=getCfTemplateCoreTags(name, tier, component)
         outputs=ALB_OUTPUT_MAPPINGS
     /]
@@ -103,7 +103,7 @@
             {
                 "DefaultActions" : [
                     {
-                      "TargetGroupArn" : getReference(albTargetGroupId),
+                      "TargetGroupArn" : getReference(defaultTargetGroupId),
                       "Type" : "forward"
                     }
                 ],
@@ -125,7 +125,7 @@
     /]
 [/#macro]
 
-[#macro createTargetGroup mode id name tier component source destination extensions=""]
+[#macro createTargetGroup mode id name tier component destination]
     [@cfResource
         mode=mode
         id=id
@@ -154,16 +154,7 @@
                     "Matcher" : { "HttpCode" : (destination.HealthCheck.SuccessCodes)!"" }
                 },
                 (destination.HealthCheck.SuccessCodes)!"")
-        tags=
-            getCfTemplateCoreTags(
-                formatComponentFullName(
-                    tier, 
-                    component,
-                    extensions,
-                    source.Port, 
-                    name),
-                tier,
-                component)
+        tags= getCfTemplateCoreTags(name, tier, component)
         outputs=ALB_TARGET_GROUP_OUTPUT_MAPPINGS
     /]
 [/#macro]
