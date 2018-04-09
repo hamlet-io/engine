@@ -848,6 +848,17 @@ function set_rds_master_password() {
   aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null || return $?
 }
 
+function get_rds_url() { 
+  local engine="$1"; shift
+  local username="$1"; shift
+  local password="$1"; shift
+  local fqdn="$1"; shift
+  local port="$1"; shift
+  local database_name="$1"; shift
+
+  echo "${engine}://${username}:${password}@${fqdn}:${port}/${database_name}"
+}
+
 # -- Git Repo Management --
 function clone_git_repo() {
   local repo_provider="$1"; shift
