@@ -267,9 +267,25 @@
         [#local containerLinks = container.Links ]
         [#list container.Ports?values as port]
             [#local targetLoadBalancer = {} ]
-            [#local targetTierId = (port.LB.Tier)!port.ELB ]
+            [#local targetTierId = (port.LB.Tier)!"elb" ]
             [#local targetComponentId = (port.LB.Component)!port.ELB ]
             [#local targetLinkName = port.LB.LinkName ]
+            [#local targetSource =
+                contentIfContent(
+                    port.LB.Port,
+                    valueIfContent(
+                        (portMappings[port.LB.PortMapping].Source)!"",
+                        port.LB.PortMapping,
+                        port.Id
+                    )
+                ) ]
+            [#local targetPort =
+                valueIfTrue(
+                    (ports[targetSource].Port)!"",
+                    port.LB.Configured,
+                    ""
+                ) ]
+
             [#-- Need to be careful to allow an empty value for --]
             [#-- Instance/Version to be explicitly provided and --]
             [#-- correctly handled in getLinkTarget             --]
@@ -281,7 +297,9 @@
                     "Component" : targetComponentId
                 } +
                 attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
-                attributeIfTrue("Version", port.LB.Version??, port.LB.Version!"") ]
+                attributeIfTrue("Version", port.LB.Version??, port.LB.Version!"") +
+                attributeIfTrue("Port", targetPort?has_content, targetPort?c)
+            ]
 
             [@cfDebug listMode targetLink false /]
 
@@ -294,17 +312,7 @@
 
                     [#local targetGroup = port.LB.TargetGroup]
                     [#local targetPath = port.LB.Path]
-                    [#local targetPort = port.LB.Port]
-                    [#local targetPortMapping = port.LB.PortMapping]
-                    [#local targetPort =
-                        contentIfContent(
-                            targetPort,
-                            valueIfContent(
-                                (portMappings[targetPortMapping!""].Source)!"",
-                                targetPortMapping!"",
-                                port.Id
-                            )
-                        ) ]
+
                     [#if targetLoadBalancer.Core.Type == "alb" ]
                         [#if targetPath?has_content]
                             [#-- target group name must be provided if path provided --]
@@ -347,20 +355,11 @@
                     {
                         "LoadBalancer" :
                             {
-                                "Tier" : targetTierId,
-                                "Component" : targetComponentId,
-                                "Instance" : targetLoadBalancer.Core.Instance.Id,
-                                "Version" : targetLoadBalancer.Core.Version.Id
-                            } +
-                            valueIfContent(
-                                {
-                                    "TargetGroup" : targetGroup,
-                                    "Port" : targetPort,
-                                    "Priority" : port.LB.Priority,
-                                    "Path" : targetPath
-                                },
-                                targetGroup
-                            )
+                                "Link" : targetLinkName,
+                                "TargetGroup" : targetGroup,
+                                "Priority" : port.LB.Priority,
+                                "Path" : targetPath
+                            }
                     }
                 ]
             [/#if]

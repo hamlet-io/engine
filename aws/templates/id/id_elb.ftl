@@ -3,15 +3,6 @@
 [#-- Resources --]
 [#assign AWS_ELB_RESOURCE_TYPE = "elb" ]
 
-[#function formatELBId tier component extensions...]
-    [#return formatComponentResourceId(
-                AWS_ELB_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
-[/#function]
-
-
 [#-- Components --]
 [#assign ELB_COMPONENT_TYPE = "elb"]
 
@@ -61,18 +52,18 @@
 [#function getELBState occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatELBId(core.Tier, core.Component)]
+    [#local id = formatResourceId(AWS_ELB_RESOURCE_TYPE, core.Id)]
 
     [#return
         {
             "Resources" : {
-                "elb" : { 
+                "lb" : {
                     "Id" : id,
-                    "Name" : formatComponentFullName(core.Tier, core.Component),
-                    "ShortName" : formatComponentShortFullName(core.Tier, core.Component),
+                    "Name" : core.FullName,
+                    "ShortName" : core.ShortFullName,
                     "Type" : AWS_ELB_RESOURCE_TYPE
                 },
-                "secGroup" : { 
+                "sg" : {
                     "Id" : formatSecurityGroupId(core.Id),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }

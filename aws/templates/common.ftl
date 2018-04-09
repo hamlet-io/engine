@@ -666,7 +666,31 @@
     ]
 [/#function]
 
-[#function getOccurrenceState occurrence]
+[#function getDeploymentState resources ]
+    [#local result = resources ]
+    [#if resources?is_hash]
+        [#list resources as alias,resource]
+            [#if resource.Id?has_content]
+                [#local result +=
+                    {
+                        alias :
+                          resource +
+                          {
+                              "Deployed" : getExistingReference(resource.Id)?has_content
+                          }
+                    } ]
+            [#else]
+                [#local result +=
+                    {
+                        alias : getDeploymentState(resource)
+                    } ]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#return result]
+[/#function]
+
+[#function getOccurrenceState occurrence parentOccurrence]
     [#local result =
         {
             "Resources" : {},
@@ -681,8 +705,12 @@
         [#local configuration = occurrence.Configuration ]
 
         [#switch core.Type!""]
-            [#case "alb"]
+            [#case ALB_COMPONENT_TYPE]
                 [#local result = getALBState(occurrence)]
+                [#break]
+
+            [#case ALB_PORT_COMPONENT_TYPE]
+                [#local result = getALBPortState(occurrence, parentOccurrence)]
                 [#break]
 
             [#case "apigateway"]
@@ -792,20 +820,10 @@
     [/#if]
 
     [#-- Update resource deployment status --]
-    [#list result.Resources as alias,resource]
-        [#local result +=
-            {
-                "Resources" :
-                    result.Resources +
-                    {
-                        alias :
-                          resource +
-                          {
-                              "Deployed" : getExistingReference(resource.Id)?has_content
-                          }
-                    }
-            } ]
-    [/#list]
+    [#local result +=
+        {
+            "Resources" : getDeploymentState(result.Resources)
+        } ]
     [#return result ]
 [/#function]
 
@@ -827,6 +845,17 @@
             []) ]
 [/#function]
 
+[#-- Migrate any older component structures to what's now expected --]
+[#function migrateComponent component type]
+    [#local result = component]
+        [#switch type]
+            [#case "alb"]
+                [#return migrateALBComponent(component) ]
+                [#break]
+        [/#switch]
+    [#return result]
+[/#function]
+
 [#-- Get the occurrences of versions/instances of a component--]
 [#function getOccurrencesInternal component tier={} parentOccurrence={} parentContexts=[] componentType="" ]
 
@@ -834,7 +863,15 @@
         [#return [] ]
     [/#if]
 
-    [#local contexts = asArray(parentContexts) + [component] ]
+    [#local contexts = asArray(parentContexts) ]
+
+    [#if tier?has_content]
+        [#local type = getComponentType(component) ]
+        [#local typeObject = migrateComponent(getComponentTypeObject(component), type) ]
+    [#else]
+        [#local type = componentType ]
+        [#local typeObject = migrateComponent(component, type) ]
+    [/#if]
 
     [#if tier?has_content]
         [#local tierId = getTierId(tier) ]
@@ -843,18 +880,15 @@
         [#local componentName = getComponentName(component) ]
         [#local subComponentId = "" ]
         [#local subComponentName = "" ]
-        [#local type = getComponentType(component) ]
-        [#local typeObject = getComponentTypeObject(component) ]
-        [#local contexts += [typeObject] ]
+        [#local contexts += [component, typeObject] ]
     [#else]
         [#local tierId = parentOccurrence.Core.Tier.Id ]
         [#local tierName = parentOccurrence.Core.Tier.Name ]
         [#local componentId = parentOccurrence.Core.Component.Id ]
         [#local componentName = parentOccurrence.Core.Component.Name ]
-        [#local subComponentId = component.Id?replace("-","X") ]
-        [#local subComponentName = component.Name ]
-        [#local type = componentType ]
-        [#local typeObject = component ]
+        [#local subComponentId = typeObject.Id?replace("-","X") ]
+        [#local subComponentName = typeObject.Name ]
+        [#local contexts += [typeObject] ]
     [/#if]
 
     [#local attributes = getOccurrenceConfigurationAttributes(type) ]
@@ -923,36 +957,49 @@
                             "Configuration" : getCompositeObject(attributes, contexts)
                         }
                     ]
+                    [#local occurrenceId=
+                        valueIfContent(
+                            formatId(
+                                (parentOccurrence.Core.Id)!"",
+                                occurrence.Core.Internal.IdExtensions),
+                            parentOccurrence,
+                            formatId(
+                                occurrence.Core.Tier,
+                                occurrence.Core.Component,
+                                occurrence.Core.Internal.IdExtensions)) ]
                     [#local occurrenceName=
                         valueIfContent(
                             formatName(
                                 (parentOccurrence.Core.Name)!"",
-                                occurrence.Core.Internal.IdExtensions),
+                                occurrence.Core.Internal.NameExtensions),
                             parentOccurrence,
                             formatName(
                                 occurrence.Core.Tier,
                                 occurrence.Core.Component,
                                 occurrence.Core.Internal.NameExtensions)) ]
+                    [#local occurrenceShortName=
+                        valueIfContent(
+                            formatName(
+                                (parentOccurrence.Core.ShortName)!"",
+                                occurrence.Core.Internal.IdExtensions),
+                            parentOccurrence,
+                            formatName(
+                                occurrence.Core.Tier.Id,
+                                occurrence.Core.Component.Id,
+                                occurrence.Core.Internal.IdExtensions)) ]
                     [#local occurrence +=
                         {
                             "Core" :
                                 occurrence.Core +
                                 {
-                                    "Id" :
-                                        valueIfContent(
-                                            formatId(
-                                                (parentOccurrence.Core.Id)!"",
-                                                occurrence.Core.Internal.IdExtensions),
-                                            parentOccurrence,
-                                            formatId(
-                                                occurrence.Core.Tier,
-                                                occurrence.Core.Component,
-                                                occurrence.Core.Internal.NameExtensions)),
+                                    "Id" : occurrenceId,
                                     "Name" : occurrenceName,
-                                    "FullName" : formatSegmentFullName(occurrenceName)
+                                    "ShortName" : occurrenceShortName,
+                                    "FullName" : formatSegmentFullName(occurrenceName),
+                                    "ShortFullName" : formatSegmentShortName(occurrenceShortName)
                                 }
                         } ]
-                    [#local occurrence += { "State" : getOccurrenceState(occurrence) } ]
+                    [#local occurrence += { "State" : getOccurrenceState(occurrence, parentOccurrence) } ]
 
                     [#local subOccurrences = [] ]
                     [#list subComponents as subComponent]
@@ -1052,7 +1099,7 @@
         [#return
             targetOccurrence +
             {
-                "State" : getOccurrenceState(targetOccurrence),
+                "State" : getOccurrenceState(targetOccurrence, {}),
                 "Direction" : link.Direction!"outbound"
             } +
             attributeIfContent("Role", link.Role!"")

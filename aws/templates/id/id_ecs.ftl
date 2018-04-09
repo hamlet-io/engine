@@ -172,11 +172,11 @@
             {
                 "Name" : "UseTaskRole",
                 "Default" : true
-            } 
+            }
         ]
     }
 ]
-    
+
 [#function getECSState occurrence]
     [#local core = occurrence.Core ]
     [#return

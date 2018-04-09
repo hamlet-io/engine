@@ -8,64 +8,45 @@
 
         [@cfDebug listMode occurrence false /]
 
-        [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
-        [#assign resources = occurrence.State.Resources ]
-        
-        [#assign albId = resources["lb"].Id ]
-        [#assign albSecurityGroupId = resources["secgroup"].Id]
-
         [#if deploymentSubsetRequired("alb", true) ]
-            [@createComponentSecurityGroup
-                mode=listMode
-                tier=tier
-                component=component
-                extensions=occurrence
-            /]
-            [#list configuration.PortMappings as mapping]
-                [#assign mappingObject =
-                    {
-                        "IPAddressGroups" : configuration.IPAddressGroups,
-                        "Certificate" : configuration.Certificate
-                    } +
-                    mapping?is_hash?then(
-                        mapping,
-                        {
-                            "Mapping" : mapping
-                        }
-                    )]
-                [#assign source = portMappings[mappingObject.Mapping].Source]
-                [#assign sourcePort = ports[source] ]                    
-                [#assign destinationPort = ports[portMappings[mappingObject.Mapping].Destination]]
-                
-                [#assign albTargetGroupId =
-                            formatALBTargetGroupId(
-                                tier,
-                                component,
-                                sourcePort,
-                                "default",
-                                occurrence)]
 
-                [@createTargetGroup
-                    mode=listMode
-                    id=albTargetGroupId
-                    name="default"
-                    tier=tier
-                    component=component
-                    source=sourcePort
-                    destination=destinationPort
-                    extensions=occurrence
-                /]
-                        
-                [#assign albListenerSecurityGroupIngressId =
-                            formatALBListenerSecurityGroupIngressId(
-                                albSecurityGroupId,
-                                sourcePort)]
+            [#assign configuration = occurrence.Configuration ]
+            [#assign resources = occurrence.State.Resources ]
+
+            [#assign albId = resources["lb"].Id ]
+            [#assign albName = resources["lb"].Name ]
+            [#assign albShortName = resources["lb"].ShortName ]
+            [#assign albLogs = configuration.Logs ]
+            [#assign albSecurityGroupIds = [] ]
+
+            [#list occurrence.Occurrences![] as subOccurrence]
+
+                [#assign configuration = subOccurrence.Configuration ]
+                [#assign resources = subOccurrence.State.Resources ]
+
+                [#assign listenerId = resources["listener"].Id ]
+
+                [#assign securityGroupId = resources["sg"].Id]
+                [#assign securityGroupName = resources["sg"].Name]
+
+                [#assign targetGroupId = resources["targetgroups"]["default"].Id]
+                [#assign targetGroupName = resources["targetgroups"]["default"].Name]
+
+                [#assign albSecurityGroupIds += [securityGroupId] ]
+
+                [#assign source = (portMappings[configuration.Mapping].Source)!"" ]
+                [#assign destination = (portMappings[configuration.Mapping].Destination)!"" ]
+                [#assign sourcePort = (ports[source])!{} ]
+                [#assign destinationPort = (ports[destination])!{} ]
+
+                [#if !(sourcePort?has_content && destinationPort?has_content)]
+                    [#continue ]
+                [/#if]
 
                 [#assign cidr=
                         getUsageCIDRs(
                             source,
-                            mappingObject.IPAddressGroups) ]
+                            configuration.IPAddressGroups) ]
 
                 [#-- Internal ILBs may not have explicit IP Address Groups --]
                 [#assign cidr =
@@ -75,47 +56,46 @@
                             [],
                             segmentObject.Network.CIDR.Address + "/" +segmentObject.Network.CIDR.Mask
                         )) ]
-                            
-                [@createSecurityGroupIngress
+
+                [@createSecurityGroup
                     mode=listMode
-                    id=albListenerSecurityGroupIngressId
-                    port=source
-                    cidr=cidr
-                    groupId=albSecurityGroupId
-                /]
-                        
-                [#assign albListenerId =
-                            formatALBListenerId(
-                                tier,
-                                component,
-                                sourcePort,
-                                occurrence)]
-                                
-                [#assign certificateObject = getCertificateObject(mappingObject.Certificate, segmentId, segmentName, sourcePort.Id, sourcePort.Name) ]
-                [#assign hostName = getHostName(certificateObject, occurrence) ]
+                    id=securityGroupId
+                    name=securityGroupName
+                    tier=tier
+                    component=component
+                    ingressRules=[{"Port" : sourcePort.Port, "CIDR" : cidr}] /]
+
+                [@createTargetGroup
+                    mode=listMode
+                    id=targetGroupId
+                    name=targetGroupName
+                    tier=tier
+                    component=component
+                    destination=destinationPort /]
+
+                [#assign certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName, sourcePort.Id, sourcePort.Name) ]
+                [#assign hostName = getHostName(certificateObject, subOccurrence) ]
                 [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
                 [@createALBListener
                     mode=listMode
-                    id=albListenerId
+                    id=listenerId
                     port=sourcePort
                     albId=albId
-                    defaultTargetGroupId=albTargetGroupId
-                    certificateId=certificateId
-                /]
+                    defaultTargetGroupId=targetGroupId
+                    certificateId=certificateId /]
             [/#list]
-        
+
             [@createALB
                 mode=listMode
                 id=albId
-                name=formatComponentFullName(tier, component, occurrence) 
-                shortName=formatComponentShortFullName(tier, component, occurrence)
+                name=albName
+                shortName=albShortName
                 tier=tier
                 component=component
-                securityGroups=albSecurityGroupId
-                logs=configuration.Logs
-                bucket=operationsBucket
-            /]
+                securityGroups=albSecurityGroupIds
+                logs=albLogs
+                bucket=operationsBucket /]
         [/#if]
     [/#list]
 [/#if]
