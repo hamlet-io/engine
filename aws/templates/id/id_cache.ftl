@@ -50,8 +50,8 @@
                     "Id" : formatResourceId(AWS_CACHE_PARAMETER_GROUP_RESOURCE_TYPE, core.Id),
                     "Type" : AWS_CACHE_PARAMETER_GROUP_RESOURCE_TYPE
                 },
-                "secGroup" : {
-                    "Id" : formatSecurityGroupId(core.Id),
+                "sg" : {
+                    "Id" : formatDependentSecurityGroupId(id),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }
             },

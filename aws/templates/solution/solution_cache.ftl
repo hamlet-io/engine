@@ -61,7 +61,7 @@
         [#assign cacheFullName = resources["cache"].Name ]
         [#assign cacheSubnetGroupId = resources["subnetGroup"].Id ]
         [#assign cacheParameterGroupId = resources["parameterGroup"].Id ]
-        [#assign cacheSecurityGroupId = resources["secGroup"].Id ]
+        [#assign cacheSecurityGroupId = resources["sg"].Id ]
 
         [#assign cacheSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                                 cacheSecurityGroupId, 

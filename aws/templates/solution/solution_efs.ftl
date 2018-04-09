@@ -15,7 +15,7 @@
         [#assign efsId              = resources["efs"].Id]
         [#assign efsFullName        = resources["efs"].Name]
         [#assign efsMountTargetId   = resources["efsMountTarget"].Id]
-        [#assign efsSecurityGroupId = resources["secGroup"].Id]
+        [#assign efsSecurityGroupId = resources["sg"].Id]
         
         [#if deploymentSubsetRequired("efs", true) ]
             [@createComponentSecurityGroup
