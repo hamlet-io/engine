@@ -64,7 +64,7 @@
                     "Type" : AWS_ELB_RESOURCE_TYPE
                 },
                 "sg" : {
-                    "Id" : formatSecurityGroupId(core.Id),
+                    "Id" : formatDependentSecurityGroupId(id),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }
             },
