@@ -95,13 +95,14 @@
 [#function getEC2State occurrence]
     [#local core = occurrence.Core]
 
+    [#local id = formatEC2InstanceId(core.Tier, core.Component) ]
     [#local ec2ELBId = formatELBId("elb", core.Id) ]
 
     [#return
         {
             "Resources" : {
-                "ec2Instance" : { 
-                    "Id" : formatEC2InstanceId(core.Tier, core.Component),
+                "ec2Instance" : {
+                    "Id" : id,
                     "Name" : formatName(tenantId, formatComponentFullName(core.Tier, core.Component)),
                     "Type" : AWS_EC2_INSTANCE_RESOURCE_TYPE
                 },
@@ -109,11 +110,11 @@
                     "Id" : formatEC2InstanceProfileId(core.Tier, core.Component),
                     "Type" : AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE
                 },
-                "secGroup" : { 
-                    "Id" : formatSecurityGroupId(core.Id),
+                "sg" : {
+                    "Id" : formatDependentSecurityGroupId(id),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
-                "ec2Role" : { 
+                "ec2Role" : {
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },

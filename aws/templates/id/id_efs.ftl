@@ -28,29 +28,29 @@
         EFS_COMPONENT_TYPE  : {
 
         }
-        
+
     }]
-    
+
 [#function getEFSState occurrence]
 
     [#local core = occurrence.Core]
 
-    [#local efsId = formatEFSId( core.Tier, core.Component, occurrence) ]
+    [#local id = formatEFSId( core.Tier, core.Component, occurrence) ]
 
     [#return
         {
             "Resources" : {
                 "efs" : {
-                    "Id" : efsId,
+                    "Id" : id,
                     "Name" : formatComponentFullName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_EFS_RESOURCE_TYPE
                 },
-                "efsMountTarget" : { 
+                "efsMountTarget" : {
                     "Id" : formatDependentResourceId(AWS_EFS_MOUNTTARGET_RESOURCE_TYPE, efsId),
                     "Type" : AWS_EFS_MOUNTTARGET_RESOURCE_TYPE
                 },
-                "secGroup" : { 
-                    "Id" : formatSecurityGroupId(core.Id),
+                "sg" : {
+                    "Id" : formatDependentSecurityGroupId(id),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }
             },

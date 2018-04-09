@@ -4,7 +4,7 @@
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
-        
+
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
@@ -16,13 +16,13 @@
         [#assign dockerHost = configuration.DockerHost]
 
         [#assign ec2FullName            = resources["ec2Instance"].Name ]
-        [#assign ec2SecurityGroupId     = resources["secGroup"].Id]
+        [#assign ec2SecurityGroupId     = resources["sg"].Id]
         [#assign ec2RoleId              = resources["ec2Role"].Id]
         [#assign ec2InstanceProfileId   = resources["instanceProfile"].Id]
         [#assign ec2ELBId               = resources["ec2ELB"].Id]
 
         [#assign ingressRules = []]
-        
+
         [#list configuration.Ports as port]
             [#assign nextPort = port?is_hash?then(port.Port, port)]
             [#assign portCIDRs = getUsageCIDRs(
@@ -35,7 +35,7 @@
                         "CIDR" : portCIDRs
                     }]]
             [/#if]
-        [/#list]    
+        [/#list]
 
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ec2RoleId)]
@@ -57,15 +57,15 @@
         [/#if]
 
     [#if deploymentSubsetRequired("ec2", true)]
-    
+
         [@createComponentSecurityGroup
             mode=listMode
             tier=tier
             component=component
             ingressRules=ingressRules
          /]
-        
-        
+
+
         [@cfResource
             mode=listMode
             id=ec2InstanceProfileId
@@ -77,7 +77,7 @@
                 }
             outputs={}
         /]
-    
+
         [#list zones as zone]
             [#if multiAZ || (zones[0].Id = zone.Id)]
                 [#assign ec2InstanceId =
@@ -85,7 +85,7 @@
                                 tier,
                                 component,
                                 zone)]
-                [#assign ec2ENIId = 
+                [#assign ec2ENIId =
                             formatEC2ENIId(
                                 tier,
                                 component,
@@ -95,7 +95,7 @@
                                         tier,
                                         component,
                                         zone)]
-              [#-- Support backwards compatability with existing installs --] 
+              [#-- Support backwards compatability with existing installs --]
                 [#if !(getExistingReference(ec2EIPId)?has_content)]
                     [#assign ec2EIPId = formatComponentEIPId(
                                             tier,
@@ -103,14 +103,14 @@
                                             zone
                                             "eth0")]
                 [/#if]
-    
-                [#assign ec2EIPAssociationId = 
+
+                [#assign ec2EIPAssociationId =
                             formatComponentEIPAssociationId(
                                 tier,
                                 component,
                                 zone,
                                 "eth0")]
-    
+
                 [#assign processorProfile = getProcessor(tier, component, "EC2")]
                 [#assign storageProfile = getStorage(tier, component, "EC2")]
                 [#assign updateCommand = "yum clean all && yum -y update"]
@@ -120,7 +120,7 @@
                    [#assign updateCommand += " --security"]
                     [#assign dailyUpdateCron = 'echo \\"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
                 [/#if]
-                
+
                 [@cfResource
                     mode=listMode
                     id=ec2InstanceId
@@ -210,7 +210,7 @@
                                                 "LOAD_BALANCER" : getReference(ec2ELBId)
                                             },
                                             "ignoreErrors" : "false"
-                                        }) + 
+                                        }) +
                                     attributeIfTrue(
                                         "04DockerHostSetup",
                                         dockerHost,
@@ -229,7 +229,7 @@
                                 }
                             }
                         }
-                    properties=    
+                    properties=
                         getBlockDevices(storageProfile) +
                         {
                             "DisableApiTermination" : false,
@@ -278,13 +278,13 @@
                         loadBalanced?then(
                             [ec2ELBId],
                             []
-                        ) + 
+                        ) +
                         fixedIP?then(
                             [ec2EIPAssociationId],
                             []
                         )
                 /]
-    
+
                 [@cfResource
                     mode=listMode
                     id=ec2ENIId
@@ -309,14 +309,14 @@
                             zone)
                     outputs={}
                 /]
-                
+
                 [#if fixedIP]
                     [@createEIP
                         mode=listMode
                         id=ec2EIPId
                         dependencies=[ec2ENIId]
                     /]
-                    
+
                     [@cfResource
                         mode=listMode
                         id=ec2EIPAssociationId

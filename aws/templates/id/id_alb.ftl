@@ -160,6 +160,9 @@
 
     [#local sourcePort = (ports[portMappings[configuration.Mapping].Source])!{} ]
 
+    [#local id = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id) ]
+
+
     [#if (sourcePort.Certificate)!false ]
         [#local certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
         [#local hostName = getHostName(certificateObject, occurrence) ]
@@ -174,11 +177,11 @@
         {
             "Resources" : {
                 "listener" : {
-                    "Id" : formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id),
+                    "Id" : id,
                     "Type" : AWS_ALB_LISTENER_RESOURCE_TYPE
                 },
                 "sg" : {
-                    "Id" : formatSecurityGroupId(core.Id),
+                    "Id" : formatDependentSecurityGroupId(id),
                     "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
