@@ -12,10 +12,10 @@
         [#assign configuration = occurrence.Configuration]
         [#assign resources = occurrence.State.Resources]
 
-        [#assign elbId              = resources["elb"].Id]
-        [#assign elbFullName        = resources["elb"].Name]
-        [#assign elbShortFullName   = resources["elb"].ShortName]
-        [#assign securityGroupId    = resources["secGroup"].Id]
+        [#assign elbId              = resources["lb"].Id]
+        [#assign elbFullName        = resources["lb"].Name]
+        [#assign elbShortFullName   = resources["lb"].ShortName]
+        [#assign securityGroupId    = resources["sg"].Id]
         
         [#assign healthCheckDestination = ports[portMappings[configuration.PortMappings[0]].Destination] ]
         

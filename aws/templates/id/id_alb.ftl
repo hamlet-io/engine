@@ -6,63 +6,35 @@
 [#assign AWS_ALB_LISTENER_RULE_RESOURCE_TYPE = "listenerRule" ]
 [#assign AWS_ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
 
-[#function formatALBId tier component extensions...]
-    [#return formatComponentResourceId(
-                AWS_ALB_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions)]
+[#function formatALBListenerRuleId occurrence name ]
+    [#return formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, occurrence.Core.Id, name) ]
 [/#function]
 
-[#function formatALBListenerId tier component source extensions...]
-    [#return formatComponentResourceId(
-                AWS_ALB_LISTENER_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions,
-                source.Port)]
+[#function formatALBTargetGroupId occurrence name ]
+    [#return formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, occurrence.Core.Id, name) ]
 [/#function]
-
-[#function formatALBListenerRuleId tier component source name extensions...]
-    [#return formatComponentResourceId(
-                AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, 
-                tier,
-                component,
-                extensions,
-                source.Port,
-                name)]
-[/#function]
-
-[#function formatALBTargetGroupId tier component source name extensions...]
-    [#return formatComponentResourceId(
-                AWS_ALB_TARGET_GROUP_RESOURCE_TYPE,
-                tier,
-                component,
-                extensions,
-                source.Port,
-                name)]
-[/#function]
-
-[#function formatALBListenerSecurityGroupIngressId resourceId source ]
-    [#return formatDependentSecurityGroupIngressId(
-                resourceId,
-                source.Port)]
-[/#function]
-
 
 [#-- Components --]
 [#assign ALB_COMPONENT_TYPE = "alb"]
+[#assign ALB_PORT_COMPONENT_TYPE = "albport"]
 [#assign componentConfiguration +=
     {
-        ALB_COMPONENT_TYPE : [
-            {
-                "Name" : "Logs",
-                "Default" : false
-            },
-            {
-                "Name" : "PortMappings",
-                "Default" : []
-            },
+        ALB_COMPONENT_TYPE : {
+            "Attributes" : [
+                {
+                    "Name" : "Logs",
+                    "Default" : false
+                }
+            ],
+            "Components" : [
+                {
+                    "Type" : ALB_PORT_COMPONENT_TYPE,
+                    "Component" : "PortMappings",
+                    "Link" : "Port"
+                }
+            ]
+        },
+        ALB_PORT_COMPONENT_TYPE : [
             {
                 "Name" : "IPAddressGroups",
                 "Default" : []
@@ -70,48 +42,152 @@
             {
                 "Name" : "Certificate",
                 "Default" : {}
+            },
+            {
+                "Name" : "Mapping",
+                "Mandatory" : true
             }
         ]
     }]
-    
+
+[#function addPortMappingIdAndName mapping component]
+    [#local portMapping = mapping.Mapping!""]
+
+    [#if !portMapping?has_content ]
+        [@cfException
+            mode=listMode
+            description="Port mapping missing"
+            context=component
+            detail=mapping /]
+
+        [#local portMapping = "?"]
+    [/#if]
+
+    [#local source = (portMappings[portMapping].Source)!""]
+    [#local destination = (portMappings[portMapping].Destination)!""]
+
+    [#if !source?has_content ]
+        [@cfException
+            mode=listMode
+            description="Unknown source port"
+            context=component
+            detail=mapping /]
+    [/#if]
+    [#if !destination?has_content ]
+        [@cfException
+            mode=listMode
+            description="Unknown destination port"
+            context=component
+            detail=mapping /]
+    [/#if]
+
+    [#return
+        mapping +
+        {
+            "Id" : (ports[source].Port)!portMapping,
+            "Name" : contentIfContent(source, portMapping),
+            "Mapping" : portMapping
+        } ]
+[/#function]
+
+[#function migrateALBComponent component ]
+    [#local newPortMappings = {} ]
+    [#if component.PortMappings?is_sequence ]
+        [#list component.PortMappings as portMapping]
+            [#if portMapping?is_string]
+                [#local newPortMappings +=
+                    {
+                        portMapping :
+                            addPortMappingIdAndName(
+                                {"Mapping" : portMapping},
+                                component)
+                    } ]
+            [/#if]
+            [#if portMapping?is_hash]
+                [#local newPortMappings +=
+                {
+                    portMapping :
+                        addPortMappingIdAndName(
+                            portMapping,
+                            component)
+                } ]
+            [/#if]
+        [/#list]
+    [#else]
+        [#list component.PortMappings as key,portMapping]
+            [#local newPortMappings +=
+            {
+                portMapping :
+                    addPortMappingIdAndName(
+                        portMapping,
+                        component)
+            } ]
+        [/#list]
+    [/#if]
+    [#return component + { "PortMappings" : newPortMappings } ]
+[/#function]
+
 [#function getALBState occurrence]
+    [#local core = occurrence.Core]
+    [#local id = formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) ]
+
+    [#return
+        {
+            "Resources" : {
+                "lb" : {
+                    "Id" : id,
+                    "Name" : core.FullName,
+                    "ShortName" : core.ShortFullName,
+                    "Type" : AWS_ALB_RESOURCE_TYPE
+                }
+            },
+            "Attributes" : {
+                "INTERNAL_FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE)
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        }
+    ]
+[/#function]
+
+[#function getALBPortState occurrence parent]
     [#local core = occurrence.Core]
     [#local configuration = occurrence.Configuration]
 
-    [#local id = formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) ]
-    [#local internalFqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE) ]
+    [#local internalFqdn = parent.State.Attributes["INTERNAL_FQDN"] ]
 
-    [#if (configuration.PortMappings![])?has_content]
-        [#local mappingObject = configuration.PortMappings[0]?is_hash?then(
-                configuration.PortMappings[0],
-                {
-                    "Mapping" : configuration.PortMappings[0]
-                }
-            )]
-        [#if (ports[portMappings[mappingObject.Mapping].Source].Certificate)!false ]
-            [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName) ]
-            [#local hostName = getHostName(certificateObject, occurrence) ]
-            
-            [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
-            [#local scheme = "https" ]
-        [#else]
-            [#local fqdn = internalFqdn ]
-            [#local scheme ="http" ]
-        [/#if]
+    [#local sourcePort = (ports[portMappings[configuration.Mapping].Source])!{} ]
+
+    [#if (sourcePort.Certificate)!false ]
+        [#local certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName) ]
+        [#local hostName = getHostName(certificateObject, occurrence) ]
+
+        [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
+        [#local scheme = "https" ]
     [#else]
-        [#local fqdn = "" ]
-        [#local scheme = "http?" ]
+        [#local fqdn = internalFqdn ]
+        [#local scheme ="http" ]
     [/#if]
     [#return
         {
             "Resources" : {
-                "lb" : { 
-                    "Id" : id,
-                    "Type" : AWS_ALB_RESOURCE_TYPE
+                "listener" : {
+                    "Id" : formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_ALB_LISTENER_RESOURCE_TYPE
                 },
-                "secgroup" : {
+                "sg" : {
                     "Id" : formatSecurityGroupId(core.Id),
+                    "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
+                },
+                "targetgroups" : {
+                    "default" : {
+                        "Id" : formatALBTargetGroupId(occurrence, "default"),
+                        "Name" : formatName(core.FullName, "default"),
+                        "Type" : AWS_ALB_TARGET_GROUP_RESOURCE_TYPE
+                    }
                 }
             },
             "Attributes" : {

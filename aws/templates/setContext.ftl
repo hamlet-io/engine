@@ -23,6 +23,9 @@
         {
             "Name" : ["Task", "Subcomponent"]
         },
+        {
+            "Name" : ["Port", "Subcomponent"]
+        },
         "Instance",
         "Version"
     ]
