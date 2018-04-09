@@ -304,7 +304,7 @@
                         "create_pseudo_stack" + " " + 
                         "\"RDS Master Password\"" + " " + 
                         "\"$\{password_pseudo_stack_file}\"" + " " + 
-                        "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" " +
+                        "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" || return $?", 
                         "info \"Generating URL... \"",
                         "rds_url=\"$(get_rds_url" + 
                         " \"" + engine + "\" " + 
