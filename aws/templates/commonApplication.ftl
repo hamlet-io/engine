@@ -279,12 +279,6 @@
                         port.Id
                     )
                 ) ]
-            [#local targetPort =
-                valueIfTrue(
-                    (ports[targetSource].Port)!"",
-                    port.LB.Configured,
-                    ""
-                ) ]
 
             [#-- Need to be careful to allow an empty value for --]
             [#-- Instance/Version to be explicitly provided and --]
@@ -298,7 +292,10 @@
                 } +
                 attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
                 attributeIfTrue("Version", port.LB.Version??, port.LB.Version!"") +
-                attributeIfTrue("Port", targetPort?has_content, targetPort?c)
+                attributeIfContent(
+                    "Port",
+                    valueIfTrue(targetSource, port.LB.Configured, "")
+                )
             ]
 
             [@cfDebug listMode targetLink false /]
