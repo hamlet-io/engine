@@ -88,9 +88,10 @@
     [#local login = {} ]
     [#if occurrence.Configuration.GenerateCredentials.Enabled ]
         [#local login += {
-            "USERNAME" : occurrence.Configuration.GenerateCredentials.MasterUserName,
-            "PASSWORD" : getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE)
+            "USERNAME"  : occurrence.Configuration.GenerateCredentials.MasterUserName,
+            "PASSWORD"  : getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE)
         }]
+        [#local url = getExistingReference(id, URL_ATTRIBUTE_TYPE) ]
     [#else]
         [#list
             (
@@ -109,6 +110,7 @@
                 }
             ]
         [/#list]
+        [#local url = engine + "://" + login.USERNAME + ":" + login.PASSWORD + "@" + fqdn + ":" + port + "/" + name]
     [/#if]
 
     [#local result =
@@ -133,12 +135,13 @@
                 }
             },
             "Attributes" : {
+                "ENGINE" : engine,
                 "FQDN" : fqdn,
                 "PORT" : port,
                 "NAME" : name,
                 "USERNAME" : login.USERNAME,
                 "PASSWORD" : login.PASSWORD,
-                "URL" : engine + "://" + login.USERNAME + ":" + login.PASSWORD + "@" + fqdn + ":" + port + "/" + name 
+                "URL" : url
             },
             "Roles" : {
                 "Inbound" : {},

@@ -62,6 +62,8 @@
         [#assign rdsParameterGroupId = resources["parameterGroup"].Id ]
         [#assign rdsOptionGroupId = resources["optionGroup"].Id ]
 
+        [#assign rdsDatabaseName = configuration.DatabaseName!productName]
+
         [#if configuration.GenerateCredentials.Enabled ]
             [#assign rdsUsername = configuration.GenerateCredentials.MasterUserName]
             [#assign rdsPasswordLength = configuration.GenerateCredentials.CharacterLength]
@@ -265,7 +267,7 @@
                     encrypted=configuration.Encrypted
                     masterUsername=rdsUsername
                     masterPassword=rdsPassword
-                    databaseName=configuration.DatabaseName!productName
+                    databaseName=rdsDatabaseName
                     retentionPeriod=configuration.Backup.RetentionPeriod
                     snapshotId=snapshotId
                     subnetGroupId=getReference(rdsSubnetGroupId)
@@ -277,6 +279,8 @@
         [/#if]
 
         [#if deploymentSubsetRequired("epilogue", false)]
+
+            [#assign rdsFQDN = getExistingReference(rdsId, DNS_ATTRIBUTE_TYPE)]
             [@cfScript
                 mode=listMode
                 content=
@@ -296,13 +300,30 @@
                         "set_rds_master_password" +
                         " \"" + region + "\" " + 
                         " \"" + rdsFullName + "\" " + 
-                        " \"$\{master_password}\" || return $?"
+                        " \"$\{master_password}\" || return $?",
                         "create_pseudo_stack" + " " + 
                         "\"RDS Master Password\"" + " " + 
                         "\"$\{password_pseudo_stack_file}\"" + " " + 
-                        "\"" + rdsId + "Xgeneratedpassword\" " + "\"$\{encrypted_master_password}\" || return $?",
+                        "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" " +
+                        "info \"Generating URL... \"",
+                        "rds_url=\"$(get_rds_url" + 
+                        " \"" + engine + "\" " + 
+                        " \"" + rdsUsername + "\" " + 
+                        " \"$\{master_password}\" " +
+                        " \"" + rdsFQDN + "\" " + 
+                        " \"" + port?c + "\" " + 
+                        " \"" + rdsDatabaseName + "\" || return $?)\"",
+                        "encrypted_rds_url=\"$(encrypt_kms_string" +
+                        " \"" + region + "\" " +
+                        " \"$\{rds_url}\" " +
+                        " \"" + segmentKMSKey + "\" || return $?)\"", 
+                        "create_pseudo_stack" + " " + 
+                        "\"RDS Connection URL\"" + " " + 
+                        "\"$\{url_pseudo_stack_file}\"" + " " + 
+                        "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
                         "}",
-                        "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")password-pseudo-stack.json\" ",
+                        "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\" ",
+                        "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
                         "generate_master_password || return $?"
                     ],
                     []) + 
@@ -319,8 +340,25 @@
                         "set_rds_master_password" +
                         " \"" + region + "\" " + 
                         " \"" + rdsFullName + "\" " + 
-                        " \"$\{master_password}\" || return $?"
+                        " \"$\{master_password}\" || return $?",
+                        "info \"Generating URL... \"",
+                        "rds_url=\"$(get_rds_url" + 
+                        " \"" + engine + "\" " + 
+                        " \"" + rdsUsername + "\" " + 
+                        " \"$\{master_password}\" " +
+                        " \"" + rdsFQDN + "\" " + 
+                        " \"" + port?c + "\" " + 
+                        " \"" + rdsDatabaseName + "\" || return $?)\"",
+                        "encrypted_rds_url=\"$(encrypt_kms_string" +
+                        " \"" + region + "\" " +
+                        " \"$\{rds_url}\" " +
+                        " \"" + segmentKMSKey + "\" || return $?)\"", 
+                        "create_pseudo_stack" + " " + 
+                        "\"RDS Connection URL\"" + " " + 
+                        "\"$\{url_pseudo_stack_file}\"" + " " + 
+                        "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
                         "}",
+                        "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
                         "reset_master_password || return $?"
                     ],
                 []) 
