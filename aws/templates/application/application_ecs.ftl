@@ -37,6 +37,7 @@
                             [#if portMapping.LoadBalancer?has_content]
                                 [#assign loadBalancer = portMapping.LoadBalancer]
                                 [#assign link = container.Links[loadBalancer.Link] ]
+                                [@cfDebug listMode link false /]
                                 [#assign linkCore = link.Core ]
                                 [#assign linkResources = link.State.Resources ]
                                 [#assign targetId = "" ]
@@ -54,7 +55,7 @@
                                         ]
                                         [#break]
 
-                                    [#case ALB_COMPONENT_TYPE]
+                                    [#case ALB_PORT_COMPONENT_TYPE]
                                         [#assign targetId = (linkResources["targetgroups"][loadBalancer.TargetGroup].Id)!"" ]
                                         [#if !targetId?has_content]
                                             [#assign targetId = formatALBTargetGroupId(link, loadBalancer.TargetGroup) ]
