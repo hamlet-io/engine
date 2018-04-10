@@ -79,6 +79,13 @@
                 "Children" : [
                     {
                         "Name" : "Expiration"
+                    },
+                    {
+                        "Name" : "Backup"
+                    },
+                    {
+                        "Name" : "Versioning",
+                        "Default" : false
                     }
                 ]
             },

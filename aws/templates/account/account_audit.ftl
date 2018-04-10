@@ -5,8 +5,17 @@
 
         [#if deploymentSubsetRequired("audit", true)]
             [#assign lifecycleRules = []]
+
+            [#if accountObject.Audit.Expiration?has_content ]
+                [#assign lifecycleRules += 
+                    getS3LifecycleRule(
+                        accountObject.Audit.Expiration, 
+                        accountObject.Audit.Backup)
+                ]
+            [/#if]
+        
             [#assign sqsNotifications = []]
-                
+            
             [@cfResource 
                 mode=listMode
                 id=formatAccountS3Id("audit")
@@ -14,7 +23,10 @@
                 properties=
                     {
                         "BucketName" : formatName("account", "audit", accountObject.Seed),
-                        "AccessControl" : "LogDeliveryWrite"
+                        "AccessControl" : "LogDeliveryWrite",
+                        "VersioningConfiguration" : {
+                            "Status" : "Enabled"
+                        }
                     } +
                     attributeIfContent(
                         "LifecycleConfiguration",

@@ -264,9 +264,15 @@
     [#assign operationsExpiration =
         (segmentObject.Operations.Expiration)!
         (environmentObject.Operations.Expiration)!""]
+    [#assign operationsBackup = 
+        (segmentObject.Operations.Backup)!
+        (environmentObject.Operations.Backup)!""]
     [#assign dataExpiration =
         (segmentObject.Data.Expiration)!
         (environmentObject.Data.Expiration)!""]
+    [#assign dataBackup = 
+        (segmentObject.Data.Backup)!
+        (environmentObject.Data.Backup)!""]
     [#assign dataPublicEnabled =
         (segmentObject.Data.Public.Enabled)!
         (environmentObject.Data.Public.Enabled)!false]

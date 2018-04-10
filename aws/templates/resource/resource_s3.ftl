@@ -13,6 +13,61 @@
     ]
 [/#function]
 
+[#function getS3LifecycleRule 
+        expirationdays="" 
+        transitiondays="" 
+        prefix="" 
+        enabled=true
+        noncurrentexpirationdays="" 
+        noncurrenttransitiondays="" ]
+
+    [#if transitiondays?has_content && !(noncurrenttransitiondays?has_content)]
+        [#local noncurrenttransitiondays = transitiondays ]
+    [/#if]
+
+    [#if expirationdays?has_content && !(noncurrentexpirationdays?has_content)]
+        [#local noncurrentexpirationdays = expirationdays ]
+    [/#if]
+
+    [#return 
+        [
+            {
+                "Status" : enabled?then("Enabled","Disabled")
+            } +
+            attributeIfContent("Prefix", prefix) +
+            (expirationdays?has_content)?then(
+                attributeIfTrue("ExpirationInDays", expirationdays?is_number, expirationdays) +
+                attributeIfTrue("ExpirationDate", !(expirationdays?is_number), expirationdays),
+                {}
+            ) +
+            (transitiondays?has_content)?then(
+                {
+                    "Transitions" : [
+                        {
+                            "StorageClass" : "GLACIER"
+                        } + 
+                        attributeIfTrue("TransitionInDays", transitiondays?is_number, transitiondays) +
+                        attributeIfTrue("TransitionDate", !(transitiondays?is_number), transitiondays)
+                    ]
+                },
+                {}
+            ) +
+            attributeIfContent("NoncurrentVersionExpirationInDays", noncurrentexpirationdays) + 
+            (noncurrenttransitiondays?has_content)?then(
+                {
+                    "NoncurrentVersionTransitions" : [
+                        {
+                            "StorageClass" : "GLACIER",
+                            "TransitionInDays" : noncurrenttransitiondays
+                        }
+                    ]
+                },
+                {}
+            )
+        ]
+    ]
+[/#function]
+
 [#function getS3LoggingConfiguration logBucket prefix ]
     [#return 
         {
@@ -71,6 +126,7 @@
 [#macro createS3Bucket mode id name tier="" component="" 
                         lifecycleRules=[] 
                         sqsNotifications=[] 
+                        versioning=false
                         websiteConfiguration={}
                         cannedACL=""
                         dependencies="" 
@@ -81,6 +137,13 @@
         [#assign loggingConfiguration = getS3LoggingConfiguration(
                                 getExistingReference(formatAccountS3Id("audit")), 
                                 name) ]
+    [/#if]
+
+    [#local versionConfiguration={}]
+    [#if versioning ]
+        [#local versionConfiguration = {
+            "Status" : "Enabled"
+        } ]
     [/#if]
 
     [@cfResource 
@@ -114,6 +177,10 @@
             attributeIfContent(
                 "AccessControl",
                 cannedACL
+            ) + 
+            attributeIfContent(
+                "VersioningConfiguration",
+                versionConfiguration
             )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS

@@ -52,7 +52,7 @@
                 [/#if]
             [/#if]
         [/#list]
-                            
+
         [@createS3Bucket
             mode=listMode
             id=s3Id
@@ -60,14 +60,16 @@
             tier=tier
             component=component
             lifecycleRules=
-                (configuration.Lifecycle.Configured && (configuration.Lifecycle.Expiration!operationsExpiration)?has_content)?then(
-                    getS3LifecycleExpirationRule(configuration.Lifecycle.Expiration!operationsExpiration),
-                    [])
+                (configuration.Lifecycle.Configured && ((configuration.Lifecycle.Expiration!operationsExpiration)?has_content || (configuration.Lifecycle.Backup!operationsBackup)?has_content))?then(
+                        getS3LifecycleRule(configuration.Lifecycle.Expiration!operationsExpiration,configuration.Lifecycle.Backup!operationsBackup),
+                        []
+                )
             sqsNotifications=sqsNotifications
             websiteConfiguration=
                 (configuration.Website.Configured && configuration.Website.Enabled)?then(
                     getS3WebsiteConfiguration(configuration.Website.Index, configuration.Website.Error),
                     {})
+            versioning=configuration.Lifecycle.Versioning
             dependencies=dependencies
         /]
 
