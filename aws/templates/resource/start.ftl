@@ -179,7 +179,7 @@
             [#else]
                 [#return
                     {
-                        "Mapping" : "Exception: Unknown Resource Type",
+                        "Mapping" : "COTException: Unknown Resource Type",
                         "ResourceId" : resourceId,
                         "ResourceType" : resourceType
                     }

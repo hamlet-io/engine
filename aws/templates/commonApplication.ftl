@@ -10,7 +10,7 @@
             contentIfContent(
                 getOccurrenceSettingValue(
                     occurrence, ["Registries", type, "Registry"], true),
-                "Exception: Unknown registry of type " + type
+                "COTException: Unknown registry of type " + type
             )
         ) ]
 [/#function]
@@ -88,7 +88,7 @@
         [#if ignoreIfNotDefined]
             [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
         [#else]
-            [#local result = addVariableToContext(result, name, "Exception: No attributes found for link " + link) ]
+            [#local result = addVariableToContext(result, name, "COTException: No attributes found for link " + link) ]
         [/#if]
     [/#if]
     [#return result]
@@ -121,7 +121,7 @@
             [#list setting as key,value]
                 [@Variable
                     name=key
-                    value=context.Environment[formatSettingName(value)]!"Exception: Alternate variable " + formatSettingName(value) + " not found." /]
+                    value=context.Environment[formatSettingName(value)]!"COTException: Alternate variable " + formatSettingName(value) + " not found." /]
             [/#list]
         [/#if]
     [/#list]

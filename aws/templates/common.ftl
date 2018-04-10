@@ -993,7 +993,7 @@
             valueIfTrue(
                 {"Value" : ""},
                 emptyIfNotProvided,
-                {"Value" : "Exception: Setting not provided"}
+                {"Value" : "COTException: Setting not provided"}
             )
         ) ]
 [/#function]
@@ -1006,14 +1006,14 @@
     [#return
         contentIfContent(
             getOccurrenceSettingValue(occurrence, "BUILD_REFERENCE", true),
-            "Exception: Build Reference Missing") ]
+            "COTException: Build Reference Missing") ]
 [/#function]
 
 [#function getOccurrenceBuildUnit occurrence]
     [#return
         contentIfContent(
             getOccurrenceSettingValue(occurrence, "BUILD_DEPLOYMENT_UNIT", true),
-            occurrence.Configuration.Solution.DeploymentUnits[0]!"Exception: Build unit not found."
+            occurrence.Configuration.Solution.DeploymentUnits[0]!"COTException: Build unit not found."
         ) ]
 [/#function]
 
@@ -1040,7 +1040,7 @@
                 [#continue]
             [/#if]
         [#else]
-            [#local result += { key, "Exception:Internal error - setting is not a hash" } ]
+            [#local result += { key, "COTException:Internal error - setting is not a hash" } ]
         [/#if]
     [/#list]
     [#return result ]
@@ -1438,7 +1438,7 @@
             "EffectiveInstance" : instanceToMatch,
             "EffectiveVersion" : versionToMatch
         }
-        "Exception:Link not found" /]
+        "COTException:Link not found" /]
 
     [#return {} ]
 [/#function]
