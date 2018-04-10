@@ -56,7 +56,7 @@
                 }
             },
             "Attributes" : {
-                "ENGINE" : occurrence.Configuration.Engine,
+                "ENGINE" : occurrence.Configuration.Solution.Engine,
                 "FQDN"  : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
                 "PORT" : getExistingReference(id, PORT_ATTRIBUTE_TYPE),
                 "URL" :

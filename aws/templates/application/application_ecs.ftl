@@ -68,8 +68,7 @@
                                                     name=formatName(linkCore.FullName,loadBalancer.TargetGroup)
                                                     tier=linkCore.Tier
                                                     component=linkCore.Component
-                                                    destination=ports[portMapping.HostPort]
-                                                /]
+                                                    destination=ports[portMapping.HostPort] /]
 
                                                 [#assign listenerRuleId = formatALBListenerRuleId(link, loadBalancer.TargetGroup) ]
                                                 [@createListenerRule
@@ -83,7 +82,6 @@
                                                 /]
                                                 [#assign dependencies += [listenerRuleId] ]
                                             [/#if]
-
                                         [/#if]
 
                                         [#assign loadBalancers +=
@@ -197,8 +195,24 @@
                     [#assign containerId = formatContainerFragmentId(occurrence, container)]
                     [#include containerList?ensure_starts_with("/")]
                 [/#list]
+
             [/#if]
-        [/#list]
+
+            [#if deploymentSubsetRequired("prologue", false)]
+                [#-- Copy any asFiles needed by the task --]
+                [#assign asFiles = getAsFileSettings(subOccurrence.Configuration.Settings.Product) ]
+                [#if asFiles?has_content]
+                    [@cfDebug listMode asFiles false /]
+                    [@cfScript
+                        mode=listMode
+                        content=
+                            syncFilesToBucket(
+                                asFiles,
+                                operationsBucket,
+                                getOccurrenceSettingValue(subOccurrence, "SETTINGS_PREFIX")) /]
+                [/#if]
+            [/#if]
+       [/#list]
     [/#list]
 [/#if]
 

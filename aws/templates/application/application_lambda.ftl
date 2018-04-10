@@ -252,6 +252,20 @@
                 [#assign containerListMode = listMode]
                 [#include containerList?ensure_starts_with("/")]
             [/#if]
+            [#if deploymentSubsetRequired("prologue", false)]
+                [#-- Copy any asFiles needed by the task --]
+                [#assign asFiles = getAsFileSettings(fn.Configuration.Settings.Product) ]
+                [#if asFiles?has_content]
+                    [@cfDebug listMode asFiles false /]
+                    [@cfScript
+                        mode=listMode
+                        content=
+                            syncFilesToBucket(
+                                asFiles,
+                                operationsBucket,
+                                getOccurrenceSettingValue(fn, "SETTINGS_PREFIX")) /]
+                [/#if]
+            [/#if]
         [/#list]
     [/#list]
 [/#if]

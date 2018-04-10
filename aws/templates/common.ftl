@@ -8,24 +8,34 @@
 
 [#-- Utility functions --]
 
-[#function asArray arg flatten=false ]
+[#function asArray arg flatten=false ignoreEmpty=false]
+    [#local result = [] ]
     [#if arg?is_sequence]
         [#if flatten]
-            [#local result = [] ]
             [#list arg as element]
-                [#local result += asArray(element, true) ]
+                [#local result += asArray(element, flatten, ignoreEmpty) ]
             [/#list]
-            [#return result ]
         [#else]
-            [#return arg ]
+            [#if ignoreEmpty]
+                [#list arg as element]
+                    [#local elementResult = asArray(element, flatten, ignoreEmpty) ]
+                    [#if elementResult?has_content]
+                        [#local result += valueIfTrue([elementResult], element?is_sequence, elementResult) ]
+                    [/#if]
+                [/#list]
+            [#else]
+                [#local result = arg]
+            [/#if]
         [/#if]
     [#else]
-        [#return [arg] ]
+        [#local result = valueIfTrue([arg], !ignoreEmpty || arg?has_content, []) ]
     [/#if]
+
+    [#return result ]
 [/#function]
 
-[#function asFlattenedArray arg]
-    [#return asArray(arg, true) ]
+[#function asFlattenedArray arg ignoreEmpty=false]
+    [#return asArray(arg, true, ignoreEmpty) ]
 [/#function]
 
 [#function getUniqueArrayElements args...]
@@ -878,88 +888,94 @@
     ]
 [/#function]
 
-[#function getOccurrenceAccountSettings occurrence]
-    [#local accountContext = (settingsObject.AppSettings.Accounts[accountName])!{} ]
-    [#local settingsContexts =
-        valueIfContent([accountContext], accountContext, []) ]
+[#function getOccurrenceSettings possibilities alternatives]
+    [#local contexts = [] ]
 
-    [#local occurrenceSettings = getCompositeObject({ "Name" : "*" }, settingsContexts) ]
-    [#return asFlattenedSettings(occurrenceSettings) ]
+    [#-- Order possibilities in increasing priority --]
+    [#list possibilities?keys?sort as key]
+        [#local matchKey = key?lower_case?remove_ending("-asfile") ]
+        [#local value = possibilities[key] ]
+        [#if value?has_content]
+            [#list alternatives as alternative]
+                [#if alternative?starts_with(matchKey) ]
+                    [#local contexts += [value] ]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+
+    [#return asFlattenedSettings(getCompositeObject({ "Name" : "*" }, contexts)) ]
+[/#function]
+
+[#function getOccurrenceAccountSettings occurrence]
+    [#local alternatives = [accountName] ]
+    [#return
+        getOccurrenceSettings(
+            settingsObject.AppSettings.Accounts,
+            alternatives) ]
 [/#function]
 
 [#function getOccurrenceProductSettings occurrence]
-    [#local buildContexts = [] ]
-    [#local productContext = (settingsObject.AppSettings.Products[productName])!{} ]
-    [#local segmentContext = (settingsObject.AppSettings.Products[formatSegmentFullName()])!{} ]
-    [#local settingsContexts =
-        valueIfContent([productContext], productContext, []) +
-        valueIfContent([segmentContext], segmentContext, []) ]
-
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
-    [#local alternatives = [
-            (settingsObject.Builds.Products[formatSegmentFullName(deploymentUnit)].Reference)!"",
-            deploymentUnit,
-            occurrence.Core.Name,
-            occurrence.Core.TypedName
+
+    [#local buildDeploymentUnit =
+        (settingsObject.Builds.Products[formatSegmentFullName(deploymentUnit)].Reference)!"" ]
+
+    [#local alternatives =
+        [
+            formatSegmentFullName(buildDeploymentUnit),
+            formatSegmentFullName(deploymentUnit),
+            occurrence.Core.TypedFullName,
+            occurrence.Core.ShortTypedFullName
         ] ]
-    [#list alternatives as alternative]
-        [#if alternative?has_content]
-            [#local buildContext = (settingsObject.Builds.Products[formatSegmentFullName(alternative)])!{} ]
-            [#local buildContexts += valueIfContent([buildContext], buildContext, []) ]
 
-            [#local settingsContext = (settingsObject.AppSettings.Products[formatSegmentFullName(alternative)])!{} ]
-            [#local settingsContexts += valueIfContent([settingsContext], settingsContext, []) ]
+    [#local occurrenceBuild =
+                getOccurrenceSettings(
+                    settingsObject.Builds.Products,
+                    alternatives) ]
 
-            [#local settingsContext = (settingsObject.AppSettings.Products[formatSegmentFullName(alternative,"asfile")])!{} ]
-            [#local settingsContexts += valueIfContent([settingsContext], settingsContext, []) ]
-        [/#if]
-    [/#list]
-    [#local occurrenceBuild = getCompositeObject({ "Name" : "*" }, buildContexts) ]
-    [#local occurrenceSettings = getCompositeObject({ "Name" : "*" }, settingsContexts) ]
+    [#local occurrenceSettings =
+                getOccurrenceSettings(
+                    settingsObject.AppSettings.Products,
+                    alternatives) ]
+
     [#return
-        asFlattenedSettings(occurrenceSettings) +
+        occurrenceSettings +
         attributeIfContent(
             "BUILD_REFERENCE",
-            occurrenceBuild.Commit!occurrenceBuild.commit!"",
-            {"Value" : occurrenceBuild.Commit!occurrenceBuild.commit!""}
+            occurrenceBuild.COMMIT!""
         ) +
         attributeIfContent(
             "BUILD_DEPLOYMENT_UNIT",
-            occurrenceBuild.Reference!"",
-            {"Value" : occurrenceBuild.Reference!""}
+            occurrenceBuild.REFERENCE!""
         ) +
         attributeIfContent(
             "APP_REFERENCE"
-            occurrenceBuild.Tag!occurrenceBuild.tag!"",
-            {"Value" : occurrenceBuild.Tag!occurrenceBuild.tag!""}
+            occurrenceBuild.TAG!""
         ) ]
 [/#function]
 
 [#function getOccurrenceCredentialSettings occurrence]
-    [#local productContext = (settingsObject.Credentials.Products[productName])!{} ]
-    [#local segmentContext = (settingsObject.Credentials.Products[formatSegmentFullName()])!{} ]
-    [#local credentialsContexts =
-        valueIfContent([productContext], productContext, []) +
-        valueIfContent([segmentContext], segmentContext, []) ]
-
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
-    [#local alternatives = [
-            (settingsObject.Builds.Products[formatSegmentFullName(deploymentUnit)].Reference)!"",
-            deploymentUnit,
-            occurrence.Core.Name,
-            occurrence.Core.TypedName
-        ] ]
-    [#list alternatives as alternative]
-        [#if alternative?has_content]
-            [#local credentialsContext = (settingsObject.Credentials.Products[formatSegmentFullName(alternative)])!{} ]
-            [#local credentialsContexts += valueIfContent([credentialsContext], credentialsContext, []) ]
 
-            [#local credentialsContext = (settingsObject.Credentials.Products[formatSegmentFullName(alternative, "asfile")])!{} ]
-            [#local credentialsContexts += valueIfContent([credentialsContext], credentialsContext, []) ]
-        [/#if]
-    [/#list]
-    [#local occurrenceCredentials = getCompositeObject({ "Name" : "*" }, credentialsContexts) ]
-    [#return markAsSensitive(asFlattenedSettings(occurrenceCredentials)) ]
+    [#local buildDeploymentUnit =
+        (settingsObject.Builds.Products[formatSegmentFullName(deploymentUnit)].Reference)!"" ]
+
+    [#local alternatives =
+        [
+            formatSegmentFullName(buildDeploymentUnit),
+            formatSegmentFullName(deploymentUnit),
+            occurrence.Core.FullName,
+            occurrence.Core.TypedFullName,
+            occurrence.Core.ShortFullName,
+            occurrence.Core.ShortTypedFullName
+        ] ]
+
+    [#return
+        markAsSensitive(
+            getOccurrenceSettings(
+                settingsObject.Credentials.Products,
+                alternatives) ) ]
 [/#function]
 
 [#-- Try to match the desired setting in decreasing specificity --]
@@ -1020,10 +1036,58 @@
 [#function getAsFileSettings settings ]
     [#local result = [] ]
     [#list settings as key,value]
-        [#if value?is_hash && value.asFile!false]
+        [#if value?is_hash && value.AsFile?has_content]
                 [#local result += [value] ]
         [/#if]
     [/#list]
+    [#return result ]
+[/#function]
+
+[#function syncFilesToBucket settings bucket prefix]
+    [#-- Create an array for the files --]
+    [#local result = ["filePathsToSynch=()"] ]
+    [#list settings as setting]
+        [#local result += ["filePathsToSynch+=(\"" + setting.AsFile + "\")"] ]
+    [/#list]
+    [#local result += ["#"] ]
+
+    [#-- Locate where each file is --]
+    [#local result +=
+        [
+            "filesToSynch=()",
+            "dirsToCheck=(\"$\{SEGMENT_APPSETTINGS_DIR}\")",
+            "dirsToCheck+=(\"$\{SEGMENT_CREDENTIALS_DIR}\")",
+            "#",
+            "for f in \"$\{filePathsToSynch[@]}\"; do",
+            "  for d in \"$\{dirsToCheck[@]}\"; do",
+            "    if [[ -f \"$\{d}/$\{f}\" ]]; then",
+            "      filesToSynch+=(\"$\{d}/$\{f}\")",
+            "      break",
+            "  done",
+            "done",
+            "#"
+        ] ]
+
+    [#-- Perform the h --]
+    [#local result +=
+        [
+            "case $\{STACK_OPERATION} in",
+            "  delete)",
+            "    deleteTreeFromBucket" + " " +
+                "\"" + regionId + "\"" + " " +
+                "\"" + bucket   + "\"" + " " +
+                "\"" + prefix   + "\"" + " " +
+                "|| return $?",
+            "    ;;",
+            "  create|update)",
+            "    synchFilesToBucket"    + " " +
+                "\"" + regionId + "\"" + " " +
+                "\"" + bucket   + "\"" + " " +
+                "\"" + prefix   + "\"" + " " +
+                "filesToSynch --delete || return $?",
+            "    ;;",
+            " esac"
+        ] ]
     [#return result ]
 [/#function]
 
@@ -1106,16 +1170,16 @@
         [#local tierName = getTierName(tier) ]
         [#local componentId = getComponentId(component) ]
         [#local componentName = getComponentName(component) ]
-        [#local subComponentId = "" ]
-        [#local subComponentName = "" ]
+        [#local subComponentId = [] ]
+        [#local subComponentName = [] ]
         [#local contexts += [component, typeObject] ]
     [#else]
         [#local tierId = parentOccurrence.Core.Tier.Id ]
         [#local tierName = parentOccurrence.Core.Tier.Name ]
         [#local componentId = parentOccurrence.Core.Component.Id ]
         [#local componentName = parentOccurrence.Core.Component.Name ]
-        [#local subComponentId = typeObject.Id?replace("-","X") ]
-        [#local subComponentName = typeObject.Name ]
+        [#local subComponentId = typeObject.Id?split("-") ]
+        [#local subComponentName = typeObject.Name?split("-") ]
         [#local contexts += [typeObject] ]
     [/#if]
 
@@ -1148,6 +1212,14 @@
                     [#local versionId = getContextId(version) ]
                     [#local versionName = getContextName(version) ]
                     [#local contexts += [instance, version] ]
+                    [#local idExtensions =
+                                subComponentId +
+                                asArray(instanceId, true, true) +
+                                asArray(versionId, true, true) ]
+                    [#local nameExtensions =
+                                subComponentName +
+                                asArray(instanceName, true, true) +
+                                asArray(versionName, true, true) ]
                     [#local occurrence =
                         {
                             "Core" : {
@@ -1170,16 +1242,14 @@
                                     "Name" : firstContent(versionName, (parentOccurrence.Core.Version.Name)!"")
                                 },
                                 "Internal" : {
-                                    "IdExtensions" : [subComponentId, instanceId, versionId],
-                                    "NameExtensions" : [subComponentName, instanceName, versionName]
+                                    "IdExtensions" : idExtensions,
+                                    "NameExtensions" : nameExtensions
                                 },
                                 "Extensions" : {
                                     "Id" :
-                                        ((parentOccurrence.Core.Extensions.Id)![tierId, componentId]) +
-                                        [subComponentId, instanceId, versionId],
+                                        ((parentOccurrence.Core.Extensions.Id)![tierId, componentId]) + idExtensions,
                                     "Name" :
-                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentName]) +
-                                        [subComponentName, instanceName, versionName]
+                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentName]) + nameExtensions
                                 }
 
                             } +
@@ -1187,8 +1257,8 @@
                                 "SubComponent",
                                 subComponentId,
                                 {
-                                    "Id" : subComponentId,
-                                    "Name" : subComponentName
+                                    "Id" : formatId(subComponentId),
+                                    "Name" : formatName(subComponentName)
                                 }
                             ),
                             "Configuration" : {

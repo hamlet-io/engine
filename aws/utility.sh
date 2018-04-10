@@ -160,16 +160,16 @@ function contains() {
   [[ "${string}" =~ ${pattern} ]]
 }
 
-function generateComplexString() { 
+function generateComplexString() {
   # String suitable for a password - Alphanumeric and special characters
-  local length="$1"; shift 
+  local length="$1"; shift
 
   echo "$(dd bs=256 count=1 if=/dev/urandom | base64 | env LC_CTYPE=C tr -dc '[:punct:][:alnum:]' | tr -d '@"/'  | fold -w "${length}" | head -n 1)" || return $?
 }
 
-function generateSimpleString() { 
+function generateSimpleString() {
   # Simple string - Alphanumeric only
-  local length="$1"; shift 
+  local length="$1"; shift
 
   echo "$(dd bs=256 count=1 if=/dev/urandom | base64 | env LC_CTYPE=C tr -dc '[:alnum:]' | fold -w "${length}" | head -n 1)" || return $?
 }
@@ -707,7 +707,7 @@ function convertFilesToJSONObject() {
   for file in "${files[@]}"; do
 
     local source_file="${file}"
-    local attribute="$( fileBase "${file}" | tr "-" "_" )"
+    local attribute="$( fileBase "${file}" | tr "-" "_" )_file"
 
     if [[ "${as_file}" == "true" ]]; then
       source_file="$(getTempFile "asfile_${attribute,,}_XXX.json" "${tmp_dir}")"
@@ -747,7 +747,7 @@ function convertFilesToJSONObject() {
 }
 
 # -- KMS --
-function decrypt_kms_string() { 
+function decrypt_kms_string() {
   local region="$1"; shift
   local value="$1"; shift
 
@@ -757,15 +757,15 @@ function decrypt_kms_string() {
   aws --region "${region}" kms decrypt --ciphertext-blob fileb://${file} --output text --query Plaintext | base64 --decode || return $?
 }
 
-function encrypt_kms_string() { 
+function encrypt_kms_string() {
   local region="$1"; shift
-  local value="$1"; shift 
-  local kms_key_id="$1"; shift 
+  local value="$1"; shift
+  local kms_key_id="$1"; shift
 
   aws --region "${region}" kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text || return $?
 }
 
-# -- Cognito -- 
+# -- Cognito --
 
 function update_cognito_userpool() { 
   local region="$1"; shift 
@@ -809,8 +809,8 @@ function syncFilesToBucket() {
   fi
   local optional_arguments=("$@")
 
-  local tmp_dir="$( getTempDir "s3_sync_XXX")"
-
+  pushTempDir "s3_sync_XXX"
+  local tmp_dir="$( getCurrentTempDir )"
 
   # Copy files locally so we can synch with S3, potentially including deletes
   for file in "${syncFiles[@]}" ; do
@@ -828,6 +828,8 @@ function syncFilesToBucket() {
 
   # Now synch with s3
   aws --region ${region} s3 sync "${optional_arguments[@]}" "${tmp_dir}/" "s3://${bucket}/${prefix}${prefix:+/}"
+
+  popTempDir
 }
 
 function deleteTreeFromBucket() {
@@ -969,18 +971,18 @@ function create_snapshot() {
   info "Snapshot Created - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )"
 }
 
-function encrypt_snapshot() { 
+function encrypt_snapshot() {
   local region="$1"; shift
   local db_snapshot_identifier="$1"; shift
-  local kms_key_id="$1"; shift 
+  local kms_key_id="$1"; shift
 
-  # Check the snapshot status 
+  # Check the snapshot status
   snapshot_info=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $? )
 
-  if [[ -n "${snapshot_info}" ]]; then 
+  if [[ -n "${snapshot_info}" ]]; then
     if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Status == "Available"') ]]; then
 
-      if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Encrypted') == false ]]; then 
+      if [[ $(echo "${snapshot_info}" | jq -r '.DBSnapshots[0].Encrypted') == false ]]; then
 
         info "Converting snapshot ${db_snapshot_identifier} to an encrypted snapshot"
 
@@ -997,50 +999,50 @@ function encrypt_snapshot() {
         info "Removing plaintext snapshot..."
         # delete the original snapshot
         aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}"  1> /dev/null || return $?
-        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "${db_snapshot_identifier}"  || return $? 
+        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
 
         # Copy snapshot back to original identifier
         info "Renaming encrypted snapshot..."
         aws --region "${region}" rds copy-db-snapshot \
           --source-db-snapshot-identifier "encrypted-${db_snapshot_identifier}" \
           --target-db-snapshot-identifier "${db_snapshot_identifier}" 1> /dev/null || return $?
-        
+
         sleep 2
         aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
-        
+
         # Remove the encrypted temp snapshot
         aws --region "${region}" rds delete-db-snapshot --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  1> /dev/null || return $?
-        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  || return $? 
+        aws --region "${region}" rds wait db-snapshot-deleted --db-snapshot-identifier "encrypted-${db_snapshot_identifier}"  || return $?
 
         db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
         info "Snapshot Converted - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime + " Encrypted: " + (.Encrypted|tostring)' )"
 
         return 0
 
-      else 
+      else
 
         echo "Snapshot ${db_snapshot_identifier} already encrypted"
         return 0
-        
+
       fi
-    
-    else 
+
+    else
       echo "Snapshot not in a usuable state $(echo "${snapshot_info}")"
-      return 255 
+      return 255
     fi
   fi
 }
 
-function set_rds_master_password() { 
+function set_rds_master_password() {
   local region="$1"; shift
   local db_identifier="$1"; shift
-  local password="$1"; shift 
+  local password="$1"; shift
 
   info "Resetting master password for RDS instance ${db_identifier}"
   aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null || return $?
 }
 
-function get_rds_url() { 
+function get_rds_url() {
   local engine="$1"; shift
   local username="$1"; shift
   local password="$1"; shift

@@ -291,11 +291,11 @@
 
                 [#if wafPresent && ipAddressGroupsUsage["waf"]?has_content ]
                     [#assign wafGroups = [] ]
-                    [#assign wafRuleDefault = 
+                    [#assign wafRuleDefault =
                                 solution.WAF.RuleDefault?has_content?then(
                                     solution.WAF.RuleDefault,
                                     "ALLOW")]
-                    [#assign wafDefault = 
+                    [#assign wafDefault =
                                 solution.WAF.Default?has_content?then(
                                     solution.WAF.Default,
                                     "BLOCK")]
@@ -307,11 +307,11 @@
                             [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
                                 [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
                                 [#if usageGroup.IsOpen]
-                                    [#assign wafRuleDefault = 
+                                    [#assign wafRuleDefault =
                                         solution.WAF.RuleDefault?has_content?then(
                                             solution.WAF.RuleDefault,
                                             "COUNT")]
-                                    [#assign wafDefault = 
+                                    [#assign wafDefault =
                                             solution.WAF.Default?has_content?then(
                                                 solution.WAF.Default,
                                                 "ALLOW")]
@@ -328,11 +328,11 @@
                     [#else]
                         [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
                             [#if usageGroup.IsOpen]
-                                [#assign wafRuleDefault = 
+                                [#assign wafRuleDefault =
                                     solution.WAF.RuleDefault?has_content?then(
                                         solution.WAF.RuleDefault,
                                         "COUNT")]
-                                [#assign wafDefault = 
+                                [#assign wafDefault =
                                         solution.WAF.Default?has_content?then(
                                             solution.WAF.Default,
                                             "ALLOW")]
@@ -391,11 +391,10 @@
             [/#if]
         [/#if]
 
-        [#if solution.Publish.Configured && solution.Publish.Enabled ]
+        [#if publishPresent ]
             [#assign docsS3BucketId = resources["docs"].Id]
             [#assign docsS3BucketPolicyId = resources["docspolicy"].Id ]
 
-        [#if publishPresent ]
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
 
             [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
@@ -437,7 +436,7 @@
                         "  #",
                         "  # Fetch the apidoc file",
                         "  copyFilesFromBucket" + " " +
-                            regionId + " " + 
+                            regionId + " " +
                             getRegistryEndPoint("swagger", occurrence) + " " +
                             formatRelativePath(
                                 getRegistryPrefix("swagger", occurrence) + productName,

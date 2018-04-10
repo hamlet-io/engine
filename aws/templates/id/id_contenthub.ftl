@@ -37,14 +37,14 @@
             "Resources" : {
                 "contenthub" : {
                     "Id" : id,
-                    "Type" : COT_CONTENTHUB_HUB_RESOURCE_TYPE 
+                    "Type" : COT_CONTENTHUB_HUB_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
-                "ENGINE" : configuration.Engine,
-                "REPOSITORY" : configuration.Repository,
-                "BRANCH" : configuration.Branch,
-                "PREFIX" : configuration.Prefix
+                "ENGINE" : solution.Engine,
+                "REPOSITORY" : solution.Repository,
+                "BRANCH" : solution.Branch,
+                "PREFIX" : solution.Prefix
             }
         }
     ]
