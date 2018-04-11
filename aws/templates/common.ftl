@@ -243,7 +243,19 @@
 
 [#function getAppDataFilePrefix occurrence={} ]
     [#if occurrence?has_content]
-        [#return formatRelativePath("appdata", occurrence.Core.FullRelativePath) ]
+        [#local override =
+            getOccurrenceSettingValue(
+                occurrence,
+                [
+                    ["FILEPREFIXES", "APPDATA"],
+                    ["DEFAULTFILEPREFIX"]
+                ], true) ]
+        [#return
+            valueIfContent(
+                formatSegmentRelativePath("appdata", override),
+                override,
+                formatRelativePath("appdata", occurrence.Core.FullRelativePath)
+            ) ]
     [#else]
         [#return context.Environment["APPDATA_PREFIX"] ]
     [/#if]
@@ -252,7 +264,20 @@
 [#function getAppDataPublicFilePrefix occurrence={} ]
     [#if (segmentObject.Data.Public.Enabled)!false]
         [#if occurrence?has_content]
-            [#return formatRelativePath("apppublic", occurrence.Core.FullRelativePath) ]
+            [#local override =
+                getOccurrenceSettingValue(
+                    occurrence,
+                    [
+                        ["FILEPREFIXES", "APPPUBLIC"],
+                        ["FILEPREFIXES", "APPDATA"],
+                        ["DEFAULTFILEPREFIX"]
+                    ], true) ]
+            [#return
+                valueIfContent(
+                    formatSegmentRelativePath("apppublic", override),
+                    override,
+                    formatRelativePath("apppublic", occurrence.Core.FullRelativePath)
+                ) ]
         [#else]
             [#return context.Environment["APPDATA_PUBLIC_PREFIX"] ]
         [/#if]
@@ -979,14 +1004,21 @@
 [/#function]
 
 [#-- Try to match the desired setting in decreasing specificity --]
-[#function getOccurrenceSetting occurrence name emptyIfNotProvided=false]
-    [#local nameParts = asFlattenedArray(name) ]
+[#-- A single match array or an array of arrays can be provided --]
+[#function getOccurrenceSetting occurrence names emptyIfNotProvided=false]
+    [#local nameAlternatives = asArray(names) ]
+    [#if !(nameAlternatives[0]?is_sequence]
+      [#local nameAlternatives = [nameAlternatives] ]
+    [/#if
     [#local settingNames = [] ]
     [#local setting = {} ]
 
-    [#list nameParts as namePart]
-        [#local settingNames +=
-            [formatSettingName(nameParts[namePart?index..])] ]
+    [#list nameAlternatives as nameAlternative]
+        [#local nameParts = asArray(nameAlternative) ]
+        [#list nameParts as namePart]
+            [#local settingNames +=
+                [formatSettingName(nameParts[namePart?index..])] ]
+        [/#list]
     [/#list]
 
     [#list settingNames as settingName]

@@ -12,7 +12,7 @@
             [#assign core = fn.Core ]
             [#assign solution = fn.Configuration.Solution ]
             [#assign resources = fn.State.Resources ]
-    
+
             [#assign fnId = resources["function"].Id ]
             [#assign fnName = resources["function"].Name ]
 
@@ -23,7 +23,7 @@
                     solution.Container,
                     getComponentId(core.Component)
                 ) ]
-            [#assign context = 
+            [#assign context =
                 {
                     "Id" : containerId,
                     "Name" : containerId,
@@ -32,7 +32,7 @@
                     "Environment" :
                         standardEnvironment(fn, "WEB"),
                     "S3Bucket" : getRegistryEndPoint("lambda", occurrence),
-                    "S3Key" : 
+                    "S3Key" :
                         formatRelativePath(
                             getRegistryPrefix("lambda", occurrence) + productName,
                             getOccurrenceBuildUnit(occurrence),
@@ -40,13 +40,14 @@
                             "lambda.zip"
                         ),
                     "Links" : getLinkTargets(fn),
-                    "DefaultLinkVariables" : true
+                    "DefaultLinkVariables" : true,
+                    "Policies" : standardPolicies(occurrence)
                 }
             ]
 
             [#if deploymentSubsetRequired("lambda", true)]
                 [#list context.Links as linkName,linkTarget]
-                    
+
                     [#assign linkTargetCore = linkTarget.Core ]
                     [#assign linkTargetConfiguration = linkTarget.Configuration ]
                     [#assign linkTargetResources = linkTarget.State.Resources ]
@@ -54,7 +55,7 @@
                     [#assign linkDirection = linkTarget.Direction ]
 
                     [#switch linkTargetCore.Type]
-                        [#case USERPOOL_COMPONENT_TYPE] 
+                        [#case USERPOOL_COMPONENT_TYPE]
                         [#case "apigateway"]
                             [#if linkTargetResources[(linkTargetCore.Type)].Deployed &&
                                     (linkDirection == "inbound")]
@@ -66,7 +67,7 @@
                                 /]
                             [/#if]
                             [#break]
-                    [/#switch]    
+                    [/#switch]
                 [/#list]
             [/#if]
 
@@ -83,7 +84,7 @@
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                 [#-- Create a role under which the function will run and attach required policies --]
                 [#-- The role is mandatory though there may be no policies attached to it --]
-                [@createRole 
+                [@createRole
                     mode=listMode
                     id=roleId
                     trustedServices=["lambda.amazonaws.com"]
@@ -93,7 +94,7 @@
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
                         )
                 /]
-                
+
                 [#if context.Policy?has_content]
                     [#assign policyId = formatDependentPolicyId(fnId)]
                     [@createPolicy
@@ -122,7 +123,7 @@
             [#if deploymentSubsetRequired("lambda", true)]
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
                 [#if vpc?has_content && solution.VPCAccess]
-                    [@createDependentSecurityGroup 
+                    [@createDependentSecurityGroup
                         mode=listMode
                         tier=tier
                         component=component
@@ -156,7 +157,7 @@
                         )
                     dependencies=roleId
                 /]
-                
+
                 [#list solution.Schedules?values as schedule ]
 
                     [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
@@ -181,7 +182,7 @@
                     /]
                 [/#list]
 
-                [#list configuration.Metrics?values as metric ]
+                [#list solution.Metrics?values as metric ]
 
                     [#switch metric.Type ]
                         [#case "logFilter" ]
@@ -200,7 +201,7 @@
 
                 [/#list]
 
-                [#list configuration.Alerts?values as alert ]
+                [#list solution.Alerts?values as alert ]
 
                     [#assign dimensions=[] ]
 

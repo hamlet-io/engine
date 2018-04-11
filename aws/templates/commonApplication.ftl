@@ -211,6 +211,23 @@
     ]
 [/#function]
 
+[#function standardPolicies occurrence ]
+    [#return
+        valueIfContent(
+            credentialsDecryptPermission,
+            occurrence.Configuration.Environment.Sensitive,
+            []
+        ) +
+        s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)) +
+        s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence)) +
+        valueIfContent(
+            s3AllPermission(dataBucket, getAppDataPublicFilePrefix(occurrence)),
+            getAppDataPublicFilePrefix(occurrence),
+            []
+        )
+    ]
+[/#function]
+
 [#function getTaskContainers task]
 
     [#local core = task.Core ]
@@ -392,7 +409,8 @@
                         "AWS_DEFAULT_REGION" : regionId
                     },
                 "Links" : getLinkTargets(task, containerLinks),
-                "DefaultLinkVariables" : true
+                "DefaultLinkVariables" : true,
+                "Policies" : standardPolicies(occurrence)
             } +
             attributeIfContent("ImageVersion", container.Version) +
             attributeIfContent("Cpu", container.Cpu) +
