@@ -208,7 +208,7 @@
     [#return result]
 [/#function]
 
-[#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false]
+[#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false flatten=false]
     [#local result =
         [
             { "Key" : "cot:request", "Value" : requestReference }
@@ -279,10 +279,20 @@
                 ]
             ]
         [/#list]
-        [#return returnValue]
-    [#else]
-        [#return result]
+        [#local result=returnValue]        
     [/#if]
+    [#if flatten ]
+        [#local returnValue = {} ]
+        [#list result as entry ]
+            [#local returnValue += 
+                {
+                    entry.Key, entry.Value 
+                }
+            ]
+        [/#list]
+        [#local result=returnValue]
+    [/#if]
+    [#return result]
 [/#function]
 
 [#function getCfTemplateDefaultOutputs]

@@ -208,6 +208,7 @@ function process_template() {
 
     solution)
       template_composites+=("SOLUTION" )
+      passes=("${passes[@]}" "config")
       if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
         for pass in "${pass_list[@]}"; do 
           pass_deployment_unit_prefix["${pass}"]="" 

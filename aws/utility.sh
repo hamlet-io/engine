@@ -575,12 +575,12 @@ function encrypt_kms_string() {
 
 # -- Cognito -- 
 
-function add_cognito_lambda_triggers() { 
+function update_cognito_userpool() { 
   local region="$1"; shift 
   local userpoolid="$1"; shift
-  local lambdaconfig="$1"; shift 
+  local configfile="$1"; shift 
 
-  aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --lambda-config "${lambdaconfig}" || return $? 
+  aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $? 
 }
 
 # -- S3 --
