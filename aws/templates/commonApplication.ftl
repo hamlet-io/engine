@@ -96,8 +96,10 @@
 
 [#function addDefaultLinkVariablesToContext context]
     [#local result = context ]
-    [#list context.Links?keys as name]
-        [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
+    [#list context.Links as name,value]
+        [#if value.Direction != "inbound"]
+            [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
+        [/#if]
     [/#list]
     [#return result]
 [/#function]
@@ -212,17 +214,26 @@
 [/#function]
 
 [#function standardPolicies occurrence ]
+    [#local permissions = occurrence.Configuration.Solution.Permissions ]
     [#return
-        valueIfContent(
-            credentialsDecryptPermission,
-            occurrence.Configuration.Environment.Sensitive,
+        valueIfTrue(
+            credentialsDecryptPermission(),
+            permissions.Decrypt,
             []
         ) +
-        s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)) +
-        s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence)) +
-        valueIfContent(
+        valueIfTrue(
+            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)),
+            permissions.AsFile,
+            []
+        ) +
+        valueIfTrue(
+            s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence)),
+            permissions.AppData,
+            []
+        ) +
+        valueIfTrue(
             s3AllPermission(dataBucket, getAppDataPublicFilePrefix(occurrence)),
-            getAppDataPublicFilePrefix(occurrence),
+            permissions.AppPublic && getAppDataPublicFilePrefix(occurrence)?has_content,
             []
         )
     ]
@@ -410,7 +421,7 @@
                     },
                 "Links" : getLinkTargets(task, containerLinks),
                 "DefaultLinkVariables" : true,
-                "Policies" : standardPolicies(occurrence)
+                "Policy" : standardPolicies(task)
             } +
             attributeIfContent("ImageVersion", container.Version) +
             attributeIfContent("Cpu", container.Cpu) +

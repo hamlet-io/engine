@@ -10,6 +10,7 @@
 
         [#assign core = occurrence.Core ]
         [#assign solution = occurrence.Configuration.Solution ]
+        [#assign settings = occurrence.Configuration.Settings ]
 
         [#assign containerId =
             solution.Container?has_content?then(
@@ -27,6 +28,7 @@
                         "TEMPLATE_TIMESTAMP" : .now?iso_utc,
                         "BUILD_REFERENCE" : getOccurrenceBuildReference(occurrence)
                     } +
+                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Product) +
                     attributeIfContent(
                         "APP_REFERENCE", 
                         getOccurrenceSettingValue(occurrence, "APP_REFERENCE", true)),

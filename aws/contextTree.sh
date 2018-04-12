@@ -147,7 +147,7 @@ function assemble_settings() {
     pushd "$(filePath "${product_file}")/appsettings" > /dev/null 2>&1 || continue
 
     # Appsettings
-    readarray -t setting_files < <(find . -type f \( -not -name "*build.json" -and -not -path "*/asFile/*" \) )
+    readarray -t setting_files < <(find . -type f \( -not -name "*build.json" -and -not -name "*.ref" -and -not -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
       tmp_file="$( getTempFile "product_appsettings_XXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "AppSettings Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
@@ -621,7 +621,7 @@ function upgrade_credentials() {
   local legacy_file="$1"; shift
   local upgraded_file="$1"; shift
 
-    if [[ "$(jq ".Credentials | length" < "${legacy_file}" )" -gt 0 ]]; then
+    if [[ "$(jq ".Credentials | if .==null then [] else [1] end | length" < "${legacy_file}" )" -gt 0 ]]; then
       runJQ ".Credentials" "${legacy_file}"  > "${upgraded_file}"
     else
       cat "${legacy_file}" > "${upgraded_file}"
@@ -642,8 +642,11 @@ function upgrade_cmdb() {
   # All build references now in json format
   readarray -t legacy_files < <(find "${root_dir}" -type f -name "build.ref" )
   for legacy_file in "${legacy_files[@]}"; do
+    debug "Checking ${legacy_file}..."
+    replacement_file="$(filePath "${legacy_file}")/build.json"
+    [[ -f "${replacement_file}" ]] && continue
     upgrade_needed="true"
-    trace "Upgrading ${legacy_file} ..."
+    info "Upgrading ${legacy_file} ..."
     tmp_file="$(getTempFile "build_XXX.json" "${tmp_dir}")"
     upgrade_build_ref "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
@@ -651,15 +654,18 @@ function upgrade_cmdb() {
       willLog "trace" && { echo; cat "${tmp_file}"; echo; }
       continue
     fi
-    cp "${tmp_file}" "$(filePath "${legacy_file}")/build.json" || { upgrade_succeeded="false"; continue; }
+    cp "${tmp_file}" "${replacement_file}" || { upgrade_succeeded="false"; continue; }
 #    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
   done
 
   # All shared build references now in json format
   readarray -t legacy_files < <(find "${root_dir}" -type f \( -name "*.ref" -and -not -name "build.ref" \) )
   for legacy_file in "${legacy_files[@]}"; do
+    debug "Checking ${legacy_file}..."
+    replacement_file="$(filePath "${legacy_file}")/shared_build.json"
+    [[ -f "${replacement_file}" ]] && continue
     upgrade_needed="true"
-    trace "Upgrading ${legacy_file} ..."
+    info "Upgrading ${legacy_file} ..."
     tmp_file="$(getTempFile "shared_XXX.json" "${tmp_dir}")"
     upgrade_shared_build_ref "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
@@ -667,16 +673,17 @@ function upgrade_cmdb() {
       willLog "trace" && { echo; cat "${tmp_file}"; echo; }
       continue
     fi
-    cp "${tmp_file}" "$(filePath "${legacy_file}")/shared_build.json" || { upgrade_succeeded="false"; continue; }
+    cp "${tmp_file}" "${replacement_file}" || { upgrade_succeeded="false"; continue; }
 #    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
   done
 
   # Strip top level "Credentials" attribute from credentials
   readarray -t legacy_files < <(find "${root_dir}" -type f -name "credentials.json" )
   for legacy_file in "${legacy_files[@]}"; do
-    if [[ "$(jq ".Credentials | length" < "${legacy_file}" )" -gt 0 ]]; then
+    debug "Checking ${legacy_file}..."
+    if [[ "$(jq ".Credentials | if .==null then [] else [1] end | length" < "${legacy_file}" )" -gt 0 ]]; then
       upgrade_needed="true"
-      trace "Upgrading ${legacy_file} ..."
+      info "Upgrading ${legacy_file} ..."
       tmp_file="$(getTempFile "credentials_XXX.json" "${tmp_dir}")"
       upgrade_credentials "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
@@ -691,8 +698,11 @@ function upgrade_cmdb() {
   # Change of naming from "container" to "segment"
   readarray -t legacy_files < <(find "${root_dir}" -type f -name "container.json" )
   for legacy_file in "${legacy_files[@]}"; do
+    debug "Checking ${legacy_file}..."
+    replacement_file="$(filePath "${legacy_file}")/segment.json"
+    [[ -f "${replacement_file}" ]] && continue
     upgrade_needed="true"
-    trace "Upgrading ${legacy_file} ..."
+    info "Upgrading ${legacy_file} ..."
     tmp_file="$(getTempFile "container_XXX.json" "${tmp_dir}")"
     cp "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
@@ -700,7 +710,7 @@ function upgrade_cmdb() {
       willLog "trace" && { echo; cat "${tmp_file}"; echo; }
       continue
     fi
-    cp "${legacy_file}" "$(filePath "${legacy_file}")/segment.json" || { upgrade_succeeded="false"; continue; }
+    cp "${legacy_file}" "${replacement_file}" || { upgrade_succeeded="false"; continue; }
 #    git_rm "${legacy_file}"  || { upgrade_succeeded="false"; continue; }
   done
 

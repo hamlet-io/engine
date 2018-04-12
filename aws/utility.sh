@@ -707,7 +707,7 @@ function convertFilesToJSONObject() {
   for file in "${files[@]}"; do
 
     local source_file="${file}"
-    local attribute="$( fileBase "${file}" | tr "-" "_" )_file"
+    local attribute="$( fileBase "${file}" | tr "-" "_" )"
 
     if [[ "${as_file}" == "true" ]]; then
       source_file="$(getTempFile "asfile_${attribute,,}_XXX.json" "${tmp_dir}")"

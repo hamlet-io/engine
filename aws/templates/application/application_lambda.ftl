@@ -41,7 +41,7 @@
                         ),
                     "Links" : getLinkTargets(fn),
                     "DefaultLinkVariables" : true,
-                    "Policies" : standardPolicies(occurrence)
+                    "Policy" : standardPolicies(fn)
                 }
             ]
 

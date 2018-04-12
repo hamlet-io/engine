@@ -224,9 +224,11 @@
                     getCFHTTPOrigin(
                         cfOriginId,
                         cfOriginFqdn,
-                        getCFHTTPHeader("x-api-key",credentialsObject.APIGateway.API.AccessKey)
-                    )
-                ]
+                        getCFHTTPHeader(
+                            "x-api-key",
+                            getOccurrenceSettingValue(
+                                occurrence,
+                                ["APIGateway","API","AccessKey"]))) ]
                 [#assign defaultCacheBehaviour = getCFAPIGatewayCacheBehaviour(origin) ]
                 [#assign restrictions = {} ]
                 [#if solution.CloudFront.CountryGroups?has_content]

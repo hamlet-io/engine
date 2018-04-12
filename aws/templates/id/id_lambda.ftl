@@ -93,6 +93,27 @@
             {
                 "Name" : "UseSegmentKey",
                 "Default" : false
+            },
+            {
+                "Name" : "Permissions",
+                "Children" : [
+                    {
+                        "Name" : "Decrypt",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AsFile",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AppData",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AppPublic",
+                        "Default" : true
+                    }
+                ]
             }
         ]
     }

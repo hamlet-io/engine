@@ -247,8 +247,8 @@
             getOccurrenceSettingValue(
                 occurrence,
                 [
-                    ["FILEPREFIXES", "APPDATA"],
-                    ["DEFAULTFILEPREFIX"]
+                    ["FilePrefixes", "AppData"],
+                    ["DefaultFilePrefix"]
                 ], true) ]
         [#return
             valueIfContent(
@@ -268,9 +268,9 @@
                 getOccurrenceSettingValue(
                     occurrence,
                     [
-                        ["FILEPREFIXES", "APPPUBLIC"],
-                        ["FILEPREFIXES", "APPDATA"],
-                        ["DEFAULTFILEPREFIX"]
+                        ["FilePrefixes", "AppPublic"],
+                        ["FilePrefixes", "AppData"],
+                        ["DefaultFilePrefix"]
                     ], true) ]
             [#return
                 valueIfContent(
@@ -287,7 +287,7 @@
 [/#function]
 
 [#function getBackupsFilePrefix occurrence={} ]
-    [#if occurrence?has_content]
+    [#if occurrence?has_content ]
         [#return formatRelativePath("backups", occurrence.Core.FullRelativePath) ]
     [#else]
         [#return context.Environment["BACKUPS_PREFIX"] ]
@@ -298,12 +298,20 @@
 [#-- These were required in container fragments before permissions were  --]
 [#-- automatically added.                                                --]
 
-[#function getCredentialsFilePrefix ]
-    [#return context.Environment["SETTINGS_PREFIX"] ]
+[#function getCredentialsFilePrefix occurrence={} ]
+    [#if occurrence?has_content ]
+        [#return getSettingsFilePrefix(occurrence) ]
+    [#else]
+        [#return context.Environment["SETTINGS_PREFIX"] ]
+    [/#if]
 [/#function]
 
-[#function getAppSettingsFilePrefix ]
-    [#return context.Environment["SETTINGS_PREFIX"] ]
+[#function getAppSettingsFilePrefix occurrence={} ]
+    [#if occurrence?has_content]
+        [#return getSettingsFilePrefix(occurrence) ]
+    [#else]
+        [#return context.Environment["SETTINGS_PREFIX"] ]
+    [/#if]
 [/#function]
 
 [#-- End legacy functions --]
@@ -901,10 +909,9 @@
                 "APPDATA_BUCKET" : dataBucket,
                 "APPDATA_PREFIX" : getAppDataFilePrefix(occurrence),
                 "OPSDATA_BUCKET" : operationsBucket,
-                "SETTINGS_PREFIX" : getSettingsFilePrefix(occurrence),
                 "APPSETTINGS_PREFIX" : getSettingsFilePrefix(occurrence),
                 "CREDENTIALS_PREFIX" : getSettingsFilePrefix(occurrence),
-                "BACKUPS_PREFIX" : getBackupsFilePrefix(occurrence)
+                "SETTINGS_PREFIX" : getSettingsFilePrefix(occurrence)
             } +
             attributeIfContent("SUBCOMPONENT", (core.SubComponent.Name)!"") +
             attributeIfContent("APPDATA_PUBLIC_PREFIX", getAppDataPublicFilePrefix(occurrence)) +
@@ -922,7 +929,11 @@
         [#local value = possibilities[key] ]
         [#if value?has_content]
             [#list alternatives as alternative]
-                [#if alternative?starts_with(matchKey) ]
+                [#if
+                    (
+                        ((alternative.Match == "exact") && (alternative.Key == matchKey)) ||
+                        ((alternative.Match == "partial") && (alternative.Key?starts_with(matchKey)))
+                    ) ]
                     [#local contexts += [value] ]
                 [/#if]
             [/#list]
@@ -933,10 +944,10 @@
 [/#function]
 
 [#function getOccurrenceAccountSettings occurrence]
-    [#local alternatives = [accountName] ]
+    [#local alternatives = [{"Key" : accountName, "Match" : "exact"}] ]
     [#return
         getOccurrenceSettings(
-            settingsObject.AppSettings.Accounts,
+            (settingsObject.AppSettings.Accounts)!{},
             alternatives) ]
 [/#function]
 
@@ -948,20 +959,22 @@
 
     [#local alternatives =
         [
-            formatSegmentFullName(buildDeploymentUnit),
-            formatSegmentFullName(deploymentUnit),
-            occurrence.Core.TypedFullName,
-            occurrence.Core.ShortTypedFullName
+            {"Key" : formatSegmentFullName(buildDeploymentUnit), "Match" : "exact"},
+            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
+            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
         ] ]
 
     [#local occurrenceBuild =
                 getOccurrenceSettings(
-                    settingsObject.Builds.Products,
+                    (settingsObject.Builds.Products)!{},
                     alternatives) ]
 
     [#local occurrenceSettings =
                 getOccurrenceSettings(
-                    settingsObject.AppSettings.Products,
+                    (settingsObject.AppSettings.Products)!{},
                     alternatives) ]
 
     [#return
@@ -988,18 +1001,18 @@
 
     [#local alternatives =
         [
-            formatSegmentFullName(buildDeploymentUnit),
-            formatSegmentFullName(deploymentUnit),
-            occurrence.Core.FullName,
-            occurrence.Core.TypedFullName,
-            occurrence.Core.ShortFullName,
-            occurrence.Core.ShortTypedFullName
+            {"Key" : formatSegmentFullName(buildDeploymentUnit), "Match" : "exact"},
+            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
+            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
         ] ]
 
     [#return
         markAsSensitive(
             getOccurrenceSettings(
-                settingsObject.Credentials.Products,
+                (settingsObject.Credentials.Products)!{},
                 alternatives) ) ]
 [/#function]
 
@@ -1007,9 +1020,9 @@
 [#-- A single match array or an array of arrays can be provided --]
 [#function getOccurrenceSetting occurrence names emptyIfNotProvided=false]
     [#local nameAlternatives = asArray(names) ]
-    [#if !(nameAlternatives[0]?is_sequence]
+    [#if !(nameAlternatives[0]?is_sequence) ]
       [#local nameAlternatives = [nameAlternatives] ]
-    [/#if
+    [/#if]
     [#local settingNames = [] ]
     [#local setting = {} ]
 
@@ -1024,10 +1037,10 @@
     [#list settingNames as settingName]
         [#local setting =
             contentIfContent(
-                occurrence.Configuration.Settings.Product[settingName]!{},
+                (occurrence.Configuration.Settings.Product[settingName])!{},
                 contentIfContent(
-                    occurrence.Configuration.Settings.Account[settingName]!{},
-                    occurrence.Configuration.Settings.Core[settingName]!{}
+                    (occurrence.Configuration.Settings.Account[settingName])!{},
+                    (occurrence.Configuration.Settings.Core[settingName])!{}
                 )
             ) ]
         [#if setting?has_content]
@@ -1046,8 +1059,8 @@
         ) ]
 [/#function]
 
-[#function getOccurrenceSettingValue occurrence name emptyIfNotProvided=false]
-    [#return getOccurrenceSetting(occurrence, name, emptyIfNotProvided).Value]
+[#function getOccurrenceSettingValue occurrence names emptyIfNotProvided=false]
+    [#return getOccurrenceSetting(occurrence, names, emptyIfNotProvided).Value]
 [/#function]
 
 [#function getOccurrenceBuildReference occurrence]
@@ -1859,7 +1872,7 @@
             [#local result += "]"]
         [#else]
             [#if obj?is_string]
-                [#local result = "\"" + obj + "\""]
+                [#local result = "\"" + obj?json_string + "\""]
             [#else]
                 [#local result = obj?c]
             [/#if]

@@ -34,22 +34,22 @@
         [@cfDebug listMode appSettingsObject false /]
 
         [#assign emailVerificationMessage =
-            getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationMessage], true) ]
+            getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationMessage"], true) ]
 
         [#assign emailVerificationSubject =
-            getOccurrenceSettingValue(occurrence, [UserPool, EmailVerificationSubject], true) ]
+            getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationSubject"], true) ]
 
         [#assign smsVerificationMessage =
-            getOccurrenceSettingValue(occurrence, [UserPool, SMSVerificationMessage], true) ]
+            getOccurrenceSettingValue(occurrence, ["UserPool", "SMSVerificationMessage"], true) ]
 
         [#assign emailInviteMessage =
-            getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteMessage], true) ]
+            getOccurrenceSettingValue(occurrence, ["UserPool", "EmailInviteMessage"], true) ]
 
         [#assign emailInviteSubject =
-            getOccurrenceSettingValue(occurrence, [UserPool, EmailInviteSubject], true) ]
+            getOccurrenceSettingValue(occurrence, ["UserPool", "EmailInviteSubject"], true) ]
 
         [#assign smsInviteMessage =
-            getOccurrenceSettingValue(occurrence, [UserPool, SMSInviteMessage], true) ]
+            getOccurrenceSettingValue(occurrence, ["UserPool", "SMSInviteMessage"], true) ]
 
         [#if ((solution.MFA) || ( solution.VerifyPhone))]
 

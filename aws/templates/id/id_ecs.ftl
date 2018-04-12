@@ -161,6 +161,27 @@
             {
                 "Name" : "UseTaskRole",
                 "Default" : true
+            },
+            {
+                "Name" : "Permissions",
+                "Children" : [
+                    {
+                        "Name" : "Decrypt",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AsFile",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AppData",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AppPublic",
+                        "Default" : true
+                    }
+                ]
             }
         ],
         ECS_TASK_COMPONENT_TYPE : [
@@ -172,6 +193,27 @@
             {
                 "Name" : "UseTaskRole",
                 "Default" : true
+            },
+            {
+                "Name" : "Permissions",
+                "Children" : [
+                    {
+                        "Name" : "Decrypt",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AsFile",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AppData",
+                        "Default" : true
+                    },
+                    {
+                        "Name" : "AppPublic",
+                        "Default" : true
+                    }
+                ]
             }
         ]
     }

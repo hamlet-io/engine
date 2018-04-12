@@ -36,8 +36,9 @@ export GENERATION_DATA_DIR=$(findGen3RootDir "$(pwd)") ||
   { fatal "Can't locate the root of the directory tree."; exit 1; }
 
 # Check the cmdb doesn't need upgrading
-# upgrade_cmdb "${GENERATION_DATA_DIR}" "dryrun" ||
-#  { fatal "CMDB upgrade needed."; exit 1; }
+debug "Checking cmdb version ..."
+upgrade_cmdb "${GENERATION_DATA_DIR}" ||
+    { fatal "CMDB upgrade failed."; exit 1; }
 
 # Generate the list of files constituting the composites based on the contents
 # of the account and product trees
@@ -219,6 +220,7 @@ for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
 done
 
 # Assemble appsettings
+debug "Generating composite settings ..."
 export COMPOSITE_SETTINGS="${ROOT_DIR}/composite_settings.json"
 assemble_settings "${COMPOSITE_SETTINGS}"
 

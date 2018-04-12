@@ -37,13 +37,13 @@
                 cfSPAOriginId,
                 operationsBucket,
                 cfAccess,
-                formatAbsolutePath(getAppSettingsFilePrefix(), "spa"))]
+                formatAbsolutePath(getSettingsFilePrefix(occurrence), "spa"))]
         [#assign configOrigin =       
             getCFS3Origin(
                 cfConfigOriginId,
                 operationsBucket,
                 cfAccess,
-                formatAbsolutePath(getAppSettingsFilePrefix()))]
+                formatAbsolutePath(getSettingsFilePrefix(occurrence)))]
 
         [#assign spaCacheBehaviour = getCFSPACacheBehaviour(
             spaOrigin, 
