@@ -27,7 +27,9 @@
         [#assign schema = []]
         [#assign userPoolTriggerConfig = {}]
         [#assign userPoolManualTriggerConfig = {}]
-                
+        
+        [#assign userPoolUpdateCommand = "updateUserPool" ]            
+    
         [@cfDebug listMode appSettingsObject false /]
 
         [#assign emailVerificationMessage =
@@ -345,7 +347,7 @@
 
         [#-- When using the cli to update a user pool, any properties that are not set in the update are reset to their default value --]
         [#-- So to use the CLI to update the lambda triggers we need to generate all of the custom configuration we use in the CF template and use this as the update --]
-        [#if deploymentSubsetRequired("config", false)]
+        [#if deploymentSubsetRequired("cli", false)]
 
             [#assign userpoolConfig = {
                 "UserPoolId": getExistingReference(userPoolId),
@@ -400,8 +402,10 @@
             } ]
 
             [#if userPoolManualTriggerConfig?has_content ]
-                [@cfConfig
+                [@cfCli
                     mode=listMode
+                    id=userPoolId
+                    command=userPoolUpdateCommand
                     content=userpoolConfig
                 /]
             [/#if]
@@ -416,10 +420,13 @@
                     [
                         "# Add Manual Cognito Triggers",
                         "info \"Adding Cognito Triggers that are not part of cloudformation\""
+                        "# Get cli config file",
+                        "split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
                         "update_cognito_userpool" +
                         " \"" + region + "\" " + 
                         " \"" + getExistingReference(userPoolId) + "\" " + 
-                        " \"$\{CONFIG}\" || return $?"
+                        " \"$\{tmpdir}\\cli-" + 
+                        userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?"
                     ],
                     []
                 )

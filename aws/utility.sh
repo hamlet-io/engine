@@ -501,6 +501,18 @@ function addToArrayHead() {
   addToArrayHeadWithPrefix "${array}" "" "${elements[@]}"
 }
 
+# -- Cli file generation -- 
+function split_cli_file() {
+  local cli_file="$1"; shift
+  local outdir="$1"; shift
+
+  for resource in $(cat ${cli_file} | jq -r 'keys[]') ; do
+    for command in $( cat ${cli_file} | jq -r ".$resource | keys[]" ); do 
+        cat "${cli_file}" | jq ".${resource}.${command}" > "${outdir}/cli-${resource}-${command}.json"
+    done
+  done
+}
+
 # -- JSON manipulation --
 
 function runJQ() {

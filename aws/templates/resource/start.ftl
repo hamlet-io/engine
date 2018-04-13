@@ -428,6 +428,26 @@
     [/#switch]
 [/#macro]
 
+[#macro cfCli 
+    mode
+    id
+    command
+    content={}]
+    [#switch mode]
+        [#case "cli"]
+        [#if content?has_content ]
+            [#assign templateCli += 
+                {
+                    id : {
+                        command : content 
+                    }
+                }
+            ]
+        [/#if]
+        [#break]
+    [/#switch]
+[/#macro]
+
 [#macro cfScript
             mode
             content=[]]
@@ -579,6 +599,15 @@
         [@includeCompositeLists asArray(compositeLists) /]
     [/#if]
 
+    [#-- CLI --]
+    [#assign templateCli={} ]
+    [#assign listMode="cli"]
+        [#if include?has_content]
+        [#include include?ensure_starts_with("/")]
+    [#else]
+        [@includeCompositeLists asArray(compositeLists) /]
+    [/#if]
+
     [#-- Script --]
     [#assign templateScript = [] ]
     [#assign listMode="script"]
@@ -641,7 +670,7 @@
       [#list templateScript as line]
           ${line}
       [/#list]
-    [#elseif templateConfig?has_content]
-        [@toJSON templateConfig /]
+    [#elseif templateCli?has_content]
+        [@toJSON templateCli /]
     [/#if]
 [/#macro]
