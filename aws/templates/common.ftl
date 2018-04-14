@@ -207,7 +207,8 @@
 [#function requiredOccurrences occurrences deploymentUnit]
     [#local result = [] ]
     [#list asFlattenedArray(occurrences) as occurrence]
-        [#if deploymentRequired(occurrence.Configuration.Solution, deploymentUnit, false) ]
+        [#if occurrence.Configuration.Solution.Enabled &&
+            deploymentRequired(occurrence.Configuration.Solution, deploymentUnit, false) ]
             [#local result += [occurrence] ]
         [/#if]
     [/#list]
@@ -1200,7 +1201,7 @@
         [#return [] ]
     [/#if]
 
-    [#local contexts = asArray(parentContexts) ]
+    [#local componentContexts = asArray(parentContexts) ]
 
     [#if tier?has_content]
         [#local type = getComponentType(component) ]
@@ -1217,7 +1218,7 @@
         [#local componentName = getComponentName(component) ]
         [#local subComponentId = [] ]
         [#local subComponentName = [] ]
-        [#local contexts += [component, typeObject] ]
+        [#local componentContexts += [component, typeObject] ]
     [#else]
         [#local tierId = parentOccurrence.Core.Tier.Id ]
         [#local tierName = parentOccurrence.Core.Tier.Name ]
@@ -1225,15 +1226,19 @@
         [#local componentName = parentOccurrence.Core.Component.Name ]
         [#local subComponentId = typeObject.Id?split("-") ]
         [#local subComponentName = typeObject.Name?split("-") ]
-        [#local contexts += [typeObject] ]
+        [#local componentContexts += [typeObject] ]
     [/#if]
 
     [#local attributes = getOccurrenceSolutionAttributes(type) ]
     [#local subComponents = getOccurrenceSubComponents(type) ]
 
-    [#-- Add Export and DeploymentUnits as standard attributes --]
+    [#-- Add standard attributes --]
     [#local attributes +=
         [
+            {
+                "Name" : "Enabled",
+                "Default" : true
+            },
             {
                 "Name" : "Export",
                 "Default" : []
@@ -1256,7 +1261,7 @@
                 [#if version?is_hash ]
                     [#local versionId = getContextId(version) ]
                     [#local versionName = getContextName(version) ]
-                    [#local contexts += [instance, version] ]
+                    [#local occurrenceContexts = componentContexts + [instance, version] ]
                     [#local idExtensions =
                                 subComponentId +
                                 asArray(instanceId, true, true) +
@@ -1307,7 +1312,7 @@
                                 }
                             ),
                             "Configuration" : {
-                                "Solution" : getCompositeObject(attributes, contexts)
+                                "Solution" : getCompositeObject(attributes, occurrenceContexts)
                             }
                         }
                     ]
@@ -1388,7 +1393,7 @@
                                             subComponentInstance,
                                             {},
                                             occurrence,
-                                            contexts +
+                                            occurrenceContexts +
                                                 [
                                                     typeObject[subComponent.Component],
                                                     typeObject[subComponent.Component].Configuration!{}
