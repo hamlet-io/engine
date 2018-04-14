@@ -5,28 +5,6 @@
 [#assign AWS_ECS_TASK_RESOURCE_TYPE = "ecsTask"]
 [#assign AWS_ECS_SERVICE_RESOURCE_TYPE = "ecsService"]
 
-[#function formatECSRoleId tier component]
-    [#-- TODO: Use formatDependentRoleId() --]
-    [#return formatComponentRoleId(
-                tier,
-                component)]
-[/#function]
-
-[#function formatECSServiceRoleId tier component]
-    [#-- TODO: Use formatDependentRoleId() --]
-    [#return formatComponentRoleId(
-                tier,
-                component,
-                "service")]
-[/#function]
-
-[#function formatECSSecurityGroupId tier component]
-    [#return formatComponentSecurityGroupId(
-                tier,
-                component)]
-[/#function]
-
-
 [#-- Components --]
 [#assign ECS_COMPONENT_TYPE = "ecs" ]
 [#assign ECS_SERVICE_COMPONENT_TYPE = "service" ]
@@ -48,7 +26,12 @@
             "Default" : false
         },
         {
-            "Name" : "LogDriver"
+            "Name" : "LogDriver",
+            "Default" : "awslogs"
+        },
+        {
+            "Name" : "ContainerLogGroup",
+            "Default" : false
         },
         {
             "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"]
@@ -133,6 +116,10 @@
                 {
                     "Name" : "LogDriver",
                     "Default" : "awslogs"
+                },
+                {
+                    "Name" : "ClusterLogGroup",
+                    "Default" : true
                 }
             ],
             "Components" : [
@@ -182,6 +169,10 @@
                         "Default" : true
                     }
                 ]
+            },
+            {
+                "Name" : "TaskLogGroup",
+                "Default" : true
             }
         ],
         ECS_TASK_COMPONENT_TYPE : [
@@ -214,13 +205,19 @@
                         "Default" : true
                     }
                 ]
+            },
+            {
+                "Name" : "TaskLogGroup",
+                "Default" : true
             }
         ]
-    }
-]
+    } ]
 
 [#function getECSState occurrence]
     [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+
+    [#-- TODO(mfl): Use formatDependentRoleId() for roles --]
     [#return
         {
             "Resources" : {
@@ -230,15 +227,15 @@
                     "Type" : AWS_ECS_RESOURCE_TYPE
                 },
                 "securityGroup" : {
-                    "Id" : formatECSSecurityGroupId(core.Tier, core.Component),
+                    "Id" : formatComponentSecurityGroupId(core.Tier, core.Component),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
                 "role" : {
-                    "Id" : formatECSRoleId(core.Tier, core.Component),
+                    "Id" : formatComponentRoleId(core.Tier, core.Component),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "serviceRole" : {
-                    "Id" : formatECSServiceRoleId(core.Tier, core.Component),
+                    "Id" : formatComponentRoleId(core.Tier, core.Component, "service"),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "instanceProfile" : {
@@ -252,12 +249,17 @@
                 "launchConfig" : {
                     "Id" : formatEC2LaunchConfigId(core.Tier, core.Component),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
-                },
-                "logGroup" : {
-                    "Id" : formatComponentLogGroupId(core.Tier, core.Component),
+                }
+            } +
+            attributeIfTrue(
+                "lg",
+                solution.ClusterLogGroup,
+                {
+                    "Id" : formatLogGroupId(core.Id),
+                    "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
-            },
+            ),
             "Attributes" : {},
             "Roles" : {
                 "Inbound" : {},
@@ -269,6 +271,10 @@
 
 [#function getServiceState occurrence]
     [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+
+    [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
+
     [#return
         {
             "Resources" : {
@@ -277,10 +283,19 @@
                     "Type" : AWS_ECS_SERVICE_RESOURCE_TYPE
                 },
                 "task" : {
-                    "Id" : formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id),
+                    "Id" : taskId,
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
-            },
+            } +
+            attributeIfTrue(
+                "lg",
+                solution.TaskLogGroup,
+                {
+                    "Id" : formatDependentLogGroupId(taskId),
+                    "Name" : core.FullAbsolutePath,
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                }
+            ),
             "Attributes" : {},
             "Roles" : {
                 "Inbound" : {},
@@ -292,14 +307,27 @@
 
 [#function getTaskState occurrence]
     [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+
+    [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
+
     [#return
         {
             "Resources" : {
                 "task" : {
-                    "Id" : formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id),
+                    "Id" : taskId,
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
-            },
+            } +
+            attributeIfTrue(
+                "lg",
+                solution.TaskLogGroup,
+                {
+                    "Id" : formatDependentLogGroupId(taskId),
+                    "Name" : core.FullAbsolutePath,
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                }
+            ),
             "Attributes" : {},
             "Roles" : {
                 "Inbound" : {},

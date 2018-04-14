@@ -80,7 +80,7 @@
                         {
                             "LogDriver" : container.LogDriver
                         } + 
-                        attributeIfContent("Options", container.LogOptions!{})
+                        attributeIfContent("Options", container.LogOptions)
                 } +
                 attributeIfContent("Environment", environment) +
                 attributeIfContent("MountPoints", mountPoints) +

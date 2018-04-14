@@ -20,7 +20,8 @@
         [#assign ecsAutoScaleGroupId = resources["autoScaleGroup"].Id ]
         [#assign ecsLaunchConfigId = resources["launchConfig"].Id ]
         [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
-        [#assign ecsLogGroupId = resources["logGroup"].Id ]
+        [#assign ecsLogGroupId = resources["lg"].Id ]
+        [#assign ecsLogGroupName = resources["lg"].Name ]
         [#assign defaultLogDriver = solution.LogDriver ]
         [#assign fixedIP = solution.FixedIP ]
         [#assign ecsClusterWideStorage = solution.ClusterWideStorage ]
@@ -58,12 +59,13 @@
         
         [/#if]
     
-        [#if deploymentSubsetRequired("lg", true) &&
+        [#if solution.ClusterLogGroup &&
+                deploymentSubsetRequired("lg", true) &&
                 isPartOfCurrentDeploymentUnit(ecsLogGroupId)]
             [@createLogGroup 
                 mode=listMode
                 id=ecsLogGroupId
-                name=formatComponentLogGroupName(tier, component) /]
+                name=ecsLogGroupName /]
         [/#if]
     
         [#assign ecsEFSVolumeId = formatEFSId(tier, component)]

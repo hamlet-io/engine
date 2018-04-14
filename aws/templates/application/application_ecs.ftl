@@ -21,7 +21,7 @@
             [#assign resources = subOccurrence.State.Resources]
 
             [#assign taskId = resources["task"].Id ]
-            [#assign containers = getTaskContainers(subOccurrence) ]
+            [#assign containers = getTaskContainers(occurrence, subOccurrence) ]
 
             [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
 
@@ -178,6 +178,29 @@
                 [/#if]
             [#else]
                 [#assign roleId = "" ]
+            [/#if]
+
+            [#if deploymentSubsetRequired("lg", true) ]
+                [#if solution.TaskLogGroup ]
+                    [#assign lgId = resources["lg"].Id ]
+                    [#if isPartOfCurrentDeploymentUnit(lgId) ]
+                        [@createLogGroup
+                            mode=listMode
+                            id=lgId
+                            name=resources["lg"].Name /]
+                    [/#if]
+                [/#if]
+                [#list containers as container]
+                    [#if container.LogGroup?has_content]
+                        [#assign lgId = container.LogGroup.Id ]
+                        [#if isPartOfCurrentDeploymentUnit(lgId) ]
+                            [@createLogGroup
+                                mode=listMode
+                                id=lgId
+                                name=container.LogGroup.Name /]
+                        [/#if]
+                    [/#if]
+                [/#list]
             [/#if]
 
             [#if deploymentSubsetRequired("ecs", true)]

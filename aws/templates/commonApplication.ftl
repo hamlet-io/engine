@@ -239,7 +239,7 @@
     ]
 [/#function]
 
-[#function getTaskContainers task]
+[#function getTaskContainers ecs task]
 
     [#local core = task.Core ]
     [#local solution = task.Configuration.Solution ]
@@ -350,20 +350,38 @@
             [#local containerPortMappings += [containerPortMapping] ]
         [/#list]
 
-        [#local dockerLogDriver = getOccurrenceSettingValue(task, "DOCKER_LOG_DRIVER", true) ]
-        [#local dockerLocalLogging =
-            contentIfContent(
-                getOccurrenceSettingValue(task, "DOCKER_LOCAL_LOGGING", true),
-                false) ]
-
         [#local logDriver =
-            (container.LogDriver)!
-            contentIfContent(
-                dockerLogDriver,
+            valueIfTrue(
+                "json-file",
+                container.LocalLogging,
+                container.LogDriver
+            ) ]
+
+        [#local containerLgId =
+            formatDependentLogGroupId(core.Id,  container.Id?split("-")) ]
+        [#local containerLgName =
+            formatAbsolutePath(core.FullAbsolutePath, container.Name?split("-")) ]
+        [#local containerLogGroup =
+            valueIfTrue(
+                {
+                    "Id" : containerLgId,
+                    "Name" : containerLgName
+                },
+                container.ContainerLogGroup
+            ) ]
+
+        [#local logGroupId =
+            valueIfTrue(
+                containerLgId,
+                container.ContainerLogGroup,
                 valueIfTrue(
-                    "json-file",
-                    dockerLocalLogging || container.LocalLogging,
-                    "awslogs"
+                    resources["lg"].Id!"",
+                    solution.TaskLogGroup,
+                    valueIfTrue(
+                        ecs.State.Resources["lg"].Id!"",
+                        ecs.Configuration.Solution.ClusterLogGroup,
+                        "COTException: Logs type is awslogs but no group defined"
+                    )
                 )
             ) ]
 
@@ -385,10 +403,9 @@
                 },
                 "awslogs",
                 {
-                    "awslogs-group":
-                        getReference(formatComponentLogGroupId(tier, component)),
-                    "awslogs-region": regionId,
-                    "awslogs-stream-prefix": formatName(task)
+                    "awslogs-group" : getReference(logGroupId),
+                    "awslogs-region" : regionId,
+                    "awslogs-stream-prefix" : core.Name
                 },
                 {}
             )]
@@ -423,6 +440,7 @@
                 "DefaultLinkVariables" : true,
                 "Policy" : standardPolicies(task)
             } +
+            attributeIfContent("LogGroup", containerLogGroup) +
             attributeIfContent("ImageVersion", container.Version) +
             attributeIfContent("Cpu", container.Cpu) +
             attributeIfTrue(
