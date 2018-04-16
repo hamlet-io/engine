@@ -17,10 +17,10 @@
         id=s3OperationsTemplateId
         name=operationsBucket
         lifecycleRules=
-            (operationsExpiration?is_number || operationsBackup?is_number)?then(
-                    getS3LifecycleRule(operationsExpiration, operationsBackup, "AWSLogs") +
-                    getS3LifecycleRule(operationsExpiration, operationsBackup, "CLOUDFRONTLogs") +
-                    getS3LifecycleRule(operationsExpiration, operationsBackup, "DOCKERLogs"),
+            (operationsExpiration?is_number || operationsOffline?is_number)?then(
+                    getS3LifecycleRule(operationsExpiration, operationsOffline, "AWSLogs") +
+                    getS3LifecycleRule(operationsExpiration, operationsOffline, "CLOUDFRONTLogs") +
+                    getS3LifecycleRule(operationsExpiration, operationsOffline, "DOCKERLogs"),
                 []
             )
         outputId=s3OperationsId
@@ -75,8 +75,8 @@
         id=s3DataTemplateId
         name=dataBucket
         lifecycleRules=
-            (dataExpiration?is_number || dataBackup?is_number)?then(
-                getS3LifecycleRule(dataExpiration, databBackup),
+            (dataExpiration?is_number || dataOffline?is_number)?then(
+                getS3LifecycleRule(dataExpiration, databOffline),
                 []
             )
         outputId=s3DataId

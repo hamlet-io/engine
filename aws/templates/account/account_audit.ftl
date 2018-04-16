@@ -10,7 +10,7 @@
                 [#assign lifecycleRules += 
                     getS3LifecycleRule(
                         accountObject.Audit.Expiration, 
-                        accountObject.Audit.Backup)
+                        accountObject.Audit.Offline)
                 ]
             [/#if]
         

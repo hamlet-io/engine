@@ -60,8 +60,8 @@
             tier=tier
             component=component
             lifecycleRules=
-                (configuration.Lifecycle.Configured && ((configuration.Lifecycle.Expiration!operationsExpiration)?has_content || (configuration.Lifecycle.Backup!operationsBackup)?has_content))?then(
-                        getS3LifecycleRule(configuration.Lifecycle.Expiration!operationsExpiration,configuration.Lifecycle.Backup!operationsBackup),
+                (configuration.Lifecycle.Configured && ((configuration.Lifecycle.Expiration!operationsExpiration)?has_content || (configuration.Lifecycle.Offline!operationsOffline)?has_content))?then(
+                        getS3LifecycleRule(configuration.Lifecycle.Expiration!operationsExpiration,configuration.Lifecycle.Offline!operationsOffline),
                         []
                 )
             sqsNotifications=sqsNotifications

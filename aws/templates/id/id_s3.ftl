@@ -81,7 +81,7 @@
                         "Name" : "Expiration"
                     },
                     {
-                        "Name" : "Backup"
+                        "Name" : "Offline"
                     },
                     {
                         "Name" : "Versioning",
