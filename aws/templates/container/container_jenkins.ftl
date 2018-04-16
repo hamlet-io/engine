@@ -67,6 +67,6 @@
             }
         /]
     [/#if]
-    [@Volume "jenkinsdata" "/var/jenkins_home" "/efs/clusterstorage/jenkins" /]
+    [@Volume "jenkinsdata" "/var/jenkins_home" "/efs/clusterstorage" /]
 
     [#break]
