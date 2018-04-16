@@ -208,11 +208,14 @@
                         [#case "LogFilter" ]
                             [#assign dimensions += 
                                 [
-                                    "Name" : "LogGroupName",
-                                    "Value" : logGroupName
+                                    {
+                                        "Name" : "LogGroupName",
+                                        "Value" : logGroupName
+                                    }
                                 ]
                             ]
-                        [#break]                    
+                        [#break]  
+                    [/#switch]                  
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
