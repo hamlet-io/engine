@@ -16,6 +16,8 @@
             [#assign fnId = resources["function"].Id ]
             [#assign fnName = resources["function"].Name ]
 
+            [#assign logGroupName = "/aws/lambda/" + fnName]
+
             [#assign containerId =
                 configuration.Container?has_content?then(
                     configuration.Container,
@@ -187,7 +189,7 @@
                                 mode=listMode
                                 id=formatDependentLogMetricId(fnId, metric.Id)
                                 name=metric.Name
-                                logGroup="/aws/lambda/" + fnName
+                                logGroup=logGroupName
                                 filter=metric.LogPattern
                                 namespace=formatProductRelativePath()
                                 value=1
@@ -199,6 +201,19 @@
                 [/#list]
 
                 [#list configuration.Alerts?values as alert ]
+
+                    [#local dimensions=[] ]
+
+                    [#switch alert.Metric.Type] 
+                        [#case "LogFilter" ]
+                            [#local dimensions += 
+                                [
+                                    "Name" : "LogGroupName",
+                                    "Value" : logGroupName
+                                ]
+                            ]
+                        [#break]                    
+
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
@@ -208,7 +223,7 @@
                                 actions=[
                                     getReference(formatSegmentSNSTopicId())
                                 ]
-                                metric=alert.Metric
+                                metric=alert.Metric.Name
                                 namespace=alert.Namespace?has_content?then(
                                                 alert.Namespace,
                                                 formatProductRelativePath()
@@ -223,6 +238,7 @@
                                 period=alert.Time
                                 operator=alert.Operator
                                 reportOK=alert.ReportOk
+                                dimensions=dimensions
                                 dependencies=fnId
                             /]
                         [#break]

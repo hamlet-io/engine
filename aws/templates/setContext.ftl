@@ -65,7 +65,16 @@
         },
         {
             "Name" : "Metric",
-            "Mandatory" : true
+            "Children" : [
+                {
+                    "Name" : "Name",
+                    "Mandatory" : true
+                },
+                {
+                    "Name" : "Type",
+                    "Mandatory" : true
+                }
+            ]
         },
         {
             "Name" : "Threshold",
