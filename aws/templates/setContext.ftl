@@ -40,6 +40,71 @@
         ]
 ]
 
+[#assign 
+    metricChildrenConfiguration = [
+        {
+            "Name" : "Name",
+            "Mandatory" : true
+        }
+        {
+            "Name" : "Type",
+            "Mandatory" : true
+        }
+        {
+            "Name" : "LogPattern",
+            "Default" : ""
+        }
+    ]
+]
+
+[#assign alertChildrenConfiguraiton = [
+        "Description",
+        {
+            "Name" : "Name",
+            "Mandatory" : true
+        },
+        {
+            "Name" : "Metric",
+            "Mandatory" : true
+        },
+        {
+            "Name" : "Threshold",
+            "Default" : 1
+        },
+        {
+            "Name" : "Severity",
+            "Default" : "Info"
+        },
+        {
+            "Name" : "Namespace",
+            "Default" : ""
+        },
+        {
+            "Name" : "Comparison",
+            "Default" : "Threshold"
+        },
+        {
+            "Name" : "Operator",
+            "Default" : "GreaterThanOrEqualToThreshold"
+        },
+        {
+            "Name" : "Time",
+            "Default" : 300
+        },
+        {
+            "Name" : "Periods",
+            "Default" : 1
+        },
+        {
+            "Name" : "Statistic",
+            "Default" : "Sum"
+        },
+        {
+            "Name" : "ReportOk",
+            "Default" : false
+        }
+    ]
+]
 
 [#include idList]
 [#include nameList]

@@ -156,6 +156,7 @@
                 /]
                 
                 [#list configuration.Schedules?values as schedule ]
+
                     [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
 
                     [@createScheduleEventRule
@@ -176,6 +177,56 @@
                         sourceId=scheduleRuleId
                         dependencies=scheduleRuleId
                     /]
+                [/#list]
+
+                [#list configuration.Metrics?values as metric ]
+
+                    [#switch metric.Type ]
+                        [#case "logFilter" ]
+                            [@createLogMetric
+                                mode=listMode
+                                id=formatDependentLogMetricId(fnId, metric.Id)
+                                name=metric.Name
+                                logGroup="/aws/lambda/" + fnName
+                                filter=metric.LogPattern
+                                namespace=formatSegmentRelativePath()
+                                value=1
+                                dependencies=fnId
+                            /]
+                        [#break]
+                    [/#switch]
+
+                [/#list]
+
+                [#list configuration.Alerts?values as alert ]
+                    [#switch alert.Comparison ]
+                        [#case "Threshold" ]
+                            [@createCountAlarm
+                                mode=listMode
+                                id=formatDependentAlarmId(fnId, alert.Id)
+                                name=alert.Severity?upper_case + "-" + alert.Name
+                                actions=[
+                                    getReference(formatSegmentSNSTopicId())
+                                ]
+                                metric=alert.Metric
+                                namespace=alert.Namespace?has_content?then(
+                                                alert.Namespace,
+                                                formatSegmentRelativePath()
+                                                )
+                                description=alert.Description?has_content?then(
+                                                alert.Description,
+                                                alert.Name
+                                                )
+                                threshold=alert.Threshold
+                                statistic=alert.Statistic
+                                evaluationPeriods=alert.Periods
+                                period=alert.Time
+                                operator=alert.Operator
+                                reportOK=alert.ReportOk
+                                dependencies=fnId
+                            /]
+                        [#break]
+                    [/#switch]
                 [/#list]
                 
                 [#-- Pick any extra macros in the container fragment --]
