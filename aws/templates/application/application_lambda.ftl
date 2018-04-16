@@ -16,6 +16,8 @@
             [#assign fnId = resources["function"].Id ]
             [#assign fnName = resources["function"].Name ]
 
+            [#assign logGroupName = "/aws/lambda/" + fnName]
+
             [#assign containerId =
                 configuration.Container?has_content?then(
                     configuration.Container,
@@ -187,9 +189,9 @@
                                 mode=listMode
                                 id=formatDependentLogMetricId(fnId, metric.Id)
                                 name=metric.Name
-                                logGroup="/aws/lambda/" + fnName
+                                logGroup=logGroupName
                                 filter=metric.LogPattern
-                                namespace=formatSegmentRelativePath()
+                                namespace=formatProductRelativePath()
                                 value=1
                                 dependencies=fnId
                             /]
@@ -199,19 +201,32 @@
                 [/#list]
 
                 [#list configuration.Alerts?values as alert ]
+
+                    [#local dimensions=[] ]
+
+                    [#switch alert.Metric.Type] 
+                        [#case "LogFilter" ]
+                            [#local dimensions += 
+                                [
+                                    "Name" : "LogGroupName",
+                                    "Value" : logGroupName
+                                ]
+                            ]
+                        [#break]                    
+
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
                                 mode=listMode
                                 id=formatDependentAlarmId(fnId, alert.Id)
-                                name=alert.Severity?upper_case + "-" + alert.Name
+                                name=alert.Severity?upper_case + "-" + fnName + "-" + alert.Name
                                 actions=[
                                     getReference(formatSegmentSNSTopicId())
                                 ]
-                                metric=alert.Metric
+                                metric=alert.Metric.Name
                                 namespace=alert.Namespace?has_content?then(
                                                 alert.Namespace,
-                                                formatSegmentRelativePath()
+                                                formatProductRelativePath()
                                                 )
                                 description=alert.Description?has_content?then(
                                                 alert.Description,
@@ -223,6 +238,7 @@
                                 period=alert.Time
                                 operator=alert.Operator
                                 reportOK=alert.ReportOk
+                                dimensions=dimensions
                                 dependencies=fnId
                             /]
                         [#break]

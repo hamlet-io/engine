@@ -108,6 +108,22 @@
     [#return formatSegmentPath(true, extensions)]
 [/#function]
 
+[#function formatProductPath absolute extensions... ]
+    [#return formatPath(
+                absolute
+                tenantName,
+                productName,
+                extensions)]
+[/#function]
+
+[#function formatProductRelativePath extensions...]
+    [#return formatProductPath(false, extensions)]
+[/#function]
+
+[#function formatProductAbsolutePath extensions...]
+    [#return formatProductPath(true, extensions)]
+[/#function]
+
 [#-- Format a file prefix path --]
 [#function formatSegmentPrefixPath type extensions...]
     [#return formatRelativePath(
