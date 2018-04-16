@@ -27,6 +27,7 @@
         [#assign schema = []]
         [#assign userPoolTriggerConfig = {}]
         [#assign userPoolManualTriggerConfig = {}]
+        [#assign smsConfig = {}]
         
         [#assign userPoolUpdateCommand = "updateUserPool" ]            
     
@@ -357,34 +358,7 @@
                         configuration.PasswordPolicy.Uppsercase,
                         configuration.PasswordPolicy.Numbers,
                         configuration.PasswordPolicy.SpecialCharacters),
-                "LambdaConfig" :  userPoolTriggerConfig + userPoolManualTriggerConfig,
-                "AutoVerifiedAttributes": (configuration.VerifyEmail || smsVerification)?then(
-                                                getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification),
-                                                []),
-                "SmsVerificationMessage": smsVerificationMessage!"",
-                "EmailVerificationMessage": emailVerificationMessage!"",
-                "EmailVerificationSubject": emailVerificationSubject!"",
-                "VerificationMessageTemplate": {
-                    "SmsMessage": "",
-                    "EmailMessage": "",
-                    "EmailSubject": "",
-                    "EmailMessageByLink": "",
-                    "EmailSubjectByLink": "",
-                    "DefaultEmailOption": "CONFIRM_WITH_LINK"
-                },
-                "SmsAuthenticationMessage": "",
                 "MfaConfiguration": configuration.MFA?then("ON","OFF"),
-                "DeviceConfiguration": {
-                    "ChallengeRequiredOnNewDevice": true,
-                    "DeviceOnlyRememberedOnUserPrompt": true
-                },
-                "EmailConfiguration": {
-                    "SourceArn": "",
-                    "ReplyToEmailAddress": ""
-                },
-                "SmsConfiguration": smsConfig?has_content?then(
-                    smsConfig,
-                    {}),
                 "UserPoolTags": getCfTemplateCoreTags(
                                     userPoolName,
                                     tier,
@@ -399,7 +373,33 @@
                                                     emailInviteMessage,
                                                     emailInviteSubject,
                                                     smsInviteMessage))
-            } ]
+            } +
+            attributeIfContent(
+                "SmsVerificationMessage",
+                smsVerificationMessage
+            ) +
+            attributeIfContent(
+                "EmailVerificationMessage",
+                emailVerificationMessage
+            ) +
+            attributeIfContent(
+                "EmailVerificationSubject",
+                emailVerificationSubject
+            ) + 
+            attributeIfContent(
+                "SmsConfiguration",
+                smsConfig
+            ) +
+            attributeIfTrue(
+                "AutoVerifiedAttributes",
+                (configuration.VerifyEmail || smsVerification),
+                getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification)
+            ) +
+            attributeIfTrue(
+                "LambdaConfig",
+                (userPoolTriggerConfig?has_content || userPoolManualTriggerConfig?has_content ),
+                userPoolTriggerConfig + userPoolManualTriggerConfig
+            )]
 
             [#if userPoolManualTriggerConfig?has_content ]
                 [@cfCli
@@ -425,7 +425,7 @@
                         "update_cognito_userpool" +
                         " \"" + region + "\" " + 
                         " \"" + getExistingReference(userPoolId) + "\" " + 
-                        " \"$\{tmpdir}\\cli-" + 
+                        " \"$\{tmpdir}/cli-" + 
                         userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?"
                     ],
                     []
