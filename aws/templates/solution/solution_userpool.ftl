@@ -27,7 +27,9 @@
         [#assign schema = []]
         [#assign userPoolTriggerConfig = {}]
         [#assign userPoolManualTriggerConfig = {}]
-                
+        
+        [#assign userPoolUpdateCommand = "updateUserPool" ]            
+    
         [@cfDebug listMode appSettingsObject false /]
 
         [#assign emailVerificationMessage =
@@ -109,10 +111,9 @@
                     [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
                         [#-- Cognito Userpool Event Triggers --]
                         [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
-                        [#-- If you add a trigger via the CLI the Cloudformation created triggers are removed --]
                         [#switch link.Name?lower_case]
                             [#case "createauthchallenge"]
-                                [#assign userPoolManualTriggerConfig +=
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "CreateAuthChallenge",
                                         linkTargetAttributes.ARN
@@ -120,7 +121,7 @@
                                 ]
                                 [#break]
                             [#case "custommessage"]
-                                [#assign userPoolManualTriggerConfig +=
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "CustomMessage",
                                         linkTargetAttributes.ARN
@@ -128,7 +129,7 @@
                                 ]
                                 [#break]
                             [#case "defineauthchallenge"]
-                                [#assign userPoolManualTriggerConfig +=
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "DefineAuthChallenge",
                                         linkTargetAttributes.ARN
@@ -136,7 +137,7 @@
                                 ]
                                 [#break]
                             [#case "postauthentication"]
-                                [#assign userPoolManualTriggerConfig +=
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "PostAuthentication",
                                         linkTargetAttributes.ARN
@@ -144,7 +145,7 @@
                                 ]
                                 [#break]
                             [#case "postconfirmation"]
-                                [#assign userPoolManualTriggerConfig +=
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "PostConfirmation",
                                         linkTargetAttributes.ARN
@@ -152,7 +153,7 @@
                                 ]
                                 [#break]
                             [#case "preauthentication"]
-                                [#assign userPoolManualTriggerConfig +=
+                                [#assign userPoolTriggerConfig +=
                                     attributeIfContent (
                                         "PreAuthentication",
                                         linkTargetAttributes.ARN
@@ -160,7 +161,7 @@
                                 ]
                                 [#break]
                             [#case "presignup"]
-                                [#assign userPoolManualTriggerConfig += 
+                                [#assign userPoolTriggerConfig += 
                                     attributeIfContent (
                                         "PreSignUp",
                                         linkTargetAttributes.ARN
@@ -168,7 +169,7 @@
                                 ]
                                 [#break]
                             [#case "verifyauthchallengeresponse"]
-                                [#assign userPoolManualTriggerConfig += 
+                                [#assign userPoolTriggerConfig += 
                                     attributeIfContent (
                                         "VerifyAuthChallengeResponse",
                                         linkTargetAttributes.ARN
@@ -343,6 +344,72 @@
                 unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
             /]
         [/#if]
+
+        [#-- When using the cli to update a user pool, any properties that are not set in the update are reset to their default value --]
+        [#-- So to use the CLI to update the lambda triggers we need to generate all of the custom configuration we use in the CF template and use this as the update --]
+        [#if deploymentSubsetRequired("cli", false)]
+
+            [#assign userpoolConfig = {
+                "UserPoolId": getExistingReference(userPoolId),
+                "Policies": getUserPoolPasswordPolicy( 
+                        configuration.PasswordPolicy.MinimumLength, 
+                        configuration.PasswordPolicy.Lowercase,
+                        configuration.PasswordPolicy.Uppsercase,
+                        configuration.PasswordPolicy.Numbers,
+                        configuration.PasswordPolicy.SpecialCharacters),
+                "LambdaConfig" :  userPoolTriggerConfig + userPoolManualTriggerConfig,
+                "AutoVerifiedAttributes": (configuration.VerifyEmail || smsVerification)?then(
+                                                getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification),
+                                                []),
+                "SmsVerificationMessage": smsVerificationMessage!"",
+                "EmailVerificationMessage": emailVerificationMessage!"",
+                "EmailVerificationSubject": emailVerificationSubject!"",
+                "VerificationMessageTemplate": {
+                    "SmsMessage": "",
+                    "EmailMessage": "",
+                    "EmailSubject": "",
+                    "EmailMessageByLink": "",
+                    "EmailSubjectByLink": "",
+                    "DefaultEmailOption": "CONFIRM_WITH_LINK"
+                },
+                "SmsAuthenticationMessage": "",
+                "MfaConfiguration": configuration.MFA?then("ON","OFF"),
+                "DeviceConfiguration": {
+                    "ChallengeRequiredOnNewDevice": true,
+                    "DeviceOnlyRememberedOnUserPrompt": true
+                },
+                "EmailConfiguration": {
+                    "SourceArn": "",
+                    "ReplyToEmailAddress": ""
+                },
+                "SmsConfiguration": smsConfig?has_content?then(
+                    smsConfig,
+                    {}),
+                "UserPoolTags": getCfTemplateCoreTags(
+                                    userPoolName,
+                                    tier,
+                                    component,
+                                    ""
+                                    false,
+                                    true),
+                "AdminCreateUserConfig": getUserPoolAdminCreateUserConfig(
+                                                configuration.AdminCreatesUser, 
+                                                configuration.UnusedAccountTimeout,
+                                                getUserPoolInviteMessageTemplate(
+                                                    emailInviteMessage,
+                                                    emailInviteSubject,
+                                                    smsInviteMessage))
+            } ]
+
+            [#if userPoolManualTriggerConfig?has_content ]
+                [@cfCli
+                    mode=listMode
+                    id=userPoolId
+                    command=userPoolUpdateCommand
+                    content=userpoolConfig
+                /]
+            [/#if]
+        [/#if]
         
         [#if deploymentSubsetRequired("epilogue", false)]
             [@cfScript
@@ -353,11 +420,13 @@
                     [
                         "# Add Manual Cognito Triggers",
                         "info \"Adding Cognito Triggers that are not part of cloudformation\""
-                        "add_cognito_lambda_triggers" +
+                        "# Get cli config file",
+                        "split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                        "update_cognito_userpool" +
                         " \"" + region + "\" " + 
                         " \"" + getExistingReference(userPoolId) + "\" " + 
-                        " \"" + userPoolManualTriggerString + "\" " + 
-                        " || return $?"
+                        " \"$\{tmpdir}\\cli-" + 
+                        userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?"
                     ],
                     []
                 )

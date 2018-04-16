@@ -208,7 +208,7 @@
     [#return result]
 [/#function]
 
-[#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false]
+[#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false flatten=false]
     [#local result =
         [
             { "Key" : "cot:request", "Value" : requestReference }
@@ -279,10 +279,20 @@
                 ]
             ]
         [/#list]
-        [#return returnValue]
-    [#else]
-        [#return result]
+        [#local result=returnValue]        
     [/#if]
+    [#if flatten ]
+        [#local returnValue = {} ]
+        [#list result as entry ]
+            [#local returnValue += 
+                {
+                    entry.Key, entry.Value 
+                }
+            ]
+        [/#list]
+        [#local result=returnValue]
+    [/#if]
+    [#return result]
 [/#function]
 
 [#function getCfTemplateDefaultOutputs]
@@ -415,6 +425,26 @@
             [#assign templateConfig += content]
             [#break]
 
+    [/#switch]
+[/#macro]
+
+[#macro cfCli 
+    mode
+    id
+    command
+    content={}]
+    [#switch mode]
+        [#case "cli"]
+        [#if content?has_content ]
+            [#assign templateCli += 
+                {
+                    id : {
+                        command : content 
+                    }
+                }
+            ]
+        [/#if]
+        [#break]
     [/#switch]
 [/#macro]
 
@@ -569,6 +599,15 @@
         [@includeCompositeLists asArray(compositeLists) /]
     [/#if]
 
+    [#-- CLI --]
+    [#assign templateCli={} ]
+    [#assign listMode="cli"]
+        [#if include?has_content]
+        [#include include?ensure_starts_with("/")]
+    [#else]
+        [@includeCompositeLists asArray(compositeLists) /]
+    [/#if]
+
     [#-- Script --]
     [#assign templateScript = [] ]
     [#assign listMode="script"]
@@ -631,7 +670,7 @@
       [#list templateScript as line]
           ${line}
       [/#list]
-    [#elseif templateConfig?has_content]
-        [@toJSON templateConfig /]
+    [#elseif templateCli?has_content]
+        [@toJSON templateCli /]
     [/#if]
 [/#macro]

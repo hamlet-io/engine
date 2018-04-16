@@ -126,7 +126,7 @@ function process_template() {
   local template_composites=("POLICY" "ID" "NAME" "RESOURCE")
   
   # Define the possible passes
-  local pass_list=("prologue" "template" "epilogue" "config")
+  local pass_list=("prologue" "template" "epilogue" "cli" "config")
   
   # Initialise the components of the pass filenames
   declare -A pass_level_prefix
@@ -155,7 +155,8 @@ function process_template() {
     ["prologue"]="prologue.sh"
     ["template"]="template.json"
     ["epilogue"]="epilogue.sh"
-    ["config"]="config.json")
+    ["config"]="config.json"
+    ["cli"]="cli.json")
 
   # Template pass specifics
   pass_deployment_unit_subset["template"]="${deployment_unit_subset}"
@@ -208,6 +209,7 @@ function process_template() {
 
     solution)
       template_composites+=("SOLUTION" )
+      passes=("${passes[@]}" "cli")
       if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
         for pass in "${pass_list[@]}"; do 
           pass_deployment_unit_prefix["${pass}"]="" 
