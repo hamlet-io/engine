@@ -111,8 +111,8 @@
 [#function formatProductPath absolute extensions... ]
     [#return formatPath(
                 absolute
-                tenantName,
-                productName,
+                tenantId,
+                productId,
                 extensions)]
 [/#function]
 
