@@ -940,7 +940,6 @@
             [/#list]
         [/#if]
     [/#list]
-
     [#return asFlattenedSettings(getCompositeObject({ "Name" : "*" }, contexts)) ]
 [/#function]
 
@@ -952,15 +951,11 @@
             alternatives) ]
 [/#function]
 
-[#function getOccurrenceProductSettings occurrence]
+[#function getOccurrenceBuildSettings occurrence]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
-
-    [#local buildDeploymentUnit =
-        (settingsObject.Builds.Products[formatSegmentFullName(deploymentUnit)].Reference)!"" ]
 
     [#local alternatives =
         [
-            {"Key" : formatSegmentFullName(buildDeploymentUnit), "Match" : "exact"},
             {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
             {"Key" : occurrence.Core.FullName, "Match" : "partial"},
             {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
@@ -969,30 +964,63 @@
         ] ]
 
     [#local occurrenceBuild =
-                getOccurrenceSettings(
-                    (settingsObject.Builds.Products)!{},
-                    alternatives) ]
+        getOccurrenceSettings(
+            (settingsObject.Builds.Products)!{},
+            alternatives
+        ) ]
 
-    [#local occurrenceSettings =
-                getOccurrenceSettings(
-                    (settingsObject.AppSettings.Products)!{},
-                    alternatives) ]
+    [#-- Reference could be a deployment unit or a component --]
+    [#if occurrenceBuild.REFERENCE?has_content]
+        [#local occurrenceBuild +=
+            getOccurrenceSettings(
+                (settingsObject.Builds.Products)!{},
+                [
+                    {"Key" : formatSegmentFullName(occurrenceBuild.REFERENCE.Value?replace("/","-")), "Match" : "exact"}
+                ]
+            ) ]
+    [/#if]
 
     [#return
-        occurrenceSettings +
         attributeIfContent(
             "BUILD_REFERENCE",
-            occurrenceBuild.COMMIT!""
+            occurrenceBuild.COMMIT!{}
         ) +
         attributeIfContent(
-            "BUILD_DEPLOYMENT_UNIT",
-            occurrenceBuild.REFERENCE!""
+            "BUILD_UNIT",
+            occurrenceBuild.UNIT!
+            valueIfContent(
+                {"Value" : (occurrenceBuild.REFERENCE.Value?replace("/","-"))!""},
+                occurrenceBuild.REFERENCE!{},
+                valueIfContent(
+                    {"Value" : deploymentUnit},
+                    deploymentUnit
+                )
+            )
         ) +
         attributeIfContent(
             "APP_REFERENCE"
-            occurrenceBuild.TAG!""
+            occurrenceBuild.TAG!{}
         ) ]
 [/#function]
+
+[#function getOccurrenceProductSettings occurrence ]
+    [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+
+    [#local alternatives =
+        [
+            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
+            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
+        ] ]
+
+    [#return
+        getOccurrenceSettings(
+            (settingsObject.AppSettings.Products)!{},
+            alternatives) ]
+[/#function]
+
 
 [#function getOccurrenceCredentialSettings occurrence]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
@@ -1038,10 +1066,13 @@
     [#list settingNames as settingName]
         [#local setting =
             contentIfContent(
-                (occurrence.Configuration.Settings.Product[settingName])!{},
+                (occurrence.Configuration.Settings.Build[settingName])!{},
                 contentIfContent(
-                    (occurrence.Configuration.Settings.Account[settingName])!{},
-                    (occurrence.Configuration.Settings.Core[settingName])!{}
+                    (occurrence.Configuration.Settings.Product[settingName])!{},
+                    contentIfContent(
+                        (occurrence.Configuration.Settings.Account[settingName])!{},
+                        (occurrence.Configuration.Settings.Core[settingName])!{}
+                    )
                 )
             ) ]
         [#if setting?has_content]
@@ -1068,14 +1099,14 @@
     [#return
         contentIfContent(
             getOccurrenceSettingValue(occurrence, "BUILD_REFERENCE", true),
-            "COTException: Build Reference Missing") ]
+            "COTException: Build reference not found") ]
 [/#function]
 
 [#function getOccurrenceBuildUnit occurrence]
     [#return
         contentIfContent(
-            getOccurrenceSettingValue(occurrence, "BUILD_DEPLOYMENT_UNIT", true),
-            occurrence.Configuration.Solution.DeploymentUnits[0]!"COTException: Build unit not found."
+            getOccurrenceSettingValue(occurrence, "BUILD_UNIT", true),
+            "COTException: Build unit not found"
         ) ]
 [/#function]
 
@@ -1344,6 +1375,7 @@
                                 occurrence.Configuration +
                                 {
                                     "Settings" : {
+                                        "Build" : getOccurrenceBuildSettings(occurrence),
                                         "Core" : getOccurrenceCoreSettings(occurrence),
                                         "Account" : getOccurrenceAccountSettings(occurrence),
                                         "Product" :
@@ -1358,6 +1390,8 @@
                                 occurrence.Configuration +
                                 {
                                     "Environment" : {
+                                        "Build" :
+                                            getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
                                         "General" :
                                             getOccurrenceSettingsAsEnvironment(occurrence, false),
                                         "Sensitive" :

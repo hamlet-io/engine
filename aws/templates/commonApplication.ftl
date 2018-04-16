@@ -208,6 +208,7 @@
 [#function standardEnvironment occurrence mode=""]
     [#return
         occurrence.Configuration.Environment.General +
+        occurrence.Configuration.Environment.Build +
         occurrence.Configuration.Environment.Sensitive +
         attributeIfContent("APP_RUN_MODE", mode)
     ]
