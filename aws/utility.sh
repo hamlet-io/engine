@@ -507,8 +507,8 @@ function split_cli_file() {
   local outdir="$1"; shift
 
   for resource in $( jq -r 'keys[]' <"${cli_file}" ) ; do
-    for command in $( cat ${cli_file} | jq -r ".$resource | keys[]" ); do 
-        cat "${cli_file}" | jq ".${resource}.${command}" > "${outdir}/cli-${resource}-${command}.json"
+    for command in $( jq -r ".$resource | keys[]"<"${cli_file}" ); do 
+        jq ".${resource}.${command}" >"${outdir}/cli-${resource}-${command}.json" <"${cli_file}"
     done
   done
 }
