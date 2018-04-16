@@ -47,6 +47,16 @@
                 "Children" : linkChildrenConfiguration
             },
             {
+                "Name" : "Metrics",
+                "Subobjects" : true,
+                "Children" : metricChildrenConfiguration
+            },
+            {
+                "Name" : "Alerts",
+                "Subobjects" : true,
+                "Children" : alertChildrenConfiguraiton
+            }
+            {
                 "Name" : ["Memory", "MemorySize"],
                 "Default" : 0
             },
