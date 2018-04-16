@@ -501,6 +501,18 @@ function addToArrayHead() {
   addToArrayHeadWithPrefix "${array}" "" "${elements[@]}"
 }
 
+# -- Cli file generation -- 
+function split_cli_file() {
+  local cli_file="$1"; shift
+  local outdir="$1"; shift
+
+  for resource in $( jq -r 'keys[]' <"${cli_file}" ) ; do
+    for command in $( jq -r ".$resource | keys[]"<"${cli_file}" ); do 
+        jq ".${resource}.${command}" >"${outdir}/cli-${resource}-${command}.json" <"${cli_file}"
+    done
+  done
+}
+
 # -- JSON manipulation --
 
 function runJQ() {
@@ -575,12 +587,12 @@ function encrypt_kms_string() {
 
 # -- Cognito -- 
 
-function add_cognito_lambda_triggers() { 
+function update_cognito_userpool() { 
   local region="$1"; shift 
   local userpoolid="$1"; shift
-  local lambdaconfig="$1"; shift 
+  local configfile="$1"; shift 
 
-  aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --lambda-config "${lambdaconfig}" || return $? 
+  aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $? 
 }
 
 # -- S3 --
