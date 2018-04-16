@@ -376,23 +376,23 @@
                                             "Fn::Join" : [
                                                 "", 
                                                 [
-                                                    "#!/bin/bash\\n",
-                                                    "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
-                                                    "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
-                                                    "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
-                                                    "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
-                                                    "echo \\\"cot:account="       + accountId              + "\\\"\\n",
-                                                    "echo \\\"cot:product="       + productId              + "\\\"\\n",
-                                                    "echo \\\"cot:region="        + regionId               + "\\\"\\n",
-                                                    "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
-                                                    "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
-                                                    "echo \\\"cot:tier="          + tier.Id            + "\\\"\\n",
-                                                    "echo \\\"cot:component="     + "ssh"                  + "\\\"\\n",
-                                                    "echo \\\"cot:role="          + "ssh"                  + "\\\"\\n",
-                                                    "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
-                                                    "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
-                                                    "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
-                                                    "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
+                                                    "#!/bin/bash\n",
+                                                    "echo \"cot:request="       + requestReference       + "\"\n",
+                                                    "echo \"cot:configuration=" + configurationReference + "\"\n",
+                                                    "echo \"cot:accountRegion=" + accountRegionId        + "\"\n",
+                                                    "echo \"cot:tenant="        + tenantId               + "\"\n",
+                                                    "echo \"cot:account="       + accountId              + "\"\n",
+                                                    "echo \"cot:product="       + productId              + "\"\n",
+                                                    "echo \"cot:region="        + regionId               + "\"\n",
+                                                    "echo \"cot:segment="       + segmentId              + "\"\n",
+                                                    "echo \"cot:environment="   + environmentId          + "\"\n",
+                                                    "echo \"cot:tier="          + tier.Id                + "\"\n",
+                                                    "echo \"cot:component="     + "ssh"                  + "\"\n",
+                                                    "echo \"cot:role="          + "ssh"                  + "\"\n",
+                                                    "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
+                                                    "echo \"cot:code="          + codeBucket             + "\"\n",
+                                                    "echo \"cot:logs="          + operationsBucket       + "\"\n",
+                                                    "echo \"cot:backups="       + dataBucket             + "\"\n"
                                                 ]
                                             ]
                                         },
@@ -403,11 +403,11 @@
                                             "Fn::Join" : [
                                                 "", 
                                                 [
-                                                    "#!/bin/bash -ex\\n",
-                                                    "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
-                                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
-                                                    "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
-                                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
+                                                    "#!/bin/bash -ex\n",
+                                                    "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
+                                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                                    "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\n",
+                                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\n"
                                                 ]
                                             ]
                                         },
@@ -461,11 +461,11 @@
         
             [#assign processorProfile = getProcessor(tier, sshComponent, "SSH")]
             [#assign updateCommand = "yum clean all && yum -y update"]
-            [#assign dailyUpdateCron = 'echo \\"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
+            [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
             [#if environmentId == "prod"]
                 [#-- for production update only security packages --]
                 [#assign updateCommand += " --security"]
-                [#assign dailyUpdateCron = 'echo \\"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
+                [#assign dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
             [/#if]
             [#-- daily cron record for updates --]
             [@cfResource
@@ -486,16 +486,16 @@
                                     "Fn::Join": [ 
                                         "", 
                                         [
-                                            "#!/bin/bash -ex\\n",
-                                            "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
-                                            updateCommand, "\\n",
-                                            dailyUpdateCron, "\\n",
-                                            "yum install -y aws-cfn-bootstrap\\n",
-                                            "# Remainder of configuration via metadata\\n",
+                                            "#!/bin/bash -ex\n",
+                                            "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
+                                            updateCommand, "\n",
+                                            dailyUpdateCron, "\n",
+                                            "yum install -y aws-cfn-bootstrap\n",
+                                            "# Remainder of configuration via metadata\n",
                                             "/opt/aws/bin/cfn-init -v",
                                             " --stack ", { "Ref" : "AWS::StackName" },
                                             " --resource " + asgId,
-                                            " --region " + regionId + " --configsets ssh\\n"
+                                            " --region " + regionId + " --configsets ssh\n"
                                         ]
                                     ]
                                 }
@@ -697,24 +697,24 @@
                                                     "Fn::Join" : [
                                                         "", 
                                                         [
-                                                            "#!/bin/bash\\n",
-                                                            "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
-                                                            "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
-                                                            "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
-                                                            "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
-                                                            "echo \\\"cot:account="       + accountId              + "\\\"\\n",
-                                                            "echo \\\"cot:product="       + productId              + "\\\"\\n",
-                                                            "echo \\\"cot:region="        + regionId               + "\\\"\\n",
-                                                            "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
-                                                            "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
-                                                            "echo \\\"cot:tier="          + tier.Id            + "\\\"\\n",
-                                                            "echo \\\"cot:component="     + "nat"                  + "\\\"\\n",
-                                                            "echo \\\"cot:zone="          + zone.Id                + "\\\"\\n",
-                                                            "echo \\\"cot:role="          + "nat"                  + "\\\"\\n",
-                                                            "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
-                                                            "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
-                                                            "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
-                                                            "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
+                                                            "#!/bin/bash\n",
+                                                            "echo \"cot:request="       + requestReference       + "\"\n",
+                                                            "echo \"cot:configuration=" + configurationReference + "\"\n",
+                                                            "echo \"cot:accountRegion=" + accountRegionId        + "\"\n",
+                                                            "echo \"cot:tenant="        + tenantId               + "\"\n",
+                                                            "echo \"cot:account="       + accountId              + "\"\n",
+                                                            "echo \"cot:product="       + productId              + "\"\n",
+                                                            "echo \"cot:region="        + regionId               + "\"\n",
+                                                            "echo \"cot:segment="       + segmentId              + "\"\n",
+                                                            "echo \"cot:environment="   + environmentId          + "\"\n",
+                                                            "echo \"cot:tier="          + tier.Id                + "\"\n",
+                                                            "echo \"cot:component="     + "nat"                  + "\"\n",
+                                                            "echo \"cot:zone="          + zone.Id                + "\"\n",
+                                                            "echo \"cot:role="          + "nat"                  + "\"\n",
+                                                            "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
+                                                            "echo \"cot:code="          + codeBucket             + "\"\n",
+                                                            "echo \"cot:logs="          + operationsBucket       + "\"\n",
+                                                            "echo \"cot:backups="       + dataBucket             + "\"\n"
                                                         ]
                                                     ]
                                                 },
@@ -725,11 +725,11 @@
                                                     "Fn::Join" : [
                                                         "", 
                                                         [
-                                                            "#!/bin/bash -ex\\n",
-                                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
-                                                            "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
-                                                            "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
-                                                            "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
+                                                            "#!/bin/bash -ex\n",
+                                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
+                                                            "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                                            "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\n",
+                                                            "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\n"
                                                         ]
                                                     ]
                                                 },
@@ -771,11 +771,11 @@
                 
                     [#assign processorProfile = getProcessor(tier, natComponent, "NAT")]
                     [#assign updateCommand = "yum clean all && yum -y update"]
-                    [#assign dailyUpdateCron = 'echo \\"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
+                    [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
                     [#if environmentId == "prod"]
                         [#-- for production update only security packages --]
                         [#assign updateCommand += " --security"]
-                        [#assign dailyUpdateCron = 'echo \\"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
+                        [#assign dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
                     [/#if]
                     [#-- daily cron record for updates --]
                     [@cfResource
@@ -803,16 +803,16 @@
                                         "Fn::Join": [ 
                                             "", 
                                             [
-                                                "#!/bin/bash -ex\\n",
-                                                "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
-                                                updateCommand, "\\n",
-                                                dailyUpdateCron, "\\n",
-                                                "yum install -y aws-cfn-bootstrap\\n",
-                                                "# Remainder of configuration via metadata\\n",
+                                                "#!/bin/bash -ex\n",
+                                                "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
+                                                updateCommand, "\n",
+                                                dailyUpdateCron, "\n",
+                                                "yum install -y aws-cfn-bootstrap\n",
+                                                "# Remainder of configuration via metadata\n",
                                                 "/opt/aws/bin/cfn-init -v",
                                                 " --stack ", { "Ref" : "AWS::StackName" },
                                                 " --resource " + asgId,
-                                                " --region " + regionId + " --configsets nat\\n"
+                                                " --region " + regionId + " --configsets nat\n"
                                             ]
                                         ]
                                     }
