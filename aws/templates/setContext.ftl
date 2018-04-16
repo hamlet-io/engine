@@ -42,8 +42,14 @@
 
 [#assign 
     metricChildrenConfiguration = [
-        "Name",
-        "Type",
+        {
+            "Name",
+            "Mandatory" : true
+        }
+        {
+            "Type",
+            "Mandatory" : true
+        }
         {
             "Name" : "LogPattern",
             "Default" : ""
@@ -52,10 +58,19 @@
 ]
 
 [#assign alertChildrenConfiguraiton = [
-        "Name",
         "Description",
-        "Metric",
-        "Threshold",
+        {
+            "Name" : "Name",
+            "Mandatory" : true
+        },
+        {
+            "Name" : "Metric",
+            "Mandatory" : true
+        },
+        {
+            "Name" : "Threshold",
+            "Default" : 1
+        },
         {
             "Name" : "Severity",
             "Default" : "Info"
