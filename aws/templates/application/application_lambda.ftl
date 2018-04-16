@@ -202,11 +202,11 @@
 
                 [#list configuration.Alerts?values as alert ]
 
-                    [#local dimensions=[] ]
+                    [#assign dimensions=[] ]
 
                     [#switch alert.Metric.Type] 
                         [#case "LogFilter" ]
-                            [#local dimensions += 
+                            [#assign dimensions += 
                                 [
                                     "Name" : "LogGroupName",
                                     "Value" : logGroupName
