@@ -43,11 +43,11 @@
 [#assign 
     metricChildrenConfiguration = [
         {
-            "Name",
+            "Name" : "Name",
             "Mandatory" : true
         }
         {
-            "Type",
+            "Name" : "Type",
             "Mandatory" : true
         }
         {
