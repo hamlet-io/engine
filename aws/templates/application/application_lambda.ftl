@@ -189,7 +189,7 @@
                                 name=metric.Name
                                 logGroup="/aws/lambda/" + fnName
                                 filter=metric.LogPattern
-                                namespace=formatSegmentRelativePath()
+                                namespace=formatProductRelativePath()
                                 value=1
                                 dependencies=fnId
                             /]
@@ -204,14 +204,14 @@
                             [@createCountAlarm
                                 mode=listMode
                                 id=formatDependentAlarmId(fnId, alert.Id)
-                                name=alert.Severity?upper_case + "-" + alert.Name
+                                name=alert.Severity?upper_case + "-" + fnName + "-" + alert.Name
                                 actions=[
                                     getReference(formatSegmentSNSTopicId())
                                 ]
                                 metric=alert.Metric
                                 namespace=alert.Namespace?has_content?then(
                                                 alert.Namespace,
-                                                formatSegmentRelativePath()
+                                                formatProductRelativePath()
                                                 )
                                 description=alert.Description?has_content?then(
                                                 alert.Description,
