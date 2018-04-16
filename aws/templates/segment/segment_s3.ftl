@@ -76,7 +76,7 @@
         name=dataBucket
         lifecycleRules=
             (dataExpiration?is_number || dataOffline?is_number)?then(
-                getS3LifecycleRule(dataExpiration, databOffline),
+                getS3LifecycleRule(dataExpiration, dataOffline),
                 []
             )
         outputId=s3DataId
