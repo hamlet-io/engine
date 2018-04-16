@@ -79,6 +79,13 @@
                 "Children" : [
                     {
                         "Name" : "Expiration"
+                    },
+                    {
+                        "Name" : "Offline"
+                    },
+                    {
+                        "Name" : "Versioning",
+                        "Default" : false
                     }
                 ]
             },
