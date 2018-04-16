@@ -162,6 +162,7 @@
     [#local fqdn = internalFqdn]
     [#local signingFqdn = internalFqdn]
     [#local mappingStage = ""]
+    [#local internalPath = ""]
     [#local stagePath = "/" + stageName]
     [#local certificateId = "" ]
     [#local docsName =
@@ -181,6 +182,8 @@
             [#if solution.Mapping.IncludeStage]
                 [#local mappingStage = stageName ]
                 [#local stagePath = "" ]
+            [#else]
+                [#local internalPath = "/" + stageName" ]
             [/#if]
 
             [#if cfPresent ]
@@ -271,7 +274,7 @@
                 "SIGNING_FQDN" : signingFqdn,
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn + stagePath,
-                "INTERNAL_PATH" : stagePath,
+                "INTERNAL_PATH" : internalPath,
                 "DOCS_URL" : "http://" + getExistingReference(docsId, NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
