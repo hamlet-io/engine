@@ -183,7 +183,7 @@
                 [#local mappingStage = stageName ]
                 [#local stagePath = "" ]
             [#else]
-                [#local internalPath = "/" + stageName" ]
+                [#local internalPath = "/" + stageName ]
             [/#if]
 
             [#if cfPresent ]
