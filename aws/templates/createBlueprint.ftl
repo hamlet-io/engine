@@ -103,27 +103,17 @@
 
       [#-- Only include deployed Occurrences --]
       [#local occurrences = getOccurrences(tier, component) ]
-      [#local deployedOccurrences = [] ]
+      [#local cleanedOccurrences = [] ]
 
-      [#list getOccurrences(tier, component) as occurrence ]
-        [#local deployed = false]
-        [#list occurrence.State.Resources?values as resource ]
-          [#if resource.Deployed ]
-              [#local deployed = true]
-              [#continue]
-          [/#if]
-        [/#list]
-        
-        [#if deployed ]
-          [#local deployedOccurrences += [ getCleanedOccurrence(occurrence) ] ]
-        [/#if]
+      [#list getOccurrences(tier, component) as occurrence ]        
+          [#local cleanedOccurrences += [ getCleanedOccurrence(occurrence) ] ]
       [/#list]
 
       [#local result += [
         {
           "Id" : id,
           "Type" : componentType,
-          "Occurrences" : deployedOccurrences
+          "Occurrences" : cleanedOccurrences
         } ] ]
 
     [/#if]
