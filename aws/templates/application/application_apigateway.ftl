@@ -220,10 +220,23 @@
             /]
 
             [#if cfPresent]
+
                 [#assign origin =
                     getCFHTTPOrigin(
                         cfOriginId,
-                        cfOriginFqdn,
+                        valueIfTrue(
+                            cfOriginFqdn,
+                            certificatePresent && mappingPresent,
+                            {
+                                "Fn::Join" : [
+                                    ".",
+                                    [
+                                        getReference(apiId),
+                                        "execute-api." + regionId + ".amazonaws.com"
+                                    ]
+                                ]
+                            }
+                        ),
                         getCFHTTPHeader(
                             "x-api-key",
                             getOccurrenceSettingValue(
