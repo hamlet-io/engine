@@ -1025,12 +1025,8 @@
 [#function getOccurrenceCredentialSettings occurrence]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
 
-    [#local buildDeploymentUnit =
-        (settingsObject.Builds.Products[formatSegmentFullName(deploymentUnit)].Reference)!"" ]
-
     [#local alternatives =
         [
-            {"Key" : formatSegmentFullName(buildDeploymentUnit), "Match" : "exact"},
             {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
             {"Key" : occurrence.Core.FullName, "Match" : "partial"},
             {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
