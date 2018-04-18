@@ -1140,7 +1140,7 @@
             "  done",
             "done",
             "#",
-            "debug \"FILES=${filesToSync[@]}\"",
+            "debug \"FILES=$\{filesToSync[@]}\"",
             "#"
         ] ]
 
