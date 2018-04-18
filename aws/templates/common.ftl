@@ -1136,6 +1136,7 @@
             "    if [[ -f \"$\{d}/$\{f}\" ]]; then",
             "      filesToSynch+=(\"$\{d}/$\{f}\")",
             "      break",
+            "    fi",
             "  done",
             "done",
             "#"
