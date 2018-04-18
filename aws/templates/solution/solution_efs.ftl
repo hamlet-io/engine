@@ -9,7 +9,6 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
-        [#assign configuration = occurrence.Configuration]
         [#assign resources = occurrence.State.Resources]
 
         [#assign efsId              = resources["efs"].Id]

@@ -61,7 +61,7 @@
             component=component
             lifecycleRules=
 
-                (configuration.Lifecycle.Configured && ((solution.Lifecycle.Expiration!operationsExpiration)?has_content || (solution.Lifecycle.Offline!operationsOffline)?has_content))?then(
+                (solution.Lifecycle.Configured && ((solution.Lifecycle.Expiration!operationsExpiration)?has_content || (solution.Lifecycle.Offline!operationsOffline)?has_content))?then(
                         getS3LifecycleRule(solution.Lifecycle.Expiration!operationsExpiration, solution.Lifecycle.Offline!operationsOffline),
                         []
                 )
@@ -70,7 +70,7 @@
                 (solution.Website.Configured && solution.Website.Enabled)?then(
                     getS3WebsiteConfiguration(solution.Website.Index, solution.Website.Error),
                     {})
-            versioning=configuration.Lifecycle.Versioning
+            versioning=solution.Lifecycle.Versioning
             dependencies=dependencies
         /]
 

@@ -332,12 +332,12 @@
             [#assign userpoolConfig = {
                 "UserPoolId": getExistingReference(userPoolId),
                 "Policies": getUserPoolPasswordPolicy( 
-                        configuration.PasswordPolicy.MinimumLength, 
-                        configuration.PasswordPolicy.Lowercase,
-                        configuration.PasswordPolicy.Uppsercase,
-                        configuration.PasswordPolicy.Numbers,
-                        configuration.PasswordPolicy.SpecialCharacters),
-                "MfaConfiguration": configuration.MFA?then("ON","OFF"),
+                        solution.PasswordPolicy.MinimumLength, 
+                        solution.PasswordPolicy.Lowercase,
+                        solution.PasswordPolicy.Uppsercase,
+                        solution.PasswordPolicy.Numbers,
+                        solution.PasswordPolicy.SpecialCharacters),
+                "MfaConfiguration": solution.MFA?then("ON","OFF"),
                 "UserPoolTags": getCfTemplateCoreTags(
                                     userPoolName,
                                     tier,
@@ -346,8 +346,8 @@
                                     false,
                                     true),
                 "AdminCreateUserConfig": getUserPoolAdminCreateUserConfig(
-                                                configuration.AdminCreatesUser, 
-                                                configuration.UnusedAccountTimeout,
+                                                solution.AdminCreatesUser, 
+                                                solution.UnusedAccountTimeout,
                                                 getUserPoolInviteMessageTemplate(
                                                     emailInviteMessage,
                                                     emailInviteSubject,
@@ -371,8 +371,8 @@
             ) +
             attributeIfTrue(
                 "AutoVerifiedAttributes",
-                (configuration.VerifyEmail || smsVerification),
-                getUserPoolAutoVerification(configuration.VerifyEmail, smsVerification)
+                (solution.VerifyEmail || smsVerification),
+                getUserPoolAutoVerification(solution.VerifyEmail, smsVerification)
             ) +
             attributeIfTrue(
                 "LambdaConfig",
