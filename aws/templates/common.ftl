@@ -1128,8 +1128,8 @@
     [#local result +=
         [
             "filesToSync=()",
-            "dirsToCheck=(\"$\{SEGMENT_APPSETTINGS_DIR}\")",
-            "dirsToCheck+=(\"$\{SEGMENT_CREDENTIALS_DIR}\")",
+            "dirsToCheck=(\"$\{PRODUCT_APPSETTINGS_DIR}\")",
+            "dirsToCheck+=(\"$\{PRODUCT_CREDENTIALS_DIR}\")",
             "#",
             "for f in \"$\{filePathsToSync[@]}\"; do",
             "  for d in \"$\{dirsToCheck[@]}\"; do",
@@ -1139,10 +1139,12 @@
             "    fi",
             "  done",
             "done",
+            "#",
+            "debug \"FILES=${filesToSync[@]}\"",
             "#"
         ] ]
 
-    [#-- Perform the h --]
+    [#-- Perform the synch --]
     [#local result +=
         [
             "case $\{STACK_OPERATION} in",
