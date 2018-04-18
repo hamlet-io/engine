@@ -527,9 +527,6 @@ function main() {
   [[ -s "${PROLOGUE}" ]] && \
     { info "Processing prologue script ..." && . "${PROLOGUE}" && assemble_composite_stack_outputs || return $?; }
 
-  # Update any file based configuration
-  copy_cmdb_files || return $?
-  
   # Update any config file
   [[ -f "${CONFIG}" ]] && \
     { info "Copying config file ..." && copy_config_file "${CONFIG}" || return $?; }
