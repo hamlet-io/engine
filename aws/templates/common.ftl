@@ -1118,23 +1118,23 @@
 
 [#function syncFilesToBucket settings bucket prefix]
     [#-- Create an array for the files --]
-    [#local result = ["filePathsToSynch=()"] ]
+    [#local result = ["filePathsToSync=()"] ]
     [#list settings as setting]
-        [#local result += ["filePathsToSynch+=(\"" + setting.AsFile + "\")"] ]
+        [#local result += ["filePathsToSync+=(\"" + setting.AsFile + "\")"] ]
     [/#list]
     [#local result += ["#"] ]
 
     [#-- Locate where each file is --]
     [#local result +=
         [
-            "filesToSynch=()",
+            "filesToSync=()",
             "dirsToCheck=(\"$\{SEGMENT_APPSETTINGS_DIR}\")",
             "dirsToCheck+=(\"$\{SEGMENT_CREDENTIALS_DIR}\")",
             "#",
-            "for f in \"$\{filePathsToSynch[@]}\"; do",
+            "for f in \"$\{filePathsToSync[@]}\"; do",
             "  for d in \"$\{dirsToCheck[@]}\"; do",
             "    if [[ -f \"$\{d}/$\{f}\" ]]; then",
-            "      filesToSynch+=(\"$\{d}/$\{f}\")",
+            "      filesToSync+=(\"$\{d}/$\{f}\")",
             "      break",
             "    fi",
             "  done",
@@ -1154,11 +1154,11 @@
                 "|| return $?",
             "    ;;",
             "  create|update)",
-            "    synchFilesToBucket"    + " " +
+            "    syncFilesToBucket"    + " " +
                 "\"" + regionId + "\"" + " " +
                 "\"" + bucket   + "\"" + " " +
                 "\"" + prefix   + "\"" + " " +
-                "filesToSynch --delete || return $?",
+                "filesToSync --delete || return $?",
             "    ;;",
             " esac"
         ] ]
