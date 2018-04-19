@@ -6,7 +6,7 @@
             getOccurrences(tier, component),
             deploymentUnit) as occurrence ]
 
-        [@cfDebug listMode occurrence false /]
+        [@cfDebug listMode occurrence false  /]
 
         [#list occurrence.Occurrences as fn]
             [#assign core = fn.Core ]
@@ -205,9 +205,9 @@
 
                     [#assign dimensions=[] ]
 
-                    [#switch alert.Metric.Type] 
+                    [#switch alert.Metric.Type]
                         [#case "LogFilter" ]
-                            [#assign dimensions += 
+                            [#assign dimensions +=
                                 [
                                     {
                                         "Name" : "LogGroupName",
@@ -215,8 +215,8 @@
                                     }
                                 ]
                             ]
-                        [#break]  
-                    [/#switch]                  
+                        [#break]
+                    [/#switch]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
@@ -248,7 +248,7 @@
                         [#break]
                     [/#switch]
                 [/#list]
-                
+
                 [#-- Pick any extra macros in the container fragment --]
                 [#assign containerListMode = listMode]
                 [#include containerList?ensure_starts_with("/")]

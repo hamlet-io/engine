@@ -252,10 +252,13 @@
                     ["DefaultFilePrefix"]
                 ], true) ]
         [#return
-            valueIfContent(
-                formatSegmentRelativePath("appdata", override),
-                override,
-                formatRelativePath("appdata", occurrence.Core.FullRelativePath)
+            formatRelativePath(
+                "appdata",
+                valueIfContent(
+                    formatSegmentRelativePath(override),
+                    override,
+                    occurrence.Core.FullRelativePath
+                )
             ) ]
     [#else]
         [#return context.Environment["APPDATA_PREFIX"] ]
@@ -274,10 +277,13 @@
                         ["DefaultFilePrefix"]
                     ], true) ]
             [#return
-                valueIfContent(
-                    formatSegmentRelativePath("apppublic", override),
-                    override,
-                    formatRelativePath("apppublic", occurrence.Core.FullRelativePath)
+                formatRelativePath(
+                    "apppublic",
+                    valueIfContent(
+                        formatSegmentRelativePath(override),
+                        override,
+                        occurrence.Core.FullRelativePath
+                    )
                 ) ]
         [#else]
             [#return context.Environment["APPDATA_PUBLIC_PREFIX"] ]
@@ -892,6 +898,28 @@
     [#return result ]
 [/#function]
 
+[#function getOccurrenceSettings possibilities alternatives]
+    [#local contexts = [] ]
+
+    [#-- Order possibilities in increasing priority --]
+    [#list possibilities?keys?sort as key]
+        [#local matchKey = key?lower_case?remove_ending("-asfile") ]
+        [#local value = possibilities[key] ]
+        [#if value?has_content]
+            [#list alternatives as alternative]
+                [#if
+                    (
+                        ((alternative.Match == "exact") && (alternative.Key == matchKey)) ||
+                        ((alternative.Match == "partial") && (alternative.Key?starts_with(matchKey)))
+                    ) ]
+                    [#local contexts += [value] ]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+    [#return asFlattenedSettings(getCompositeObject({ "Name" : "*" }, contexts)) ]
+[/#function]
+
 [#function getOccurrenceCoreSettings occurrence]
     [#local core = occurrence.Core ]
     [#return
@@ -919,28 +947,6 @@
             attributeIfContent("SES_REGION", (productObject.SES.Region)!"")
         )
     ]
-[/#function]
-
-[#function getOccurrenceSettings possibilities alternatives]
-    [#local contexts = [] ]
-
-    [#-- Order possibilities in increasing priority --]
-    [#list possibilities?keys?sort as key]
-        [#local matchKey = key?lower_case?remove_ending("-asfile") ]
-        [#local value = possibilities[key] ]
-        [#if value?has_content]
-            [#list alternatives as alternative]
-                [#if
-                    (
-                        ((alternative.Match == "exact") && (alternative.Key == matchKey)) ||
-                        ((alternative.Match == "partial") && (alternative.Key?starts_with(matchKey)))
-                    ) ]
-                    [#local contexts += [value] ]
-                [/#if]
-            [/#list]
-        [/#if]
-    [/#list]
-    [#return asFlattenedSettings(getCompositeObject({ "Name" : "*" }, contexts)) ]
 [/#function]
 
 [#function getOccurrenceAccountSettings occurrence]
@@ -1120,6 +1126,9 @@
     [#local result = {} ]
     [#list settings as key,value]
         [#if value?is_hash]
+            [#if value.Internal!false]
+                [#continue]
+            [/#if]
             [#if sensitive && value.Sensitive!false]
                 [#local result += { key : valueIfTrue("****", obfuscate, value.Value)} ]
                 [#continue]
@@ -1324,12 +1333,25 @@
                                 {
                                     "Settings" : {
                                         "Build" : getOccurrenceBuildSettings(occurrence),
-                                        "Core" : getOccurrenceCoreSettings(occurrence),
                                         "Account" : getOccurrenceAccountSettings(occurrence),
                                         "Product" :
                                             getOccurrenceProductSettings(occurrence) +
                                             getOccurrenceCredentialSettings(occurrence)
                                     }
+                                }
+                        } ]
+                    [#-- Some core settings are controlled by product level settings --]
+                    [#-- (e.g. file prefixes) so initialise core last                --]
+                    [#local occurrence +=
+                        {
+                            "Configuration" :
+                                occurrence.Configuration +
+                                {
+                                    "Settings" :
+                                        occurrence.Configuration.Settings +
+                                        {
+                                            "Core" : getOccurrenceCoreSettings(occurrence)
+                                        }
                                 }
                         } ]
                     [#local occurrence +=
