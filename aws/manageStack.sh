@@ -110,29 +110,6 @@ function copy_cmdb_files() {
   return 0
 }
 
-function copy_config_file() {  
-
-  local files=()
-
-  case ${STACK_OPERATION} in
-    delete)
-      # Nothing to do as synch will use an empty directory
-      ;;
-    create|update)
-      # Change filename to config.json
-      cp "$1" "${tmpdir}/config.json"
-      files+=("${tmpdir}/config.json")
-      ;;
-  esac
-
-  # Update S3
-  syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
-    "appsettings/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/config" \
-    "files" ${DRYRUN} --delete
-
-  return 0
-}
-
 function copy_contentnode_file() { 
   local files="$1"; shift
   local engine="$1"; shift
@@ -202,26 +179,6 @@ function copy_contentnode_file() {
   else 
     info "No files found to copy" 
   fi
-
-  return 0
-}
-
-function copy_spa_file() {
-
-  local files=()
-
-  case ${STACK_OPERATION} in
-    delete)
-      # Nothing to do as synch will use an empty directory
-      ;;
-    create|update)
-      files+=("$@")
-      ;;
-  esac
-
-  syncFilesToBucket "${REGION}" "$(getOperationsBucket)" \
-    "appsettings/${PRODUCT}/${SEGMENT}/${DEPLOYMENT_UNIT}/spa" \
-    "files" ${DRYRUN} --delete
 
   return 0
 }
@@ -526,10 +483,6 @@ function main() {
   # Refresh the stack outputs in case something from pseudo stack is needed
   [[ -s "${PROLOGUE}" ]] && \
     { info "Processing prologue script ..." && . "${PROLOGUE}" && assemble_composite_stack_outputs || return $?; }
-
-  # Update any config file
-  [[ -f "${CONFIG}" ]] && \
-    { info "Copying config file ..." && copy_config_file "${CONFIG}" || return $?; }
 
   process_stack_status=0
   # Process the stack

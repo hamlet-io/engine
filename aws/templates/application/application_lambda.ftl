@@ -261,10 +261,13 @@
                     [@cfScript
                         mode=listMode
                         content=
-                            syncFilesToBucket(
-                                asFiles,
+                            findAsFilesScript("filesToSync", asFiles) +
+                            syncFilesToBucketScript(
+                                "filesToSync",
+                                regionId,
                                 operationsBucket,
-                                getOccurrenceSettingValue(fn, "SETTINGS_PREFIX")) /]
+                                getOccurrenceSettingValue(fn, "SETTINGS_PREFIX")
+                            ) /]
                 [/#if]
             [/#if]
         [/#list]

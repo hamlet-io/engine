@@ -668,6 +668,8 @@
       [#list templateScript as line]
           ${line}
       [/#list]
+    [#elseif templateConfig?has_content]
+        [@toJSON templateConfig /]
     [#elseif templateCli?has_content]
         [@toJSON templateCli /]
     [/#if]

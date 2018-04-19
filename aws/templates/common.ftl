@@ -1116,57 +1116,6 @@
     [#return result ]
 [/#function]
 
-[#function syncFilesToBucket settings bucket prefix]
-    [#-- Create an array for the files --]
-    [#local result = ["filePathsToSync=()"] ]
-    [#list settings as setting]
-        [#local result += ["filePathsToSync+=(\"" + setting.AsFile + "\")"] ]
-    [/#list]
-    [#local result += ["#"] ]
-
-    [#-- Locate where each file is --]
-    [#local result +=
-        [
-            "filesToSync=()",
-            "dirsToCheck=(\"$\{PRODUCT_APPSETTINGS_DIR}\")",
-            "dirsToCheck+=(\"$\{PRODUCT_CREDENTIALS_DIR}\")",
-            "#",
-            "for f in \"$\{filePathsToSync[@]}\"; do",
-            "  for d in \"$\{dirsToCheck[@]}\"; do",
-            "    if [[ -f \"$\{d}/$\{f}\" ]]; then",
-            "      filesToSync+=(\"$\{d}/$\{f}\")",
-            "      break",
-            "    fi",
-            "  done",
-            "done",
-            "#",
-            "debug \"FILES=$\{filesToSync[@]}\"",
-            "#"
-        ] ]
-
-    [#-- Perform the synch --]
-    [#local result +=
-        [
-            "case $\{STACK_OPERATION} in",
-            "  delete)",
-            "    deleteTreeFromBucket" + " " +
-                "\"" + regionId + "\"" + " " +
-                "\"" + bucket   + "\"" + " " +
-                "\"" + prefix   + "\"" + " " +
-                "|| return $?",
-            "    ;;",
-            "  create|update)",
-            "    syncFilesToBucket"    + " " +
-                "\"" + regionId + "\"" + " " +
-                "\"" + bucket   + "\"" + " " +
-                "\"" + prefix   + "\"" + " " +
-                "filesToSync --delete || return $?",
-            "    ;;",
-            " esac"
-        ] ]
-    [#return result ]
-[/#function]
-
 [#function getSettingsAsEnvironment settings sensitive=false obfuscate=false]
     [#local result = {} ]
     [#list settings as key,value]
@@ -1924,3 +1873,114 @@
 [#macro toJSON obj escaped=false]
     ${getJSON(obj, escaped)}[/#macro]
 
+[#-- Prologue/epilogue script creation --]
+
+[#function syncFilesToBucketScript filesArrayName region bucket prefix]
+    [#return
+        [
+            "case $\{STACK_OPERATION} in",
+            "  delete)",
+            "    deleteTreeFromBucket" + " " +
+                   "\"" + region + "\"" + " " +
+                   "\"" + bucket + "\"" + " " +
+                   "\"" + prefix + "\"" + " " +
+                   "|| return $?",
+            "    ;;",
+            "  create|update)",
+            "    debug \"FILES=$\{" + filesArrayName + "[@]}\"",
+            "    #",
+            "    syncFilesToBucket" + " " +
+                   "\"" + region         + "\"" + " " +
+                   "\"" + bucket         + "\"" + " " +
+                   "\"" + prefix         + "\"" + " " +
+                   "\"" + filesArrayName + "\"" + " " +
+                   "--delete || return $?",
+            "    ;;",
+            " esac",
+            "#"
+        ] ]
+[/#function]
+
+[#function findAsFilesScript filesArrayName settings]
+    [#-- Create an array for the files --]
+    [#local result = [] ]
+    [#list settings as setting]
+        [#if setting.AsFile?has_content]
+            [#local result +=
+                [
+                    "addToArray" + " " +
+                       "\"" + "filePathsToSync" + "\"" + " " +
+                       "\"" + setting.AsFile    + "\""
+                ] ]
+        [/#if]
+    [/#list]
+    [#local result += ["#"] ]
+
+    [#-- Locate where each file is --]
+    [#return
+        result +
+        [
+            "addToArray" + " " +
+               "\"" + "dirsToCheck"                 + "\"" + " " +
+               "\"" + "$\{PRODUCT_APPSETTINGS_DIR}" + "\"",
+            "addToArray" + " " +
+               "\"" + "dirsToCheck"                 + "\"" + " " +
+               "\"" + "$\{PRODUCT_CREDENTIALS_DIR}" + "\"",
+            "#",
+            "for f in \"$\{filePathsToSync[@]}\"; do",
+            "  for d in \"$\{dirsToCheck[@]}\"; do",
+            "    if [[ -f \"$\{d}/$\{f}\" ]]; then",
+                   "addToArray" + " " +
+                      filesArrayName + " " +
+                      "\"$\{d}/$\{f}\"",
+            "      break",
+            "    fi",
+            "  done",
+            "done",
+            "#"
+        ] ]
+
+[/#function]
+
+[#function getBuildScript filesArrayName region registry product occurrence filename]
+    [#return
+        [
+            "copyFilesFromBucket" + " " +
+              region + " " +
+              getRegistryEndPoint(registry, occurrence) + " " +
+              formatRelativePath(
+                getRegistryPrefix(registry, occurrence),
+                product,
+                getOccurrenceBuildUnit(occurrence),
+                getOccurrenceBuildReference(occurrence)) + " " +
+                "\"$\{tmpdir}\" || return $?",
+            "#",
+            "addToArray" + " " +
+               filesArrayName + " " +
+               "\"$\{tmpdir}/" + filename + "\"",
+            "#"
+        ] ]
+[/#function]
+
+[#function getLocalFileScript filesArrayName filepath filename=""]
+    [#return
+        valueIfContent(
+            [
+                "tmp_filename=\"" + filename + "\""
+            ],
+            filename,
+            [
+                "tmp_filename=\"$(fileName \"" + filepath + "\")\""
+            ]
+        ) +
+        [
+            "cp" + " " +
+               "\"" + filepath                      + "\"" +
+               "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"",
+            "#",
+            "addToArray" + " " +
+               filesArrayName + " " +
+               "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"",
+            "#"
+        ] ]
+[/#function]

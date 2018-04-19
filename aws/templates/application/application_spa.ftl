@@ -15,22 +15,22 @@
         [#assign containerId =
             solution.Container?has_content?then(
                 solution.Container,
-                getComponentId(component)                            
+                getComponentId(component)
             ) ]
-        [#assign context = 
+        [#assign context =
             {
                 "Id" : containerId,
                 "Name" : containerId,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
-                "Environment" : 
+                "Environment" :
                     {
                         "TEMPLATE_TIMESTAMP" : .now?iso_utc,
                         "BUILD_REFERENCE" : getOccurrenceBuildReference(occurrence)
                     } +
                     getSettingsAsEnvironment(occurrence.Configuration.Settings.Product) +
                     attributeIfContent(
-                        "APP_REFERENCE", 
+                        "APP_REFERENCE",
                         getOccurrenceSettingValue(occurrence, "APP_REFERENCE", true)),
                 "Links" : getLinkTargets(occurrence),
                 "DefaultLinkVariables" : false
@@ -56,28 +56,37 @@
             [@cfScript
                 mode=listMode
                 content=
-                  [
-                      "function get_spa_file() {",
-                      "  #",
-                      "  #",
-                      "  # Fetch the spa zip file",
-                      "  copyFilesFromBucket" + " " +
-                          regionId + " " + 
-                          getRegistryEndPoint("spa", occurrence) + " " +
-                          formatRelativePath(
-                              getRegistryPrefix("spa", occurrence),
-                              productName,
-                              getOccurrenceBuildUnit(occurrence),
-                              getOccurrenceBuildReference(occurrence)) + " " +
-                        "   \"$\{tmpdir}\" || return $?",
-                      "  #",
-                      "  # Sync with the operations bucket",
-                      "  copy_spa_file \"$\{tmpdir}/spa.zip\"",
-                      "}",
-                      "#",
-                      "get_spa_file"
-                  ]
-            /]
+                    getBuildScript(
+                        "spaFiles",
+                        regionId,
+                        "spa",
+                        productName,
+                        occurrence,
+                        "spa.zip"
+                    ) +
+                    syncFilesToBucketScript(
+                        "spaFiles",
+                        regionId,
+                        operationsBucket,
+                        formatRelativePath(
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                            "spa"
+                        )
+                    ) +
+                    getLocalFileScript(
+                        "configFiles",
+                        "$\{CONFIG}",
+                        "config.json"
+                    ) +
+                    syncFilesToBucketScript(
+                        "configFiles",
+                        regionId,
+                        operationsBucket,
+                        formatRelativePath(
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                            "config"
+                        )
+                    ) /]
         [/#if]
     [/#list]
 [/#if]
