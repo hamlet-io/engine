@@ -67,7 +67,7 @@
                         "case $\{STACK_OPERATION} in",
                         "  create|update)",
                         "    sync_code_bucket || return $?",
-                        "    initialise_registries \"lambda\" \"swagger\" \"spa\" \"contentnode\" || return $?",
+                        "    initialise_registries \"lambda\" \"scripts\" \"swagger\" \"spa\" \"contentnode\" \"scripts\" || return $?",
                         "    ;;",
                         " esac"
                     ]

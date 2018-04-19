@@ -26,6 +26,19 @@
 
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
+
+        [#assign scriptsFile = ""]
+
+        [#if buildDeploymentUnit?has_content && buildCommit?has_content ]
+            [#assign scriptsFile = formatRelativePath(
+                                        getRegistryEndPoint("scripts"),
+                                        getRegistryPrefix("scripts") + productName,
+                                        buildDeploymentUnit,
+                                        buildCommit,
+                                        "scripts.zip")]
+        [/#if]
+
+
         [#assign componentDependencies = []]
         [#assign ingressRules = []]
 
@@ -190,12 +203,19 @@
                         {
                             "AWS::CloudFormation::Init": {
                                 "configSets" : {
-                                    "ec2" : ["dirs", "bootstrap", "puppet"]
+                                    "ec2" : ["dirs", "bootstrap", "puppet"] + 
+                                        scriptsFile?has_content?then(
+                                            ["scripts"],
+                                            []
+                                        )
                                 },
                                 "dirs": {
                                     "commands": {
                                         "01Directories" : {
-                                            "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
+                                            "command" : "mkdir --parents --mode=0755 /etc/codeontap &&" +
+                                                        "mkdir --parents --mode=0755 /opt/codeontap/bootstrap &&" +
+                                                        "mkdir --parents --mode=0755 /var/log/codeontap &&" +
+                                                        "mkdir --parents --mode=0755 /opt/codeontap/scripts",
                                             "ignoreErrors" : "false"
                                         }
                                     }
@@ -231,7 +251,13 @@
                                                         "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
                                                         "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
                                                         "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
-                                                    ]
+                                                    ] + 
+                                                    scriptsFile?has_content?then(
+                                                        [
+                                                            "echo \\\"cot:scripts="       + scriptsFile             + "\\\"\\n"
+                                                        ],
+                                                        []
+                                                    )
                                                 ]
                                             },
                                             "mode" : "000755"
@@ -281,7 +307,58 @@
                                             "ignoreErrors" : "false"
                                         }
                                     }
+                                } + 
+                                scriptsFile?has_content?then(
+                                {
+                                "scripts" : {
+                                    "files" :{
+                                        "/opt/codeontap/fetch_scripts.sh" : {
+                                            "content" : {
+                                                "Fn::Join" : [
+                                                    "",
+                                                    [
+                                                        "#!/bin/bash -ex\\n",
+                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-fetch -s 2>/dev/console) 2>&1\\n",
+                                                        "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
+                                                        "SCRIPTS=$(/etc/codeontap/facts.sh | grep cot:scripts | cut -d '=' -f 2)\\n",
+                                                        "if [ -z " + r"${SCRIPTS}" +" ]; then\\n",
+                                                        "aws --region " + r"${REGION}" + " s3 cp --quiet s3://" + r"${SCRIPTS}" + " /opt/codeontap/scripts\\n", 
+                                                        "[ -f /opt/codeontap/scripts/scripts.zip ] && unzip /opt/codeontap/scripts/scripts.zip\\n",
+                                                        "chmod -R 0500 /opt/codeontap/scripts/\\n"
+                                                        "fi\\n"
+                                                    ]
+                                                ]
+                                            },
+                                            "mode" : "000755"
+                                        },
+                                        "/opt/codeontap/run_scripts.sh" : {
+                                            "content" : {
+                                                "Fn::Join" : [
+                                                    "",
+                                                    [
+                                                        "#!/bin/bash -ex\\n",
+                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-init -s 2>/dev/console) 2>&1\\n",
+                                                        "[ -f /opt/codeontap/scripts/init.sh ] &&  /opt/codeontap/scripts/init.sh\\n" 
+                                                    ]
+                                                ]
+                                            },
+                                            "mode" : "000755"
+                                        }
+                                    },
+                                    "commands" : {
+                                        "01FetchScripts" : {
+                                            "command" : "/opt/codeontap/fetch_scripts.sh",
+                                            "ignoreErrors" : "false"
+                                        },
+                                        "02RunInitScript" : {
+                                            "command" : "/opt/codeontap/run_scripts.sh",
+                                            "ignoreErrors" : "false"
+                                        }
+                                    }
+
                                 }
+                                },
+                                {})
                             }
                         }
                     properties=
