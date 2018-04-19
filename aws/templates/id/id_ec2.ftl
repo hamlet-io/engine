@@ -86,8 +86,20 @@
                 "Default" : false
             },
             {
+                "Name" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
+            },
+            {
                 "Name" : "Ports",
-                "Default" : []
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Name" : "LB",
+                        "Children" : lbChildConfiguration
+                    }
+                ]
+                
             }
         ]
     }]
@@ -95,23 +107,47 @@
 [#function getEC2State occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatEC2InstanceId(core.Tier, core.Component) ]
     [#local ec2ELBId = formatResourceId(AWS_ELB_RESOURCE_TYPE, core.Id) ]
+
+    [#local zoneResources = {}]
+
+    [#list zones as zone ]
+        [#local zoneResources += 
+            { zone.Id : {
+                "ec2Instance" : {
+                    "Id"   : formatResourceId(AWS_EC2_INSTANCE_RESOURCE_TYPE, core.Id, zone.Id),
+                    "Name" : formatName(tenantId, formatComponentFullName(core.Tier, core.Component), zone.Id),
+                    "Type" : AWS_EC2_INSTANCE_RESOURCE_TYPE
+                },
+                "ec2ENI" : {
+                    "Id" : formatResourceId(AWS_EC2_NETWORK_INTERFACE_RESOURCE_TYPE, core.Id, zone.Id, "eth0"),
+                    "Type" : "AWS_EC2_NETWORK_INTERFACE_RESOURCE_TYPE"
+                },
+                "ec2EIP" : {
+                    "Id" : getExistingReference(formatEIPId( core.Id, zone.Id))?has_content?then(
+                        formatEIPId( core.Id, zone.Id),
+                        formatEIPId( core.Id, zone.Id, "eth0")
+                    ),
+                    "Type" : AWS_EIP_RESOURCE_TYPE
+                },
+                "ec2EIPAssociation" : {
+                    "Id" : formatEIPAssociationId( core.Id, zone.Id, "eth0"),
+                    "Type" : AWS_EIP_ASSOCIATION_RESOURCE_TYPE
+                }
+            }}
+        ]
+    [/#list]
 
     [#return
         {
             "Resources" : {
-                "ec2Instance" : {
-                    "Id" : id,
-                    "Name" : formatName(tenantId, formatComponentFullName(core.Tier, core.Component)),
-                    "Type" : AWS_EC2_INSTANCE_RESOURCE_TYPE
-                },
                 "instanceProfile" : {
                     "Id" : formatEC2InstanceProfileId(core.Tier, core.Component),
                     "Type" : AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE
                 },
                 "sg" : {
-                    "Id" : formatDependentSecurityGroupId(id),
+                    "Id" : formatComponentSecurityGroupId(core.Tier, core.Component),
+                    "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
                 "ec2Role" : {
@@ -121,7 +157,8 @@
                 "ec2ELB" : {
                     "Id" : ec2ELBId,
                     "Type" : AWS_ELB_RESOURCE_TYPE
-                }
+                }, 
+                "Zones" : zoneResources 
             },
             "Attributes" : {
                 "FQDN" : getReference(ec2ELBId, DNS_ATTRIBUTE_TYPE)

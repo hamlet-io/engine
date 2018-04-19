@@ -783,7 +783,7 @@
                 [#local result = getContentNodeState(occurrence)]
                 [#break]
 
-            [#case "ec2"]
+            [#case EC2_COMPONENT_TYPE]
                 [#local result = getEC2State(occurrence)]
                 [#break]
 
@@ -1765,6 +1765,92 @@
         [#return formatRelativePath(path)]
     [/#if]
 
+[/#function]
+
+[#function getLBLink occurrence port ]
+    
+    [#assign core = occurrence.Core]
+    [#assign targetTierId = (port.LB.Tier)!"elb" ]
+    [#assign targetComponentId = (port.LB.Component) ]
+    [#assign targetLinkName = port.LB.LinkName ] 
+    [#assign targetSource = 
+    contentIfContent(
+        port.LB.Port,
+        valueIfContent(
+            (portMappings[port.LB.PortMapping].Source)!"",
+            port.LB.PortMapping,
+            port.Id
+        )
+    )]
+
+    [#local targetLink =
+        {
+            "Id" : targetLinkName,
+            "Name" : targetLinkName,
+            "Tier" : targetTierId,
+            "Component" : targetComponentId,
+            "Priority" : port.LB.Priority
+        } +
+        attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
+        attributeIfTrue("Version", port.LB.Version??, port.LB.Version!"")
+    ]
+
+    [#assign targetLoadBalancer = {}]
+
+    [#if targetTierId?has_content && targetComponentId?has_content]
+        [#local targetLoadBalancer = getLinkTarget(occurrence, targetLink) ]
+
+        [@cfDebug listMode targetLoadBalancer false /]
+
+        [#if targetLoadBalancer?has_content ]   
+
+            [#local targetGroup = port.LB.TargetGroup]
+            [#local targetPath = port.LB.Path]
+
+            [#if targetLoadBalancer.Core.Type == "alb" ]
+                [#if targetPath?has_content]
+                    [#-- target group name must be provided if path provided --]
+                    [#if !targetGroup?has_content]
+                        [@cfException
+                            listMode "No target group for provided path" occurrence /]
+                        [#local targetGroup = "default" ]
+                    [/#if]
+                [#else]
+                    [#if !targetGroup?has_content]
+                        [#-- Create target group for container if it --]
+                        [#-- is versioned and load balancer isn't    --]
+                        [#if core.Version.Name?has_content &&
+                                !targetLoadBalancer.Core.Version.Name?has_content]
+                            [#local targetPath = "/" + core.Version.Name + "/*" ]
+                            [#local targetGroup = core.Version.Name ]
+                        [#else]
+                            [#local targetGroup = "default" ]
+                            [#local targetPath = ""]
+                        [/#if]
+                    [/#if]
+                [/#if]
+            [/#if]
+        [/#if]
+    [/#if]
+
+    [#-- Need to be careful to allow an empty value for --]
+    [#-- Instance/Version to be explicitly provided and --]
+    [#-- correctly handled in getLinkTarget             --]
+
+    [#local targetLink += 
+        { "TargetPath" : targetPath } +
+        attributeIfContent(
+            "Port",
+            valueIfTrue(targetSource, port.LB.Configured, "")
+        ) +
+        attributeIfContent(
+            "TargetGroup",
+            targetGroup
+        )]
+
+    [@cfDebug listMode { targetLinkName : targetLink } false /]
+
+    [#return { targetLinkName : targetLink } ]
 [/#function]
 
 [#-- CIDRs --]
