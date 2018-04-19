@@ -121,7 +121,7 @@
                 },
                 "ec2ENI" : {
                     "Id" : formatResourceId(AWS_EC2_NETWORK_INTERFACE_RESOURCE_TYPE, core.Id, zone.Id, "eth0"),
-                    "Type" : "AWS_EC2_NETWORK_INTERFACE_RESOURCE_TYPE"
+                    "Type" : AWS_EC2_NETWORK_INTERFACE_RESOURCE_TYPE
                 },
                 "ec2EIP" : {
                     "Id" : getExistingReference(formatEIPId( core.Id, zone.Id))?has_content?then(

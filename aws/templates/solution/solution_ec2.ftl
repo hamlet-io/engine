@@ -25,6 +25,7 @@
         [#assign ec2ELBId               = resources["ec2ELB"].Id]
 
         [#assign targetGroupRegistrations = {}]
+        [#assign targetGroupPermission = false ]
         [#assign componentDependencies = []]
         [#assign ingressRules = []]
 
@@ -47,49 +48,31 @@
                 [/#if]
             [/#list]
         [/#if]
-        
-    [#if deploymentSubsetRequired("iam", true) &&
-            isPartOfCurrentDeploymentUnit(ec2RoleId)]
-        [@createRole
-            mode=listMode
-            id=ec2RoleId
-            trustedServices=["ec2.amazonaws.com" ]
-            policies=
-                [
-                    getPolicyDocument(
-                        s3ListPermission(codeBucket) +
-                            s3ReadPermission(codeBucket) +
-                            s3ListPermission(operationsBucket) +
-                            s3WritePermission(operationsBucket, "DOCKERLogs") +
-                            s3WritePermission(operationsBucket, "Backups"),
-                        "basic")
-                ]
-        /]
-    [/#if]
-
-    [#if deploymentSubsetRequired("ec2", true)]
 
         [#list links?values as link]
-            [#if link?is_hash]
-                [#assign linkTarget = getLinkTarget(occurrence, link) ]
+        [#if link?is_hash]
+            [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
-                [@cfDebug listMode linkTarget false /]
+            [@cfDebug listMode linkTarget false /]
 
-                [#if !linkTarget?has_content]
-                    [#continue]
-                [/#if]
+            [#if !linkTarget?has_content]
+                [#continue]
+            [/#if]
 
-                [#assign linkTargetCore = linkTarget.Core ]
-                [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                [#assign linkTargetResources = linkTarget.State.Resources ]
-                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#assign linkTargetCore = linkTarget.Core ]
+            [#assign linkTargetConfiguration = linkTarget.Configuration ]
+            [#assign linkTargetResources = linkTarget.State.Resources ]
+            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
-                [#switch linkTargetCore.Type]
-                    [#case ALB_PORT_COMPONENT_TYPE]
-                        [#if link.TargetGroup?has_content ]
-                            [#assign targetId = (linkTargetResources["targetgroups"][link.TargetGroup].Id) ]
-                            [#if targetId?has_content]
+            [#switch linkTargetCore.Type]
+                [#case ALB_PORT_COMPONENT_TYPE]
+                    [#if link.TargetGroup?has_content ]
+                        [#assign targetId = (linkTargetResources["targetgroups"][link.TargetGroup].Id) ]
+                        [#if targetId?has_content]
 
+                            [#assign targetGroupPermission = true]
+
+                            [#if deploymentSubsetRequired("ec2", true)]
                                 [#if isPartOfCurrentDeploymentUnit(targetId)]
 
                                     [@createTargetGroup
@@ -127,10 +110,39 @@
                                     ]
                             [/#if]
                         [/#if]
-                        [#break]
-                [/#switch]
-            [/#if]
-        [/#list]
+                    [/#if]
+                    [#break]
+            [/#switch]
+        [/#if]
+    [/#list]
+        
+    [#if deploymentSubsetRequired("iam", true) &&
+            isPartOfCurrentDeploymentUnit(ec2RoleId)]
+
+        [@createRole
+            mode=listMode
+            id=ec2RoleId
+            trustedServices=["ec2.amazonaws.com" ]
+            policies=
+                [
+                    getPolicyDocument(
+                        s3ListPermission(codeBucket) +
+                        s3ReadPermission(codeBucket) +
+                        s3ListPermission(operationsBucket) +
+                        s3WritePermission(operationsBucket, "DOCKERLogs") +
+                        s3WritePermission(operationsBucket, "Backups"),
+                        "basic") 
+                ] + targetGroupPermission?then(
+                    [   
+                        getPolicyDocument(
+                            albRegisterTargetPermission(),
+                            "loadbalancing")
+                    ],
+                    [])
+        /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("ec2", true)]
 
         [@createSecurityGroup
             mode=listMode
