@@ -57,7 +57,7 @@
     ]
 ]
 
-[#assign alertChildrenConfiguraiton = [
+[#assign alertChildrenConfiguration = [
         "Description",
         {
             "Name" : "Name",
@@ -113,8 +113,8 @@
             "Default" : false
         },
         {
-            "Name" : MissingData",
-            "Default : "notBreaching" 
+            "Name" : "MissingData",
+            "Default" : "notBreaching" 
         }
     ]
 ]
