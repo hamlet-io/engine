@@ -58,7 +58,7 @@
             valueIfContent(
                 s3ReadPermission(
                     operationsBucket,
-                    formatSegmentPrefixPath("appsettings"),
+                    formatSegmentPrefixPath("settings"),
                     "*",
                     {
                         "CanonicalUser": cfAccess
