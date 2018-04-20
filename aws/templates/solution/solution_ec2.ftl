@@ -17,7 +17,6 @@
         [#assign loadBalanced = solution.LoadBalanced]
         [#assign dockerHost = solution.DockerHost]
 
-        [#assign ec2FullName            = resources["ec2Instance"].Name ]
         [#assign ec2SecurityGroupId     = resources["sg"].Id]
         [#assign ec2SecurityGroupName   = resources["sg"].Name]
         [#assign ec2RoleId              = resources["ec2Role"].Id]
@@ -233,28 +232,28 @@
                                                     "",
                                                     [
                                                         "#!/bin/bash\\n",
-                                                        "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
-                                                        "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
-                                                        "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
-                                                        "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
-                                                        "echo \\\"cot:account="       + accountId              + "\\\"\\n",
-                                                        "echo \\\"cot:product="       + productId              + "\\\"\\n",
-                                                        "echo \\\"cot:region="        + regionId               + "\\\"\\n",
-                                                        "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
-                                                        "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
-                                                        "echo \\\"cot:tier="          + tierId                 + "\\\"\\n",
-                                                        "echo \\\"cot:component="     + componentId            + "\\\"\\n",
-                                                        "echo \\\"cot:zone="          + zone.Id                + "\\\"\\n",
-                                                        "echo \\\"cot:name="          + zoneEc2InstanceName    + "\\\"\\n",
-                                                        "echo \\\"cot:role="          + component.Role!""      + "\\\"\\n",
-                                                        "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
-                                                        "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
-                                                        "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
-                                                        "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
+                                                        "echo \"cot:request="       + requestReference       + "\"\\n",
+                                                        "echo \"cot:configuration=" + configurationReference + "\"\\n",
+                                                        "echo \"cot:accountRegion=" + accountRegionId        + "\"\\n",
+                                                        "echo \"cot:tenant="        + tenantId               + "\"\\n",
+                                                        "echo \"cot:account="       + accountId              + "\"\\n",
+                                                        "echo \"cot:product="       + productId              + "\"\\n",
+                                                        "echo \"cot:region="        + regionId               + "\"\\n",
+                                                        "echo \"cot:segment="       + segmentId              + "\"\\n",
+                                                        "echo \"cot:environment="   + environmentId          + "\"\\n",
+                                                        "echo \"cot:tier="          + tierId                 + "\"\\n",
+                                                        "echo \"cot:component="     + componentId            + "\"\\n",
+                                                        "echo \"cot:zone="          + zone.Id                + "\"\\n",
+                                                        "echo \"cot:name="          + zoneEc2InstanceName    + "\"\\n",
+                                                        "echo \"cot:role="          + component.Role!""      + "\"\\n",
+                                                        "echo \"cot:credentials="   + credentialsBucket      + "\"\\n",
+                                                        "echo \"cot:code="          + codeBucket             + "\"\\n",
+                                                        "echo \"cot:logs="          + operationsBucket       + "\"\\n",
+                                                        "echo \"cot:backups="       + dataBucket             + "\"\\n"
                                                     ] + 
                                                     scriptsFile?has_content?then(
                                                         [
-                                                            "echo \\\"cot:scripts="       + scriptsFile             + "\\\"\\n"
+                                                            "echo \"cot:scripts="       + scriptsFile             + "\"\\n"
                                                         ],
                                                         []
                                                     )
