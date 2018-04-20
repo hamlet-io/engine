@@ -94,9 +94,9 @@
     [#return result]
 [/#function]
 
-[#function getDefaultLinkVariables links]
-    [#local result = {"Environment" : {}} ]
-    [#list links as name,value]
+[#function getDefaultLinkVariables context]
+    [#local result = context + {"Environment": {} }]
+    [#list context.Links as name,value]
         [#if value.Direction != "inbound"]
             [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
         [/#if]
@@ -292,10 +292,6 @@
         {
             "Environment" :
                 valueIfTrue(
-                    getDefaultLinkVariables(context.Links),
-                    context.DefaultLinkVariables
-                ) +
-                valueIfTrue(
                     getSettingsAsEnvironment(occurrence.Configuration.Settings.Core) +
                     getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
                     context.DefaultCoreVariables
@@ -303,6 +299,10 @@
                 valueIfTrue(
                     context.DefaultEnvironment,
                     context.DefaultEnvironmentVariables
+                ) +
+                valueIfTrue(
+                    getDefaultLinkVariables(context),
+                    context.DefaultLinkVariables
                 ) +
                 context.Environment
         } ]
