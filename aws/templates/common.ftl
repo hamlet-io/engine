@@ -1997,7 +1997,7 @@
         ) +
         [
             "cp" + " " +
-               "\"" + filepath                      + "\"" +
+               "\"" + filepath                      + "\"" + " " +
                "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"",
             "#",
             "addToArray" + " " +
