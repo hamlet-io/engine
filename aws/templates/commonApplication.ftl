@@ -94,20 +94,26 @@
     [#return result]
 [/#function]
 
-[#function addDefaultLinkVariablesToContext context]
-    [#local result = context ]
-    [#list context.Links as name,value]
+[#function getDefaultLinkVariables links]
+    [#local result = {"Environment" : {}} ]
+    [#list links as name,value]
         [#if value.Direction != "inbound"]
             [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
         [/#if]
     [/#list]
-    [#return result]
+    [#return result.Environment]
 [/#function]
 
-[#macro Link name link attributes=[] rawName=false ignoreIfNotDefined=false]
+[#macro Link name link="" attributes=[] rawName=false ignoreIfNotDefined=false]
     [#if (containerListMode!"") == "model"]
         [#assign context =
-            addLinkVariablesToContext(context, name, link, attributes, rawName, ignoreIfNotDefined) ]
+            addLinkVariablesToContext(
+                context,
+                name,
+                contentIfContent(link, name),
+                attributes,
+                rawName,
+                ignoreIfNotDefined) ]
     [/#if]
 [/#macro]
 
@@ -117,14 +123,54 @@
     [/#if]
 [/#macro]
 
+[#macro DefaultCoreVariables enabled=true ]
+    [#if (containerListMode!"") == "model"]
+        [#assign context += { "DefaultCoreVariables" : enabled } ]
+    [/#if]
+[/#macro]
+
+[#macro DefaultEnvironmentVariables enabled=true ]
+    [#if (containerListMode!"") == "model"]
+        [#assign context += { "DefaultEnvironmentVariables" : enabled } ]
+    [/#if]
+[/#macro]
+
+[#function getFragmentSettingValue key value asBoolean=false]
+    [#if value?is_hash]
+        [#local name = contentIfContent(value.Setting!"", key) ]
+
+        [#if value.IgnoreIfMissing!false &&
+            !(context.DefaultEnvironment[formatSettingName(name)])?? ]
+                [#return valueIfTrue(false, asBoolean, "") ]
+        [/#if]
+    [#else]
+        [#if value?is_string]
+            [#local name = value]
+        [#else]
+            [#return valueIfTrue(true, asBoolean, "COTException: Value for " + key + " must be a string or hash") ]
+        [/#if]
+    [/#if]
+
+    [#return
+        valueIfTrue(
+            true,
+            asBoolean,
+            context.DefaultEnvironment[formatSettingName(name)]!
+                "COTException: Variable " + name + " not found"
+        ) ]
+[/#function]
+
 [#macro AltSettings settings...]
     [#list asFlattenedArray(settings) as setting]
         [#if setting?is_hash]
             [#list setting as key,value]
-                [@Variable
-                    name=key
-                    value=context.Environment[formatSettingName(value)]!"COTException: Alternate variable " + formatSettingName(value) + " not found." /]
+                [#if getFragmentSettingValue(key, value, true)]
+                    [@Variable name=key value=getFragmentSettingValue(key, value) /]
+                [/#if]
             [/#list]
+        [/#if]
+        [#if setting?is_string]
+            [@Variable name=setting value=getFragmentSettingValue(setting, setting) /]
         [/#if]
     [/#list]
 [/#macro]
@@ -133,10 +179,11 @@
     [#list asFlattenedArray(settings) as setting]
         [#if setting?is_hash]
             [#list setting as key,value]
-                [@Variable
-                    name=key
-                    value=value /]
+                [@Variable name=key value=value /]
             [/#list]
+        [/#if]
+        [#if setting?is_string]
+            [@Variable name=setting value=getFragmentSettingValue(setting, setting) /]
         [/#if]
     [/#list]
 [/#macro]
@@ -205,12 +252,12 @@
 
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
-[#function standardEnvironment occurrence mode=""]
+[#function defaultEnvironment occurrence mode=""]
     [#return
         occurrence.Configuration.Environment.General +
+        attributeIfContent("APP_RUN_MODE", mode) +
         occurrence.Configuration.Environment.Build +
-        occurrence.Configuration.Environment.Sensitive +
-        attributeIfContent("APP_RUN_MODE", mode)
+        occurrence.Configuration.Environment.Sensitive
     ]
 [/#function]
 
@@ -238,6 +285,27 @@
             []
         )
     ]
+[/#function]
+
+[#function getFinalEnvironment occurrence context ]
+    [#return
+        {
+            "Environment" :
+                valueIfTrue(
+                    getDefaultLinkVariables(context.Links),
+                    context.DefaultLinkVariables
+                ) +
+                valueIfTrue(
+                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Core) +
+                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
+                    context.DefaultCoreVariables
+                ) +
+                valueIfTrue(
+                    context.DefaultEnvironment,
+                    context.DefaultEnvironmentVariables
+                ) +
+                context.Environment
+        } ]
 [/#function]
 
 [#function getTaskContainers ecs task]
@@ -431,13 +499,16 @@
                 "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
-                "Environment" :
-                    standardEnvironment(task, getContainerMode(container)) +
+                "DefaultEnvironment" :
+                    defaultEnvironment(task, getContainerMode(container)) +
                     {
                         "AWS_REGION" : regionId,
                         "AWS_DEFAULT_REGION" : regionId
                     },
+                "Environment" : {},
                 "Links" : getLinkTargets(task, containerLinks),
+                "DefaultCoreVariables" : true,
+                "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
                 "Policy" : standardPolicies(task)
             } +
@@ -464,9 +535,7 @@
         [#assign containerId = formatContainerFragmentId(task, container)]
         [#include containerList]
 
-        [#if context.DefaultLinkVariables]
-            [#assign context = addDefaultLinkVariablesToContext(context) ]
-        [/#if]
+        [#assign context += getFinalEnvironment(task, context) ]
 
         [#local containers += [context] ]
     [/#list]

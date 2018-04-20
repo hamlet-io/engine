@@ -23,16 +23,11 @@
                 "Name" : containerId,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
-                "Environment" :
-                    {
-                        "TEMPLATE_TIMESTAMP" : .now?iso_utc,
-                        "BUILD_REFERENCE" : getOccurrenceBuildReference(occurrence)
-                    } +
-                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Product) +
-                    attributeIfContent(
-                        "APP_REFERENCE",
-                        getOccurrenceSettingValue(occurrence, "APP_REFERENCE", true)),
+                "DefaultEnvironment" : defaultEnvironment(occurrence),
+                "Environment" : {},
                 "Links" : getLinkTargets(occurrence),
+                "DefaultCoreVariables" : false,
+                "DefaultEnvironmentVariables" : false,
                 "DefaultLinkVariables" : false
             }
         ]
@@ -42,9 +37,7 @@
         [#assign containerId = formatContainerFragmentId(occurrence, context)]
         [#include containerList?ensure_starts_with("/")]
 
-        [#if context.DefaultLinkVariables]
-            [#assign context = addDefaultLinkVariablesToContext(context) ]
-        [/#if]
+        [#assign context += getFinalEnvironment(occurrence, context) ]
 
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig

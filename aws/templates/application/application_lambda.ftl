@@ -29,8 +29,8 @@
                     "Name" : containerId,
                     "Instance" : core.Instance.Id,
                     "Version" : core.Version.Id,
-                    "Environment" :
-                        standardEnvironment(fn, "WEB"),
+                    "DefaultEnvironment" : defaultEnvironment(fn),
+                    "Environment" : {},
                     "S3Bucket" : getRegistryEndPoint("lambda", occurrence),
                     "S3Key" :
                         formatRelativePath(
@@ -40,6 +40,8 @@
                             "lambda.zip"
                         ),
                     "Links" : getLinkTargets(fn),
+                    "DefaultCoreVariables" : true,
+                    "DefaultEnvironmentVariables" : true,
                     "DefaultLinkVariables" : true,
                     "Policy" : standardPolicies(fn)
                 }
@@ -76,9 +78,7 @@
             [#assign containerId = formatContainerFragmentId(occurrence, context)]
             [#include containerList?ensure_starts_with("/")]
 
-            [#if context.DefaultLinkVariables]
-                [#assign context = addDefaultLinkVariablesToContext(context) ]
-            [/#if]
+            [#assign context += getFinalEnvironment(fn, context) ]
 
             [#assign roleId = formatDependentRoleId(fnId)]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
