@@ -8,15 +8,10 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
         [#assign roles = occurrence.State.Roles]
-
-        [#if ! (buildCommit?has_content)]
-            [@cfPreconditionFailed listMode "application_gateway" occurrence "No build commit provided" /]
-            [#break]
-        [/#if]
 
         [#assign apiId      = resources["apigateway"].Id]
         [#assign apiName    = resources["apigateway"].Name]
@@ -40,7 +35,7 @@
         [#assign stageVariables = {} ]
         [#assign userPoolArns = [] ]
 
-        [#list configuration.Links?values as link]
+        [#list solution.Links?values as link]
             [#if link?is_hash]
                 [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
@@ -59,7 +54,7 @@
                     [#case "alb"]
                         [#assign stageVariables +=
                             {
-                                formatVariableName(link.Name, "DOCKER") : linkTargetAttributes.FQDN
+                                formatSettingName(link.Name, "DOCKER") : linkTargetAttributes.FQDN
                             }
                         ]
                         [#break]
@@ -67,7 +62,7 @@
                     [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
                         [#assign stageVariables +=
                             {
-                                formatVariableName(
+                                formatSettingName(
                                     link.Name,
                                     linkTargetCore.SubComponent.Name,
                                     "LAMBDA") : linkTargetResources["function"].Name
@@ -109,9 +104,9 @@
             }
         ]
 
-        [#assign certificatePresent     = configuration.Certificate.Configured && configuration.Certificate.Enabled ]
+        [#assign certificatePresent     = solution.Certificate.Configured && solution.Certificate.Enabled ]
 
-        [#assign mappingPresent         = configuration.Mapping.Configured && configuration.Mapping.Enabled ]
+        [#assign mappingPresent         = solution.Mapping.Configured && solution.Mapping.Enabled ]
         [#assign domainId               = resources["apidomain"].Id]
         [#assign domainFqdn             = resources["apidomain"].Fqdn]
         [#assign domainCertificateId    = resources["apidomain"].CertificateId]
@@ -123,8 +118,8 @@
         [#assign invalidAlarmId         = resources["invalidalarm"].Id]
         [#assign invalidAlarmName       = resources["invalidalarm"].Name]
 
-        [#assign cfPresent              = configuration.CloudFront.Configured && configuration.CloudFront.Enabled ]
-        [#assign mappingPresent         = mappingPresent && (!cfPresent || configuration.CloudFront.Mapping) ]
+        [#assign cfPresent              = solution.CloudFront.Configured && solution.CloudFront.Enabled ]
+        [#assign mappingPresent         = mappingPresent && (!cfPresent || solution.CloudFront.Mapping) ]
         [#assign cfId                   = resources["cf"].Id]
         [#assign cfName                 = resources["cf"].Name]
         [#assign cfCertificateId        = resources["cf"].CertificateId]
@@ -132,14 +127,14 @@
         [#assign cfOriginId             = resources["cforigin"].Id]
         [#assign cfOriginFqdn           = resources["cforigin"].Fqdn]
 
-        [#assign wafPresent             = configuration.WAF.Configured && configuration.WAF.Enabled ]
+        [#assign wafPresent             = solution.WAF.Configured && solution.WAF.Enabled ]
         [#assign wafAclId               = resources["wafacl"].Id]
         [#assign wafAclName             = resources["wafacl"].Name]
 
         [#assign usagePlanId            = resources["apiusageplan"].Id]
         [#assign usagePlanName          = resources["apiusageplan"].Name]
 
-        [#assign publishPresent         = configuration.Publish.Configured && configuration.Publish.Enabled ]
+        [#assign publishPresent         = solution.Publish.Configured && solution.Publish.Enabled ]
         [#assign docsS3BucketId         = resources["docs"].Id]
         [#assign docsS3BucketName       = resources["docs"].Name]
         [#assign docsS3BucketPolicyId   = resources["docspolicy"].Id ]
@@ -152,12 +147,12 @@
                 properties=
                     {
                         "BodyS3Location" : {
-                            "Bucket" : getRegistryEndPoint("swagger"),
+                            "Bucket" : getRegistryEndPoint("swagger", occurrence),
                             "Key" : formatRelativePath(
-                                        getRegistryPrefix("swagger"),
+                                        getRegistryPrefix("swagger", occurrence),
                                         productName,
-                                        buildDeploymentUnit,
-                                        buildCommit,
+                                        getOccurrenceBuildUnit(occurrence),
+                                        getOccurrenceBuildReference(occurrence),
                                         "swagger-" +
                                             region +
                                             "-" +
@@ -225,17 +220,32 @@
             /]
 
             [#if cfPresent]
+
                 [#assign origin =
                     getCFHTTPOrigin(
                         cfOriginId,
-                        cfOriginFqdn,
-                        getCFHTTPHeader("x-api-key",credentialsObject.APIGateway.API.AccessKey)
-                    )
-                ]
+                        valueIfTrue(
+                            cfOriginFqdn,
+                            certificatePresent && mappingPresent,
+                            {
+                                "Fn::Join" : [
+                                    ".",
+                                    [
+                                        getReference(apiId),
+                                        "execute-api." + regionId + ".amazonaws.com"
+                                    ]
+                                ]
+                            }
+                        ),
+                        getCFHTTPHeader(
+                            "x-api-key",
+                            getOccurrenceSettingValue(
+                                occurrence,
+                                ["APIGateway","API","AccessKey"]))) ]
                 [#assign defaultCacheBehaviour = getCFAPIGatewayCacheBehaviour(origin) ]
                 [#assign restrictions = {} ]
-                [#if configuration.CloudFront.CountryGroups?has_content]
-                    [#list asArray(configuration.CloudFront.CountryGroups) as countryGroup]
+                [#if solution.CloudFront.CountryGroups?has_content]
+                    [#list asArray(solution.CloudFront.CountryGroups) as countryGroup]
                         [#assign group = (countryGroups[countryGroup])!{}]
                         [#if group.Locations?has_content]
                             [#assign restrictions +=
@@ -252,7 +262,7 @@
                     certificate=valueIfTrue(
                         getCFCertificate(
                             cfCertificateId,
-                            configuration.CloudFront.AssumeSNI),
+                            solution.CloudFront.AssumeSNI),
                         certificatePresent)
                     comment=cfName
                     defaultCacheBehaviour=defaultCacheBehaviour
@@ -265,15 +275,15 @@
                                 occurrence
                             )
                         ),
-                        configuration.CloudFront.EnableLogging)
+                        solution.CloudFront.EnableLogging)
                     origins=origin
                     restrictions=valueIfContent(
                         restrictions,
                         restrictions)
                     wafAclId=valueIfTrue(
                         wafAclId,
-                        (configuration.WAF.Configured &&
-                            configuration.WAF.Enabled &&
+                        (solution.WAF.Configured &&
+                            solution.WAF.Enabled &&
                             ipAddressGroupsUsage["waf"]?has_content))
                 /]
                 [@cfResource
@@ -297,15 +307,15 @@
                 [#if wafPresent && ipAddressGroupsUsage["waf"]?has_content ]
                     [#assign wafGroups = [] ]
                     [#assign wafRuleDefault =
-                                configuration.WAF.RuleDefault?has_content?then(
-                                    configuration.WAF.RuleDefault,
+                                solution.WAF.RuleDefault?has_content?then(
+                                    solution.WAF.RuleDefault,
                                     "ALLOW")]
                     [#assign wafDefault =
-                                configuration.WAF.Default?has_content?then(
-                                    configuration.WAF.Default,
+                                solution.WAF.Default?has_content?then(
+                                    solution.WAF.Default,
                                     "BLOCK")]
-                    [#if configuration.WAF.IPAddressGroups?has_content]
-                        [#list configuration.WAF.IPAddressGroups as group]
+                    [#if solution.WAF.IPAddressGroups?has_content]
+                        [#list solution.WAF.IPAddressGroups as group]
                             [#assign groupId = group?is_hash?then(
                                             group.Id,
                                             group)]
@@ -313,12 +323,12 @@
                                 [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
                                 [#if usageGroup.IsOpen]
                                     [#assign wafRuleDefault =
-                                        configuration.WAF.RuleDefault?has_content?then(
-                                            configuration.WAF.RuleDefault,
+                                        solution.WAF.RuleDefault?has_content?then(
+                                            solution.WAF.RuleDefault,
                                             "COUNT")]
                                     [#assign wafDefault =
-                                            configuration.WAF.Default?has_content?then(
-                                                configuration.WAF.Default,
+                                            solution.WAF.Default?has_content?then(
+                                                solution.WAF.Default,
                                                 "ALLOW")]
                                 [/#if]
                                 [#if usageGroup.CIDR?has_content]
@@ -334,12 +344,12 @@
                         [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
                             [#if usageGroup.IsOpen]
                                 [#assign wafRuleDefault =
-                                    configuration.WAF.RuleDefault?has_content?then(
-                                        configuration.WAF.RuleDefault,
+                                    solution.WAF.RuleDefault?has_content?then(
+                                        solution.WAF.RuleDefault,
                                         "COUNT")]
                                 [#assign wafDefault =
-                                        configuration.WAF.Default?has_content?then(
-                                            configuration.WAF.Default,
+                                        solution.WAF.Default?has_content?then(
+                                            solution.WAF.Default,
                                             "ALLOW")]
                             [/#if]
                             [#if usageGroup.CIDR?has_content]
@@ -397,6 +407,9 @@
         [/#if]
 
         [#if publishPresent ]
+            [#assign docsS3BucketId = resources["docs"].Id]
+            [#assign docsS3BucketPolicyId = resources["docspolicy"].Id ]
+
             [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
 
             [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
@@ -404,7 +417,7 @@
                     s3IPAccessCondition(
                         getUsageCIDRs(
                             "publish",
-                            configuration.Publish.IPAddressGroups)) ]
+                            solution.Publish.IPAddressGroups)) ]
 
                 [@createBucketPolicy
                     mode=listMode
@@ -439,11 +452,11 @@
                         "  # Fetch the apidoc file",
                         "  copyFilesFromBucket" + " " +
                             regionId + " " +
-                            getRegistryEndPoint("swagger") + " " +
+                            getRegistryEndPoint("swagger", occurrence) + " " +
                             formatRelativePath(
-                                getRegistryPrefix("swagger") + productName,
-                                buildDeploymentUnit,
-                                buildCommit) + " " +
+                                getRegistryPrefix("swagger", occurrence) + productName,
+                                getOccurrenceBuildUnit(occurrence),
+                                getOccurrenceBuildReference(occurrence)) + " " +
                         "   \"$\{tmpdir}\" || return $?",
                         "  #",
                         "  # Insert host in Doc File ",

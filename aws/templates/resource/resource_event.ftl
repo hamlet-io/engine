@@ -36,9 +36,7 @@
                 "Targets" : [{
                     "Arn" : getReference(targetId, ARN_ATTRIBUTE_TYPE),
                     "Id" : targetId,
-                    "Input" : getJSON(
-                        { "path" : path },
-                        true)
+                    "Input" : getJSON({ "path" : path })
                 }]
             }
         outputs=EVENT_RULE_OUTPUT_MAPPINGS

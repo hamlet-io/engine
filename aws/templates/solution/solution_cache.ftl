@@ -9,22 +9,22 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
 
-        [#assign engine = configuration.Engine]
+        [#assign engine = solution.Engine]
         [#switch engine]
             [#case "memcached"]
                 [#assign engineVersion =
                     valueIfContent(
-                        configuration.EngineVersion!"",
-                        configuration.EngineVersion!"",
+                        solution.EngineVersion!"",
+                        solution.EngineVersion!"",
                         "1.4.24"
                     )
                 ]
                 [#assign familyVersionIndex = engineVersion?last_index_of(".") - 1]
                 [#assign family = "memcached" + engineVersion[0..familyVersionIndex]]
-                [#assign port = configuration.Port!"memcached" ]
+                [#assign port = solution.Port!"memcached" ]
                 [#if (ports[port].Port)?has_content]
                     [#assign port = ports[port].Port ]
                 [#else]
@@ -35,14 +35,14 @@
             [#case "redis"]
                 [#assign engineVersion =
                     valueIfContent(
-                        configuration.EngineVersion!"",
-                        configuration.EngineVersion!"",
+                        solution.EngineVersion!"",
+                        solution.EngineVersion!"",
                         "2.8.24"
                     )
                 ]
                 [#assign familyVersionIndex = engineVersion?last_index_of(".") - 1]
                 [#assign family = "redis" + engineVersion[0..familyVersionIndex]]
-                [#assign port = configuration.Port!"redis" ]
+                [#assign port = solution.Port!"redis" ]
                 [#if (ports[port].Port)?has_content]
                     [#assign port = ports[port].Port ]
                 [#else]
@@ -145,7 +145,7 @@
                             "NumCacheNodes" : processorProfile.CountPerZone
                         }
                     ) +
-                    attributeIfContent("SnapshotRetentionLimit", configuration.Backup.RetentionPeriod)
+                    attributeIfContent("SnapshotRetentionLimit", solution.Backup.RetentionPeriod)
                 tags=
                     getCfTemplateCoreTags(
                         cacheFullName,

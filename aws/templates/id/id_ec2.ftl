@@ -96,7 +96,7 @@
     [#local core = occurrence.Core]
 
     [#local id = formatEC2InstanceId(core.Tier, core.Component) ]
-    [#local ec2ELBId = formatELBId("elb", core.Id) ]
+    [#local ec2ELBId = formatResourceId(AWS_ELB_RESOURCE_TYPE, core.Id) ]
 
     [#return
         {

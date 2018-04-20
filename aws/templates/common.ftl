@@ -8,24 +8,34 @@
 
 [#-- Utility functions --]
 
-[#function asArray arg flatten=false ]
+[#function asArray arg flatten=false ignoreEmpty=false]
+    [#local result = [] ]
     [#if arg?is_sequence]
         [#if flatten]
-            [#local result = [] ]
             [#list arg as element]
-                [#local result += asArray(element, true) ]
+                [#local result += asArray(element, flatten, ignoreEmpty) ]
             [/#list]
-            [#return result ]
         [#else]
-            [#return arg ]
+            [#if ignoreEmpty]
+                [#list arg as element]
+                    [#local elementResult = asArray(element, flatten, ignoreEmpty) ]
+                    [#if elementResult?has_content]
+                        [#local result += valueIfTrue([elementResult], element?is_sequence, elementResult) ]
+                    [/#if]
+                [/#list]
+            [#else]
+                [#local result = arg]
+            [/#if]
         [/#if]
     [#else]
-        [#return [arg] ]
+        [#local result = valueIfTrue([arg], !ignoreEmpty || arg?has_content, []) ]
     [/#if]
+
+    [#return result ]
 [/#function]
 
-[#function asFlattenedArray arg]
-    [#return asArray(arg, true) ]
+[#function asFlattenedArray arg ignoreEmpty=false]
+    [#return asArray(arg, true, ignoreEmpty) ]
 [/#function]
 
 [#function getUniqueArrayElements args...]
@@ -86,7 +96,10 @@
         }
       ]
     [#else]
-      [#return object + { id : object[id]!{} + descendent } ]
+      [#if object[id]?? && object[id]?is_hash]
+          [#return object + { id : object[id] + descendent } ]
+      [/#if]
+      [#return object + { id : descendent } ]
     [/#if]
 [/#function]
 
@@ -194,7 +207,8 @@
 [#function requiredOccurrences occurrences deploymentUnit]
     [#local result = [] ]
     [#list asFlattenedArray(occurrences) as occurrence]
-        [#if deploymentRequired(occurrence.Configuration, deploymentUnit, false) ]
+        [#if occurrence.Configuration.Solution.Enabled &&
+            deploymentRequired(occurrence.Configuration.Solution, deploymentUnit, false) ]
             [#local result += [occurrence] ]
         [/#if]
     [/#list]
@@ -222,68 +236,106 @@
     [#return exponent]
 [/#function]
 
-[#-- S3 config/credentials/appdata storage  --]
+[#-- S3 settings/appdata storage  --]
 
-[#function getCredentialsFilePrefix]
-    [#return formatSegmentPrefixPath(
-            "credentials",
-            (appSettingsObject.FilePrefixes.Credentials)!
-                (appSettingsObject.DefaultFilePrefix)!
-                deploymentUnit)]
+[#function getSettingsFilePrefix occurrence ]
+    [#return formatRelativePath("settings", occurrence.Core.FullRelativePath) ]
 [/#function]
 
-[#function getAppSettingsFilePrefix]
-    [#return formatSegmentPrefixPath(
-            "appsettings",
-            (appSettingsObject.FilePrefixes.AppSettings)!
-                (appSettingsObject.DefaultFilePrefix)!
-                deploymentUnit)]
-[/#function]
-
-[#function getAppDataFilePrefix]
-    [#return formatSegmentPrefixPath(
-            "appdata",
-            (appSettingsObject.FilePrefixes.AppData)!
-                (appSettingsObject.DefaultFilePrefix)!
-                deploymentUnit)]
-[/#function]
-
-[#function getAppDataPublicFilePrefix ]
-
-    [#if (segmentObject.Data.Public.Enabled)!false]
-        [#return formatSegmentPrefixPath(
-            "apppublic",
-            (appSettingsObject.FilePrefixes.AppData)!
-                (appSettingsObject.DefaultFilePrefix)!
-                deploymentUnit)]
-    [#else]
+[#function getAppDataFilePrefix occurrence={} ]
+    [#if occurrence?has_content]
+        [#local override =
+            getOccurrenceSettingValue(
+                occurrence,
+                [
+                    ["FilePrefixes", "AppData"],
+                    ["DefaultFilePrefix"]
+                ], true) ]
         [#return
-            ""
-        ]
+            formatRelativePath(
+                "appdata",
+                valueIfContent(
+                    formatSegmentRelativePath(override),
+                    override,
+                    occurrence.Core.FullRelativePath
+                )
+            ) ]
+    [#else]
+        [#return context.Environment["APPDATA_PREFIX"] ]
     [/#if]
 [/#function]
 
-[#function getBackupsFilePrefix]
-    [#return formatSegmentPrefixPath(
-            "backups",
-            (appSettingsObject.FilePrefixes.Backups)!
-                (appSettingsObject.DefaultFilePrefix)!
-                deploymentUnit)]
+[#function getAppDataPublicFilePrefix occurrence={} ]
+    [#if (segmentObject.Data.Public.Enabled)!false]
+        [#if occurrence?has_content]
+            [#local override =
+                getOccurrenceSettingValue(
+                    occurrence,
+                    [
+                        ["FilePrefixes", "AppPublic"],
+                        ["FilePrefixes", "AppData"],
+                        ["DefaultFilePrefix"]
+                    ], true) ]
+            [#return
+                formatRelativePath(
+                    "apppublic",
+                    valueIfContent(
+                        formatSegmentRelativePath(override),
+                        override,
+                        occurrence.Core.FullRelativePath
+                    )
+                ) ]
+        [#else]
+            [#return context.Environment["APPDATA_PUBLIC_PREFIX"] ]
+        [/#if]
+    [#else]
+        [#return ""]
+    [/#if]
 [/#function]
 
-[#function getSegmentCredentialsFilePrefix]
+[#function getBackupsFilePrefix occurrence={} ]
+    [#if occurrence?has_content ]
+        [#return formatRelativePath("backups", occurrence.Core.FullRelativePath) ]
+    [#else]
+        [#return context.Environment["BACKUPS_PREFIX"] ]
+    [/#if]
+[/#function]
+
+[#-- Legacy functions - appsettings and credentials now treated the same --]
+[#-- These were required in container fragments before permissions were  --]
+[#-- automatically added.                                                --]
+
+[#function getCredentialsFilePrefix occurrence={} ]
+    [#if occurrence?has_content ]
+        [#return getSettingsFilePrefix(occurrence) ]
+    [#else]
+        [#return context.Environment["SETTINGS_PREFIX"] ]
+    [/#if]
+[/#function]
+
+[#function getAppSettingsFilePrefix occurrence={} ]
+    [#if occurrence?has_content]
+        [#return getSettingsFilePrefix(occurrence) ]
+    [#else]
+        [#return context.Environment["SETTINGS_PREFIX"] ]
+    [/#if]
+[/#function]
+
+[#-- End legacy functions --]
+
+[#function getSegmentCredentialsFilePrefix  ]
     [#return formatSegmentPrefixPath("credentials")]
 [/#function]
 
-[#function getSegmentAppSettingsFilePrefix]
+[#function getSegmentAppSettingsFilePrefix  ]
     [#return formatSegmentPrefixPath("appsettings")]
 [/#function]
 
-[#function getSegmentAppDataFilePrefix]
+[#function getSegmentAppDataFilePrefix ]
     [#return formatSegmentPrefixPath("appdata")]
 [/#function]
 
-[#function getSegmentBackupsFilePrefix]
+[#function getSegmentBackupsFilePrefix ]
     [#return formatSegmentPrefixPath("backups")]
 [/#function]
 
@@ -702,7 +754,9 @@
 
     [#if occurrence?has_content]
         [#local core = occurrence.Core ]
-        [#local configuration = occurrence.Configuration ]
+        [#local environment =
+            occurrence.Configuration.Environment.General +
+            occurrence.Configuration.Environment.Sensitive ]
 
         [#switch core.Type!""]
             [#case ALB_COMPONENT_TYPE]
@@ -760,24 +814,14 @@
                         }
                     }
                 ]
-                [#list appSettingsObject!{} as name,value]
+                [#list environment as name,value]
                     [#local prefix = core.Component.Name?upper_case + "_"]
-                    [#if name?upper_case?starts_with(prefix)]
+                    [#if name?starts_with(prefix)]
                         [#local result +=
                         {
-                            "Attributes" : result.Attributes + { name?upper_case?remove_beginning(prefix) : value }
+                            "Attributes" : result.Attributes + { name?remove_beginning(prefix) : value }
                         } ]
                     [/#if]
-                [/#list]
-
-                [#list ((credentialsObject[formatName(core.Tier, core.Component)])!{})?values as credential]
-                    [#list credential as name,value]
-                        [#local result +=
-                            {
-                              "Attributes" : result.Attributes + { name?upper_case : value }
-                            }
-                        ]
-                    [/#list]
                 [/#list]
                 [#break]
 
@@ -827,7 +871,287 @@
     [#return result ]
 [/#function]
 
-[#function getOccurrenceConfigurationAttributes type]
+[#function asFlattenedSettings object prefix=""]
+    [#local result = {} ]
+    [#list object as key,value]
+        [#if value?is_hash]
+            [#if value.Value??]
+                [#local result += {formatSettingName(prefix,key) : value} ]
+            [#else]
+                [#local result += asFlattenedSettings(value, formatSettingName(prefix, key)) ]
+            [/#if]
+            [#continue]
+        [/#if]
+        [#if value?is_sequence]
+            [#continue]
+        [/#if]
+        [#local result += {formatSettingName(prefix, key) : {"Value" : value}} ]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#function markAsSensitive settings]
+    [#local result = {} ]
+    [#list settings as key,value]
+        [#local result += { key : value + {"Sensitive" : true}} ]
+    [/#list]
+    [#return result ]
+[/#function]
+
+[#function getOccurrenceSettings possibilities alternatives]
+    [#local contexts = [] ]
+
+    [#-- Order possibilities in increasing priority --]
+    [#list possibilities?keys?sort as key]
+        [#local matchKey = key?lower_case?remove_ending("-asfile") ]
+        [#local value = possibilities[key] ]
+        [#if value?has_content]
+            [#list alternatives as alternative]
+                [#if
+                    (
+                        ((alternative.Match == "exact") && (alternative.Key == matchKey)) ||
+                        ((alternative.Match == "partial") && (alternative.Key?starts_with(matchKey)))
+                    ) ]
+                    [#local contexts += [value] ]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+    [#return asFlattenedSettings(getCompositeObject({ "Name" : "*" }, contexts)) ]
+[/#function]
+
+[#function getOccurrenceCoreSettings occurrence]
+    [#local core = occurrence.Core ]
+    [#return
+        asFlattenedSettings(
+            {
+                "TEMPLATE_TIMESTAMP" : .now?iso_utc,
+                "PRODUCT" : productName,
+                "ENVIRONMENT" : environmentName,
+                "SEGMENT" : segmentName,
+                "TIER" : core.Tier.Name,
+                "COMPONENT" : core.Component.Name,
+                "COMPONENT_INSTANCE" : core.Instance.Name,
+                "COMPONENT_VERSION" : core.Version.Name,
+                "REQUEST_REFERENCE" : requestReference,
+                "CONFIGURATION_REFERENCE" : configurationReference,
+                "APPDATA_BUCKET" : dataBucket,
+                "APPDATA_PREFIX" : getAppDataFilePrefix(occurrence),
+                "OPSDATA_BUCKET" : operationsBucket,
+                "APPSETTINGS_PREFIX" : getSettingsFilePrefix(occurrence),
+                "CREDENTIALS_PREFIX" : getSettingsFilePrefix(occurrence),
+                "SETTINGS_PREFIX" : getSettingsFilePrefix(occurrence)
+            } +
+            attributeIfContent("SUBCOMPONENT", (core.SubComponent.Name)!"") +
+            attributeIfContent("APPDATA_PUBLIC_PREFIX", getAppDataPublicFilePrefix(occurrence)) +
+            attributeIfContent("SES_REGION", (productObject.SES.Region)!"")
+        )
+    ]
+[/#function]
+
+[#function getOccurrenceAccountSettings occurrence]
+    [#local alternatives = [{"Key" : accountName, "Match" : "exact"}] ]
+    [#return
+        getOccurrenceSettings(
+            (settingsObject.AppSettings.Accounts)!{},
+            alternatives) ]
+[/#function]
+
+[#function getOccurrenceBuildSettings occurrence]
+    [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+
+    [#local alternatives =
+        [
+            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
+            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
+        ] ]
+
+    [#local occurrenceBuild =
+        getOccurrenceSettings(
+            (settingsObject.Builds.Products)!{},
+            alternatives
+        ) ]
+
+    [#-- Reference could be a deployment unit or a component --]
+    [#if occurrenceBuild.REFERENCE?has_content]
+        [#local occurrenceBuild +=
+            getOccurrenceSettings(
+                (settingsObject.Builds.Products)!{},
+                [
+                    {"Key" : formatSegmentFullName(occurrenceBuild.REFERENCE.Value?replace("/","-")), "Match" : "exact"}
+                ]
+            ) ]
+    [/#if]
+
+    [#return
+        attributeIfContent(
+            "BUILD_REFERENCE",
+            occurrenceBuild.COMMIT!{}
+        ) +
+        attributeIfContent(
+            "BUILD_UNIT",
+            occurrenceBuild.UNIT!
+            valueIfContent(
+                {"Value" : (occurrenceBuild.REFERENCE.Value?replace("/","-"))!""},
+                occurrenceBuild.REFERENCE!{},
+                valueIfContent(
+                    {"Value" : deploymentUnit},
+                    deploymentUnit
+                )
+            )
+        ) +
+        attributeIfContent(
+            "APP_REFERENCE"
+            occurrenceBuild.TAG!{}
+        ) ]
+[/#function]
+
+[#function getOccurrenceProductSettings occurrence ]
+    [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+
+    [#local alternatives =
+        [
+            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
+            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
+        ] ]
+
+    [#return
+        getOccurrenceSettings(
+            (settingsObject.AppSettings.Products)!{},
+            alternatives) ]
+[/#function]
+
+
+[#function getOccurrenceCredentialSettings occurrence]
+    [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
+
+    [#local alternatives =
+        [
+            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
+            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
+        ] ]
+
+    [#return
+        markAsSensitive(
+            getOccurrenceSettings(
+                (settingsObject.Credentials.Products)!{},
+                alternatives) ) ]
+[/#function]
+
+[#-- Try to match the desired setting in decreasing specificity --]
+[#-- A single match array or an array of arrays can be provided --]
+[#function getOccurrenceSetting occurrence names emptyIfNotProvided=false]
+    [#local nameAlternatives = asArray(names) ]
+    [#if !(nameAlternatives[0]?is_sequence) ]
+      [#local nameAlternatives = [nameAlternatives] ]
+    [/#if]
+    [#local settingNames = [] ]
+    [#local setting = {} ]
+
+    [#list nameAlternatives as nameAlternative]
+        [#local nameParts = asArray(nameAlternative) ]
+        [#list nameParts as namePart]
+            [#local settingNames +=
+                [formatSettingName(nameParts[namePart?index..])] ]
+        [/#list]
+    [/#list]
+
+    [#list settingNames as settingName]
+        [#local setting =
+            contentIfContent(
+                (occurrence.Configuration.Settings.Build[settingName])!{},
+                contentIfContent(
+                    (occurrence.Configuration.Settings.Product[settingName])!{},
+                    contentIfContent(
+                        (occurrence.Configuration.Settings.Account[settingName])!{},
+                        (occurrence.Configuration.Settings.Core[settingName])!{}
+                    )
+                )
+            ) ]
+        [#if setting?has_content]
+            [#break]
+        [/#if]
+    [/#list]
+
+    [#return
+        contentIfContent(
+            setting,
+            valueIfTrue(
+                {"Value" : ""},
+                emptyIfNotProvided,
+                {"Value" : "COTException: Setting not provided"}
+            )
+        ) ]
+[/#function]
+
+[#function getOccurrenceSettingValue occurrence names emptyIfNotProvided=false]
+    [#return getOccurrenceSetting(occurrence, names, emptyIfNotProvided).Value]
+[/#function]
+
+[#function getOccurrenceBuildReference occurrence]
+    [#return
+        contentIfContent(
+            getOccurrenceSettingValue(occurrence, "BUILD_REFERENCE", true),
+            "COTException: Build reference not found") ]
+[/#function]
+
+[#function getOccurrenceBuildUnit occurrence]
+    [#return
+        contentIfContent(
+            getOccurrenceSettingValue(occurrence, "BUILD_UNIT", true),
+            "COTException: Build unit not found"
+        ) ]
+[/#function]
+
+[#function getAsFileSettings settings ]
+    [#local result = [] ]
+    [#list settings as key,value]
+        [#if value?is_hash && value.AsFile?has_content]
+                [#local result += [value] ]
+        [/#if]
+    [/#list]
+    [#return result ]
+[/#function]
+
+[#function getSettingsAsEnvironment settings sensitive=false obfuscate=false]
+    [#local result = {} ]
+    [#list settings as key,value]
+        [#if value?is_hash]
+            [#if value.Internal!false]
+                [#continue]
+            [/#if]
+            [#if sensitive && value.Sensitive!false]
+                [#local result += { key : valueIfTrue("****", obfuscate, value.Value)} ]
+                [#continue]
+            [/#if]
+            [#if (!sensitive) && !(value.Sensitive!false)]
+                [#local result += { key : value.Value} ]
+                [#continue]
+            [/#if]
+        [#else]
+            [#local result += { key, "COTException:Internal error - setting is not a hash" } ]
+        [/#if]
+    [/#list]
+    [#return result ]
+[/#function]
+
+[#function getOccurrenceSettingsAsEnvironment occurrence sensitive=false obfuscate=false]
+    [#return
+        getSettingsAsEnvironment(occurrence.Configuration.Settings.Core, sensitive, obfuscate) +
+        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product, sensitive, obfuscate)
+    ]
+[/#function]
+
+[#function getOccurrenceSolutionAttributes type]
     [#local configuration = componentConfiguration[type]![] ]
 
     [#return
@@ -856,14 +1180,16 @@
     [#return result]
 [/#function]
 
-[#-- Get the occurrences of versions/instances of a component--]
+[#-- Get the occurrences of versions/instances of a component           --]
+[#-- This function should NOT be called directly - it is for the use of --]
+[#-- other functions in this file                                       --]
 [#function getOccurrencesInternal component tier={} parentOccurrence={} parentContexts=[] componentType="" ]
 
     [#if !(component?has_content) ]
         [#return [] ]
     [/#if]
 
-    [#local contexts = asArray(parentContexts) ]
+    [#local componentContexts = asArray(parentContexts) ]
 
     [#if tier?has_content]
         [#local type = getComponentType(component) ]
@@ -878,25 +1204,29 @@
         [#local tierName = getTierName(tier) ]
         [#local componentId = getComponentId(component) ]
         [#local componentName = getComponentName(component) ]
-        [#local subComponentId = "" ]
-        [#local subComponentName = "" ]
-        [#local contexts += [component, typeObject] ]
+        [#local subComponentId = [] ]
+        [#local subComponentName = [] ]
+        [#local componentContexts += [component, typeObject] ]
     [#else]
         [#local tierId = parentOccurrence.Core.Tier.Id ]
         [#local tierName = parentOccurrence.Core.Tier.Name ]
         [#local componentId = parentOccurrence.Core.Component.Id ]
         [#local componentName = parentOccurrence.Core.Component.Name ]
-        [#local subComponentId = typeObject.Id?replace("-","X") ]
-        [#local subComponentName = typeObject.Name ]
-        [#local contexts += [typeObject] ]
+        [#local subComponentId = typeObject.Id?split("-") ]
+        [#local subComponentName = typeObject.Name?split("-") ]
+        [#local componentContexts += [typeObject] ]
     [/#if]
 
-    [#local attributes = getOccurrenceConfigurationAttributes(type) ]
+    [#local attributes = getOccurrenceSolutionAttributes(type) ]
     [#local subComponents = getOccurrenceSubComponents(type) ]
 
-    [#-- Add Export and DeploymentUnits as standard attributes --]
+    [#-- Add standard attributes --]
     [#local attributes +=
         [
+            {
+                "Name" : "Enabled",
+                "Default" : true
+            },
             {
                 "Name" : "Export",
                 "Default" : []
@@ -919,7 +1249,15 @@
                 [#if version?is_hash ]
                     [#local versionId = getContextId(version) ]
                     [#local versionName = getContextName(version) ]
-                    [#local contexts += [instance, version] ]
+                    [#local occurrenceContexts = componentContexts + [instance, version] ]
+                    [#local idExtensions =
+                                subComponentId +
+                                asArray(instanceId, true, true) +
+                                asArray(versionId, true, true) ]
+                    [#local nameExtensions =
+                                subComponentName +
+                                asArray(instanceName, true, true) +
+                                asArray(versionName, true, true) ]
                     [#local occurrence =
                         {
                             "Core" : {
@@ -942,65 +1280,100 @@
                                     "Name" : firstContent(versionName, (parentOccurrence.Core.Version.Name)!"")
                                 },
                                 "Internal" : {
-                                    "IdExtensions" : [subComponentId, instanceId, versionId],
-                                    "NameExtensions" : [subComponentName, instanceName, versionName]
+                                    "IdExtensions" : idExtensions,
+                                    "NameExtensions" : nameExtensions
+                                },
+                                "Extensions" : {
+                                    "Id" :
+                                        ((parentOccurrence.Core.Extensions.Id)![tierId, componentId]) + idExtensions,
+                                    "Name" :
+                                        ((parentOccurrence.Core.Extensions.Name)![tierName, componentName]) + nameExtensions
                                 }
+
                             } +
                             attributeIfContent(
                                 "SubComponent",
                                 subComponentId,
                                 {
-                                    "Id" : subComponentId,
-                                    "Name" : subComponentName
+                                    "Id" : formatId(subComponentId),
+                                    "Name" : formatName(subComponentName)
                                 }
                             ),
-                            "Configuration" : getCompositeObject(attributes, contexts)
+                            "Configuration" : {
+                                "Solution" : getCompositeObject(attributes, occurrenceContexts)
+                            }
                         }
                     ]
-                    [#local occurrenceId=
-                        valueIfContent(
-                            formatId(
-                                (parentOccurrence.Core.Id)!"",
-                                occurrence.Core.Internal.IdExtensions),
-                            parentOccurrence,
-                            formatId(
-                                occurrence.Core.Tier,
-                                occurrence.Core.Component,
-                                occurrence.Core.Internal.IdExtensions)) ]
-                    [#local occurrenceName=
-                        valueIfContent(
-                            formatName(
-                                (parentOccurrence.Core.Name)!"",
-                                occurrence.Core.Internal.NameExtensions),
-                            parentOccurrence,
-                            formatName(
-                                occurrence.Core.Tier,
-                                occurrence.Core.Component,
-                                occurrence.Core.Internal.NameExtensions)) ]
-                    [#local occurrenceShortName=
-                        valueIfContent(
-                            formatName(
-                                (parentOccurrence.Core.ShortName)!"",
-                                occurrence.Core.Internal.IdExtensions),
-                            parentOccurrence,
-                            formatName(
-                                occurrence.Core.Tier.Id,
-                                occurrence.Core.Component.Id,
-                                occurrence.Core.Internal.IdExtensions)) ]
                     [#local occurrence +=
                         {
                             "Core" :
                                 occurrence.Core +
                                 {
-                                    "Id" : occurrenceId,
-                                    "Name" : occurrenceName,
-                                    "ShortName" : occurrenceShortName,
-                                    "FullName" : formatSegmentFullName(occurrenceName),
-                                    "ShortFullName" : formatSegmentShortName(occurrenceShortName)
+                                    "Id" : formatId(occurrence.Core.Extensions.Id),
+                                    "TypedId" : formatId(occurrence.Core.Extensions.Id, type),
+                                    "Name" : formatName(occurrence.Core.Extensions.Name),
+                                    "TypedName" : formatName(occurrence.Core.Extensions.Name, type),
+                                    "FullName" : formatSegmentFullName(occurrence.Core.Extensions.Name),
+                                    "TypedFullName" : formatSegmentFullName(occurrence.Core.Extensions.Name, type),
+                                    "ShortName" : formatName(occurrence.Core.Extensions.Id),
+                                    "ShortTypedName" : formatName(occurrence.Core.Extensions.Id, type),
+                                    "ShortFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id),
+                                    "ShortTypedFullName" : formatSegmentShortName(occurrence.Core.Extensions.Id, type),
+                                    "RelativePath" : formatRelativePath(occurrence.Core.Extensions.Name),
+                                    "FullRelativePath" : formatSegmentRelativePath(occurrence.Core.Extensions.Name),
+                                    "AbsolutePath" : formatAbsolutePath(occurrence.Core.Extensions.Name),
+                                    "FullAbsolutePath" : formatSegmentAbsolutePath(occurrence.Core.Extensions.Name)
                                 }
                         } ]
-                    [#local occurrence += { "State" : getOccurrenceState(occurrence, parentOccurrence) } ]
 
+                    [#local occurrence +=
+                        {
+                            "Configuration" :
+                                occurrence.Configuration +
+                                {
+                                    "Settings" : {
+                                        "Build" : getOccurrenceBuildSettings(occurrence),
+                                        "Account" : getOccurrenceAccountSettings(occurrence),
+                                        "Product" :
+                                            getOccurrenceProductSettings(occurrence) +
+                                            getOccurrenceCredentialSettings(occurrence)
+                                    }
+                                }
+                        } ]
+                    [#-- Some core settings are controlled by product level settings --]
+                    [#-- (e.g. file prefixes) so initialise core last                --]
+                    [#local occurrence +=
+                        {
+                            "Configuration" :
+                                occurrence.Configuration +
+                                {
+                                    "Settings" :
+                                        occurrence.Configuration.Settings +
+                                        {
+                                            "Core" : getOccurrenceCoreSettings(occurrence)
+                                        }
+                                }
+                        } ]
+                    [#local occurrence +=
+                        {
+                            "Configuration" :
+                                occurrence.Configuration +
+                                {
+                                    "Environment" : {
+                                        "Build" :
+                                            getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
+                                        "General" :
+                                            getOccurrenceSettingsAsEnvironment(occurrence, false),
+                                        "Sensitive" :
+                                            getOccurrenceSettingsAsEnvironment(occurrence, true)
+                                    }
+                                }
+                        } ]
+                    [#local occurrence +=
+                        {
+                            "State" : getOccurrenceState(occurrence, parentOccurrence)
+
+                        } ]
                     [#local subOccurrences = [] ]
                     [#list subComponents as subComponent]
                         [#-- Subcomponent instances can either be under a Components --]
@@ -1024,7 +1397,7 @@
                                             subComponentInstance,
                                             {},
                                             occurrence,
-                                            contexts +
+                                            occurrenceContexts +
                                                 [
                                                     typeObject[subComponent.Component],
                                                     typeObject[subComponent.Component].Configuration!{}
@@ -1093,7 +1466,9 @@
                         "Name" : ""
                     }
                 },
-                "Configuration" : {}
+                "Configuration" : {
+                    "Environment" : occurrence.Configuration.Environment
+                }
             }
         ]
         [#return
@@ -1187,14 +1562,14 @@
             "EffectiveInstance" : instanceToMatch,
             "EffectiveVersion" : versionToMatch
         }
-        "Link not found" /]
+        "COTException:Link not found" /]
 
     [#return {} ]
 [/#function]
 
 [#function getLinkTargets occurrence links={}]
     [#local result={} ]
-    [#list (valueIfContent(links, links, occurrence.Configuration.Links!{}))?values as link]
+    [#list (valueIfContent(links, links, occurrence.Configuration.Solution.Links!{}))?values as link]
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
             [#local result +=
@@ -1362,7 +1737,7 @@
 [#function getContentPath occurrence ]
 
     [#local core = occurrence.Core ]
-    [#local pathObject = occurrence.Configuration.Path ]
+    [#local pathObject = occurrence.Configuration.Solution.Path ]
     [#local includes = pathObject.IncludeInPath]
 
     [#local path =  valueIfTrue(
@@ -1506,7 +1881,7 @@
             [#local result += "]"]
         [#else]
             [#if obj?is_string]
-                [#local result = "\"" + obj + "\""]
+                [#local result = "\"" + obj?json_string + "\""]
             [#else]
                 [#local result = obj?c]
             [/#if]
@@ -1520,3 +1895,114 @@
 [#macro toJSON obj escaped=false]
     ${getJSON(obj, escaped)}[/#macro]
 
+[#-- Prologue/epilogue script creation --]
+
+[#function syncFilesToBucketScript filesArrayName region bucket prefix]
+    [#return
+        [
+            "case $\{STACK_OPERATION} in",
+            "  delete)",
+            "    deleteTreeFromBucket" + " " +
+                   "\"" + region + "\"" + " " +
+                   "\"" + bucket + "\"" + " " +
+                   "\"" + prefix + "\"" + " " +
+                   "|| return $?",
+            "    ;;",
+            "  create|update)",
+            "    debug \"FILES=$\{" + filesArrayName + "[@]}\"",
+            "    #",
+            "    syncFilesToBucket" + " " +
+                   "\"" + region         + "\"" + " " +
+                   "\"" + bucket         + "\"" + " " +
+                   "\"" + prefix         + "\"" + " " +
+                   "\"" + filesArrayName + "\"" + " " +
+                   "--delete || return $?",
+            "    ;;",
+            " esac",
+            "#"
+        ] ]
+[/#function]
+
+[#function findAsFilesScript filesArrayName settings]
+    [#-- Create an array for the files --]
+    [#local result = [] ]
+    [#list settings as setting]
+        [#if setting.AsFile?has_content]
+            [#local result +=
+                [
+                    "addToArray" + " " +
+                       "\"" + "filePathsToSync" + "\"" + " " +
+                       "\"" + setting.AsFile    + "\""
+                ] ]
+        [/#if]
+    [/#list]
+    [#local result += ["#"] ]
+
+    [#-- Locate where each file is --]
+    [#return
+        result +
+        [
+            "addToArray" + " " +
+               "\"" + "dirsToCheck"                 + "\"" + " " +
+               "\"" + "$\{PRODUCT_APPSETTINGS_DIR}" + "\"",
+            "addToArray" + " " +
+               "\"" + "dirsToCheck"                 + "\"" + " " +
+               "\"" + "$\{PRODUCT_CREDENTIALS_DIR}" + "\"",
+            "#",
+            "for f in \"$\{filePathsToSync[@]}\"; do",
+            "  for d in \"$\{dirsToCheck[@]}\"; do",
+            "    if [[ -f \"$\{d}/$\{f}\" ]]; then",
+                   "addToArray" + " " +
+                      filesArrayName + " " +
+                      "\"$\{d}/$\{f}\"",
+            "      break",
+            "    fi",
+            "  done",
+            "done",
+            "#"
+        ] ]
+
+[/#function]
+
+[#function getBuildScript filesArrayName region registry product occurrence filename]
+    [#return
+        [
+            "copyFilesFromBucket" + " " +
+              region + " " +
+              getRegistryEndPoint(registry, occurrence) + " " +
+              formatRelativePath(
+                getRegistryPrefix(registry, occurrence),
+                product,
+                getOccurrenceBuildUnit(occurrence),
+                getOccurrenceBuildReference(occurrence)) + " " +
+                "\"$\{tmpdir}\" || return $?",
+            "#",
+            "addToArray" + " " +
+               filesArrayName + " " +
+               "\"$\{tmpdir}/" + filename + "\"",
+            "#"
+        ] ]
+[/#function]
+
+[#function getLocalFileScript filesArrayName filepath filename=""]
+    [#return
+        valueIfContent(
+            [
+                "tmp_filename=\"" + filename + "\""
+            ],
+            filename,
+            [
+                "tmp_filename=\"$(fileName \"" + filepath + "\")\""
+            ]
+        ) +
+        [
+            "cp" + " " +
+               "\"" + filepath                      + "\"" +
+               "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"",
+            "#",
+            "addToArray" + " " +
+               filesArrayName + " " +
+               "\"" + "$\{tmpdir}/$\{tmp_filename}" + "\"",
+            "#"
+        ] ]
+[/#function]
