@@ -46,7 +46,7 @@
 [#macro createEFSMountTarget mode id efsId subnetId securityGroups dependencies="" ]
     [@cfResource
         mode=mode
-        id=efsMountTargetId
+        id=id
         type="AWS::EFS::MountTarget"
         properties=
             {

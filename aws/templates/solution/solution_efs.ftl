@@ -33,7 +33,6 @@
 
             [#list zones as zone ]
                 [#assign zoneEfsMountTargetId   = zoneResources[zone.Id]["efsMountTarget"].Id]
-
                 [@createEFSMountTarget
                     mode=listMode
                     id=zoneEfsMountTargetId

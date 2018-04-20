@@ -72,10 +72,6 @@
                     "Name" : formatComponentFullName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_EFS_RESOURCE_TYPE
                 },
-                "efsMountTarget" : {
-                    "Id" : formatDependentResourceId(AWS_EFS_MOUNTTARGET_RESOURCE_TYPE, efsId),
-                    "Type" : AWS_EFS_MOUNTTARGET_RESOURCE_TYPE
-                },
                 "sg" : {
                     "Id" : formatDependentSecurityGroupId(id),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
