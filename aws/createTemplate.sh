@@ -26,7 +26,7 @@ where
 (d) -s DEPLOYMENT_UNIT         same as -u
 (d) -t LEVEL                   same as -l
 (o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
-(o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required 
+(o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -44,8 +44,8 @@ NOTES:
 5. DEPLOYMENT_UNIT must be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" level
 6. Stack for DEPLOYMENT_UNIT of "eip" or "s3" must be created before stack for "vpc" for the "segment" level
 7. Stack for DEPLOYMENT_UNIT of "vpc" must be created before stack for "dns" for the "segment" level
-8. To support legacy configurations, the DEPLOYMENT_UNIT combinations "eipvpc" and "eips3vpc" 
-   are also supported but for new products, individual templates for each deployment unit 
+8. To support legacy configurations, the DEPLOYMENT_UNIT combinations "eipvpc" and "eips3vpc"
+   are also supported but for new products, individual templates for each deployment unit
    should be created
 
 EOF
@@ -70,21 +70,21 @@ function options() {
           :) fatalOptionArgument; return 1 ;;
       esac
   done
-  
+
   # Defaults
   CONFIGURATION_REFERENCE="${CONFIGURATION_REFERENCE:-${CONFIGURATION_REFERENCE_DEFAULT}}"
   REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
-  
+
   # Check level and deployment unit
   ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
-  
+
   # Ensure other mandatory arguments have been provided
   [[ (-z "${REQUEST_REFERENCE}") ||
       (-z "${CONFIGURATION_REFERENCE}") ]] && fatalMandatory && return 1
-  
+
   # Set up the context
   . "${GENERATION_DIR}/setContext.sh"
-  
+
   # Ensure we are in the right place
   case "${LEVEL}" in
     account|product)
@@ -124,7 +124,7 @@ function process_template() {
   local template="create${level^}Template.ftl"
   [[ ! -f "${template_dir}/${template}" ]] && template="create${level^}.ftl"
   local template_composites=("POLICY" "ID" "NAME" "RESOURCE")
-  
+
   # Define the possible passes
   local pass_list=("prologue" "template" "epilogue" "cli" "config")
   
@@ -211,13 +211,13 @@ function process_template() {
       template_composites+=("SOLUTION" )
       passes=("${passes[@]}" "cli")
       if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
-        for pass in "${pass_list[@]}"; do 
-          pass_deployment_unit_prefix["${pass}"]="" 
+        for pass in "${pass_list[@]}"; do
+          pass_deployment_unit_prefix["${pass}"]=""
           pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace1 replace2"
         done
       else
-        for pass in "${pass_list[@]}"; do 
-          pass_level_prefix["${pass}"]="soln-" 
+        for pass in "${pass_list[@]}"; do
+          pass_level_prefix["${pass}"]="soln-"
           pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace1 replace2"
         done
       fi
@@ -227,7 +227,7 @@ function process_template() {
       for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="seg-"; done
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
 
-      # LEGACY: Support old formats for existing stacks so they can be updated 
+      # LEGACY: Support old formats for existing stacks so they can be updated
       if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
         if [[ -f "${cf_dir}/cont-${deployment_unit_prefix}${region_prefix}template.json" ]]; then
           for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="cont-"; done
@@ -276,7 +276,7 @@ function process_template() {
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
   [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
-  
+
   # Create a random string to use as the run identifier
   info "Creating run identifier ...\n"
   run_id="$(dd bs=128 count=1 if=/dev/urandom  | base64 | env LC_CTYPE=C tr -dc 'a-z0-9' | fold -w 10 | head -n 1)"
@@ -289,13 +289,14 @@ function process_template() {
     composite_var="COMPOSITE_${composite^^}"
     args+=("-r" "${composite,,}List=${!composite_var#/?/}")
   done
-  
+
   args+=("-v" "region=${region}")
   args+=("-v" "productRegion=${product_region}")
   args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
   args+=("-v" "credentials=${COMPOSITE_CREDENTIALS}")
   args+=("-v" "appsettings=${COMPOSITE_APPSETTINGS}")
+  args+=("-v" "settings=${COMPOSITE_SETTINGS}")
   args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")
@@ -343,12 +344,27 @@ function process_template() {
         continue
       fi
 
+      # Check for exception strings in the output
+      grep "COTException:" < "${template_result_file}" > "${template_result_file}-exceptionstrings"
+      if [[ -s "${template_result_file}-exceptionstrings"  ]]; then
+        fatal "Exceptions occurred during template generation. Details follow...\n"
+        case "$(fileExtension "${template_result_file}")" in
+          json)
+            jq --indent 2 '.' < "${template_result_file}-exceptionstrings" >&2
+            ;;
+          *)
+            cat "${template_result_file}-exceptionstrings" >&2
+            ;;
+        esac
+        return 1
+      fi
+
       case "$(fileExtension "${template_result_file}")" in
         sh)
           # Strip out the whitespace added by freemarker
           sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
           ;;
-    
+
         json)
           # Detect any exceptions during generation
           jq -r ".Exceptions | select(.!=null)" < "${template_result_file}" > "${template_result_file}-exceptions"
@@ -393,7 +409,7 @@ function process_template() {
 function main() {
 
   options "$@" || return $?
-  
+
   case "${LEVEL}" in
     blueprint-disabled)
       process_template \

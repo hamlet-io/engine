@@ -16,6 +16,10 @@
     [#return name?split(".")]
 [/#function]
 
+[#function formatSettingName parts...]
+    [#return concatenate(parts, "_")?upper_case?replace("-", "_")]
+[/#function]
+
 [#function formatPath absolute parts...]
     [#return
         absolute?then("/","") +

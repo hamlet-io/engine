@@ -6,47 +6,50 @@
             getOccurrences(tier, component),
             deploymentUnit) as occurrence ]
 
-        [@cfDebug listMode occurrence false /]
+        [@cfDebug listMode occurrence false  /]
 
         [#list occurrence.Occurrences as fn]
             [#assign core = fn.Core ]
-            [#assign configuration = fn.Configuration ]
+            [#assign solution = fn.Configuration.Solution ]
             [#assign resources = fn.State.Resources ]
-    
+
             [#assign fnId = resources["function"].Id ]
             [#assign fnName = resources["function"].Name ]
 
             [#assign logGroupName = "/aws/lambda/" + fnName]
 
             [#assign containerId =
-                configuration.Container?has_content?then(
-                    configuration.Container,
+                solution.Container?has_content?then(
+                    solution.Container,
                     getComponentId(core.Component)
                 ) ]
-            [#assign context = 
+            [#assign context =
                 {
                     "Id" : containerId,
                     "Name" : containerId,
                     "Instance" : core.Instance.Id,
                     "Version" : core.Version.Id,
-                    "Environment" :
-                        standardEnvironment(core.Tier, core.Component, fn, "WEB"),
-                    "S3Bucket" : getRegistryEndPoint("lambda"),
-                    "S3Key" : 
+                    "DefaultEnvironment" : defaultEnvironment(fn),
+                    "Environment" : {},
+                    "S3Bucket" : getRegistryEndPoint("lambda", occurrence),
+                    "S3Key" :
                         formatRelativePath(
-                            getRegistryPrefix("lambda") + productName,
-                            buildDeploymentUnit,
-                            buildCommit,
+                            getRegistryPrefix("lambda", occurrence) + productName,
+                            getOccurrenceBuildUnit(occurrence),
+                            getOccurrenceBuildReference(occurrence),
                             "lambda.zip"
                         ),
                     "Links" : getLinkTargets(fn),
-                    "DefaultLinkVariables" : true
+                    "DefaultCoreVariables" : true,
+                    "DefaultEnvironmentVariables" : true,
+                    "DefaultLinkVariables" : true,
+                    "Policy" : standardPolicies(fn)
                 }
             ]
 
             [#if deploymentSubsetRequired("lambda", true)]
                 [#list context.Links as linkName,linkTarget]
-                    
+
                     [#assign linkTargetCore = linkTarget.Core ]
                     [#assign linkTargetConfiguration = linkTarget.Configuration ]
                     [#assign linkTargetResources = linkTarget.State.Resources ]
@@ -54,7 +57,7 @@
                     [#assign linkDirection = linkTarget.Direction ]
 
                     [#switch linkTargetCore.Type]
-                        [#case USERPOOL_COMPONENT_TYPE] 
+                        [#case USERPOOL_COMPONENT_TYPE]
                         [#case "apigateway"]
                             [#if linkTargetResources[(linkTargetCore.Type)].Deployed &&
                                     (linkDirection == "inbound")]
@@ -66,7 +69,7 @@
                                 /]
                             [/#if]
                             [#break]
-                    [/#switch]    
+                    [/#switch]
                 [/#list]
             [/#if]
 
@@ -75,25 +78,23 @@
             [#assign containerId = formatContainerFragmentId(occurrence, context)]
             [#include containerList?ensure_starts_with("/")]
 
-            [#if context.DefaultLinkVariables]
-                [#assign context = addDefaultLinkVariablesToContext(context) ]
-            [/#if]
+            [#assign context += getFinalEnvironment(fn, context) ]
 
             [#assign roleId = formatDependentRoleId(fnId)]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                 [#-- Create a role under which the function will run and attach required policies --]
                 [#-- The role is mandatory though there may be no policies attached to it --]
-                [@createRole 
+                [@createRole
                     mode=listMode
                     id=roleId
                     trustedServices=["lambda.amazonaws.com"]
                     managedArns=
-                        (vpc?has_content && configuration.VPCAccess)?then(
+                        (vpc?has_content && solution.VPCAccess)?then(
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
                         )
                 /]
-                
+
                 [#if context.Policy?has_content]
                     [#assign policyId = formatDependentPolicyId(fnId)]
                     [@createPolicy
@@ -121,8 +122,8 @@
 
             [#if deploymentSubsetRequired("lambda", true)]
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
-                [#if vpc?has_content && configuration.VPCAccess]
-                    [@createDependentSecurityGroup 
+                [#if vpc?has_content && solution.VPCAccess]
+                    [@createDependentSecurityGroup
                         mode=listMode
                         tier=tier
                         component=component
@@ -135,29 +136,29 @@
                     id=fnId
                     container=context +
                         {
-                            "Handler" : configuration.Handler,
-                            "RunTime" : configuration.RunTime,
-                            "MemorySize" : configuration.Memory,
-                            "Timeout" : configuration.Timeout,
-                            "UseSegmentKey" : configuration.UseSegmentKey,
+                            "Handler" : solution.Handler,
+                            "RunTime" : solution.RunTime,
+                            "MemorySize" : solution.Memory,
+                            "Timeout" : solution.Timeout,
+                            "UseSegmentKey" : solution.UseSegmentKey,
                             "Name" : fnName,
                             "Description" : fnName
                         }
                     roleId=roleId
                     securityGroupIds=
-                        (vpc?has_content && configuration.VPCAccess)?then(
+                        (vpc?has_content && solution.VPCAccess)?then(
                             formatDependentSecurityGroupId(fnId),
                             []
                         )
                     subnetIds=
-                        (vpc?has_content && configuration.VPCAccess)?then(
+                        (vpc?has_content && solution.VPCAccess)?then(
                             getSubnets(core.Tier, false),
                             []
                         )
                     dependencies=roleId
                 /]
-                
-                [#list configuration.Schedules?values as schedule ]
+
+                [#list solution.Schedules?values as schedule ]
 
                     [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
 
@@ -181,7 +182,7 @@
                     /]
                 [/#list]
 
-                [#list configuration.Metrics?values as metric ]
+                [#list solution.Metrics?values as metric ]
 
                     [#switch metric.Type ]
                         [#case "logFilter" ]
@@ -200,13 +201,13 @@
 
                 [/#list]
 
-                [#list configuration.Alerts?values as alert ]
+                [#list solution.Alerts?values as alert ]
 
                     [#assign dimensions=[] ]
 
-                    [#switch alert.Metric.Type] 
+                    [#switch alert.Metric.Type]
                         [#case "LogFilter" ]
-                            [#assign dimensions += 
+                            [#assign dimensions +=
                                 [
                                     {
                                         "Name" : "LogGroupName",
@@ -214,8 +215,8 @@
                                     }
                                 ]
                             ]
-                        [#break]  
-                    [/#switch]                  
+                        [#break]
+                    [/#switch]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
@@ -247,10 +248,27 @@
                         [#break]
                     [/#switch]
                 [/#list]
-                
+
                 [#-- Pick any extra macros in the container fragment --]
                 [#assign containerListMode = listMode]
                 [#include containerList?ensure_starts_with("/")]
+            [/#if]
+            [#if deploymentSubsetRequired("prologue", false)]
+                [#-- Copy any asFiles needed by the task --]
+                [#assign asFiles = getAsFileSettings(fn.Configuration.Settings.Product) ]
+                [#if asFiles?has_content]
+                    [@cfDebug listMode asFiles false /]
+                    [@cfScript
+                        mode=listMode
+                        content=
+                            findAsFilesScript("filesToSync", asFiles) +
+                            syncFilesToBucketScript(
+                                "filesToSync",
+                                regionId,
+                                operationsBucket,
+                                getOccurrenceSettingValue(fn, "SETTINGS_PREFIX")
+                            ) /]
+                [/#if]
             [/#if]
         [/#list]
     [/#list]

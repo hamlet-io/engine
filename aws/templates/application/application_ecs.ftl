@@ -17,11 +17,11 @@
             [@cfDebug listMode subOccurrence false /]
 
             [#assign core = subOccurrence.Core ]
-            [#assign configuration = subOccurrence.Configuration ]
+            [#assign solution = subOccurrence.Configuration.Solution ]
             [#assign resources = subOccurrence.State.Resources]
 
             [#assign taskId = resources["task"].Id ]
-            [#assign containers = getTaskContainers(subOccurrence) ]
+            [#assign containers = getTaskContainers(occurrence, subOccurrence) ]
 
             [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
 
@@ -68,8 +68,7 @@
                                                     name=formatName(linkCore.FullName,loadBalancer.TargetGroup)
                                                     tier=linkCore.Tier
                                                     component=linkCore.Component
-                                                    destination=ports[portMapping.HostPort]
-                                                /]
+                                                    destination=ports[portMapping.HostPort] /]
 
                                                 [#assign listenerRuleId = formatALBListenerRuleId(link, loadBalancer.TargetGroup) ]
                                                 [@createListenerRule
@@ -83,7 +82,6 @@
                                                 /]
                                                 [#assign dependencies += [listenerRuleId] ]
                                             [/#if]
-
                                         [/#if]
 
                                         [#assign loadBalancers +=
@@ -127,8 +125,8 @@
                         id=serviceId
                         ecsId=ecsId
                         desiredCount=
-                            (configuration.DesiredCount >= 0)?then(
-                                configuration.DesiredCount,
+                            (solution.DesiredCount >= 0)?then(
+                                solution.DesiredCount,
                                 multiAZ?then(zones?size,1)
                             )
                         taskId=taskId
@@ -141,7 +139,7 @@
 
             [#assign dependencies = [] ]
 
-            [#if configuration.UseTaskRole]
+            [#if solution.UseTaskRole]
                 [#assign roleId = formatDependentRoleId(taskId) ]
                 [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                     [@createRole
@@ -182,6 +180,29 @@
                 [#assign roleId = "" ]
             [/#if]
 
+            [#if deploymentSubsetRequired("lg", true) ]
+                [#if solution.TaskLogGroup ]
+                    [#assign lgId = resources["lg"].Id ]
+                    [#if isPartOfCurrentDeploymentUnit(lgId) ]
+                        [@createLogGroup
+                            mode=listMode
+                            id=lgId
+                            name=resources["lg"].Name /]
+                    [/#if]
+                [/#if]
+                [#list containers as container]
+                    [#if container.LogGroup?has_content]
+                        [#assign lgId = container.LogGroup.Id ]
+                        [#if isPartOfCurrentDeploymentUnit(lgId) ]
+                            [@createLogGroup
+                                mode=listMode
+                                id=lgId
+                                name=container.LogGroup.Name /]
+                        [/#if]
+                    [/#if]
+                [/#list]
+            [/#if]
+
             [#if deploymentSubsetRequired("ecs", true)]
                 [@createECSTask
                     mode=listMode
@@ -192,13 +213,32 @@
                 /]
 
                 [#-- Pick any extra macros in the container fragments --]
-                [#list (configuration.Containers!{})?values as container]
+                [#list (solution.Containers!{})?values as container]
                     [#assign containerListMode = listMode]
                     [#assign containerId = formatContainerFragmentId(occurrence, container)]
                     [#include containerList?ensure_starts_with("/")]
                 [/#list]
+
             [/#if]
-        [/#list]
+
+            [#if deploymentSubsetRequired("prologue", false)]
+                [#-- Copy any asFiles needed by the task --]
+                [#assign asFiles = getAsFileSettings(subOccurrence.Configuration.Settings.Product) ]
+                [#if asFiles?has_content]
+                    [@cfDebug listMode asFiles false /]
+                    [@cfScript
+                        mode=listMode
+                        content=
+                            findAsFilesScript("filesToSync", asFiles) +
+                            syncFilesToBucketScript(
+                                "filesToSync",
+                                regionId,
+                                operationsBucket,
+                                getOccurrenceSettingValue(subOccurrence, "SETTINGS_PREFIX")
+                            ) /]
+                [/#if]
+            [/#if]
+       [/#list]
     [/#list]
 [/#if]
 

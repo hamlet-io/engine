@@ -9,7 +9,7 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
-        [#assign configuration = occurrence.Configuration]
+        [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
 
         [#assign esId = resources["es"].Id]
@@ -22,7 +22,7 @@
         [#assign esCIDRs =
                     getUsageCIDRs(
                         "es",
-                        configuration.IPAddressGroups)]
+                        solution.IPAddressGroups)]
         [#list zones as zone]
             [#assign zoneIP =
                 getExistingReference(
@@ -46,7 +46,7 @@
         [/#list]
 
         [#assign esAdvancedOptions = {} ]
-        [#list configuration.AdvancedOptions as option]
+        [#list solution.AdvancedOptions as option]
             [#assign esAdvancedOptions +=
                 {
                     option.Id : option.Value
@@ -81,7 +81,7 @@
                                         })
                                 )
                             ),
-                        "ElasticsearchVersion" : configuration.Version,
+                        "ElasticsearchVersion" : solution.Version,
                         "ElasticsearchClusterConfig" :
                             {
                                 "InstanceType" : processorProfile.Processor,
@@ -104,7 +104,7 @@
                             )
                     } + 
                     attributeIfContent("AdvancedOptions", esAdvancedOptions) +
-                    attributeIfContent("SnapshotOptions", configuration.Snapshot.Hour, configuration.Snapshot.Hour) +
+                    attributeIfContent("SnapshotOptions", solution.Snapshot.Hour, solution.Snapshot.Hour) +
                     attributeIfContent(
                         "EBSOptions",
                         volume,

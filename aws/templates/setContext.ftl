@@ -124,6 +124,8 @@
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
 
+[#assign settingsObject = settings?eval ]
+
 [#-- Legacy credentials formats had a top level Credentials attribute --]
 [#assign credentialsObject =
     credentials?has_content?then(credentials?eval, {}) ]

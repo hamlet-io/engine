@@ -9,26 +9,25 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
+        [#assign settings = occurrence.Configuration.Settings ]
 
         [#assign containerId =
-            configuration.Container?has_content?then(
-                configuration.Container,
-                getComponentId(component)                            
+            solution.Container?has_content?then(
+                solution.Container,
+                getComponentId(component)
             ) ]
-        [#assign context = 
+        [#assign context =
             {
                 "Id" : containerId,
                 "Name" : containerId,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
-                "Environment" : 
-                    {
-                        "TEMPLATE_TIMESTAMP" : .now?iso_utc
-                    } +
-                    attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
-                    attributeIfContent("APP_REFERENCE", appReference!""),
+                "DefaultEnvironment" : defaultEnvironment(occurrence),
+                "Environment" : {},
                 "Links" : getLinkTargets(occurrence),
+                "DefaultCoreVariables" : false,
+                "DefaultEnvironmentVariables" : false,
                 "DefaultLinkVariables" : false
             }
         ]
@@ -38,9 +37,7 @@
         [#assign containerId = formatContainerFragmentId(occurrence, context)]
         [#include containerList?ensure_starts_with("/")]
 
-        [#if context.DefaultLinkVariables]
-            [#assign context = addDefaultLinkVariablesToContext(context) ]
-        [/#if]
+        [#assign context += getFinalEnvironment(occurrence, context) ]
 
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig
@@ -52,27 +49,37 @@
             [@cfScript
                 mode=listMode
                 content=
-                  [
-                      "function get_spa_file() {",
-                      "  #",
-                      "  #",
-                      "  # Fetch the spa zip file",
-                      "  copyFilesFromBucket" + " " +
-                          regionId + " " + 
-                          getRegistryEndPoint("spa") + " " +
-                          formatRelativePath(
-                              getRegistryPrefix("spa") + productName,
-                              buildDeploymentUnit,
-                              buildCommit) + " " +
-                        "   \"$\{tmpdir}\" || return $?",
-                      "  #",
-                      "  # Sync with the operations bucket",
-                      "  copy_spa_file \"$\{tmpdir}/spa.zip\"",
-                      "}",
-                      "#",
-                      "get_spa_file"
-                  ]
-            /]
+                    getBuildScript(
+                        "spaFiles",
+                        regionId,
+                        "spa",
+                        productName,
+                        occurrence,
+                        "spa.zip"
+                    ) +
+                    syncFilesToBucketScript(
+                        "spaFiles",
+                        regionId,
+                        operationsBucket,
+                        formatRelativePath(
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                            "spa"
+                        )
+                    ) +
+                    getLocalFileScript(
+                        "configFiles",
+                        "$\{CONFIG}",
+                        "config.json"
+                    ) +
+                    syncFilesToBucketScript(
+                        "configFiles",
+                        regionId,
+                        operationsBucket,
+                        formatRelativePath(
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                            "config"
+                        )
+                    ) /]
         [/#if]
     [/#list]
 [/#if]

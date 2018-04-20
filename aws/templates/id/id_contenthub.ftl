@@ -28,7 +28,7 @@
 
 [#function getContentHubState occurrence]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(COT_CONTENTHUB_HUB_RESOURCE_TYPE, core.Id)]
 
@@ -37,14 +37,14 @@
             "Resources" : {
                 "contenthub" : {
                     "Id" : id,
-                    "Type" : COT_CONTENTHUB_HUB_RESOURCE_TYPE 
+                    "Type" : COT_CONTENTHUB_HUB_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
-                "ENGINE" : configuration.Engine,
-                "REPOSITORY" : configuration.Repository,
-                "BRANCH" : configuration.Branch,
-                "PREFIX" : configuration.Prefix
+                "ENGINE" : solution.Engine,
+                "REPOSITORY" : solution.Repository,
+                "BRANCH" : solution.Branch,
+                "PREFIX" : solution.Prefix
             }
         }
     ]
@@ -120,7 +120,7 @@
 
 [#function getContentNodeState occurrence]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(COT_CONTENTHUB_NODE_RESOURCE_TYPE, core.Id)]
 

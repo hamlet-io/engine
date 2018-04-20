@@ -2,12 +2,21 @@
 
 [#-- Functions --]
 
-[#function getRegistryEndPoint type]
-    [#return (appSettingsObject.Registries[type?lower_case].EndPoint)!(appSettingsObject[type?capitalize].Registry)!"unknown"]
+[#function getRegistryEndPoint type occurrence ]
+    [#return
+        contentIfContent(
+            getOccurrenceSettingValue(
+                occurrence, ["Registries", type, "Endpoint"], true),
+            contentIfContent(
+                getOccurrenceSettingValue(
+                    occurrence, ["Registries", type, "Registry"], true),
+                "COTException: Unknown registry of type " + type
+            )
+        ) ]
 [/#function]
 
-[#function getRegistryPrefix type]
-    [#return (appSettingsObject.Registries[type?lower_case].Prefix)!(appSettingsObject[type?capitalize].Prefix)!""]
+[#function getRegistryPrefix type occurrence ]
+    [#return getOccurrenceSettingValue(occurrence, ["Registries", type, "Prefix"], true) ]
 [/#function]
 
 [#function getContainerId container]
@@ -38,32 +47,19 @@
                 "Essential" : essential
             } +
             attributeIfContent("Name", name) +
-            attributeIfContent("Image", image, formatRelativePath(getRegistryEndPoint("docker"), image)) +
+            attributeIfContent("Image", image) +
             attributeIfContent("ImageVersion", version)
         ]
     [/#if]
-
-    [#-- Ensure we don't trigger the build commit missing exception --]
-    [#if image?has_content]
-        [#assign buildCommit = image ]
-    [/#if]
 [/#macro]
-
-[#function formatVariableName parts...]
-    [#return concatenate(parts, "_")?upper_case?replace("-", "_") ]
-[/#function]
 
 [#function addVariableToContext context name value]
     [#return
-        context +
-        {
-            "Environment" :
-                (context.Environment!{}) +
-                {
-                    formatVariableName(name) : (value?is_hash || value?is_sequence)?then(getJSON(value, true), value)
-                }
-        }
-    ]
+        setDescendent(
+            context,
+            (value?is_hash || value?is_sequence)?then(getJSON(value, true), value),
+            formatSettingName(name)
+            "Environment") ]
 [/#function]
 
 [#macro Variable name value]
@@ -76,7 +72,7 @@
     [#return (context.Links[link].State.Resources[alias].Id)!"" ]
 [/#function]
 
-[#function addLinkVariablesToContext context name link attributes rawName=false]
+[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false]
     [#local result = context ]
     [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]
     [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
@@ -89,23 +85,35 @@
                     (linkAttributes[attribute?upper_case])!"") ]
         [/#list]
     [#else]
-        [#local result = addVariableToContext(result, name, "ERROR: No attributes found") ]
+        [#if ignoreIfNotDefined]
+            [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
+        [#else]
+            [#local result = addVariableToContext(result, name, "COTException: No attributes found for link " + link) ]
+        [/#if]
     [/#if]
     [#return result]
 [/#function]
 
-[#function addDefaultLinkVariablesToContext context]
-    [#local result = context ]
-    [#list context.Links?keys as name]
-        [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
+[#function getDefaultLinkVariables context]
+    [#local result = context + {"Environment": {} }]
+    [#list context.Links as name,value]
+        [#if value.Direction != "inbound"]
+            [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
+        [/#if]
     [/#list]
-    [#return result]
+    [#return result.Environment]
 [/#function]
 
-[#macro Link name link attributes=[] rawName=false]
+[#macro Link name link="" attributes=[] rawName=false ignoreIfNotDefined=false]
     [#if (containerListMode!"") == "model"]
         [#assign context =
-            addLinkVariablesToContext(context, name, link, attributes, rawName) ]
+            addLinkVariablesToContext(
+                context,
+                name,
+                contentIfContent(link, name),
+                attributes,
+                rawName,
+                ignoreIfNotDefined) ]
     [/#if]
 [/#macro]
 
@@ -115,46 +123,67 @@
     [/#if]
 [/#macro]
 
-[#macro Setting name path=[] default=""]
-    [@Variable
-        name=name
-        value=getDescendent(
-                      appSettingsObject,
-                      default,
-                      path?has_content?then(path, name)) /]
+[#macro DefaultCoreVariables enabled=true ]
+    [#if (containerListMode!"") == "model"]
+        [#assign context += { "DefaultCoreVariables" : enabled } ]
+    [/#if]
 [/#macro]
 
-[#macro Credential path id="" secret="" idAttribute="Username" secretAttribute="Password"]
-  [#if id?has_content]
-    [@Variable
-        name=id
-        value=getDescendent(
-                  credentialsObject,
-                  "ERROR: Missing credential id",
-                  path?is_string?then(path?split("."), path) + [idAttribute]) /]
-  [/#if]
-  [#if secret?has_content]
-    [@Variable
-        name=secret
-        value=getDescendent(
-                  credentialsObject,
-                  "ERROR: Missing credential secret",
-                  path?is_string?then(path?split("."), path) + [secretAttribute]) /]
-  [/#if]
+[#macro DefaultEnvironmentVariables enabled=true ]
+    [#if (containerListMode!"") == "model"]
+        [#assign context += { "DefaultEnvironmentVariables" : enabled } ]
+    [/#if]
+[/#macro]
+
+[#function getFragmentSettingValue key value asBoolean=false]
+    [#if value?is_hash]
+        [#local name = contentIfContent(value.Setting!"", key) ]
+
+        [#if value.IgnoreIfMissing!false &&
+            !(context.DefaultEnvironment[formatSettingName(name)])?? ]
+                [#return valueIfTrue(false, asBoolean, "") ]
+        [/#if]
+    [#else]
+        [#if value?is_string]
+            [#local name = value]
+        [#else]
+            [#return valueIfTrue(true, asBoolean, "COTException: Value for " + key + " must be a string or hash") ]
+        [/#if]
+    [/#if]
+
+    [#return
+        valueIfTrue(
+            true,
+            asBoolean,
+            context.DefaultEnvironment[formatSettingName(name)]!
+                "COTException: Variable " + name + " not found"
+        ) ]
+[/#function]
+
+[#macro AltSettings settings...]
+    [#list asFlattenedArray(settings) as setting]
+        [#if setting?is_hash]
+            [#list setting as key,value]
+                [#if getFragmentSettingValue(key, value, true)]
+                    [@Variable name=key value=getFragmentSettingValue(key, value) /]
+                [/#if]
+            [/#list]
+        [/#if]
+        [#if setting?is_string]
+            [@Variable name=setting value=getFragmentSettingValue(setting, setting) /]
+        [/#if]
+    [/#list]
 [/#macro]
 
 [#macro Settings settings...]
     [#list asFlattenedArray(settings) as setting]
-        [#if setting?is_string]
-            [@Setting
-                name=setting /]
-        [/#if]
         [#if setting?is_hash]
             [#list setting as key,value]
-                [@Variable
-                    name=key
-                    value=value /]
+                [@Variable name=key value=value /]
             [/#list]
+        [/#if]
+        [#if setting?is_string]
+            [@Variable name=setting value=getFragmentSettingValue(setting, setting) /]
         [/#if]
     [/#list]
 [/#macro]
@@ -223,46 +252,73 @@
 
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
-[#function standardEnvironment tier component occurrence mode=""]
-    [#local core = occurrence.Core ]
+[#function defaultEnvironment occurrence mode=""]
     [#return
-        {
-            "TEMPLATE_TIMESTAMP" : .now?iso_utc,
-            "PRODUCT" : productName,
-            "ENVIRONMENT" : environmentName,
-            "SEGMENT" : segmentName,
-            "TIER" : core.Tier.Name,
-            "COMPONENT" : core.Component.Name,
-            "COMPONENT_INSTANCE" : core.Instance.Name,
-            "COMPONENT_VERSION" : core.Version.Name,
-            "REQUEST_REFERENCE" : requestReference,
-            "CONFIGURATION_REFERENCE" : configurationReference,
-            "APPDATA_BUCKET" : dataBucket,
-            "APPDATA_PREFIX" : getAppDataFilePrefix(),
-            "OPSDATA_BUCKET" : operationsBucket,
-            "APPSETTINGS_PREFIX" : getAppSettingsFilePrefix(),
-            "CREDENTIALS_PREFIX" : getCredentialsFilePrefix()
-        } +
-        attributeIfContent("SUBCOMPONENT", core.SubComponent.Name!"") +
+        occurrence.Configuration.Environment.General +
         attributeIfContent("APP_RUN_MODE", mode) +
-        attributeIfContent("BUILD_REFERENCE", buildCommit!"") +
-        attributeIfContent("APP_REFERENCE", appReference!"") +
-        attributeIfContent("APPDATA_PUBLIC_PREFIX" getAppDataPublicFilePrefix()) +
-        attributeIfContent("SES_REGION", (productObject.SES.Region)!"")
+        occurrence.Configuration.Environment.Build +
+        occurrence.Configuration.Environment.Sensitive
     ]
 [/#function]
 
-[#function getTaskContainers task]
+[#function standardPolicies occurrence ]
+    [#local permissions = occurrence.Configuration.Solution.Permissions ]
+    [#return
+        valueIfTrue(
+            credentialsDecryptPermission(),
+            permissions.Decrypt,
+            []
+        ) +
+        valueIfTrue(
+            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)),
+            permissions.AsFile,
+            []
+        ) +
+        valueIfTrue(
+            s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence)),
+            permissions.AppData,
+            []
+        ) +
+        valueIfTrue(
+            s3AllPermission(dataBucket, getAppDataPublicFilePrefix(occurrence)),
+            permissions.AppPublic && getAppDataPublicFilePrefix(occurrence)?has_content,
+            []
+        )
+    ]
+[/#function]
+
+[#function getFinalEnvironment occurrence context ]
+    [#return
+        {
+            "Environment" :
+                valueIfTrue(
+                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Core) +
+                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
+                    context.DefaultCoreVariables
+                ) +
+                valueIfTrue(
+                    context.DefaultEnvironment,
+                    context.DefaultEnvironmentVariables
+                ) +
+                valueIfTrue(
+                    getDefaultLinkVariables(context),
+                    context.DefaultLinkVariables
+                ) +
+                context.Environment
+        } ]
+[/#function]
+
+[#function getTaskContainers ecs task]
 
     [#local core = task.Core ]
-    [#local configuration = task.Configuration ]
+    [#local solution = task.Configuration.Solution ]
 
     [#local tier = core.Tier ]
     [#local component = core.Component ]
 
     [#local containers = [] ]
 
-    [#list configuration.Containers?values as container]
+    [#list solution.Containers?values as container]
         [#local containerPortMappings = [] ]
         [#local containerLinks = container.Links ]
         [#list container.Ports?values as port]
@@ -364,15 +420,39 @@
         [/#list]
 
         [#local logDriver =
-            (container.LogDriver)!
-            (appSettingsObject.Docker.LogDriver)!
-            (
-                ((appSettingsObject.Docker.LocalLogging)!false) ||
-                (container.LocalLogging!false)
-            )?then(
+            valueIfTrue(
                 "json-file",
-                "awslogs"
-            )]
+                container.LocalLogging,
+                container.LogDriver
+            ) ]
+
+        [#local containerLgId =
+            formatDependentLogGroupId(core.Id,  container.Id?split("-")) ]
+        [#local containerLgName =
+            formatAbsolutePath(core.FullAbsolutePath, container.Name?split("-")) ]
+        [#local containerLogGroup =
+            valueIfTrue(
+                {
+                    "Id" : containerLgId,
+                    "Name" : containerLgName
+                },
+                container.ContainerLogGroup
+            ) ]
+
+        [#local logGroupId =
+            valueIfTrue(
+                containerLgId,
+                container.ContainerLogGroup,
+                valueIfTrue(
+                    resources["lg"].Id!"",
+                    solution.TaskLogGroup,
+                    valueIfTrue(
+                        ecs.State.Resources["lg"].Id!"",
+                        ecs.Configuration.Solution.ClusterLogGroup,
+                        "COTException: Logs type is awslogs but no group defined"
+                    )
+                )
+            ) ]
 
         [#local logOptions =
             logDriver?switch(
@@ -392,10 +472,9 @@
                 },
                 "awslogs",
                 {
-                    "awslogs-group":
-                        getReference(formatComponentLogGroupId(tier, component)),
-                    "awslogs-region": regionId,
-                    "awslogs-stream-prefix": formatName(task)
+                    "awslogs-group" : getReference(logGroupId),
+                    "awslogs-region" : regionId,
+                    "awslogs-stream-prefix" : core.Name
                 },
                 {}
             )]
@@ -407,32 +486,33 @@
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
                 "Essential" : true,
+                "RegistryEndPoint" : getRegistryEndPoint("docker", task),
                 "Image" :
                     formatRelativePath(
-                        getRegistryEndPoint("docker"),
                         productName,
                         formatName(
-                            buildDeploymentUnit,
-                            buildCommit!"build_commit_missing"
+                            getOccurrenceBuildUnit(task),
+                            getOccurrenceBuildReference(task)
                         )
                     ),
                 "MemoryReservation" : container.MemoryReservation,
                 "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
-                "Environment" :
-                    standardEnvironment(
-                        tier,
-                        component,
-                        task,
-                        getContainerMode(container)) +
+                "DefaultEnvironment" :
+                    defaultEnvironment(task, getContainerMode(container)) +
                     {
                         "AWS_REGION" : regionId,
                         "AWS_DEFAULT_REGION" : regionId
                     },
+                "Environment" : {},
                 "Links" : getLinkTargets(task, containerLinks),
-                "DefaultLinkVariables" : true
+                "DefaultCoreVariables" : true,
+                "DefaultEnvironmentVariables" : true,
+                "DefaultLinkVariables" : true,
+                "Policy" : standardPolicies(task)
             } +
+            attributeIfContent("LogGroup", containerLogGroup) +
             attributeIfContent("ImageVersion", container.Version) +
             attributeIfContent("Cpu", container.Cpu) +
             attributeIfTrue(
@@ -455,14 +535,7 @@
         [#assign containerId = formatContainerFragmentId(task, container)]
         [#include containerList]
 
-        [#if context.DefaultLinkVariables]
-            [#assign context = addDefaultLinkVariablesToContext(context) ]
-        [/#if]
-
-        [#-- Ensure the image has been defined --]
-        [#if !buildCommit?has_content]
-            [@cfException listMode "Build commit missing" /]
-        [/#if]
+        [#assign context += getFinalEnvironment(task, context) ]
 
         [#local containers += [context] ]
     [/#list]
@@ -471,26 +544,3 @@
 
     [#return containers]
 [/#function]
-
-[#-- Initialisation --]
-
-[#if buildReference?has_content]
-    [#if buildReference?starts_with("{")]
-        [#-- JSON format --]
-        [#assign buildReferenceObject = buildReference?eval]
-        [#assign buildCommit =
-            buildReferenceObject.commit!buildReferenceObject.Commit!""]
-        [#assign appReference =
-            buildReferenceObject.tag!buildReferenceObject.Tag!""]
-    [#else]
-        [#-- Legacy format --]
-        [#assign buildCommit = buildReference]
-        [#assign appReference = ""]
-        [#assign buildSeparator = buildReference?index_of(" ")]
-        [#if buildSeparator != -1]
-            [#assign buildCommit = buildReference[0..(buildSeparator-1)]]
-            [#assign appReference = buildReference[(buildSeparator+1)..]]
-        [/#if]
-    [/#if]
-[/#if]
-

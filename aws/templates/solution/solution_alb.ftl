@@ -10,18 +10,18 @@
 
         [#if deploymentSubsetRequired("alb", true) ]
 
-            [#assign configuration = occurrence.Configuration ]
+            [#assign solution = occurrence.Configuration.Solution ]
             [#assign resources = occurrence.State.Resources ]
 
             [#assign albId = resources["lb"].Id ]
             [#assign albName = resources["lb"].Name ]
             [#assign albShortName = resources["lb"].ShortName ]
-            [#assign albLogs = configuration.Logs ]
+            [#assign albLogs = solution.Logs ]
             [#assign albSecurityGroupIds = [] ]
 
             [#list occurrence.Occurrences![] as subOccurrence]
 
-                [#assign configuration = subOccurrence.Configuration ]
+                [#assign solution = subOccurrence.Configuration.Solution ]
                 [#assign resources = subOccurrence.State.Resources ]
 
                 [#assign listenerId = resources["listener"].Id ]
@@ -34,8 +34,8 @@
 
                 [#assign albSecurityGroupIds += [securityGroupId] ]
 
-                [#assign source = (portMappings[configuration.Mapping].Source)!"" ]
-                [#assign destination = (portMappings[configuration.Mapping].Destination)!"" ]
+                [#assign source = (portMappings[solution.Mapping].Source)!"" ]
+                [#assign destination = (portMappings[solution.Mapping].Destination)!"" ]
                 [#assign sourcePort = (ports[source])!{} ]
                 [#assign destinationPort = (ports[destination])!{} ]
 
@@ -46,7 +46,7 @@
                 [#assign cidr=
                         getUsageCIDRs(
                             source,
-                            configuration.IPAddressGroups) ]
+                            solution.IPAddressGroups) ]
 
                 [#-- Internal ILBs may not have explicit IP Address Groups --]
                 [#assign cidr =
@@ -73,7 +73,7 @@
                     component=component
                     destination=destinationPort /]
 
-                [#assign certificateObject = getCertificateObject(configuration.Certificate, segmentId, segmentName, sourcePort.Id, sourcePort.Name) ]
+                [#assign certificateObject = getCertificateObject(solution.Certificate, segmentId, segmentName, sourcePort.Id, sourcePort.Name) ]
                 [#assign hostName = getHostName(certificateObject, subOccurrence) ]
                 [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 

@@ -9,11 +9,11 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
-        [#assign configuration = occurrence.Configuration]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources]
 
         [#assign contentHubId = resources["contenthub"].Id]
-        [#assign contentHubPrefix = configuration.Prefix ]
+        [#assign contentHubPrefix = solution.Prefix ]
 
         [#if deploymentSubsetRequired("prologue", false)]
             [@cfScript
@@ -25,10 +25,10 @@
                         "create_pseudo_stack" + " " + 
                         "\"Content Hub Deployment\"" + " " +
                         "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"" + contentHubId + "Xengine\" \"" + configuration.Engine + "\" " +  
-                        "\"" + contentHubId + "Xrepository\" \"" + configuration.Repository + "\" " +
+                        "\"" + contentHubId + "Xengine\" \"" + solution.Engine + "\" " +  
+                        "\"" + contentHubId + "Xrepository\" \"" + solution.Repository + "\" " +
                         "\"" + contentHubId + "Xprefix\" \"" + contentHubPrefix + "\" " +
-                        "\"" + contentHubId + "Xbranch\" \"" + configuration.Branch + "\" " +
+                        "\"" + contentHubId + "Xbranch\" \"" + solution.Branch + "\" " +
                         "|| return $?", 
                     "}",
                     "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",

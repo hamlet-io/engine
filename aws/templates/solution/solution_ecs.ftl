@@ -9,7 +9,7 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
-        [#assign configuration = occurrence.Configuration ]
+        [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
 
         [#assign ecsId = resources["cluster"].Id ]
@@ -20,10 +20,11 @@
         [#assign ecsAutoScaleGroupId = resources["autoScaleGroup"].Id ]
         [#assign ecsLaunchConfigId = resources["launchConfig"].Id ]
         [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
-        [#assign ecsLogGroupId = resources["logGroup"].Id ]
-        [#assign defaultLogDriver = configuration.LogDriver ]
-        [#assign fixedIP = configuration.FixedIP ]
-        [#assign ecsClusterWideStorage = configuration.ClusterWideStorage ]
+        [#assign ecsLogGroupId = resources["lg"].Id ]
+        [#assign ecsLogGroupName = resources["lg"].Name ]
+        [#assign defaultLogDriver = solution.LogDriver ]
+        [#assign fixedIP = solution.FixedIP ]
+        [#assign ecsClusterWideStorage = solution.ClusterWideStorage ]
     
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ecsRoleId)]
@@ -58,12 +59,13 @@
         
         [/#if]
     
-        [#if deploymentSubsetRequired("lg", true) &&
+        [#if solution.ClusterLogGroup &&
+                deploymentSubsetRequired("lg", true) &&
                 isPartOfCurrentDeploymentUnit(ecsLogGroupId)]
             [@createLogGroup 
                 mode=listMode
                 id=ecsLogGroupId
-                name=formatComponentLogGroupName(tier, component) /]
+                name=ecsLogGroupName /]
         [/#if]
     
         [#assign ecsEFSVolumeId = formatEFSId(tier, component)]
@@ -185,23 +187,23 @@
                                             "Fn::Join" : [
                                                 "",
                                                 [
-                                                    "#!/bin/bash\\n",
-                                                    "echo \\\"cot:request="       + requestReference       + "\\\"\\n",
-                                                    "echo \\\"cot:configuration=" + configurationReference + "\\\"\\n",
-                                                    "echo \\\"cot:accountRegion=" + accountRegionId        + "\\\"\\n",
-                                                    "echo \\\"cot:tenant="        + tenantId               + "\\\"\\n",
-                                                    "echo \\\"cot:account="       + accountId              + "\\\"\\n",
-                                                    "echo \\\"cot:product="       + productId              + "\\\"\\n",
-                                                    "echo \\\"cot:region="        + regionId               + "\\\"\\n",
-                                                    "echo \\\"cot:segment="       + segmentId              + "\\\"\\n",
-                                                    "echo \\\"cot:environment="   + environmentId          + "\\\"\\n",
-                                                    "echo \\\"cot:tier="          + tierId                 + "\\\"\\n",
-                                                    "echo \\\"cot:component="     + componentId            + "\\\"\\n",
-                                                    "echo \\\"cot:role="          + component.Role         + "\\\"\\n",
-                                                    "echo \\\"cot:credentials="   + credentialsBucket      + "\\\"\\n",
-                                                    "echo \\\"cot:code="          + codeBucket             + "\\\"\\n",
-                                                    "echo \\\"cot:logs="          + operationsBucket       + "\\\"\\n",
-                                                    "echo \\\"cot:backups="       + dataBucket             + "\\\"\\n"
+                                                    "#!/bin/bash\n",
+                                                    "echo \"cot:request="       + requestReference       + "\"\n",
+                                                    "echo \"cot:configuration=" + configurationReference + "\"\n",
+                                                    "echo \"cot:accountRegion=" + accountRegionId        + "\"\n",
+                                                    "echo \"cot:tenant="        + tenantId               + "\"\n",
+                                                    "echo \"cot:account="       + accountId              + "\"\n",
+                                                    "echo \"cot:product="       + productId              + "\"\n",
+                                                    "echo \"cot:region="        + regionId               + "\"\n",
+                                                    "echo \"cot:segment="       + segmentId              + "\"\n",
+                                                    "echo \"cot:environment="   + environmentId          + "\"\n",
+                                                    "echo \"cot:tier="          + tierId                 + "\"\n",
+                                                    "echo \"cot:component="     + componentId            + "\"\n",
+                                                    "echo \"cot:role="          + component.Role         + "\"\n",
+                                                    "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
+                                                    "echo \"cot:code="          + codeBucket             + "\"\n",
+                                                    "echo \"cot:logs="          + operationsBucket       + "\"\n",
+                                                    "echo \"cot:backups="       + dataBucket             + "\"\n"
                                                 ]
                                             ]
                                         },
@@ -212,11 +214,11 @@
                                             "Fn::Join" : [
                                                 "",
                                                 [
-                                                    "#!/bin/bash -ex\\n",
-                                                    "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\\n",
-                                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
-                                                    "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\\n",
-                                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\\n"
+                                                    "#!/bin/bash -ex\n",
+                                                    "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
+                                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                                    "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\n",
+                                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\n"
                                                 ]
                                             ]
                                         },
@@ -318,11 +320,11 @@
             [/#if]
             
             [#assign updateCommand = "yum clean all && yum -y update"]
-            [#assign dailyUpdateCron = 'echo \\"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
+            [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
             [#if environmentId == "prod"]
                 [#-- for production update only security packages --]
                 [#assign updateCommand += " --security"]
-                [#assign dailyUpdateCron = 'echo \\"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\\" >crontab.txt && crontab crontab.txt']
+                [#assign dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
             [/#if]
         
             [@cfResource
@@ -352,17 +354,17 @@
                                 "Fn::Join" : [
                                     "",
                                     [
-                                        "#!/bin/bash -ex\\n",
-                                        "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\\n",
-                                        "# Install updates\\n",
-                                        updateCommand, "\\n",
-                                        dailyUpdateCron, "\\n",
-                                        "yum install -y aws-cfn-bootstrap\\n",
-                                        "# Remainder of configuration via metadata\\n",
+                                        "#!/bin/bash -ex\n",
+                                        "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
+                                        "# Install updates\n",
+                                        updateCommand, "\n",
+                                        dailyUpdateCron, "\n",
+                                        "yum install -y aws-cfn-bootstrap\n",
+                                        "# Remainder of configuration via metadata\n",
                                         "/opt/aws/bin/cfn-init -v",
                                         "         --stack ", { "Ref" : "AWS::StackName" },
                                         "         --resource ", ecsAutoScaleGroupId,
-                                        "         --region ", regionId, " --configsets ", configSet, "\\n"
+                                        "         --region ", regionId, " --configsets ", configSet, "\n"
                                     ]
                                 ]
                             }

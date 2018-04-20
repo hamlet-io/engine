@@ -126,7 +126,7 @@
 
 [#function getAPIGatewayState occurrence]
     [#local core = occurrence.Core]
-    [#local configuration = occurrence.Configuration]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local apiId = formatResourceId("api", core.Id)]
 
@@ -147,10 +147,10 @@
 
     [#local serviceName = "execute-api" ]
     
-    [#local certificatePresent = configuration.Certificate.Configured && configuration.Certificate.Enabled ]
-    [#local mappingPresent     = configuration.Mapping.Configured && configuration.Mapping.Enabled ]
-    [#local cfPresent          = configuration.CloudFront.Configured && configuration.CloudFront.Enabled ]
-    [#local mappingPresent     = mappingPresent && (!cfPresent || configuration.CloudFront.Mapping) ]
+    [#local certificatePresent = solution.Certificate.Configured && solution.Certificate.Enabled ]
+    [#local mappingPresent     = solution.Mapping.Configured && solution.Mapping.Enabled ]
+    [#local cfPresent          = solution.CloudFront.Configured && solution.CloudFront.Enabled ]
+    [#local mappingPresent     = mappingPresent && (!cfPresent || solution.CloudFront.Mapping) ]
 
     [#local internalFqdn =
         formatDomainName(
@@ -162,25 +162,28 @@
     [#local fqdn = internalFqdn]
     [#local signingFqdn = internalFqdn]
     [#local mappingStage = ""]
+    [#local internalPath = ""]
     [#local stagePath = "/" + stageName]
     [#local certificateId = "" ]
     [#local docsName =
             formatName(
-                configuration.Publish.DnsNamePrefix,
+                solution.Publish.DnsNamePrefix,
                 formatOccurrenceBucketName(occurrence))]
 
     [#if certificatePresent ]
-        [#local certificateObject = getCertificateObject(configuration.Certificate!"", segmentId, segmentName)]
+        [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentId, segmentName)]
         [#local hostName = getHostName(certificateObject, occurrence)]
         [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
         [#if mappingPresent ]
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
-            [#local docsName = formatDomainName(configuration.Publish.DnsNamePrefix, fqdn) ]
+            [#local docsName = formatDomainName(solution.Publish.DnsNamePrefix, fqdn) ]
             [#local signingFqdn = fqdn]
-            [#if configuration.Mapping.IncludeStage]
+            [#if solution.Mapping.IncludeStage]
                 [#local mappingStage = stageName ]
                 [#local stagePath = "" ]
+            [#else]
+                [#local internalPath = "/" + stageName ]
             [/#if]
 
             [#if cfPresent ]
@@ -189,7 +192,7 @@
         [#else]
             [#if cfPresent ]
                 [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
-                [#local docsName = formatDomainName(configuration.Publish.DnsNamePrefix, fqdn) ]
+                [#local docsName = formatDomainName(solution.Publish.DnsNamePrefix, fqdn) ]
             [/#if]
         [/#if]
     [/#if]                                                
@@ -271,7 +274,7 @@
                 "SIGNING_FQDN" : signingFqdn,
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn + stagePath,
-                "INTERNAL_PATH" : stagePath,
+                "INTERNAL_PATH" : internalPath,
                 "DOCS_URL" : "http://" + getExistingReference(docsId, NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
