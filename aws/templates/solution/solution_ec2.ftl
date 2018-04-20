@@ -223,6 +223,7 @@
                                     "packages" : {
                                         "yum" : {
                                             "aws-cli" : []
+                                            "amazon-efs-utils" : []
                                         }
                                     },
                                     "files" : {

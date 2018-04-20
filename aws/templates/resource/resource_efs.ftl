@@ -29,7 +29,7 @@
     }
 ]
 
-[#macro createEFS mode id name tier component]
+[#macro createEFS mode id name tier component encrypted]
     [@cfResource
         mode=mode
         id=id
@@ -38,7 +38,14 @@
             {
                 "PerformanceMode" : "generalPurpose",
                 "FileSystemTags" : getCfTemplateCoreTags(name, tier, component)
-            } 
+            } + 
+            encrypted?then(
+                {
+                    "Encrypted" : true,
+                    "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                },
+                {}
+            )
         outputs=EFS_OUTPUT_MAPPINGS
     /]
 [/#macro]

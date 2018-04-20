@@ -215,7 +215,7 @@
                                 "packages" : {
                                     "yum" : {
                                         "aws-cli" : [],
-                                        "nfs-utils" : []
+                                        "amazon-efs-utils" : []
                                     }
                                 },
                                 "files" : {

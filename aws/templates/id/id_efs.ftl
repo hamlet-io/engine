@@ -27,7 +27,10 @@
 [#assign componentConfiguration +=
     {
         EFS_COMPONENT_TYPE  : {
-            "Attributes" :[],
+            "Attributes" :[
+                "Name" : "Encrypted",
+                "Default" : true
+            ],
             "Components" : [
                 {
                     "Type" : EFS_MOUNT_COMPONENT_TYPE,

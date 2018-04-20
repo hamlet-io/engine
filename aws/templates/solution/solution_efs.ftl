@@ -29,6 +29,7 @@
                 id=efsId
                 name=efsFullName
                 component=component
+                encrypted=configuration.Encrypted
             /]
 
             [#list zones as zone ]
