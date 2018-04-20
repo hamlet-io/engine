@@ -189,7 +189,7 @@
                             [@createLogMetric
                                 mode=listMode
                                 id=formatDependentLogMetricId(fnId, metric.Id)
-                                name=metric.Name
+                                name=formatName(metric.Name, fnName) 
                                 logGroup=logGroupName
                                 filter=metric.LogPattern
                                 namespace=formatProductRelativePath()
@@ -204,19 +204,16 @@
                 [#list solution.Alerts?values as alert ]
 
                     [#assign dimensions=[] ]
+                    [#assign metricName = alert.Metric.Name ]
 
                     [#switch alert.Metric.Type]
                         [#case "LogFilter" ]
-                            [#assign dimensions +=
-                                [
-                                    {
-                                        "Name" : "LogGroupName",
-                                        "Value" : logGroupName
-                                    }
-                                ]
-                            ]
-                        [#break]
-                    [/#switch]
+                            [#-- TODO: Ideally We should use dimensions for filtering but they aren't available on Log Metrics --]
+                            [#-- feature requst has been reaised... --]
+                            [#-- Instead we name the logMetric with the function name and will use that --]
+                            [#assign metricName = formatName(alert.Metric.Name, fnName) ]
+                        [#break] 
+                    [/#switch]                  
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
@@ -227,7 +224,7 @@
                                 actions=[
                                     getReference(formatSegmentSNSTopicId())
                                 ]
-                                metric=alert.Metric.Name
+                                metric=metricName
                                 namespace=alert.Namespace?has_content?then(
                                                 alert.Namespace,
                                                 formatProductRelativePath()
@@ -242,6 +239,7 @@
                                 period=alert.Time
                                 operator=alert.Operator
                                 reportOK=alert.ReportOk
+                                missingData=alert.MissingData
                                 dimensions=dimensions
                                 dependencies=fnId
                             /]
