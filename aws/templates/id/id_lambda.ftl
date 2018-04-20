@@ -54,7 +54,7 @@
             {
                 "Name" : "Alerts",
                 "Subobjects" : true,
-                "Children" : alertChildrenConfiguraiton
+                "Children" : alertChildrenConfiguration
             }
             {
                 "Name" : ["Memory", "MemorySize"],
