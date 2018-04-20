@@ -22,13 +22,26 @@
 [#-- Components --]
 
 [#assign EFS_COMPONENT_TYPE = "efs" ]
+[#assign EFS_MOUNT_COMPONENT_TYPE = "efsMount"]
 
 [#assign componentConfiguration +=
     {
         EFS_COMPONENT_TYPE  : {
-
-        }
-
+            "Attributes" :[],
+            "Components" : [
+                {
+                    "Type" : EFS_MOUNT_COMPONENT_TYPE,
+                    "Component" : "Mounts",
+                    "Link" : "Mount" 
+                }
+            ]
+        },
+        EFS_MOUNT_COMPONENT_TYPE : [
+            {
+                "Name" : "Directory",
+                "Mandatory" : true
+            }
+        ]
     }]
 
 [#function getEFSState occurrence]
@@ -36,6 +49,20 @@
     [#local core = occurrence.Core]
 
     [#local id = formatEFSId( core.Tier, core.Component, occurrence) ]
+
+    [#local zoneResources = {} ]
+    [#list zones as zone ]
+        [#local zoneResources += 
+            {
+                zone.Id : {
+                    "efsMountTarget" : {
+                        "Id" : formatDependentResourceId(AWS_EFS_MOUNTTARGET_RESOURCE_TYPE, id, zone.Id),
+                        "Type" : AWS_EFS_MOUNTTARGET_RESOURCE_TYPE
+                    }
+                }
+            }
+        ]
+    [/#list]
 
     [#return
         {
@@ -52,9 +79,24 @@
                 "sg" : {
                     "Id" : formatDependentSecurityGroupId(id),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
-                }
+                },
+                "Zones" : zoneResources
             },
-            "Attributes" : {}
+            "Attributes" : {
+                "EFS" : getExistingReference(id)
+            }
+        }
+    ]
+[/#function]
+
+[#function getMountState occurrence ]
+    [#local configuration = occurrence.Configuration]
+    [#return 
+        {
+            "Resources" : {},
+            "Attributes" : {
+                "DIRECTORY" : configuration.Directory
+            }
         }
     ]
 [/#function]

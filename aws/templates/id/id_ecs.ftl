@@ -84,7 +84,12 @@
                 },
                 {
                     "Name" : "ClusterLogGroup",
-                    "Default" : true
+                    "Default" : true,
+                },
+                {
+                    "Name" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
                 }
             ],
             "Components" : [

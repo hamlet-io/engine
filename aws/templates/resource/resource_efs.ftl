@@ -43,24 +43,18 @@
     /]
 [/#macro]
 
-[#macro createEFSMountTarget mode tier efsId securityGroups dependencies="" ]
-    [#assign subnets = getSubnets(tier,true,true) ]
-    [#list subnets as subnet ]
-        [#assign efsMountTargetId = formatDependentEFSMountTargetId(
-                                        efsId
-                                        subnet.zone.Id)]
-        [@cfResource
-            mode=mode
-            id=efsMountTargetId
-            type="AWS::EFS::MountTarget"
-            properties=
-                {
-                    "SubnetId" : subnet.subnetId,
-                    "FileSystemId" : getReference(efsId),
-                    "SecurityGroups": getReferences(securityGroups)
-                }
-            outputs=EFS_MOUNTTARGET_MAPPINGS
-            dependencies=dependencies
-        /]
-    [/#list]
+[#macro createEFSMountTarget mode id efsId subnetId securityGroups dependencies="" ]
+    [@cfResource
+        mode=mode
+        id=efsMountTargetId
+        type="AWS::EFS::MountTarget"
+        properties=
+            {
+                "SubnetId" : getReference(subnetId),
+                "FileSystemId" : getReference(efsId),
+                "SecurityGroups": getReferences(securityGroups)
+            }
+        outputs=EFS_MOUNTTARGET_MAPPINGS
+        dependencies=dependencies
+    /]
 [/#macro]
