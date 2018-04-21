@@ -83,7 +83,7 @@ while getopts ":e:f:hi:n:s:vy:" opt; do
     esac
 done
 
-CREDENTIAL_TYPE="${CREDENTIAL_TYPE^^:-${CREDENTIAL_TYPE_DEFAULT}}"
+CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
 [[ (-z "${CREDENTIAL_PATH}") ||
@@ -91,7 +91,7 @@ CREDENTIAL_TYPE="${CREDENTIAL_TYPE^^:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 # Define JSON paths
 PATH_BASE="${CREDENTIAL_PATH}"
-case ${CREDENTIAL_TYPE} in
+case ${CREDENTIAL_TYPE^^} in
     LOGIN)
         ATTRIBUTE_ID="Username"
         ATTRIBUTE_SECRET="Password"
