@@ -7,14 +7,17 @@ trap 'exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 BASE64_REGEX="^[A-Za-z0-9+/=\n]\+$"
 
 # Defaults
-CREDENTIAL_TYPE_DEFAULT="Login"
+CREDENTIAL_TYPE_LOGIN="LOGIN"
+CREDENTIAL_TYPE_API="API"
+CREDENTIAL_TYPE_ENV="ENV"
+CREDENTIAL_TYPE_DEFAULT="${CREDENTIAL_TYPE_LOGIN}"
 
 function usage() {
     cat <<EOF
 
 Manage crypto for credential storage
 
-Usage: $(basename $0) -f CRYPTO_FILE -n CREDENTIAL_NAME -y CREDENTIAL_TYPE -i CREDENTIAL_ID -s CREDENTIAL_SECRET -e CREDENTIAL_EMAIL -v
+Usage: $(basename $0) -f CRYPTO_FILE -n CREDENTIAL_PATH -y CREDENTIAL_TYPE -i CREDENTIAL_ID -s CREDENTIAL_SECRET -e CREDENTIAL_EMAIL -v
 
 where
 
@@ -22,7 +25,7 @@ where
 (o) -f CRYPTO_FILE          is the path to the credentials file to be used
     -h                      shows this text
 (o) -i CREDENTIAL_ID        of credential (i.e. Username/Client Key/Access Key value) - not encrypted
-(m) -n CREDENTIAL_NAME      for the set of values (id, secret, email)
+(m) -n CREDENTIAL_PATH      for the set of values (id, secret, email)
 (o) -s CREDENTIAL_SECRET    of credential (i.e. Password/Secret Key value) - encrypted
 (o) -v                      if CREDENTIAL_SECRET should be decrypted (visible)
 (m) -y CREDENTIAL_TYPE      of credential
@@ -34,6 +37,11 @@ DEFAULTS:
 CREDENTIAL_TYPE = ${CREDENTIAL_TYPE_DEFAULT}
 
 NOTES:
+1. CREDENTIAL_PATH is a JSON path so values separated by dots. It is case sensitive.
+2. CREDENTIAL_TYPE is ${CREDENTIAL_TYPE_LOGIN}, ${CREDENTIAL_TYPE_API} or ${CREDENTIAL_TYPE_ENV}
+3. For CREDENTIAL_TYPE of ${CREDENTIAL_TYPE_LOGIN}, Id Attribute = Username, Secret Attribute = Password
+4. For CREDENTIAL_TYPE of ${CREDENTIAL_TYPE_API}, Id Attribute = AccessKey, Secret Attribute = SecretKey
+5. For CREDENTIAL_TYPE of ${CREDENTIAL_TYPE_ENV}, Id Attribute = ACCESS_KEY, Secret Attribute = SECRET_KEY
 
 EOF
     exit
@@ -55,7 +63,7 @@ while getopts ":e:f:hi:n:s:vy:" opt; do
             CREDENTIAL_ID="${OPTARG}"
             ;;
         n)
-            CREDENTIAL_NAME="${OPTARG}"
+            CREDENTIAL_PATH="${OPTARG}"
             ;;
         s)
             CREDENTIAL_SECRET="${OPTARG}"
@@ -75,22 +83,26 @@ while getopts ":e:f:hi:n:s:vy:" opt; do
     esac
 done
 
-CREDENTIAL_TYPE="${CREDENTIAL_TYPE:-${CREDENTIAL_TYPE_DEFAULT}}"
+CREDENTIAL_TYPE="${CREDENTIAL_TYPE^^:-${CREDENTIAL_TYPE_DEFAULT}}"
 
 # Ensure mandatory arguments have been provided
 [[ (-z "${CREDENTIAL_NAME}") ||
     (-z "${CREDENTIAL_TYPE}") ]] && fatalMandatory
 
 # Define JSON paths
-PATH_BASE="Credentials[\"${CREDENTIAL_NAME}\"].${CREDENTIAL_TYPE}"
+PATH_BASE="${CREDENTIAL_PATH}"
 case ${CREDENTIAL_TYPE} in
-    Login)
+    LOGIN)
         ATTRIBUTE_ID="Username"
         ATTRIBUTE_SECRET="Password"
         ;;
     API)
         ATTRIBUTE_ID="AccessKey"
         ATTRIBUTE_SECRET="SecretKey"
+        ;;
+    ENV)
+        ATTRIBUTE_ID="ACCESS_KEY"
+        ATTRIBUTE_SECRET="SECRET_KEY"
         ;;
     *)
         ATTRIBUTE_ID="Username"
