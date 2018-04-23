@@ -10,24 +10,27 @@
                 ids)]
 [/#function]
 
+[#function formatEIPAssociationId ids...]
+    [#return formatResourceId(
+        AWS_EIP_ASSOCIATION_RESOURCE_TYPE,
+        ids)]
+[/#function]
+
 [#function formatDependentEIPId resourceId extensions...]
-    [#return formatDependentResourceId(
-                AWS_EIP_RESOURCE_TYPE,
+    [#return formatEIPId(
                 resourceId,
                 extensions)]
 [/#function]
 
 [#function formatComponentEIPId tier component extensions...]
-    [#return formatComponentResourceId(
-                AWS_EIP_RESOURCE_TYPE,
+    [#return formatEIPId(
                 tier,
                 component,
                 extensions)]
 [/#function]
 
 [#function formatComponentEIPAssociationId tier component extensions...]
-    [#return formatComponentResourceId(
-                AWS_EIP_ASSOCIATION_RESOURCE_TYPE,
+    [#return formatEIPAssociationId(
                 tier,
                 component,
                 extensions)]

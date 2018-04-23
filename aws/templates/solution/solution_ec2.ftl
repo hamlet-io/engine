@@ -10,61 +10,159 @@
         [#assign core = occurrence.Core]
         [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
+        [#assign zoneResources = occurrence.State.Resources.Zones]
+        [#assign links = solution.Links ]
 
         [#assign fixedIP = solution.FixedIP]
         [#assign loadBalanced = solution.LoadBalanced]
         [#assign dockerHost = solution.DockerHost]
 
-        [#assign ec2FullName            = resources["ec2Instance"].Name ]
         [#assign ec2SecurityGroupId     = resources["sg"].Id]
+        [#assign ec2SecurityGroupName   = resources["sg"].Name]
         [#assign ec2RoleId              = resources["ec2Role"].Id]
         [#assign ec2InstanceProfileId   = resources["instanceProfile"].Id]
         [#assign ec2ELBId               = resources["ec2ELB"].Id]
 
+        [#assign targetGroupRegistrations = {}]
+        [#assign targetGroupPermission = false ]
+
+        [#assign scriptsFile = ""]
+
+        [#if buildDeploymentUnit?has_content && buildCommit?has_content ]
+            [#assign scriptsFile = formatRelativePath(
+                                        getRegistryEndPoint("scripts"),
+                                        getRegistryPrefix("scripts") + productName,
+                                        buildDeploymentUnit,
+                                        buildCommit,
+                                        "scripts.zip")]
+        [/#if]
+
+
+        [#assign componentDependencies = []]
         [#assign ingressRules = []]
 
-        [#list solution.Ports as port]
-            [#assign nextPort = port?is_hash?then(port.Port, port)]
-            [#assign portCIDRs = getUsageCIDRs(
-                                nextPort,
-                                port?is_hash?then(port.IPAddressGroups![], []))]
-            [#if portCIDRs?has_content]
-                [#assign ingressRules +=
-                    [{
-                        "Port" : nextPort,
-                        "CIDR" : portCIDRs
-                    }]]
-            [/#if]
-        [/#list]
-
-        [#if deploymentSubsetRequired("iam", true) &&
-                isPartOfCurrentDeploymentUnit(ec2RoleId)]
-            [@createRole
-                mode=listMode
-                id=ec2RoleId
-                trustedServices=["ec2.amazonaws.com" ]
-                policies=
-                    [
-                        getPolicyDocument(
-                            s3ListPermission(codeBucket) +
-                                s3ReadPermission(codeBucket) +
-                                s3ListPermission(operationsBucket) +
-                                s3WritePermission(operationsBucket, "DOCKERLogs") +
-                                s3WritePermission(operationsBucket, "Backups"),
-                            "basic")
-                    ]
-            /]
+        [#if solution.Ports?is_hash?has_content ]
+            [#list solution.Ports as id,port ]
+                [#assign links += getLBLink(occurrence port)] 
+            [/#list]
+        [#else]
+            [#list solution.Ports as port]
+                [#assign nextPort = port?is_hash?then(port.Port, port)]
+                [#assign portCIDRs = getUsageCIDRs(
+                                    nextPort,
+                                    port?is_hash?then(port.IPAddressGroups![], []))]
+                [#if portCIDRs?has_content]
+                    [#assign ingressRules +=
+                        [{
+                            "Port" : nextPort,
+                            "CIDR" : portCIDRs
+                        }]]
+                [/#if]
+            [/#list]
         [/#if]
+
+        [#list links?values as link]
+        [#if link?is_hash]
+            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+
+            [@cfDebug listMode linkTarget false /]
+
+            [#if !linkTarget?has_content]
+                [#continue]
+            [/#if]
+
+            [#assign linkTargetCore = linkTarget.Core ]
+            [#assign linkTargetConfiguration = linkTarget.Configuration ]
+            [#assign linkTargetResources = linkTarget.State.Resources ]
+            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+
+            [#switch linkTargetCore.Type]
+                [#case ALB_PORT_COMPONENT_TYPE]
+                    [#if link.TargetGroup?has_content ]
+                        [#assign targetId = (linkTargetResources["targetgroups"][link.TargetGroup].Id) ]
+                        [#if targetId?has_content]
+
+                            [#assign targetGroupPermission = true]
+
+                            [#if deploymentSubsetRequired("ec2", true)]
+                                [#if isPartOfCurrentDeploymentUnit(targetId)]
+
+                                    [@createTargetGroup
+                                        mode=listMode
+                                        id=targetId
+                                        name=formatName(linkTargetCore.FullName,link.TargetGroup)
+                                        tier=link.Tier
+                                        component=link.Component
+                                        destination=ports[link.Port]
+                                    /]
+                                    [#assign listenerRuleId = formatALBListenerRuleId(occurrence, link.TargetGroup) ]
+                                    [@createListenerRule
+                                        mode=listMode
+                                        id=listenerRuleId
+                                        listenerId=linkTargetResources["listener"].Id
+                                        actions=getListenerRuleForwardAction(targetId)
+                                        conditions=getListenerRulePathCondition(link.TargetPath)
+                                        priority=link.Priority!100
+                                        dependencies=targetId
+                                    /]
+                                    
+                                    [#assign componentDependencies += [targetId]]
+                                    
+                                [/#if]
+                                [#assign targetGroupRegistrations += 
+                                        {
+                                            "03RegisterWithTG" + targetId  : {
+                                                "command" : "/opt/codeontap/bootstrap/register_targetgroup.sh",
+                                                "env" : {
+                                                    "TARGET_GROUP_ARN" : getReference(targetId)
+                                                },
+                                                "ignoreErrors" : "false"
+                                            }
+                                        }
+                                    ]
+                            [/#if]
+                        [/#if]
+                    [/#if]
+                    [#break]
+            [/#switch]
+        [/#if]
+    [/#list]
+        
+    [#if deploymentSubsetRequired("iam", true) &&
+            isPartOfCurrentDeploymentUnit(ec2RoleId)]
+
+        [@createRole
+            mode=listMode
+            id=ec2RoleId
+            trustedServices=["ec2.amazonaws.com" ]
+            policies=
+                [
+                    getPolicyDocument(
+                        s3ListPermission(codeBucket) +
+                        s3ReadPermission(codeBucket) +
+                        s3ListPermission(operationsBucket) +
+                        s3WritePermission(operationsBucket, "DOCKERLogs") +
+                        s3WritePermission(operationsBucket, "Backups"),
+                        "basic") 
+                ] + targetGroupPermission?then(
+                    [   
+                        getPolicyDocument(
+                            albRegisterTargetPermission(),
+                            "loadbalancing")
+                    ],
+                    [])
+        /]
+    [/#if]
 
     [#if deploymentSubsetRequired("ec2", true)]
 
-        [@createComponentSecurityGroup
+        [@createSecurityGroup
             mode=listMode
+            id=ec2SecurityGroupId
+            name=ec2SecurityGroupName
             tier=tier
             component=component
-            ingressRules=ingressRules
-         /]
-
+            ingressRules=ingressRules /]
 
         [@cfResource
             mode=listMode
@@ -77,39 +175,14 @@
                 }
             outputs={}
         /]
-
+        
         [#list zones as zone]
             [#if multiAZ || (zones[0].Id = zone.Id)]
-                [#assign ec2InstanceId =
-                            formatEC2InstanceId(
-                                tier,
-                                component,
-                                zone)]
-                [#assign ec2ENIId =
-                            formatEC2ENIId(
-                                tier,
-                                component,
-                                zone,
-                                "eth0")]
-                [#assign ec2EIPId = formatComponentEIPId(
-                                        tier,
-                                        component,
-                                        zone)]
-              [#-- Support backwards compatability with existing installs --]
-                [#if !(getExistingReference(ec2EIPId)?has_content)]
-                    [#assign ec2EIPId = formatComponentEIPId(
-                                            tier,
-                                            component,
-                                            zone
-                                            "eth0")]
-                [/#if]
-
-                [#assign ec2EIPAssociationId =
-                            formatComponentEIPAssociationId(
-                                tier,
-                                component,
-                                zone,
-                                "eth0")]
+                [#assign zoneEc2InstanceId          = zoneResources[zone.Id]["ec2Instance"].Id ]
+                [#assign zoneEc2InstanceName        = zoneResources[zone.Id]["ec2Instance"].Name ]
+                [#assign zoneEc2ENIId               = zoneResources[zone.Id]["ec2ENI"].Id ]
+                [#assign zoneEc2EIPId               = zoneResources[zone.Id]["ec2EIP"].Id]
+                [#assign zoneEc2EIPAssociationId    = zoneResources[zone.Id]["ec2EIPAssociation"].Id]
 
                 [#assign processorProfile = getProcessor(tier, component, "EC2")]
                 [#assign storageProfile = getStorage(tier, component, "EC2")]
@@ -123,18 +196,25 @@
 
                 [@cfResource
                     mode=listMode
-                    id=ec2InstanceId
+                    id=zoneEc2InstanceId
                     type="AWS::EC2::Instance"
                     metadata=
                         {
                             "AWS::CloudFormation::Init": {
                                 "configSets" : {
-                                    "ec2" : ["dirs", "bootstrap", "puppet"]
+                                    "ec2" : ["dirs", "bootstrap", "puppet"] + 
+                                        scriptsFile?has_content?then(
+                                            ["scripts"],
+                                            []
+                                        )
                                 },
                                 "dirs": {
                                     "commands": {
                                         "01Directories" : {
-                                            "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
+                                            "command" : "mkdir --parents --mode=0755 /etc/codeontap &&" +
+                                                        "mkdir --parents --mode=0755 /opt/codeontap/bootstrap &&" +
+                                                        "mkdir --parents --mode=0755 /var/log/codeontap &&" +
+                                                        "mkdir --parents --mode=0755 /opt/codeontap/scripts",
                                             "ignoreErrors" : "false"
                                         }
                                     }
@@ -164,13 +244,19 @@
                                                         "echo \"cot:tier="          + tierId                 + "\"\n",
                                                         "echo \"cot:component="     + componentId            + "\"\n",
                                                         "echo \"cot:zone="          + zone.Id                + "\"\n",
-                                                        "echo \"cot:name="          + formatName(ec2FullName, zone) + "\"\n",
-                                                        "echo \"cot:role="          + component.Role         + "\"\n",
+                                                        "echo \"cot:name="          + zoneEc2InstanceName    + "\"\n",
+                                                        "echo \"cot:role="          + component.Role!""      + "\"\n",
                                                         "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
                                                         "echo \"cot:code="          + codeBucket             + "\"\n",
                                                         "echo \"cot:logs="          + operationsBucket       + "\"\n",
                                                         "echo \"cot:backups="       + dataBucket             + "\"\n"
-                                                    ]
+                                                    ] + 
+                                                    scriptsFile?has_content?then(
+                                                        [
+                                                            "echo \"cot:scripts="       + scriptsFile             + "\"\n"
+                                                        ],
+                                                        []
+                                                    )
                                                 ]
                                             },
                                             "mode" : "000755"
@@ -211,13 +297,7 @@
                                             },
                                             "ignoreErrors" : "false"
                                         }) +
-                                    attributeIfTrue(
-                                        "04DockerHostSetup",
-                                        dockerHost,
-                                        {
-                                            "command" : "/opt/codeontap/bootstrap/docker.sh",
-                                            "ignoreErrors" : "false"
-                                        })
+                                    targetGroupRegistrations
                                 },
                                 "puppet": {
                                     "commands": {
@@ -226,7 +306,58 @@
                                             "ignoreErrors" : "false"
                                         }
                                     }
+                                } + 
+                                scriptsFile?has_content?then(
+                                {
+                                "scripts" : {
+                                    "files" :{
+                                        "/opt/codeontap/fetch_scripts.sh" : {
+                                            "content" : {
+                                                "Fn::Join" : [
+                                                    "",
+                                                    [
+                                                        "#!/bin/bash -ex\n",
+                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-fetch -s 2>/dev/console) 2>&1\n",
+                                                        "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                                        "SCRIPTS=$(/etc/codeontap/facts.sh | grep cot:scripts | cut -d '=' -f 2)\n",
+                                                        "if [ -z " + r"${SCRIPTS}" +" ]; then\n",
+                                                        "aws --region " + r"${REGION}" + " s3 cp --quiet s3://" + r"${SCRIPTS}" + " /opt/codeontap/scripts\n", 
+                                                        "[ -f /opt/codeontap/scripts/scripts.zip ] && unzip /opt/codeontap/scripts/scripts.zip\n",
+                                                        "chmod -R 0500 /opt/codeontap/scripts/\n"
+                                                        "fi\n"
+                                                    ]
+                                                ]
+                                            },
+                                            "mode" : "000755"
+                                        },
+                                        "/opt/codeontap/run_scripts.sh" : {
+                                            "content" : {
+                                                "Fn::Join" : [
+                                                    "",
+                                                    [
+                                                        "#!/bin/bash -ex\n",
+                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-init -s 2>/dev/console) 2>&1\n",
+                                                        "[ -f /opt/codeontap/scripts/init.sh ] &&  /opt/codeontap/scripts/init.sh\n" 
+                                                    ]
+                                                ]
+                                            },
+                                            "mode" : "000755"
+                                        }
+                                    },
+                                    "commands" : {
+                                        "01FetchScripts" : {
+                                            "command" : "/opt/codeontap/fetch_scripts.sh",
+                                            "ignoreErrors" : "false"
+                                        },
+                                        "02RunInitScript" : {
+                                            "command" : "/opt/codeontap/run_scripts.sh",
+                                            "ignoreErrors" : "false"
+                                        }
+                                    }
+
                                 }
+                                },
+                                {})
                             }
                         }
                     properties=
@@ -235,7 +366,6 @@
                             "DisableApiTermination" : false,
                             "EbsOptimized" : false,
                             "IamInstanceProfile" : { "Ref" : ec2InstanceProfileId },
-                            "ImageId": regionObject.AMIs.Centos.EC2,
                             "InstanceInitiatedShutdownBehavior" : "stop",
                             "InstanceType": processorProfile.Processor,
                             "KeyName": productName + sshPerSegment?then("-" + segmentName,""),
@@ -243,7 +373,7 @@
                             "NetworkInterfaces" : [
                                 {
                                     "DeviceIndex" : "0",
-                                    "NetworkInterfaceId" : getReference(ec2ENIId)
+                                    "NetworkInterfaceId" : getReference(zoneEc2ENIId)
                                 }
                             ],
                             "UserData" : {
@@ -259,13 +389,17 @@
                                             "# Remainder of configuration via metadata\n",
                                             "/opt/aws/bin/cfn-init -v",
                                             "         --stack ", { "Ref" : "AWS::StackName" },
-                                            "         --resource ", ec2InstanceId,
+                                            "         --resource ", zoneEc2InstanceId,
                                             "         --region ", regionId, " --configsets ec2\n"
                                         ]
                                     ]
                                 }
                             }
-                        }
+                        } +
+                        dockerHost?then(
+                            { "ImageId" : regionObject.AMIs.Centos.ECS },
+                            { "ImageId" : regionObject.AMIs.Centos.EC2} 
+                        )
                     tags=
                         getCfTemplateCoreTags(
                             formatComponentFullName(tier, component, zone),
@@ -273,21 +407,20 @@
                             component,
                             zone)
                     outputs={}
-                    dependencies=
-                        [ec2ENIId] +
+                    dependencies=[zoneEc2ENIId] +
+                        componentDependencies + 
                         loadBalanced?then(
                             [ec2ELBId],
                             []
                         ) +
                         fixedIP?then(
-                            [ec2EIPAssociationId],
-                            []
-                        )
+                            [zoneEc2EIPAssociationId],
+                            [])
                 /]
 
                 [@cfResource
                     mode=listMode
-                    id=ec2ENIId
+                    id=zoneEc2ENIId
                     type="AWS::EC2::NetworkInterface"
                     properties=
                         {
@@ -313,20 +446,20 @@
                 [#if fixedIP]
                     [@createEIP
                         mode=listMode
-                        id=ec2EIPId
-                        dependencies=[ec2ENIId]
+                        id=zoneEc2EIPId
+                        dependencies=[zoneEc2ENIId]
                     /]
 
                     [@cfResource
                         mode=listMode
-                        id=ec2EIPAssociationId
+                        id=zoneEc2EIPAssociationId
                         type="AWS::EC2::EIPAssociation"
                         properties=
                             {
-                                "AllocationId" : getReference(ec2EIPId, ALLOCATION_ATTRIBUTE_TYPE),
-                                "NetworkInterfaceId" : getReference(ec2ENIId)
+                                "AllocationId" : getReference(zoneEc2EIPId, ALLOCATION_ATTRIBUTE_TYPE),
+                                "NetworkInterfaceId" : getReference(zoneEc2ENIId)
                             }
-                        dependencies=[ec2EIPId]
+                        dependencies=[zoneEc2EIPId]
                         outputs={}
                     /]
                 [/#if]
@@ -334,5 +467,4 @@
         [/#list]
         [/#if]
     [/#list]
-
 [/#if]

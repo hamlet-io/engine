@@ -119,6 +119,44 @@
     ]
 ]
 
+[#assign lbChildConfiguration = [
+        {
+            "Name" : "Tier",
+            "Mandatory" : true
+        },
+        {
+            "Name" : "Component",
+            "Mandatory" : true
+        },
+        {
+            "Name" : "LinkName",
+            "Default" : "lb"
+        },
+        "Instance",
+        "Version",
+        {
+            "Name" : "Path",
+            "Default" : ""
+        },
+        {
+            "Name" : "Port",
+            "Default" : ""
+        },
+        {
+            "Name" : "PortMapping",
+            "Default" : ""
+        },
+        {
+            "Name" : "Priority",
+            "Default" : 100
+        },
+        {
+            "Name" : "TargetGroup",
+            "Default" : ""
+        }
+    ]
+]
+
 [#include idList]
 [#include nameList]
 [#include policyList]
