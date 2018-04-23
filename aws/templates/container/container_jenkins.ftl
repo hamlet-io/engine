@@ -4,6 +4,7 @@
     [#assign settings = context.DefaultEnvironment]
     [@cfDebug listMode settings true /]
 
+    [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#switch settings["SECURITYREALM"]!""]
         [#case "local"]
             [#if !(settings["LOGIN_USERNAME"]?has_content && settings["LOGIN_PASSWORD"]?has_content) ]
