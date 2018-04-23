@@ -84,7 +84,7 @@
                 },
                 {
                     "Name" : "ClusterLogGroup",
-                    "Default" : true,
+                    "Default" : true
                 },
                 {
                     "Name" : "Links",

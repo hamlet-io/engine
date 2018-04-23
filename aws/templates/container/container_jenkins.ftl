@@ -1,20 +1,12 @@
 [#case "jenkins"]
     [@Attributes image="jenkins-master" /]
    
-    [#assign credentials = credentialsObject]
+    [#assign settings = context.DefaultEnvironment]
+    [@cfDebug listMode settings true /]
 
-    [#if (credentials.SecurityRealm)?has_content ]
-
-        [#if (credentials.SecurityRealm) == "local" ]
-            [#if (credentials.Login.Username)?has_content || (credentials.Login.Password)?has_content ]
-                [@Variables
-                    {
-                        "JENKINS_USER"          : credentials.Login.Username,
-                        "JENKINS_PASS"          : credentials.Login.Password,
-                        "JENKINS_SECURITYREALM" : credentials.SecurityRealm
-                    }
-                /]
-            [#else]
+    [#switch settings["SECURITYREALM"]!""]
+        [#case "local"]
+            [#if !(settings["LOGIN_USERNAME"]?has_content && settings["LOGIN_PASSWORD"]?has_content) ]
                 [@cfException
                     mode=listMode
                     description="Login Details not provided"
@@ -27,20 +19,9 @@
                     }
                 /]
             [/#if]
-        [/#if]
-
-        [#if (credentials.SecurityRealm) == "github"]
-            [#if (credentials.GitHub.ClientId)?has_content && (credentials.GitHub.Secret)?has_content && (credentials.GitHub.Administrators)?has_content]
-                [@Variables
-                    {
-                        "JENKINS_SECURITYREALM" : credentials.SecurityRealm,
-                        "GITHUBAUTH_CLIENTID"   : credentials.GitHub.ClientId,
-                        "GITHUBAUTH_SECRET"     : credentials.GitHub.Secret,
-                        "GITHUBAUTH_ADMIN"      : credentials.GitHub.Administrators
-                    }
-                /]
-
-            [#else]
+            [#break]
+        [#case "github"]
+            [#if !(settings["GITHUB_CLIENTID"]?has_content && settings["GITHUB_SECRET"]?has_content && settings["GITHUB_ADMINISTRATORS"]?has_content) ]
                 [@cfException
                     mode=listMode
                     description="Github oAuth Credentials not provided"
@@ -51,22 +32,20 @@
                             "Secret" : "",
                             "Administrators" : ""
                         }
-                    }
-                /]
+                    }/]
             [/#if]
+            [#break]
+        [#default]
+            [@cfException
+                mode=listMode
+                description="Security Realm Not Configured"
+                context=component
+                detail={
+                    "SecurityRealm" : "local|github"
+            }/]
+    [/#switch]
 
-        [/#if]        
-        
-    [#else]
-        [@cfException
-            mode=listMode
-            description="Security Realm Not Configured"
-            context=component
-            detail={
-                "SecurityRealm" : "local|github"
-            }
-        /]
-    [/#if]
+
     [@Volume "jenkinsdata" "/var/jenkins_home" "/efs/clusterstorage" /]
 
     [#break]
