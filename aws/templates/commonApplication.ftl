@@ -336,15 +336,17 @@
                     "HostPort" : port.Id,
                     "DynamicHostPort" : port.DynamicHostPort
                 } ]
-            [#if targetLoadBalancer?has_content]
+
+            [#if lbLink[port.LB.LinkName]?has_content ]
+                [#local loadBalancer = lbLink[port.LB.LinkName]]
                 [#local containerPortMapping +=
                     {
                         "LoadBalancer" :
                             {
-                                "Link" : lbLink.Name,
-                                "TargetGroup" : lbLink.targetGroup,
+                                "Link" : loadBalancer.Name,
+                                "TargetGroup" : loadBalancer.TargetGroup,
                                 "Priority" : port.LB.Priority,
-                                "Path" : lbLink.targetPath
+                                "Path" : loadBalancer.TargetPath
                             }
                     }
                 ]
