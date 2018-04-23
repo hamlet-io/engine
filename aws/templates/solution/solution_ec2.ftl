@@ -231,29 +231,29 @@
                                                 "Fn::Join" : [
                                                     "",
                                                     [
-                                                        "#!/bin/bash\\n",
-                                                        "echo \"cot:request="       + requestReference       + "\"\\n",
-                                                        "echo \"cot:configuration=" + configurationReference + "\"\\n",
-                                                        "echo \"cot:accountRegion=" + accountRegionId        + "\"\\n",
-                                                        "echo \"cot:tenant="        + tenantId               + "\"\\n",
-                                                        "echo \"cot:account="       + accountId              + "\"\\n",
-                                                        "echo \"cot:product="       + productId              + "\"\\n",
-                                                        "echo \"cot:region="        + regionId               + "\"\\n",
-                                                        "echo \"cot:segment="       + segmentId              + "\"\\n",
-                                                        "echo \"cot:environment="   + environmentId          + "\"\\n",
-                                                        "echo \"cot:tier="          + tierId                 + "\"\\n",
-                                                        "echo \"cot:component="     + componentId            + "\"\\n",
-                                                        "echo \"cot:zone="          + zone.Id                + "\"\\n",
-                                                        "echo \"cot:name="          + zoneEc2InstanceName    + "\"\\n",
-                                                        "echo \"cot:role="          + component.Role!""      + "\"\\n",
-                                                        "echo \"cot:credentials="   + credentialsBucket      + "\"\\n",
-                                                        "echo \"cot:code="          + codeBucket             + "\"\\n",
-                                                        "echo \"cot:logs="          + operationsBucket       + "\"\\n",
-                                                        "echo \"cot:backups="       + dataBucket             + "\"\\n"
+                                                        "#!/bin/bash\n",
+                                                        "echo \"cot:request="       + requestReference       + "\"\n",
+                                                        "echo \"cot:configuration=" + configurationReference + "\"\n",
+                                                        "echo \"cot:accountRegion=" + accountRegionId        + "\"\n",
+                                                        "echo \"cot:tenant="        + tenantId               + "\"\n",
+                                                        "echo \"cot:account="       + accountId              + "\"\n",
+                                                        "echo \"cot:product="       + productId              + "\"\n",
+                                                        "echo \"cot:region="        + regionId               + "\"\n",
+                                                        "echo \"cot:segment="       + segmentId              + "\"\n",
+                                                        "echo \"cot:environment="   + environmentId          + "\"\n",
+                                                        "echo \"cot:tier="          + tierId                 + "\"\n",
+                                                        "echo \"cot:component="     + componentId            + "\"\n",
+                                                        "echo \"cot:zone="          + zone.Id                + "\"\n",
+                                                        "echo \"cot:name="          + zoneEc2InstanceName    + "\"\n",
+                                                        "echo \"cot:role="          + component.Role!""      + "\"\n",
+                                                        "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
+                                                        "echo \"cot:code="          + codeBucket             + "\"\n",
+                                                        "echo \"cot:logs="          + operationsBucket       + "\"\n",
+                                                        "echo \"cot:backups="       + dataBucket             + "\"\n"
                                                     ] + 
                                                     scriptsFile?has_content?then(
                                                         [
-                                                            "echo \"cot:scripts="       + scriptsFile             + "\"\\n"
+                                                            "echo \"cot:scripts="       + scriptsFile             + "\"\n"
                                                         ],
                                                         []
                                                     )
@@ -316,15 +316,15 @@
                                                 "Fn::Join" : [
                                                     "",
                                                     [
-                                                        "#!/bin/bash -ex\\n",
-                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-fetch -s 2>/dev/console) 2>&1\\n",
-                                                        "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\\n",
-                                                        "SCRIPTS=$(/etc/codeontap/facts.sh | grep cot:scripts | cut -d '=' -f 2)\\n",
-                                                        "if [ -z " + r"${SCRIPTS}" +" ]; then\\n",
-                                                        "aws --region " + r"${REGION}" + " s3 cp --quiet s3://" + r"${SCRIPTS}" + " /opt/codeontap/scripts\\n", 
-                                                        "[ -f /opt/codeontap/scripts/scripts.zip ] && unzip /opt/codeontap/scripts/scripts.zip\\n",
-                                                        "chmod -R 0500 /opt/codeontap/scripts/\\n"
-                                                        "fi\\n"
+                                                        "#!/bin/bash -ex\n",
+                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-fetch -s 2>/dev/console) 2>&1\n",
+                                                        "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                                        "SCRIPTS=$(/etc/codeontap/facts.sh | grep cot:scripts | cut -d '=' -f 2)\n",
+                                                        "if [ -z " + r"${SCRIPTS}" +" ]; then\n",
+                                                        "aws --region " + r"${REGION}" + " s3 cp --quiet s3://" + r"${SCRIPTS}" + " /opt/codeontap/scripts\n", 
+                                                        "[ -f /opt/codeontap/scripts/scripts.zip ] && unzip /opt/codeontap/scripts/scripts.zip\n",
+                                                        "chmod -R 0500 /opt/codeontap/scripts/\n"
+                                                        "fi\n"
                                                     ]
                                                 ]
                                             },
@@ -335,9 +335,9 @@
                                                 "Fn::Join" : [
                                                     "",
                                                     [
-                                                        "#!/bin/bash -ex\\n",
-                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-init -s 2>/dev/console) 2>&1\\n",
-                                                        "[ -f /opt/codeontap/scripts/init.sh ] &&  /opt/codeontap/scripts/init.sh\\n" 
+                                                        "#!/bin/bash -ex\n",
+                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-init -s 2>/dev/console) 2>&1\n",
+                                                        "[ -f /opt/codeontap/scripts/init.sh ] &&  /opt/codeontap/scripts/init.sh\n" 
                                                     ]
                                                 ]
                                             },
@@ -390,7 +390,7 @@
                                             "/opt/aws/bin/cfn-init -v",
                                             "         --stack ", { "Ref" : "AWS::StackName" },
                                             "         --resource ", zoneEc2InstanceId,
-                                            "         --region ", regionId, " --configsets ec2\\n"
+                                            "         --region ", regionId, " --configsets ec2\n"
                                         ]
                                     ]
                                 }
