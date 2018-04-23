@@ -55,42 +55,7 @@
                 },
                 {
                     "Name" : "LB",
-                    "Children" : [
-                        {
-                            "Name" : "Component",
-                            "Mandatory" : true
-                        },
-                        "Instance",
-                        {
-                            "Name" : "LinkName",
-                            "Default" : "lb"
-                        },
-                        {
-                            "Name" : "Path",
-                            "Default" : ""
-                        },
-                        {
-                            "Name" : "Port",
-                            "Default" : ""
-                        },
-                        {
-                            "Name" : "PortMapping",
-                            "Default" : ""
-                        },
-                        {
-                            "Name" : "Priority",
-                            "Default" : 100
-                        },
-                        {
-                            "Name" : "TargetGroup",
-                            "Default" : ""
-                        },
-                        {
-                            "Name" : "Tier",
-                            "Mandatory" : true
-                        },
-                        "Version"
-                    ]
+                    "Children" : lbChildConfiguration
                 }
             ]
         },
