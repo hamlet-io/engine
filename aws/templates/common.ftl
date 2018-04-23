@@ -1774,14 +1774,14 @@
     [#assign targetComponentId = (port.LB.Component) ]
     [#assign targetLinkName = port.LB.LinkName ] 
     [#assign targetSource = 
-    contentIfContent(
-        port.LB.Port,
-        valueIfContent(
-            (portMappings[port.LB.PortMapping].Source)!"",
-            port.LB.PortMapping,
-            port.Id
-        )
-    )]
+                contentIfContent(
+                    port.LB.Port,
+                    valueIfContent(
+                        (portMappings[port.LB.PortMapping].Source)!"",
+                        port.LB.PortMapping,
+                        port.Id
+                    )
+            )]
 
     [#local targetLink =
         {

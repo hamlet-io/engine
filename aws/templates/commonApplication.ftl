@@ -322,76 +322,9 @@
         [#local containerPortMappings = [] ]
         [#local containerLinks = container.Links ]
         [#list container.Ports?values as port]
-            [#local targetLoadBalancer = {} ]
-            [#local targetTierId = (port.LB.Tier)!"elb" ]
-            [#local targetComponentId = (port.LB.Component)!port.ELB ]
-            [#local targetLinkName = port.LB.LinkName ]
-            [#local targetSource =
-                contentIfContent(
-                    port.LB.Port,
-                    valueIfContent(
-                        (portMappings[port.LB.PortMapping].Source)!"",
-                        port.LB.PortMapping,
-                        port.Id
-                    )
-                ) ]
 
-            [#-- Need to be careful to allow an empty value for --]
-            [#-- Instance/Version to be explicitly provided and --]
-            [#-- correctly handled in getLinkTarget             --]
-            [#local targetLink =
-                {
-                    "Id" : targetLinkName,
-                    "Name" : targetLinkName,
-                    "Tier" : targetTierId,
-                    "Component" : targetComponentId
-                } +
-                attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
-                attributeIfTrue("Version", port.LB.Version??, port.LB.Version!"") +
-                attributeIfContent(
-                    "Port",
-                    valueIfTrue(targetSource, port.LB.Configured, "")
-                )
-            ]
-
-            [@cfDebug listMode targetLink false /]
-
-            [#if targetTierId?has_content && targetComponentId?has_content]
-                [#local targetLoadBalancer = getLinkTarget(task, targetLink) ]
-
-                [@cfDebug listMode targetLoadBalancer false /]
-
-                [#if targetLoadBalancer?has_content ]
-
-                    [#local targetGroup = port.LB.TargetGroup]
-                    [#local targetPath = port.LB.Path]
-
-                    [#if targetLoadBalancer.Core.Type == "alb" ]
-                        [#if targetPath?has_content]
-                            [#-- target group name must be provided if path provided --]
-                            [#if !targetGroup?has_content]
-                                [@cfException
-                                    listMode "No target group for provided path" occurrence /]
-                                [#local targetGroup = "default" ]
-                            [/#if]
-                        [#else]
-                            [#if !targetGroup?has_content]
-                                [#-- Create target group for container if it --]
-                                [#-- is versioned and load balancer isn't    --]
-                                [#if core.Version.Name?has_content &&
-                                        !targetLoadBalancer.Core.Version.Name?has_content]
-                                    [#local targetPath = "/" + core.Version.Name + "/*" ]
-                                    [#local targetGroup = core.Version.Name ]
-                                [#else]
-                                    [#local targetGroup = "default" ]
-                                [/#if]
-                            [/#if]
-                        [/#if]
-                    [/#if]
-
-                    [#local containerLinks += { targetLinkName : targetLink } ]
-                [/#if]
-            [/#if]
+            [#local lbLink = getLBLink( task, port )]
+            [#local containerLinks += lbLink]
 
             [#local containerPortMapping =
                 {
@@ -408,10 +341,10 @@
                     {
                         "LoadBalancer" :
                             {
-                                "Link" : targetLinkName,
-                                "TargetGroup" : targetGroup,
+                                "Link" : lbLink.Name,
+                                "TargetGroup" : lbLink.targetGroup,
                                 "Priority" : port.LB.Priority,
-                                "Path" : targetPath
+                                "Path" : lbLink.targetPath
                             }
                     }
                 ]
