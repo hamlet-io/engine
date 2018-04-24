@@ -17,9 +17,9 @@
                     description="Login Details not provided"
                     context=component
                     detail={
-                        "Login" : {
-                            "Username" : "",
-                            "Password" : ""
+                        "Jenkins" : {
+                            "User" : "",
+                            "Pass" : ""
                         }
                     }
                 /]
@@ -32,10 +32,10 @@
                     description="Github oAuth Credentials not provided"
                     context=component
                     detail={
-                        "Github" : {
+                        "GithubAuth" : {
                             "ClientId" : "",
                             "Secret" : "",
-                            "Administrators" : ""
+                            "Admin" : ""
                         }
                     }/]
             [/#if]
@@ -46,7 +46,11 @@
                 description="Security Realm Not Configured"
                 context=component
                 detail={
-                    "SecurityRealm" : "local|github"
+                    {
+                        "Jenkin" : {
+                            "SecurityRealm" : "local|github"
+                        }
+                    }
             }/]
     [/#switch]
 
