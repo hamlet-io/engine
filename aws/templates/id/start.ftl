@@ -5,7 +5,7 @@
 [#-- Largely used for cloud formation resource ids which have severe character constraints --]
 
 [#function formatId ids...]
-    [#return concatenate(ids, "X")?replace("-", "X")?replace("_", "X") ]
+    [#return concatenate(ids, "X")?replace("-", "X")?replace("_", "X")?replace(",", "")]
 [/#function]
 
 [#-- Component --]

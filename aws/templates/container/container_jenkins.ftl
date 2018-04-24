@@ -2,12 +2,16 @@
     [@Attributes image="jenkins-master" /]
    
     [#assign settings = context.DefaultEnvironment]
-    [@cfDebug listMode settings true /]
+
+    [@Settings {
+            "ECS_ARN" :  getExistingReference(ecsId)
+        }
+    /]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
-    [#switch settings["SECURITYREALM"]!""]
+    [#switch settings["JENKINS_SECURITYREALM"]!""]
         [#case "local"]
-            [#if !(settings["LOGIN_USERNAME"]?has_content && settings["LOGIN_PASSWORD"]?has_content) ]
+            [#if !(settings["JENKINS_USER"]?has_content && settings["JENKINS_PASS"]?has_content) ]
                 [@cfException
                     mode=listMode
                     description="Login Details not provided"
@@ -22,7 +26,7 @@
             [/#if]
             [#break]
         [#case "github"]
-            [#if !(settings["GITHUB_CLIENTID"]?has_content && settings["GITHUB_SECRET"]?has_content && settings["GITHUB_ADMINISTRATORS"]?has_content) ]
+            [#if !(settings["GITHUBAUTH_CLIENTID"]?has_content && settings["GITHUBAUTH_SECRET"]?has_content && settings["GITHUBAUTH_ADMIN"]?has_content) ]
                 [@cfException
                     mode=listMode
                     description="Github oAuth Credentials not provided"
@@ -46,7 +50,12 @@
             }/]
     [/#switch]
 
+    [#if settings["JENKINSHOMEVOLUME"]?has_content ]
+        [@Volume "jenkinsdata" "/var/jenkins_home" settings["JENKINSHOMEVOLUME"] /]
+    [/#if]   
 
-    [@Volume "jenkinsdata" "/var/jenkins_home" "/efs/clusterstorage" /]
+    [#if settings["CODEONTAPVOLUME"]?has_content ]
+        [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
+    [/#if]  
 
     [#break]

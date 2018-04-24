@@ -24,7 +24,6 @@
         [#assign ecsLogGroupName = resources["lg"].Name ]
         [#assign defaultLogDriver = solution.LogDriver ]
         [#assign fixedIP = solution.FixedIP ]
-        [#assign ecsClusterWideStorage = solution.ClusterWideStorage ]
         
         [#assign efsMountPoints = {}]
     
@@ -69,51 +68,10 @@
                 id=ecsLogGroupId
                 name=ecsLogGroupName /]
         [/#if]
-    
-        [#assign ecsEFSVolumeId = formatEFSId(tier, component)]
-        [#if ecsClusterWideStorage &&
-            deploymentSubsetRequired("efs", true) &&
-            isPartOfCurrentDeploymentUnit(ecsEFSVolumeId) ]
-    
-            [#assign ecsEFSVolumeName = formatComponentFullName( tier, component )]
-            [#assign ecsEFSSecurityGroupId = formatComponentSecurityGroupId( tier, component,"efs")]
-            [#assign ecsEFSIngressSecurityGroupId = formatDependentSecurityGroupIngressId(ecsEFSSecurityGroupId) ]
-    
-            [@createComponentSecurityGroup
-                mode=listMode
-                tier=tier
-                component=component 
-                extensions="efs"
-                /]
-            
-            [@createSecurityGroupIngress
-                mode=listMode
-                id=ecsEFSIngressSecurityGroupId
-                port="any"
-                cidr=ecsSecurityGroupId
-                groupId=ecsEFSSecurityGroupId
-            /]
-    
-            [@createEFS 
-                mode=listMode
-                tier=tier
-                id=ecsEFSVolumeId
-                name=ecsEFSVolumeName
-                component=component
-            /]
-    
-            [@createEFSMountTarget
-                mode=listMode
-                tier=tier
-                efsId=ecsEFSVolumeId
-                securityGroups=ecsEFSSecurityGroupId
-            /]
-        
-        [/#if]
             
         [#if deploymentSubsetRequired("ecs", true)]
     
-            [#list configuration.Links?values as link]
+            [#list solution.Links?values as link]
                 [#if link?is_hash]
                     [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
@@ -128,7 +86,6 @@
                     [#assign linkTargetResources = linkTarget.State.Resources ]
                     [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
-
                     [#switch linkTargetCore.Type]
                         [#case EFS_MOUNT_COMPONENT_TYPE]  
                             [#assign efsMountPoints += 
@@ -138,8 +95,8 @@
                                             "command" : "/opt/codeontap/bootstrap/efs.sh",
                                             "env" : { 
                                                 "EFS_FILE_SYSTEM_ID" : linkTargetAttributes.EFS,
-                                                "EFS_MOUNT_PATH" : "/" + linkTargetAttributes.Directory,
-                                                "EFS_OS_MOUNT_PATH" : "/efs/clusterstorage/" + link.Id
+                                                "EFS_MOUNT_PATH" : linkTargetAttributes.DIRECTORY,
+                                                "EFS_OS_MOUNT_PATH" : "/mnt/clusterstorage/" + link.Id
                                             }
                                         }
                                 }]

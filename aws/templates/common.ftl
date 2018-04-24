@@ -794,7 +794,11 @@
             [#case "efs"]
                 [#local result = getEFSState(occurrence)]
                 [#break]
-
+            
+            [#case "efsMount" ]
+                [#local result = getEFSMountState(occurrence, parentOccurrence)]
+                [#break]
+        
             [#case "elb"]
                 [#local result = getELBState(occurrence)]
                 [#break]

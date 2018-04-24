@@ -79,6 +79,7 @@
                 },
                 "sg" : {
                     "Id" : formatDependentSecurityGroupId(id),
+                    "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
                 "Zones" : zoneResources
@@ -90,13 +91,18 @@
     ]
 [/#function]
 
-[#function getMountState occurrence ]
-    [#local configuration = occurrence.Configuration]
+[#function getEFSMountState occurrence parent ]
+    [#local configuration = occurrence.Configuration.Solution]
+
+    [#local efsId = parent.State.Attributes["EFS"] ]
+
     [#return 
         {
             "Resources" : {},
             "Attributes" : {
+                "EFS" : efsId,
                 "DIRECTORY" : configuration.Directory
+
             }
         }
     ]

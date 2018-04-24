@@ -26,6 +26,8 @@
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
 
+        [#assign efsMountPoints = []]
+
         [#assign scriptsFile = ""]
 
         [#if buildDeploymentUnit?has_content && buildCommit?has_content ]
@@ -123,6 +125,20 @@
                             [/#if]
                         [/#if]
                     [/#if]
+                    [#break]
+                [#case EFS_MOUNT_COMPONENT_TYPE] 
+                    [#assign efsMountPoints += 
+                        {
+                        "04EFSMount_" + linkTargetCore.Id : 
+                            {
+                                "command" : "/opt/codeontap/bootstrap/efs.sh",
+                                "env" : { 
+                                    "EFS_FILE_SYSTEM_ID" : linkTargetAttributes.EFS,
+                                    "EFS_MOUNT_PATH" : linkTargetAttributes.DIRECTORY,
+                                    "EFS_OS_MOUNT_PATH" : "/mnt/clusterstorage/" + link.Id
+                                }
+                            }
+                    }]
                     [#break]
             [/#switch]
         [/#if]
@@ -222,7 +238,7 @@
                                 "bootstrap": {
                                     "packages" : {
                                         "yum" : {
-                                            "aws-cli" : []
+                                            "aws-cli" : [],
                                             "amazon-efs-utils" : []
                                         }
                                     },
@@ -298,7 +314,8 @@
                                             },
                                             "ignoreErrors" : "false"
                                         }) +
-                                    targetGroupRegistrations
+                                    targetGroupRegistrations + 
+                                    efsMountPoints
                                 },
                                 "puppet": {
                                     "commands": {
