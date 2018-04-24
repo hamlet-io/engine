@@ -23,7 +23,7 @@
                     } +
                     attributeIfTrue(
                         "Host",
-                        volume.HostPath!"",
+                        volume.HostPath?has_content,
                         {"SourcePath" : volume.HostPath!""})
                 ]
             ]

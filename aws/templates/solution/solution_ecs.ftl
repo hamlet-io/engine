@@ -24,7 +24,8 @@
         [#assign ecsLogGroupName = resources["lg"].Name ]
         [#assign defaultLogDriver = solution.LogDriver ]
         [#assign fixedIP = solution.FixedIP ]
-        [#assign ecsClusterWideStorage = solution.ClusterWideStorage ]
+        
+        [#assign efsMountPoints = {}]
     
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ecsRoleId)]
@@ -67,50 +68,43 @@
                 id=ecsLogGroupId
                 name=ecsLogGroupName /]
         [/#if]
-    
-        [#assign ecsEFSVolumeId = formatEFSId(tier, component)]
-        [#if ecsClusterWideStorage &&
-            deploymentSubsetRequired("efs", true) &&
-            isPartOfCurrentDeploymentUnit(ecsEFSVolumeId) ]
-    
-            [#assign ecsEFSVolumeName = formatComponentFullName( tier, component )]
-            [#assign ecsEFSSecurityGroupId = formatComponentSecurityGroupId( tier, component,"efs")]
-            [#assign ecsEFSIngressSecurityGroupId = formatDependentSecurityGroupIngressId(ecsEFSSecurityGroupId) ]
-    
-            [@createComponentSecurityGroup
-                mode=listMode
-                tier=tier
-                component=component 
-                extensions="efs"
-                /]
-            
-            [@createSecurityGroupIngress
-                mode=listMode
-                id=ecsEFSIngressSecurityGroupId
-                port="any"
-                cidr=ecsSecurityGroupId
-                groupId=ecsEFSSecurityGroupId
-            /]
-    
-            [@createEFS 
-                mode=listMode
-                tier=tier
-                id=ecsEFSVolumeId
-                name=ecsEFSVolumeName
-                component=component
-            /]
-    
-            [@createEFSMountTarget
-                mode=listMode
-                tier=tier
-                efsId=ecsEFSVolumeId
-                securityGroups=ecsEFSSecurityGroupId
-            /]
-        
-        [/#if]
             
         [#if deploymentSubsetRequired("ecs", true)]
     
+            [#list solution.Links?values as link]
+                [#if link?is_hash]
+                    [#assign linkTarget = getLinkTarget(occurrence, link) ]
+
+                    [@cfDebug listMode linkTarget false /]
+
+                    [#if !linkTarget?has_content]
+                        [#continue]
+                    [/#if]
+
+                    [#assign linkTargetCore = linkTarget.Core ]
+                    [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                    [#assign linkTargetResources = linkTarget.State.Resources ]
+                    [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+
+                    [#switch linkTargetCore.Type]
+                        [#case EFS_MOUNT_COMPONENT_TYPE]  
+                            [#assign efsMountPoints += 
+                                {
+                                    "04EFSMount_" + linkTargetCore.Id : 
+                                        {
+                                            "command" : "/opt/codeontap/bootstrap/efs.sh",
+                                            "env" : { 
+                                                "EFS_FILE_SYSTEM_ID" : linkTargetAttributes.EFS,
+                                                "EFS_MOUNT_PATH" : linkTargetAttributes.DIRECTORY,
+                                                "EFS_OS_MOUNT_PATH" : "/mnt/clusterstorage/" + link.Id
+                                            }
+                                        }
+                                }]
+                            [#break]
+                    [/#switch]
+                [/#if]
+            [/#list]
+
             [@createComponentSecurityGroup
                 mode=listMode
                 tier=tier
@@ -178,7 +172,7 @@
                                 "packages" : {
                                     "yum" : {
                                         "aws-cli" : [],
-                                        "nfs-utils" : []
+                                        "amazon-efs-utils" : []
                                     }
                                 },
                                 "files" : {
@@ -260,17 +254,6 @@
                                             "command" : "/opt/codeontap/bootstrap/fluentd.sh",
                                             "ignoreErrors" : "false"
                                         }) +
-                                    attributeIfTrue(
-                                        "02ConfigureEFSClusterWide",
-                                        ecsClusterWideStorage,
-                                        {
-                                            "command" : "/opt/codeontap/bootstrap/efs.sh",
-                                            "env" : { 
-                                                "EFS_FILE_SYSTEM_ID" : getReference(ecsEFSVolumeId),
-                                                "EFS_MOUNT_PATH" : "/",
-                                                "EFS_OS_MOUNT_PATH" : "/efs/clusterstorage"
-                                            }
-                                        }) +
                                     {
                                         "03ConfigureCluster" : {
                                             "command" : "/opt/codeontap/bootstrap/ecs.sh",
@@ -280,7 +263,8 @@
                                             },
                                             "ignoreErrors" : "false"
                                         }
-                                    }
+                                    } + 
+                                    efsMountPoints
                             }
                         }
                     }

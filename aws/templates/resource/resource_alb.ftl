@@ -59,7 +59,7 @@
     }
 ]
 
-[#macro createALB mode id name shortName tier component securityGroups logs=false bucket=""]
+[#macro createALB mode id name shortName tier component securityGroups type logs=false bucket=""]
     [@cfResource
         mode=mode
         id=id
@@ -68,12 +68,12 @@
             {
                 "Subnets" : getSubnets(tier),
                 "Scheme" : (tier.Network.RouteTable == "external")?then("internet-facing","internal"),
-                "SecurityGroups": getReferences(securityGroups),
+                "Type" : type,
                 "Name" : shortName
             } +
             attributeIfTrue(
                 "LoadBalancerAttributes",
-                logs,
+                logs && type == "application",
                 [
                     {
                         "Key" : "access_logs.s3.enabled",
@@ -87,7 +87,13 @@
                         "Key" : "access_logs.s3.prefix",
                         "Value" : ""
                     }
-                ])
+            ]) + 
+            attributeIfTrue(
+                "SecurityGroups",
+                type == "application",
+                getReferences(securityGroups)
+            )
+            
         tags=getCfTemplateCoreTags(name, tier, component)
         outputs=ALB_OUTPUT_MAPPINGS
     /]
