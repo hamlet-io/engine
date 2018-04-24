@@ -26,6 +26,9 @@
         {
             "Name" : ["Port", "Subcomponent"]
         },
+        {
+            "Name" : ["Mount", "Subcomponent"]
+        }
         "Instance",
         "Version"
     ]

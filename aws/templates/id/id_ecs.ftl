@@ -85,6 +85,11 @@
                 {
                     "Name" : "ClusterLogGroup",
                     "Default" : true
+                },
+                {
+                    "Name" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
                 }
             ],
             "Components" : [

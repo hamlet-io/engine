@@ -19,6 +19,8 @@
             [#assign albLogs = solution.Logs ]
             [#assign albSecurityGroupIds = [] ]
 
+            [#assign portProtocols = [] ]
+
             [#list occurrence.Occurrences![] as subOccurrence]
 
                 [#assign solution = subOccurrence.Configuration.Solution ]
@@ -39,6 +41,9 @@
                 [#assign sourcePort = (ports[source])!{} ]
                 [#assign destinationPort = (ports[destination])!{} ]
 
+                [#assign portProtocols += [ sourcePort.Protocol ] ]
+                [#assign portProtocols += [ destinationPort.Protocol] ]
+
                 [#if !(sourcePort?has_content && destinationPort?has_content)]
                     [#continue ]
                 [/#if]
@@ -57,13 +62,15 @@
                             segmentObject.Network.CIDR.Address + "/" +segmentObject.Network.CIDR.Mask
                         )) ]
 
-                [@createSecurityGroup
-                    mode=listMode
-                    id=securityGroupId
-                    name=securityGroupName
-                    tier=tier
-                    component=component
-                    ingressRules=[{"Port" : sourcePort.Port, "CIDR" : cidr}] /]
+                [#if sourcePort.Protocol != "TCP" &&  destinationPort.Protocol != "TCP" ]
+                    [@createSecurityGroup
+                        mode=listMode
+                        id=securityGroupId
+                        name=securityGroupName
+                        tier=tier
+                        component=component
+                        ingressRules=[{"Port" : sourcePort.Port, "CIDR" : cidr}] /]
+                [/#if]
 
                 [@createTargetGroup
                     mode=listMode
@@ -86,6 +93,26 @@
                     certificateId=certificateId /]
             [/#list]
 
+            [#if ( portProtocols?seq_contains("HTTP") || portProtocols?seq_contains("HTTPS") ) && !(portProtocols?seq_contains("TCP"))  ]
+                
+                [#assign lbType = "application" ]
+
+            [#elseif portProtocols?seq_contains("TCP") && !(portProtocols?seq_contains("HTTP") && portProtocols?seq_contains("HTTPS") )]
+                [#assign lbType = "network" ]
+            
+            [#else]
+                [@cfException
+                    mode=listMode
+                    description="Mixed LB Protocols"
+                    context=
+                        {
+                            "ALB" : albName,
+                            "Protocols" : portProtocols
+                        }
+                    detail="You can either use TCP or HTTP/HTTPS for load balancers, they can't be mixed" 
+                /]
+            [/#if]
+
             [@createALB
                 mode=listMode
                 id=albId
@@ -95,6 +122,7 @@
                 component=component
                 securityGroups=albSecurityGroupIds
                 logs=albLogs
+                type=lbType
                 bucket=operationsBucket /]
         [/#if]
     [/#list]

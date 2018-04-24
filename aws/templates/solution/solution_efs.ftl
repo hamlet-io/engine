@@ -9,18 +9,36 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
+        [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
+        [#assign zoneResources = occurrence.State.Resources.Zones]
 
-        [#assign efsId              = resources["efs"].Id]
-        [#assign efsFullName        = resources["efs"].Name]
-        [#assign efsMountTargetId   = resources["efsMountTarget"].Id]
-        [#assign efsSecurityGroupId = resources["sg"].Id]
+        [#assign efsPort = 2049]
+
+        [#assign efsId                  = resources["efs"].Id]
+        [#assign efsFullName            = resources["efs"].Name]
+        [#assign efsSecurityGroupId     = resources["sg"].Id]
+        [#assign efsSecurityGroupName   = resources["sg"].Name]
         
+        [#assign efsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
+                                                efsSecurityGroupId, 
+                                                efsPort)]
+
         [#if deploymentSubsetRequired("efs", true) ]
-            [@createComponentSecurityGroup
+            [@createSecurityGroup
                 mode=listMode
                 tier=tier
                 component=component
+                id=efsSecurityGroupId
+                name=efsSecurityGroupName
+            /]
+
+            [@createSecurityGroupIngress
+                mode=listMode
+                id=efsSecurityGroupIngressId
+                port=efsPort
+                cidr="0.0.0.0/0"
+                groupId=efsSecurityGroupId
             /]
             
             [@createEFS 
@@ -29,15 +47,20 @@
                 id=efsId
                 name=efsFullName
                 component=component
+                encrypted=solution.Encrypted
             /]
 
-            [@createEFSMountTarget
-                mode=listMode
-                tier=tier
-                efsId=efsId
-                securityGroups=efsSecurityGroupId
-                dependencies=[efsId,efsSecurityGroupId]
-            /]
+            [#list zones as zone ]
+                [#assign zoneEfsMountTargetId   = zoneResources[zone.Id]["efsMountTarget"].Id]
+                [@createEFSMountTarget
+                    mode=listMode
+                    id=zoneEfsMountTargetId
+                    subnetId=formatSubnetId(tier, zone)
+                    efsId=efsId
+                    securityGroups=efsSecurityGroupId
+                    dependencies=[efsId,efsSecurityGroupId]
+                /]
+            [/#list]
         [/#if ]
     [/#list]
 [/#if]

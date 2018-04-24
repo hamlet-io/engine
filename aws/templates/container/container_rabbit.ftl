@@ -16,7 +16,7 @@
     
     [@Volume "rabbit" "/var/lib/rabbitmq" "/codeontap/rabbitmq" /]
     
-    [@Policy s3AutoScaleGroupReadPermission() /]
+    [@Policy ec2AutoScaleGroupReadPermission() /]
 
     [#break]
 

@@ -212,7 +212,7 @@
     [/#if]
 [/#macro]
 
-[#macro Volume name containerPath hostPath="" readonly=false]
+[#macro Volume name containerPath hostPath="" readOnly=false]
     [#if (containerListMode!"") == "model"]
         [#assign context +=
             {
@@ -474,8 +474,6 @@
 
         [#local containers += [context] ]
     [/#list]
-
-    [@cfDebug listMode containers false /]
 
     [#return containers]
 [/#function]
