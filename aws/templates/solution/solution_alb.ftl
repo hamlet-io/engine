@@ -1,6 +1,6 @@
-[#-- ALB --]
+[#-- LB --]
 
-[#if (componentType == ALB_COMPONENT_TYPE) ]
+[#if (componentType == LB_COMPONENT_TYPE) || (componentType == ALB_COMPONENT_TYPE) ]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -13,13 +13,24 @@
             [#assign solution = occurrence.Configuration.Solution ]
             [#assign resources = occurrence.State.Resources ]
 
-            [#assign albId = resources["lb"].Id ]
-            [#assign albName = resources["lb"].Name ]
-            [#assign albShortName = resources["lb"].ShortName ]
-            [#assign albLogs = solution.Logs ]
-            [#assign albSecurityGroupIds = [] ]
+            [#assign lbId = resources["lb"].Id ]
+            [#assign lbName = resources["lb"].Name ]
+            [#assign lbShortName = resources["lb"].ShortName ]
+            [#assign lbLogs = solution.Logs ]
+            [#assign lbSecurityGroupIds = [] ]
+
+            [#assign engine = solution.Engine]
+
+            [#-- Primary Destination is used to set the Health Check --]
+            [#assign primaryDestination = (portMappings[solution.PrimaryPortMapping].Destination)!{} ]
+            [#if primaryDestination?has_content ]
+                [#assign primaryDestinationPort = ports[primaryDestination]]
+            [#else]
+                [#assign primaryDestinationPort = {}]
+            [/#if]
 
             [#assign portProtocols = [] ]
+            [#assign classicListeners = []]
 
             [#list occurrence.Occurrences![] as subOccurrence]
 
@@ -34,7 +45,7 @@
                 [#assign targetGroupId = resources["targetgroups"]["default"].Id]
                 [#assign targetGroupName = resources["targetgroups"]["default"].Name]
 
-                [#assign albSecurityGroupIds += [securityGroupId] ]
+                [#assign lbSecurityGroupIds += [securityGroupId] ]
 
                 [#assign source = (portMappings[solution.Mapping].Source)!"" ]
                 [#assign destination = (portMappings[solution.Mapping].Destination)!"" ]
@@ -62,7 +73,11 @@
                             segmentObject.Network.CIDR.Address + "/" +segmentObject.Network.CIDR.Mask
                         )) ]
 
-                [#if sourcePort.Protocol != "TCP" &&  destinationPort.Protocol != "TCP" ]
+                [#assign certificateObject = getCertificateObject(solution.Certificate, segmentId, segmentName, sourcePort.Id, sourcePort.Name) ]
+                [#assign hostName = getHostName(certificateObject, subOccurrence) ]
+                [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
+
+                [#if engine == "application" || engine == "classic" ]
                     [@createSecurityGroup
                         mode=listMode
                         id=securityGroupId
@@ -72,58 +87,119 @@
                         ingressRules=[{"Port" : sourcePort.Port, "CIDR" : cidr}] /]
                 [/#if]
 
-                [@createTargetGroup
-                    mode=listMode
-                    id=targetGroupId
-                    name=targetGroupName
-                    tier=tier
-                    component=component
-                    destination=destinationPort /]
+                [#switch engine ]
+                    [#case "application"]
+                    [#case "network"]
 
-                [#assign certificateObject = getCertificateObject(solution.Certificate, segmentId, segmentName, sourcePort.Id, sourcePort.Name) ]
-                [#assign hostName = getHostName(certificateObject, subOccurrence) ]
-                [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
+                        [@createTargetGroup
+                            mode=listMode
+                            id=targetGroupId
+                            name=targetGroupName
+                            tier=tier
+                            component=component
+                            destination=destinationPort /]
 
-                [@createALBListener
-                    mode=listMode
-                    id=listenerId
-                    port=sourcePort
-                    albId=albId
-                    defaultTargetGroupId=targetGroupId
-                    certificateId=certificateId /]
+                        [@createALBListener
+                            mode=listMode
+                            id=listenerId
+                            port=sourcePort
+                            albId=lbId
+                            defaultTargetGroupId=targetGroupId
+                            certificateId=certificateId /]
+                        [#break]
+
+                    [#case "classic"]
+                        [#assign classicListeners +=
+                            [
+                                {
+                                    "LoadBalancerPort" : sourcePort.Port,
+                                    "Protocol" : sourcePort.Protocol,
+                                    "InstancePort" : destinationPort.Port,
+                                    "InstanceProtocol" : destinationPort.Protocol
+                                }  +
+                                attributeIfTrue(
+                                    "SSLCertificateId",
+                                    sourcePort.Certificate!false,
+                                    getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
+                                ) 
+                            ]
+                        ]
+                        
+                        [#break]
+                [/#switch]
             [/#list]
 
-            [#if ( portProtocols?seq_contains("HTTP") || portProtocols?seq_contains("HTTPS") ) && !(portProtocols?seq_contains("TCP"))  ]
-                
-                [#assign lbType = "application" ]
+            [#-- Port Protocol Validation --]
+            [#assign InvalidProtocol = false]
+            [#switch engine ]
+                [#case "network" ]
+                    [#if portProtocols?seq_contains("HTTP") || portProtocols?seq_contains("HTTPS") ]
+                        [#assign InvalidProtocol = true]
+                    [/#if]
+                    [#break]
+                [#case "application" ]
+                    [#if portProtocols?seq_contains("TCP") ]
+                        [#assign InvalidProtocol = true]
+                    [/#if]
+                    [#break]
+            [/#switch]
 
-            [#elseif portProtocols?seq_contains("TCP") && !(portProtocols?seq_contains("HTTP") && portProtocols?seq_contains("HTTPS") )]
-                [#assign lbType = "network" ]
-            
-            [#else]
-                [@cfException
-                    mode=listMode
-                    description="Mixed LB Protocols"
-                    context=
-                        {
-                            "ALB" : albName,
-                            "Protocols" : portProtocols
-                        }
-                    detail="You can either use TCP or HTTP/HTTPS for load balancers, they can't be mixed" 
-                /]
+            [#if InvalidProtocol ]
+                    [@cfException
+                        mode=listMode
+                        description="Invalid protocol found for engine type"
+                        context=
+                            {
+                                "LB" : lbName,
+                                "Engine" : engine,
+                                "Protocols" : portProtocols
+                            }
+                    /]
             [/#if]
 
-            [@createALB
-                mode=listMode
-                id=albId
-                name=albName
-                shortName=albShortName
-                tier=tier
-                component=component
-                securityGroups=albSecurityGroupIds
-                logs=albLogs
-                type=lbType
-                bucket=operationsBucket /]
+            [#switch engine ]
+                [#case "network"]
+                [#case "application"]
+
+                    [@createALB
+                        mode=listMode
+                        id=lbId
+                        name=lbName
+                        shortName=lbShortName
+                        tier=tier
+                        component=component
+                        securityGroups=lbSecurityGroupIds
+                        logs=lbLogs
+                        type=engine
+                        bucket=operationsBucket /]
+                    [#break]
+                
+                [#case "classic"]
+                
+                    [#assign healthCheck = {
+                        "Target" : primaryDestinationPort.HealthCheck.Protocol!primaryDestinationPort.Protocol + ":" 
+                                    + (primaryDestinationPort.HealthCheck.Port!primaryDestinationPort.Port)?c + primaryDestinationPort.HealthCheck.Path!"",
+                        "HealthyThreshold" : primaryDestinationPort.HealthCheck.HealthyThreshold,
+                        "UnhealthyThreshold" : primaryDestinationPort.HealthCheck.UnhealthyThreshold,
+                        "Interval" : primaryDestinationPort.HealthCheck.Interval,
+                        "Timeout" : primaryDestinationPort.HealthCheck.Timeout
+                    }]
+
+                    [@createClassicLB 
+                        mode=listMode 
+                        id=lbId 
+                        name=lbName 
+                        shortName=lbShortName
+                        tier=tier
+                        component=component 
+                        listeners=classicListeners 
+                        healthCheck=healthCheck 
+                        securityGroups=lbSecurityGroupIds 
+                        logs=lbLogs 
+                        bucket=operationsBucket 
+                     /]
+                [#break]
+            [/#switch ]
         [/#if]
     [/#list]
 [/#if]

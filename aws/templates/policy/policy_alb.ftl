@@ -1,10 +1,12 @@
-[#function albRegisterTargetPermission ]
+[#function lbRegisterTargetPermission ]
     [#return
         [
             getPolicyStatement(
                 [
                     "elasticloadbalancing:RegisterTargets",
-                    "elasticloadbalancing:DeregisterTargets"
+                    "elasticloadbalancing:DeregisterTargets",
+                    "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+                    "elasticloadbalancing:DeRegisterInstancesWithLoadBalancer"
                 ]
             )
         ]

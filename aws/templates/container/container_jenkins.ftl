@@ -37,7 +37,8 @@
                             "Secret" : "",
                             "Admin" : ""
                         }
-                    }/]
+                    }
+                /]
             [/#if]
             [#break]
         [#default]
@@ -45,13 +46,12 @@
                 mode=listMode
                 description="Security Realm Not Configured"
                 context=component
-                detail={
-                    {
-                        "Jenkin" : {
-                            "SecurityRealm" : "local|github"
-                        }
+                detail={ 
+                    "Jenkin" : {
+                        "SecurityRealm" : "local|github"
                     }
-            }/]
+                }
+            /]
     [/#switch]
 
     [#if settings["JENKINSHOMEVOLUME"]?has_content ]

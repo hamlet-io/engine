@@ -51,7 +51,8 @@
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
                 [#switch linkTargetCore.Type]
-                    [#case "alb"]
+                    [#case LB_COMPONENT_TYPE ]
+                    [#case ALB_COMPONENT_TYPE ]
                         [#assign stageVariables +=
                             {
                                 formatSettingName(link.Name, "DOCKER") : linkTargetAttributes.FQDN

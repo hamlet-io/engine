@@ -14,19 +14,17 @@
         [#assign links = solution.Links ]
 
         [#assign fixedIP = solution.FixedIP]
-        [#assign loadBalanced = solution.LoadBalanced]
         [#assign dockerHost = solution.DockerHost]
 
         [#assign ec2SecurityGroupId     = resources["sg"].Id]
         [#assign ec2SecurityGroupName   = resources["sg"].Name]
         [#assign ec2RoleId              = resources["ec2Role"].Id]
         [#assign ec2InstanceProfileId   = resources["instanceProfile"].Id]
-        [#assign ec2ELBId               = resources["ec2ELB"].Id]
 
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
 
-        [#assign efsMountPoints = []]
+        [#assign efsMountPoints = {}]
 
         [#assign scriptsFile = ""]
 
@@ -79,52 +77,73 @@
             [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#switch linkTargetCore.Type]
-                [#case ALB_PORT_COMPONENT_TYPE]
-                    [#if link.TargetGroup?has_content ]
-                        [#assign targetId = (linkTargetResources["targetgroups"][link.TargetGroup].Id) ]
-                        [#if targetId?has_content]
+                [#case LB_PORT_COMPONENT_TYPE]
+                    [#assign targetGroupPermission = true]
 
-                            [#assign targetGroupPermission = true]
+                    [#switch linkTargetAttributes["ENGINE"]]
 
-                            [#if deploymentSubsetRequired("ec2", true)]
-                                [#if isPartOfCurrentDeploymentUnit(targetId)]
+                        [#case "application"]
+                        [#case "network"]
+                            [#if link.TargetGroup?has_content ]
+                                [#assign targetId = (linkTargetResources["targetgroups"][link.TargetGroup].Id) ]
+                                [#if targetId?has_content]
 
-                                    [@createTargetGroup
-                                        mode=listMode
-                                        id=targetId
-                                        name=formatName(linkTargetCore.FullName,link.TargetGroup)
-                                        tier=link.Tier
-                                        component=link.Component
-                                        destination=ports[link.Port]
-                                    /]
-                                    [#assign listenerRuleId = formatALBListenerRuleId(occurrence, link.TargetGroup) ]
-                                    [@createListenerRule
-                                        mode=listMode
-                                        id=listenerRuleId
-                                        listenerId=linkTargetResources["listener"].Id
-                                        actions=getListenerRuleForwardAction(targetId)
-                                        conditions=getListenerRulePathCondition(link.TargetPath)
-                                        priority=link.Priority!100
-                                        dependencies=targetId
-                                    /]
-                                    
-                                    [#assign componentDependencies += [targetId]]
-                                    
+                                    [#if deploymentSubsetRequired("ec2", true)]
+                                        [#if isPartOfCurrentDeploymentUnit(targetId)]
+
+                                            [@createTargetGroup
+                                                mode=listMode
+                                                id=targetId
+                                                name=formatName(linkTargetCore.FullName,link.TargetGroup)
+                                                tier=link.Tier
+                                                component=link.Component
+                                                destination=ports[link.Port]
+                                            /]
+                                            [#assign listenerRuleId = formatALBListenerRuleId(occurrence, link.TargetGroup) ]
+                                            [@createListenerRule
+                                                mode=listMode
+                                                id=listenerRuleId
+                                                listenerId=linkTargetResources["listener"].Id
+                                                actions=getListenerRuleForwardAction(targetId)
+                                                conditions=getListenerRulePathCondition(link.TargetPath)
+                                                priority=link.Priority!100
+                                                dependencies=targetId
+                                            /]
+                                            
+                                            [#assign componentDependencies += [targetId]]
+                                            
+                                        [/#if]
+                                        [#assign targetGroupRegistrations += 
+                                                {
+                                                    "03RegisterWithTG" + targetId  : {
+                                                        "command" : "/opt/codeontap/bootstrap/register_targetgroup.sh",
+                                                        "env" : {
+                                                            "TARGET_GROUP_ARN" : getReference(targetId)
+                                                        },
+                                                        "ignoreErrors" : "false"
+                                                    }
+                                                }
+                                            ]
+                                    [/#if]
                                 [/#if]
-                                [#assign targetGroupRegistrations += 
-                                        {
-                                            "03RegisterWithTG" + targetId  : {
-                                                "command" : "/opt/codeontap/bootstrap/register_targetgroup.sh",
-                                                "env" : {
-                                                    "TARGET_GROUP_ARN" : getReference(targetId)
-                                                },
-                                                "ignoreErrors" : "false"
-                                            }
-                                        }
-                                    ]
                             [/#if]
-                        [/#if]
-                    [/#if]
+                            [#break]
+
+                        [#case "classic" ]
+                            [#assign lbId =  linkTargetAttributes["LB"] ]
+                            [#assign targetGroupRegistrations += 
+                                {
+                                    "04RegisterWithLB" + lbId : {
+                                        "command" : "/opt/codeontap/bootstrap/register.sh",
+                                        "env" : {
+                                            "LOAD_BALANCER" : getReference(lbId)
+                                        },
+                                        "ignoreErrors" : "false"
+                                    }
+                                }
+                            ]
+                            [#break]
+                        [/#switch]
                     [#break]
                 [#case EFS_MOUNT_COMPONENT_TYPE] 
                     [#assign efsMountPoints += 
@@ -163,7 +182,7 @@
                 ] + targetGroupPermission?then(
                     [   
                         getPolicyDocument(
-                            albRegisterTargetPermission(),
+                            lbRegisterTargetPermission(),
                             "loadbalancing")
                     ],
                     [])
@@ -209,6 +228,7 @@
                    [#assign updateCommand += " --security"]
                     [#assign dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
                 [/#if]
+
 
                 [@cfResource
                     mode=listMode
@@ -302,18 +322,8 @@
                                         "02Initialise" : {
                                             "command" : "/opt/codeontap/bootstrap/init.sh",
                                             "ignoreErrors" : "false"
-                                        }
+                                        } 
                                     } +
-                                    attributeIfTrue(
-                                        "03RegisterWithLB",
-                                        loadBalanced,
-                                        {
-                                            "command" : "/opt/codeontap/bootstrap/register.sh",
-                                            "env" : {
-                                                "LOAD_BALANCER" : getReference(ec2ELBId)
-                                            },
-                                            "ignoreErrors" : "false"
-                                        }) +
                                     targetGroupRegistrations + 
                                     efsMountPoints
                                 },
@@ -371,8 +381,7 @@
                                             "command" : "/opt/codeontap/run_scripts.sh",
                                             "ignoreErrors" : "false"
                                         }
-                                    }
-
+                                    } 
                                 }
                                 },
                                 {})
@@ -415,7 +424,7 @@
                             }
                         } +
                         dockerHost?then(
-                            { "ImageId" : regionObject.AMIs.Centos.ECS },
+                            { "ImageId" : regionObject.AMIs.Centos.ECS},
                             { "ImageId" : regionObject.AMIs.Centos.EC2} 
                         )
                     tags=
@@ -427,10 +436,6 @@
                     outputs={}
                     dependencies=[zoneEc2ENIId] +
                         componentDependencies + 
-                        loadBalanced?then(
-                            [ec2ELBId],
-                            []
-                        ) +
                         fixedIP?then(
                             [zoneEc2EIPAssociationId],
                             [])

@@ -40,60 +40,71 @@
                                 [@cfDebug listMode link false /]
                                 [#assign linkCore = link.Core ]
                                 [#assign linkResources = link.State.Resources ]
+                                [#assign linkConfiguration = link.Configuration.Solution ]
+                                [#assign linkAttributes = link.State.Attributes ]
                                 [#assign targetId = "" ]
                                 [#switch linkCore.Type]
-                                    [#case ELB_COMPONENT_TYPE]
-                                        [#assign targetId = linkResources["lb"].Id ]
-                                        [#assign loadBalancers +=
-                                            [
-                                                {
-                                                    "ContainerName" : container.Name,
-                                                    "ContainerPort" : ports[portMapping.ContainerPort].Port,
-                                                    "LoadBalancerName" : getReference(targetId)
-                                                }
-                                            ]
-                                        ]
-                                        [#break]
 
-                                    [#case ALB_PORT_COMPONENT_TYPE]
-                                        [#assign targetId = (linkResources["targetgroups"][loadBalancer.TargetGroup].Id)!"" ]
-                                        [#if !targetId?has_content]
-                                            [#assign targetId = formatALBTargetGroupId(link, loadBalancer.TargetGroup) ]
+                                    [#case LB_PORT_COMPONENT_TYPE]
+                                        [#switch linkAttributes["ENGINE"] ] 
+                                            [#case "network" ]
+                                            [#case "application" ]
+                                                [#assign targetId = (linkResources["targetgroups"][loadBalancer.TargetGroup].Id)!"" ]
+                                                [#if !targetId?has_content]
+                                                    [#assign targetId = formatALBTargetGroupId(link, loadBalancer.TargetGroup) ]
 
-                                            [#if isPartOfCurrentDeploymentUnit(targetId)]
+                                                    [#if isPartOfCurrentDeploymentUnit(targetId)]
 
-                                                [@createTargetGroup
-                                                    mode=listMode
-                                                    id=targetId
-                                                    name=formatName(linkCore.FullName,loadBalancer.TargetGroup)
-                                                    tier=linkCore.Tier
-                                                    component=linkCore.Component
-                                                    destination=ports[portMapping.HostPort] /]
+                                                        [@createTargetGroup
+                                                            mode=listMode
+                                                            id=targetId
+                                                            name=formatName(linkCore.FullName,loadBalancer.TargetGroup)
+                                                            tier=linkCore.Tier
+                                                            component=linkCore.Component
+                                                            destination=ports[portMapping.HostPort] /]
 
-                                                [#assign listenerRuleId = formatALBListenerRuleId(link, loadBalancer.TargetGroup) ]
-                                                [@createListenerRule
-                                                    mode=listMode
-                                                    id=listenerRuleId
-                                                    listenerId=linkResources["listener"].Id
-                                                    actions=getListenerRuleForwardAction(targetId)
-                                                    conditions=getListenerRulePathCondition(loadBalancer.Path)
-                                                    priority=loadBalancer.Priority!100
-                                                    dependencies=targetId
-                                                /]
-                                                [#assign dependencies += [listenerRuleId] ]
-                                            [/#if]
-                                        [/#if]
+                                                        [#assign listenerRuleId = formatALBListenerRuleId(link, loadBalancer.TargetGroup) ]
+                                                        [@createListenerRule
+                                                            mode=listMode
+                                                            id=listenerRuleId
+                                                            listenerId=linkResources["listener"].Id
+                                                            actions=getListenerRuleForwardAction(targetId)
+                                                            conditions=getListenerRulePathCondition(loadBalancer.Path)
+                                                            priority=loadBalancer.Priority!100
+                                                            dependencies=targetId
+                                                        /]
+                                                        [#assign dependencies += [listenerRuleId] ]
+                                                    [/#if]
+                                                [/#if]
 
-                                        [#assign loadBalancers +=
-                                            [
-                                                {
-                                                    "ContainerName" : container.Name,
-                                                    "ContainerPort" : ports[portMapping.ContainerPort].Port,
-                                                    "TargetGroupArn" : getReference(targetId, ARN_ATTRIBUTE_TYPE)
-                                                }
-                                            ]
-                                        ]
-                                        [#break]
+                                                [#assign loadBalancers +=
+                                                    [
+                                                        {
+                                                            "ContainerName" : container.Name,
+                                                            "ContainerPort" : ports[portMapping.ContainerPort].Port,
+                                                            "TargetGroupArn" : getReference(targetId, ARN_ATTRIBUTE_TYPE)
+                                                        }
+                                                    ]
+                                                ]
+                                                [#break]
+                                                
+                                            [#case "classic"]
+                                                [#assign lbId =  linkAttributes["LB"] ]
+                                                [#-- Classic ELB's register the instance so we only need 1 registration --]
+                                                [#-- TODO: Change back to += when AWS allows multiple load balancer registrations per container --]
+                                                [#assign loadBalancers =
+                                                    [
+                                                        {
+                                                            "ContainerName" : container.Name,
+                                                            "ContainerPort" : ports[portMapping.ContainerPort].Port,
+                                                            "LoadBalancerName" : getExistingReference(lbId, ARN_ATTRIBUTE_TYPE)
+                                                        }
+                                                    ]
+                                                ]
+                                            
+                                                [#break]
+                                        [/#switch]
+                                    [#break]
                                 [/#switch]
 
                                 [#assign dependencies += [targetId] ]

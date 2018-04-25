@@ -78,10 +78,6 @@
                 "Default" : false
             },
             {
-                "Name" : "LoadBalanced",
-                "Default" : false
-            },
-            {
                 "Name" : "DockerHost",
                 "Default" : false
             },
@@ -106,8 +102,6 @@
 
 [#function getEC2State occurrence]
     [#local core = occurrence.Core]
-
-    [#local ec2ELBId = formatResourceId(AWS_ELB_RESOURCE_TYPE, core.Id) ]
 
     [#local zoneResources = {}]
 
@@ -154,14 +148,9 @@
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
-                "ec2ELB" : {
-                    "Id" : ec2ELBId,
-                    "Type" : AWS_ELB_RESOURCE_TYPE
-                }, 
                 "Zones" : zoneResources 
             },
             "Attributes" : {
-                "FQDN" : getReference(ec2ELBId, DNS_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Inbound" : {},
