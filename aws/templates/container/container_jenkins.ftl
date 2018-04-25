@@ -3,6 +3,8 @@
    
     [#assign settings = context.DefaultEnvironment]
 
+    [@Policy ecsTaskAllPermission() /]
+
     [@Settings {
             "ECS_ARN" :  getExistingReference(ecsId)
         }
