@@ -431,7 +431,6 @@
         [#return idParts[1]?lower_case]
     [#else]
         [#list component?keys as key]
-            [@cfDebug listMode { key : ALB_COMPONENT_TYPE } true /]
             [#switch key?lower_case]
                 [#case "id"]
                 [#case "name"]

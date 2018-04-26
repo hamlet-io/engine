@@ -1,6 +1,4 @@
 [#-- LB --]
-[@cfDebug listMode componentType true /]
-
 [#if (componentType == LB_COMPONENT_TYPE) ]
 
     [#list requiredOccurrences(
