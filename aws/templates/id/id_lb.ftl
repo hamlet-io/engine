@@ -1,7 +1,9 @@
 [#-- ALB --]
 
 [#-- Resources --]
+[#assign AWS_LB_RESOURCE_TYPE = "lb" ]
 [#assign AWS_ALB_RESOURCE_TYPE = "alb" ]
+
 [#assign AWS_ALB_LISTENER_RESOURCE_TYPE = "listener" ]
 [#assign AWS_ALB_LISTENER_RULE_RESOURCE_TYPE = "listenerRule" ]
 [#assign AWS_ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
@@ -15,26 +17,38 @@
 [/#function]
 
 [#-- Components --]
-[#assign ALB_COMPONENT_TYPE = "alb"]
-[#assign ALB_PORT_COMPONENT_TYPE = "albport"]
+[#assign LB_COMPONENT_TYPE = "lb" ]
+[#assign LB_PORT_COMPONENT_TYPE = "lbport" ]
+
+[#-- Deprecated Name - Kept for Backwards compatabilty of component naming --]
+[#assign ALB_COMPONENT_TYPE = "alb" ]
+
 [#assign componentConfiguration +=
     {
-        ALB_COMPONENT_TYPE : {
+        LB_COMPONENT_TYPE   : {
             "Attributes" : [
                 {
                     "Name" : "Logs",
                     "Default" : false
+                },
+                {
+                    "Name" : "Engine",
+                    "Default" : "application"
+                },
+                {
+                    "Name" : "HealthCheckPort",
+                    "Default" : ""
                 }
             ],
             "Components" : [
                 {
-                    "Type" : ALB_PORT_COMPONENT_TYPE,
+                    "Type" : LB_PORT_COMPONENT_TYPE,
                     "Component" : "PortMappings",
                     "Link" : "Port"
                 }
             ]
         },
-        ALB_PORT_COMPONENT_TYPE : [
+        LB_PORT_COMPONENT_TYPE : [
             {
                 "Name" : "IPAddressGroups",
                 "Default" : []
@@ -90,7 +104,7 @@
         } ]
 [/#function]
 
-[#function migrateALBComponent component ]
+[#function migrateLBComponent component ]
     [#local newPortMappings = {} ]
     [#if component.PortMappings?is_sequence ]
         [#list component.PortMappings as portMapping]
@@ -127,11 +141,15 @@
     [#return component + { "PortMappings" : newPortMappings } ]
 [/#function]
 
-[#function getALBState occurrence]
+[#function getLBState occurrence]
     [#local core = occurrence.Core]
 
-    [#local id = formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) ]
-
+    [#if getExistingReference(formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) )?has_content ]
+        [#local id = formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) ]
+    [#else]
+        [#local id = formatResourceId(AWS_LB_RESOURCE_TYPE, core.Id) ]
+    [/#if]
+    
     [#return
         {
             "Resources" : {
@@ -139,7 +157,7 @@
                     "Id" : id,
                     "Name" : core.FullName,
                     "ShortName" : core.ShortFullName,
-                    "Type" : AWS_ALB_RESOURCE_TYPE
+                    "Type" : AWS_LB_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
@@ -153,11 +171,16 @@
     ]
 [/#function]
 
-[#function getALBPortState occurrence parent]
+[#function getLBPortState occurrence parent]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local internalFqdn = parent.State.Attributes["INTERNAL_FQDN"] ]
+    [#local parentSolution = parent.Configuration.Solution ]
+    [#local parentState = parent.State ]
+
+    [#local engine = parentSolution.Engine]
+    [#local internalFqdn = parentState.Attributes["INTERNAL_FQDN"] ]
+    [#local lbId = parentState.Resources["lb"].Id]
 
     [#local sourcePort = (ports[portMappings[solution.Mapping].Source])!{} ]
 
@@ -194,6 +217,8 @@
                 }
             },
             "Attributes" : {
+                "LB" : lbId,
+                "ENGINE" : engine,
                 "FQDN" : fqdn,
                 "URL" : scheme + "://" + fqdn,
                 "INTERNAL_FQDN" : internalFqdn,
