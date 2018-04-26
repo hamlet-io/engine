@@ -20,6 +20,7 @@
 [#assign LB_COMPONENT_TYPE = "lb" ]
 [#assign LB_PORT_COMPONENT_TYPE = "lbport" ]
 
+[#-- Deprecated Name - Kept for Backwards compatabilty of component naming --]
 [#assign ALB_COMPONENT_TYPE = "alb" ]
 
 [#assign componentConfiguration +=
@@ -35,30 +36,7 @@
                     "Default" : "application"
                 },
                 {
-                    "Name" : "PrimaryPortMapping",
-                    "Default" : ""
-                }
-            ],
-            "Components" : [
-                {
-                    "Type" : LB_PORT_COMPONENT_TYPE,
-                    "Component" : "PortMappings",
-                    "Link" : "Port"
-                }
-            ]
-        },
-        ALB_COMPONENT_TYPE   : {
-            "Attributes" : [
-                {
-                    "Name" : "Logs",
-                    "Default" : false
-                },
-                {
-                    "Name" : "Engine",
-                    "Default" : "application"
-                },
-                {
-                    "Name" : "PrimaryPortMapping",
+                    "Name" : "HealthCheckPort",
                     "Default" : ""
                 }
             ],
@@ -201,15 +179,10 @@
     [#local parentState = parent.State ]
 
     [#local engine = parentSolution.Engine]
-    [#local primaryPortMapping = parentSolution.PrimaryPortMapping ]
     [#local internalFqdn = parentState.Attributes["INTERNAL_FQDN"] ]
     [#local lbId = parentState.Resources["lb"].Id]
 
-    [#if primaryPortMapping?has_content ]
-        [#local sourcePort = (ports[portMappings[primaryPortMapping].Source])!{} ]
-    [#else]
-        [#local sourcePort = (ports[portMappings[solution.Mapping].Source])!{} ]
-    [/#if]
+    [#local sourcePort = (ports[portMappings[solution.Mapping].Source])!{} ]
 
     [#local id = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id) ]
 

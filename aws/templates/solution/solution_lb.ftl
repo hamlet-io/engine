@@ -1,6 +1,7 @@
 [#-- LB --]
+[@cfDebug listMode componentType true /]
 
-[#if (componentType == LB_COMPONENT_TYPE) || (componentType == ALB_COMPONENT_TYPE) ]
+[#if (componentType == LB_COMPONENT_TYPE) ]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -20,14 +21,6 @@
             [#assign lbSecurityGroupIds = [] ]
 
             [#assign engine = solution.Engine]
-
-            [#-- Primary Destination is used to set the Health Check --]
-            [#assign primaryDestination = (portMappings[solution.PrimaryPortMapping].Destination)!{} ]
-            [#if primaryDestination?has_content ]
-                [#assign primaryDestinationPort = ports[primaryDestination]]
-            [#else]
-                [#assign primaryDestinationPort = {}]
-            [/#if]
 
             [#assign portProtocols = [] ]
             [#assign classicListeners = []]
@@ -176,13 +169,19 @@
                 
                 [#case "classic"]
                 
+                    [#if !healthCheckPort?has_content ]
+                        [@cfPreconditionFailed listMode "solution_lb" {} "No health check port provided" /]
+                    [/#if]
+
+                    [#assign healthCheckPort = ports[solution.HealthCheckPort]]
+
                     [#assign healthCheck = {
-                        "Target" : primaryDestinationPort.HealthCheck.Protocol!primaryDestinationPort.Protocol + ":" 
-                                    + (primaryDestinationPort.HealthCheck.Port!primaryDestinationPort.Port)?c + primaryDestinationPort.HealthCheck.Path!"",
-                        "HealthyThreshold" : primaryDestinationPort.HealthCheck.HealthyThreshold,
-                        "UnhealthyThreshold" : primaryDestinationPort.HealthCheck.UnhealthyThreshold,
-                        "Interval" : primaryDestinationPort.HealthCheck.Interval,
-                        "Timeout" : primaryDestinationPort.HealthCheck.Timeout
+                        "Target" : healthCheckPort.HealthCheck.Protocol!healthCheckPort.Protocol + ":" 
+                                    + (healthCheckPort.HealthCheck.Port!healthCheckPort.Port)?c + healthCheckPort.HealthCheck.Path!"",
+                        "HealthyThreshold" : healthCheckPort.HealthCheck.HealthyThreshold,
+                        "UnhealthyThreshold" : healthCheckPort.HealthCheck.UnhealthyThreshold,
+                        "Interval" : healthCheckPort.HealthCheck.Interval,
+                        "Timeout" : healthCheckPort.HealthCheck.Timeout
                     }]
 
                     [@createClassicLB 
