@@ -48,11 +48,7 @@
                 {
                     "Name" : "DynamicHostPort",
                     "Default" : false
-                },
-                {
-                    "Name" : "ELB",
-                    "Default" : ""
-                },
+                }
                 {
                     "Name" : "LB",
                     "Children" : lbChildConfiguration

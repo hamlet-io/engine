@@ -346,7 +346,7 @@
                                 "Link" : loadBalancer.Name,
                                 "TargetGroup" : loadBalancer.TargetGroup,
                                 "Priority" : port.LB.Priority,
-                                "Path" : loadBalancer.TargetPath
+                                "Path" : loadBalancer.TargetPath!""
                             }
                     }
                 ]

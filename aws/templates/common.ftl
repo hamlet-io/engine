@@ -431,15 +431,18 @@
         [#return idParts[1]?lower_case]
     [#else]
         [#list component?keys as key]
-            [#switch key]
-                [#case "Id"]
-                [#case "Name"]
-                [#case "Title"]
-                [#case "Description"]
-                [#case "DeploymentUnits"]
-                [#case "MultiAZ"]
+            [#switch key?lower_case]
+                [#case "id"]
+                [#case "name"]
+                [#case "title"]
+                [#case "description"]
+                [#case "deploymentunits"]
+                [#case "multiaz"]
                     [#break]
-
+                [#-- Backwards Compatability for Component renaming --]
+                [#case ALB_COMPONENT_TYPE ]
+                    [#return LB_COMPONENT_TYPE]
+                    [#break]
                 [#default]
                     [#return key?lower_case]
                     [#break]
@@ -453,6 +456,9 @@
     [#local type = getComponentType(component) ]
     [#list component as key,value]
         [#if key?lower_case == type]
+            [#return value]
+        [#-- Backwards Compatability for Component renaming --]
+        [#elseif key?lower_case == ALB_COMPONENT_TYPE && type == LB_COMPONENT_TYPE ]
             [#return value]
         [/#if]
     [/#list]
@@ -759,12 +765,12 @@
             occurrence.Configuration.Environment.Sensitive ]
 
         [#switch core.Type!""]
-            [#case ALB_COMPONENT_TYPE]
-                [#local result = getALBState(occurrence)]
+            [#case LB_COMPONENT_TYPE]
+                [#local result = getLBState(occurrence)]
                 [#break]
 
-            [#case ALB_PORT_COMPONENT_TYPE]
-                [#local result = getALBPortState(occurrence, parentOccurrence)]
+            [#case LB_PORT_COMPONENT_TYPE]
+                [#local result = getLBPortState(occurrence, parentOccurrence)]
                 [#break]
 
             [#case "apigateway"]
@@ -799,10 +805,6 @@
                 [#local result = getEFSMountState(occurrence, parentOccurrence)]
                 [#break]
         
-            [#case "elb"]
-                [#local result = getELBState(occurrence)]
-                [#break]
-
             [#case "es"]
                 [#local result = getESState(occurrence)]
                 [#break]
@@ -1177,8 +1179,8 @@
 [#function migrateComponent component type]
     [#local result = component]
         [#switch type]
-            [#case "alb"]
-                [#return migrateALBComponent(component) ]
+            [#case LB_COMPONENT_TYPE]
+                [#return migrateLBComponent(component) ]
                 [#break]
         [/#switch]
     [#return result]
@@ -1774,7 +1776,7 @@
 [#function getLBLink occurrence port ]
     
     [#assign core = occurrence.Core]
-    [#assign targetTierId = (port.LB.Tier)!"elb" ]
+    [#assign targetTierId = (port.LB.Tier) ]
     [#assign targetComponentId = (port.LB.Component) ]
     [#assign targetLinkName = port.LB.LinkName ] 
     [#assign targetSource = 
@@ -1809,28 +1811,31 @@
         [#if targetLoadBalancer?has_content ]   
 
             [#local targetGroup = port.LB.TargetGroup]
-            [#local targetPath = port.LB.Path]
 
-            [#if targetLoadBalancer.Core.Type == "alb" ]
-                [#if targetPath?has_content]
-                    [#-- target group name must be provided if path provided --]
-                    [#if !targetGroup?has_content]
-                        [@cfException
-                            listMode "No target group for provided path" occurrence /]
+            [#if (ports[port.LB.Port].Protocol) != "TCP" ]
+                [#local targetPath = port.LB.Path]
+            [#else]
+                [#local targetPath = "" ]
+            [/#if]
+
+            [#if targetPath?has_content]
+                [#-- target group name must be provided if path provided --]
+                [#if !targetGroup?has_content]
+                    [@cfException
+                        listMode "No target group for provided path" occurrence /]
+                    [#local targetGroup = "default" ]
+                [/#if]
+            [#else]
+                [#if !targetGroup?has_content]
+                    [#-- Create target group for container if it --]
+                    [#-- is versioned and load balancer isn't    --]
+                    [#if core.Version.Name?has_content &&
+                            !targetLoadBalancer.Core.Version.Name?has_content]
+                        [#local targetPath = "/" + core.Version.Name + "/*" ]
+                        [#local targetGroup = core.Version.Name ]
+                    [#else]
                         [#local targetGroup = "default" ]
-                    [/#if]
-                [#else]
-                    [#if !targetGroup?has_content]
-                        [#-- Create target group for container if it --]
-                        [#-- is versioned and load balancer isn't    --]
-                        [#if core.Version.Name?has_content &&
-                                !targetLoadBalancer.Core.Version.Name?has_content]
-                            [#local targetPath = "/" + core.Version.Name + "/*" ]
-                            [#local targetGroup = core.Version.Name ]
-                        [#else]
-                            [#local targetGroup = "default" ]
-                            [#local targetPath = ""]
-                        [/#if]
+                        [#local targetPath = ""]
                     [/#if]
                 [/#if]
             [/#if]
@@ -1842,7 +1847,10 @@
     [#-- correctly handled in getLinkTarget             --]
 
     [#local targetLink += 
-        { "TargetPath" : targetPath } +
+        attributeIfContent(
+            "TargetPath",
+            targetPath
+        ) +
         attributeIfContent(
             "Port",
             valueIfTrue(targetSource, port.LB.Configured, "")

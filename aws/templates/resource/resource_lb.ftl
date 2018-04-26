@@ -1,6 +1,6 @@
 [#-- ALB --]
 
-[#assign ALB_OUTPUT_MAPPINGS =
+[#assign LB_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
@@ -52,7 +52,8 @@
 
 [#assign outputMappings +=
     {
-        AWS_ALB_RESOURCE_TYPE : ALB_OUTPUT_MAPPINGS,
+        AWS_LB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
+        AWS_ALB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
         AWS_ALB_LISTENER_RESOURCE_TYPE : ALB_LISTENER_OUTPUT_MAPPINGS,
         AWS_ALB_LISTENER_RULE_RESOURCE_TYPE : ALB_LISTENER_RULE_OUTPUT_MAPPINGS,
         AWS_ALB_TARGET_GROUP_RESOURCE_TYPE : ALB_TARGET_GROUP_OUTPUT_MAPPINGS
@@ -200,6 +201,52 @@
                 "ListenerArn" : getReference(listenerId, ARN_ATTRIBUTE_TYPE)
             }
         outputs=ALB_LISTENER_RULE_OUTPUT_MAPPINGS
+        dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createClassicLB mode id name shortName tier component listeners healthCheck securityGroups logs=false bucket="" dependencies="" ]
+        [@cfResource
+        mode=listMode
+        id=id
+        type="AWS::ElasticLoadBalancing::LoadBalancer"
+        properties=
+            {
+                "Listeners" : listeners,
+                "HealthCheck" : healthCheck,
+                "Scheme" :
+                    (tier.Network.RouteTable == "external")?then(
+                        "internet-facing",
+                        "internal"
+                    ),
+                "SecurityGroups": getReferences(securityGroups),
+                "LoadBalancerName" : shortName
+            } +
+            multiAZ?then(
+                {
+                    "Subnets" : getSubnets(tier),
+                    "CrossZone" : true
+                },
+                {
+                    "Subnets" : [ getSubnets(tier)[0] ]
+                }
+            ) +
+            (logs)?then(
+                {
+                    "AccessLoggingPolicy" : {
+                        "EmitInterval" : 5,
+                        "Enabled" : true,
+                        "S3BucketName" : bucket
+                    }
+                },
+                {}
+            )
+        tags=
+            getCfTemplateCoreTags(
+                name,
+                tier,
+                component)
+        outputs=ALB_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]
 [/#macro]
