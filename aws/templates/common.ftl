@@ -1776,7 +1776,7 @@
 [#function getLBLink occurrence port ]
     
     [#assign core = occurrence.Core]
-    [#assign targetTierId = (port.LB.Tier)!"elb" ]
+    [#assign targetTierId = (port.LB.Tier) ]
     [#assign targetComponentId = (port.LB.Component) ]
     [#assign targetLinkName = port.LB.LinkName ] 
     [#assign targetSource = 
