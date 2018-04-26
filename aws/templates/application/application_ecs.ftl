@@ -97,7 +97,7 @@
                                                         {
                                                             "ContainerName" : container.Name,
                                                             "ContainerPort" : ports[portMapping.ContainerPort].Port,
-                                                            "LoadBalancerName" : getExistingReference(lbId, ARN_ATTRIBUTE_TYPE)
+                                                            "LoadBalancerName" : getExistingReference(lbId)
                                                         }
                                                     ]
                                                 ]
