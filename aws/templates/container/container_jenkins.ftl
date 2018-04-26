@@ -47,7 +47,7 @@
                 description="Security Realm Not Configured"
                 context=component
                 detail={ 
-                    "Jenkin" : {
+                    "Jenkins" : {
                         "SecurityRealm" : "local|github"
                     }
                 }
