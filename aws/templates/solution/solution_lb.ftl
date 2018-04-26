@@ -50,10 +50,7 @@
                     [#continue ]
                 [/#if]
 
-                [#assign cidr=
-                        getUsageCIDRs(
-                            source,
-                            solution.IPAddressGroups) ]
+                [#assign cidr= getGroupCIDRs(solution.IPAddressGroups) ]
 
                 [#-- Internal ILBs may not have explicit IP Address Groups --]
                 [#assign cidr =
