@@ -300,8 +300,7 @@
                         "Port" : "ssh",
                         "CIDR" : 
                             (sshActive || sshStandalone)?then(
-                                getUsageCIDRs(
-                                    "ssh",
+                                getGroupCIDRs(
                                     (segmentObject.SSH.IPAddressGroups)!
                                         segmentObject.IPAddressGroups![]),
                                 []

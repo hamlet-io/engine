@@ -37,22 +37,7 @@
             },
             {
                 "Name" : "WAF",
-                "Children" : [
-                    {
-                        "Name" : "Enabled",
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "IPAddressGroups",
-                        "Default" : []
-                    },
-                    {
-                        "Name" : "Default"
-                    },
-                    {
-                        "Name" : "RuleDefault"
-                    }
-                ]
+                "Children" : wafChildConfiguration
             },
             {
                 "Name" : "CloudFront",
