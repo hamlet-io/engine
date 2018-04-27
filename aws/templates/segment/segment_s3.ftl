@@ -84,7 +84,8 @@
 
     [#if dataPublicEnabled ]
     
-        [#assign dataPublicWhitelistCondition = s3IPAccessCondition(getGroupCIDRs(dataPublicIPAddressGroups)]
+        [#assign dataPublicWhitelistCondition =
+            s3IPAccessCondition(getGroupCIDRs(dataPublicIPAddressGroups, true)) ]
 
         [@createBucketPolicy
             mode=listMode
