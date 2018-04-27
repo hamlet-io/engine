@@ -48,9 +48,8 @@
         [#else]
             [#list solution.Ports as port]
                 [#assign nextPort = port?is_hash?then(port.Port, port)]
-                [#assign portCIDRs = getUsageCIDRs(
-                                    nextPort,
-                                    port?is_hash?then(port.IPAddressGroups![], []))]
+                [#assign portCIDRs = getGroupCIDRs(
+                    port?is_hash?then(port.IPAddressGroups![], []))]
                 [#if portCIDRs?has_content]
                     [#assign ingressRules +=
                         [{

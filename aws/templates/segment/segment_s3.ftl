@@ -83,22 +83,8 @@
     /]
 
     [#if dataPublicEnabled ]
-
-        [#assign dataPublicCIDRList = [] ]
-
-        [#if ipAddressGroupsUsage["dataPublic"]?has_content ]
-            [#list dataPublicWhiteList as group]
-                [#assign groupId = group?is_hash?then(
-                                group.Id,
-                                group)]
-                
-                [#if (ipAddressGroupsUsage["dataPublic"][groupId])?has_content]
-                    [#assign dataPublicCIDRList +=  (ipAddressGroupsUsage["dataPublic"][groupId]).CIDR ]
-                [/#if]
-            [/#list]
-        [/#if]
     
-        [#assign dataPublicWhitelistCondition = s3IPAccessCondition(dataPublicCIDRList)]
+        [#assign dataPublicWhitelistCondition = s3IPAccessCondition(getGroupCIDRs(dataPublicIPAddressGroups)]
 
         [@createBucketPolicy
             mode=listMode

@@ -1,6 +1,6 @@
 [#-- SPA --]
 
-[#-- Componets --]
+[#-- Components --]
 [#assign SPA_COMPONENT_TYPE = "spa"]
 
 [#assign componentConfiguration +=
@@ -12,22 +12,7 @@
             },
             {
                 "Name" : "WAF",
-                "Children" : [
-                    {
-                        "Name" : "Enabled",
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "IPAddressGroups",
-                        "Default" : []
-                    },
-                    {
-                        "Name" : "Default"
-                    },
-                    {
-                        "Name" : "RuleDefault"
-                    }
-                ]
+                "Children" : wafChildConfiguration
             },
             {
                 "Name" : "CloudFront",
