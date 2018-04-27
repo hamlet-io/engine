@@ -545,8 +545,12 @@
                 [#break]
             [/#if]
 
-            [#-- Throw an exception if a mandatory attribute is missing --]
-            [#if mandatory && ( !(providedName?has_content) ) ]
+            [#-- Throw an exception if a mandatory attribute is missing      --]
+            [#-- If no candidates, assume we are entirely populating missing --]
+            [#-- children so ignore mandatory check                          --]
+            [#if mandatory &&
+                    ( !(providedName?has_content) ) &&
+                    candidates?has_content ]
                 [@cfException
                     mode=listMode
                     description="Mandatory attribute missing"
@@ -800,7 +804,7 @@
             [#case "efs"]
                 [#local result = getEFSState(occurrence)]
                 [#break]
-            
+
             [#case "efsMount" ]
                 [#local result = getEFSMountState(occurrence, parentOccurrence)]
                 [#break]
@@ -1774,12 +1778,12 @@
 [/#function]
 
 [#function getLBLink occurrence port ]
-    
+
     [#assign core = occurrence.Core]
     [#assign targetTierId = (port.LB.Tier) ]
     [#assign targetComponentId = (port.LB.Component) ]
-    [#assign targetLinkName = port.LB.LinkName ] 
-    [#assign targetSource = 
+    [#assign targetLinkName = port.LB.LinkName ]
+    [#assign targetSource =
                 contentIfContent(
                     port.LB.Port,
                     valueIfContent(
@@ -1808,7 +1812,7 @@
 
         [@cfDebug listMode targetLoadBalancer false /]
 
-        [#if targetLoadBalancer?has_content ]   
+        [#if targetLoadBalancer?has_content ]
 
             [#local targetGroup = port.LB.TargetGroup]
 
@@ -2104,3 +2108,45 @@
             "#"
         ] ]
 [/#function]
+
+[#-- WAF functions --]
+
+[#function isWAFPresent configuration={} ]
+    [#return configuration.Configured && configuration.Enabled ]
+[/#function]
+
+[#function getWAFDefault configuration={} ]
+    [#list configuration.IPAddressGroups as group]
+        [#if (getIPAddressGroup(group).IsOpen)!false ]
+            [#return "ALLOW" ]
+        [/#if]
+    [/#list]
+    [#return configuration.Default ]
+[/#function]
+
+[#function getWAFRules configuration={} ]
+    [#local result = [] ]
+
+    [#local wafDefault = getWAFDefault(configuration) ]
+    [#local wafRuleDefault = configuration.RuleDefault ]
+
+    [#list configuration.IPAddressGroups as group]
+        [#local addressGroup = getIPAddressGroup(group) ]
+        [#if ! addressGroup.IsOpen]
+            [#local action = (group.Action?upper_case)!wafRuleDefault ]
+            [#if (wafDefault == "ALLOW") && (action == "ALLOW") ]
+                [#-- more useful to count if default is allow --]
+                [#local action = "COUNT" ]
+            [/#if]
+            [#local result += [
+                    {
+                        "Id" : "${formatWAFIPSetRuleId(addressGroup)}",
+                        "Action" : "${action}"
+                    }
+                ]
+            ]
+        [/#if]
+    [/#list]
+    [#return result ]
+[/#function]
+

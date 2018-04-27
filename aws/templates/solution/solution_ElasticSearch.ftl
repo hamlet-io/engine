@@ -19,10 +19,7 @@
 
         [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
         [#assign volume = (storageProfile.Volumes["codeontap"])!{}]
-        [#assign esCIDRs =
-                    getUsageCIDRs(
-                        "es",
-                        solution.IPAddressGroups)]
+        [#assign esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
         [#list zones as zone]
             [#assign zoneIP =
                 getExistingReference(

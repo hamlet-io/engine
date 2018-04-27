@@ -29,6 +29,7 @@
 
         [#assign cfAccess = getExistingReference(formatDependentCFAccessId(formatS3OperationsId()))]
 
+        [#assign wafPresent     = isWAFPresent(solution.WAF) ]
         [#assign wafAclId       = resources["wafacl"].Id]
         [#assign wafAclName     = resources["wafacl"].Name]
 
@@ -112,86 +113,17 @@
             restrictions=valueIfContent(
                 restrictions,
                 restrictions)
-            wafAclId=valueIfTrue(
-                wafAclId,
-                (solution.WAF.Configured &&
-                    solution.WAF.Enabled &&
-                    ipAddressGroupsUsage["waf"]?has_content))
+            wafAclId=valueIfTrue(wafAclId, wafPresent)
         /]
 
-        [#if solution.WAF.Configured &&
-                solution.WAF.Enabled &&
-                ipAddressGroupsUsage["waf"]?has_content ]
-            [#assign wafGroups = [] ]
-            [#assign wafRuleDefault = 
-                        solution.WAF.RuleDefault?has_content?then(
-                            solution.WAF.RuleDefault,
-                            "ALLOW")]
-            [#assign wafDefault = 
-                        solution.WAF.Default?has_content?then(
-                            solution.WAF.Default,
-                            "BLOCK")]
-            [#if solution.WAF.IPAddressGroups?has_content]
-                [#list solution.WAF.IPAddressGroups as group]
-                    [#assign groupId = group?is_hash?then(
-                                    group.Id,
-                                    group)]
-                    [#if (ipAddressGroupsUsage["waf"][groupId])?has_content]
-                        [#assign usageGroup = ipAddressGroupsUsage["waf"][groupId]]
-                        [#if usageGroup.IsOpen]
-                            [#assign wafRuleDefault = 
-                                solution.WAF.RuleDefault?has_content?then(
-                                    solution.WAF.RuleDefault,
-                                    "COUNT")]
-                            [#assign wafDefault = 
-                                    solution.WAF.Default?has_content?then(
-                                        solution.WAF.Default,
-                                        "ALLOW")]
-                        [/#if]
-                        [#if usageGroup.CIDR?has_content]
-                            [#assign wafGroups += 
-                                        group?is_hash?then(
-                                            [group],
-                                            [{"Id" : groupId}]
-                                        )]
-                        [/#if]
-                    [/#if]
-                [/#list]
-            [#else]
-                [#list ipAddressGroupsUsage["waf"]?values as usageGroup]
-                    [#if usageGroup.IsOpen]
-                        [#assign wafRuleDefault = 
-                            solution.WAF.RuleDefault?has_content?then(
-                                solution.WAF.RuleDefault,
-                                "COUNT")]
-                        [#assign wafDefault = 
-                                solution.WAF.Default?has_content?then(
-                                    solution.WAF.Default,
-                                    "ALLOW")]
-                    [/#if]
-                    [#if usageGroup.CIDR?has_content]
-                        [#assign wafGroups += [{"Id" : usageGroup.Id}]]
-                    [/#if]
-                [/#list]
-            [/#if]
-
-            [#assign wafRules = []]
-            [#list wafGroups as group]
-                [#assign wafRules += [
-                        {
-                            "Id" : "${formatWAFIPSetRuleId(group)}",
-                            "Action" : "${(group.Action?upper_case)!wafRuleDefault}"
-                        }
-                    ]
-                ]
-            [/#list]
+        [#if wafPresent ]
             [@createWAFAcl 
                 mode=listMode
                 id=wafAclId
                 name=wafAclName
                 metric=wafAclName
-                default=wafDefault
-                rules=wafRules /]
+                default=getWAFDefault(solution.WAF)
+                rules=getWAFRules(solution.WAF) /]
         [/#if]
     [/#list]
 [/#if]
