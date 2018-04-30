@@ -11,15 +11,15 @@
     /]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
-    [#switch settings["JENKINS_SECURITYREALM"]!""]
+    [#switch settings["JENKINSENV_SECURITYREALM"]!""]
         [#case "local"]
-            [#if !(settings["JENKINS_USER"]?has_content && settings["JENKINS_PASS"]?has_content) ]
+            [#if !(settings["JENKINSENV_USER"]?has_content && settings["JENKINSENV_PASS"]?has_content) ]
                 [@cfException
                     mode=listMode
                     description="Login Details not provided"
                     context=component
                     detail={
-                        "Jenkins" : {
+                        "JenkinsEnv" : {
                             "User" : "",
                             "Pass" : ""
                         }
@@ -49,7 +49,7 @@
                 description="Security Realm Not Configured"
                 context=component
                 detail={ 
-                    "Jenkins" : {
+                    "JenkinsEnv" : {
                         "SecurityRealm" : "local|github"
                     }
                 }
