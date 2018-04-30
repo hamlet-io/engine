@@ -21,10 +21,12 @@
             [#assign engine = solution.Engine]
 
             [#assign healthCheckPort = "" ]
-            [#if engine == "classic" && solution.HealthCheckPort?has_content ]
-                [#assign healthCheckPort = ports[solution.HealthCheckPort]]
-            [#else]
-                [@cfPreconditionFailed listMode "solution_lb" {} "No health check port provided" /]    
+            [#if engine == "classic" ]
+                [#if solution.HealthCheckPort?has_content ]
+                    [#assign healthCheckPort = ports[solution.HealthCheckPort]]
+                [#else]
+                    [@cfPreconditionFailed listMode "solution_lb" {} "No health check port provided" /]    
+                [/#if]
             [/#if]
 
             [#assign portProtocols = [] ]
