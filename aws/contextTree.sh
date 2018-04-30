@@ -141,7 +141,7 @@ function assemble_settings() {
 
     tmp_file="$( getTempFile "account_appsettings_XXXX.json" "${tmp_dir}")"
     readarray -t setting_files < <(find . -type f -name "appsettings.json" )
-    convertFilesToJSONObject "AppSettings Accounts" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+    convertFilesToJSONObject "AppSettings Accounts" "${name}" "" "${setting_files[@]}" > "${tmp_file}" || return 1
     tmp_file_list+=("${tmp_file}")
     popd > /dev/null
   done
@@ -160,26 +160,35 @@ function assemble_settings() {
     pushd "$(filePath "${product_file}")/appsettings" > /dev/null 2>&1 || continue
 
     # Appsettings
-    readarray -t setting_files < <(find . -type f \( -not -name "*build.json" -and -not -name "*.ref" -and -not -path "*/asFile/*" \) )
+    readarray -t setting_files < <(find . -type f \( \
+      -not -name "*build.json" \
+      -and -not -name "*.ref" \
+      -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
+      -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
       tmp_file="$( getTempFile "product_appsettings_XXXX.json" "${tmp_dir}")"
-      convertFilesToJSONObject "AppSettings Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      convertFilesToJSONObject "AppSettings Products" "${name}" "" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
     # Builds
-    readarray -t setting_files < <(find . -type f \( -name "*build.json" -and -not -path "*/asFile/*" \) )
+    readarray -t setting_files < <(find . -type f \( \
+      -name "*build.json" \
+      -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
+      -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
       tmp_file="$( getTempFile "product_builds_XXXX.json" "${tmp_dir}")"
-      convertFilesToJSONObject "Builds Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      convertFilesToJSONObject "Builds Products" "${name}" "" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
     # asFiles
-    readarray -t setting_files < <(find . -type f \( -path "*/asFile/*" \) )
+    readarray -t setting_files < <(find . -type f \( \
+      \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
+      -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
       tmp_file="$( getTempFile "product_appsettings_asfile_XXXX.json" "${tmp_dir}")"
-      convertFilesToJSONObject "AppSettings Products" "${name}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
+      convertFilesToJSONObject "AppSettings Products" "${name}" "${ROOT_DIR}" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
@@ -198,18 +207,23 @@ function assemble_settings() {
     pushd "$(findGen3ProductInfrastructureDir "${root_dir}" "${name}")/credentials" > /dev/null 2>&1 || continue
 
     # Credentials
-    readarray -t setting_files < <(find . -type f \( -name "credentials.json" -and -not -path "*/asFile/*" \) )
+    readarray -t setting_files < <(find . -type f \( \
+      -name "credentials.json" \
+      -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
+      -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
       tmp_file="$( getTempFile "product_credentials_XXXX.json" "${tmp_dir}")"
-      convertFilesToJSONObject "Credentials Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
+      convertFilesToJSONObject "Credentials Products" "${name}" "" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
     # asFiles
-    readarray -t setting_files < <(find . -type f \( -path "*/asFile/*" \) )
+    readarray -t setting_files < <(find . -type f \( \
+      \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
+      -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
       tmp_file="$( getTempFile "product_credentials_asfile_XXXX.json" "${tmp_dir}")"
-      convertFilesToJSONObject "Credentials Products" "${name}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
+      convertFilesToJSONObject "Credentials Products" "${name}" "${ROOT_DIR}" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
 
@@ -222,15 +236,6 @@ function assemble_settings() {
 
   popTempDir
   return ${return_status}
-}
-
-function assemble_credentials() {
-  local result_file="${1:-${COMPOSITE_CREDENTIALS}}"
-
-  pushd "${PRODUCT_CREDENTIALS_DIR}" > /dev/null
-  readarray -t files < <(find -name credentials.json)
-  convertFilesToJSONObject "" "${PRODUCT}" "${files[@]}" > "${result_file}"
-  popd > /dev/null
 }
 
 function assemble_composite_stack_outputs() {

@@ -2046,6 +2046,9 @@
         [
             "addToArray" + " " +
                "\"" + "dirsToCheck"                 + "\"" + " " +
+               "\"" + "$\{ROOT_DIR}" + "\"",
+            "addToArray" + " " +
+               "\"" + "dirsToCheck"                 + "\"" + " " +
                "\"" + "$\{PRODUCT_APPSETTINGS_DIR}" + "\"",
             "addToArray" + " " +
                "\"" + "dirsToCheck"                 + "\"" + " " +
