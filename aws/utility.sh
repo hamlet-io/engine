@@ -677,7 +677,7 @@ function addJSONAncestorObjects() {
 function convertFilesToJSONObject() {
   local base_ancestors=($1); shift
   local prefixes=($1); shift
-  local as_file="$1";shift
+  local as_file_root="$1";shift
   local files=("$@")
 
   pushTempDir "convertFilesToJSONObject_XXXX"
@@ -693,9 +693,13 @@ function convertFilesToJSONObject() {
     local source_file="${file}"
     local attribute="$( fileBase "${file}" | tr "-" "_" )"
 
-    if [[ "${as_file}" == "true" ]]; then
+    if [[ -n "${as_file_root}" ]]; then
+      local file_name="$(fileName "${file}")"
+      local file_path="$(filePath "${file}")"
+      local file_absolute_path="$(cd "${file_path}"; pwd)"
+      local file_root_relative_path="${file_absolute_path##${as_file_root}/}"
       source_file="$(getTempFile "asfile_${attribute,,}_XXXX.json" "${tmp_dir}")"
-      echo -n "{\"${attribute^^}\" : {\"Value\" : \"$(fileName "${file}")\", \"AsFile\" : \"${file}\" }}" > "${source_file}" || return 1
+      echo -n "{\"${attribute^^}\" : {\"Value\" : \"$(fileName "${file}")\", \"AsFile\" : \"${file_root_relative_path}/${file_name}\" }}" > "${source_file}" || return 1
     else
       case "$(fileExtension "${file}")" in
         json)
