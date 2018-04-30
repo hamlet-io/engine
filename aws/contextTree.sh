@@ -44,19 +44,26 @@ function add_standard_pairs_to_stack() {
   local input_file="$1"; shift
   local output_file="$1"; shift
 
-  local result_file="./temp_add_standard_pairs_to_stack.json"
+  pushTempDir "add_standard_pairs_to_stack_XXXX"
+  local result_file="$(getTopTempDir)/add_standard_pairs_to_stack.json"
+  local return_status
 
   runJQ -f ${GENERATION_DIR}/formatOutputs.jq \
     --arg Account "${account}" \
     --arg Region "${region}" \
     --arg Level "${level}" \
     --arg DeploymentUnit "${deployment_unit}" \
-    < "${input_file}" > "${result_file}" || return $?
+    < "${input_file}" > "${result_file}"; return_status=$?
 
-  # Copy/overwrite the output
-  [[ -n "${output_file}" ]] && \
-    cp "${result_file}" "${output_file}" ||
-    cp "${result_file}" "${input_file}"
+  if [[ ${return_status} -eq 0 ]]; then
+    # Copy/overwrite the output
+    [[ -n "${output_file}" ]] && \
+      cp "${result_file}" "${output_file}" ||
+      cp "${result_file}" "${input_file}"; return_status=$?
+  fi
+
+  popTempDir
+  return ${return_status}
 }
 
 function create_pseudo_stack() {
@@ -64,12 +71,14 @@ function create_pseudo_stack() {
   local file="$1"; shift
   local pairs=("$@")
 
-  local temp_file="./temp_create_pseudo_stack.json"
+  pushTempDir "create_pseudo_stack_XXXX"
+  local tmp_file="$(getTopTempDir)/create_pseudo_stack.json"
+  local return_status
 
   # TODO(mfl): Probably a more elegant way to do this with jq
 
   # Create the name/value pairs
-  cat << EOF > "${temp_file}"
+  cat << EOF > "${tmp_file}"
 {
   "Stacks": [
     {
@@ -78,40 +87,44 @@ function create_pseudo_stack() {
 EOF
   # now the keypairs
   for ((i=0; i<${#pairs[@]}; i++)); do
-    [[ (i -gt 0) && (i%2 -eq 0) ]] && echo "," >> "${temp_file}"
+    [[ (i -gt 0) && (i%2 -eq 0) ]] && echo "," >> "${tmp_file}"
     [[ i%2 -eq 0 ]] && \
-    cat << EOF >> "${temp_file}"
+    cat << EOF >> "${tmp_file}"
         {
             "OutputKey": "${pairs[i]}",
 EOF
     [[ i%2 -ne 0 ]] && \
-    cat << EOF >> "${temp_file}"
+    cat << EOF >> "${tmp_file}"
             "OutputValue": "${pairs[i]}"
         }
 EOF
   done
 
-  cat << EOF >> "${temp_file}"
+  cat << EOF >> "${tmp_file}"
       ]
     }
   ]
 }
 EOF
 
-  runJQ --indent 4 "." < "${temp_file}" > "${file}"
+  runJQ --indent 4 "." < "${tmp_file}" > "${file}"; return_status=$?
+
+  popTempDir
+  return ${return_status}
 }
 
 function assemble_settings() {
   local result_file="${1:-${COMPOSITE_SETTINGS}}";shift
   local root_dir="${1:-${ROOT_DIR}}"
 
-  pushTempDir "assemble_settings_XXX"
-  local tmp_dir="$( getCurrentTempDir )"
+  pushTempDir "assemble_settings_XXXX"
+  local tmp_dir="$(getTopTempDir)"
   local tmp_file_list=()
 
   local id
   local name
   local tmp_file
+  local return_status
 
   # Process accounts
   readarray -t account_files < <(find "${root_dir}" -name account.json)
@@ -126,7 +139,7 @@ function assemble_settings() {
 
     pushd "$(filePath "${account_file}")/appsettings" > /dev/null 2>&1 || continue
 
-    tmp_file="$( getTempFile "account_appsettings_XXX.json" "${tmp_dir}")"
+    tmp_file="$( getTempFile "account_appsettings_XXXX.json" "${tmp_dir}")"
     readarray -t setting_files < <(find . -type f -name "appsettings.json" )
     convertFilesToJSONObject "AppSettings Accounts" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
     tmp_file_list+=("${tmp_file}")
@@ -149,7 +162,7 @@ function assemble_settings() {
     # Appsettings
     readarray -t setting_files < <(find . -type f \( -not -name "*build.json" -and -not -name "*.ref" -and -not -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_appsettings_XXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_appsettings_XXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "AppSettings Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -157,7 +170,7 @@ function assemble_settings() {
     # Builds
     readarray -t setting_files < <(find . -type f \( -name "*build.json" -and -not -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_builds_XXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_builds_XXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Builds Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -165,7 +178,7 @@ function assemble_settings() {
     # asFiles
     readarray -t setting_files < <(find . -type f \( -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_appsettings_asfile_XXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_appsettings_asfile_XXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "AppSettings Products" "${name}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -187,7 +200,7 @@ function assemble_settings() {
     # Credentials
     readarray -t setting_files < <(find . -type f \( -name "credentials.json" -and -not -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_credentials_XXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_credentials_XXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Credentials Products" "${name}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -195,7 +208,7 @@ function assemble_settings() {
     # asFiles
     readarray -t setting_files < <(find . -type f \( -path "*/asFile/*" \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_credentials_asfile_XXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_credentials_asfile_XXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Credentials Products" "${name}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -205,9 +218,10 @@ function assemble_settings() {
   done
 
   # Generate the merged output
-  jqMerge "${tmp_file_list[@]}" > "${result_file}"; code=$?
+  jqMerge "${tmp_file_list[@]}" > "${result_file}"; return_status=$?
+
   popTempDir
-  return ${code}
+  return ${return_status}
 }
 
 function assemble_credentials() {
@@ -226,6 +240,9 @@ function assemble_composite_stack_outputs() {
   local restore_nullglob=$(shopt -p nullglob)
   shopt -s nullglob
 
+  pushTempDir "assemble_composite_stack_outputs_XXXX"
+  local tmp_dir="$(getTopTempDir)"
+
   local stack_array=()
   [[ (-n "${ACCOUNT}") ]] &&
       addToArray "stack_array" "${ACCOUNT_INFRASTRUCTURE_DIR}"/aws/cf/acc*-stack.json
@@ -237,7 +254,7 @@ function assemble_composite_stack_outputs() {
   ${restore_nullglob}
 
   debug "STACK_OUTPUTS=${stack_array[*]}"
-  export COMPOSITE_STACK_OUTPUTS="${ROOT_DIR}/composite_stack_outputs.json"
+  export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
   if [[ $(arraySize "stack_array") -ne 0 ]]; then
     # Add default account, region, stack level and deployment unit
     local modified_stack_array=()
@@ -247,7 +264,7 @@ function assemble_composite_stack_outputs() {
 
       # Annotate as necessary
       if parse_stack_filename "${stack}"; then
-        modified_stack_filename="temp_$(fileName "${stack}")"
+        modified_stack_filename="${tmp_dir}/$(fileName "${stack}")"
         add_standard_pairs_to_stack \
           "${stack_account:-${AWSID}}" \
           "${stack_region}" \
@@ -265,6 +282,8 @@ function assemble_composite_stack_outputs() {
   else
     echo "[]" > ${result_file}
   fi
+
+  popTempDir
 }
 
 function getCompositeStackOutput() {
@@ -291,14 +310,19 @@ function encrypt_file() {
   local input_file="$1"; shift
   local output_file="$1"; shift
 
+  pushTempDir "encrypt_file_XXXX"
+  local tmp_dir="$(getTopTempDir)"
   local cmk=$(getCmk "${level}")
-  local temp_file=
+  local return_status
 
-  cp "${input_file}" "./temp_encrypt_file"
+  cp "${input_file}" "${tmp_dir}/encrypt_file"
 
-  aws --region "${region}" --output text kms encrypt \
+  (cd "${tmp_dir}"; aws --region "${region}" --output text kms encrypt \
     --key-id "${cmk}" --query CiphertextBlob \
-    --plaintext "fileb://temp_encrypt_file" > "${output_file}"
+    --plaintext "fileb://encrypt_file" > "${output_file}"; return_status=$?)
+
+  popTempDir
+  return ${return_status}
 }
 
 function getBucketName() {
@@ -632,8 +656,8 @@ function upgrade_cmdb() {
   local root_dir="${1:-${ROOT_DIR}}";shift
   local dry_run="$1";shift
 
-  pushTempDir "upgrade_cmdb_XXX"
-  local tmp_dir="$( getCurrentTempDir )"
+  pushTempDir "upgrade_cmdb_XXXX"
+  local tmp_dir="$(getTopTempDir)"
   local tmp_file
 
   local upgrade_needed="false"
@@ -647,7 +671,7 @@ function upgrade_cmdb() {
     [[ -f "${replacement_file}" ]] && continue
     upgrade_needed="true"
     info "Upgrading ${legacy_file} ..."
-    tmp_file="$(getTempFile "build_XXX.json" "${tmp_dir}")"
+    tmp_file="$(getTempFile "build_XXXX.json" "${tmp_dir}")"
     upgrade_build_ref "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
     if [[ -n "${dry_run}" ]]; then
@@ -666,7 +690,7 @@ function upgrade_cmdb() {
     [[ -f "${replacement_file}" ]] && continue
     upgrade_needed="true"
     info "Upgrading ${legacy_file} ..."
-    tmp_file="$(getTempFile "shared_XXX.json" "${tmp_dir}")"
+    tmp_file="$(getTempFile "shared_XXXX.json" "${tmp_dir}")"
     upgrade_shared_build_ref "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
     if [[ -n "${dry_run}" ]]; then
@@ -684,7 +708,7 @@ function upgrade_cmdb() {
     if [[ "$(jq ".Credentials | if .==null then [] else [1] end | length" < "${legacy_file}" )" -gt 0 ]]; then
       upgrade_needed="true"
       info "Upgrading ${legacy_file} ..."
-      tmp_file="$(getTempFile "credentials_XXX.json" "${tmp_dir}")"
+      tmp_file="$(getTempFile "credentials_XXXX.json" "${tmp_dir}")"
       upgrade_credentials "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
       if [[ -n "${dry_run}" ]]; then
@@ -703,7 +727,7 @@ function upgrade_cmdb() {
     [[ -f "${replacement_file}" ]] && continue
     upgrade_needed="true"
     info "Upgrading ${legacy_file} ..."
-    tmp_file="$(getTempFile "container_XXX.json" "${tmp_dir}")"
+    tmp_file="$(getTempFile "container_XXXX.json" "${tmp_dir}")"
     cp "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
     if [[ -n "${dry_run}" ]]; then

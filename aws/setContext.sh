@@ -24,7 +24,7 @@ GENERATION_CONTEXT_DEFINED_LOCAL="true"
 debug "--- starting setContext.sh ---\n"
 
 # Create a temporary directory for this run
-[[ -z "${GENERATION_TMPDIR}" ]] && export GENERATION_TMPDIR="$(getTempDir "cot_XXX" )"
+[[ -z "${GENERATION_TMPDIR}" ]] && export GENERATION_TMPDIR="$(getTempDir "cot_XXXX" )"
 debug "TMPDIR=${GENERATION_TMPDIR}"
 
 # If no files match a glob, return nothing
@@ -39,6 +39,10 @@ export GENERATION_DATA_DIR=$(findGen3RootDir "$(pwd)") ||
 debug "Checking cmdb version ..."
 upgrade_cmdb "${GENERATION_DATA_DIR}" ||
     { fatal "CMDB upgrade failed."; exit 1; }
+    
+# Ensure the cache directory exists
+export CACHE_DIR="${GENERATION_DATA_DIR}/cache"
+mkdir -p "${CACHE_DIR}"
 
 # Generate the list of files constituting the composites based on the contents
 # of the account and product trees
@@ -156,7 +160,7 @@ addToArrayHead "BLUEPRINT_ARRAY" \
 
 # Build the composite solution ( aka blueprint)
 debug "BLUEPRINT=${BLUEPRINT_ARRAY[*]}"
-export COMPOSITE_BLUEPRINT="${ROOT_DIR}/composite_blueprint.json"
+export COMPOSITE_BLUEPRINT="${CACHE_DIR}/composite_blueprint.json"
 if [[ ! $(arrayIsEmpty "BLUEPRINT_ARRAY") ]]; then
     addToArrayHead "BLUEPRINT_ARRAY" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"/masterData.json
     ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${BLUEPRINT_ARRAY[@]}"
@@ -210,7 +214,7 @@ done
 
 # create the template composites
 for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-    COMPOSITE_FILE="${ROOT_DIR}/composite_${COMPOSITE,,}.ftl"
+    COMPOSITE_FILE="${CACHE_DIR}/composite_${COMPOSITE,,}.ftl"
     namedef_supported &&
       declare -n COMPOSITE_ARRAY="${COMPOSITE}_ARRAY" ||
       eval "declare COMPOSITE_ARRAY=(\"\${${COMPOSITE}_ARRAY[@]}\")"
@@ -221,7 +225,7 @@ done
 
 # Assemble appsettings
 debug "Generating composite settings ..."
-export COMPOSITE_SETTINGS="${ROOT_DIR}/composite_settings.json"
+export COMPOSITE_SETTINGS="${CACHE_DIR}/composite_settings.json"
 assemble_settings "${COMPOSITE_SETTINGS}"
 
 # Product specific context if the product is known
@@ -269,14 +273,14 @@ fi
 
 # Build the composite appsettings
 debug "APPSETTINGS=${APPSETTINGS_ARRAY[*]}"
-export COMPOSITE_APPSETTINGS="${ROOT_DIR}/composite_appsettings.json"
+export COMPOSITE_APPSETTINGS="${CACHE_DIR}/composite_appsettings.json"
 $(arrayIsEmpty "APPSETTINGS_ARRAY") &&
     echo "{}" > ${COMPOSITE_APPSETTINGS} ||
     ${GENERATION_DIR}/manageJSON.sh -c -o ${COMPOSITE_APPSETTINGS} "${APPSETTINGS_ARRAY[@]}"
 
 # Build the composite credentials
 debug "CREDENTIALS=${CREDENTIALS_ARRAY[*]}"
-export COMPOSITE_CREDENTIALS="${ROOT_DIR}/composite_credentials.json"
+export COMPOSITE_CREDENTIALS="${CACHE_DIR}/composite_credentials.json"
 $(arrayIsEmpty "CREDENTIALS_ARRAY") &&
     echo "{\"Credentials\" : {}}" > ${COMPOSITE_CREDENTIALS} ||
     ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
@@ -301,19 +305,19 @@ if [[ -n "${CHECK_AWS_SESSION_TOKEN}" ]]; then export AWS_SESSION_TOKEN="${CHECK
 # bug in python
 if [[ ((-z "${AWS_ACCESS_KEY_ID}") || (-z "${AWS_SECRET_ACCESS_KEY}")) ]]; then
     if [[ -n "${ACCOUNT}" ]]; then
-        aws configure list --profile "${ACCOUNT}" > $(getTempFile "account_profile_status_XXX.txt") 2>&1
+        aws configure list --profile "${ACCOUNT}" > $(getTempFile "account_profile_status_XXXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${ACCOUNT}"
         fi
     fi
     if [[ -n "${AID}" ]]; then
-        aws configure list --profile "${AID}" > $(getTempFile "id_profile_status_XXX.txt") 2>&1
+        aws configure list --profile "${AID}" > $(getTempFile "id_profile_status_XXXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${AID}"
         fi
     fi
     if [[ -n "${AWSID}" ]]; then
-        aws configure list --profile "${AWSID}" > $(getTempFile "awsid_profile_status_XXX.txt") 2>&1
+        aws configure list --profile "${AWSID}" > $(getTempFile "awsid_profile_status_XXXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${AWSID}"
         fi

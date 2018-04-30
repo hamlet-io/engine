@@ -5,10 +5,11 @@ trap '[[ (-z "${GENERATION_DEBUG}") && (-n "${tmpdir}") ]] && rm -rf "${tmpdir}"
 . "${GENERATION_DIR}/common.sh"
 
 # Create a temporary directory for this run
-export GENERATION_TMPDIR="$(getTempDir "cot_gw_XXX" )"
+pushTempDir "cot_gw_XXXX"
+export GENERATION_TMPDIR="$(getTopTempDir)"
 debug "TMPDIR=${GENERATION_TMPDIR}"
 
-tmpdir="${GENERATION_TMPDIR}"
+tmp_dir="${GENERATION_TMPDIR}"
 
 # Defaults
 INTEGRATIONS_FILE_DEFAULT="apigw.json"
@@ -89,23 +90,23 @@ ACCOUNTS=($(jq -r '.Accounts | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | t
 REGIONS=($(jq -r '.Regions | select(.!=null) | .[]' < ${INTEGRATIONS_FILE} | tr -s [:space:] ' '))
 
 # TODO adjust next lines when path length limitations in jq are fixed
-POST_PROCESSING_FILTER="${tmpdir}/pp.jq"
+POST_PROCESSING_FILTER="${tmp_dir}/pp.jq"
 cp ${GENERATION_DIR}/postProcessSwagger.jq "${POST_PROCESSING_FILTER}"
             
 # Set up the type specific template information
 TEMPLATE_DIR="${GENERATION_DIR}/templates"
 TEMPLATE="createSwaggerExtensions.ftl"
-SWAGGER_EXTENSIONS_FILE="${tmpdir}/swagger_extensions.json"
-SWAGGER_EXTENSIONS_PRE_POST_FILE="${tmpdir}/swagger_pre_post.json"
+SWAGGER_EXTENSIONS_FILE="${tmp_dir}/swagger_extensions.json"
+SWAGGER_EXTENSIONS_PRE_POST_FILE="${tmp_dir}/swagger_pre_post.json"
 
 # Process the required accounts and regions
-temp_results_dir="${tmpdir}/extensions"
-mkdir -p "${temp_results_dir}"
+tmp_results_dir="${tmp_dir}/extensions"
+mkdir -p "${tmp_results_dir}"
 
 for ACCOUNT in "${ACCOUNTS[@]}"; do
     for REGION in "${REGIONS[@]}"; do
 
-        TARGET_SWAGGER_FILE="${temp_results_dir}/${EXTENDED_SWAGGER_FILE_BASE}-${REGION}-${ACCOUNT}.json"
+        TARGET_SWAGGER_FILE="${tmp_results_dir}/${EXTENDED_SWAGGER_FILE_BASE}-${REGION}-${ACCOUNT}.json"
 
         ARGS=()
         ARGS+=("-v" "account=${ACCOUNT}")
@@ -131,7 +132,7 @@ for ACCOUNT in "${ACCOUNTS[@]}"; do
 done
 
 # If the target is a zip file, zip up the generated files
-cd "${temp_results_dir}"
+cd "${tmp_results_dir}"
 if [[ "${EXTENDED_SWAGGER_FILE_EXTENSION}" == "zip" ]]; then
     zip ${EXTENDED_SWAGGER_FILE_BASE}.zip *.json
     rm *.json

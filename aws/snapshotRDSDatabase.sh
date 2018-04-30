@@ -92,6 +92,8 @@ done
 # Set up the context
 . "${GENERATION_DIR}/setContext.sh"
 
+status_file="$(getTopTempDir)/snapshot_rds_status.txt"
+
 # Ensure we are in the right place
 checkInSegmentDirectory
 
@@ -136,12 +138,12 @@ fi
 RESULT=1
 if [[ "${WAIT}" == "true" ]]; then
     while true; do
-        aws --region ${REGION} rds describe-db-snapshots --db-snapshot-identifier ${DB_SNAPSHOT_IDENTIFIER} 2>/dev/null | grep "Status" > STATUS.txt
-        cat STATUS.txt
-        grep "available" STATUS.txt >/dev/null 2>&1
+        aws --region ${REGION} rds describe-db-snapshots --db-snapshot-identifier ${DB_SNAPSHOT_IDENTIFIER} 2>/dev/null | grep "Status" > "${status_file}"
+        cat "${status_file}"
+        grep "available" "${status_file}" >/dev/null 2>&1
         RESULT=$?
         if [ "$RESULT" -eq 0 ]; then break; fi
-        grep "creating" STATUS.txt  >/dev/null 2>&1
+        grep "creating" "${status_file}"  >/dev/null 2>&1
         RESULT=$?
         if [ "$RESULT" -ne 0 ]; then break; fi
         sleep $DELAY

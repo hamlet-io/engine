@@ -95,6 +95,8 @@ ENV_STRUCTURE="${ENV_STRUCTURE}]"
 # Set up the context
 . "${GENERATION_DIR}/setContext.sh"
 
+status_file="$(getTopTempDir)/run_task_status.txt"
+
 # Ensure we are in the right place
 checkInSegmentDirectory
 
@@ -122,32 +124,32 @@ TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r "
 
 # Find the container - support legacy naming
 for CONTAINER_NAME in "${CONTAINER}" "${TIER}-${COMPONENT}-${CONTAINER}"; do
-    aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${CONTAINER_NAME}\",${ENV_STRUCTURE}}]}" > STATUS.txt 2>&1
+    aws --region ${REGION} ecs run-task --cluster "${CLUSTER_ARN}" --task-definition "${TASK_DEFINITION_ARN}" --count 1 --overrides "{\"containerOverrides\":[{\"name\":\"${CONTAINER_NAME}\",${ENV_STRUCTURE}}]}" > "${status_file}" 2>&1
     RESULT=$?
     [[ "$RESULT" -eq 0 ]] && break
 done
 
 if [ "$RESULT" -ne 0 ]; then exit; fi
 
-cat STATUS.txt
-TASK_ARN=$(jq -r ".tasks[0].taskArn" < STATUS.txt)
+cat "${status_file}"
+TASK_ARN=$(jq -r ".tasks[0].taskArn" < "${status_file}")
 
 while true; do
-    aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TASK_ARN} 2>/dev/null | jq ".tasks[] | select(.taskArn == \"${TASK_ARN}\") | {lastStatus: .lastStatus}" > STATUS.txt
-    cat STATUS.txt
-    grep "STOPPED" STATUS.txt >/dev/null 2>&1
+    aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TASK_ARN} 2>/dev/null | jq ".tasks[] | select(.taskArn == \"${TASK_ARN}\") | {lastStatus: .lastStatus}" > "${status_file}"
+    cat "${status_file}"
+    grep "STOPPED" "${status_file}" >/dev/null 2>&1
     RESULT=$?
     if [ "$RESULT" -eq 0 ]; then break; fi
-    grep "PENDING\|RUNNING" STATUS.txt  >/dev/null 2>&1
+    grep "PENDING\|RUNNING" "${status_file}"  >/dev/null 2>&1
     RESULT=$?
     if [ "$RESULT" -ne 0 ]; then break; fi
     sleep $DELAY
 done
 
 # Show the exit codes and return an error if they are not 0
-aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TASK_ARN} 2>/dev/null | jq ".tasks[].containers[] | {name: .name, exitCode: .exitCode}" > STATUS.txt
-cat STATUS.txt
-RESULT=$(jq ".exitCode" < STATUS.txt | grep -m 1 -v "^0$" | tr -d '"' )
+aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TASK_ARN} 2>/dev/null | jq ".tasks[].containers[] | {name: .name, exitCode: .exitCode}" > "${status_file}"
+cat "${status_file}"
+RESULT=$(jq ".exitCode" < "${status_file}" | grep -m 1 -v "^0$" | tr -d '"' )
 RESULT=${RESULT:-0}
 
 
