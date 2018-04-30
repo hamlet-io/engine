@@ -61,6 +61,8 @@ done
 # Set up the context
 . "${GENERATION_DIR}/setContext.sh"
 
+status_file="$(getTopTempDir)/sync_account_bucket_status.txt"
+
 checkInAccountDirectory
 
 # Locate the bucket names
@@ -76,7 +78,7 @@ pushd ${ACCOUNT_DIR}  > /dev/null 2>&1
 
 # Confirm access to the code bucket
 if [[ "${CHECK}" == "true" ]]; then
-    aws --region ${ACCOUNT_REGION} s3 ls s3://${CODE_BUCKET}/ > temp_code_access.txt
+    aws --region ${ACCOUNT_REGION} s3 ls s3://${CODE_BUCKET}/ > "${status_file}"
     RESULT=$?
     [[ "$RESULT" -ne 0 ]] &&
         fatal "Can't access the code bucket. Does the service role for the server include access to the \"${ACCOUNT}\" code bucket? If windows, is a profile matching the account been set up?"
@@ -94,7 +96,7 @@ fi
 
 # Confirm access to the credentials bucket
 if [[ "${CHECK}" == "true" ]]; then
-    aws --region ${ACCOUNT_REGION} s3 ls s3://${CREDENTIALS_BUCKET}/ > temp_credential_access.txt
+    aws --region ${ACCOUNT_REGION} s3 ls s3://${CREDENTIALS_BUCKET}/ > "${status_file}"
     RESULT=$?
     [[ "$RESULT" -ne 0 ]] &&
         fatal "Can't access the credentials bucket. Does the service role for the server include access to the \"${ACCOUNT}\" credentials bucket? If windows, is a profile matching the account been set up?"

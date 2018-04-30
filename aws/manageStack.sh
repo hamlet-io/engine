@@ -90,26 +90,6 @@ function options() {
   return 0
 }
 
-function copy_cmdb_files() {
-  if [[ "${LEVEL}" == "application" ]]; then
-    case ${STACK_OPERATION} in
-      delete)
-        deleteCMDBFilesFromOperationsBucket "appsettings" || return $?
-        deleteCMDBFilesFromOperationsBucket "credentials" || return $?
-        ;;
-  
-      create|update)
-        syncCMDBFilesToOperationsBucket "${SEGMENT_APPSETTINGS_DIR}" \
-          "appsettings" ${DRYRUN} || return $?
-        syncCMDBFilesToOperationsBucket "${SEGMENT_CREDENTIALS_DIR}" \
-          "credentials" ${DRYRUN} || return $?
-        ;;
-    esac
-  fi
-
-  return 0
-}
-
 function copy_contentnode_file() { 
   local files="$1"; shift
   local engine="$1"; shift
@@ -118,8 +98,8 @@ function copy_contentnode_file() {
   local nodepath="$1"; shift
   local branch="$1"; 
 
-  local contentnodedir="${tmpdir}/contentnode"
-  local contenthubdir="${tmpdir}/contenthub"
+  local contentnodedir="${tmp_dir}/contentnode"
+  local contenthubdir="${tmp_dir}/contenthub"
   local hubpath="${contenthubdir}/${prefix}${nodepath}"
 
   # Copy files into repo 
@@ -209,7 +189,7 @@ function add_host_to_apidoc() {
   # adds the API Host endpoint to the swagger spec
   local apihost="$1"; shift
   local apidocs="$1"
-  local apidocdir="${tmpdir}/apidocs"
+  local apidocdir="${tmp_dir}/apidocs"
   local swaggerjson="${apidocdir}/swagger.json"
 
   mkdir -p "${apidocdir}"
@@ -238,7 +218,7 @@ function wait_for_stack_execution() {
   
   info "Watching stack execution..."
 
-  local stack_status_file="${tmpdir}/stack_status"
+  local stack_status_file="${tmp_dir}/stack_status"
 
   while true; do
 
@@ -317,7 +297,7 @@ function wait_for_stack_execution() {
 
 function process_stack() {
 
-  local stripped_template_file="${tmpdir}/stripped_template"
+  local stripped_template_file="${tmp_dir}/stripped_template"
 
   local exit_status=0
   
@@ -474,8 +454,10 @@ function main() {
 
   options "$@" || return $?
 
-  tmpdir="$(getTempDir "manage_stack_XXX")"
-  potential_change_file="${tmpdir}/potential_changes"
+  pushTempDir "manage_stack_XXXX"
+  tmp_dir="$(getTopTempDir)"
+  tmpdir="${tmp_dir}"
+  potential_change_file="${tmp_dir}/potential_changes"
 
   pushd ${CF_DIR} > /dev/null 2>&1
 
@@ -490,16 +472,16 @@ function main() {
      process_stack || process_stack_status=$?
   fi
 
-    # Check to see if the work has already been completed
-    case ${process_stack_status} in
-      0) 
-        info "${STACK_OPERATION} completed for ${STACK_NAME}"
-      ;;
-      *) 
-        fatal "Change set for ${STACK_NAME} did not complete"
-        return ${process_stack_status} 
-      ;;
-    esac
+  # Check to see if the work has already been completed
+  case ${process_stack_status} in
+    0) 
+      info "${STACK_OPERATION} completed for ${STACK_NAME}"
+    ;;
+    *) 
+      fatal "Change set for ${STACK_NAME} did not complete"
+      return ${process_stack_status} 
+    ;;
+  esac
   
   # Run the epilogue script if present
   # Refresh the stack outputs in case something from the just created stack is needed

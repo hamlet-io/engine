@@ -79,7 +79,7 @@
                     "function manage_oai_credentials() {"
                     "  info \"Checking OAI credentials ...\"",
                     "  #",
-                    "  local oai_file=\"./temp_oai.json\"",
+                    "  local oai_file=\"$(getTopTempDir)/oai.json\"",
                     "  update_oai_credentials" + " " +
                         "\"" + regionId + "\" " +
                         "\"" + productName + "-" + segmentName + "\" " +
