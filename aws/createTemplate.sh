@@ -302,7 +302,8 @@ function process_template() {
   args+=("-v" "configurationReference=${configuration_reference}")
 
   # Directory for temporary files
-  local tmpdir="$(getTempDir "create_template_XXX")"
+  pushTempDir "create_template_XXXX"
+  local tmp_dir="$(getTopTempDir)"
 
   # Perform each pass
   for pass in "${passes[@]}"; do
@@ -324,11 +325,11 @@ function process_template() {
       pass_alternative_prefix="${pass_alternative:+${pass_alternative}-}"
 
       local output_file="${cf_dir}/${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
-      local template_result_file="${tmpdir}/${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+      local template_result_file="${tmp_dir}/${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
       if [[ ! -f "${output_file}" ]]; then
         # Include account prefix
         local output_file="${cf_dir}/${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
-        local template_result_file="${tmpdir}/${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+        local template_result_file="${tmp_dir}/${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
       fi
 
       ${GENERATION_DIR}/freemarker.sh \

@@ -529,13 +529,13 @@ function getTempRootDir() {
 
 function getTempDir() {
   local template="$1"; shift
-  local temp_path="$1"; shift
+  local tmp_dir="$1"; shift
 
-  [[ -z "${template}" ]] && template="XXX"
-  [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
+  [[ -z "${template}" ]] && template="XXXX"
+  [[ -z "${tmp_dir}" ]] && tmp_dir="$(getTempRootDir)"
 
-  [[ -n "${temp_path}" ]] &&
-    mktemp -d "${temp_path}/${template}" ||
+  [[ -n "${tmp_dir}" ]] &&
+    mktemp -d "${tmp_dir}/${template}" ||
     mktemp -d "$(getOSTempRootDir)/${template}"
 }
 
@@ -558,48 +558,29 @@ function popTempDir() {
   popStack "tmp_dir_stack" "${count}"
 }
 
-function getCurrentTempDir() {
+function getTopTempDir() {
   echo -n "${tmp_dir_stack[@]:0:1}"
 }
 
 function getTempFile() {
   local template="$1"; shift
-  local temp_path="$1"; shift
+  local tmp_dir="$1"; shift
 
-  [[ -z "${template}" ]] && template="XXX"
-  [[ -z "${temp_path}" ]] && temp_path="$(getTempRootDir)"
+  [[ -z "${template}" ]] && template="XXXX"
+  [[ -z "${tmp_dir}" ]] && tmp_dir="$(getTempRootDir)"
 
-  [[ -n "${temp_path}" ]] &&
-    mktemp    "${temp_path}/${template}" ||
+  [[ -n "${tmp_dir}" ]] &&
+    mktemp    "${tmp_dir}/${template}" ||
     mktemp -t "${template}"
 }
 
-function cleanup() {
-  local root_dir="${1:-.}"
-
-  find "${root_dir}" -name "composite_*" -delete
-  find "${root_dir}" -name "STATUS.txt" -delete
-  find "${root_dir}" -name "stripped_*" -delete
-  find "${root_dir}" -name "ciphertext*" -delete
-  find "${root_dir}" -name "temp_*" -type f -delete
-
-  # Handle cleanup of temporary directories
-  temp_dirs=($(find "${root_dir}" -name "temp_*" -type d))
-  for temp_dir in "${temp_dirs[@]}"; do
-    # Subdir may already have been deleted by parent temporary directory
-    if [[ -e "${temp_dir}" ]]; then
-      rm -rf "${temp_dir}"
-    fi
-  done
-}
-
-# -- Cli file generation -- 
+# -- Cli file generation --
 function split_cli_file() {
   local cli_file="$1"; shift
   local outdir="$1"; shift
 
   for resource in $( jq -r 'keys[]' <"${cli_file}" ) ; do
-    for command in $( jq -r ".$resource | keys[]"<"${cli_file}" ); do 
+    for command in $( jq -r ".$resource | keys[]"<"${cli_file}" ); do
         jq ".${resource}.${command}" >"${outdir}/cli-${resource}-${command}.json" <"${cli_file}"
     done
   done
@@ -613,17 +594,19 @@ function runJQ() {
   # TODO(mfl): remove once path length limitations in jq are fixed
 
   local file_seen="false"
+  local file
   local tmp_dir="."
   local modified_arguments=()
+  local return_status
 
   for argument in "${arguments[@]}"; do
     if [[ -f "${argument}" ]]; then
       if [[ "${file_seen}" != "true" ]]; then
-        pushTempDir "runjq_XXX"
-        local tmp_dir="$( getCurrentTempDir )"
+        pushTempDir "runjq_XXXX"
+        tmp_dir="$(getTopTempDir)"
         file_seen="true"
       fi
-      local file="$( getTempFile "XXX" "${tmp_dir}" )"
+      file="$( getTempFile "XXXX" "${tmp_dir}" )"
       cp "${argument}" "${file}" > /dev/null
       modified_arguments+=("./$(fileName "${file}" )")
     else
@@ -632,9 +615,9 @@ function runJQ() {
   done
 
   # TODO(mfl): Add -L once path length limitations fixed
-  (cd ${tmp_dir}; jq "${modified_arguments[@]}"); code=$?
+  (cd ${tmp_dir}; jq "${modified_arguments[@]}"); return_status=$?
   [[ "${file_seen}" == "true" ]] && popTempDir
-  return ${code}
+  return ${return_status}
 }
 
 function jqMergeFilter() {
@@ -697,10 +680,11 @@ function convertFilesToJSONObject() {
   local as_file="$1";shift
   local files=("$@")
 
-  pushTempDir "convertFilesToJSONObject_XXX"
-  local tmp_dir="$( getCurrentTempDir )"
+  pushTempDir "convertFilesToJSONObject_XXXX"
+  local tmp_dir="$(getTopTempDir)"
   local base_file="${tmp_dir}/base.json"
   local processed_files=("${base_file}")
+  local return_status
 
   echo -n "{}" > "${base_file}"
 
@@ -710,7 +694,7 @@ function convertFilesToJSONObject() {
     local attribute="$( fileBase "${file}" | tr "-" "_" )"
 
     if [[ "${as_file}" == "true" ]]; then
-      source_file="$(getTempFile "asfile_${attribute,,}_XXX.json" "${tmp_dir}")"
+      source_file="$(getTempFile "asfile_${attribute,,}_XXXX.json" "${tmp_dir}")"
       echo -n "{\"${attribute^^}\" : {\"Value\" : \"$(fileName "${file}")\", \"AsFile\" : \"${file}\" }}" > "${source_file}" || return 1
     else
       case "$(fileExtension "${file}")" in
@@ -718,7 +702,7 @@ function convertFilesToJSONObject() {
           ;;
 
         escjson)
-          source_file="$(getTempFile "escjson_${attribute,,}_XXX.json" "${tmp_dir}")"
+          source_file="$(getTempFile "escjson_${attribute,,}_XXXX.json" "${tmp_dir}")"
           runJQ \
             "{\"${attribute^^}\" : {\"Value\" : tojson, \"FromFile\" : \"${file}\" }}" \
             "${file}" > "${source_file}" || return 1
@@ -726,7 +710,7 @@ function convertFilesToJSONObject() {
 
         *)
           # Assume raw input
-          source_file="$(getTempFile "raw_${attribute,,}_XXX.json" "${tmp_dir}")"
+          source_file="$(getTempFile "raw_${attribute,,}_XXXX.json" "${tmp_dir}")"
           runJQ -sR \
             "{\"${attribute^^}\" : {\"Value\" : ., \"FromFile\" : \"${file}\" }}" \
             "${file}" > "${source_file}" || return 1
@@ -736,14 +720,14 @@ function convertFilesToJSONObject() {
     fi
 
     local file_ancestors=("${prefixes[@]}" $(filePath "${file}" | tr "./" " ") )
-    local processed_file="$(getTempFile "processed_XXX.json" "${tmp_dir}")"
+    local processed_file="$(getTempFile "processed_XXXX.json" "${tmp_dir}")"
     addJSONAncestorObjects "${source_file}" "${base_ancestors[@]}" $(join "-" "${file_ancestors[@]}" | tr "[:upper:]" "[:lower:]") > "${processed_file}" || return 1
     processed_files+=("${processed_file}")
   done
 
-  jqMerge "${processed_files[@]}"; code=$?
+  jqMerge "${processed_files[@]}"; return_status=$?
   popTempDir
-  return ${code}
+  return ${return_status}
 }
 
 # -- KMS --
@@ -751,10 +735,15 @@ function decrypt_kms_string() {
   local region="$1"; shift
   local value="$1"; shift
 
-  local tmpdir="$( getTempDir "kms_XXX" )"
-  local file="$( getTempFile "XXX" "${tmpdir}" )"
-  echo "${value}" | base64 --decode > "${file}"
-  aws --region "${region}" kms decrypt --ciphertext-blob fileb://${file} --output text --query Plaintext | base64 --decode || return $?
+  pushTempDir "decrypt_kms_string_XXXX"
+  local tmp_file="$(getTopTempDir)/value"
+  local return_status
+
+  echo "${value}" | base64 --decode > "${tmp_file}"
+  aws --region "${region}" kms decrypt --ciphertext-blob "fileb://${tmp_file}" --output text --query Plaintext | base64 --decode; return_status=$?
+
+  popTempDir
+  return ${return_status}
 }
 
 function encrypt_kms_string() {
@@ -762,17 +751,17 @@ function encrypt_kms_string() {
   local value="$1"; shift
   local kms_key_id="$1"; shift
 
-  aws --region "${region}" kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text || return $?
+  aws --region "${region}" kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text
 }
 
 # -- Cognito --
 
-function update_cognito_userpool() { 
-  local region="$1"; shift 
+function update_cognito_userpool() {
+  local region="$1"; shift
   local userpoolid="$1"; shift
-  local configfile="$1"; shift 
+  local configfile="$1"; shift
 
-  aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $? 
+  aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}"
 }
 
 # -- S3 --
@@ -782,10 +771,9 @@ function isBucketAccessible() {
   local bucket="$1"; shift
   local prefix="$1"; shift
 
-  local result_file="$( getTempFile "s3_access_XXX.txt")"
+  local result_file="$(getTopTempDir)/is_bucket_accessible_XXXX.txt"
 
   aws --region ${region} s3 ls "s3://${bucket}/${prefix}${prefix:+/}" > "${result_file}"
-  return $?
 }
 
 function copyFilesFromBucket() {
@@ -809,8 +797,9 @@ function syncFilesToBucket() {
   fi
   local optional_arguments=("$@")
 
-  pushTempDir "s3_sync_XXX"
-  local tmp_dir="$( getCurrentTempDir )"
+  pushTempDir "sync_files_to_bucket_XXXX"
+  local tmp_dir="$(getTopTempDir)"
+  local return_status
 
   # Copy files locally so we can synch with S3, potentially including deletes
   for file in "${syncFiles[@]}" ; do
@@ -827,9 +816,10 @@ function syncFilesToBucket() {
   done
 
   # Now synch with s3
-  aws --region ${region} s3 sync "${optional_arguments[@]}" "${tmp_dir}/" "s3://${bucket}/${prefix}${prefix:+/}"
+  aws --region ${region} s3 sync "${optional_arguments[@]}" "${tmp_dir}/" "s3://${bucket}/${prefix}${prefix:+/}"; return_status=$?
 
   popTempDir
+  return ${return_status}
 }
 
 function deleteTreeFromBucket() {
@@ -906,9 +896,9 @@ function delete_ssh_credentials() {
 function update_oai_credentials() {
   local region="$1"; shift
   local name="$1"; shift
-  local result_file="${1:-$( getTempFile update_oai_XXX.json)}"; shift
+  local result_file="${1:-$( getTempFile update_oai_XXXX.json)}"; shift
 
-  local oai_list_file="$( getTempFile oai_list_XXX.json)"
+  local oai_list_file="$( getTempFile oai_list_XXXX.json)"
   local oai_id=
 
   # Check for existing identity
@@ -934,7 +924,7 @@ function delete_oai_credentials() {
   local region="$1"; shift
   local name="$1"; shift
 
-  local oai_delete_file="$( getTempFile oai_delete_XXX.json)"
+  local oai_delete_file="$( getTempFile oai_delete_XXXX.json)"
   local oai_id=
   local oai_etag=
 
@@ -1039,7 +1029,7 @@ function set_rds_master_password() {
   local password="$1"; shift
 
   info "Resetting master password for RDS instance ${db_identifier}"
-  aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null || return $?
+  aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null
 }
 
 function get_rds_url() {

@@ -195,33 +195,37 @@ if [[ $(grep "^base64:" <<< "${CRYPTO_TEXT}") ]]; then
     CRYPTO_TEXT="${CRYPTO_TEXT#base64:}"
 fi
 
+tmp_dir="$(getTopTempDir)"
+ciphertext_src="${tmp_dir}/ciphertext.src"
+ciphertext_bin="${tmp_dir}/ciphertext.bin"
+
 # Prepare ciphertext for processing
-echo -n "${CRYPTO_TEXT}" > ./ciphertext.src
+echo -n "${CRYPTO_TEXT}" > "${ciphertext_src}"
 
 # base64 decode if necessary
 if [[ (-n "${CRYPTO_DECODE}") ]]; then
     # Sanity check on input
-    dos2unix < ./ciphertext.src | grep -q "${BASE64_REGEX}"
+    dos2unix < "${ciphertext_src}" | grep -q "${BASE64_REGEX}"
     RESULT=$?
     if [[ "${RESULT}" -eq 0 ]]; then
-        dos2unix < ./ciphertext.src | base64 -d  > ./ciphertext.bin
+        dos2unix < "${ciphertext_src}" | base64 -d  > "${ciphertext_bin}"
     else
         fatalError "Input doesn't appear to be base64 encoded"
     fi
 else
-    mv ./ciphertext.src ./ciphertext.bin
+    mv "${ciphertext_src}" "${ciphertext_bin}"
 fi
         
 # Perform the operation
 case ${CRYPTO_OPERATION} in
     encrypt)
-        CRYPTO_TEXT=$(aws --region ${REGION} --output text kms ${CRYPTO_OPERATION} \
+        CRYPTO_TEXT=$(cd "${tmp_dir}"; aws --region ${REGION} --output text kms ${CRYPTO_OPERATION} \
             --key-id "${KEYID}" --query CiphertextBlob \
             --plaintext "fileb://ciphertext.bin") 
         ;;
 
     decrypt)
-        CRYPTO_TEXT=$(aws --region ${REGION} --output text kms ${CRYPTO_OPERATION} \
+        CRYPTO_TEXT=$(cd "${tmp_dir}"; aws --region ${REGION} --output text kms ${CRYPTO_OPERATION} \
             --query Plaintext \
             --ciphertext-blob "fileb://ciphertext.bin")
         ;;
@@ -245,19 +249,19 @@ if [[ "${RESULT}" -eq 0 ]]; then
             if [[ "${CRYPTO_OPERATION}" == "encrypt" ]]; then
                 CRYPTO_TEXT="base64:${CRYPTO_TEXT}"
             fi
-            jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" < "${TARGET_FILE}"  > "temp_${CRYPTO_FILENAME_DEFAULT}"
+            jq --indent 4 "${JSON_PATH}=\"${CRYPTO_TEXT}\"" < "${TARGET_FILE}"  > "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}"
             RESULT=$?
             if [[ "${RESULT}" -eq 0 ]]; then
-                mv "temp_${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"
+                mv "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"
             fi
         else
-            echo "${CRYPTO_TEXT}" > "temp_${CRYPTO_FILENAME_DEFAULT}"
+            echo "${CRYPTO_TEXT}" > "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}"
             RESULT=$?
             if [[ "${RESULT}" -eq 0 ]]; then
                 if [[ "${CRYPTO_OPERATION}" == "decrypt" ]]; then
-                    mv "temp_${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}.decrypted"
+                    mv "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}.decrypted"
                 else
-                    mv "temp_${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"
+                    mv "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"
                 fi
             fi            
         fi

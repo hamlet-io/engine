@@ -77,6 +77,8 @@ done
 # Set up the context
 . "${GENERATION_DIR}/setContext.sh"
 
+status_file="$(getTopTempDir)/reboot_rds_status.txt"
+
 # Ensure we are in the right place
 checkInSegmentDirectory
 
@@ -94,12 +96,12 @@ if [ "$RESULT" -ne 0 ]; then exit; fi
 
 if [[ "${WAIT}" == "true" ]]; then
     while true; do
-        aws --region ${REGION} rds describe-db-instances --db-instance-identifier ${DB_INSTANCE_IDENTIFIER} 2>/dev/null | grep "DBInstanceStatus" > STATUS.txt
-        cat STATUS.txt
-        grep "available" STATUS.txt >/dev/null 2>&1
+        aws --region ${REGION} rds describe-db-instances --db-instance-identifier ${DB_INSTANCE_IDENTIFIER} 2>/dev/null | grep "DBInstanceStatus" > "${status_file}"
+        cat "${status_file}"
+        grep "available" "${status_file}" >/dev/null 2>&1
         RESULT=$?
         if [ "$RESULT" -eq 0 ]; then break; fi
-        grep "rebooting" STATUS.txt  >/dev/null 2>&1
+        grep "rebooting" "${status_file}"  >/dev/null 2>&1
         RESULT=$?
         if [ "$RESULT" -ne 0 ]; then break; fi
         sleep $DELAY

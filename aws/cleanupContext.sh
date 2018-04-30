@@ -6,7 +6,6 @@
 [[ -z "${GENERATION_CONTEXT_DEFINED_LOCAL}" ]] && return 0
 
 if [[ -z "${GENERATION_DEBUG}" ]]; then
-  [[ -n "${GENERATION_DATA_DIR}" ]] && cleanup "${GENERATION_DATA_DIR}"
   [[ -n "${GENERATION_TMPDIR}" ]] && rm -rf "${GENERATION_TMPDIR}"
 fi
 

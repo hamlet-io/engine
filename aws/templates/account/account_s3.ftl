@@ -54,7 +54,7 @@
                         "#",
                         "function initialise_registries() {",
                         "  info \"Initialising the registry bucket ...\"",
-                        "  local registry_marker=\"$\{ACCOUNT_DIR}/temp_registry\"",
+                        "  local registry_marker=\"$(getTopTempDir)/registry\"",
                         "  touch \"$\{registry_marker}\"",
                         "  for registry in \"$@\"; do",
                         "    aws --region \"$\{ACCOUNT_REGION}\" s3 cp \"$\{registry_marker}\" \"s3://" +
