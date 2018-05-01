@@ -321,9 +321,13 @@
     [#list solution.Containers?values as container]
         [#local containerPortMappings = [] ]
         [#local containerLinks = container.Links ]
+
         [#list container.Ports?values as port]
 
             [#local lbLink = getLBLink( task, port )]
+
+            [#-- Treat the LB link like any other - this will also detect --]
+            [#-- if the target is missing                                 --]
             [#local containerLinks += lbLink]
 
             [#local containerPortMapping =
@@ -331,26 +335,25 @@
                     "ContainerPort" :
                         contentIfContent(
                             port.Container!"",
-                            port.Id
+                            port.Name
                         ),
-                    "HostPort" : port.Id,
+                    "HostPort" : port.Name,
                     "DynamicHostPort" : port.DynamicHostPort
                 } ]
 
-            [#if lbLink[port.LB.LinkName]?has_content ]
-                [#local loadBalancer = lbLink[port.LB.LinkName]]
-                [#local containerPortMapping +=
-                    {
-                        "LoadBalancer" :
-                            {
-                                "Link" : loadBalancer.Name,
-                                "TargetGroup" : loadBalancer.TargetGroup,
-                                "Priority" : port.LB.Priority,
-                                "Path" : loadBalancer.TargetPath!""
-                            }
-                    }
-                ]
-            [/#if]
+            [#-- Ports should only be defined if connecting to a load balancer --]
+            [#local loadBalancer = containerLinks[port.LB.LinkName]]
+            [#local containerPortMapping +=
+                {
+                    "LoadBalancer" :
+                        {
+                            "Link" : loadBalancer.Name,
+                            "TargetGroup" : loadBalancer.TargetGroup!"",
+                            "Priority" : port.LB.Priority,
+                            "Path" : loadBalancer.TargetPath!""
+                        }
+                }
+            ]
             [#local containerPortMappings += [containerPortMapping] ]
         [/#list]
 

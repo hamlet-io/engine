@@ -554,6 +554,7 @@ function pushTempDir() {
 function popTempDir() {
   local count="${1:-1}"; shift
 
+  # Popped value not returned but keep the code here for now
   local index=$(( $count - 1 ))
   local tmp_dir="${tmp_dir_stack[@]:${index}:1}"
 
@@ -604,7 +605,7 @@ function runJQ() {
   for argument in "${arguments[@]}"; do
     if [[ -f "${argument}" ]]; then
       if [[ "${file_seen}" != "true" ]]; then
-        pushTempDir "runjq_XXXX"
+        pushTempDir "${FUNCNAME[0]}_XXXX"
         tmp_dir="$(getTopTempDir)"
         file_seen="true"
       fi
@@ -676,72 +677,12 @@ function addJSONAncestorObjects() {
   runJQ "${pattern}" < "${file}"
 }
 
-function convertFilesToJSONObject() {
-  local base_ancestors=($1); shift
-  local prefixes=($1); shift
-  local as_file_root="$1";shift
-  local files=("$@")
-
-  pushTempDir "convertFilesToJSONObject_XXXX"
-  local tmp_dir="$(getTopTempDir)"
-  local base_file="${tmp_dir}/base.json"
-  local processed_files=("${base_file}")
-  local return_status
-
-  echo -n "{}" > "${base_file}"
-
-  for file in "${files[@]}"; do
-
-    local source_file="${file}"
-    local attribute="$( fileBase "${file}" | tr "-" "_" )"
-
-    if [[ -n "${as_file_root}" ]]; then
-      local file_name="$(fileName "${file}")"
-      local file_path="$(filePath "${file}")"
-      local file_absolute_path="$(cd "${file_path}"; pwd)"
-      local file_root_relative_path="${file_absolute_path##${as_file_root}/}"
-      source_file="$(getTempFile "asfile_${attribute,,}_XXXX.json" "${tmp_dir}")"
-      echo -n "{\"${attribute^^}\" : {\"Value\" : \"$(fileName "${file}")\", \"AsFile\" : \"${file_root_relative_path}/${file_name}\" }}" > "${source_file}" || return 1
-    else
-      case "$(fileExtension "${file}")" in
-        json)
-          ;;
-
-        escjson)
-          source_file="$(getTempFile "escjson_${attribute,,}_XXXX.json" "${tmp_dir}")"
-          runJQ \
-            "{\"${attribute^^}\" : {\"Value\" : tojson, \"FromFile\" : \"${file}\" }}" \
-            "${file}" > "${source_file}" || return 1
-          ;;
-
-        *)
-          # Assume raw input
-          source_file="$(getTempFile "raw_${attribute,,}_XXXX.json" "${tmp_dir}")"
-          runJQ -sR \
-            "{\"${attribute^^}\" : {\"Value\" : ., \"FromFile\" : \"${file}\" }}" \
-            "${file}" > "${source_file}" || return 1
-          ;;
-
-      esac
-    fi
-
-    local file_ancestors=("${prefixes[@]}" $(filePath "${file}" | tr "./" " ") )
-    local processed_file="$(getTempFile "processed_XXXX.json" "${tmp_dir}")"
-    addJSONAncestorObjects "${source_file}" "${base_ancestors[@]}" $(join "-" "${file_ancestors[@]}" | tr "[:upper:]" "[:lower:]") > "${processed_file}" || return 1
-    processed_files+=("${processed_file}")
-  done
-
-  jqMerge "${processed_files[@]}"; return_status=$?
-  popTempDir
-  return ${return_status}
-}
-
 # -- KMS --
 function decrypt_kms_string() {
   local region="$1"; shift
   local value="$1"; shift
 
-  pushTempDir "decrypt_kms_string_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXX"
   local tmp_file="$(getTopTempDir)/value"
   local return_status
 
@@ -803,7 +744,7 @@ function syncFilesToBucket() {
   fi
   local optional_arguments=("$@")
 
-  pushTempDir "sync_files_to_bucket_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXX"
   local tmp_dir="$(getTopTempDir)"
   local return_status
 
@@ -843,9 +784,11 @@ function create_pki_credentials() {
   local dir="$1"; shift
 
   if [[ (! -f "${dir}/aws-ssh-crt.pem") &&
-        (! -f "${dir}/aws-ssh-prv.pem") ]]; then
-      openssl genrsa -out "${dir}/aws-ssh-prv.pem.plaintext" 2048 || return $?
-      openssl rsa -in "${dir}/aws-ssh-prv.pem.plaintext" -pubout > "${dir}/aws-ssh-crt.pem" || return $?
+        (! -f "${dir}/aws-ssh-prv.pem") &&
+        (! -f "${dir}/.aws-ssh-crt.pem") &&
+        (! -f "${dir}/.aws-ssh-prv.pem") ]]; then
+      openssl genrsa -out "${dir}/.aws-ssh-prv.pem.plaintext" 2048 || return $?
+      openssl rsa -in "${dir}/.aws-ssh-prv.pem.plaintext" -pubout > "${dir}/.aws-ssh-crt.pem" || return $?
   fi
 
   if [[ ! -f "${dir}/.gitignore" ]]; then
@@ -866,6 +809,7 @@ function delete_pki_credentials() {
   shopt -s nullglob
 
   rm -f "${dir}"/aws-ssh-crt* "${dir}"/aws-ssh-prv*
+  rm -f "${dir}"/.aws-ssh-crt* "${dir}"/.aws-ssh-prv*
 
   ${restore_nullglob}
 }

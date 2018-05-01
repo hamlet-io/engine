@@ -40,20 +40,23 @@
                         "  info \"Checking SSH credentials ...\"",
                         "  #",
                         "  # Create SSH credential for the segment",
-                        "  mkdir -p \"$\{ENVIRONMENT_CREDENTIALS_DIR}\"",
-                        "  create_pki_credentials \"$\{ENVIRONMENT_CREDENTIALS_DIR}\" || return $?",
+                        "  mkdir -p \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}\"",
+                        "  create_pki_credentials \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}\" || return $?",
                         "  #",
                         "  # Update the credential",
+                        "  pem_file=\"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/aws-ssh-crt.pem\"",
+                        "  [[ -f \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-crt.pem\" ]] &&",
+                        "    pem_file=\"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-crt.pem\"",
                         "  update_ssh_credentials" + " " +
                             "\"" + regionId + "\" " +
                             "\"" + formatEnvironmentFullName() + "\" " +
-                            "\"$\{ENVIRONMENT_CREDENTIALS_DIR}/aws-ssh-crt.pem\" || return $?",
-                        "  [[ -f \"$\{ENVIRONMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem.plaintext\" ]] && ",
+                            "\"$\{pem_file}\" || return $?",
+                        "  [[ -f \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\" ]] && ",
                         "    { encrypt_file" + " " +
                                "\"" + regionId + "\"" + " " +
                                "segment" + " " +
-                               "\"$\{ENVIRONMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem.plaintext\"" + " " +
-                               "\"$\{ENVIRONMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem\" || return $?; }",
+                               "\"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\"" + " " +
+                               "\"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-prv.pem\" || return $?; }",
                         "  return 0"
                         "}",
                         "#",
@@ -62,7 +65,7 @@
                         "    delete_ssh_credentials " + " " +
                             "\"" + regionId + "\" " +
                             "\"" + formatEnvironmentFullName() + "\" || return $?",
-                        "    delete_pki_credentials \"$\{ENVIRONMENT_CREDENTIALS_DIR}\" || return $?",
+                        "    delete_pki_credentials \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}\" || return $?",
                         "    ;;",
                         "  create|update)",
                         "    manage_ssh_credentials || return $?",
