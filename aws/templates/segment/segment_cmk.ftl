@@ -8,7 +8,7 @@
         [@createCMK
             mode=listMode
             id=cmkId
-            description=formatName(productName,segmentName)
+            description=formatSegmentFullName()
             statements=
                 [
                     getPolicyStatement(
@@ -25,12 +25,12 @@
         [@createCMKAlias
             mode=listMode
             id=cmkAliasId
-            name=formatName("alias/" + productName, segmentName)
+            name=formatName("alias/" + formatSegmentFullName())
             cmkId=cmkId
         /]
     [/#if]
     [#if deploymentSubsetRequired("epilogue", false)]
-        [#if sshPerSegment]
+        [#if sshPerEnvironment]
             [#-- Make sure SSH credentials are in place --]
             [@cfScript
                 mode=listMode
@@ -40,20 +40,20 @@
                         "  info \"Checking SSH credentials ...\"",
                         "  #",
                         "  # Create SSH credential for the segment",
-                        "  mkdir -p \"$\{SEGMENT_CREDENTIALS_DIR}\"",
-                        "  create_pki_credentials \"$\{SEGMENT_CREDENTIALS_DIR}\" || return $?",
+                        "  mkdir -p \"$\{ENVIRONMENT_CREDENTIALS_DIR}\"",
+                        "  create_pki_credentials \"$\{ENVIRONMENT_CREDENTIALS_DIR}\" || return $?",
                         "  #",
                         "  # Update the credential",
                         "  update_ssh_credentials" + " " +
                             "\"" + regionId + "\" " +
-                            "\"" + productName + "-" + segmentName + "\" " +
-                            "\"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-crt.pem\" || return $?",
-                        "  [[ -f \"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem.plaintext\" ]] && ",
+                            "\"" + formatEnvironmentFullName() + "\" " +
+                            "\"$\{ENVIRONMENT_CREDENTIALS_DIR}/aws-ssh-crt.pem\" || return $?",
+                        "  [[ -f \"$\{ENVIRONMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem.plaintext\" ]] && ",
                         "    { encrypt_file" + " " +
                                "\"" + regionId + "\"" + " " +
                                "segment" + " " +
-                               "\"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem.plaintext\"" + " " +
-                               "\"$\{SEGMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem\" || return $?; }",
+                               "\"$\{ENVIRONMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem.plaintext\"" + " " +
+                               "\"$\{ENVIRONMENT_CREDENTIALS_DIR}/aws-ssh-prv.pem\" || return $?; }",
                         "  return 0"
                         "}",
                         "#",
@@ -61,8 +61,8 @@
                         "  delete)",
                         "    delete_ssh_credentials " + " " +
                             "\"" + regionId + "\" " +
-                            "\"" + productName + "-" + segmentName + "\" || return $?",
-                        "    delete_pki_credentials \"$\{SEGMENT_CREDENTIALS_DIR}\" || return $?",
+                            "\"" + formatEnvironmentFullName() + "\" || return $?",
+                        "    delete_pki_credentials \"$\{ENVIRONMENT_CREDENTIALS_DIR}\" || return $?",
                         "    ;;",
                         "  create|update)",
                         "    manage_ssh_credentials || return $?",
@@ -82,7 +82,7 @@
                     "  local oai_file=\"$(getTopTempDir)/oai.json\"",
                     "  update_oai_credentials" + " " +
                         "\"" + regionId + "\" " +
-                        "\"" + productName + "-" + segmentName + "\" " +
+                        "\"" + formatSegmentFullName() + "\" " +
                         "\"$\{oai_file}\" || return $?",
                     "  #",
                     "  oai_id=$(jq -r \".Id\" < \"$\{oai_file}\") || return $?",
@@ -99,7 +99,7 @@
                     "  delete)",
                     "  delete_oai_credentials" + " " +
                         "\"" + regionId + "\" " +
-                        "\"" + productName + "-" + segmentName + "\" || return $?",
+                        "\"" + formatSegmentFullName() + "\" || return $?",
                     "  rm -f \"$\{pseudo_stack_file}\"",
                     "    ;;",
                     "  create|update)",

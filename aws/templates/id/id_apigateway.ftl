@@ -156,7 +156,7 @@
                 formatOccurrenceBucketName(occurrence))]
 
     [#if certificatePresent ]
-        [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentId, segmentName)]
+        [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers)]
         [#local hostName = getHostName(certificateObject, occurrence)]
         [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 

@@ -186,6 +186,12 @@
 [#include resourceList]
 [#include "common.ftl"]
 
+[#-- Name prefixes --]
+[#assign shortNamePrefixes = [] ]
+[#assign fullNamePrefixes = [] ]
+[#assign cmdbLookupPrefixes = [] ]
+[#assign segmentQualifiers = [] ]
+
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
 
@@ -271,6 +277,10 @@
 
     [#assign productDomain = productObject.Domain!""]
 
+    [#assign shortNamePrefixes += [productId] ]
+    [#assign fullNamePrefixes += [productName] ]
+    [#assign cmdbLookupPrefixes += [[productName, "shared", "default"]] ]
+
 [/#if]
 
 [#-- Country Groups --]
@@ -283,6 +293,32 @@
     [#assign segmentId = segmentObject.Id]
     [#assign segmentName = segmentObject.Name]
     [#assign segments += {segmentId : segmentObject} ]
+
+    [#if segmentObject.Environment?? || blueprintObject.Environment?? ]
+        [#assign environmentId = (blueprintObject.Environment.Id)!segmentObject.Environment]
+        [#assign environmentObject = environments[environmentId]]
+        [#assign environmentName = environmentObject.Name]
+        [#assign categoryId = segmentObject.Category!environmentObject.Category]
+        [#assign categoryName = segmentObject.Category!environmentObject.Category]
+        [#assign categoryObject = categories[categoryId]]
+
+        [#assign shortNamePrefixes += [environmentId] ]
+        [#assign fullNamePrefixes += [environmentName] ]
+        [#assign segmentQualifiers += [environmentId, environmentName] ]
+
+        [#if (segmentName != environmentName) &&
+              (segmentName != "default") ]
+              [#assign shortNamePrefixes += [segmentId] ]
+              [#assign fullNamePrefixes += [segmentName] ]
+              [#assign segmentQualifiers += [segmentId, segmentName] ]
+        [/#if]
+
+        [#assign cmdbLookupPrefixes +=
+            [
+                [productName, "shared", segmentName],
+                [productName, environmentName, segmentName]
+            ] ]
+    [/#if]
 
     [#assign vpc = getExistingReference(formatVPCId())]
     [#assign network = segmentObject.Network!segmentObject ]
@@ -305,7 +341,7 @@
                             ((segmentObject.SSH.Enabled)!true)]
     [#assign sshActive = sshEnabled &&
                             ((segmentObject.SSH.Active)!false)]
-    [#assign sshPerSegment = (segmentObject.SSH.PerSegment)!segmentObject.SSHPerSegment!true]
+    [#assign sshPerEnvironment = (segmentObject.SSH.PerSegment)!segmentObject.SSHPerSegment!true]
     [#assign sshStandalone = ((segmentObject.SSH.Standalone)!false) || natHosted ]
     [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
 
@@ -318,15 +354,6 @@
         firstContent(
             getExistingReference(formatS3DataId()),
             formatSegmentBucketName("data"))]
-
-    [#if segmentObject.Environment??]
-        [#assign environmentId = segmentObject.Environment]
-        [#assign environmentObject = environments[environmentId]]
-        [#assign environmentName = environmentObject.Name]
-        [#assign categoryId = segmentObject.Category!environmentObject.Category]
-        [#assign categoryName = segmentObject.Category!environmentObject.Category]
-        [#assign categoryObject = categories[categoryId]]
-    [/#if]
 
     [#assign operationsExpiration =
         (segmentObject.Operations.Expiration)!

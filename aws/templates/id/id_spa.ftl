@@ -83,7 +83,7 @@
     [#assign cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
 
     [#if solution.Certificate.Configured && solution.Certificate.Enabled ]
-            [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentId, segmentName) ]
+            [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
             [#local hostName = getHostName(certificateObject, occurrence) ]
             [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
     [#else]

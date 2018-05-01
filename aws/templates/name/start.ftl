@@ -40,18 +40,17 @@
 
 [#-- Format segment short name --]
 [#function formatSegmentShortName extensions...]
-    [#return formatName(
-                productId,
-                segmentId,
-                extensions)]
+    [#return formatName(shortNamePrefixes, extensions) ]
 [/#function]
 
 [#-- Format segment name --]
 [#function formatSegmentFullName extensions...]
-    [#return formatName(
-                productName,
-                segmentName,
-                extensions)]
+    [#return formatName(fullNamePrefixes,  extensions) ]
+[/#function]
+
+[#-- Format environment name --]
+[#function formatEnvironmentFullName extensions...]
+    [#return formatName(fullNamePrefixes[0..1],  extensions) ]
 [/#function]
 
 [#-- Format a component short name - based on ids not names --]
@@ -97,11 +96,7 @@
 
 [#-- Format a segment path --]
 [#function formatSegmentPath absolute extensions...]
-    [#return formatPath(
-                absolute,
-                productName,
-                segmentName,
-                extensions)]
+    [#return formatPath(absolute, fullNamePrefixes, extensions)]
 [/#function]
 
 [#function formatSegmentRelativePath extensions...]

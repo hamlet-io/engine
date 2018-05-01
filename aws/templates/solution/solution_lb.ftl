@@ -70,7 +70,7 @@
                             segmentObject.Network.CIDR.Address + "/" +segmentObject.Network.CIDR.Mask
                         )) ]
 
-                [#assign certificateObject = getCertificateObject(solution.Certificate, segmentId, segmentName, sourcePort.Id, sourcePort.Name) ]
+                [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id, sourcePort.Name) ]
                 [#assign hostName = getHostName(certificateObject, subOccurrence) ]
                 [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 

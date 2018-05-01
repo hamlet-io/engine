@@ -394,7 +394,12 @@
                             "IamInstanceProfile" : { "Ref" : ec2InstanceProfileId },
                             "InstanceInitiatedShutdownBehavior" : "stop",
                             "InstanceType": processorProfile.Processor,
-                            "KeyName": productName + sshPerSegment?then("-" + segmentName,""),
+                            "KeyName":
+                                valueIfTrue(
+                                    formatEnvironmentFullName(),
+                                    sshPerEnvironment,
+                                    productName
+                                ),
                             "Monitoring" : false,
                             "NetworkInterfaces" : [
                                 {

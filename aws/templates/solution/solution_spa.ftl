@@ -12,7 +12,7 @@
         [#assign resources = occurrence.State.Resources]
         [#assign solution = occurrence.Configuration.Solution ]
 
-        [#assign certificateObject = getCertificateObject(solution.Certificate, segmentId, segmentName) ]
+        [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
         [#assign hostName = getHostName(certificateObject, occurrence) ]
         [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
         [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
