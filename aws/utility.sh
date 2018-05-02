@@ -449,6 +449,7 @@ function addToArrayInternal() {
   done
 
   ! namedef_supported && eval "${array_name}=(\"\${array[@]}\")"
+  return 0
 }
 
 function removeFromArrayInternal() {
@@ -469,6 +470,7 @@ function removeFromArrayInternal() {
     array=("${array[@]:0:${remaining}}")
 
   ! namedef_supported && eval "${array_name}=(\"\${array[@]}\")"
+  return 0
 }
 
 function addToArray() {
@@ -1048,6 +1050,7 @@ function get_rds_url() {
 }
 
 # -- Git Repo Management --
+
 function in_git_repo() {
   git status >/dev/null 2>&1
 }
@@ -1129,3 +1132,57 @@ function git_rm() {
   in_git_repo && git rm "$@" || rm "$@"
 }
 
+# -- semver handling --
+# From github.com/fsaintjacques/semver-tool
+
+function semver_validate {
+  local version=$1
+
+[[ "$version" =~ ^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-([^+]+))?(\+(.*))?$ ]] || return 1
+  local major=${BASH_REMATCH[1]}
+  local minor=${BASH_REMATCH[2]}
+  local patch=${BASH_REMATCH[3]}
+  local prere=${BASH_REMATCH[5]}
+  local build=${BASH_REMATCH[7]}
+
+  echo -n ${major} ${minor} ${patch} ${prere} ${build}
+  return 0
+}
+
+function semver_compare {
+  local v1="$(semver_validate "$1")"; shift
+  local v2="$(semver_validate "$1")"; shift
+
+  if [[ (-z "${v1}") || (-z "${v2}") ]]; then
+    echo -n "?"
+    return 1
+  fi
+
+  local v1_components=(${v1})
+  local v2_components=(${v2})
+
+  # MAJOR, MINOR and PATCH should compare numericaly
+  for i in 0 1 2; do
+    local diff=$((${v1_components[$i]} - ${v2_components[$i]}))
+    if [[ ${diff} -lt 0 ]]; then
+      echo -n -1; return 0
+    elif [[ ${diff} -gt 0 ]]; then
+      echo -n 1; return 0
+    fi
+  done
+
+  # PREREL should compare with the ASCII order.
+  if [[ -z "${v1_components[3]}" ]] && [[ -n "${v2_components[3]}" ]]; then
+    echo -n -1; return 0;
+  elif [[ -n "${v1_components[3]}" ]] && [[ -z "${v2_components[3]}" ]]; then
+    echo -n 1; return 0;
+  elif [[ -n "${v1_components[3]}" ]] && [[ -n "${v2_components[3]}" ]]; then
+    if [[ "${v1_components[3]}" > "${v2_components[3]}" ]]; then
+      echo -n 1; return 0;
+    elif [[ "${v1_components[3]}" < "${v2_components[3]}" ]]; then
+      echo -n -1; return 0;
+    fi
+  fi
+
+  echo -n 0
+}

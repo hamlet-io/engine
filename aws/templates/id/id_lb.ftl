@@ -187,7 +187,7 @@
     [#local id = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id) ]
 
     [#if (sourcePort.Certificate)!false ]
-        [#local certificateObject = getCertificateObject(solution.Certificate, segmentId, segmentName) ]
+        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
         [#local hostName = getHostName(certificateObject, occurrence) ]
 
         [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]

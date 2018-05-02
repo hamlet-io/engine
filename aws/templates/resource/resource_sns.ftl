@@ -53,7 +53,7 @@
 [/#macro]
 
 [#macro createSegmentSNSTopic mode id extensions...]
-    [@createSNSTopic mode, id, formatName(productName, segmentName, extensions) /]
+    [@createSNSTopic mode, id, formatSegmentFullName(extensions) /]
 [/#macro]
 
 [#macro createProductSNSTopic mode id extensions...]

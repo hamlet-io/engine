@@ -24,7 +24,7 @@
             isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
         [@createRole
             mode=listMode
-            id=flowLogsRoleId                               
+            id=flowLogsRoleId
             trustedServices=["vpc-flow-logs.amazonaws.com"]
             policies=
                 [
@@ -32,7 +32,7 @@
                         cwLogsProducePermission(),
                         formatName("vpcflowlogs"))
                 ]
-        /]        
+        /]
     [/#if]
 
     [#if deploymentSubsetRequired("lg", true) &&
@@ -47,7 +47,7 @@
                         (environmentObject.Operations.Expiration) ! 7)
         /]
     [/#if]
-        
+
     [#if deploymentSubsetRequired("vpc", true)]
         [#if (segmentObject.Operations.FlowLogs.Enabled)!
                 (environmentObject.Operations.FlowLogs.Enabled)! false]
@@ -60,13 +60,13 @@
                 trafficType="ALL"
             /]
         [/#if]
-            
+
         [@createSegmentSNSTopic
             mode=listMode
             id=topicId
         /]
 
-        [@createVPC 
+        [@createVPC
             mode=listMode
             id=vpcId
             name=formatVPCName()
@@ -88,7 +88,7 @@
                 igwId=igwId
             /]
         [/#if]
-        
+
         [#-- Define route tables --]
         [#assign solutionRouteTables = []]
         [#list segmentObject.Network.Tiers.Order as tierId]
@@ -119,7 +119,7 @@
                                             id=formatRouteId(routeTableId, route)
                                             routeTableId=routeTableId
                                             route=
-                                                route + 
+                                                route +
                                                 {
                                                     "IgwId" : igwId,
                                                     "CIDR" : "0.0.0.0/0"
@@ -147,7 +147,7 @@
                 routeTableIds=solutionRouteTables
             /]
         [/#list]
-        
+
         [#-- Define network ACLs --]
         [#assign solutionNetworkACLs = []]
         [#list segmentObject.Network.Tiers.Order as tierId]
@@ -188,7 +188,7 @@
                 [/#list]
             [/#if]
         [/#list]
-    
+
         [#-- Define subnets --]
         [#list segmentObject.Network.Tiers.Order as tierId]
             [#assign networkTier = getTier(tierId) ]
@@ -251,7 +251,7 @@
 
 [#if sshEnabled &&
     (
-        (componentType == "ssh") || 
+        (componentType == "ssh") ||
         ((componentType == "vpc") && sshInVpc)
     )]
 
@@ -276,7 +276,7 @@
     [/#if]
 
     [#assign eipId = formatComponentEIPId(tier, sshComponent)]
-    
+
     [#if deploymentSubsetRequired("eip", true) &&
             isPartOfCurrentDeploymentUnit(eipId) &&
             sshStandalone]
@@ -298,7 +298,7 @@
                 [
                     {
                         "Port" : "ssh",
-                        "CIDR" : 
+                        "CIDR" :
                             (sshActive || sshStandalone)?then(
                                 getGroupCIDRs(
                                     (segmentObject.SSH.IPAddressGroups)!
@@ -309,7 +309,7 @@
                 ]
             vpcId=sshInVpc?then(vpcId,"")
         /]
-    
+
         [@createSecurityGroup
             mode=listMode
             tier="all"
@@ -325,7 +325,7 @@
                     }
                 ]
         /]
-        
+
         [#if sshStandalone]
             [#assign instanceProfileId = formatEC2InstanceProfileId(tier, sshComponent)]
 
@@ -340,10 +340,10 @@
                     }
                 outputs={}
             /]
-            
+
             [#assign asgId = formatEC2AutoScaleGroupId(tier, sshComponent)]
             [#assign launchConfigId = formatEC2LaunchConfigId(tier, sshComponent)]
-    
+
             [@cfResource
                 mode=listMode
                 id=asgId
@@ -368,12 +368,12 @@
                                     "yum" : {
                                         "aws-cli" : []
                                     }
-                                },  
+                                },
                                 "files" : {
                                     "/etc/codeontap/facts.sh" : {
-                                        "content" : { 
+                                        "content" : {
                                             "Fn::Join" : [
-                                                "", 
+                                                "",
                                                 [
                                                     "#!/bin/bash\n",
                                                     "echo \"cot:request="       + requestReference       + "\"\n",
@@ -398,9 +398,9 @@
                                         "mode" : "000755"
                                     },
                                     "/opt/codeontap/bootstrap/fetch.sh" : {
-                                        "content" : { 
+                                        "content" : {
                                             "Fn::Join" : [
-                                                "", 
+                                                "",
                                                 [
                                                     "#!/bin/bash -ex\n",
                                                     "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
@@ -428,7 +428,7 @@
                                 "commands": {
                                     "01ExecuteAllocateEIPScript" : {
                                         "command" : "/opt/codeontap/bootstrap/eip.sh",
-                                        "env" : { 
+                                        "env" : {
                                             "EIP_ALLOCID" :
                                                 getReference(
                                                     eipId,
@@ -457,7 +457,7 @@
                         "",
                         true)
             /]
-        
+
             [#assign processorProfile = getProcessor(tier, sshComponent, "SSH")]
             [#assign updateCommand = "yum clean all && yum -y update"]
             [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
@@ -473,7 +473,12 @@
                 type="AWS::AutoScaling::LaunchConfiguration"
                 properties=
                     {
-                        "KeyName": productName + sshPerSegment?string("-" + segmentName,""),
+                        "KeyName":
+                            valueIfTrue(
+                                formatEnvironmentFullName(),
+                                sshPerEnvironment,
+                                productName
+                            ),
                         "ImageId": regionObject.AMIs.Centos.EC2,
                         "InstanceType": processorProfile.Processor,
                         "SecurityGroups" : [ getReference(sshToProxySecurityGroupId) ],
@@ -481,9 +486,9 @@
                         "AssociatePublicIpAddress": true,
                         "UserData":
                             {
-                                "Fn::Base64": { 
-                                    "Fn::Join": [ 
-                                        "", 
+                                "Fn::Base64": {
+                                    "Fn::Join": [
+                                        "",
                                         [
                                             "#!/bin/bash -ex\n",
                                             "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
@@ -517,7 +522,7 @@
 
 [#if natEnabled &&
     (
-        (componentType == "nat") || 
+        (componentType == "nat") ||
         ((componentType == "vpc") && natInVpc)
     )]
 
@@ -532,7 +537,7 @@
     ]
 
     [#assign roleId = formatComponentRoleId(tier, natComponent)]
-    
+
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(roleId) &&
             (!natHosted)]
@@ -571,7 +576,7 @@
     [#if deploymentSubsetRequired("nat", true)]
         [#if !natHosted]
             [#assign instanceProfileId = formatEC2InstanceProfileId(tier, natComponent)]
-    
+
             [@cfResource
                 mode=listMode
                 id=instanceProfileId
@@ -583,7 +588,7 @@
                     }
                 outputs={}
             /]
-    
+
             [@createSecurityGroup
                 mode=listMode
                 tier=tier
@@ -644,7 +649,7 @@
                 [#else]
                     [#assign asgId = formatEC2AutoScaleGroupId(tier, natComponent, zone)]
                     [#assign launchConfigId = formatEC2LaunchConfigId(tier, natComponent, zone)]
-    
+
                     [#assign natCommands =
                         {
                             "01ExecuteRouteUpdateScript" : {
@@ -653,7 +658,7 @@
                             },
                             "02ExecuteAllocateEIPScript" : {
                                 "command" : "/opt/codeontap/bootstrap/eip.sh",
-                                "env" : { 
+                                "env" : {
                                     "EIP_ALLOCID" :
                                         getReference(
                                             eipId,
@@ -664,7 +669,7 @@
                             }
                         }
                     ]
-    
+
                     [@cfResource
                         mode=listMode
                         id=asgId
@@ -689,12 +694,12 @@
                                             "yum" : {
                                                 "aws-cli" : []
                                             }
-                                        },  
+                                        },
                                         "files" : {
                                             "/etc/codeontap/facts.sh" : {
-                                                "content" : { 
+                                                "content" : {
                                                     "Fn::Join" : [
-                                                        "", 
+                                                        "",
                                                         [
                                                             "#!/bin/bash\n",
                                                             "echo \"cot:request="       + requestReference       + "\"\n",
@@ -720,9 +725,9 @@
                                                 "mode" : "000755"
                                             },
                                             "/opt/codeontap/bootstrap/fetch.sh" : {
-                                                "content" : { 
+                                                "content" : {
                                                     "Fn::Join" : [
-                                                        "", 
+                                                        "",
                                                         [
                                                             "#!/bin/bash -ex\n",
                                                             "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
@@ -767,7 +772,7 @@
                                 zone,
                                 true)
                     /]
-                
+
                     [#assign processorProfile = getProcessor(tier, natComponent, "NAT")]
                     [#assign updateCommand = "yum clean all && yum -y update"]
                     [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
@@ -783,7 +788,12 @@
                         type="AWS::AutoScaling::LaunchConfiguration"
                         properties=
                             {
-                                "KeyName": productName + sshPerSegment?string("-" + segmentName,""),
+                                "KeyName":
+                                    valueIfTrue(
+                                        formatEnvironmentFullName(),
+                                        sshPerEnvironment,
+                                        productName
+                                    ),
                                 "ImageId": regionObject.AMIs.Centos.NAT,
                                 "InstanceType": processorProfile.Processor,
                                 "SecurityGroups" : (sshEnabled && !sshStandalone)?then(
@@ -798,9 +808,9 @@
                                 "IamInstanceProfile" : getReference(instanceProfileId),
                                 "AssociatePublicIpAddress": true,
                                 "UserData": {
-                                    "Fn::Base64": { 
-                                        "Fn::Join": [ 
-                                            "", 
+                                    "Fn::Base64": {
+                                        "Fn::Join": [
+                                            "",
                                             [
                                                 "#!/bin/bash -ex\n",
                                                 "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
