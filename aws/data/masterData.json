@@ -1284,8 +1284,8 @@
     "Wildcard": true,
     "IncludeInHost": {
       "Product": false,
-      "Environment": false,
-      "Segment": true,
+      "Environment": true,
+      "Segment": false,
       "Tier": false,
       "Component": true,
       "Instance": true,

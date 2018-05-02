@@ -8,10 +8,10 @@
         properties=
             {
                 "HostedZoneConfig" : {
-                    "Comment" : formatName(productName, segmentName)
+                    "Comment" : formatSegmentFullName()
                 },
                 "HostedZoneTags" : getCfTemplateCoreTags(),
-                "Name" : segmentName + "." + productName + ".internal",
+                "Name" : concatenate(fullNamePrefixes?reverse + ["internal"], "."),
                 "VPCs" : [                
                     {
                         "VPCId" : getReference(formatVPCId()),

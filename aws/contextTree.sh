@@ -535,6 +535,7 @@ function findGen3Dirs() {
 
       declare -gx ${prefix}SEGMENT_APPSETTINGS_DIR=$(getGen3Env "PRODUCT_APPSETTINGS_DIR" "${prefix}")/${segment}
       declare -gx ${prefix}SEGMENT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_CREDENTIALS_DIR" "${prefix}")/${segment}
+      declare -gx ${prefix}ENVIRONMENT_CREDENTIALS_DIR=$(getGen3Env "PRODUCT_CREDENTIALS_DIR" "${prefix}")/${segment}
     fi
   fi
 
@@ -657,11 +658,76 @@ function upgrade_credentials() {
     fi
 }
 
-function upgrade_cmdb() {
-  local root_dir="${1:-${ROOT_DIR}}";shift
+function upgrade_cmdb_repo() {
+  local root_dir="$1";shift
+  local cleanup="$1";shift
   local dry_run="$1";shift
 
-  pushTempDir "upgrade_cmdb_XXXX"
+  local cmdb_version_file="${root_dir}/.cmdb"
+  local versions=("v1.0.0")
+  local current_version="v0.0.0"
+
+  debug "Checking repo ${root_dir} ..."
+
+  [[ ! -d "${root_dir}/.git" ]] &&
+    error "We don't appear to be in the root directory of a repo" && return 1
+
+  if [[ -f "${cmdb_version_file}" ]]; then
+    current_version="$(jq -r ".Version" < "${cmdb_version_file}")"
+    debug "Repo is at version ${current_version}"
+  fi
+
+  for version in "${versions[@]}"; do
+    # Nothing to do if not less than version being checked
+    local semver_check="$(semver_compare "${current_version}" "${version}")"
+
+    if [[ "${semver_check}" == "-1" ]]; then
+      info "Upgrading repo to ${version} ..."
+    else
+      if [[ "${cleanup}" == "true" ]]; then
+        info "Cleaning up after ${version} ..."
+      else
+        debug "Ignoring upgrade to ${version} ..."
+        continue
+      fi
+    fi
+
+    local return_status
+    upgrade_cmdb_repo_to_${version//./_} "${root_dir}" "${cleanup}" "${dry_run}"; return_status=$?
+
+    if [[ "${dry_run}" == "true" ]]; then
+      if [[ "${return_status}" -eq 0 ]]; then
+        debug "No upgrade needed"
+      else
+        debug "Upgrade needed"
+      fi
+      # Only process one level of upgrade for a dryrun
+      break
+    else
+      if [[ "${return_status}" -eq 0 ]]; then
+        if [[ "${semver_check}" == "-1" ]]; then
+          # record upgraded version
+          info "Upgrade of repo ${root_dir} to ${version} successful"
+          echo -n "{\"Version\" : \"${version}\"}" > "${cmdb_version_file}"
+          current_version="${version}"
+        else
+          info "Clean up after ${version} successful"
+        fi
+      else
+        return ${return_status}
+      fi
+    fi
+  done
+  return 0
+}
+
+function upgrade_cmdb_repo_to_v1_0_0() {
+  local root_dir="$1";shift
+  local cleanup="$1";shift
+  local dry_run="$1";shift
+
+  pushd "${root_dir}" > /dev/null
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
   local tmp_dir="$(getTopTempDir)"
   local tmp_file
 
@@ -679,12 +745,14 @@ function upgrade_cmdb() {
     tmp_file="$(getTempFile "build_XXXX.json" "${tmp_dir}")"
     upgrade_build_ref "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
-    if [[ -n "${dry_run}" ]]; then
+    if [[ "${dry_run}" == "true" ]]; then
       willLog "trace" && { echo; cat "${tmp_file}"; echo; }
       continue
     fi
     cp "${tmp_file}" "${replacement_file}" || { upgrade_succeeded="false"; continue; }
-#    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+    if [[ "${cleanup}" == "true" ]]; then
+      git_rm -f "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+    fi
   done
 
   # All shared build references now in json format
@@ -698,12 +766,14 @@ function upgrade_cmdb() {
     tmp_file="$(getTempFile "shared_XXXX.json" "${tmp_dir}")"
     upgrade_shared_build_ref "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
-    if [[ -n "${dry_run}" ]]; then
+    if [[ "${dry_run}" == "true" ]]; then
       willLog "trace" && { echo; cat "${tmp_file}"; echo; }
       continue
     fi
     cp "${tmp_file}" "${replacement_file}" || { upgrade_succeeded="false"; continue; }
-#    git_rm "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+    if [[ "${cleanup}" == "true" ]]; then
+      git_rm -f "${legacy_file}" || { upgrade_succeeded="false"; continue; }
+    fi
   done
 
   # Strip top level "Credentials" attribute from credentials
@@ -716,7 +786,7 @@ function upgrade_cmdb() {
       tmp_file="$(getTempFile "credentials_XXXX.json" "${tmp_dir}")"
       upgrade_credentials "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
-      if [[ -n "${dry_run}" ]]; then
+      if [[ "${dry_run}" == "true" ]]; then
         willLog "trace" && { echo; cat "${tmp_file}"; echo; }
         continue
       fi
@@ -735,21 +805,43 @@ function upgrade_cmdb() {
     tmp_file="$(getTempFile "container_XXXX.json" "${tmp_dir}")"
     cp "${legacy_file}" "${tmp_file}" || { upgrade_succeeded="false"; continue; }
 
-    if [[ -n "${dry_run}" ]]; then
+    if [[ "${dry_run}" == "true" ]]; then
       willLog "trace" && { echo; cat "${tmp_file}"; echo; }
       continue
     fi
     cp "${legacy_file}" "${replacement_file}" || { upgrade_succeeded="false"; continue; }
-#    git_rm "${legacy_file}"  || { upgrade_succeeded="false"; continue; }
+    if [[ "${cleanup}" == "true" ]]; then
+      git_rm -f "${legacy_file}"  || { upgrade_succeeded="false"; continue; }
+    fi
   done
 
   popTempDir
+  popd > /dev/null
 
   # Is an upgrade needed?
-  if [[ -n "${dry_run}" ]]; then
+  if [[ "${dry_run}" == "true" ]]; then
     [[ "${upgrade_needed}" == "false" ]]
   else
     [[ "${upgrade_succeeded}" == "true" ]]
   fi
   return $?
+}
+
+function upgrade_cmdb() {
+  local root_dir="$1";shift
+  local cleanup="${1:-false}";shift
+  local dry_run="${1:-false}";shift
+
+  # Find all the repos
+  readarray -t cmdb_repos < <(find "${root_dir}" -type d -name ".git" | sort )
+
+  pushTempDir "upgrade_cmdb_$(fileName "${root_dir}")_XXXX"
+
+  # Process each one
+  for cmdb_repo in "${cmdb_repos[@]}"; do
+    local cmdb_repo_dir=
+    upgrade_cmdb_repo "$(filePath "${cmdb_repo}")" "${cleanup}" "${dry_run}" || return $?
+  done
+
+  popTempDir
 }

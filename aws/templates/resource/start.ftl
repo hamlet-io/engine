@@ -230,12 +230,6 @@
             ],
             []
         ) +
-        segmentId?has_content?then(
-            [
-                { "Key" : "cot:segment", "Value" : segmentName }
-            ],
-            []
-        ) +
         environmentId?has_content?then(
             [
                 { "Key" : "cot:environment", "Value" : environmentName }
@@ -245,6 +239,12 @@
         [
             { "Key" : "cot:category", "Value" : categoryName }
         ] +
+        segmentId?has_content?then(
+            [
+                { "Key" : "cot:segment", "Value" : segmentName }
+            ],
+            []
+        ) +
         tier?has_content?then(
             [
                 { "Key" : "cot:tier", "Value" : getTierName(tier) }

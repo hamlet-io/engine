@@ -3,7 +3,7 @@
 [#function getDynamodbStatement actions tables=[] streams=[] indexes=[] principals="" conditions=""]
     [#local result = [] ]
     [#-- TODO(mfl): for now aws doesn't support partitioning on the basis of prefix --]
-    [#-- local tablePrefix = productName + "_" + segmentName + "_" --]
+    [#-- local tablePrefix = fullNamePrefixes?join("_") + "_" --]
     [#local tablePrefix = "" ]
     [#if tables?has_content]
         [#list asArray(tables) as table]
