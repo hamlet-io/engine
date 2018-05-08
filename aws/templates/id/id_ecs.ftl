@@ -67,10 +67,6 @@
         ECS_COMPONENT_TYPE : {
             "Attributes" : [
                 {
-                    "Name" : "ClusterWideStorage",
-                    "Default" : false
-                },
-                {
                     "Name" : "FixedIP",
                     "Default" : false
                 },
@@ -175,9 +171,14 @@
             {
                 "Name" : "TaskLogGroup",
                 "Default" : true
+            },
+            {
+                "Name" : "DelegateDeployment",
+                "Default" : false
             }
         ]
     } ]
+
 
 [#function getECSState occurrence]
     [#local core = occurrence.Core ]
@@ -261,6 +262,14 @@
                     "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
+            ) +
+            attributeIfTrue(
+                "taskrole"
+                solution.UseTaskRole,
+                {
+                    "Id" : formatDependentRoleId(taskId),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                }    
             ),
             "Attributes" : {},
             "Roles" : {
@@ -276,6 +285,12 @@
     [#local solution = occurrence.Configuration.Solution ]
 
     [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
+    [#local taskRoleId = formatDependentRoleId(taskId)]
+
+    [#local taskDefinitionPath = formatRelativePath(
+                                    getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                                    "config")]
+    [#local taskDefinitionFileName = "config.json"]
 
     [#return
         {
@@ -293,11 +308,47 @@
                     "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
+            ) +
+            attributeIfTrue(
+                "taskrole"
+                solution.UseTaskRole,
+                {
+                    "Id" : taskRoleId,
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                }    
             ),
-            "Attributes" : {},
+            "Attributes" : {} + 
+                attributeIfTrue(
+                    "DEFINITIONFILE",
+                    solution.DelegateDeployment,
+                    formatRelativePath(
+                        taskDefinitionPath,
+                        taskDefinitionFileName
+                    )
+                ) +
+                attributeIfTrue(
+                    "DEFINITIONBUCKET",
+                    solution.DelegateDeployment,
+                    operationsBucket
+                ),
             "Roles" : {
                 "Inbound" : {},
-                "Outbound" : {}
+                "Outbound" : {} + 
+                    attributeIfTrue(
+                        "deploy",
+                        solution.DelegateDeployment,
+                        s3ReadPermission(
+                            operationsBucket, 
+                            taskDefinitionPath,
+                            taskDefinitionFileName
+                        )+
+                        solution.UseTaskRole?then(
+                            iamPassRolePermission(
+                                getExistingReference(taskRoleId, ARN_ATTRIBUTE_TYPE)
+                            )
+                            ,{}
+                        )
+                    )
             }
         }
     ]

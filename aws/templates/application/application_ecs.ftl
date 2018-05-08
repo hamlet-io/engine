@@ -151,7 +151,7 @@
             [#assign dependencies = [] ]
 
             [#if solution.UseTaskRole]
-                [#assign roleId = formatDependentRoleId(taskId) ]
+                [#assign roleId = resources["taskrole"].Id ]
                 [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
                     [@createRole
                         mode=listMode
@@ -214,14 +214,27 @@
                 [/#list]
             [/#if]
 
-            [#if deploymentSubsetRequired("ecs", true)]
+            [#assign delegateTaskConfigFile = false]
+            [#if core.Type == ECS_TASK_COMPONENT_TYPE ] 
+                [#if solution.DelegateDeployment ]
+                    [#assign delegateTaskConfigFile = true]
+                [/#if]
+            [/#if]
+
+            [#if deploymentSubsetRequired("ecs", true) || ( delegateTaskConfigFile && deploymentSubsetRequired("config", false))]
+
                 [@createECSTask
                     mode=listMode
                     id=taskId
                     containers=containers
                     role=roleId
                     dependencies=dependencies
+                    delegatedDeployment=solution.DelegateDeployment
                 /]
+
+            [/#if]
+            
+            [#if deploymentSubsetRequired("ecs", true)]
 
                 [#-- Pick any extra macros in the container fragments --]
                 [#list (solution.Containers!{})?values as container]
@@ -247,6 +260,29 @@
                                 operationsBucket,
                                 getOccurrenceSettingValue(subOccurrence, "SETTINGS_PREFIX")
                             ) /]
+                [/#if]
+            [/#if]
+
+            [#if deploymentSubsetRequired("epilogue", false)]
+                [#if delegateTaskConfigFile ]
+                    [@cfScript
+                        mode=listMode
+                        content=
+                            getLocalFileScript(
+                                "configFiles",
+                                "$\{CONFIG}",
+                                "config.json"
+                            ) +
+                            syncFilesToBucketScript(
+                                "configFiles",
+                                regionId,
+                                operationsBucket,
+                                formatRelativePath(
+                                    getOccurrenceSettingValue(subOccurrence, "SETTINGS_PREFIX"),
+                                    "config"
+                                )
+                            )
+                            /]
                 [/#if]
             [/#if]
        [/#list]

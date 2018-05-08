@@ -2112,6 +2112,25 @@
         ] ]
 [/#function]
 
+[#function pseudoStackOutputScript description outputs filesuffix="pseudo" ]
+    [#local outputString = ""]
+    [#list outputs as key,value ]
+        [#local outputString += 
+          "\"" + key + "\" \"" + value + "\" " 
+        ]
+    [/#list]
+
+    [#return 
+        [
+            "create_pseudo_stack" + " " +
+            "\"" + description + "\"" + " " +
+            "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-" + filesuffix + "-stack.json\" " +
+            outputString + " || return $?"
+        ]
+    ]
+
+[/#function]
+
 [#-- WAF functions --]
 
 [#function isWAFPresent configuration={} ]
