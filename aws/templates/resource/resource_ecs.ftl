@@ -1,6 +1,6 @@
 [#-- ECS --]
 
-[#macro createECSTask mode id containers role="" dependencies=""]
+[#macro createECSTask mode id containers delegatedDeployment=false role="" dependencies=""]
 
     [#local definitions = [] ]
     [#local volumes = [] ]
@@ -92,18 +92,28 @@
         ]
     [/#list]
 
-    [@cfResource
-        mode=mode
-        id=id
-        type="AWS::ECS::TaskDefinition"
-        properties=
-            {
-                "ContainerDefinitions" : definitions
-            } + 
-            attributeIfContent("Volumes", volumes) +
-            attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE))
-        dependencies=dependencies
-    /]
+    [#local taskProperties = {
+        "ContainerDefinitions" : definitions
+        } + 
+        attributeIfContent("Volumes", volumes)  + 
+        attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE))
+    ]
+
+    [#if delegatedDeployment ]
+        [#-- Allows for container definitions to be written to a config file for processing by another service (e.g. Jenkins) --]
+        [@cfConfig
+            mode=listMode
+            content=taskProperties
+        /]
+    [#else]
+        [@cfResource
+            mode=mode
+            id=id
+            type="AWS::ECS::TaskDefinition"
+            properties=taskProperties
+            dependencies=dependencies
+        /]
+    [/#if]
 [/#macro]
 
 [#macro createECSService mode id ecsId desiredCount taskId loadBalancers roleId="" dependencies=""]
