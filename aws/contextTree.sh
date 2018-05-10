@@ -239,7 +239,6 @@ function assemble_settings() {
 }
 
 function assemble_composite_stack_outputs() {
-  local result_file="${1:-${COMPOSITE_STACK_OUTPUTS}}"
 
   # Create the composite stack outputs
   local restore_nullglob=$(shopt -p nullglob)
@@ -285,7 +284,7 @@ function assemble_composite_stack_outputs() {
     debug "MODIFIED_STACK_OUTPUTS=${modified_stack_array[*]}"
     ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o ${COMPOSITE_STACK_OUTPUTS} "${modified_stack_array[@]}"
   else
-    echo "[]" > ${result_file}
+    echo "[]" > ${COMPOSITE_STACK_OUTPUTS}
   fi
 
   popTempDir
