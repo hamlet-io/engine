@@ -583,11 +583,18 @@
                     [#if subobjects ]
                         [#local subobjectKeys = [] ]
                         [#list childObjects as childObject]
-                            [#list childObject as key,value]
-                                [#if value?is_hash]
-                                    [#local subobjectKeys += [key] ]
-                                [/#if]
-                            [/#list]
+                            [#if childObject?is_hash]
+                              [#list childObject as key,value]
+                                  [#if value?is_hash]
+                                      [#local subobjectKeys += [key] ]
+                                  [/#if]
+                              [/#list]
+                            [#else]
+                              [@cfException
+                                mode=listMode
+                                description="Child content is not a hash"
+                                context=childObject /]
+                            [/#if]
                         [/#list]
                         [#list subobjectKeys as subobjectKey ]
                             [#if subobjectKey == "Configuration" ]
@@ -808,7 +815,7 @@
             [#case "efsMount" ]
                 [#local result = getEFSMountState(occurrence, parentOccurrence)]
                 [#break]
-        
+
             [#case "es"]
                 [#local result = getESState(occurrence)]
                 [#break]
@@ -908,24 +915,38 @@
     [#return result ]
 [/#function]
 
-[#function getOccurrenceSettings possibilities alternatives]
+[#function getOccurrenceSettings possibilities root prefixes alternatives]
     [#local contexts = [] ]
 
     [#-- Order possibilities in increasing priority --]
-    [#list possibilities?keys?sort as key]
-        [#local matchKey = key?lower_case?remove_ending("-asfile") ]
-        [#local value = possibilities[key] ]
-        [#if value?has_content]
-            [#list alternatives as alternative]
-                [#if
-                    (
-                        ((alternative.Match == "exact") && (alternative.Key == matchKey)) ||
-                        ((alternative.Match == "partial") && (alternative.Key?starts_with(matchKey)))
-                    ) ]
-                    [#local contexts += [value] ]
-                [/#if]
-            [/#list]
-        [/#if]
+    [#list prefixes as prefix]
+        [#list possibilities?keys?sort as key]
+            [#local matchKey = key?lower_case?remove_ending("-asfile") ]
+            [#local value = possibilities[key] ]
+            [#if value?has_content]
+                [#list alternatives as alternative]
+                    [#local alternativeKey = formatName(root, prefix, alternative.Key) ]
+                    [@cfDebug
+                        mode=listMode
+                        value=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey
+                        enabled=false
+                    /]
+                    [#if
+                        (
+                            ((alternative.Match == "exact") && (alternativeKey == matchKey)) ||
+                            ((alternative.Match == "partial") && (alternativeKey?starts_with(matchKey)))
+                        ) ]
+                        [@cfDebug
+                            mode=listMode
+                            value=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey + " successful"
+                            enabled=false
+                        /]
+                        [#local contexts += [value] ]
+                        [#break]
+                    [/#if]
+                [/#list]
+            [/#if]
+        [/#list]
     [/#list]
     [#return asFlattenedSettings(getCompositeObject({ "Name" : "*" }, contexts)) ]
 [/#function]
@@ -960,10 +981,14 @@
 [/#function]
 
 [#function getOccurrenceAccountSettings occurrence]
-    [#local alternatives = [{"Key" : accountName, "Match" : "exact"}] ]
+    [#local alternatives = [{"Key" : "shared", "Match" : "exact"}] ]
+
+    [#-- Fudge prefixes for accounts --]
     [#return
         getOccurrenceSettings(
-            (settingsObject.AppSettings.Accounts)!{},
+            (settingsObject.Settings.Accounts)!{},
+            accountName,
+            [""],
             alternatives) ]
 [/#function]
 
@@ -972,16 +997,18 @@
 
     [#local alternatives =
         [
-            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
-            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
+            {"Key" : deploymentUnit, "Match" : "exact"},
+            {"Key" : occurrence.Core.Name, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"}
         ] ]
 
     [#local occurrenceBuild =
         getOccurrenceSettings(
             (settingsObject.Builds.Products)!{},
+            productName,
+            cmdbProductLookupPrefixes,
             alternatives
         ) ]
 
@@ -990,8 +1017,10 @@
         [#local occurrenceBuild +=
             getOccurrenceSettings(
                 (settingsObject.Builds.Products)!{},
+                productName,
+                cmdbProductLookupPrefixes,
                 [
-                    {"Key" : formatSegmentFullName(occurrenceBuild.REFERENCE.Value?replace("/","-")), "Match" : "exact"}
+                    {"Key" : occurrenceBuild.REFERENCE.Value?replace("/","-"), "Match" : "exact"}
                 ]
             ) ]
     [/#if]
@@ -1024,36 +1053,40 @@
 
     [#local alternatives =
         [
-            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
-            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
+            {"Key" : deploymentUnit, "Match" : "exact"},
+            {"Key" : occurrence.Core.Name, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"}
         ] ]
 
     [#return
         getOccurrenceSettings(
-            (settingsObject.AppSettings.Products)!{},
+            (settingsObject.Settings.Products)!{},
+            productName,
+            cmdbProductLookupPrefixes,
             alternatives) ]
 [/#function]
 
 
-[#function getOccurrenceCredentialSettings occurrence]
+[#function getOccurrenceSensitiveSettings occurrence]
     [#local deploymentUnit = (occurrence.Configuration.Solution.DeploymentUnits[0])!"" ]
 
     [#local alternatives =
         [
-            {"Key" : formatSegmentFullName(deploymentUnit), "Match" : "exact"},
-            {"Key" : occurrence.Core.FullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.TypedFullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortFullName, "Match" : "partial"},
-            {"Key" : occurrence.Core.ShortTypedFullName, "Match" : "partial"}
+            {"Key" : deploymentUnit, "Match" : "exact"},
+            {"Key" : occurrence.Core.Name, "Match" : "partial"},
+            {"Key" : occurrence.Core.TypedName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortName, "Match" : "partial"},
+            {"Key" : occurrence.Core.ShortTypedName, "Match" : "partial"}
         ] ]
 
     [#return
         markAsSensitive(
             getOccurrenceSettings(
-                (settingsObject.Credentials.Products)!{},
+                (settingsObject.Sensitive.Products)!{},
+                productName,
+                cmdbProductLookupPrefixes,
                 alternatives) ) ]
 [/#function]
 
@@ -1107,18 +1140,27 @@
     [#return getOccurrenceSetting(occurrence, names, emptyIfNotProvided).Value]
 [/#function]
 
-[#function getOccurrenceBuildReference occurrence]
+[#function getOccurrenceBuildReference occurrence emptyIfNotProvided=false]
     [#return
         contentIfContent(
             getOccurrenceSettingValue(occurrence, "BUILD_REFERENCE", true),
-            "COTException: Build reference not found") ]
+            valueIfTrue(
+                "",
+                emptyIfNotProvided,
+                "COTException: Build reference not found"
+            )
+        ) ]
 [/#function]
 
-[#function getOccurrenceBuildUnit occurrence]
+[#function getOccurrenceBuildUnit occurrence emptyIfNotProvided=false]
     [#return
         contentIfContent(
             getOccurrenceSettingValue(occurrence, "BUILD_UNIT", true),
-            "COTException: Build unit not found"
+            valueIfTrue(
+                "",
+                emptyIfNotProvided,
+                "COTException: Build unit not found"
+            )
         ) ]
 [/#function]
 
@@ -1179,17 +1221,6 @@
             []) ]
 [/#function]
 
-[#-- Migrate any older component structures to what's now expected --]
-[#function migrateComponent component type]
-    [#local result = component]
-        [#switch type]
-            [#case LB_COMPONENT_TYPE]
-                [#return migrateLBComponent(component) ]
-                [#break]
-        [/#switch]
-    [#return result]
-[/#function]
-
 [#-- Get the occurrences of versions/instances of a component           --]
 [#-- This function should NOT be called directly - it is for the use of --]
 [#-- other functions in this file                                       --]
@@ -1203,10 +1234,10 @@
 
     [#if tier?has_content]
         [#local type = getComponentType(component) ]
-        [#local typeObject = migrateComponent(getComponentTypeObject(component), type) ]
+        [#local typeObject = getComponentTypeObject(component) ]
     [#else]
         [#local type = componentType ]
-        [#local typeObject = migrateComponent(component, type) ]
+        [#local typeObject = component ]
     [/#if]
 
     [#if tier?has_content]
@@ -1346,7 +1377,7 @@
                                         "Account" : getOccurrenceAccountSettings(occurrence),
                                         "Product" :
                                             getOccurrenceProductSettings(occurrence) +
-                                            getOccurrenceCredentialSettings(occurrence)
+                                            getOccurrenceSensitiveSettings(occurrence)
                                     }
                                 }
                         } ]
@@ -1391,11 +1422,19 @@
                         [#-- For the latter case, any default configuration must be  --]
                         [#-- under a Configuration attribute to avoid the            --]
                         [#-- configuration being treated as subcomponent instances.  --]
-                        [#local subComponentInstances =
-                            (typeObject[subComponent.Component].Components)!
-                            (typeObject[subComponent.Component])!
-                            {}
-                        ]
+                        [#local subComponentInstances = {} ]
+                        [#if ((typeObject[subComponent.Component])!{})?is_hash ]
+                            [#local subComponentInstances =
+                                (typeObject[subComponent.Component].Components)!
+                                (typeObject[subComponent.Component])
+                            ]
+                        [#else]
+                            [@cfException
+                              mode=listMode
+                              description="Subcomponent " + subComponent.Component + " content is not a hash"
+                              context=typeObject[subComponent.Component] /]
+                        [/#if]
+
                         [#list subComponentInstances as key,subComponentInstance ]
                             [#if subComponentInstance?is_hash ]
                                 [#if key == "Configuration" ]
@@ -1784,15 +1823,18 @@
     [#assign targetComponentId = (port.LB.Component) ]
     [#assign targetLinkName = port.LB.LinkName ]
     [#assign targetSource =
-                contentIfContent(
-                    port.LB.Port,
-                    valueIfContent(
-                        (portMappings[port.LB.PortMapping].Source)!"",
-                        port.LB.PortMapping,
-                        port.Id
-                    )
-            )]
+        contentIfContent(
+            port.LB.Port,
+            valueIfContent(
+                (portMappings[port.LB.PortMapping].Source)!"",
+                port.LB.PortMapping,
+                port.Name
+            )
+        ) ]
 
+    [#-- Need to be careful to allow an empty value for --]
+    [#-- Instance/Version to be explicitly provided and --]
+    [#-- correctly handled in getLinkTarget             --]
     [#local targetLink =
         {
             "Id" : targetLinkName,
@@ -1802,11 +1844,13 @@
             "Priority" : port.LB.Priority
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
-        attributeIfTrue("Version", port.LB.Version??, port.LB.Version!"")
+        attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
+        attributeIfContent("Port",  targetSource)
     ]
 
-    [#assign targetLoadBalancer = {}]
-
+    [#-- This lookup is purely to determine the correct attributes for the link   --]
+    [#-- The calling code should still check that the target link actually exists --]
+    [#-- using the value returned by this function                                --]
     [#if targetTierId?has_content && targetComponentId?has_content]
         [#local targetLoadBalancer = getLinkTarget(occurrence, targetLink) ]
 
@@ -1816,7 +1860,7 @@
 
             [#local targetGroup = port.LB.TargetGroup]
 
-            [#if (ports[port.LB.Port].Protocol) != "TCP" ]
+            [#if (ports[targetSource].Protocol) != "TCP" ]
                 [#local targetPath = port.LB.Path]
             [#else]
                 [#local targetPath = "" ]
@@ -1843,26 +1887,18 @@
                     [/#if]
                 [/#if]
             [/#if]
+
+            [#local targetLink +=
+                attributeIfContent(
+                    "TargetPath",
+                    targetPath
+                ) +
+                attributeIfContent(
+                    "TargetGroup",
+                    targetGroup
+                )]
         [/#if]
     [/#if]
-
-    [#-- Need to be careful to allow an empty value for --]
-    [#-- Instance/Version to be explicitly provided and --]
-    [#-- correctly handled in getLinkTarget             --]
-
-    [#local targetLink += 
-        attributeIfContent(
-            "TargetPath",
-            targetPath
-        ) +
-        attributeIfContent(
-            "Port",
-            valueIfTrue(targetSource, port.LB.Configured, "")
-        ) +
-        attributeIfContent(
-            "TargetGroup",
-            targetGroup
-        )]
 
     [@cfDebug listMode { targetLinkName : targetLink } false /]
 
@@ -2155,7 +2191,11 @@
     [#list configuration.IPAddressGroups as group]
         [#local addressGroup = getIPAddressGroup(group) ]
         [#if ! addressGroup.IsOpen]
-            [#local action = (group.Action?upper_case)!wafRuleDefault ]
+            [#if group?is_hash]
+                [#local action = (group.Action?upper_case)!wafRuleDefault ]
+            [#else]
+                [#local action = wafRuleDefault ]
+            [/#if]
             [#if (wafDefault == "ALLOW") && (action == "ALLOW") ]
                 [#-- more useful to count if default is allow --]
                 [#local action = "COUNT" ]

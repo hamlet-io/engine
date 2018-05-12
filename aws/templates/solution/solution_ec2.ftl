@@ -28,40 +28,38 @@
 
         [#assign scriptsFile = ""]
 
-        [#if buildDeploymentUnit?has_content && buildCommit?has_content ]
-            [#assign scriptsFile = formatRelativePath(
-                                        getRegistryEndPoint("scripts"),
-                                        getRegistryPrefix("scripts") + productName,
-                                        buildDeploymentUnit,
-                                        buildCommit,
-                                        "scripts.zip")]
+        [#assign buildUnit = getOccurrenceBuildUnit(occurrence, true) ]
+        [#assign buildReference = getOccurrenceBuildReference(occurrence, true) ]
+        [#if buildUnit?has_content && buildReference?has_content ]
+            [#assign scriptsFile =
+                formatRelativePath(
+                  getRegistryEndPoint("scripts", occurrence),
+                  getRegistryPrefix("scripts", occurrence),
+                  productName,
+                  buildUnit,
+                  buildReference,
+                  "scripts.zip") ]
         [/#if]
-
 
         [#assign componentDependencies = []]
         [#assign ingressRules = []]
 
-        [#if solution.Ports?is_hash?has_content ]
-            [#list solution.Ports as id,port ]
-                [#assign links += getLBLink(occurrence port)] 
-            [/#list]
-        [#else]
-            [#list solution.Ports as port]
-                [#assign nextPort = port?is_hash?then(port.Port, port)]
-                [#assign portCIDRs = getGroupCIDRs(
-                    port?is_hash?then(port.IPAddressGroups![], []))]
+        [#list solution.Ports?values as port ]
+            [#if port.LB.Configured]
+                [#assign links += getLBLink(occurrence, port)]
+            [#else]
+                [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups) ]
                 [#if portCIDRs?has_content]
                     [#assign ingressRules +=
                         [{
-                            "Port" : nextPort,
+                            "Port" : port.Name,
                             "CIDR" : portCIDRs
                         }]]
                 [/#if]
-            [/#list]
-        [/#if]
+            [/#if]
+        [/#list]
 
         [#list links?values as link]
-        [#if link?is_hash]
             [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
             [@cfDebug listMode linkTarget false /]
@@ -108,11 +106,11 @@
                                                 priority=link.Priority!100
                                                 dependencies=targetId
                                             /]
-                                            
+
                                             [#assign componentDependencies += [targetId]]
-                                            
+
                                         [/#if]
-                                        [#assign targetGroupRegistrations += 
+                                        [#assign targetGroupRegistrations +=
                                                 {
                                                     "03RegisterWithTG" + targetId  : {
                                                         "command" : "/opt/codeontap/bootstrap/register_targetgroup.sh",
@@ -130,7 +128,7 @@
 
                         [#case "classic" ]
                             [#assign lbId =  linkTargetAttributes["LB"] ]
-                            [#assign targetGroupRegistrations += 
+                            [#assign targetGroupRegistrations +=
                                 {
                                     "04RegisterWithLB" + lbId : {
                                         "command" : "/opt/codeontap/bootstrap/register.sh",
@@ -144,13 +142,13 @@
                             [#break]
                         [/#switch]
                     [#break]
-                [#case EFS_MOUNT_COMPONENT_TYPE] 
-                    [#assign efsMountPoints += 
+                [#case EFS_MOUNT_COMPONENT_TYPE]
+                    [#assign efsMountPoints +=
                         {
-                        "04EFSMount_" + linkTargetCore.Id : 
+                        "04EFSMount_" + linkTargetCore.Id :
                             {
                                 "command" : "/opt/codeontap/bootstrap/efs.sh",
-                                "env" : { 
+                                "env" : {
                                     "EFS_FILE_SYSTEM_ID" : linkTargetAttributes.EFS,
                                     "EFS_MOUNT_PATH" : linkTargetAttributes.DIRECTORY,
                                     "EFS_OS_MOUNT_PATH" : "/mnt/clusterstorage/" + link.Id
@@ -159,339 +157,338 @@
                     }]
                     [#break]
             [/#switch]
-        [/#if]
-    [/#list]
-        
-    [#if deploymentSubsetRequired("iam", true) &&
-            isPartOfCurrentDeploymentUnit(ec2RoleId)]
+        [/#list]
 
-        [@createRole
-            mode=listMode
-            id=ec2RoleId
-            trustedServices=["ec2.amazonaws.com" ]
-            policies=
-                [
-                    getPolicyDocument(
-                        s3ListPermission(codeBucket) +
-                        s3ReadPermission(codeBucket) +
-                        s3ListPermission(operationsBucket) +
-                        s3WritePermission(operationsBucket, "DOCKERLogs") +
-                        s3WritePermission(operationsBucket, "Backups"),
-                        "basic") 
-                ] + targetGroupPermission?then(
-                    [   
+        [#if deploymentSubsetRequired("iam", true) &&
+                isPartOfCurrentDeploymentUnit(ec2RoleId)]
+
+            [@createRole
+                mode=listMode
+                id=ec2RoleId
+                trustedServices=["ec2.amazonaws.com" ]
+                policies=
+                    [
                         getPolicyDocument(
-                            lbRegisterTargetPermission(),
-                            "loadbalancing")
-                    ],
-                    [])
-        /]
-    [/#if]
+                            s3ListPermission(codeBucket) +
+                            s3ReadPermission(codeBucket) +
+                            s3ListPermission(operationsBucket) +
+                            s3WritePermission(operationsBucket, "DOCKERLogs") +
+                            s3WritePermission(operationsBucket, "Backups"),
+                            "basic")
+                    ] + targetGroupPermission?then(
+                        [
+                            getPolicyDocument(
+                                lbRegisterTargetPermission(),
+                                "loadbalancing")
+                        ],
+                        [])
+            /]
+        [/#if]
 
-    [#if deploymentSubsetRequired("ec2", true)]
+        [#if deploymentSubsetRequired("ec2", true)]
 
-        [@createSecurityGroup
-            mode=listMode
-            id=ec2SecurityGroupId
-            name=ec2SecurityGroupName
-            tier=tier
-            component=component
-            ingressRules=ingressRules /]
+            [@createSecurityGroup
+                mode=listMode
+                id=ec2SecurityGroupId
+                name=ec2SecurityGroupName
+                tier=tier
+                component=component
+                ingressRules=ingressRules /]
 
-        [@cfResource
-            mode=listMode
-            id=ec2InstanceProfileId
-            type="AWS::IAM::InstanceProfile"
-            properties=
-                {
-                    "Path" : "/",
-                    "Roles" : [getReference(ec2RoleId)]
-                }
-            outputs={}
-        /]
-        
-        [#list zones as zone]
-            [#if multiAZ || (zones[0].Id = zone.Id)]
-                [#assign zoneEc2InstanceId          = zoneResources[zone.Id]["ec2Instance"].Id ]
-                [#assign zoneEc2InstanceName        = zoneResources[zone.Id]["ec2Instance"].Name ]
-                [#assign zoneEc2ENIId               = zoneResources[zone.Id]["ec2ENI"].Id ]
-                [#assign zoneEc2EIPId               = zoneResources[zone.Id]["ec2EIP"].Id]
-                [#assign zoneEc2EIPAssociationId    = zoneResources[zone.Id]["ec2EIPAssociation"].Id]
+            [@cfResource
+                mode=listMode
+                id=ec2InstanceProfileId
+                type="AWS::IAM::InstanceProfile"
+                properties=
+                    {
+                        "Path" : "/",
+                        "Roles" : [getReference(ec2RoleId)]
+                    }
+                outputs={}
+            /]
 
-                [#assign processorProfile = getProcessor(tier, component, "EC2")]
-                [#assign storageProfile = getStorage(tier, component, "EC2")]
-                [#assign updateCommand = "yum clean all && yum -y update"]
-                [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
-                [#if environmentId == "prod"]
-                    [#-- for production update only security packages --]
-                   [#assign updateCommand += " --security"]
-                    [#assign dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
-                [/#if]
+            [#list zones as zone]
+                [#if multiAZ || (zones[0].Id = zone.Id)]
+                    [#assign zoneEc2InstanceId          = zoneResources[zone.Id]["ec2Instance"].Id ]
+                    [#assign zoneEc2InstanceName        = zoneResources[zone.Id]["ec2Instance"].Name ]
+                    [#assign zoneEc2ENIId               = zoneResources[zone.Id]["ec2ENI"].Id ]
+                    [#assign zoneEc2EIPId               = zoneResources[zone.Id]["ec2EIP"].Id]
+                    [#assign zoneEc2EIPAssociationId    = zoneResources[zone.Id]["ec2EIPAssociation"].Id]
+
+                    [#assign processorProfile = getProcessor(tier, component, "EC2")]
+                    [#assign storageProfile = getStorage(tier, component, "EC2")]
+                    [#assign updateCommand = "yum clean all && yum -y update"]
+                    [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
+                    [#if environmentId == "prod"]
+                        [#-- for production update only security packages --]
+                       [#assign updateCommand += " --security"]
+                        [#assign dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
+                    [/#if]
 
 
-                [@cfResource
-                    mode=listMode
-                    id=zoneEc2InstanceId
-                    type="AWS::EC2::Instance"
-                    metadata=
-                        {
-                            "AWS::CloudFormation::Init": {
-                                "configSets" : {
-                                    "ec2" : ["dirs", "bootstrap", "puppet"] + 
-                                        scriptsFile?has_content?then(
-                                            ["scripts"],
-                                            []
-                                        )
-                                },
-                                "dirs": {
-                                    "commands": {
-                                        "01Directories" : {
-                                            "command" : "mkdir --parents --mode=0755 /etc/codeontap &&" +
-                                                        "mkdir --parents --mode=0755 /opt/codeontap/bootstrap &&" +
-                                                        "mkdir --parents --mode=0755 /var/log/codeontap &&" +
-                                                        "mkdir --parents --mode=0755 /opt/codeontap/scripts",
-                                            "ignoreErrors" : "false"
-                                        }
-                                    }
-                                },
-                                "bootstrap": {
-                                    "packages" : {
-                                        "yum" : {
-                                            "aws-cli" : [],
-                                            "amazon-efs-utils" : []
-                                        }
-                                    },
-                                    "files" : {
-                                        "/etc/codeontap/facts.sh" : {
-                                            "content" : {
-                                                "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "#!/bin/bash\n",
-                                                        "echo \"cot:request="       + requestReference       + "\"\n",
-                                                        "echo \"cot:configuration=" + configurationReference + "\"\n",
-                                                        "echo \"cot:accountRegion=" + accountRegionId        + "\"\n",
-                                                        "echo \"cot:tenant="        + tenantId               + "\"\n",
-                                                        "echo \"cot:account="       + accountId              + "\"\n",
-                                                        "echo \"cot:product="       + productId              + "\"\n",
-                                                        "echo \"cot:region="        + regionId               + "\"\n",
-                                                        "echo \"cot:segment="       + segmentId              + "\"\n",
-                                                        "echo \"cot:environment="   + environmentId          + "\"\n",
-                                                        "echo \"cot:tier="          + tierId                 + "\"\n",
-                                                        "echo \"cot:component="     + componentId            + "\"\n",
-                                                        "echo \"cot:zone="          + zone.Id                + "\"\n",
-                                                        "echo \"cot:name="          + zoneEc2InstanceName    + "\"\n",
-                                                        "echo \"cot:role="          + component.Role!""      + "\"\n",
-                                                        "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
-                                                        "echo \"cot:code="          + codeBucket             + "\"\n",
-                                                        "echo \"cot:logs="          + operationsBucket       + "\"\n",
-                                                        "echo \"cot:backups="       + dataBucket             + "\"\n"
-                                                    ] + 
-                                                    scriptsFile?has_content?then(
-                                                        [
-                                                            "echo \"cot:scripts="       + scriptsFile             + "\"\n"
-                                                        ],
-                                                        []
-                                                    )
-                                                ]
-                                            },
-                                            "mode" : "000755"
-                                        },
-                                        "/opt/codeontap/bootstrap/fetch.sh" : {
-                                            "content" : {
-                                                "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "#!/bin/bash -ex\n",
-                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
-                                                        "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
-                                                        "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\n",
-                                                        "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\n"
-                                                    ]
-                                                ]
-                                            },
-                                            "mode" : "000755"
-                                        }
-                                    },
-                                    "commands": {
-                                        "01Fetch" : {
-                                            "command" : "/opt/codeontap/bootstrap/fetch.sh",
-                                            "ignoreErrors" : "false"
-                                        },
-                                        "02Initialise" : {
-                                            "command" : "/opt/codeontap/bootstrap/init.sh",
-                                            "ignoreErrors" : "false"
-                                        } 
-                                    } +
-                                    targetGroupRegistrations + 
-                                    efsMountPoints
-                                },
-                                "puppet": {
-                                    "commands": {
-                                        "01SetupPuppet" : {
-                                            "command" : "/opt/codeontap/bootstrap/puppet.sh",
-                                            "ignoreErrors" : "false"
-                                        }
-                                    }
-                                } + 
-                                scriptsFile?has_content?then(
-                                {
-                                "scripts" : {
-                                    "files" :{
-                                        "/opt/codeontap/fetch_scripts.sh" : {
-                                            "content" : {
-                                                "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "#!/bin/bash -ex\n",
-                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-fetch -s 2>/dev/console) 2>&1\n",
-                                                        "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
-                                                        "SCRIPTS=$(/etc/codeontap/facts.sh | grep cot:scripts | cut -d '=' -f 2)\n",
-                                                        "if [ -z " + r"${SCRIPTS}" +" ]; then\n",
-                                                        "aws --region " + r"${REGION}" + " s3 cp --quiet s3://" + r"${SCRIPTS}" + " /opt/codeontap/scripts\n", 
-                                                        "[ -f /opt/codeontap/scripts/scripts.zip ] && unzip /opt/codeontap/scripts/scripts.zip\n",
-                                                        "chmod -R 0500 /opt/codeontap/scripts/\n"
-                                                        "fi\n"
-                                                    ]
-                                                ]
-                                            },
-                                            "mode" : "000755"
-                                        },
-                                        "/opt/codeontap/run_scripts.sh" : {
-                                            "content" : {
-                                                "Fn::Join" : [
-                                                    "",
-                                                    [
-                                                        "#!/bin/bash -ex\n",
-                                                        "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-init -s 2>/dev/console) 2>&1\n",
-                                                        "[ -f /opt/codeontap/scripts/init.sh ] &&  /opt/codeontap/scripts/init.sh\n" 
-                                                    ]
-                                                ]
-                                            },
-                                            "mode" : "000755"
-                                        }
-                                    },
-                                    "commands" : {
-                                        "01FetchScripts" : {
-                                            "command" : "/opt/codeontap/fetch_scripts.sh",
-                                            "ignoreErrors" : "false"
-                                        },
-                                        "02RunInitScript" : {
-                                            "command" : "/opt/codeontap/run_scripts.sh",
-                                            "ignoreErrors" : "false"
-                                        }
-                                    } 
-                                }
-                                },
-                                {})
-                            }
-                        }
-                    properties=
-                        getBlockDevices(storageProfile) +
-                        {
-                            "DisableApiTermination" : false,
-                            "EbsOptimized" : false,
-                            "IamInstanceProfile" : { "Ref" : ec2InstanceProfileId },
-                            "InstanceInitiatedShutdownBehavior" : "stop",
-                            "InstanceType": processorProfile.Processor,
-                            "KeyName":
-                                valueIfTrue(
-                                    formatEnvironmentFullName(),
-                                    sshPerEnvironment,
-                                    productName
-                                ),
-                            "Monitoring" : false,
-                            "NetworkInterfaces" : [
-                                {
-                                    "DeviceIndex" : "0",
-                                    "NetworkInterfaceId" : getReference(zoneEc2ENIId)
-                                }
-                            ],
-                            "UserData" : {
-                                "Fn::Base64" : {
-                                    "Fn::Join" : [
-                                        "",
-                                        [
-                                            "#!/bin/bash -ex\n",
-                                            "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
-                                            updateCommand, "\n",
-                                            dailyUpdateCron, "\n",
-                                            "yum install -y aws-cfn-bootstrap\n",
-                                            "# Remainder of configuration via metadata\n",
-                                            "/opt/aws/bin/cfn-init -v",
-                                            "         --stack ", { "Ref" : "AWS::StackName" },
-                                            "         --resource ", zoneEc2InstanceId,
-                                            "         --region ", regionId, " --configsets ec2\n"
-                                        ]
-                                    ]
-                                }
-                            }
-                        } +
-                        dockerHost?then(
-                            { "ImageId" : regionObject.AMIs.Centos.ECS},
-                            { "ImageId" : regionObject.AMIs.Centos.EC2} 
-                        )
-                    tags=
-                        getCfTemplateCoreTags(
-                            formatComponentFullName(tier, component, zone),
-                            tier,
-                            component,
-                            zone)
-                    outputs={}
-                    dependencies=[zoneEc2ENIId] +
-                        componentDependencies + 
-                        fixedIP?then(
-                            [zoneEc2EIPAssociationId],
-                            [])
-                /]
-
-                [@cfResource
-                    mode=listMode
-                    id=zoneEc2ENIId
-                    type="AWS::EC2::NetworkInterface"
-                    properties=
-                        {
-                            "Description" : "eth0",
-                            "SubnetId" : getReference(formatSubnetId(tier, zone)),
-                            "SourceDestCheck" : true,
-                            "GroupSet" :
-                                [getReference(ec2SecurityGroupId)] +
-                                sshFromProxySecurityGroup?has_content?then(
-                                    [sshFromProxySecurityGroup],
-                                    []
-                                )
-                        }
-                    tags=
-                        getCfTemplateCoreTags(
-                            formatComponentFullName(tier, component, zone, "eth0"),
-                            tier,
-                            component,
-                            zone)
-                    outputs={}
-                /]
-
-                [#if fixedIP]
-                    [@createEIP
+                    [@cfResource
                         mode=listMode
-                        id=zoneEc2EIPId
-                        dependencies=[zoneEc2ENIId]
+                        id=zoneEc2InstanceId
+                        type="AWS::EC2::Instance"
+                        metadata=
+                            {
+                                "AWS::CloudFormation::Init": {
+                                    "configSets" : {
+                                        "ec2" : ["dirs", "bootstrap", "puppet"] +
+                                            scriptsFile?has_content?then(
+                                                ["scripts"],
+                                                []
+                                            )
+                                    },
+                                    "dirs": {
+                                        "commands": {
+                                            "01Directories" : {
+                                                "command" : "mkdir --parents --mode=0755 /etc/codeontap && " +
+                                                            "mkdir --parents --mode=0755 /opt/codeontap/bootstrap && " +
+                                                            "mkdir --parents --mode=0755 /var/log/codeontap && " +
+                                                            "mkdir --parents --mode=0755 /opt/codeontap/scripts",
+                                                "ignoreErrors" : "false"
+                                            }
+                                        }
+                                    },
+                                    "bootstrap": {
+                                        "packages" : {
+                                            "yum" : {
+                                                "aws-cli" : [],
+                                                "amazon-efs-utils" : []
+                                            }
+                                        },
+                                        "files" : {
+                                            "/etc/codeontap/facts.sh" : {
+                                                "content" : {
+                                                    "Fn::Join" : [
+                                                        "",
+                                                        [
+                                                            "#!/bin/bash\n",
+                                                            "echo \"cot:request="       + requestReference       + "\"\n",
+                                                            "echo \"cot:configuration=" + configurationReference + "\"\n",
+                                                            "echo \"cot:accountRegion=" + accountRegionId        + "\"\n",
+                                                            "echo \"cot:tenant="        + tenantId               + "\"\n",
+                                                            "echo \"cot:account="       + accountId              + "\"\n",
+                                                            "echo \"cot:product="       + productId              + "\"\n",
+                                                            "echo \"cot:region="        + regionId               + "\"\n",
+                                                            "echo \"cot:segment="       + segmentId              + "\"\n",
+                                                            "echo \"cot:environment="   + environmentId          + "\"\n",
+                                                            "echo \"cot:tier="          + tierId                 + "\"\n",
+                                                            "echo \"cot:component="     + componentId            + "\"\n",
+                                                            "echo \"cot:zone="          + zone.Id                + "\"\n",
+                                                            "echo \"cot:name="          + zoneEc2InstanceName    + "\"\n",
+                                                            "echo \"cot:role="          + component.Role!""      + "\"\n",
+                                                            "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
+                                                            "echo \"cot:code="          + codeBucket             + "\"\n",
+                                                            "echo \"cot:logs="          + operationsBucket       + "\"\n",
+                                                            "echo \"cot:backups="       + dataBucket             + "\"\n"
+                                                        ] +
+                                                        scriptsFile?has_content?then(
+                                                            [
+                                                                "echo \"cot:scripts="       + scriptsFile             + "\"\n"
+                                                            ],
+                                                            []
+                                                        )
+                                                    ]
+                                                },
+                                                "mode" : "000755"
+                                            },
+                                            "/opt/codeontap/bootstrap/fetch.sh" : {
+                                                "content" : {
+                                                    "Fn::Join" : [
+                                                        "",
+                                                        [
+                                                            "#!/bin/bash -ex\n",
+                                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
+                                                            "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                                            "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\n",
+                                                            "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\n"
+                                                        ]
+                                                    ]
+                                                },
+                                                "mode" : "000755"
+                                            }
+                                        },
+                                        "commands": {
+                                            "01Fetch" : {
+                                                "command" : "/opt/codeontap/bootstrap/fetch.sh",
+                                                "ignoreErrors" : "false"
+                                            },
+                                            "02Initialise" : {
+                                                "command" : "/opt/codeontap/bootstrap/init.sh",
+                                                "ignoreErrors" : "false"
+                                            }
+                                        } +
+                                        targetGroupRegistrations +
+                                        efsMountPoints
+                                    },
+                                    "puppet": {
+                                        "commands": {
+                                            "01SetupPuppet" : {
+                                                "command" : "/opt/codeontap/bootstrap/puppet.sh",
+                                                "ignoreErrors" : "false"
+                                            }
+                                        }
+                                    } +
+                                    scriptsFile?has_content?then(
+                                    {
+                                    "scripts" : {
+                                        "files" :{
+                                            "/opt/codeontap/fetch_scripts.sh" : {
+                                                "content" : {
+                                                    "Fn::Join" : [
+                                                        "",
+                                                        [
+                                                            "#!/bin/bash -ex\n",
+                                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-fetch -s 2>/dev/console) 2>&1\n",
+                                                            "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                                            "SCRIPTS=$(/etc/codeontap/facts.sh | grep cot:scripts | cut -d '=' -f 2)\n",
+                                                            "if [ -z " + r"${SCRIPTS}" +" ]; then\n",
+                                                            "aws --region " + r"${REGION}" + " s3 cp --quiet s3://" + r"${SCRIPTS}" + " /opt/codeontap/scripts\n",
+                                                            "[ -f /opt/codeontap/scripts/scripts.zip ] && unzip /opt/codeontap/scripts/scripts.zip\n",
+                                                            "chmod -R 0500 /opt/codeontap/scripts/\n"
+                                                            "fi\n"
+                                                        ]
+                                                    ]
+                                                },
+                                                "mode" : "000755"
+                                            },
+                                            "/opt/codeontap/run_scripts.sh" : {
+                                                "content" : {
+                                                    "Fn::Join" : [
+                                                        "",
+                                                        [
+                                                            "#!/bin/bash -ex\n",
+                                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-scripts-init -s 2>/dev/console) 2>&1\n",
+                                                            "[ -f /opt/codeontap/scripts/init.sh ] &&  /opt/codeontap/scripts/init.sh\n"
+                                                        ]
+                                                    ]
+                                                },
+                                                "mode" : "000755"
+                                            }
+                                        },
+                                        "commands" : {
+                                            "01FetchScripts" : {
+                                                "command" : "/opt/codeontap/fetch_scripts.sh",
+                                                "ignoreErrors" : "false"
+                                            },
+                                            "02RunInitScript" : {
+                                                "command" : "/opt/codeontap/run_scripts.sh",
+                                                "ignoreErrors" : "false"
+                                            }
+                                        }
+                                    }
+                                    },
+                                    {})
+                                }
+                            }
+                        properties=
+                            getBlockDevices(storageProfile) +
+                            {
+                                "DisableApiTermination" : false,
+                                "EbsOptimized" : false,
+                                "IamInstanceProfile" : { "Ref" : ec2InstanceProfileId },
+                                "InstanceInitiatedShutdownBehavior" : "stop",
+                                "InstanceType": processorProfile.Processor,
+                                "KeyName":
+                                    valueIfTrue(
+                                        formatEnvironmentFullName(),
+                                        sshPerEnvironment,
+                                        productName
+                                    ),
+                                "Monitoring" : false,
+                                "NetworkInterfaces" : [
+                                    {
+                                        "DeviceIndex" : "0",
+                                        "NetworkInterfaceId" : getReference(zoneEc2ENIId)
+                                    }
+                                ],
+                                "UserData" : {
+                                    "Fn::Base64" : {
+                                        "Fn::Join" : [
+                                            "",
+                                            [
+                                                "#!/bin/bash -ex\n",
+                                                "exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
+                                                updateCommand, "\n",
+                                                dailyUpdateCron, "\n",
+                                                "yum install -y aws-cfn-bootstrap\n",
+                                                "# Remainder of configuration via metadata\n",
+                                                "/opt/aws/bin/cfn-init -v",
+                                                "         --stack ", { "Ref" : "AWS::StackName" },
+                                                "         --resource ", zoneEc2InstanceId,
+                                                "         --region ", regionId, " --configsets ec2\n"
+                                            ]
+                                        ]
+                                    }
+                                }
+                            } +
+                            dockerHost?then(
+                                { "ImageId" : regionObject.AMIs.Centos.ECS},
+                                { "ImageId" : regionObject.AMIs.Centos.EC2}
+                            )
+                        tags=
+                            getCfTemplateCoreTags(
+                                formatComponentFullName(tier, component, zone),
+                                tier,
+                                component,
+                                zone)
+                        outputs={}
+                        dependencies=[zoneEc2ENIId] +
+                            componentDependencies +
+                            fixedIP?then(
+                                [zoneEc2EIPAssociationId],
+                                [])
                     /]
 
                     [@cfResource
                         mode=listMode
-                        id=zoneEc2EIPAssociationId
-                        type="AWS::EC2::EIPAssociation"
+                        id=zoneEc2ENIId
+                        type="AWS::EC2::NetworkInterface"
                         properties=
                             {
-                                "AllocationId" : getReference(zoneEc2EIPId, ALLOCATION_ATTRIBUTE_TYPE),
-                                "NetworkInterfaceId" : getReference(zoneEc2ENIId)
+                                "Description" : "eth0",
+                                "SubnetId" : getReference(formatSubnetId(tier, zone)),
+                                "SourceDestCheck" : true,
+                                "GroupSet" :
+                                    [getReference(ec2SecurityGroupId)] +
+                                    sshFromProxySecurityGroup?has_content?then(
+                                        [sshFromProxySecurityGroup],
+                                        []
+                                    )
                             }
-                        dependencies=[zoneEc2EIPId]
+                        tags=
+                            getCfTemplateCoreTags(
+                                formatComponentFullName(tier, component, zone, "eth0"),
+                                tier,
+                                component,
+                                zone)
                         outputs={}
                     /]
+
+                    [#if fixedIP]
+                        [@createEIP
+                            mode=listMode
+                            id=zoneEc2EIPId
+                            dependencies=[zoneEc2ENIId]
+                        /]
+
+                        [@cfResource
+                            mode=listMode
+                            id=zoneEc2EIPAssociationId
+                            type="AWS::EC2::EIPAssociation"
+                            properties=
+                                {
+                                    "AllocationId" : getReference(zoneEc2EIPId, ALLOCATION_ATTRIBUTE_TYPE),
+                                    "NetworkInterfaceId" : getReference(zoneEc2ENIId)
+                                }
+                            dependencies=[zoneEc2EIPId]
+                            outputs={}
+                        /]
+                    [/#if]
                 [/#if]
-            [/#if]
-        [/#list]
+            [/#list]
         [/#if]
     [/#list]
 [/#if]

@@ -8,8 +8,9 @@
 # INTEGRATOR
 # TENANT
 # PRODUCT
-# ACCOUNT
+# ENVIRONMENT
 # SEGMENT
+# ACCOUNT
 #
 # This script is designed to be sourced into other scripts
 
@@ -24,7 +25,10 @@ GENERATION_CONTEXT_DEFINED_LOCAL="true"
 debug "--- starting setContext.sh ---\n"
 
 # Create a temporary directory for this run
-[[ -z "${GENERATION_TMPDIR}" ]] && export GENERATION_TMPDIR="$(getTempDir "cot_XXXX" )"
+if [[ -z "${GENERATION_TMPDIR}" ]]; then
+  pushTempDir "cot_XXXX"
+  export GENERATION_TMPDIR="$( getTopTempDir )"
+fi
 debug "TMPDIR=${GENERATION_TMPDIR}"
 
 # If no files match a glob, return nothing
@@ -32,14 +36,16 @@ debug "TMPDIR=${GENERATION_TMPDIR}"
 shopt -s nullglob
 
 # Check the root of the context tree can be located
-export GENERATION_DATA_DIR=$(findGen3RootDir "$(pwd)") ||
+export GENERATION_DATA_DIR=$(findGen3RootDir "${ROOT_DIR:-$(pwd)}") ||
   { fatal "Can't locate the root of the directory tree."; exit 1; }
 
 # Check the cmdb doesn't need upgrading
-debug "Checking cmdb version ..."
-upgrade_cmdb "${GENERATION_DATA_DIR}" ||
-    { fatal "CMDB upgrade failed."; exit 1; }
-    
+if [[ "${GENERATION_NO_CMDB_CHECK}" != "true" ]]; then
+    debug "Checking if cmdb upgrade needed ..."
+    upgrade_cmdb "${GENERATION_DATA_DIR}" ||
+        { fatal "CMDB upgrade failed."; exit 1; }
+fi
+
 # Ensure the cache directory exists
 export CACHE_DIR="${GENERATION_DATA_DIR}/cache"
 mkdir -p "${CACHE_DIR}"
@@ -48,55 +54,47 @@ mkdir -p "${CACHE_DIR}"
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
 TEMPLATE_COMPOSITES=(
-    "ACCOUNT" "PRODUCT" "SEGMENT" "SOLUTION" "APPLICATION" \
-    "POLICY" "CONTAINER" "ID" "NAME" "RESOURCE")
-BLUEPRINT_ARRAY=()
-for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-    # define the array holding the list of composite fragment filenames
-    declare -ga "${COMPOSITE}_ARRAY"
+    "account" "product" "segment" "solution" "application" \
+    "policy" "container" "id" "name" "resource")
+for composite in "${TEMPLATE_COMPOSITES[@]}"; do
+    # Define the composite
+    declare -gx COMPOSITE_${composite^^}="${CACHE_DIR}/composite_${composite}.ftl"
 
-    # Check for composite start fragment
-    addToArray "${COMPOSITE}_ARRAY" "${GENERATION_DIR}"/templates/"${COMPOSITE,,}"/start*.ftl
+    if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
+            ("${GENERATION_USE_FRAGMENTS_CACHE}" != "true")) ||
+          (! -f "${CACHE_DIR}/composite_account.ftl") ]]; then
+        # define the array holding the list of composite fragment filenames
+        declare -ga "${composite}_array"
 
-    # If no composite specific start fragment, use a generic one
-    $(inArray "${COMPOSITE}_ARRAY" "start.ftl") ||
-        addToArray "${COMPOSITE}_ARRAY" "${GENERATION_DIR}"/templates/start.ftl
+        # Check for composite start fragment
+        addToArray "${composite}_array" "${GENERATION_DIR}"/templates/"${composite}"/start*.ftl
+
+        # If no composite specific start fragment, use a generic one
+        $(inArray "${composite}_array" "start.ftl") ||
+            addToArray "${composite}_array" "${GENERATION_DIR}"/templates/start.ftl
+    fi
 done
 
 # Check if the current directory gives any clue to the context
 pushd "$(pwd)" >/dev/null
 
 if [[ (-f "segment.json") ]]; then
-    # segment directory
     export LOCATION="${LOCATION:-segment}"
-    export SEGMENT_DIR="$(pwd)"
     export SEGMENT="$(fileName "$(pwd)")"
+    if [[ -f "../environment.json" ]]; then
+      cd ..
+    else
+        export ENVIRONMENT="${SEGMENT}"
+        export SEGMENT="default"
+        cd ../..
+    fi
+fi
 
-    addToArrayHead "BLUEPRINT_ARRAY" \
-        "${SEGMENT_DIR}"/segment*.json \
-        "${SEGMENT_DIR}"/solution*.json
+if [[ (-f "environment.json") ]]; then
+    export LOCATION="${LOCATION:-environment}"
+    export ENVIRONMENT="$(fileName "$(pwd)")"
 
-    # Segment based composite fragments
-    for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-        addToArray "${COMPOSITE}_ARRAY" "${SEGMENT_DIR}"/"${COMPOSITE,,}"_*.ftl
-    done
-
-    cd ..
-
-    # solutions directory
-    # only add files if not already present
-    export SOLUTIONS_DIR="$(pwd)"
-    $(inArray "BLUEPRINT_ARRAY" "solution.json") ||
-        addToArrayHead "BLUEPRINT_ARRAY" "${SOLUTIONS_DIR}"/solution*.json
-
-    for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-        for FRAGMENT in ${COMPOSITE,,}_*.ftl; do
-            $(inArray "${COMPOSITE}_ARRAY" "${FRAGMENT}") ||
-                addToArray "${COMPOSITE}_ARRAY" "${SOLUTIONS_DIR}/${FRAGMENT}"
-        done
-    done
-
-    cd ..
+    cd ../..
 fi
 
 if [[ -f "account.json" ]]; then
@@ -115,18 +113,9 @@ if [[ -f "product.json" ]]; then
     else
         export LOCATION="${LOCATION:-product}"
     fi
-    export PRODUCT_DIR="$(pwd)"
-    if [[ $(fileName "${PRODUCT_DIR}") == "config" ]]; then
-        export PRODUCT="$(cd ..; fileName "$(pwd)")"
-    else
-        export PRODUCT="$(fileName "$(pwd)")"
-    fi
-
-    addToArrayHead "BLUEPRINT_ARRAY" \
-        "${PRODUCT_DIR}"/domains*.json \
-        "${PRODUCT_DIR}"/ipaddressgroups*.json \
-        "${PRODUCT_DIR}"/countrygroups*.json \
-        "${PRODUCT_DIR}"/product.json
+    export PRODUCT="$(fileName "$(pwd)")"
+    [[ "${PRODUCT}" == "config" ]] &&
+      export PRODUCT="$(cd ..; fileName "$(pwd)")"
 fi
 
 if [[ -f "integrator.json" ]]; then
@@ -148,24 +137,60 @@ popd >/dev/null
 # Analyse directory structure
 findGen3Dirs "${GENERATION_DATA_DIR}" || exit
 
-addToArrayHead "BLUEPRINT_ARRAY" \
-    "${ACCOUNT_DIR}"/domains*.json \
-    "${ACCOUNT_DIR}"/ipaddressgroups*.json \
-    "${ACCOUNT_DIR}"/countrygroups*.json \
-    "${ACCOUNT_DIR}"/account.json \
-    "${TENANT_DIR}"/domains*.json \
-    "${TENANT_DIR}"/ipaddressgroups*.json \
-    "${TENANT_DIR}"/countrygroups*.json \
-    "${TENANT_DIR}"/tenant.json
-
 # Build the composite solution ( aka blueprint)
-debug "BLUEPRINT=${BLUEPRINT_ARRAY[*]}"
 export COMPOSITE_BLUEPRINT="${CACHE_DIR}/composite_blueprint.json"
-if [[ ! $(arrayIsEmpty "BLUEPRINT_ARRAY") ]]; then
-    addToArrayHead "BLUEPRINT_ARRAY" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"/masterData.json
-    ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${BLUEPRINT_ARRAY[@]}"
-else
-    echo "{}" > ${COMPOSITE_BLUEPRINT}
+if [[ (("${GENERATION_USE_CACHE}" != "true") &&
+        ("${GENERATION_USE_BLUEPRINT_CACHE}" != "true")) ||
+      (! -f "${COMPOSITE_BLUEPRINT}") ]]; then
+
+    blueprint_array=()
+    blueprint_alternate_dirs=( \
+      "${SEGMENT_SOLUTIONS_DIR}" \
+      "${ENVIRONMENT_SHARED_SOLUTIONS_DIR}" \
+      "${SEGMENT_SHARED_SOLUTIONS_DIR}" \
+      "${PRODUCT_SHARED_SOLUTIONS_DIR}" )
+
+    for blueprint_alternate_dir in "${blueprint_alternate_dirs[@]}"; do
+      [[ (-z "${blueprint_alternate_dir}") || (! -d "${blueprint_alternate_dir}") ]] && continue
+
+      addToArrayHead "blueprint_array" \
+          "${blueprint_alternate_dir}"/segment*.json \
+          "${blueprint_alternate_dir}"/environment*.json \
+          "${blueprint_alternate_dir}"/solution*.json \
+          "${blueprint_alternate_dir}"/domains*.json \
+          "${blueprint_alternate_dir}"/ipaddressgroups*.json \
+          "${blueprint_alternate_dir}"/countrygroups*.json
+
+      for composite in "${TEMPLATE_COMPOSITES[@]}"; do
+          for fragment in "${blueprint_alternate_dir}"/${composite}_*.ftl; do
+              fragment_name="$(fileName "${fragment}")"
+              $(inArray "${composite}_array" "${fragment_name}") ||
+                  addToArray "${composite}_array" "${fragment}"
+          done
+      done
+    done
+
+    addToArrayHead "blueprint_array" \
+        "${PRODUCT_DIR}"/domains*.json \
+        "${PRODUCT_DIR}"/ipaddressgroups*.json \
+        "${PRODUCT_DIR}"/countrygroups*.json \
+        "${PRODUCT_DIR}"/product.json \
+        "${ACCOUNT_DIR}"/domains*.json \
+        "${ACCOUNT_DIR}"/ipaddressgroups*.json \
+        "${ACCOUNT_DIR}"/countrygroups*.json \
+        "${ACCOUNT_DIR}"/account.json \
+        "${TENANT_DIR}"/domains*.json \
+        "${TENANT_DIR}"/ipaddressgroups*.json \
+        "${TENANT_DIR}"/countrygroups*.json \
+        "${TENANT_DIR}"/tenant.json
+
+    debug "BLUEPRINT=${blueprint_array[*]}"
+    if [[ ! $(arrayIsEmpty "blueprint_array") ]]; then
+        addToArrayHead "blueprint_array" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"/masterData.json
+        ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${blueprint_array[@]}"
+    else
+        echo "{}" > "${COMPOSITE_BLUEPRINT}"
+    fi
 fi
 
 # Extract key settings from the composite solution
@@ -202,91 +227,45 @@ BLUEPRINT_SEGMENT=$(runJQ -r '.Segment.Name | select(.!=null)' < ${COMPOSITE_BLU
         fatalCantProceed "Blueprint segment of ${BLUEPRINT_SEGMENT} doesn't match expected value of ${SEGMENT}" && exit 1
 
 # Add default composite fragments including end fragment
-for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-    for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/${COMPOSITE,,}_*.ftl; do
-            $(inArray "${COMPOSITE}_ARRAY" $(fileName "${FRAGMENT}")) ||
-                addToArray "${COMPOSITE}_ARRAY" "${FRAGMENT}"
+if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
+        ("${GENERATION_USE_FRAGMENTS_CACHE}" != "true")) ||
+      (! -f "${CACHE_DIR}/composite_account.ftl") ]]; then
+    for composite in "${TEMPLATE_COMPOSITES[@]}"; do
+        for fragment in ${GENERATION_DIR}/templates/${composite}/${composite}_*.ftl; do
+                $(inArray "${composite}_array" $(fileName "${fragment}")) ||
+                    addToArray "${composite}_array" "${fragment}"
+        done
+        for fragment in ${GENERATION_DIR}/templates/${composite}/*end.ftl; do
+            addToArray "${composite}_array" "${fragment}"
+        done
     done
-    for FRAGMENT in ${GENERATION_DIR}/templates/${COMPOSITE,,}/*end.ftl; do
-        addToArray "${COMPOSITE}_ARRAY" "${FRAGMENT}"
+
+    # create the template composites
+    for composite in "${TEMPLATE_COMPOSITES[@]}"; do
+        namedef_supported &&
+          declare -n composite_array="${composite}_array" ||
+          eval "declare composite_array=(\"\${${composite}_array[@]}\")"
+        debug "${composite^^}=${composite_array[*]}"
+        cat "${composite_array[@]}" > "${CACHE_DIR}/composite_${composite}.ftl"
     done
-done
-
-# create the template composites
-for COMPOSITE in "${TEMPLATE_COMPOSITES[@]}"; do
-    COMPOSITE_FILE="${CACHE_DIR}/composite_${COMPOSITE,,}.ftl"
-    namedef_supported &&
-      declare -n COMPOSITE_ARRAY="${COMPOSITE}_ARRAY" ||
-      eval "declare COMPOSITE_ARRAY=(\"\${${COMPOSITE}_ARRAY[@]}\")"
-    declare -gx COMPOSITE_${COMPOSITE}="${COMPOSITE_FILE}"
-    debug "${COMPOSITE}=${COMPOSITE_ARRAY[*]}"
-    cat "${COMPOSITE_ARRAY[@]}" > "${COMPOSITE_FILE}"
-done
-
-# Assemble appsettings
-debug "Generating composite settings ..."
-export COMPOSITE_SETTINGS="${CACHE_DIR}/composite_settings.json"
-assemble_settings "${COMPOSITE_SETTINGS}"
-
-# Product specific context if the product is known
-APPSETTINGS_ARRAY=()
-CREDENTIALS_ARRAY=()
-if [[ -n "${PRODUCT}" ]]; then
-
-    # deployment unit specific appsettings
-    if [[ (-n "${DEPLOYMENT_UNIT}") ]]; then
-        # Confirm it is an solution or application level deployment unit before checking appsettings
-        if isValidUnit "application" "${DEPLOYMENT_UNIT}" || isValidUnit "solution" "${DEPLOYMENT_UNIT}"; then
-            export BUILD_DEPLOYMENT_UNIT="${DEPLOYMENT_UNIT}"
-
-            # Legacy naming to support products using the term "slice" or "unit" instead of "deployment_unit"
-            fileContentsInEnv "BUILD_DEPLOYMENT_UNIT" \
-                "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/deployment_unit*.ref \
-                "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/unit*.ref \
-                "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/slice*.ref
-
-            addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${DEPLOYMENT_UNIT}"/appsettings*.json
-            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
-                addToArrayHead "APPSETTINGS_ARRAY" "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/appsettings*.json
-
-            addToArrayHead "CREDENTIALS_ARRAY" "${SEGMENT_CREDENTIALS_DIR}/${DEPLOYMENT_UNIT}"/credentials*.json
-            [[ "${DEPLOYMENT_UNIT}" != "${BUILD_DEPLOYMENT_UNIT}" ]] &&
-                addToArrayHead "CREDENTIALS_ARRAY"  "${SEGMENT_CREDENTIALS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/credentials*.json
-
-            fileContentsInEnv "BUILD_REFERENCE" \
-                "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.json \
-                "${SEGMENT_APPSETTINGS_DIR}/${BUILD_DEPLOYMENT_UNIT}"/build*.ref
-        fi
-    fi
-
-    # segment/product/account specific appsettings/credentials
-    addToArrayHead "APPSETTINGS_ARRAY" \
-        "${SEGMENT_APPSETTINGS_DIR}"/appsettings*.json \
-        "${PRODUCT_APPSETTINGS_DIR}"/appsettings*.json \
-        "${ACCOUNT_APPSETTINGS_DIR}"/appsettings*.json
-
-    addToArrayHead "CREDENTIALS_ARRAY" \
-        "${SEGMENT_CREDENTIALS_DIR}"/credentials*.json \
-        "${PRODUCT_CREDENTIALS_DIR}"/credentials*.json \
-        "${ACCOUNT_CREDENTIALS_DIR}"/credentials*.json
 fi
 
-# Build the composite appsettings
-debug "APPSETTINGS=${APPSETTINGS_ARRAY[*]}"
-export COMPOSITE_APPSETTINGS="${CACHE_DIR}/composite_appsettings.json"
-$(arrayIsEmpty "APPSETTINGS_ARRAY") &&
-    echo "{}" > ${COMPOSITE_APPSETTINGS} ||
-    ${GENERATION_DIR}/manageJSON.sh -c -o ${COMPOSITE_APPSETTINGS} "${APPSETTINGS_ARRAY[@]}"
-
-# Build the composite credentials
-debug "CREDENTIALS=${CREDENTIALS_ARRAY[*]}"
-export COMPOSITE_CREDENTIALS="${CACHE_DIR}/composite_credentials.json"
-$(arrayIsEmpty "CREDENTIALS_ARRAY") &&
-    echo "{\"Credentials\" : {}}" > ${COMPOSITE_CREDENTIALS} ||
-    ${GENERATION_DIR}/manageJSON.sh -o ${COMPOSITE_CREDENTIALS} "${CREDENTIALS_ARRAY[@]}"
+# Assemble settings
+export COMPOSITE_SETTINGS="${CACHE_DIR}/composite_settings.json"
+if [[ (("${GENERATION_USE_CACHE}" != "true") &&
+        ("${GENERATION_USE_SETTINGS_CACHE}" != "true")) ||
+      (! -f "${COMPOSITE_SETTINGS}") ]]; then
+    debug "Generating composite settings ..."
+    assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"
+fi
 
 # Create the composite stack outputs
-assemble_composite_stack_outputs
+export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
+if [[ (("${GENERATION_USE_CACHE}" != "true") &&
+        ("${GENERATION_USE_STACK_OUTPUTS_CACHE}" != "true")) ||
+      (! -f "${COMPOSITE_STACK_OUTPUTS}") ]]; then
+    assemble_composite_stack_outputs
+fi
 
 # Set default AWS credentials if available (hook from Jenkins framework)
 CHECK_AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-${ACCOUNT_TEMP_AWS_ACCESS_KEY_ID}}"

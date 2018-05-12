@@ -189,21 +189,13 @@
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
 [#assign fullNamePrefixes = [] ]
-[#assign cmdbLookupPrefixes = [] ]
+[#assign cmdbProductLookupPrefixes = [] ]
 [#assign segmentQualifiers = [] ]
 
 [#-- Standard inputs --]
 [#assign blueprintObject = blueprint?eval]
 
 [#assign settingsObject = settings?eval ]
-
-[#-- Legacy credentials formats had a top level Credentials attribute --]
-[#assign credentialsObject =
-    credentials?has_content?then(credentials?eval, {}) ]
-[#assign credentialsObject += credentialsObject.Credentials!{} ]
-
-[#assign appSettingsObject =
-    appsettings?has_content?then(appsettings?eval, {}) ]
 
 [#assign stackOutputsList =
     stackOutputs?has_content?then(stackOutputs?eval, []) ]
@@ -279,7 +271,7 @@
 
     [#assign shortNamePrefixes += [productId] ]
     [#assign fullNamePrefixes += [productName] ]
-    [#assign cmdbLookupPrefixes += [[productName, "shared", "default"]] ]
+    [#assign cmdbProductLookupPrefixes += ["shared"] ]
 
 [/#if]
 
@@ -294,8 +286,8 @@
     [#assign segmentName = segmentObject.Name]
     [#assign segments += {segmentId : segmentObject} ]
 
-    [#if segmentObject.Environment?? || blueprintObject.Environment?? ]
-        [#assign environmentId = (blueprintObject.Environment.Id)!segmentObject.Environment]
+    [#if blueprintObject.Environment?? ]
+        [#assign environmentId = blueprintObject.Environment.Id ]
         [#assign environmentObject = environments[environmentId]]
         [#assign environmentName = environmentObject.Name]
         [#assign categoryId = segmentObject.Category!environmentObject.Category]
@@ -304,20 +296,20 @@
 
         [#assign shortNamePrefixes += [environmentId] ]
         [#assign fullNamePrefixes += [environmentName] ]
-        [#assign segmentQualifiers += [environmentId, environmentName] ]
+        [#assign segmentQualifiers += [environmentId, environmentName, segmentId, segmentName] ]
 
-        [#if (segmentName != environmentName) &&
-              (segmentName != "default") ]
-              [#assign shortNamePrefixes += [segmentId] ]
-              [#assign fullNamePrefixes += [segmentName] ]
-              [#assign segmentQualifiers += [segmentId, segmentName] ]
+        [#assign cmdbProductLookupPrefixes +=
+            [
+                ["shared", segmentName],
+                environmentName,
+                [environmentName, segmentName]
+            ] ]
+
+        [#if (segmentName != "default") ]
+            [#assign shortNamePrefixes += [segmentId] ]
+            [#assign fullNamePrefixes += [segmentName] ]
         [/#if]
 
-        [#assign cmdbLookupPrefixes +=
-            [
-                [productName, "shared", segmentName],
-                [productName, environmentName, segmentName]
-            ] ]
     [/#if]
 
     [#assign vpc = getExistingReference(formatVPCId())]

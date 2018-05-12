@@ -91,11 +91,14 @@
                 "Subobjects" : true,
                 "Children" : [
                     {
+                        "Name" : "IPAddressGroups",
+                        "Default" : []
+                    },
+                    {
                         "Name" : "LB",
                         "Children" : lbChildConfiguration
                     }
                 ]
-                
             }
         ]
     }]
@@ -106,7 +109,7 @@
     [#local zoneResources = {}]
 
     [#list zones as zone ]
-        [#local zoneResources += 
+        [#local zoneResources +=
             { zone.Id : {
                 "ec2Instance" : {
                     "Id"   : formatResourceId(AWS_EC2_INSTANCE_RESOURCE_TYPE, core.Id, zone.Id),
@@ -148,7 +151,7 @@
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
-                "Zones" : zoneResources 
+                "Zones" : zoneResources
             },
             "Attributes" : {
             },
