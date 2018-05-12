@@ -113,8 +113,6 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local apiId = formatResourceId("api", core.Id)]
-
     [#-- Resource Id doesn't follow the resource type for backwards compatability --]
     [#if getExistingReference(formatResourceId("api", core.Id))?has_content ]
         [#local apiId = formatResourceId("api", core.Id)]

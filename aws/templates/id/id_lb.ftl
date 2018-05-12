@@ -58,88 +58,10 @@
                 "Default" : {}
             },
             {
-                "Name" : "Mapping",
-                "Mandatory" : true
+                "Name" : "Mapping"
             }
         ]
     }]
-
-[#function addPortMappingIdAndName mapping component]
-    [#local portMapping = mapping.Mapping!""]
-
-    [#if !portMapping?has_content ]
-        [@cfException
-            mode=listMode
-            description="Port mapping missing"
-            context=component
-            detail=mapping /]
-
-        [#local portMapping = "?"]
-    [/#if]
-
-    [#local source = (portMappings[portMapping].Source)!""]
-    [#local destination = (portMappings[portMapping].Destination)!""]
-
-    [#if !source?has_content ]
-        [@cfException
-            mode=listMode
-            description="Unknown source port"
-            context=component
-            detail=mapping /]
-    [/#if]
-    [#if !destination?has_content ]
-        [@cfException
-            mode=listMode
-            description="Unknown destination port"
-            context=component
-            detail=mapping /]
-    [/#if]
-
-    [#return
-        mapping +
-        {
-            "Id" : (ports[source].Port)!portMapping,
-            "Name" : contentIfContent(source, portMapping),
-            "Mapping" : portMapping
-        } ]
-[/#function]
-
-[#function migrateLBComponent component ]
-    [#local newPortMappings = {} ]
-    [#if component.PortMappings?is_sequence ]
-        [#list component.PortMappings as portMapping]
-            [#if portMapping?is_string]
-                [#local newPortMappings +=
-                    {
-                        portMapping :
-                            addPortMappingIdAndName(
-                                {"Mapping" : portMapping},
-                                component)
-                    } ]
-            [/#if]
-            [#if portMapping?is_hash]
-                [#local newPortMappings +=
-                {
-                    portMapping :
-                        addPortMappingIdAndName(
-                            portMapping,
-                            component)
-                } ]
-            [/#if]
-        [/#list]
-    [#else]
-        [#list component.PortMappings as key,portMapping]
-            [#local newPortMappings +=
-            {
-                portMapping :
-                    addPortMappingIdAndName(
-                        portMapping,
-                        component)
-            } ]
-        [/#list]
-    [/#if]
-    [#return component + { "PortMappings" : newPortMappings } ]
-[/#function]
 
 [#function getLBState occurrence]
     [#local core = occurrence.Core]
@@ -182,7 +104,7 @@
     [#local internalFqdn = parentState.Attributes["INTERNAL_FQDN"] ]
     [#local lbId = parentState.Resources["lb"].Id]
 
-    [#local sourcePort = (ports[portMappings[solution.Mapping].Source])!{} ]
+    [#local sourcePort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Source])!{} ]
 
     [#local id = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id) ]
 

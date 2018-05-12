@@ -1,6 +1,7 @@
 [#case "filter"]
+    [#-- DATA and QUERY credentials (USERNAME, PASSWORD) expected in env --]
+    [#-- TODO(mfl): change container to use standard ES atributes --]
     [#assign es = component.Links["es"]]
-    [#assign sharedCredential = credentialsObject["shared"]]
     
     [@Attributes image="esfilter" /]
     
@@ -12,15 +13,8 @@
                     formatElasticSearchId(
                         es.Tier,
                         es.Component),
-                    DNS_ATTRIBUTE_TYPE) + ":443",
-            "DATA_USERNAME" : sharedCredential.Data.Username,
-            "DATA_PASSWORD" : sharedCredential.Data.Password,
-            "QUERY_USERNAME" : sharedCredential.Query.Username,
-            "QUERY_PASSWORD" : sharedCredential.Query.Password
-        }
+                    DNS_ATTRIBUTE_TYPE) + ":443"        }
     /]
             
-    [@Policy credentialsDecryptPermission() /]
-
     [#break]
 

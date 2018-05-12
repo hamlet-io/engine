@@ -23,14 +23,16 @@
 [/#function]
 
 [#function formatComponentEIPId tier component extensions...]
-    [#return formatEIPId(
+    [#return formatComponentResourceId(
+                AWS_EIP_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]
 [/#function]
 
 [#function formatComponentEIPAssociationId tier component extensions...]
-    [#return formatEIPAssociationId(
+    [#return formatComponentResourceId(
+                AWS_EIP_ASSOCIATION_RESOURCE_TYPE,
                 tier,
                 component,
                 extensions)]

@@ -31,8 +31,6 @@
         
         [#assign userPoolUpdateCommand = "updateUserPool" ]            
     
-        [@cfDebug listMode appSettingsObject false /]
-
         [#assign emailVerificationMessage =
             getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationMessage"], true) ]
 

@@ -166,11 +166,11 @@ function process_template() {
   # Default passes
   local passes=("prologue" "template" "epilogue")
 
-  local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/${SEGMENT}/cf"
+  local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
 
   case "${level}" in
     blueprint)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${SEGMENT}/bp"
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       pass_list=("template")
       passes=("template")
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
@@ -187,7 +187,7 @@ function process_template() {
       ;;
 
     account)
-      cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/aws/cf"
+      cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
       for pass in "${pass_list[@]}"; do pass_region_prefix["${pass}"]="${account_region}-"; done
       template_composites+=("ACCOUNT")
 
@@ -198,7 +198,7 @@ function process_template() {
       ;;
 
     product)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/aws/cf"
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/shared"
       template_composites+=("PRODUCT")
 
       # LEGACY: Support stacks created before deployment units added to product
@@ -294,8 +294,6 @@ function process_template() {
   args+=("-v" "productRegion=${product_region}")
   args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
-  args+=("-v" "credentials=${COMPOSITE_CREDENTIALS}")
-  args+=("-v" "appsettings=${COMPOSITE_APPSETTINGS}")
   args+=("-v" "settings=${COMPOSITE_SETTINGS}")
   args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
   args+=("-v" "requestReference=${request_reference}")

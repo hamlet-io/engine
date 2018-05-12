@@ -34,6 +34,7 @@
 
             [#list occurrence.Occurrences![] as subOccurrence]
 
+                [#assign core = subOccurrence.Core ]
                 [#assign solution = subOccurrence.Configuration.Solution ]
                 [#assign resources = subOccurrence.State.Resources ]
 
@@ -47,17 +48,18 @@
 
                 [#assign lbSecurityGroupIds += [securityGroupId] ]
 
-                [#assign source = (portMappings[solution.Mapping].Source)!"" ]
-                [#assign destination = (portMappings[solution.Mapping].Destination)!"" ]
+                [#assign mapping = solution.Mapping!core.SubComponent.Name ]
+                [#assign source = (portMappings[mapping].Source)!"" ]
+                [#assign destination = (portMappings[mapping].Destination)!"" ]
                 [#assign sourcePort = (ports[source])!{} ]
                 [#assign destinationPort = (ports[destination])!{} ]
-
-                [#assign portProtocols += [ sourcePort.Protocol ] ]
-                [#assign portProtocols += [ destinationPort.Protocol] ]
 
                 [#if !(sourcePort?has_content && destinationPort?has_content)]
                     [#continue ]
                 [/#if]
+
+                [#assign portProtocols += [ sourcePort.Protocol ] ]
+                [#assign portProtocols += [ destinationPort.Protocol] ]
 
                 [#assign cidr= getGroupCIDRs(solution.IPAddressGroups) ]
 
