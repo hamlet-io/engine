@@ -2136,7 +2136,7 @@
     [#list configuration.IPAddressGroups as group]
         [#local addressGroup = getIPAddressGroup(group) ]
         [#if ! addressGroup.IsOpen]
-            [#local action = (group.Action?upper_case)!wafRuleDefault ]
+            [#local action = (addressGroup.Action?upper_case)!wafRuleDefault ]
             [#if (wafDefault == "ALLOW") && (action == "ALLOW") ]
                 [#-- more useful to count if default is allow --]
                 [#local action = "COUNT" ]
