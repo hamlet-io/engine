@@ -606,7 +606,7 @@ function findGen3Dirs() {
       declare -gx ${prefix}ENVIRONMENT_SHARED_SETTINGS_DIR=$(getGen3Env   "PRODUCT_SETTINGS_DIR"   "${prefix}")/${environment}
       declare -gx ${prefix}ENVIRONMENT_SHARED_SOLUTIONS_DIR=$(getGen3Env  "PRODUCT_SOLUTIONS_DIR"  "${prefix}")/${environment}
       declare -gx ${prefix}ENVIRONMENT_SHARED_OPERATIONS_DIR=$(getGen3Env "PRODUCT_OPERATIONS_DIR" "${prefix}")/${environment}
-      debug "ENVIRONMENT_DIR=$(getGen3Env "PRODUCT_OPERATIONS_DIR" "${prefix}")/${environment}"
+      debug "ENVIRONMENT_DIR=$(getGen3Env "PRODUCT_SOLUTIONS_DIR" "${prefix}")/${environment}"
 
       if [[ -n "${segment}" ]]; then
 
@@ -618,7 +618,7 @@ function findGen3Dirs() {
         declare -gx ${prefix}SEGMENT_BUILDS_DIR=$(getGen3Env     "PRODUCT_SETTINGS_DIR"   "${prefix}")/${environment}/${segment}
         declare -gx ${prefix}SEGMENT_SOLUTIONS_DIR=$(getGen3Env  "PRODUCT_SOLUTIONS_DIR"  "${prefix}")/${environment}/${segment}
         declare -gx ${prefix}SEGMENT_OPERATIONS_DIR=$(getGen3Env "PRODUCT_OPERATIONS_DIR" "${prefix}")/${environment}/${segment}
-        debug "SEGMENT_DIR=$(getGen3Env "PRODUCT_OPERATIONS_DIR" "${prefix}")/${environment}/${segment}"
+        debug "SEGMENT_DIR=$(getGen3Env "PRODUCT_SOLUTIONS_DIR" "${prefix}")/${environment}/${segment}"
       fi
     fi
   fi
