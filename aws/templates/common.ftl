@@ -1426,7 +1426,7 @@
                         [#if ((typeObject[subComponent.Component])!{})?is_hash ]
                             [#local subComponentInstances =
                                 (typeObject[subComponent.Component].Components)!
-                                (typeObject[subComponent.Component])
+                                (typeObject[subComponent.Component])!{}
                             ]
                         [#else]
                             [@cfException
