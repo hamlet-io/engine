@@ -170,11 +170,13 @@ if [[ (("${GENERATION_USE_CACHE}" != "true") &&
       done
     done
 
-    addToArrayHead "blueprint_array" \
+    [[ -n "${PRODUCT_DIR}" ]] && addToArrayHead "blueprint_array" \
         "${PRODUCT_DIR}"/domains*.json \
         "${PRODUCT_DIR}"/ipaddressgroups*.json \
         "${PRODUCT_DIR}"/countrygroups*.json \
-        "${PRODUCT_DIR}"/product.json \
+        "${PRODUCT_DIR}"/product.json
+
+    addToArrayHead "blueprint_array" \
         "${ACCOUNT_DIR}"/domains*.json \
         "${ACCOUNT_DIR}"/ipaddressgroups*.json \
         "${ACCOUNT_DIR}"/countrygroups*.json \
