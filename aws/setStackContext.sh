@@ -33,8 +33,8 @@ ACCOUNT_PREFIX="${ACCOUNT}-"
 REGION_PREFIX="${REGION}-"
 ENVIRONMENT_SUFFIX="-${ENVIRONMENT}"
 SEGMENT_SUFFIX="-${SEGMENT}"
-if [[ ("${SEGMENT_SUFFIX}" == "${ENVIRONMENT_SUFFIX}") ||
-        ("${SEGMENT_SUFFIX}" == "default") ]]; then
+if [[ ("${SEGMENT}" == "${ENVIRONMENT}") ||
+        ("${SEGMENT}" == "default") ]]; then
     SEGMENT_SUFFIX=""
 fi
 LEVEL_SUFFIX="-${LEVEL}"
