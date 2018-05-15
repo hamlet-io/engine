@@ -61,12 +61,12 @@
                         "}",
                         "#",
                         "case $\{STACK_OPERATION} in",
-                        "  delete)",
-                        "    delete_ssh_credentials " + " " +
+                        "#  delete)",
+                        "#    delete_ssh_credentials " + " " +
                             "\"" + regionId + "\" " +
                             "\"" + formatEnvironmentFullName() + "\" || return $?",
-                        "    delete_pki_credentials \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}\" || return $?",
-                        "    ;;",
+                        "#    delete_pki_credentials \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}\" || return $?",
+                        "#    ;;",
                         "  create|update)",
                         "    manage_ssh_credentials || return $?",
                         "    ;;",
