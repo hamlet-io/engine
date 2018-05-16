@@ -59,11 +59,10 @@
                                  "\"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\"" + " " +
                                  "\"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-prv.pem\" || return $?; }",
                         "  fi",
-                        "  #",
-                        "  create_pseudo_stack" + " " +
-                             "\"SSH Key Pair\"" + " " +
-                             "\"$\{key_pair_pseudo_stack_file}\"" + " " +
-                             "\"keypairXsegmentXname\" \"$\{key_pair_name}\" || return $?",
+                        "  #"
+                      ] +
+                      pseudoStackOutputScript("SSH Key Pair", {"keypairXsegmentXname" : "$\{key_pair_name}"}, "keypair-pseudo") +
+                      [
                         "  #",
                         "  show_ssh_credentials" + " " +
                              "\"" + regionId + "\" " +
@@ -71,8 +70,6 @@
                         "  #",
                         "  return 0"
                         "}",
-                        "#",
-                        "key_pair_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-keypair-pseudo-stack.json\" ",
                         "#",
                         "# Determine the required key pair name",
                         "# Legacy support for existing keypairs for default segments",
@@ -113,13 +110,17 @@
                         "\"$\{oai_file}\" || return $?",
                     "  #",
                     "  oai_id=$(jq -r \".Id\" < \"$\{oai_file}\") || return $?",
-                    "  oai_canonical_id=$(jq -r \".S3CanonicalUserId\" < \"$\{oai_file}\") || return $?",
-                    "  create_pseudo_stack" + " " +
-                         "\"Cloudfront Origin Access Identity\"" + " " +
-                         "\"$\{oai_pseudo_stack_file}\"" + " " +
-                         "\"cfaccessXs3XsegmentXops\" \"$\{oai_id}\"" + " " +
-                         "\"cfaccessXs3XsegmentXopsXcanonicalid\" \"$\{oai_canonical_id}\" || return $?"
-                    "}"
+                    "  oai_canonical_id=$(jq -r \".S3CanonicalUserId\" < \"$\{oai_file}\") || return $?"
+                ] +
+                pseudoStackOutputScript(
+                    "Cloudfront Origin Access Identity",
+                    {
+                        "cfaccessXs3XsegmentXops" : "$\{oai_id}",
+                        "cfaccessXs3XsegmentXopsXcanonicalid" : "$\{oai_canonical_id}"
+                    }
+                ) +
+                [
+                    "}",
                     "#",
                     "oai_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                     "case $\{STACK_OPERATION} in",
