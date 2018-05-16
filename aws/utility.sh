@@ -816,19 +816,27 @@ function delete_pki_credentials() {
 
 # -- SSH --
 
+function check_ssh_credentials() {
+  local region="$1"; shift
+  local name="$1"; shift
+
+  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}" > /dev/null 2>&1
+}
+
+function show_ssh_credentials() {
+  local region="$1"; shift
+  local name="$1"; shift
+
+  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}"
+}
+
 function update_ssh_credentials() {
   local region="$1"; shift
   local name="$1"; shift
   local crt_file="$1"; shift
 
-  local crt_content=
-
-  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}" > /dev/null 2>&1 ||
-    { crt_content=$(dos2unix < "${crt_file}" | awk 'BEGIN {RS="\n"} /^[^-]/ {printf $1}'); \
-    aws --region "${region}" ec2 import-key-pair --key-name "${name}" --public-key-material "${crt_content}"; }
-
-  # Show the current credential
-  aws --region "${region}" ec2 describe-key-pairs --key-name "${name}"
+  local crt_content=$(dos2unix < "${crt_file}" | awk 'BEGIN {RS="\n"} /^[^-]/ {printf $1}')
+  aws --region "${region}" ec2 import-key-pair --key-name "${name}" --public-key-material "${crt_content}"
 }
 
 function delete_ssh_credentials() {
