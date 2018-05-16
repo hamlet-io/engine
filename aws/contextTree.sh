@@ -1043,17 +1043,15 @@ EOF
           for pem_file in "${pem_files[@]}"; do
             local file_name="$(fileName "${pem_file}")"
             local segment_dir="$(filePath "${pem_file}")"
-            local environment_dir="$(filePath "${segment_dir}")"
 
-            # Move the file so it can be shared by all segments in the environment
-            # Also make it invisible to the generation process
-            debug "Moving ${pem_file} to ${environment_dir}/.${file_name} ..."
-            mv "${pem_file}" "${environment_dir}/.${file_name}"
+            # Move the pem files to make them invisible to the generation process
+            debug "Moving ${pem_file} to ${segment_dir}/.${file_name} ..."
+            mv "${pem_file}" "${segment_dir}/.${file_name}"
 
-            local environment_ignore_file="${environment_dir}/.gitignore"
-            if [[ ! -f "${environment_ignore_file}" ]]; then
-              debug "Creating ${environment_ignore_file} ..."
-              cat << EOF > "${environment_ignore_file}"
+            local segment_ignore_file="${segment_dir}/.gitignore"
+            if [[ ! -f "${segment_ignore_file}" ]]; then
+              debug "Creating ${segment_ignore_file} ..."
+              cat << EOF > "${segment_ignore_file}"
 *.plaintext
 *.decrypted
 *.ppk

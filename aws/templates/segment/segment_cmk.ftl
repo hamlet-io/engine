@@ -4,7 +4,7 @@
         [#-- TODO: Get rid of inconsistent id usage --]
         [#assign cmkId = formatSegmentCMKTemplateId()]
         [#assign cmkAliasId = formatSegmentCMKAliasId(cmkId)]
-    
+
         [@createCMK
             mode=listMode
             id=cmkId
@@ -14,14 +14,14 @@
                     getPolicyStatement(
                         "kms:*",
                         "*",
-                        { 
+                        {
                             "AWS": formatAccountPrincipalArn()
                         }
                     )
                 ]
             outputId=formatSegmentCMKId()
         /]
-        
+
         [@createCMKAlias
             mode=listMode
             id=cmkAliasId
@@ -40,33 +40,54 @@
                         "  info \"Checking SSH credentials ...\"",
                         "  #",
                         "  # Create SSH credential for the segment",
-                        "  mkdir -p \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}\"",
-                        "  create_pki_credentials \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}\" || return $?",
+                        "  mkdir -p \"$\{SEGMENT_OPERATIONS_DIR}\"",
+                        "  create_pki_credentials \"$\{SEGMENT_OPERATIONS_DIR}\" || return $?",
                         "  #",
-                        "  # Update the credential",
-                        "  pem_file=\"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/aws-ssh-crt.pem\"",
-                        "  [[ -f \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-crt.pem\" ]] &&",
-                        "    pem_file=\"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-crt.pem\"",
-                        "  update_ssh_credentials" + " " +
+                        "  # Update the credential if required",
+                        "  if ! check_ssh_credentials" + " " +
                             "\"" + regionId + "\" " +
-                            "\"" + formatEnvironmentFullName() + "\" " +
-                            "\"$\{pem_file}\" || return $?",
-                        "  [[ -f \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\" ]] && ",
-                        "    { encrypt_file" + " " +
-                               "\"" + regionId + "\"" + " " +
-                               "segment" + " " +
-                               "\"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\"" + " " +
-                               "\"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}/.aws-ssh-prv.pem\" || return $?; }",
+                             "\"$\{key_pair_name}\"; then",
+                        "    pem_file=\"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-crt.pem\"",
+                        "    update_ssh_credentials" + " " +
+                               "\"" + regionId + "\" " +
+                               "\"$\{key_pair_name}\" " +
+                               "\"$\{pem_file}\" || return $?",
+                        "    [[ -f \"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\" ]] && ",
+                        "      { encrypt_file" + " " +
+                                 "\"" + regionId + "\"" + " " +
+                                 "segment" + " " +
+                                 "\"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\"" + " " +
+                                 "\"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-prv.pem\" || return $?; }",
+                        "  fi",
+                        "  #"
+                      ] +
+                      pseudoStackOutputScript("SSH Key Pair", {"keypairXsegmentXname" : "$\{key_pair_name}"}, "keypair-pseudo") +
+                      [
+                        "  #",
+                        "  show_ssh_credentials" + " " +
+                             "\"" + regionId + "\" " +
+                             "\"$\{key_pair_name}\"",
+                        "  #",
                         "  return 0"
                         "}",
                         "#",
+                        "# Determine the required key pair name",
+                        "# Legacy support for existing keypairs for default segments",
+                        "key_pair_name=\"" + formatName(productName, environmentName, segmentName) + "\"",
+                        valueIfTrue(
+                          "  check_ssh_credentials" + " " +
+                               "\"" + regionId + "\" " +
+                               "\"" + formatEnvironmentFullName() + "\" && key_pair_name=\"" + formatEnvironmentFullName() + "\"",
+                          segmentName == "default",
+                          "#"),
+                        "#",
                         "case $\{STACK_OPERATION} in",
-                        "#  delete)",
-                        "#    delete_ssh_credentials " + " " +
+                        "  delete)",
+                        "    delete_ssh_credentials " + " " +
                             "\"" + regionId + "\" " +
-                            "\"" + formatEnvironmentFullName() + "\" || return $?",
-                        "#    delete_pki_credentials \"$\{ENVIRONMENT_SHARED_OPERATIONS_DIR}\" || return $?",
-                        "#    ;;",
+                            "\"$\{key_pair_name}\" || return $?",
+                        "    delete_pki_credentials \"$\{SEGMENT_OPERATIONS_DIR}\" || return $?",
+                        "    ;;",
                         "  create|update)",
                         "    manage_ssh_credentials || return $?",
                         "    ;;",
@@ -89,15 +110,19 @@
                         "\"$\{oai_file}\" || return $?",
                     "  #",
                     "  oai_id=$(jq -r \".Id\" < \"$\{oai_file}\") || return $?",
-                    "  oai_canonical_id=$(jq -r \".S3CanonicalUserId\" < \"$\{oai_file}\") || return $?",
-                    "  create_pseudo_stack" + " " +
-                         "\"Cloudfront Origin Access Identity\"" + " " +
-                         "\"$\{pseudo_stack_file}\"" + " " +
-                         "\"cfaccessXs3XsegmentXops\" \"$\{oai_id}\"" + " " +
-                         "\"cfaccessXs3XsegmentXopsXcanonicalid\" \"$\{oai_canonical_id}\" || return $?"
-                    "}"
+                    "  oai_canonical_id=$(jq -r \".S3CanonicalUserId\" < \"$\{oai_file}\") || return $?"
+                ] +
+                pseudoStackOutputScript(
+                    "Cloudfront Origin Access Identity",
+                    {
+                        "cfaccessXs3XsegmentXops" : "$\{oai_id}",
+                        "cfaccessXs3XsegmentXopsXcanonicalid" : "$\{oai_canonical_id}"
+                    }
+                ) +
+                [
+                    "}",
                     "#",
-                    "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
+                    "oai_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                     "case $\{STACK_OPERATION} in",
                     "  delete)",
                     "  delete_oai_credentials" + " " +
