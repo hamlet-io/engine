@@ -473,12 +473,7 @@
                 type="AWS::AutoScaling::LaunchConfiguration"
                 properties=
                     {
-                        "KeyName":
-                            valueIfTrue(
-                                formatEnvironmentFullName(),
-                                sshPerEnvironment,
-                                productName
-                            ),
+                        "KeyName": getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                         "ImageId": regionObject.AMIs.Centos.EC2,
                         "InstanceType": processorProfile.Processor,
                         "SecurityGroups" : [ getReference(sshToProxySecurityGroupId) ],
@@ -788,12 +783,7 @@
                         type="AWS::AutoScaling::LaunchConfiguration"
                         properties=
                             {
-                                "KeyName":
-                                    valueIfTrue(
-                                        formatEnvironmentFullName(),
-                                        sshPerEnvironment,
-                                        productName
-                                    ),
+                                "KeyName": getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                                 "ImageId": regionObject.AMIs.Centos.NAT,
                                 "InstanceType": processorProfile.Processor,
                                 "SecurityGroups" : (sshEnabled && !sshStandalone)?then(

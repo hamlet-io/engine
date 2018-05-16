@@ -6,6 +6,7 @@
 [#assign AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE = "asg" ]
 [#assign AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE = "launchConfig" ]
 [#assign AWS_EC2_NETWORK_INTERFACE_RESOURCE_TYPE = "eni" ]
+[#assign AWS_EC2_KEYPAIR_RESOURCE_TYPE = "keypair" ]
 
 [#function formatEC2InstanceId tier component extensions...]
     [#return formatComponentResourceId(
@@ -65,6 +66,12 @@
                 tier,
                 component,
                 port.Port?c)]
+[/#function]
+
+[#function formatEC2KeyPairId extensions...]
+    [#return formatSegmentResourceId(
+                AWS_EC2_KEYPAIR_RESOURCE_TYPE,
+                extensions)]
 [/#function]
 
 [#-- Components --]

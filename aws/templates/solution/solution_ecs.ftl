@@ -318,12 +318,7 @@
                 properties=
                     getBlockDevices(storageProfile) +
                     {
-                        "KeyName":
-                            valueIfTrue(
-                                formatEnvironmentFullName(),
-                                sshPerEnvironment,
-                                productName
-                            ),
+                        "KeyName": getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                         "ImageId": regionObject.AMIs.Centos.ECS,
                         "InstanceType": processorProfile.Processor,
                         "SecurityGroups" : 
