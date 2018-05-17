@@ -803,6 +803,10 @@
             [#case EC2_COMPONENT_TYPE]
                 [#local result = getEC2State(occurrence)]
                 [#break]
+            
+            [#case COMPUTECLUSTER_COMPONENT_TYPE]
+                [#local result = getComputeClusterState(occurrence)]
+                [#break]
 
             [#case "ecs"]
                 [#local result = getECSState(occurrence)]
