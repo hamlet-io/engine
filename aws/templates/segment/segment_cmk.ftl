@@ -73,20 +73,15 @@
                         "#",
                         "# Determine the required key pair name",
                         "# Legacy support for existing keypairs for default segments",
-                        "key_pair_name=\"" + formatName(productName, environmentName, segmentName) + "\"",
-                        valueIfTrue(
-                          "  check_ssh_credentials" + " " +
-                               "\"" + regionId + "\" " +
-                               "\"" + formatEnvironmentFullName() + "\" && key_pair_name=\"" + formatEnvironmentFullName() + "\"",
-                          segmentName == "default",
-                          "#"),
+                        "key_pair_name=\"" + formatSegmentFullName() + "\"",
                         "#",
                         "case $\{STACK_OPERATION} in",
                         "  delete)",
                         "    delete_ssh_credentials " + " " +
-                            "\"" + regionId + "\" " +
-                            "\"$\{key_pair_name}\" || return $?",
+                               "\"" + regionId + "\" " +
+                               "\"$\{key_pair_name}\" || return $?",
                         "    delete_pki_credentials \"$\{SEGMENT_OPERATIONS_DIR}\" || return $?",
+                        "    rm -f \"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-keypair-pseudo-stack.json\"",
                         "    ;;",
                         "  create|update)",
                         "    manage_ssh_credentials || return $?",
@@ -122,13 +117,12 @@
                 [
                     "}",
                     "#",
-                    "oai_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                     "case $\{STACK_OPERATION} in",
                     "  delete)",
                     "  delete_oai_credentials" + " " +
                         "\"" + regionId + "\" " +
                         "\"" + formatSegmentFullName() + "\" || return $?",
-                    "  rm -f \"$\{pseudo_stack_file}\"",
+                    "  rm -f \"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\"",
                     "    ;;",
                     "  create|update)",
                     "    manage_oai_credentials || return $?",
