@@ -63,7 +63,7 @@
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
                 "launchConfig" : {
-                    "Id" : formatEC2LaunchConfigId(core.Tier, core.Component),
+                    "Id" : formatEC2LaunchConfigId(core.Tier, core.Component) + runId,
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
                 } 
             } + 

@@ -23,6 +23,8 @@
         [#assign computeClusterLogGroupName = resources["lg"].Name ]
 
         [#assign targetGroupPermission = false ]
+        [#assign targetGroups = [] ]
+        [#assign loadBalancers = [] ]
 
         [#assign buildUnit = getOccurrenceBuildUnit(occurrence, true) ]
         [#assign buildReference = getOccurrenceBuildReference(occurrence, true) ]
@@ -155,15 +157,16 @@
                                             [#assign componentDependencies += [targetId]]
 
                                         [/#if]
-                                        [#assign configSets += getInitConfigLBTargetRegistration(targetId) ]
+                                        [#assign targetGroups += getReference(targetId, ARN_ATTRIBUTE_TYPE) ]
                                     [/#if]
                                 [/#if]
                             [/#if]
                             [#break]
 
                         [#case "classic" ]
-                            [#assign lbId =  linkTargetAttributes["LB"] ]
-                            [#assign configSets +=  getInitConfigLBClassicRegistration(lbId) ]
+                            [#assign lbId =  linkTargetAttributes["LB"] ]                                     
+                            [#-- Classic ELB's register the instance so we only need 1 registration --]
+                            [#assign loadBalancers += getExistingReference(lbId)]
                             [#break]
                         [/#switch]
                     [#break]
@@ -193,8 +196,11 @@
             [/#if]
             [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
 
+            [#assign desiredCapacity = multiAZ?then( 
+                processorProfile.DesiredPerZone * zones?size,
+                processorProfile.DesiredPerZone
+            )]
         
-            
             [@cfResource
                 mode=listMode
                 id=computeClusterInstanceProfileId
@@ -215,21 +221,36 @@
                 properties=
                     {
                         "Cooldown" : "30",
-                        "LaunchConfigurationName": getReference(computeClusterLaunchConfigId)
+                        "LaunchConfigurationName": getReference(computeClusterLaunchConfigId),
+                        "TerminationPolicies" : [
+                            "OldestLaunchConfiguration",
+                            "OldestInstance",
+                            "ClosestToNextInstanceHour"
+                        ]
                     } +
                     multiAZ?then(
                         {
                             "MinSize": processorProfile.MinPerZone * zones?size,
                             "MaxSize": maxSize,
-                            "DesiredCapacity": processorProfile.DesiredPerZone * zones?size,
+                            "DesiredCapacity": desiredCapacity,
                             "VPCZoneIdentifier": getSubnets(tier)
                         },
                         {
                             "MinSize": processorProfile.MinPerZone,
                             "MaxSize": maxSize,
-                            "DesiredCapacity": processorProfile.DesiredPerZone,
+                            "DesiredCapacity": desiredCapacity,
                             "VPCZoneIdentifier" : getSubnets(tier)[0..0]
                         }
+                    ) + 
+                    attributeIfContent(
+                        "LoadBalancerNames",
+                        loadBalancers,
+                        loadBalancers
+                    ) +
+                    attributeIfContent(
+                        "TargetGroupARNs",
+                        targetGroups,
+                        targetGroups
                     )
                 tags=
                     getCfTemplateCoreTags(
@@ -239,9 +260,19 @@
                         "",
                         true)
                 outputs={}
+                updatePolicy={
+                    "AutoScalingRollingUpdate" : {
+                        "WaitOnResourceSignals" : true
+                    }
+                }
+                creationPoluc={
+                    "ResourceSignal" : {
+                        "Count" : desiredCapacity,
+                        "Timeout" : "PT" + desiredCapacity * 3 + "M"
+                    }
+                }
             /]
                     
-        
             [#assign imageId = dockerHost?then(
                 { "ImageId" : regionObject.AMIs.Centos.ECS},
                 { "ImageId" : regionObject.AMIs.Centos.EC2}
@@ -258,6 +289,7 @@
                 imageId=imageId
                 routeTable=tier.Network.RouteTable
                 configSet=componentType
+                enableCfnSignal=true
                 environmentId=environmentId
             /]
         [/#if]

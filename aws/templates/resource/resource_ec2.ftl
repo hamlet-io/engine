@@ -201,6 +201,7 @@
     routeTable
     configSet
     environmentId
+    enableCfnSignal=false
     dependencies="" 
     outputId=""
 ]
@@ -256,7 +257,17 @@
                                 "         --stack ", { "Ref" : "AWS::StackName" },
                                 "         --resource ", resourceId,
                                 "         --region ", regionId, " --configsets ", configSet, "\n"
-                            ]
+                            ] + enableCfnSignal?then(
+                                [
+                                    "# Signal the status from cfn-init\n",
+                                    "/opt/aws/bin/cfn-signal -e $? ",
+                                    "         --stack ", { "Ref": "AWS::StackName" },
+                                    "         --resource ", resourceId,
+                                    "         --region ", { "Ref": "AWS::Region" }, "\n"
+                                ],
+                                []
+                            )
+                            
                         ]
                     }
                 }
