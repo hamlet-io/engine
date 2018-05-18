@@ -12,7 +12,7 @@
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
         [#assign roles = occurrence.State.Roles]
-        
+
         [#assign apiId      = resources["apigateway"].Id]
         [#assign apiName    = resources["apigateway"].Name]
 
