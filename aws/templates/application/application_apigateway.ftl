@@ -9,10 +9,11 @@
 
         [#assign core = occurrence.Core ]
         [#assign solution = occurrence.Configuration.Solution ]
+        [#assign settings = occurrence.Configuration.Settings ]
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
         [#assign roles = occurrence.State.Roles]
-
+        
         [#assign apiId      = resources["apigateway"].Id]
         [#assign apiName    = resources["apigateway"].Name]
 
@@ -33,6 +34,25 @@
             ]
         ]
         [#assign stageVariables = {} ]
+
+        [#assign containerId =
+            solution.Container?has_content?then(
+                solution.Container,
+                getComponentId(component)
+            ) ]
+        
+        [#assign environmentContext =
+            {
+                "DefaultEnvironment" : defaultEnvironment(occurrence),
+                "Environment" : {},
+                "Links" : getLinkTargets(occurrence),
+                "DefaultCoreVariables" : false,
+                "DefaultEnvironmentVariables" : true,
+                "DefaultLinkVariables" : false
+            }
+        ]
+        [#assign stageVariables += getFinalEnvironment(occurrence, environmentContext).Environment ]
+
         [#assign userPoolArns = [] ]
 
         [#list solution.Links?values as link]
