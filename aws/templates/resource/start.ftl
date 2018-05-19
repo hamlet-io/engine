@@ -367,7 +367,7 @@
                         attributeIfContent("DependsOn", localDependencies) +
                         attributeIfContent("DeletionPolicy", deletionPolicy) +
                         attributeIfContent("UpdatePolicy", updatePolicy) +
-                        attributeIfContent("CreationPolocy", creationPolicy)
+                        attributeIfContent("CreationPolicy", creationPolicy)
                 }
             ]
             [#assign templateResources += definition]

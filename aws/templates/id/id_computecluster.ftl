@@ -5,16 +5,16 @@
     {
         COMPUTECLUSTER_COMPONENT_TYPE : [
             {
-                "Name" : "DeploymentPolicy",
-                "Default" : "Eventual"
+                "Name" : "MinUpdateInstances",
+                "Default" : 1
+            }
+            {
+                "Name" : "ReplaceOnUpdate",
+                "Default" : false
             },
             {
                 "Name" : "DockerHost",
                 "Default" : false
-            },
-            {
-                "Name" : "ClusterLogGroup",
-                "Default" : true
             },
             {
                 "Name" : "Links",
@@ -42,6 +42,7 @@
     
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
+    [#local buildReference = getOccurrenceBuildReference(occurrence) ]
 
     [#return
         {
@@ -63,19 +64,15 @@
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
                 "launchConfig" : {
-                    "Id" : formatEC2LaunchConfigId(core.Tier, core.Component) + runId,
+                    "Id" : formatEC2LaunchConfigId(
+                                core.Tier, 
+                                core.Component, 
+                                [#-- changing the launch config logical Id forces a replacement of the autoscale group instances --]
+                                [#-- we only want this to happen when the build reference changes --]
+                                replaceAlphaNumericOnly(buildReference)),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
                 } 
-            } + 
-            attributeIfTrue(
-                "lg",
-                solution.ClusterLogGroup,
-                {
-                    "Id" : formatLogGroupId(core.Id),
-                    "Name" : core.FullAbsolutePath,
-                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                }
-            ),
+            },
             "Attributes" : {
             },
             "Roles" : {

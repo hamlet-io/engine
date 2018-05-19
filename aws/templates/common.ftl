@@ -6,6 +6,11 @@
     [#assign powersOf2 += [2*powersOf2[index]] ]
 [/#list]
 
+
+[#function replaceAlphaNumericOnly string delimeter=""]
+    [#return string?replace("[^a-zA-Z\\d]", delimeter, "r" )]
+[/#function]
+
 [#-- Utility functions --]
 
 [#function asArray arg flatten=false ignoreEmpty=false]

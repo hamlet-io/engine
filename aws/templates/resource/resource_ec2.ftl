@@ -1,5 +1,4 @@
 [#function getInitConfig configSetName configKeys=[] ]
-
     [#local configSet = [] ] 
     [#list configKeys as key,value ]
         [#local configSet += [ key ] ]            
@@ -10,18 +9,17 @@
             "configSets" : {
                 configSetName : configSet
             }
-            + configKeys
-        }
+        } + configKeys 
     } ]
 [/#function]
 
-[#function getInitConfigDirectories ignoreErrors=false ]
+[#function getInitConfigDirectories ignoreErrors=true ]
     [#return 
         {
             "Directories" : {
                 "commands": {
                     "01Directories" : {
-                        "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /var/log/codeontap",
+                        "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /opt/codeontap/scripts && mkdir --parents --mode=0755 /var/log/codeontap",
                         "ignoreErrors" : ignoreErrors
                     }
                 }
@@ -30,8 +28,7 @@
     ]
 [/#function]
 
-
-[#function getInitConfigBootstrap role ]
+[#function getInitConfigBootstrap role ignoreErrors=true]
     [#return 
         {
             "Bootstrap": {
@@ -88,11 +85,11 @@
                 "commands": {
                     "01Fetch" : {
                         "command" : "/opt/codeontap/bootstrap/fetch.sh",
-                        "ignoreErrors" : "false"
+                        "ignoreErrors" : ignoreErrors
                     },
                     "02Initialise" : {
                         "command" : "/opt/codeontap/bootstrap/init.sh",
-                        "ignoreErrors" : "false"
+                        "ignoreErrors" : ignoreErrors
                     }
                 }
             }
@@ -100,7 +97,7 @@
     ]
 [/#function]
 
-[#function getInitConfigEFSMount mountId efsId directory osMount ignoreErrors=false ]
+[#function getInitConfigEFSMount mountId efsId directory osMount ignoreErrors=true ]
     [#return 
         {
             "EFSMount_" + mountId : {
@@ -120,7 +117,7 @@
     ]
 [/#function]
 
-[#function getInitConfigLBTargetRegistration targetGroupId ignoreErrors=false]
+[#function getInitConfigLBTargetRegistration targetGroupId ignoreErrors=true]
     [#return
         {
             "RegisterWithTG_" + targetGroupId  : {
@@ -138,7 +135,7 @@
     ]
 [/#function]
 
-[#function getInitConfigLBClassicRegistration lbId ignoreErrors=false]
+[#function getInitConfigLBClassicRegistration lbId ignoreErrors=true]
     [#return 
         {
             "RegisterWithLB_" + lbId : {
@@ -156,16 +153,31 @@
     ]
 [/#function]
 
-[#function getInitConfigScriptsDeployment scriptsFile ignoreErrors=false ]
+[#function getInitConfigScriptsDeployment scriptsFile ignoreErrors=true ]
     [#return 
-        
         {
             "scripts" : {
-                            
-                "sources" : {
-                    "/opt/codeontap/scripts" : scriptsFile
-                },
                 "files" :{
+                    "/opt/codeontap/fetch_scripts.sh" : {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                [
+                                    "#!/bin/bash -ex\n",
+                                    "exec > >(tee /var/log/codeontap/fetch-scripts.log|logger -t codeontap-scripts-fetch -s 2>/dev/console) 2>&1\n",
+                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                    "aws --region " + r"${REGION}" + " s3 cp --quiet s3://" + scriptsFile + " /opt/codeontap/scripts\n",
+                                    " if [[ -f /opt/codeontap/scripts/scripts.zip ]]; then\n",
+                                    "unzip /opt/codeontap/scripts/scripts.zip -d /opt/codeontap/scripts/\n",
+                                    "chmod -R 0544 /opt/codeontap/scripts/\n",
+                                    "else\n",
+                                    "return 1\n",
+                                    "fi\n"
+                                ]
+                            ]
+                        },
+                        "mode" : "000755"
+                    },
                     "/opt/codeontap/run_scripts.sh" : {
                         "content" : {
                             "Fn::Join" : [
@@ -181,6 +193,10 @@
                     }
                 },
                 "commands" : {
+                    "01RunInitScript" : {
+                        "command" : "/opt/codeontap/fetch_scripts.sh",
+                        "ignoreErrors" : ignoreErrors
+                    },
                     "02RunInitScript" : {
                         "command" : "/opt/codeontap/run_scripts.sh",
                         "ignoreErrors" : ignoreErrors
@@ -190,6 +206,68 @@
         }
     ]
 [/#function]
+
+[#function getInitConfigECSAgent ecsId defaultLogDriver ignoreErrors=false ]
+    [#return 
+        {
+        "ecs": {
+            "commands":
+                attributeIfTrue(
+                    "01Fluentd",
+                    defaultLogDriver == "fluentd",
+                    {
+                        "command" : "/opt/codeontap/bootstrap/fluentd.sh",
+                        "ignoreErrors" : ignoreErrors
+                    }) +
+                {
+                    "03ConfigureCluster" : {
+                        "command" : "/opt/codeontap/bootstrap/ecs.sh",
+                        "env" : {
+                            "ECS_CLUSTER" : getReference(ecsId),
+                            "ECS_LOG_DRIVER" : defaultLogDriver
+                        },
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigEIPAllocation allocationIds ignoreErrors=false ]
+    [#return 
+        {
+            "AssignEIP" :  {
+                "command" : "/opt/codeontap/bootstrap/eip.sh",
+                "env" : {
+                    "EIP_ALLOCID" : {
+                        "Fn::Join" : [
+                            " ",
+                            allocationIds
+                        ]
+                    }
+                },
+                "ignoreErrors" : ignoreErrors
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigPuppet ignoreErrors=false]
+    [#return 
+        {
+            "puppet": {
+                "commands": {
+                    "01SetupPuppet" : {
+                        "command" : "/opt/codeontap/bootstrap/puppet.sh",
+                        "ignoreErrors" : "false"
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
 
 [#macro createEC2LaunchConfig mode id 
     processorProfile

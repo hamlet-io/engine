@@ -19,39 +19,34 @@
         [#assign computeClusterAutoScaleGroupId = resources["autoScaleGroup"].Id ]
         [#assign computeClusterLaunchConfigId = resources["launchConfig"].Id ]
         [#assign computeClusterSecurityGroupId = resources["securityGroup"].Id ]
-        [#assign computeClusterLogGroupId = resources["lg"].Id ]
-        [#assign computeClusterLogGroupName = resources["lg"].Name ]
 
         [#assign targetGroupPermission = false ]
         [#assign targetGroups = [] ]
         [#assign loadBalancers = [] ]
 
-        [#assign buildUnit = getOccurrenceBuildUnit(occurrence, true) ]
-        [#assign buildReference = getOccurrenceBuildReference(occurrence, true) ]
-
+        [#assign configSetName = componentType]
         [#assign configSets = {} ]
         [#assign configSets +=  
                 getInitConfigDirectories() + 
                 getInitConfigBootstrap(component.Role!"") ]
 
         [#assign scriptsPath =
-                formatAbsolutePath(
+                formatRelativePath(
+                getRegistryEndPoint("scripts", occurrence),
                 getRegistryPrefix("scripts", occurrence),
                 productName,
-                buildUnit,
-                buildReference
+                getOccurrenceBuildUnit(occurrence),
+                getOccurrenceBuildReference(occurrence)
                 ) ]   
 
-        [#assign scriptsUrl = 
-            "https://" +
+        [#assign scriptsFile = 
             formatRelativePath(
-                getExistingReference(formatAccountS3Id("registry"),DNS_ATTRIBUTE_TYPE),
                 scriptsPath,
                 "scripts.zip"
             )
         ]
 
-        [#assign configSets += getInitConfigScriptsDeployment(scriptsUrl) ]
+        [#assign configSets += getInitConfigScriptsDeployment(scriptsFile, false) ]
 
         [#assign ingressRules = []]
 
@@ -79,7 +74,7 @@
                 policies=
                     [
                         getPolicyDocument(
-                            s3ReadPermission(registryBucket + scriptsPath) +
+                            s3ReadPermission(scriptsPath) +
                             s3ListPermission(codeBucket) +
                             s3ReadPermission(codeBucket) +
                             s3ListPermission(operationsBucket) +
@@ -96,16 +91,7 @@
             /]
         
         [/#if]
-    
-        [#if solution.ClusterLogGroup &&
-                deploymentSubsetRequired("lg", true) &&
-                isPartOfCurrentDeploymentUnit(computeClusterLogGroupId)]
-            [@createLogGroup 
-                mode=listMode
-                id=computeClusterLogGroupId
-                name=computeClusterLogGroupName /]
-        [/#if]
-            
+                
         [#list links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
@@ -190,10 +176,15 @@
                 component=component /]
     
             [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
+            
             [#assign maxSize = processorProfile.MaxPerZone]
             [#if multiAZ]
                 [#assign maxSize = maxSize * zones?size]
             [/#if]
+            [#if maxSize <= solution.MinUpdateInstances ]
+                [#assign maxSize = maxSize + solution.MinUpdateInstances ]
+            [/#if]
+
             [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
 
             [#assign desiredCapacity = multiAZ?then( 
@@ -217,7 +208,7 @@
                 mode=listMode
                 id=computeClusterAutoScaleGroupId
                 type="AWS::AutoScaling::AutoScalingGroup"
-                metadata=getInitConfig(componentType, configSets )
+                metadata=getInitConfig(configSetName, configSets )
                 properties=
                     {
                         "Cooldown" : "30",
@@ -226,6 +217,11 @@
                             "OldestLaunchConfiguration",
                             "OldestInstance",
                             "ClosestToNextInstanceHour"
+                        ],
+                        "MetricsCollection" : [ 
+                            {
+                                "Granularity" : "1Minute"
+                            }
                         ]
                     } +
                     multiAZ?then(
@@ -254,28 +250,36 @@
                     )
                 tags=
                     getCfTemplateCoreTags(
-                        formatComponentFullName(tier, component, zone),
+                        formatComponentFullName(tier, component),
                         tier,
                         component,
                         "",
                         true)
                 outputs={}
-                updatePolicy={
-                    "AutoScalingRollingUpdate" : {
-                        "WaitOnResourceSignals" : true
+                updatePolicy=solution.ReplaceOnUpdate?then(
+                    {
+                        "AutoScalingReplacingUpdate" : {
+                            "WillReplace" : true
+                        }
+                    },
+                    {
+                        "AutoScalingRollingUpdate" : {
+                            "WaitOnResourceSignals" : true,
+                            "MinInstancesInService" : solution.MinUpdateInstances
+                        }
                     }
-                }
-                creationPoluc={
+                )   
+                creationPolicy={
                     "ResourceSignal" : {
                         "Count" : desiredCapacity,
-                        "Timeout" : "PT" + desiredCapacity * 3 + "M"
+                        "Timeout" : "PT15M"
                     }
                 }
             /]
                     
             [#assign imageId = dockerHost?then(
-                { "ImageId" : regionObject.AMIs.Centos.ECS},
-                { "ImageId" : regionObject.AMIs.Centos.EC2}
+                regionObject.AMIs.Centos.ECS,
+                regionObject.AMIs.Centos.EC2
             )]
 
             [@createEC2LaunchConfig 
@@ -288,7 +292,7 @@
                 resourceId=computeClusterAutoScaleGroupId
                 imageId=imageId
                 routeTable=tier.Network.RouteTable
-                configSet=componentType
+                configSet=configSetName
                 enableCfnSignal=true
                 environmentId=environmentId
             /]

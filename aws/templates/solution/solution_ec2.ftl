@@ -24,6 +24,13 @@
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
 
+        [#assign configSetName = componentType ]
+        [#assign configSets = {} ]
+        [#assign configSets +=  
+                getInitConfigDirectories() + 
+                getInitConfigBootstrap(component.Role!"") +
+                getInitConfigPuppet() ]
+
         [#assign efsMountPoints = {}]
 
         [#assign componentDependencies = []]
@@ -95,8 +102,8 @@
                                             [#assign componentDependencies += [targetId]]
 
                                         [/#if]
-                                        [#assign targetGroupRegistrations +=
-                                            getInitLBTargetRegistration(targetId)]
+                                        [#assign configSets +=
+                                            getInitConfigLBTargetRegistration(targetId)]
                                     [/#if]
                                 [/#if]
                             [/#if]
@@ -104,14 +111,14 @@
 
                         [#case "classic" ]
                             [#assign lbId =  linkTargetAttributes["LB"] ]
-                            [#assign targetGroupRegistrations += 
-                                getInitLBClassicRegistration(lbId)]
+                            [#assign configSets += 
+                                getInitConfigLBClassicRegistration(lbId)]
                             [#break]
                         [/#switch]
                     [#break]
                 [#case EFS_MOUNT_COMPONENT_TYPE]
-                    [#assign efsMountPoints += 
-                        getInitEFSMount(
+                    [#assign configSets += 
+                        getInitConfigEFSMount(
                             linkTargetCore.Id, 
                             linkTargetAttributes.EFS, 
                             linkTargetAttributes.DIRECTORY, 
@@ -192,99 +199,7 @@
                         mode=listMode
                         id=zoneEc2InstanceId
                         type="AWS::EC2::Instance"
-                        metadata=
-                            {
-                                "AWS::CloudFormation::Init": {
-                                    "configSets" : {
-                                        "ec2" : ["dirs", "bootstrap", "puppet"] 
-                                    },
-                                    "dirs": {
-                                        "commands": {
-                                            "01Directories" : {
-                                                "command" : "mkdir --parents --mode=0755 /etc/codeontap && " +
-                                                            "mkdir --parents --mode=0755 /opt/codeontap/bootstrap && " +
-                                                            "mkdir --parents --mode=0755 /var/log/codeontap && " +
-                                                            "mkdir --parents --mode=0755 /opt/codeontap/scripts",
-                                                "ignoreErrors" : "false"
-                                            }
-                                        }
-                                    },
-                                    "bootstrap": {
-                                        "packages" : {
-                                            "yum" : {
-                                                "aws-cli" : [],
-                                                "amazon-efs-utils" : []
-                                            }
-                                        },
-                                        "files" : {
-                                            "/etc/codeontap/facts.sh" : {
-                                                "content" : {
-                                                    "Fn::Join" : [
-                                                        "",
-                                                        [
-                                                            "#!/bin/bash\n",
-                                                            "echo \"cot:request="       + requestReference       + "\"\n",
-                                                            "echo \"cot:configuration=" + configurationReference + "\"\n",
-                                                            "echo \"cot:accountRegion=" + accountRegionId        + "\"\n",
-                                                            "echo \"cot:tenant="        + tenantId               + "\"\n",
-                                                            "echo \"cot:account="       + accountId              + "\"\n",
-                                                            "echo \"cot:product="       + productId              + "\"\n",
-                                                            "echo \"cot:region="        + regionId               + "\"\n",
-                                                            "echo \"cot:segment="       + segmentId              + "\"\n",
-                                                            "echo \"cot:environment="   + environmentId          + "\"\n",
-                                                            "echo \"cot:tier="          + tierId                 + "\"\n",
-                                                            "echo \"cot:component="     + componentId            + "\"\n",
-                                                            "echo \"cot:zone="          + zone.Id                + "\"\n",
-                                                            "echo \"cot:name="          + zoneEc2InstanceName    + "\"\n",
-                                                            "echo \"cot:role="          + component.Role!""      + "\"\n",
-                                                            "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
-                                                            "echo \"cot:code="          + codeBucket             + "\"\n",
-                                                            "echo \"cot:logs="          + operationsBucket       + "\"\n",
-                                                            "echo \"cot:backups="       + dataBucket             + "\"\n"
-                                                        ]
-                                                    ]
-                                                },
-                                                "mode" : "000755"
-                                            },
-                                            "/opt/codeontap/bootstrap/fetch.sh" : {
-                                                "content" : {
-                                                    "Fn::Join" : [
-                                                        "",
-                                                        [
-                                                            "#!/bin/bash -ex\n",
-                                                            "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
-                                                            "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
-                                                            "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\n",
-                                                            "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}" + "/bootstrap/centos/ /opt/codeontap/bootstrap && chmod 0500 /opt/codeontap/bootstrap/*.sh\n"
-                                                        ]
-                                                    ]
-                                                },
-                                                "mode" : "000755"
-                                            }
-                                        },
-                                        "commands": {
-                                            "01Fetch" : {
-                                                "command" : "/opt/codeontap/bootstrap/fetch.sh",
-                                                "ignoreErrors" : "false"
-                                            },
-                                            "02Initialise" : {
-                                                "command" : "/opt/codeontap/bootstrap/init.sh",
-                                                "ignoreErrors" : "false"
-                                            }
-                                        } +
-                                        targetGroupRegistrations +
-                                        efsMountPoints
-                                    },
-                                    "puppet": {
-                                        "commands": {
-                                            "01SetupPuppet" : {
-                                                "command" : "/opt/codeontap/bootstrap/puppet.sh",
-                                                "ignoreErrors" : "false"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                        metadata=getInitConfig(configSetName, configSets )
                         properties=
                             getBlockDevices(storageProfile) +
                             {
@@ -315,7 +230,7 @@
                                                 "/opt/aws/bin/cfn-init -v",
                                                 "         --stack ", { "Ref" : "AWS::StackName" },
                                                 "         --resource ", zoneEc2InstanceId,
-                                                "         --region ", regionId, " --configsets ec2\n"
+                                                "         --region ", regionId, " --configsets ",  configSetName, "\n"
                                             ]
                                         ]
                                     }
