@@ -138,17 +138,18 @@ popd >/dev/null
 findGen3Dirs "${GENERATION_DATA_DIR}" || exit
 
 # Build the composite solution ( aka blueprint)
+blueprint_alternate_dirs=( \
+  "${SEGMENT_SOLUTIONS_DIR}" \
+  "${ENVIRONMENT_SHARED_SOLUTIONS_DIR}" \
+  "${SEGMENT_SHARED_SOLUTIONS_DIR}" \
+  "${PRODUCT_SHARED_SOLUTIONS_DIR}" )
+
 export COMPOSITE_BLUEPRINT="${CACHE_DIR}/composite_blueprint.json"
 if [[ (("${GENERATION_USE_CACHE}" != "true") &&
         ("${GENERATION_USE_BLUEPRINT_CACHE}" != "true")) ||
       (! -f "${COMPOSITE_BLUEPRINT}") ]]; then
 
     blueprint_array=()
-    blueprint_alternate_dirs=( \
-      "${SEGMENT_SOLUTIONS_DIR}" \
-      "${ENVIRONMENT_SHARED_SOLUTIONS_DIR}" \
-      "${SEGMENT_SHARED_SOLUTIONS_DIR}" \
-      "${PRODUCT_SHARED_SOLUTIONS_DIR}" )
 
     for blueprint_alternate_dir in "${blueprint_alternate_dirs[@]}"; do
       [[ (-z "${blueprint_alternate_dir}") || (! -d "${blueprint_alternate_dir}") ]] && continue
@@ -160,14 +161,6 @@ if [[ (("${GENERATION_USE_CACHE}" != "true") &&
           "${blueprint_alternate_dir}"/domains*.json \
           "${blueprint_alternate_dir}"/ipaddressgroups*.json \
           "${blueprint_alternate_dir}"/countrygroups*.json
-
-      for composite in "${TEMPLATE_COMPOSITES[@]}"; do
-          for fragment in "${blueprint_alternate_dir}"/${composite}_*.ftl; do
-              fragment_name="$(fileName "${fragment}")"
-              $(inArray "${composite}_array" "${fragment_name}") ||
-                  addToArray "${composite}_array" "${fragment}"
-          done
-      done
     done
 
     [[ -n "${PRODUCT_DIR}" ]] && addToArrayHead "blueprint_array" \
@@ -233,6 +226,15 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
         ("${GENERATION_USE_FRAGMENTS_CACHE}" != "true")) ||
       (! -f "${CACHE_DIR}/composite_account.ftl") ]]; then
     for composite in "${TEMPLATE_COMPOSITES[@]}"; do
+        for blueprint_alternate_dir in "${blueprint_alternate_dirs[@]}"; do
+            [[ (-z "${blueprint_alternate_dir}") || (! -d "${blueprint_alternate_dir}") ]] && continue
+            for fragment in "${blueprint_alternate_dir}"/${composite}_*.ftl; do
+                fragment_name="$(fileName "${fragment}")"
+                $(inArray "${composite}_array" "${fragment_name}") ||
+                    addToArray "${composite}_array" "${fragment}"
+            done
+        done
+
         for fragment in ${GENERATION_DIR}/templates/${composite}/${composite}_*.ftl; do
                 $(inArray "${composite}_array" $(fileName "${fragment}")) ||
                     addToArray "${composite}_array" "${fragment}"
