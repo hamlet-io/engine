@@ -92,8 +92,9 @@
         [#local masterPassword = getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE) ]
         [#local url = getExistingReference(id, URL_ATTRIBUTE_TYPE) ]
     [#else]
-        [#local masterUsername = getOccurrenceSettingValue(occurrence, "MASTER_USERNAME") ]
-        [#local masterPassword = getOccurrenceSettingValue(occurrence, "MASTER_PASSWORD") ]
+        [#-- don't flag an error if credentials missing but component is not enabled --]
+        [#local masterUsername = getOccurrenceSettingValue(occurrence, "MASTER_USERNAME", !solution.Enabled) ]
+        [#local masterPassword = getOccurrenceSettingValue(occurrence, "MASTER_PASSWORD", !solution.Enabled) ]
         [#local url = engine + "://" + masterUsername + ":" + masterPassword + "@" + fqdn + ":" + port + "/" + name]
     [/#if]
 
