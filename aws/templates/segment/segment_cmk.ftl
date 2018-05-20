@@ -72,7 +72,6 @@
                         "}",
                         "#",
                         "# Determine the required key pair name",
-                        "# Legacy support for existing keypairs for default segments",
                         "key_pair_name=\"" + formatSegmentFullName() + "\"",
                         "#",
                         "case $\{STACK_OPERATION} in",
