@@ -36,14 +36,24 @@
         
         [#assign environmentContext =
             {
+                "Id" : core.Id,
+                "Name" : core.Name,
+                "Instance" : core.Instance.Id,
+                "Version" : core.Version.Id,
                 "DefaultEnvironment" : defaultEnvironment(occurrence),
                 "Environment" : {},
                 "Links" : getLinkTargets(occurrence),
                 "DefaultCoreVariables" : false,
-                "DefaultEnvironmentVariables" : true,
+                "DefaultEnvironmentVariables" : false,
                 "DefaultLinkVariables" : false
             }
         ]
+
+        [#-- Add in container specifics including override of defaults --]
+        [#assign containerListMode = "model"]
+        [#assign containerId = formatContainerFragmentId(occurrence, context)]
+        [#include containerList?ensure_starts_with("/")]
+
         [#assign stageVariables += getFinalEnvironment(occurrence, environmentContext).Environment ]
 
         [#assign userPoolArns = [] ]
