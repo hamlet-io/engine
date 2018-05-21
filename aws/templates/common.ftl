@@ -759,6 +759,23 @@
     [#return result]
 [/#function]
 
+[#function isOneResourceDeployed resources ]
+    [#if resources?is_hash]
+        [#list resources as alias,resource]
+            [#if resource.Id?has_content]
+                [#if resource.Deployed]
+                    [#return true]
+                [/#if]
+            [#else]
+                [#if isOneResourceDeployed(resource) ]
+                    [#return true]
+                [/#if]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#return false]
+[/#function]
+
 [#function getOccurrenceState occurrence parentOccurrence]
     [#local result =
         {
@@ -1631,6 +1648,9 @@
 [#function getLinkTargetsOutboundRoles LinkTargets]
     [#local roles = [] ]
     [#list LinkTargets?values as linkTarget]
+        [#if !isOneResourceDeployed((linkTarget.State.Resources)!{})]
+            [#continue]
+        [/#if]
         [#local linkTargetOutboundRoles = (linkTarget.State.Roles.Outbound)!{} ]
         [#local roleName = linkTarget.Role!linkTargetOutboundRoles["default"]!""]
         [#local role = linkTargetOutboundRoles[roleName]!{} ]
