@@ -69,9 +69,13 @@
             {
                 "Subnets" : getSubnets(tier),
                 "Scheme" : (tier.Network.RouteTable == "external")?then("internet-facing","internal"),
-                "Type" : type,
                 "Name" : shortName
             } +
+            attributeIfTrue(
+                "Type",
+                type != "application",
+                type
+            ) +
             attributeIfTrue(
                 "LoadBalancerAttributes",
                 logs && type == "application",
