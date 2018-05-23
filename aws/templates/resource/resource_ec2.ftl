@@ -13,7 +13,7 @@
     } ]
 [/#function]
 
-[#function getInitConfigDirectories ignoreErrors=true ]
+[#function getInitConfigDirectories ignoreErrors=false ]
     [#return 
         {
             "Directories" : {
@@ -28,7 +28,7 @@
     ]
 [/#function]
 
-[#function getInitConfigBootstrap role ignoreErrors=true]
+[#function getInitConfigBootstrap role ignoreErrors=false]
     [#return 
         {
             "Bootstrap": {
@@ -56,7 +56,7 @@
                                     "echo \"cot:environment="   + environmentId          + "\"\n",
                                     "echo \"cot:tier="          + tierId                 + "\"\n",
                                     "echo \"cot:component="     + componentId            + "\"\n",
-                                    "echo \"cot:role="          + role                  + "\"\n",
+                                    "echo \"cot:role="          + role                   + "\"\n",
                                     "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
                                     "echo \"cot:code="          + codeBucket             + "\"\n",
                                     "echo \"cot:logs="          + operationsBucket       + "\"\n",
@@ -97,7 +97,38 @@
     ]
 [/#function]
 
-[#function getInitConfigEFSMount mountId efsId directory osMount ignoreErrors=true ]
+[#function getInitConfigEnvFacts envVariables ignoreErrors=false]
+
+    [#local commands=[] ]
+    [#local commands += [
+        "echo \""
+    ]]
+    [#list envVariables as key,value]
+        [#local commands += 
+            [
+                "echo \"" + key + "=" + value + "\"\n"
+            ]
+        ]
+    [/#list]
+    [#local commands += [
+        "\" >> /etc/codeontap/facts.sh"
+    ]]
+
+    [#return 
+        {
+            "EnvFacts" : {
+                "commands" : {
+                    "01AddEnvtoFacts" : {
+                        "command" : commands,
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigEFSMount mountId efsId directory osMount ignoreErrors=false ]
     [#return 
         {
             "EFSMount_" + mountId : {
@@ -117,7 +148,7 @@
     ]
 [/#function]
 
-[#function getInitConfigLBTargetRegistration targetGroupId ignoreErrors=true]
+[#function getInitConfigLBTargetRegistration targetGroupId ignoreErrors=false]
     [#return
         {
             "RegisterWithTG_" + targetGroupId  : {
@@ -135,7 +166,7 @@
     ]
 [/#function]
 
-[#function getInitConfigLBClassicRegistration lbId ignoreErrors=true]
+[#function getInitConfigLBClassicRegistration lbId ignoreErrors=false]
     [#return 
         {
             "RegisterWithLB_" + lbId : {
@@ -153,7 +184,7 @@
     ]
 [/#function]
 
-[#function getInitConfigScriptsDeployment scriptsFile ignoreErrors=true ]
+[#function getInitConfigScriptsDeployment scriptsFile envVariables={} ignoreErrors=false ]
     [#return 
         {
             "scripts" : {
@@ -200,7 +231,12 @@
                     "02RunInitScript" : {
                         "command" : "/opt/codeontap/run_scripts.sh",
                         "ignoreErrors" : ignoreErrors
-                    }
+                    } + 
+                    attributeIfContent(
+                        "env",
+                        envVariables,
+                        envVariables
+                    )
                 }
             }
         }

@@ -23,6 +23,7 @@
         [#assign targetGroupPermission = false ]
         [#assign targetGroups = [] ]
         [#assign loadBalancers = [] ]
+        [#assign environmentVariables = {}]
 
         [#assign configSetName = componentType]
         [#assign configSets = {} ]
@@ -46,7 +47,31 @@
             )
         ]
 
-        [#assign configSets += getInitConfigScriptsDeployment(scriptsFile, false) ]
+        [#assign environmentContext =
+            {
+                "Id" : core.Id,
+                "Name" : core.Name,
+                "Instance" : core.Instance.Id,
+                "Version" : core.Version.Id,
+                "DefaultEnvironment" : defaultEnvironment(occurrence),
+                "Environment" : {},
+                "Links" : getLinkTargets(occurrence),
+                "DefaultCoreVariables" : true,
+                "DefaultEnvironmentVariables" : true,
+                "DefaultLinkVariables" : true
+            }
+        ]
+
+        [#-- Add in container specifics including override of defaults --]
+        [#assign containerListMode = "model"]
+        [#assign containerId = formatContainerFragmentId(occurrence, environmentContext)]
+        [#include containerList?ensure_starts_with("/")]
+
+        [#assign environmentVariables += getFinalEnvironment(occurrence, environmentContext).Environment ]
+
+        [#assign configSets += 
+            getInitConfigScriptsDeployment(scriptsFile, environmentVariables, false) +
+            getInitConfigEnvFacts(environmentVariables, false)]
 
         [#assign ingressRules = []]
 
