@@ -257,6 +257,8 @@
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn + stagePath,
+                "SCHEME" : "https:,
+                "BASE_PATH" : stagePath,
                 "SIGNING_SERVICE_NAME" : serviceName,
                 "SIGNING_FQDN" : signingFqdn,
                 "INTERNAL_FQDN" : internalFqdn,

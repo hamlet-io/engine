@@ -395,6 +395,8 @@
                         "  # Insert host in Doc File ",
                         "  add_host_to_apidoc" + " " +
                             attributes.FQDN + " " +
+                            attributes.SCHEME + " " +
+                            attributes.BASE_PATH + " " +
                         "  \"$\{tmpdir}/apidoc.zip\"  || return $?",
                         "  # Sync to the API Doc bucket",
                         "  copy_apidoc_file" + " " + docsS3BucketName + " " +
