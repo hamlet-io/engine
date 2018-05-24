@@ -242,7 +242,7 @@
                             getOccurrenceSettingValue(
                                 occurrence,
                                 ["APIGateway","API","AccessKey"]))) ]
-                [#assign defaultCacheBehaviour = getCFAPIGatewayCacheBehaviour(origin) ]
+                [#assign defaultCacheBehaviour = getCFAPIGatewayCacheBehaviour(origin, solution.CloudFront.CustomHeaders) ]
                 [#assign restrictions = {} ]
                 [#if solution.CloudFront.CountryGroups?has_content]
                     [#list asArray(solution.CloudFront.CountryGroups) as countryGroup]

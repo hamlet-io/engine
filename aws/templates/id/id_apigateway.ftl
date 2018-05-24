@@ -59,6 +59,10 @@
                         "Default" : []
                     },
                     {
+                        "Name" : "CustomHeaders",
+                        "Default" : []
+                    },
+                    {
                         "Name" : "Mapping",
                         "Default" : false
                     }
