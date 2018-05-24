@@ -114,7 +114,7 @@
     ]
 [/#function]
 
-[#function getCFAPIGatewayCacheBehaviour origin]
+[#function getCFAPIGatewayCacheBehaviour origin customHeaders=[]]
     [#return
         getCFCacheBehaviour(
             origin,
@@ -151,7 +151,7 @@
                     "Authorization",
                     "Origin",
                     "Referer"
-                ],
+                ] + customHeaders,
                 "QueryString" : true
             }
         )
