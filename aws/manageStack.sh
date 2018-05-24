@@ -187,28 +187,43 @@ function copy_apidoc_file() {
 
 function add_host_to_apidoc() { 
   # adds the API Host endpoint to the swagger spec
-  local apihost="$1"; shift
-  local apidocs="$1"
-  local apidocdir="${tmp_dir}/apidocs"
-  local swaggerjson="${apidocdir}/swagger.json"
+  local apiHost="$1"; shift
+  local scheme="$1"; shift
+  local basePath="$1"; shift
+  local apiDocs="$1"; shift
+  local apiDocDir="${tmp_dir}/apidocs"
+  local swaggerJson="${apidocdir}/swagger.json"
 
-  mkdir -p "${apidocdir}"
+  mkdir -p "${apiDocDir}"
 
-  if [[ "${apidocs##*.}" == "zip" ]]; then
-      unzip -o "${apidocs}" -d "${apidocdir}"
+  if [[ "${apiDocs##*.}" == "zip" ]]; then
+      unzip -o "${apiDocs}" -d "${apidocdir}"
       RESULT=$?
       [[ $RESULT -ne 0 ]] &&
-          fatal "Unable to unzip ${apidocs}" && return 1
+          fatal "Unable to unzip ${apiDocs}" && return 1
   fi
 
-  if [[ -f ${swaggerjson} ]]; then 
-     jq --arg apihost $apihost '. + { host: $apihost} ' < ${swaggerjson} > "${swaggerjson}_host"
-    mv "${swaggerjson}_host" ${swaggerjson}
+  if [[ -f ${swaggerJson} ]]; then  
+
+    if [[ -n "${basePath}" ]]; then 
+      jq -r --arg basePath "${basePath}" '. + { basePath: $basePath} ' < ${swaggerJson} > "${swaggerJson}_host"
+      mv "${swaggerJson}_host" ${swaggerJson}
+    fi
+
+    if [[ -n "${scheme}" ]]; then 
+      jq -r --arg scheme "${scheme}" '. + { schemes: ( $scheme / "," ) } ' < ${swaggerJson} > "${swaggerJson}_host"
+      mv "${swaggerJson}_host" ${swaggerJson}
+    fi
+
+    if [[ -n "${apiHost}" ]]; then 
+      jq -r --arg apiHost "${apiHost}" '. + { host: $apiHost} ' < ${swaggerJson} > "${swaggerJson}_host"
+      mv "${swaggerJson}_host" ${swaggerJson}
+    fi
   fi
 
   if [[ "${apidocs##*.}" == "zip" ]]; then
-    rm "${apidocs}"
-    zip -rj "${apidocs}" "${apidocdir}"
+    rm "${apiDocs}"
+    zip -rj "${apiDocs}" "${apidocdir}"
   fi
 
   return 0
