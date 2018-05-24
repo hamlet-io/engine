@@ -190,6 +190,8 @@ function add_host_to_apidoc() {
   local apiHost="$1"; shift
   local scheme="$1"; shift
   local basePath="$1"; shift
+  local version="$1"; shift
+  local description="$1"; shift
   local apiDocs="$1"; shift
   local apiDocDir="${tmp_dir}/apidocs"
   local swaggerJson="${apidocdir}/swagger.json"
@@ -206,18 +208,28 @@ function add_host_to_apidoc() {
   if [[ -f ${swaggerJson} ]]; then  
 
     if [[ -n "${basePath}" ]]; then 
-      jq -r --arg basePath "${basePath}" '. + { basePath: $basePath} ' < ${swaggerJson} > "${swaggerJson}_host"
-      mv "${swaggerJson}_host" ${swaggerJson}
+        jq -r --arg basePath "${basePath}" '.basePath = $basePath' < ${swaggerJson} > "${swaggerJson}_host"
+        mv "${swaggerJson}_host" ${swaggerJson}
     fi
 
     if [[ -n "${scheme}" ]]; then 
-      jq -r --arg scheme "${scheme}" '. + { schemes: ( $scheme / "," ) } ' < ${swaggerJson} > "${swaggerJson}_host"
-      mv "${swaggerJson}_host" ${swaggerJson}
+        jq -r --arg scheme "${scheme}" '.schemes = ( $scheme / "," )' < ${swaggerJson} > "${swaggerJson}_host"
+        mv "${swaggerJson}_host" ${swaggerJson}
     fi
 
     if [[ -n "${apiHost}" ]]; then 
-      jq -r --arg apiHost "${apiHost}" '. + { host: $apiHost} ' < ${swaggerJson} > "${swaggerJson}_host"
-      mv "${swaggerJson}_host" ${swaggerJson}
+        jq -r --arg apiHost "${apiHost}" '.host = $apiHost' < ${swaggerJson} > "${swaggerJson}_host"
+        mv "${swaggerJson}_host" ${swaggerJson}
+    fi
+
+    if [[ -n "${version}" ]]; then 
+        jq -r --arg version "${version}" '.info.version = $version' < ${swaggerJson} > "${swaggerJson}_host"
+        mv "${swaggerJson}_host" ${swaggerJson}
+    fi
+
+    if [[ -n "${description}" ]]; then
+        jq -r --arg description "${description}" '.info.description = .info.description + " \n" + $description' < ${swaggerJson} > "${swaggerJson}_host"
+        mv "${swaggerJson}_host" ${swaggerJson}
     fi
   fi
 
