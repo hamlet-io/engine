@@ -57,7 +57,7 @@
 
         [#-- Add in container specifics including override of defaults --]
         [#assign containerListMode = "model"]
-        [#assign containerId = formatContainerFragmentId(occurrence, context)]
+        [#assign containerId = formatContainerFragmentId(occurrence, environmentContext)]
         [#include containerList?ensure_starts_with("/")]
 
         [#assign stageVariables += getFinalEnvironment(occurrence, environmentContext).Environment ]
