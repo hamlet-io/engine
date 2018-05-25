@@ -125,7 +125,7 @@
         [#list links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
-            [@cfDebug listMode linkTarget true /]
+            [@cfDebug listMode linkTarget false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -173,7 +173,7 @@
                                             [#assign componentDependencies += [targetId]]
 
                                         [/#if]
-                                        [#assign targetGroups += getReference(targetId, ARN_ATTRIBUTE_TYPE) ]
+                                        [#assign targetGroups += [ getReference(targetId, ARN_ATTRIBUTE_TYPE) ] ]
                                     [/#if]
                                 [/#if]
                             [/#if]
@@ -182,7 +182,7 @@
                         [#case "classic" ]
                             [#assign lbId =  linkTargetAttributes["LB"] ]                                     
                             [#-- Classic ELB's register the instance so we only need 1 registration --]
-                            [#assign loadBalancers += getExistingReference(lbId)]
+                            [#assign loadBalancers += [ getExistingReference(lbId) ]]
                             [#break]
                         [/#switch]
                     [#break]
