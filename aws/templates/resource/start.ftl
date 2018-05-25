@@ -340,7 +340,9 @@
             outputId=""
             dependencies=[]
             metadata={}
-            deletionPolicy=""]
+            deletionPolicy=""
+            updatePolicy={}
+            creationPolicy={}]
 
     [#local localDependencies = [] ]
     [#list asArray(dependencies) as resourceId]
@@ -363,7 +365,9 @@
                             properties?has_content || tags?has_content,
                             properties + attributeIfContent("Tags", tags)) +
                         attributeIfContent("DependsOn", localDependencies) +
-                        attributeIfContent("DeletionPolicy", deletionPolicy)
+                        attributeIfContent("DeletionPolicy", deletionPolicy) +
+                        attributeIfContent("UpdatePolicy", updatePolicy) +
+                        attributeIfContent("CreationPolicy", creationPolicy)
                 }
             ]
             [#assign templateResources += definition]

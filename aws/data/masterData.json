@@ -925,7 +925,8 @@
         }
       },
       "ECS": {},
-      "ElasticSearch": {}
+      "ElasticSearch": {},
+      "ComputeCluster": {}
     }
   },
   "Processors": {
@@ -938,6 +939,12 @@
       },
       "EC2": {
         "Processor": "t2.micro"
+      },
+      "ComputeCluster" : {
+        "Processor" : "t2.micro",
+        "MinPerZone" : 1,
+        "MaxPerZone" : 1,
+        "DesiredPerZone" : 1
       },
       "ECS": {
         "Processor": "t2.medium",
