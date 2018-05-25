@@ -194,12 +194,12 @@ function add_host_to_apidoc() {
   local description="$1"; shift
   local apiDocs="$1"; shift
   local apiDocDir="${tmp_dir}/apidocs"
-  local swaggerJson="${apidocdir}/swagger.json"
+  local swaggerJson="${apiDocDir}/swagger.json"
 
   mkdir -p "${apiDocDir}"
 
   if [[ "${apiDocs##*.}" == "zip" ]]; then
-      unzip -o "${apiDocs}" -d "${apidocdir}"
+      unzip -o "${apiDocs}" -d "${apiDocDir}"
       RESULT=$?
       [[ $RESULT -ne 0 ]] &&
           fatal "Unable to unzip ${apiDocs}" && return 1
@@ -233,9 +233,9 @@ function add_host_to_apidoc() {
     fi
   fi
 
-  if [[ "${apidocs##*.}" == "zip" ]]; then
+  if [[ "${apiDocs##*.}" == "zip" ]]; then
     rm "${apiDocs}"
-    zip -rj "${apiDocs}" "${apidocdir}"
+    zip -rj "${apiDocs}" "${apiDocDir}"
   fi
 
   return 0
