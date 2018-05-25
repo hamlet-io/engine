@@ -6,6 +6,7 @@
 [#assign componentConfiguration +=
     {
         SPA_COMPONENT_TYPE : [
+            "Container",
             {
                 "Name" : "Links",
                 "Default" : {}
