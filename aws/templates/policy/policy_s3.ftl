@@ -15,6 +15,54 @@
     ]
 [/#function]
 
+[#function s3AllPermission bucket key="" object="*" principals="" conditions=""]
+    [#return
+        getS3Statement(
+            [
+                "s3:GetObject*",
+                "s3:PutObject*",
+                "s3:DeleteObject*",
+                "s3:RestoreObject*",
+                "s3:List*",
+                "s3:Abort*"
+            ]
+            bucket,
+            key,
+            object,
+            principals,
+            conditions)]
+[/#function]
+
+[#function s3ConsumePermission bucket key="" object="*" principals="" conditions=""]
+    [#return
+        getS3Statement(
+            [
+                "s3:GetObject*",
+                "s3:DeleteObject*",
+                "s3:List*"
+            ]
+            bucket,
+            key,
+            object,
+            principals,
+            conditions)]
+[/#function]
+
+[#function s3ProducePermission bucket key="" object="*" principals="" conditions="" ]
+    [#return 
+        getS3Statement(
+            [
+                "s3:PutObject*",
+                "s3:Abort*",
+                "s3:List*"
+            ],
+            bucket,
+            key,
+            object,
+            principals,
+            conditions)]
+[/#function]
+
 [#function s3ReadPermission bucket key="" object="*" principals="" conditions=""]
     [#return
         getS3Statement(
@@ -36,19 +84,6 @@
             conditions)]
 [/#function]
 
-[#function s3ConsumePermission bucket key="" object="*" principals="" conditions=""]
-    [#return
-        getS3Statement(
-            [
-                "s3:GetObject*",
-                "s3:DeleteObject*"
-            ]
-            bucket,
-            key,
-            object,
-            principals,
-            conditions)]
-[/#function]
 
 [#function s3WritePermission bucket key="" object="*" principals="" conditions=""]
     [#return
@@ -82,23 +117,7 @@
             bucket)]
 [/#function]
 
-[#function s3AllPermission bucket key="" object="*" principals="" conditions=""]
-    [#return
-        getS3Statement(
-            [
-                "s3:GetObject*",
-                "s3:PutObject*",
-                "s3:DeleteObject*",
-                "s3:RestoreObject*",
-                "s3:ListMultipart*",
-                "s3:AbortMultipart*"
-            ]
-            bucket,
-            key,
-            object,
-            principals,
-            conditions)]
-[/#function]
+
 
 [#function s3ReadBucketACLPermission bucket principals="" conditions=""]
     [#return
