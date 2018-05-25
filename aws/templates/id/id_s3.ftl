@@ -138,7 +138,11 @@
                 "REGION" : regionId
             },
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "all" : s3AllPermission(id),
+                    "produce" : s3ProducePermission(id),
+                    "consume" : s3ConsumePermission(id)
+                },
                 "Outbound" : {}
             }
         }
