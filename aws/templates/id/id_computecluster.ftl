@@ -4,6 +4,12 @@
 [#assign componentConfiguration +=
     {
         COMPUTECLUSTER_COMPONENT_TYPE : [
+            "Container",
+            {
+                "Name" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
+            },
             {
                 "Name" : "MinUpdateInstances",
                 "Default" : 1
@@ -15,11 +21,6 @@
             {
                 "Name" : "DockerHost",
                 "Default" : false
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
             },
             {
                 "Name" : "Ports",

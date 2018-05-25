@@ -26,7 +26,6 @@
         [#assign fixedIP = solution.FixedIP ]
 
         [#assign configSetName = componentType ]
-        [#assign configSets = {} ]
         [#assign configSets +=  
                 getInitConfigDirectories() + 
                 getInitConfigBootstrap(component.Role!"") +

@@ -25,8 +25,7 @@
         [#assign loadBalancers = [] ]
         [#assign environmentVariables = {}]
 
-        [#assign configSetName = componentType]
-        [#assign configSets = {} ]
+        [#assign configSetName = componentType]        
         [#assign configSets +=  
                 getInitConfigDirectories() + 
                 getInitConfigBootstrap(component.Role!"") ]
@@ -47,10 +46,16 @@
             )
         ]
 
+        [#assign containerId =
+            solution.Container?has_content?then(
+                solution.Container,
+                getComponentId(component)
+            ) ]
+
         [#assign environmentContext =
             {
-                "Id" : core.Id,
-                "Name" : core.Name,
+                "Id" : containerId,
+                "Name" : containerId,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
                 "DefaultEnvironment" : defaultEnvironment(occurrence),

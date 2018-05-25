@@ -25,7 +25,6 @@
         [#assign targetGroupPermission = false ]
 
         [#assign configSetName = componentType ]
-        [#assign configSets = {} ]
         [#assign configSets +=  
                 getInitConfigDirectories() + 
                 getInitConfigBootstrap(component.Role!"") +
