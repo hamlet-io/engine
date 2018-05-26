@@ -97,7 +97,7 @@
     ]
 [/#function]
 
-[#function getInitConfigEnvFacts envVariables={} ]
+[#function getInitConfigEnvFacts envVariables={} ignoreErrors=false ]
 
     [#local envContent = [
         "#!/bin/bash\n"
