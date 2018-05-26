@@ -341,12 +341,7 @@
         properties=
             getBlockDevices(storageProfile) +
             {
-                "KeyName":
-                    valueIfTrue(
-                        formatEnvironmentFullName(),
-                        sshPerEnvironment,
-                        productName
-                    ),
+                "KeyName" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                 "InstanceType": processorProfile.Processor,
                 "ImageId" : imageId,
                 "SecurityGroups" : 
