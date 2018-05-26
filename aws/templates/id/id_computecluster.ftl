@@ -19,6 +19,14 @@
                 "Default" : false
             },
             {
+                "Name" : "UpdatePauseTime",
+                "Default" : "5M"
+            },
+            {
+                "Name" : "StartupTimeout",
+                "Default" : "15M"
+            },
+            {
                 "Name" : "DockerHost",
                 "Default" : false
             },
