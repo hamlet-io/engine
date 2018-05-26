@@ -295,14 +295,15 @@
                     {
                         "AutoScalingRollingUpdate" : {
                             "WaitOnResourceSignals" : true,
-                            "MinInstancesInService" : solution.MinUpdateInstances
+                            "MinInstancesInService" : solution.MinUpdateInstances,
+                            "PauseTime" : "PT" + solution.UpdatePauseTime
                         }
                     }
                 )   
                 creationPolicy={
                     "ResourceSignal" : {
                         "Count" : desiredCapacity,
-                        "Timeout" : "PT15M"
+                        "Timeout" : "PT" + solution.StartupTimeout
                     }
                 }
             /]
