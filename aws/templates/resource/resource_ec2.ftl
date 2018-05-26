@@ -238,6 +238,7 @@
                     },
                     "02RunInitScript" : {
                         "command" : "/opt/codeontap/run_scripts.sh",
+                        "cwd" : "/opt/codeontap/scripts/",
                         "ignoreErrors" : ignoreErrors
                     } + 
                     attributeIfContent(
