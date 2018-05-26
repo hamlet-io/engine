@@ -188,6 +188,12 @@
     [#return 
         {
             "scripts" : {
+                "packages" : {
+                    "yum" : {
+                        "aws-cli" : [],
+                        "unzip" : []
+                    }
+                },
                 "files" :{
                     "/opt/codeontap/fetch_scripts.sh" : {
                         "content" : {
