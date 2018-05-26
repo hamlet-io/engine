@@ -97,30 +97,32 @@
     ]
 [/#function]
 
-[#function getInitConfigEnvFacts envVariables ignoreErrors=false]
+[#function getInitConfigEnvFacts envVariables={} ]
 
-    [#local commands=[] ]
-    [#local commands += [
-        "echo \""
+    [#local envContent = [
+        "#!/bin/bash\n"
     ]]
+
     [#list envVariables as key,value]
-        [#local commands += 
+        [#local envContent += 
             [
                 "echo \"" + key + "=" + value + "\"\n"
             ]
         ]
     [/#list]
-    [#local commands += [
-        "\" >> /etc/codeontap/facts.sh"
-    ]]
 
     [#return 
         {
             "EnvFacts" : {
-                "commands" : {
-                    "01AddEnvtoFacts" : {
-                        "command" : commands,
-                        "ignoreErrors" : ignoreErrors
+                "files" : {
+                    "/etc/codeontap/env.sh" : {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                envContent
+                            ]
+                        },
+                        "mode" : "000755"
                     }
                 }
             }
