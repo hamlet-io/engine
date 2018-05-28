@@ -16,6 +16,12 @@
 [#assign defaultCognitoPoolName = integrationsObject.cognitoPoolName!"CognitoUserPool" ]
 [#assign defaultCognitoAuthHeader = integrationsObject.cognitoAuthHeader!"Authorization" ]
 [#assign gatewayErrorReporting = integrationsObject.GatewayErrorReporting ! "full"]
+[#assign addProxy = integrationsObject.Proxy ! "false"]
+
+[#-- "/{proxy+}" and "/" paths to passthrough requests for urls which are not in the specification --]
+[#-- otherwise API Gateway will report 403. https://forums.aws.amazon.com/thread.jspa?threadID=216684 --]
+[#assign proxyPath = "{\"/{proxy+}\": {\"x-amazon-apigateway-any-method\": {}}}"]
+[#assign rootPath = "{\"/\": {\"x-amazon-apigateway-any-method\": {}}}"]
 
 [#assign gatewayErrorMap =
           {
@@ -321,8 +327,12 @@
         ,[@binaryMediaTypes binaryTypes /]
     [/#if]
     [#if swaggerObject.paths??]
+        [#assign paths = swaggerObject.paths]
+        [#if addProxy?boolean]
+            [#assign paths += proxyPath?eval + rootPath?eval]
+        [/#if]
         ,"paths"  : {
-            [#list swaggerObject.paths as path, pathObject]
+            [#list paths as path, pathObject]
                 "${path}" : {
                     [#if !pathObject?keys?seq_contains("options")]
                         [#assign corsConfiguration= getCorsHeaders(defaultCorsHeaders,defaultCorsMethods,defaultCorsOrigin)]
