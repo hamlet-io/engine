@@ -100,7 +100,7 @@
             )
             
         tags=getCfTemplateCoreTags(name, tier, component)
-        outputs=ALB_OUTPUT_MAPPINGS
+        outputs=LB_OUTPUT_MAPPINGS
     /]
 [/#macro]
 
@@ -250,7 +250,7 @@
                 name,
                 tier,
                 component)
-        outputs=ALB_OUTPUT_MAPPINGS
+        outputs=LB_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]
 [/#macro]
