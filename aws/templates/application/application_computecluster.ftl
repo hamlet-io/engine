@@ -26,6 +26,24 @@
         [#assign environmentVariables = {}]
 
         [#assign configSetName = componentType]        
+
+        [#assign ingressRules = []]
+
+        [#list solution.Ports?values as port ]
+            [#if port.LB.Configured]
+                [#assign links += getLBLink(occurrence, port)]
+            [#else]
+                [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups) ]
+                [#if portCIDRs?has_content]
+                    [#assign ingressRules +=
+                        [{
+                            "Port" : port.Name,
+                            "CIDR" : portCIDRs
+                        }]]
+                [/#if]
+            [/#if]
+        [/#list]
+
         [#assign configSets =  
                 getInitConfigDirectories() + 
                 getInitConfigBootstrap(component.Role!"") ]
@@ -60,7 +78,7 @@
                 "Version" : core.Version.Id,
                 "DefaultEnvironment" : defaultEnvironment(occurrence),
                 "Environment" : {},
-                "Links" : getLinkTargets(occurrence),
+                "Links" : getLinkTargets(occurrence, links),
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true
@@ -75,23 +93,6 @@
         [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
 
         [#assign configSets +=  getInitConfigEnvFacts(environmentVariables, false) ]
-
-        [#assign ingressRules = []]
-
-        [#list solution.Ports?values as port ]
-            [#if port.LB.Configured]
-                [#assign links += getLBLink(occurrence, port)]
-            [#else]
-                [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups) ]
-                [#if portCIDRs?has_content]
-                    [#assign ingressRules +=
-                        [{
-                            "Port" : port.Name,
-                            "CIDR" : portCIDRs
-                        }]]
-                [/#if]
-            [/#if]
-        [/#list]
             
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(computeClusterRoleId)]
