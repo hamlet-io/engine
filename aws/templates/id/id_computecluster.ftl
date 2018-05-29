@@ -11,6 +11,10 @@
                 "Children" : linkChildrenConfiguration
             },
             {
+                "Name" : "UseInitAsService",
+                "Default" : false
+            },
+            {
                 "Name" : "MinUpdateInstances",
                 "Default" : 1
             }

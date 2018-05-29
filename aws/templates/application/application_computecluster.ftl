@@ -74,9 +74,7 @@
 
         [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
 
-        [#assign configSets += 
-            getInitConfigScriptsDeployment(scriptsFile, environmentVariables, false) +
-            getInitConfigEnvFacts(environmentVariables, false)]
+        [#assign configSets +=  getInitConfigEnvFacts(environmentVariables, false) ]
 
         [#assign ingressRules = []]
 
@@ -198,6 +196,8 @@
             [/#switch]
         [/#list]
 
+        [#assign configSets += getInitConfigScriptsDeployment(scriptsFile, environmentVariables, solution.UseInitAsService, false)]
+
         [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
 
             [@createComponentSecurityGroup
@@ -294,18 +294,22 @@
                     },
                     {
                         "AutoScalingRollingUpdate" : {
-                            "WaitOnResourceSignals" : true,
+                            "WaitOnResourceSignals" : (solution.UseInitAsService != true),
                             "MinInstancesInService" : solution.MinUpdateInstances,
                             "PauseTime" : "PT" + solution.UpdatePauseTime
                         }
                     }
                 )   
-                creationPolicy={
-                    "ResourceSignal" : {
-                        "Count" : desiredCapacity,
-                        "Timeout" : "PT" + solution.StartupTimeout
-                    }
-                }
+                creationPolicy=
+                    (solution.UseInitAsService != true )?then(
+                        {
+                            "ResourceSignal" : {
+                                "Count" : desiredCapacity,
+                                "Timeout" : "PT" + solution.StartupTimeout
+                            }
+                        },
+                        {}
+                    )    
             /]
                     
             [#assign imageId = dockerHost?then(
@@ -324,7 +328,7 @@
                 imageId=imageId
                 routeTable=tier.Network.RouteTable
                 configSet=configSetName
-                enableCfnSignal=true
+                enableCfnSignal=(solution.UseInitAsService != true)
                 environmentId=environmentId
             /]
         [/#if]

@@ -186,7 +186,7 @@
     ]
 [/#function]
 
-[#function getInitConfigScriptsDeployment scriptsFile envVariables={} ignoreErrors=false ]
+[#function getInitConfigScriptsDeployment scriptsFile envVariables={} shutDownOnCompletion=false ignoreErrors=false ]
     [#return 
         {
             "scripts" : {
@@ -246,7 +246,15 @@
                         envVariables,
                         envVariables
                     )
-                }
+                } + shutDownOnCompletion?then(
+                    {
+                        "03ShutDownInstance" : {
+                            "command" : "shutdown -P +10",
+                            "ignoreErrors" : ignoreErrors
+                        }
+                    },
+                    {}
+                )
             }
         }
     ]
