@@ -301,15 +301,15 @@
                     }
                 )   
                 creationPolicy=
-                (solution.UseInitAsService != true )?then(
-                    {
-                        "ResourceSignal" : {
-                            "Count" : desiredCapacity,
-                            "Timeout" : "PT" + solution.StartupTimeout
-                        }
-                    },
-                    {}
-                )    
+                    (solution.UseInitAsService != true )?then(
+                        {
+                            "ResourceSignal" : {
+                                "Count" : desiredCapacity,
+                                "Timeout" : "PT" + solution.StartupTimeout
+                            }
+                        },
+                        {}
+                    )    
             /]
                     
             [#assign imageId = dockerHost?then(
