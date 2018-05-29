@@ -301,14 +301,14 @@
                     }
                 )   
                 creationPolicy=
-                (solution.UseInitAsService == true )?then(
-                    {},
+                (solution.UseInitAsService != true )?then(
                     {
                         "ResourceSignal" : {
                             "Count" : desiredCapacity,
                             "Timeout" : "PT" + solution.StartupTimeout
                         }
-                    }
+                    },
+                    {}
                 )    
             /]
                     
