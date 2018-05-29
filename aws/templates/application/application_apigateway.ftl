@@ -40,7 +40,7 @@
                 getComponentId(component)
             ) ]
 
-        [#assign environmentContext =
+        [#assign context =
             {
                 "Id" : containerId,
                 "Name" : containerId,
@@ -57,10 +57,10 @@
 
         [#-- Add in container specifics including override of defaults --]
         [#assign containerListMode = "model"]
-        [#assign containerId = formatContainerFragmentId(occurrence, environmentContext)]
+        [#assign containerId = formatContainerFragmentId(occurrence, context)]
         [#include containerList?ensure_starts_with("/")]
-
-        [#assign stageVariables += getFinalEnvironment(occurrence, environmentContext).Environment ]
+        
+        [#assign stageVariables += getFinalEnvironment(occurrence, context).Environment ]
 
         [#assign userPoolArns = [] ]
 
