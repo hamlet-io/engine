@@ -31,7 +31,10 @@
 [#assign componentConfiguration +=
     {
         APIGATEWAY_COMPONENT_TYPE : [
-            "Container",
+            {
+                "Container",
+                "Default" : ""
+            },
             {
                 "Name" : "Links",
                 "Default" : {}
