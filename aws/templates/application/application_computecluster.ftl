@@ -142,8 +142,10 @@
                     [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
                         [@createSecurityGroupIngress
                             mode=listMode
-                            id=formatSecurityGroupIngressId(
-                                    linkTargetCore.Id)
+                            id=formatDependentSecurityGroupIngressId(
+                                resources["securityGroup"].Id
+                                link.Id,
+                                link.Port)
                             port=link.Port 
                             cidr=linkTargetResources["sg"].Id
                             groupId=resources["securityGroup"].Id /]
