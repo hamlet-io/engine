@@ -32,7 +32,7 @@
     {
         APIGATEWAY_COMPONENT_TYPE : [
             {
-                "Container",
+                "Name" : "Container",
                 "Default" : ""
             },
             {
