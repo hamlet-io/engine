@@ -139,6 +139,17 @@
                 [#case LB_PORT_COMPONENT_TYPE]
                     [#assign targetGroupPermission = true]
 
+                    [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
+                        [@createSecurityGroupIngress
+                            mode=listMode
+                            id=formatDependentSecurityGroupIngressId(
+                                resources["securityGroup"].Id
+                                link.Id)
+                            port=link.Port 
+                            cidr=linkTargetResources["sg"].Id
+                            groupId=resources["securityGroup"].Id /]
+                    [/#if]
+
                     [#switch linkTargetAttributes["ENGINE"]]
 
                         [#case "application"]
@@ -168,7 +179,7 @@
                                                 priority=link.Priority!100
                                                 dependencies=targetId
                                             /]
-
+                                            
                                             [#assign componentDependencies += [targetId]]
 
                                         [/#if]
@@ -180,7 +191,7 @@
 
                         [#case "classic" ]
                             [#assign lbId =  linkTargetAttributes["LB"] ]                                     
-                            [#-- Classic ELB's register the instance so we only need 1 registration --]
+                            [#-- Classic ELB's register the instance so we only need 1 registration --]                            
                             [#assign loadBalancers += [ getExistingReference(lbId) ]]
                             [#break]
                         [/#switch]
@@ -205,7 +216,18 @@
                 mode=listMode
                 tier=tier
                 component=component /]
-    
+
+            [#list ingressRules as rule ] 
+                [@createSecurityGroupIngress
+                        mode=listMode
+                        id=formatDependentSecurityGroupIngressId(
+                            computeClusterSecurityGroupId,
+                            rule.Port)
+                        port=rule.Port
+                        cidr=rule.CIDR
+                        groupId=resources["securityGroup"].Id /]
+            [/#list]
+
             [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
             
             [#assign maxSize = processorProfile.MaxPerZone]

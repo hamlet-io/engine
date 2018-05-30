@@ -1845,15 +1845,24 @@
     [#assign core = occurrence.Core]
     [#assign targetTierId = (port.LB.Tier) ]
     [#assign targetComponentId = (port.LB.Component) ]
-    [#assign targetLinkName = port.LB.LinkName ]
-    [#assign targetSource =
-        contentIfContent(
-            port.LB.Port,
-            valueIfContent(
+    [#assign portName = valueIfContent(
                 (portMappings[port.LB.PortMapping].Source)!"",
                 port.LB.PortMapping,
                 port.Name
-            )
+            )]
+
+    [#assign targetLinkKey = formatName(
+            port.LB.LinkName,
+            portName) ]
+    [#assign targetLinkId = formatId(
+            port.LB.LinkName,
+            portName
+    )]
+
+    [#assign targetSource =
+        contentIfContent(
+            port.LB.Port,
+            portName
         ) ]
 
     [#-- Need to be careful to allow an empty value for --]
@@ -1861,8 +1870,8 @@
     [#-- correctly handled in getLinkTarget             --]
     [#local targetLink =
         {
-            "Id" : targetLinkName,
-            "Name" : targetLinkName,
+            "Id" : targetLinkId,
+            "Name" : port.LB.LinkName,
             "Tier" : targetTierId,
             "Component" : targetComponentId,
             "Priority" : port.LB.Priority
@@ -1924,9 +1933,9 @@
         [/#if]
     [/#if]
 
-    [@cfDebug listMode { targetLinkName : targetLink } false /]
+    [@cfDebug listMode { targetLinkKey : targetLink } false /]
 
-    [#return { targetLinkName : targetLink } ]
+    [#return { targetLinkKey : targetLink } ]
 [/#function]
 
 [#-- CIDRs --]
