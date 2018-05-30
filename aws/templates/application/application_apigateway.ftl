@@ -56,10 +56,12 @@
         ]
 
         [#-- Add in container specifics including override of defaults --]
-        [#assign containerListMode = "model"]
-        [#assign containerId = formatContainerFragmentId(occurrence, context)]
-        [#include containerList?ensure_starts_with("/")]
-        
+        [#if solution.Container?has_content ]
+            [#assign containerListMode = "model"]
+            [#assign containerId = formatContainerFragmentId(occurrence, context)]
+            [#include containerList?ensure_starts_with("/")]
+        [/#if]
+
         [#assign stageVariables += getFinalEnvironment(occurrence, context).Environment ]
 
         [#assign userPoolArns = [] ]
