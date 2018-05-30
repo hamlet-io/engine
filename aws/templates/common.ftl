@@ -1845,15 +1845,24 @@
     [#assign core = occurrence.Core]
     [#assign targetTierId = (port.LB.Tier) ]
     [#assign targetComponentId = (port.LB.Component) ]
-    [#assign targetLinkName = port.LB.LinkName ]
-    [#assign targetSource =
-        contentIfContent(
-            port.LB.Port,
-            valueIfContent(
+    [#assign portName = valueIfContent(
                 (portMappings[port.LB.PortMapping].Source)!"",
                 port.LB.PortMapping,
                 port.Name
-            )
+            )]
+
+    [#assign targetLinkName = formatName(
+            port.LB.LinkName,
+            portName) ]
+    [#assign targetLinkId = formatId(
+            port.LB.LinkName,
+            portName
+    )]
+
+    [#assign targetSource =
+        contentIfContent(
+            port.LB.Port,
+            portName
         ) ]
 
     [#-- Need to be careful to allow an empty value for --]
@@ -1861,7 +1870,7 @@
     [#-- correctly handled in getLinkTarget             --]
     [#local targetLink =
         {
-            "Id" : targetLinkName,
+            "Id" : targetLinkId,
             "Name" : targetLinkName,
             "Tier" : targetTierId,
             "Component" : targetComponentId,

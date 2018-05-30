@@ -144,8 +144,7 @@
                             mode=listMode
                             id=formatDependentSecurityGroupIngressId(
                                 resources["securityGroup"].Id
-                                link.Id,
-                                link.Port)
+                                link.Id)
                             port=link.Port 
                             cidr=linkTargetResources["sg"].Id
                             groupId=resources["securityGroup"].Id /]
