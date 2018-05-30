@@ -1851,7 +1851,7 @@
                 port.Name
             )]
 
-    [#assign targetLinkName = formatName(
+    [#assign targetLinkKey = formatName(
             port.LB.LinkName,
             portName) ]
     [#assign targetLinkId = formatId(
@@ -1871,7 +1871,7 @@
     [#local targetLink =
         {
             "Id" : targetLinkId,
-            "Name" : targetLinkName,
+            "Name" : port.LB.LinkName,
             "Tier" : targetTierId,
             "Component" : targetComponentId,
             "Priority" : port.LB.Priority
@@ -1933,9 +1933,9 @@
         [/#if]
     [/#if]
 
-    [@cfDebug listMode { targetLinkName : targetLink } false /]
+    [@cfDebug listMode { targetLinkKey : targetLink } false /]
 
-    [#return { targetLinkName : targetLink } ]
+    [#return { targetLinkKey : targetLink } ]
 [/#function]
 
 [#-- CIDRs --]
