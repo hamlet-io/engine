@@ -142,9 +142,8 @@
                     [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
                         [@createSecurityGroupIngress
                             mode=listMode
-                            id=formatDependentSecurityGroupIngressId(
-                                resources["securityGroup"].Id, 
-                                linkTargetCore.Id)
+                            id=formatSecurityGroupIngressId(
+                                    linkTargetCore.Id)
                             port=link.Port 
                             cidr=linkTargetResources["sg"].Id
                             groupId=resources["securityGroup"].Id /]
@@ -221,7 +220,7 @@
                 [@createSecurityGroupIngress
                         mode=listMode
                         id=formatDependentSecurityGroupIngressId(
-                            resources["securityGroup"].Id, 
+                            computeClusterSecurityGroupId,
                             rule.Port)
                         port=rule.Port
                         cidr=rule.CIDR
