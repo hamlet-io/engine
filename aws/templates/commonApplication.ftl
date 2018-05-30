@@ -139,8 +139,8 @@
     [#if value?is_hash]
         [#local name = contentIfContent(value.Setting!"", key) ]
 
-        [#if value.IgnoreIfMissing!false &&
-            !(context.DefaultEnvironment[formatSettingName(name)])?? ]
+        [#if (value.IgnoreIfMissing!false) &&
+            (!((context.DefaultEnvironment[formatSettingName(name)])??)) ]
                 [#return valueIfTrue(false, asBoolean, "") ]
         [/#if]
     [#else]
@@ -150,7 +150,6 @@
             [#return valueIfTrue(true, asBoolean, "COTException: Value for " + key + " must be a string or hash") ]
         [/#if]
     [/#if]
-
     [#return
         valueIfTrue(
             true,
