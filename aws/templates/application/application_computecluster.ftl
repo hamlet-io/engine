@@ -103,7 +103,10 @@
                 policies=
                     [
                         getPolicyDocument(
-                            s3ReadPermission(scriptsPath) +
+                            s3ReadPermission( 
+                                formatRelativePath( 
+                                    getRegistryEndPoint("scripts", occurrence),
+                                    getRegistryPrefix("scripts", occurrence) ) )+
                             s3ListPermission(codeBucket) +
                             s3ReadPermission(codeBucket) +
                             s3ListPermission(operationsBucket) +
