@@ -1040,11 +1040,22 @@
 
     [#-- Reference could be a deployment unit or a component --]
     [#if occurrenceBuild.REFERENCE?has_content]
+        [#-- Support cross-segment references --]
+        [#if occurrenceBuild.SEGMENT?has_content]
+            [#local buildLookupPrefixes =
+                [
+                    ["shared", occurrenceBuild.SEGMENT.Value],
+                    [environmentName, occurrenceBuild.SEGMENT.Value]
+                ] +
+                cmdbProductLookupPrefixes ]
+        [#else]
+            [#local buildLookupPrefixes = cmdbProductLookupPrefixes]
+        [/#if]
         [#local occurrenceBuild +=
             getOccurrenceSettings(
                 (settingsObject.Builds.Products)!{},
                 productName,
-                cmdbProductLookupPrefixes,
+                buildLookupPrefixes,
                 [
                     {"Key" : occurrenceBuild.REFERENCE.Value?replace("/","-"), "Match" : "exact"}
                 ]
