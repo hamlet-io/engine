@@ -17,8 +17,10 @@
         [#assign computeClusterRoleId = resources["role"].Id ]
         [#assign computeClusterInstanceProfileId = resources["instanceProfile"].Id ]
         [#assign computeClusterAutoScaleGroupId = resources["autoScaleGroup"].Id ]
+        [#assign computeClusterAutoScaleGroupName = resources["autoScaleGroup"].Name ]
         [#assign computeClusterLaunchConfigId = resources["launchConfig"].Id ]
         [#assign computeClusterSecurityGroupId = resources["securityGroup"].Id ]
+        [#assign computeClusterSecurityGroupName = resources["securityGroup"].Name ]
 
         [#assign targetGroupPermission = false ]
         [#assign targetGroups = [] ]
@@ -150,7 +152,7 @@
                                 link.Id)
                             port=link.Port 
                             cidr=linkTargetResources["sg"].Id
-                            groupId=resources["securityGroup"].Id /]
+                            groupId=computeClusterSecurityGroupId /]
                     [/#if]
 
                     [#switch linkTargetAttributes["ENGINE"]]
@@ -215,10 +217,12 @@
 
         [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
 
-            [@createComponentSecurityGroup
+            [@createSecurityGroup
                 mode=listMode
                 tier=tier
-                component=component /]
+                component=component
+                id=computeClusterSecurityGroupId
+                name=computeClusterSecurityGroupName /]
 
             [#list ingressRules as rule ] 
                 [@createSecurityGroupIngress
@@ -228,7 +232,7 @@
                             rule.Port)
                         port=rule.Port
                         cidr=rule.CIDR
-                        groupId=resources["securityGroup"].Id /]
+                        groupId=computeClusterSecurityGroupId /]
             [/#list]
 
             [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
@@ -269,11 +273,6 @@
                     {
                         "Cooldown" : "30",
                         "LaunchConfigurationName": getReference(computeClusterLaunchConfigId),
-                        "TerminationPolicies" : [
-                            "OldestLaunchConfiguration",
-                            "OldestInstance",
-                            "ClosestToNextInstanceHour"
-                        ],
                         "MetricsCollection" : [ 
                             {
                                 "Granularity" : "1Minute"
@@ -306,7 +305,7 @@
                     )
                 tags=
                     getCfTemplateCoreTags(
-                        formatComponentFullName(tier, component),
+                        computeClusterAutoScaleGroupName,
                         tier,
                         component,
                         "",
