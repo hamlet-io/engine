@@ -114,6 +114,10 @@
                         "Default" : true
                     }
                 ]
+            },
+            {
+                "Name" : "PredefineLogGroup",
+                "Default" : false
             }
         ]
     }
@@ -154,6 +158,11 @@
                     "Id" : id,
                     "Name" : core.FullName,
                     "Type" : AWS_LAMBDA_FUNCTION_RESOURCE_TYPE
+                },
+                "lg" : {
+                    "Id" : formatLogGroupId(core.Id),
+                    "Name" : formatAbsolutePath("aws", "lambda", core.FullName),
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
