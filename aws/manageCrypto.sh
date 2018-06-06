@@ -140,29 +140,29 @@ if [[ (-z "${KEYID}") && (-n "${ALIAS}") ]]; then
 fi
 if [[ "segment" =~ ${LOCATION} ]]; then
     KEYID=$(getCmk "segment")
-    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${SEGMENT_CREDENTIALS_DIR}/${CRYPTO_FILE}"); fi
-    FILES+=("${SEGMENT_CREDENTIALS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
+    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${SEGMENT_OPERATIONS_DIR}/${CRYPTO_FILE}"); fi
+    FILES+=("${SEGMENT_OPERATIONS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ "product" =~ ${LOCATION} ]]; then
     KEYID=$(getCmk "product")
-    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${PRODUCT_CREDENTIALS_DIR}/${CRYPTO_FILE}"); fi
-    FILES+=("${PRODUCT_CREDENTIALS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
+    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${PRODUCT_OPERATIONS_DIR}/${CRYPTO_FILE}"); fi
+    FILES+=("${PRODUCT_OPERATIONS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ "account" =~ ${LOCATION} ]]; then
     KEYID=$(getCmk "account")
-    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${ACCOUNT_CREDENTIALS_DIR}/${CRYPTO_FILENAME_DEFAULT}"); fi
-    FILES+=("${ACCOUNT_CREDENTIALS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
+    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${ACCOUNT_OPERATIONS_DIR}/${CRYPTO_FILENAME_DEFAULT}"); fi
+    FILES+=("${ACCOUNT_OPERATIONS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
 fi
 if [[ ("root" =~ ${LOCATION}) || ("integrator" =~ ${LOCATION}) ]]; then
     KEYID=$(getCmk "account")
 fi
 
-# Try and locate  file 
+# Try and locate  file
 for F in "${FILES[@]}"; do
     if [[ -f "${F}" ]]; then
         TARGET_FILE="${F}"
         break
-    fi 
+    fi
 done
 
 # Ensure mandatory arguments have been provided
@@ -175,7 +175,7 @@ if [[ (-n "${JSON_PATH}") ]]; then
 
     [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]] &&
         fatal "Nothing to encrypt"
-else    
+else
     if [[ -z "${CRYPTO_TEXT}" ]]; then
         [[ -z "${CRYPTO_FILE}" ]] && insufficientArgumentsError
         [[ -z "${TARGET_FILE}" ]] && fatalError "Can't locate file based on provided path"
@@ -185,7 +185,7 @@ else
         CRYPTO_TEXT="${CRYPTO_TEXT:-$FILE_TEXT}"
     fi
 fi
-    
+
 [[ ("${CRYPTO_OPERATION}" == "encrypt") && (-z "${KEYID}") ]] &&
     fatal "No key material available"
 
@@ -215,13 +215,13 @@ if [[ (-n "${CRYPTO_DECODE}") ]]; then
 else
     mv "${ciphertext_src}" "${ciphertext_bin}"
 fi
-        
+
 # Perform the operation
 case ${CRYPTO_OPERATION} in
     encrypt)
         CRYPTO_TEXT=$(cd "${tmp_dir}"; aws --region ${REGION} --output text kms ${CRYPTO_OPERATION} \
             --key-id "${KEYID}" --query CiphertextBlob \
-            --plaintext "fileb://ciphertext.bin") 
+            --plaintext "fileb://ciphertext.bin")
         ;;
 
     decrypt)
@@ -263,7 +263,7 @@ if [[ "${RESULT}" -eq 0 ]]; then
                 else
                     mv "${tmp_dir}/${CRYPTO_FILENAME_DEFAULT}" "${TARGET_FILE}"
                 fi
-            fi            
+            fi
         fi
     fi
 fi
