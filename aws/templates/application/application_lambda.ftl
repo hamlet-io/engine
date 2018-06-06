@@ -16,7 +16,8 @@
             [#assign fnId = resources["function"].Id ]
             [#assign fnName = resources["function"].Name ]
 
-            [#assign logGroupName = "/aws/lambda/" + fnName]
+            [#assign lgId = resources["lg"].Id ]
+            [#assign lgName = resources["lg"].Name ]
 
             [#assign containerId =
                 solution.Container?has_content?then(
@@ -120,6 +121,15 @@
                 [/#if]
             [/#if]
 
+            [#if solution.PredefineLogGroup &&
+                  deploymentSubsetRequired("lg", true) &&
+                  isPartOfCurrentDeploymentUnit(lgId) ]
+                [@createLogGroup
+                    mode=listMode
+                    id=lgId
+                    name=lgName /]
+            [/#if]
+
             [#if deploymentSubsetRequired("lambda", true)]
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
                 [#if vpc?has_content && solution.VPCAccess]
@@ -155,7 +165,9 @@
                             getSubnets(core.Tier, false),
                             []
                         )
-                    dependencies=roleId
+                    dependencies=
+                        [roleId] +
+                        valueIfTrue([lgId], solution.PredefineLogGroup, [])
                 /]
 
                 [#list solution.Schedules?values as schedule ]
@@ -189,8 +201,8 @@
                             [@createLogMetric
                                 mode=listMode
                                 id=formatDependentLogMetricId(fnId, metric.Id)
-                                name=formatName(metric.Name, fnName) 
-                                logGroup=logGroupName
+                                name=formatName(metric.Name, fnName)
+                                logGroup=lgName
                                 filter=metric.LogPattern
                                 namespace=formatProductRelativePath()
                                 value=1
@@ -212,8 +224,8 @@
                             [#-- feature requst has been reaised... --]
                             [#-- Instead we name the logMetric with the function name and will use that --]
                             [#assign metricName = formatName(alert.Metric.Name, fnName) ]
-                        [#break] 
-                    [/#switch]                  
+                        [#break]
+                    [/#switch]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
