@@ -1302,7 +1302,7 @@
     "Qualifiers": {
       "prod": {
         "IncludeInHost": {
-          "Segment": false
+          "Environment": false
         }
       }
     }
