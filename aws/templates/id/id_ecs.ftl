@@ -135,6 +135,10 @@
             {
                 "Name" : "TaskLogGroup",
                 "Default" : true
+            },
+            {
+                "Name" : "NetworkMode",
+                "Default" : ""
             }
         ],
         ECS_TASK_COMPONENT_TYPE : [
@@ -227,7 +231,9 @@
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
             ),
-            "Attributes" : {},
+            "Attributes" : {
+                
+            },
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}

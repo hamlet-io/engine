@@ -1,6 +1,6 @@
 [#-- ECS --]
 
-[#macro createECSTask mode id containers delegatedDeployment=false role="" dependencies=""]
+[#macro createECSTask mode id containers networkMode="" delegatedDeployment=false role="" dependencies=""]
 
     [#local definitions = [] ]
     [#local volumes = [] ]
@@ -87,7 +87,8 @@
                 attributeIfContent("ExtraHosts", extraHosts) +
                 attributeIfContent("Memory", container.MaximumMemory!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
-                attributeIfContent("PortMappings", portMappings)
+                attributeIfContent("PortMappings", portMappings) + 
+                attributeIfContent("NetworkMode". networkMode)
             ]
         ]
     [/#list]
@@ -116,8 +117,7 @@
     [/#if]
 [/#macro]
 
-[#macro createECSService mode id ecsId desiredCount taskId loadBalancers roleId="" dependencies=""]
-
+[#macro createECSService mode id ecsId desiredCount taskId loadBalancers networkMode="" subnetIds=[] securityGroupIds=[] roleId="" dependencies=""]
 
     [@cfResource
         mode=mode
@@ -144,7 +144,18 @@
                     "LoadBalancers" : loadBalancers![],
                     "Role" : getReference(roleId)
                 },
-                loadBalancers![])
+                loadBalancers![]) +
+            (networkMode == "awsvpc")?then(
+                {
+                    "NetworkConfiguration" : {
+                        "AwsvpcConfiguration" : {
+                            "SecurityGroups" : getReferences( securityGroupIds )
+                            "Subnets" : getReferences( subnetIds ) 
+                        }
+                    }
+                },
+                {}
+            )
         dependencies=dependencies
     /]
 [/#macro]

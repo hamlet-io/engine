@@ -143,6 +143,8 @@
                         taskId=taskId
                         loadBalancers=loadBalancers
                         roleId=ecsServiceRoleId
+                        networkMode=solution.NetworkMode
+                        
                         dependencies=dependencies
                     /]
                 [/#if]
@@ -228,6 +230,7 @@
                     id=taskId
                     containers=containers
                     role=roleId
+                    networkMode=solution.NetworkMode
                     dependencies=dependencies
                     delegatedDeployment=solution.DelegateDeployment
                 /]
