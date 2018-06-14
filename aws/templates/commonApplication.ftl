@@ -341,19 +341,20 @@
                 } ]
 
             [#-- Ports should only be defined if connecting to a load balancer --]
-            [#local loadBalancer = containerLinks[port.LB.LinkName]]
-            [#local containerPortMapping +=
-                {
-                    "LoadBalancer" :
-                        {
-                            "Link" : loadBalancer.Name,
-                            "TargetGroup" : loadBalancer.TargetGroup!"",
-                            "Priority" : port.LB.Priority,
-                            "Path" : loadBalancer.TargetPath!""
-                        }
-                }
-            ]
-            [#local containerPortMappings += [containerPortMapping] ]
+            [#list lbLink as key,loadBalancer]
+                [#local containerPortMapping +=
+                    {
+                        "LoadBalancer" :
+                            {
+                                "Link" : loadBalancer.Name,
+                                "TargetGroup" : loadBalancer.TargetGroup!"",
+                                "Priority" : port.LB.Priority,
+                                "Path" : loadBalancer.TargetPath!""
+                            }
+                    }
+                ]
+                [#local containerPortMappings += [containerPortMapping] ]
+            [/#list]
         [/#list]
 
         [#local logDriver =
