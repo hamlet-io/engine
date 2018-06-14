@@ -13,6 +13,7 @@
 
         [#assign userPoolId                 = resources["userpool"].Id]
         [#assign userPoolName               = resources["userpool"].Name]
+        [#assign userPoolHostName           = resources["userpool"].HostName]
         [#assign userPoolClientId           = resources["client"].Id]
         [#assign userPoolClientName         = resources["client"].Name]
         [#assign userPoolRoleId             = resources["userpoolrole"].Id]
@@ -29,7 +30,8 @@
         [#assign userPoolManualTriggerConfig = {}]
         [#assign smsConfig = {}]
         
-        [#assign userPoolUpdateCommand = "updateUserPool" ]            
+        [#assign userPoolUpdateCommand = "updateUserPool" ]     
+        [#assign userPoolDomainCommand = "setDomainUserPool" ]       
     
         [#assign emailVerificationMessage =
             getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationMessage"], true) ]
@@ -386,6 +388,17 @@
                     content=userpoolConfig
                 /]
             [/#if]
+
+            [#assign userPoolDomain = {
+                "Domain" : userPoolHostName
+            }]
+
+            [@cfCli 
+                mode=listMode
+                id=userPoolId
+                command=userPoolDomainCommand
+                content=userPoolDomain
+            /]
         [/#if]
         
         [#if deploymentSubsetRequired("epilogue", false)]
@@ -406,7 +419,15 @@
                         userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?"
                     ],
                     []
-                )
+                ) +
+                [
+                    "# Set Userpool Domain",
+                    "set_congnito_domain" +
+                    " \"" + region + "\" " + 
+                    " \"" + getExistingReference(userPoolId) + "\" " + 
+                    " \"$\{tmpdir}/cli-" + 
+                    userPoolId + "-" + userPoolDomainCommand + ".json\" || return $?"
+                ]
             /]
         [/#if]
     [/#list]

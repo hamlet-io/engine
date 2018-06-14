@@ -38,6 +38,11 @@
                         "Default" : ""
                     }
                 ]
+            },
+            {
+                "Name" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
     }]
@@ -53,14 +58,22 @@
                 "es" : { 
                     "Id" : id,
                     "Type" : AWS_ES_RESOURCE_TYPE
+                },
+                "servicerole" : {
+                    "Id" : formatDependentRoleId(id),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
                 "FQDN" : getReference(id, DNS_ATTRIBUTE_TYPE)
             },
             "Roles" : {
-                "Inbound" : {},
-                "Outbound" : {}
+                "Outbound" : {
+                    "default" : "consume",
+                    "consume" : esConsumePermission(id)
+                },
+                "Inbound" : {
+                }
             }
         }
     ]

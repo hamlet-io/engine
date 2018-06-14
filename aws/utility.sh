@@ -711,6 +711,49 @@ function update_cognito_userpool() {
   aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}"
 }
 
+function set_congnito_domain() { 
+  local region="$1"; shift
+  local userpoolid="$1"; shift
+  local configfile="$1"; shift
+
+  local return_status=0
+
+  domain="$( jq '.Domain' < configfile)"
+  domain_userpool="$( aws --region ${region} cognito-idp describe-user-pool-domain --domain ${domain} | jq '.DomainDescription.UserPoolId' )"
+
+  if [[ -n "${domain_userpool}" ]]; then
+    info "Adding domain to user pool"
+    aws --region ${region} cognito-idp create-user-pool-domain --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" 
+    return_status=$?
+
+  elif [[ "${domain_userpool}" -ne "${userpoolid}" ]]; then
+    fatal "User Pool Domain ${domain} is used by userpool ${domain_userpool}"
+    return_status=255
+
+  else  
+    info "User Pool domain already configured"
+  fi  
+
+  return ${return_status}
+
+}
+
+# -- ElasticSearch -- 
+function enable_cognito_kibana() { 
+  local region="$1"; shift
+  local esid="$1"; shift 
+  local configfile="$1"; shift 
+
+  aws --region "${region}" es update-elasticsearch-domain-config --domain-name "${esid}" --cli-input-json "file://${configfile}"
+}
+
+function disable_cognito_kibana() {
+  local region="$1"; shift
+  local esid="$1"; shift 
+
+  aws --region "${region}" es update-elasticsearch-domain-config --domain-name "${esid}" --cognito-options "Enabled=false"
+}
+
 # -- S3 --
 
 function isBucketAccessible() {

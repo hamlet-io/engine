@@ -103,13 +103,17 @@
 
     [#assign identityPoolUnAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION )]
     [#assign identityPoolAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION )]
-        
+
     [#return
         {
             "Resources" : {
                 "userpool" : {
                     "Id" : userPoolId,
                     "Name" : userPoolName,
+                    "HostName" : formatName(
+                        "auth",
+                        core.ShortFullName,
+                        vpc?remove_beginning("vpc-")),
                     "Type" : AWS_COGNITO_USERPOOL_RESOURCE_TYPE
                 },
                 "client" : {

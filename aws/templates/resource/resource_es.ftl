@@ -18,4 +18,3 @@
         AWS_ES_RESOURCE_TYPE : ES_OUTPUT_MAPPINGS
     }
 ]
-
