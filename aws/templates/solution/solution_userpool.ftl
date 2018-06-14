@@ -405,13 +405,23 @@
             [@cfScript
                 mode=listMode
                 content=
+                [
+                    "case $\{STACK_OPERATION} in",
+                    "  create|update)",
+                    "       # Get cli config file",
+                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                    "       # Set Userpool Domain",
+                    "       set_congnito_domain" +
+                    "       \"" + region + "\" " + 
+                    "       \"" + getExistingReference(userPoolId) + "\" " + 
+                    "       \"$\{tmpdir}/cli-" + 
+                    userPoolId + "-" + userPoolDomainCommand + ".json\" || return $?"
+                ] +
                 [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
                 (userPoolManualTriggerConfig?has_content)?then(
                     [
                         "# Add Manual Cognito Triggers",
                         "info \"Adding Cognito Triggers that are not part of cloudformation\""
-                        "# Get cli config file",
-                        "split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
                         "update_cognito_userpool" +
                         " \"" + region + "\" " + 
                         " \"" + getExistingReference(userPoolId) + "\" " + 
@@ -421,12 +431,8 @@
                     []
                 ) +
                 [
-                    "# Set Userpool Domain",
-                    "set_congnito_domain" +
-                    " \"" + region + "\" " + 
-                    " \"" + getExistingReference(userPoolId) + "\" " + 
-                    " \"$\{tmpdir}/cli-" + 
-                    userPoolId + "-" + userPoolDomainCommand + ".json\" || return $?"
+                    "       ;;",
+                    "       esac"
                 ]
             /]
         [/#if]

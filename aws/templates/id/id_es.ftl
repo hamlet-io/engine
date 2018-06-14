@@ -49,28 +49,30 @@
 
 [#function getESState occurrence]
     [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
 
-    [#local id = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
+    [#local esId = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
 
     [#return
         {
             "Resources" : {
                 "es" : { 
-                    "Id" : id,
+                    "Id" : esId,
+                    "Name" : core.Name,
                     "Type" : AWS_ES_RESOURCE_TYPE
                 },
                 "servicerole" : {
-                    "Id" : formatDependentRoleId(id),
+                    "Id" : formatDependentRoleId(esId),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
-                "FQDN" : getReference(id, DNS_ATTRIBUTE_TYPE)
+                "FQDN" : getReference(esId, DNS_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Outbound" : {
                     "default" : "consume",
-                    "consume" : esConsumePermission(id)
+                    "consume" : esConsumePermission(esId)
                 },
                 "Inbound" : {
                 }

@@ -11,15 +11,19 @@
         [#assign core = occurrence.Core]
         [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
+        [#assign roles = occurrence.State.Roles]
 
         [#assign esId = resources["es"].Id]
+        [#assign esName = resources["es"].Name]
         [#assign esServiceRoleId = resources["servicerole"].Id]
 
         [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
         [#assign master = processorProfile.Master!{}]
 
+        [#assign esUpdateCommand = "updateESDomain" ]
+
         [#assign cognitoIntegration = false ]
-        [#assign cognitoIntegrationCommand = "setCognitoAuth" ]
+        [#assign cognitoCliConfig = {} ]
 
         [#assign esPolicyStatements = [] ]
 
@@ -76,50 +80,32 @@
 
                     [#case USERPOOL_COMPONENT_TYPE]
                         [#assign cognitoIntegration = true ]
-                        [#assign authRoleArn = getExistingReference( linkTargetResources["authrole"].Id, ARN_ATTRIBUTE_TYPE )]
+                        [#assign authRoleId = getExistingReference(linkTargetResources["authrole"].Id, NAME_ATTRIBUTE_TYPE )]
 
-                        [#if deploymentSubsetRequired("es", true)]
+                        [#assign cognitoCliConfig = 
+                            {
+                                "CognitoOptions" : {
+                                    "Enabled" : true,
+                                    "UserPoolId" : linkTargetAttributes.USER_POOL,
+                                    "IdentityPoolId" : linkTargetAttributes.IDENTITY_POOL,
+                                    "RoleArn" : getExistingReference(esServiceRoleId, ARN_ATTRIBUTE_TYPE)
+                                }
+                            }]
+                        
+                            [#assign policyId = formatDependentPolicyId(
+                                                    esId,
+                                                    link.Name)]
 
-                            [#assign esPolicyStatements += [
-                                getPolicyStatement(
-                                    "es:ESHttp*",
-                                    getReference(esId, ARN_ATTRIBUTE_TYPE),
-                                    {
-                                        "AWS": formatRelativePath(
-                                                authRoleArn,
-                                                "CognitoIdentityCredentials"
-                                            )
-                                    },
-                                    attributeIfContent(
-                                        "IpAddress",
-                                        esCIDRs,
-                                        {
-                                            "aws:SourceIp": esCIDRs
-                                        })
-                                )] ]
-                            
-                        [/#if]
 
-                        [#if deploymentSubsetRequired("cli", false)]
-
-                            [#assign esCognitoConfig = 
-                                {
-                                    "CognitoOptions" : {
-                                        "Enabled" : true,
-                                        "UserPoolId" : linkTargetAttributes.USER_POOL,
-                                        "IdentityPoolId" : linkTargetAttributes.IDENTITY_POOL,
-                                        "RoleArn" : getExistingReference(esServiceRoleId)
-                                    }
-                                }]
-
-                            [@cfCli 
-                                mode=listMode
-                                id=esId
-                                command=cognitoIntegrationCommand
-                                content=esCognitoConfig
-                            /]
-                        [/#if]
-
+                            [#if deploymentSubsetRequired("es", true)]
+                                [@createPolicy
+                                    mode=listMode
+                                    id=policyId
+                                    name=esName
+                                    statements=asFlattenedArray(roles.Outbound["consume"])
+                                    roles=linkTargetResources["authrole"].Id
+                                /]
+                            [/#if]
                         [#break]
                 [/#switch]
             [/#if]
@@ -132,7 +118,7 @@
                     mode=listMode
                     id=esServiceRoleId
                     trustedServices=["es.amazonaws.com"]
-                    managedArns=["arn:aws:iam::aws:policy/service-role/AmazonESCognitoAccess"]
+                    managedArns=["arn:aws:iam::aws:policy/AmazonESCognitoAccess"]
                 /]
 
             [/#if]
@@ -149,25 +135,6 @@
                 type="AWS::Elasticsearch::Domain"
                 properties=
                     {
-                        "AccessPolicies" : valueIfContent(
-                            esPolicyStatements,
-                            esPolicyStatements,
-                            getPolicyDocumentContent(
-                                getPolicyStatement(
-                                    "es:*",
-                                    "*",
-                                    {
-                                        "AWS": "*"
-                                    },
-                                    attributeIfContent(
-                                        "IpAddress",
-                                        esCIDRs,
-                                        {
-                                            "aws:SourceIp": esCIDRs
-                                        })
-                                )
-                            )
-                        ),
                         "ElasticsearchVersion" : solution.Version,
                         "ElasticsearchClusterConfig" :
                             {
@@ -204,7 +171,26 @@
                                     "gp2"
                                 )
                         } +
-                        attributeIfContent("Iops", volume.Iops!""))
+                        attributeIfContent("Iops", volume.Iops!"")) +
+                    attributeIfTrue(
+                        "AccessPolicies",
+                        !cognitoIntegration,
+                        getPolicyDocumentContent(
+                            getPolicyStatement(
+                                "es:*",
+                                "*",
+                                {
+                                    "AWS": "*"
+                                },
+                                attributeIfContent(
+                                    "IpAddress",
+                                    esCIDRs,
+                                    {
+                                        "aws:SourceIp": esCIDRs
+                                    })
+                            )
+                        )
+                    )
                 tags=
                     getCfTemplateCoreTags(
                         "",
@@ -214,31 +200,47 @@
             /]
         [/#if]
 
+        [#if deploymentSubsetRequired("cli", false)]
+
+            [#assign esCliConfig = 
+                valueIfContent(
+                    cognitoCliConfig,
+                    cognitoCliConfig,
+                    {
+                        "CognitoOptions" : {
+                            "Enabled" : false
+                        }
+                    }       
+                )]
+
+            [@cfCli 
+                mode=listMode
+                id=esId
+                command=esUpdateCommand
+                content=esCliConfig
+            /]
+
+        [/#if]
+
         [#if deploymentSubsetRequired("epilogue", false)]
             [@cfScript
                 mode=listMode
                 content=
-                [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
-                (cognitoIntegration)?then(
                     [
-                        "# Enable Cognito Integation for Kibana",
-                        "info \"Enabling Cognito Integation for Kibana\""
-                        "# Get cli config file",
-                        "split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
-                        "enable_cognito_kibana" +
-                        " \"" + region + "\" " + 
-                        " \"" + getExistingReference(esId) + "\" " + 
-                        " \"$\{tmpdir}/cli-" + 
-                        esId + "-" + cognitoIntegrationCommand + ".json\" || return $?"
-                    ],
-                    [
-                        "# Disable Cognito Integration for Kibana",
-                        "info \"Making sure Cognito Integration is disabled\"",
-                        "disable_cognito_kibana" +
-                        " \"" + region + "\" " + 
-                        " \"" + getExistingReference(esId) + "\" || return $?"
-                    ]
-                ) 
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)",
+                        "       # Get cli config file",
+                        "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                        "       # Apply CLI level updates to ES Domain",
+                        "       info \"Applying cli level configurtion\""
+                        "       update_es_domain" +
+                        "       \"" + region + "\" " + 
+                        "       \"" + getExistingReference(esId) + "\" " + 
+                        "       \"$\{tmpdir}/cli-" + 
+                        esId + "-" + esUpdateCommand + ".json\" || return $?"
+                        "   ;;",
+                        "   esac"
+                    ]  
             /]
         [/#if]
 

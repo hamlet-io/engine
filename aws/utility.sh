@@ -718,7 +718,7 @@ function set_congnito_domain() {
 
   local return_status=0
 
-  domain="$( jq '.Domain' < configfile)"
+  domain="$( jq '.Domain' < $configfile )"
   domain_userpool="$( aws --region ${region} cognito-idp describe-user-pool-domain --domain ${domain} | jq '.DomainDescription.UserPoolId' )"
 
   if [[ -n "${domain_userpool}" ]]; then
@@ -739,19 +739,12 @@ function set_congnito_domain() {
 }
 
 # -- ElasticSearch -- 
-function enable_cognito_kibana() { 
+function update_es_domain() { 
   local region="$1"; shift
   local esid="$1"; shift 
   local configfile="$1"; shift 
 
-  aws --region "${region}" es update-elasticsearch-domain-config --domain-name "${esid}" --cli-input-json "file://${configfile}"
-}
-
-function disable_cognito_kibana() {
-  local region="$1"; shift
-  local esid="$1"; shift 
-
-  aws --region "${region}" es update-elasticsearch-domain-config --domain-name "${esid}" --cognito-options "Enabled=false"
+  aws --region "${region}" es update-elasticsearch-domain-config --domain-name "${esid}" --cli-input-json "file://${configfile}" || return $?
 }
 
 # -- S3 --
