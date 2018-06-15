@@ -92,7 +92,12 @@
                         {
                             "AWS" : "*"
                         },
-                        "",
+                        attributeIfContent(
+                            "NotIpAddress",
+                            esCIDRs,
+                            {
+                                "aws:SourceIp": esCIDRs
+                            }), 
                         false
                     )
                 ]
