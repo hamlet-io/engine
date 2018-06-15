@@ -19,6 +19,10 @@
     {
         ES_COMPONENT_TYPE : [
             {
+                "Name" : "Authentication",
+                "Default" : "IP"
+            },
+            {
                 "Name" : "IPAddressGroups",
                 "Default" : []
             },
@@ -67,7 +71,8 @@
                 }
             },
             "Attributes" : {
-                "FQDN" : getReference(esId, DNS_ATTRIBUTE_TYPE)
+                "FQDN" : getReference(esId, DNS_ATTRIBUTE_TYPE),
+                "AUTH" : solution.Authentication
             },
             "Roles" : {
                 "Outbound" : {

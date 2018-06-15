@@ -22,6 +22,8 @@
 
         [#assign esUpdateCommand = "updateESDomain" ]
 
+        [#assign esAuthentication = solution.Authentication]
+
         [#assign cognitoIntegration = false ]
         [#assign cognitoCliConfig = {} ]
 
@@ -60,6 +62,41 @@
                 }
             ]
         [/#list]
+
+        [#assign AccessPolicy = 
+            getPolicyDocumentContent(
+                [
+                    getPolicyStatement(
+                        "es:*",
+                        "*",
+                        {
+                            "AWS": "*"
+                        },
+                        attributeIfContent(
+                            "IpAddress",
+                            esCIDRs,
+                            {
+                                "aws:SourceIp": esCIDRs
+                            }) + 
+                        attributeIfTrue(
+                            "Null",
+                            esAuthentication == "SIG4",
+                            {
+                                "aws:principaltype" : false
+                            }
+                        )
+                    ),
+                    getPolicyStatement(
+                        "es:*",
+                        "*",
+                        {
+                            "AWS" : "*"
+                        },
+                        "",
+                        false
+                    )
+                ]
+            )]
 
         [#list solution.Links?values as link]
             [#if link?is_hash]
@@ -135,6 +172,7 @@
                 type="AWS::Elasticsearch::Domain"
                 properties=
                     {
+                        "AccessPolicies" : AccessPolicy,
                         "ElasticsearchVersion" : solution.Version,
                         "ElasticsearchClusterConfig" :
                             {
@@ -171,26 +209,7 @@
                                     "gp2"
                                 )
                         } +
-                        attributeIfContent("Iops", volume.Iops!"")) +
-                    attributeIfTrue(
-                        "AccessPolicies",
-                        !cognitoIntegration,
-                        getPolicyDocumentContent(
-                            getPolicyStatement(
-                                "es:*",
-                                "*",
-                                {
-                                    "AWS": "*"
-                                },
-                                attributeIfContent(
-                                    "IpAddress",
-                                    esCIDRs,
-                                    {
-                                        "aws:SourceIp": esCIDRs
-                                    })
-                            )
-                        )
-                    )
+                        attributeIfContent("Iops", volume.Iops!""))
                 tags=
                     getCfTemplateCoreTags(
                         "",
