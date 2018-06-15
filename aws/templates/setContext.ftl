@@ -501,10 +501,11 @@
 [#assign ipAddressGroups =
     getEffectiveIPAddressGroups(
         {
-            "Id" : "global",
-            "Name" : "global",
-            "IsOpen" : true,
-            "CIDR" : []
+            "global" : {
+                "Id" : "global",
+                "Name" : "global",
+                "IsOpen" : true
+            }
         } +
         blueprintObject.IPAddressGroups!{}
     ) ]
