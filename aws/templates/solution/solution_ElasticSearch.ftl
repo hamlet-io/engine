@@ -65,7 +65,7 @@
 
         [#assign AccessPolicyStatements = [] ]
 
-        [#if !esCIDRs?seq_contains("0.0.0.0/0") ]
+        [#if solution.Authentication != "SIG4"  ]
 
             [#assign AccessPolicyStatements +=
                 [
@@ -75,12 +75,19 @@
                         {
                             "AWS" : "*"
                         },
-                        attributeIfContent(
+                        attributeIfTrue(
                             "NotIpAddress",
-                            esCIDRs,
+                            !esCIDRs?seq_contains("0.0.0.0/0"),
                             {
                                 "aws:SourceIp": esCIDRs
-                            }), 
+                            }) +
+                        attributeIfTrue(
+                            "Null",
+                            esAuthentication == "SIG4IP",
+                            {
+                                "aws:principaltype" : true
+                            }
+                        ), 
                         false
                     )
                 ]
@@ -101,7 +108,7 @@
                             esCIDRs,
                             {
                                 "aws:SourceIp": esCIDRs
-                            }) 
+                            })
                     )
                 ]
             ]
