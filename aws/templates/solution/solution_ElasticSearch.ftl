@@ -122,7 +122,6 @@
 
                     [#case USERPOOL_COMPONENT_TYPE]
                         [#assign cognitoIntegration = true ]
-                        [#assign authRoleId = getExistingReference(linkTargetResources["authrole"].Id, NAME_ATTRIBUTE_TYPE )]
 
                         [#assign cognitoCliConfig = 
                             {
