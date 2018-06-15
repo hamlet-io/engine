@@ -57,7 +57,7 @@
     [#return
         setDescendent(
             context,
-            (value?is_hash || value?is_sequence)?then(getJSON(value, true), value),
+            asSerialisableString(value),
             formatSettingName(name)
             "Environment") ]
 [/#function]
@@ -251,10 +251,9 @@
 
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
-[#function defaultEnvironment occurrence mode=""]
+[#function defaultEnvironment occurrence]
     [#return
         occurrence.Configuration.Environment.General +
-        attributeIfContent("APP_RUN_MODE", mode) +
         occurrence.Configuration.Environment.Build +
         occurrence.Configuration.Environment.Sensitive
     ]
@@ -437,13 +436,13 @@
                 "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
-                "DefaultEnvironment" :
-                    defaultEnvironment(task, getContainerMode(container)) +
+                "DefaultEnvironment" : defaultEnvironment(task),
+                "Environment" :
                     {
+                        "APP_RUN_MODE" : getContainerMode(container),
                         "AWS_REGION" : regionId,
                         "AWS_DEFAULT_REGION" : regionId
                     },
-                "Environment" : {},
                 "Links" : getLinkTargets(task, containerLinks),
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,

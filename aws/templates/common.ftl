@@ -73,6 +73,14 @@
     ]
 [/#function]
 
+[#function asSerialisableString arg]
+    [#if arg?is_hash || arg?is_sequence ]
+        [#return getJSON(arg) ]
+    [#else]
+        [#return arg ]
+    [/#if]
+[/#function]
+
 [#function getDescendent object default path...]
     [#local descendent=object]
     [#list asFlattenedArray(path) as part]
@@ -825,7 +833,7 @@
             [#case EC2_COMPONENT_TYPE]
                 [#local result = getEC2State(occurrence)]
                 [#break]
-            
+
             [#case COMPUTECLUSTER_COMPONENT_TYPE]
                 [#local result = getComputeClusterState(occurrence)]
                 [#break]
@@ -1219,11 +1227,11 @@
                 [#continue]
             [/#if]
             [#if sensitive && value.Sensitive!false]
-                [#local result += { key : valueIfTrue("****", obfuscate, value.Value)} ]
+                [#local result += { key : valueIfTrue("****", obfuscate, asSerialisableString(value.Value))} ]
                 [#continue]
             [/#if]
             [#if (!sensitive) && !(value.Sensitive!false)]
-                [#local result += { key : value.Value} ]
+                [#local result += { key : asSerialisableString(value.Value)} ]
                 [#continue]
             [/#if]
         [#else]
@@ -2195,12 +2203,12 @@
 [#function pseudoStackOutputScript description outputs filesuffix="pseudo" ]
     [#local outputString = ""]
     [#list outputs as key,value ]
-        [#local outputString += 
-          "\"" + key + "\" \"" + value + "\" " 
+        [#local outputString +=
+          "\"" + key + "\" \"" + value + "\" "
         ]
     [/#list]
 
-    [#return 
+    [#return
         [
             "create_pseudo_stack" + " " +
             "\"" + description + "\"" + " " +
