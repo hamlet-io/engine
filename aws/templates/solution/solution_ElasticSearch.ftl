@@ -63,31 +63,14 @@
             ]
         [/#list]
 
-        [#assign AccessPolicy = 
-            getPolicyDocumentContent(
+        [#assign AccessPolicyStatements = [] ]
+
+        [#if !esCIDRs?seq_contains("0.0.0.0/0") ]
+
+            [#assign AccessPolicyStatements +=
                 [
                     getPolicyStatement(
-                        "es:*",
-                        "*",
-                        {
-                            "AWS": "*"
-                        },
-                        attributeIfContent(
-                            "IpAddress",
-                            esCIDRs,
-                            {
-                                "aws:SourceIp": esCIDRs
-                            }) + 
-                        attributeIfTrue(
-                            "Null",
-                            esAuthentication == "SIG4",
-                            {
-                                "aws:principaltype" : false
-                            }
-                        )
-                    ),
-                    getPolicyStatement(
-                        "es:*",
+                        "es:ESHttp*",
                         "*",
                         {
                             "AWS" : "*"
@@ -101,7 +84,29 @@
                         false
                     )
                 ]
-            )]
+             ]
+        [/#if]
+
+        [#if solution.Authentication == "IP" || solution.Authentication == "SIG4IP" ]
+            [#assign AccessPolicyStatements += 
+                [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS": "*"
+                        },
+                        attributeIfContent(
+                            "IpAddress",
+                            esCIDRs,
+                            {
+                                "aws:SourceIp": esCIDRs
+                            }) 
+                    )
+                ]
+            ]
+
+        [/#if]
 
         [#list solution.Links?values as link]
             [#if link?is_hash]
@@ -176,7 +181,6 @@
                 type="AWS::Elasticsearch::Domain"
                 properties=
                     {
-                        "AccessPolicies" : AccessPolicy,
                         "ElasticsearchVersion" : solution.Version,
                         "ElasticsearchClusterConfig" :
                             {
@@ -213,7 +217,20 @@
                                     "gp2"
                                 )
                         } +
-                        attributeIfContent("Iops", volume.Iops!""))
+                        attributeIfContent("Iops", volume.Iops!"")) +
+                    attributeIfContent(
+                        "AccessPolicies", 
+                        AccessPolicyStatements, 
+                        getPolicyDocumentContent(AccessPolicyStatements) 
+                    ) + 
+                    attributeIfTrue(
+                        "EncryptionAtRestOptions",
+                        solution.Encrypted,
+                        {
+                            "Enabled" : true,
+                            "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                        }
+                    )
                 tags=
                     getCfTemplateCoreTags(
                         "",

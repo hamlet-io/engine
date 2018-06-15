@@ -1,4 +1,4 @@
-[#-- API Gateway --]
+[#-- ElasticSearch --]
 
 [#function esConsumePermission id  ]
     [#return

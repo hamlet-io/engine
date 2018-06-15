@@ -35,6 +35,10 @@
                 "Default" : 2.3
             },
             {
+                "Name" : "Encrypted",
+                "Default" : false
+            },
+            {
                 "Name" : "Snapshot",
                 "Children" : [
                     {
