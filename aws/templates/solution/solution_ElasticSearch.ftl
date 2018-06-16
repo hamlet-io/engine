@@ -55,7 +55,7 @@
 
         [#assign AccessPolicyStatements = [] ]
 
-        [#if esAuthentication == "SIG4" ]
+        [#if esAuthentication == "SIG4ANDIP" ]
 
             [#assign AccessPolicyStatements +=
                 [
@@ -76,7 +76,7 @@
              ]
         [/#if]
 
-        [#if ( esAuthentication == "SIG4" || esAuthentication == "IP" ) && !esCIDRs?seq_contains("0.0.0.0/0") ]
+        [#if ( esAuthentication == "SIG4ANDIP" || esAuthentication == "IP" ) && !esCIDRs?seq_contains("0.0.0.0/0") ]
 
             [#assign AccessPolicyStatements +=
                 [
