@@ -27,13 +27,22 @@
         [#assign loadBalancers = [] ]
         [#assign environmentVariables = {}]
 
-        [#assign configSetName = componentType]        
+        [#assign configSetName = componentType]
 
         [#assign ingressRules = []]
 
         [#list solution.Ports?values as port ]
             [#if port.LB.Configured]
-                [#assign links += getLBLink(occurrence, port)]
+                [#assign lbLink = getLBLink(occurrence, port)]
+                [#if isDuplicateLink(links, lbLink) ]
+                    [@cfException
+                        mode=listMode
+                        description="Duplicate Link Name"
+                        context=links
+                        detail=lbLink /]
+                    [#continue]
+                [/#if]
+                [#assign links += lbLink]
             [#else]
                 [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups) ]
                 [#if portCIDRs?has_content]
@@ -46,8 +55,8 @@
             [/#if]
         [/#list]
 
-        [#assign configSets =  
-                getInitConfigDirectories() + 
+        [#assign configSets =
+                getInitConfigDirectories() +
                 getInitConfigBootstrap(component.Role!"") ]
 
         [#assign scriptsPath =
@@ -57,9 +66,9 @@
                 productName,
                 getOccurrenceBuildUnit(occurrence),
                 getOccurrenceBuildReference(occurrence)
-                ) ]   
+                ) ]
 
-        [#assign scriptsFile = 
+        [#assign scriptsFile =
             formatRelativePath(
                 scriptsPath,
                 "scripts.zip"
@@ -95,7 +104,7 @@
         [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
 
         [#assign configSets +=  getInitConfigEnvFacts(environmentVariables, false) ]
-            
+
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(computeClusterRoleId)]
             [@createRole
@@ -105,8 +114,8 @@
                 policies=
                     [
                         getPolicyDocument(
-                            s3ReadPermission( 
-                                formatRelativePath( 
+                            s3ReadPermission(
+                                formatRelativePath(
                                     getRegistryEndPoint("scripts", occurrence),
                                     getRegistryPrefix("scripts", occurrence) ) )+
                             s3ListPermission(codeBucket) +
@@ -123,9 +132,9 @@
                         ],
                         [])
             /]
-        
+
         [/#if]
-                
+
         [#list links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
@@ -150,7 +159,7 @@
                             id=formatDependentSecurityGroupIngressId(
                                 resources["securityGroup"].Id
                                 link.Id)
-                            port=link.Port 
+                            port=link.Port
                             cidr=linkTargetResources["sg"].Id
                             groupId=computeClusterSecurityGroupId /]
                     [/#if]
@@ -184,7 +193,7 @@
                                                 priority=link.Priority!100
                                                 dependencies=targetId
                                             /]
-                                            
+
                                             [#assign componentDependencies += [targetId]]
 
                                         [/#if]
@@ -195,18 +204,18 @@
                             [#break]
 
                         [#case "classic" ]
-                            [#assign lbId =  linkTargetAttributes["LB"] ]                                     
-                            [#-- Classic ELB's register the instance so we only need 1 registration --]                            
+                            [#assign lbId =  linkTargetAttributes["LB"] ]
+                            [#-- Classic ELB's register the instance so we only need 1 registration --]
                             [#assign loadBalancers += [ getExistingReference(lbId) ]]
                             [#break]
                         [/#switch]
                     [#break]
                 [#case EFS_MOUNT_COMPONENT_TYPE]
-                    [#assign configSets += 
+                    [#assign configSets +=
                         getInitConfigEFSMount(
-                            linkTargetCore.Id, 
-                            linkTargetAttributes.EFS, 
-                            linkTargetAttributes.DIRECTORY, 
+                            linkTargetCore.Id,
+                            linkTargetAttributes.EFS,
+                            linkTargetAttributes.DIRECTORY,
                             link.Id
                         )]
                     [#break]
@@ -224,7 +233,7 @@
                 id=computeClusterSecurityGroupId
                 name=computeClusterSecurityGroupName /]
 
-            [#list ingressRules as rule ] 
+            [#list ingressRules as rule ]
                 [@createSecurityGroupIngress
                         mode=listMode
                         id=formatDependentSecurityGroupIngressId(
@@ -236,7 +245,7 @@
             [/#list]
 
             [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
-            
+
             [#assign maxSize = processorProfile.MaxPerZone]
             [#if multiAZ]
                 [#assign maxSize = maxSize * zones?size]
@@ -247,11 +256,11 @@
 
             [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
 
-            [#assign desiredCapacity = multiAZ?then( 
+            [#assign desiredCapacity = multiAZ?then(
                 processorProfile.DesiredPerZone * zones?size,
                 processorProfile.DesiredPerZone
             )]
-        
+
             [@cfResource
                 mode=listMode
                 id=computeClusterInstanceProfileId
@@ -273,7 +282,7 @@
                     {
                         "Cooldown" : "30",
                         "LaunchConfigurationName": getReference(computeClusterLaunchConfigId),
-                        "MetricsCollection" : [ 
+                        "MetricsCollection" : [
                             {
                                 "Granularity" : "1Minute"
                             }
@@ -292,7 +301,7 @@
                             "DesiredCapacity": desiredCapacity,
                             "VPCZoneIdentifier" : getSubnets(tier)[0..0]
                         }
-                    ) + 
+                    ) +
                     attributeIfContent(
                         "LoadBalancerNames",
                         loadBalancers,
@@ -324,7 +333,7 @@
                             "PauseTime" : "PT" + solution.UpdatePauseTime
                         }
                     }
-                )   
+                )
                 creationPolicy=
                     (solution.UseInitAsService != true )?then(
                         {
@@ -334,16 +343,16 @@
                             }
                         },
                         {}
-                    )    
+                    )
             /]
-                    
+
             [#assign imageId = dockerHost?then(
                 regionObject.AMIs.Centos.ECS,
                 regionObject.AMIs.Centos.EC2
             )]
 
-            [@createEC2LaunchConfig 
-                mode=listMode 
+            [@createEC2LaunchConfig
+                mode=listMode
                 id=computeClusterLaunchConfigId
                 processorProfile=processorProfile
                 storageProfile=storageProfile

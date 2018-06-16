@@ -44,7 +44,7 @@
                 {
                     "Type" : LB_PORT_COMPONENT_TYPE,
                     "Component" : "PortMappings",
-                    "Link" : "Port"
+                    "Link" : ["PortMapping","Port"]
                 }
             ]
         },
@@ -144,7 +144,8 @@
                 "FQDN" : fqdn,
                 "URL" : scheme + "://" + fqdn,
                 "INTERNAL_FQDN" : internalFqdn,
-                "INTERNAL_URL" : scheme + "://" + internalFqdn
+                "INTERNAL_URL" : scheme + "://" + internalFqdn,
+                "PORT" : sourcePort.Name
             },
             "Roles" : {
                 "Inbound" : {},

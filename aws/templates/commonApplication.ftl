@@ -323,6 +323,15 @@
         [#list container.Ports?values as port]
 
             [#local lbLink = getLBLink( task, port )]
+            
+            [#if isDuplicateLink(containerLinks, lbLink) ]
+                [@cfException
+                    mode=listMode
+                    description="Duplicate Link Name"
+                    context=containerLinks
+                    detail=lbLink /]
+                [#continue]
+            [/#if]
 
             [#-- Treat the LB link like any other - this will also detect --]
             [#-- if the target is missing                                 --]

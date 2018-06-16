@@ -25,8 +25,8 @@
         [#assign targetGroupPermission = false ]
 
         [#assign configSetName = componentType ]
-        [#assign configSets =  
-                getInitConfigDirectories() + 
+        [#assign configSets =
+                getInitConfigDirectories() +
                 getInitConfigBootstrap(component.Role!"") +
                 getInitConfigPuppet() ]
 
@@ -37,7 +37,16 @@
 
         [#list solution.Ports?values as port ]
             [#if port.LB.Configured]
-                [#assign links += getLBLink(occurrence, port)]
+                [#assign lbLink = getLBLink(occurrence, port)]
+                [#if isDuplicateLink(links, lbLink) ]
+                    [@cfException
+                        mode=listMode
+                        description="Duplicate Link Name"
+                        context=links
+                        detail=lbLink /]
+                    [#continue]
+                [/#if]
+                [#assign links += lbLink]
             [#else]
                 [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups) ]
                 [#if portCIDRs?has_content]
@@ -110,17 +119,17 @@
 
                         [#case "classic" ]
                             [#assign lbId =  linkTargetAttributes["LB"] ]
-                            [#assign configSets += 
+                            [#assign configSets +=
                                 getInitConfigLBClassicRegistration(lbId)]
                             [#break]
                         [/#switch]
                     [#break]
                 [#case EFS_MOUNT_COMPONENT_TYPE]
-                    [#assign configSets += 
+                    [#assign configSets +=
                         getInitConfigEFSMount(
-                            linkTargetCore.Id, 
-                            linkTargetAttributes.EFS, 
-                            linkTargetAttributes.DIRECTORY, 
+                            linkTargetCore.Id,
+                            linkTargetAttributes.EFS,
+                            linkTargetAttributes.DIRECTORY,
                             link.Id
                         )]
                     [#break]
