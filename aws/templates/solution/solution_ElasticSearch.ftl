@@ -45,21 +45,21 @@
         [/#list]
 
         [#if !esCIDRs?has_content ]
-                [@cfException
-                    mode=listMode
-                    description="No IP Policy Found"
-                    context=component
-                    detail="You must provide an IPAddressGroups list, for access from anywhere use the global IP Address Group"
-                /]
+            [@cfException
+                mode=listMode
+                description="No IP Policy Found"
+                context=component
+                detail="You must provide an IPAddressGroups list, for access from anywhere use the global IP Address Group"
+            /]
         [/#if]
 
         [#if esCIDRs?seq_contains("0.0.0.0/0") && esAuthentication == "SIG4ORIP" ]
-                [@cfException
-                    mode=listMode
-                    description="Invalid Authentication Config"
-                    context=component
-                    detail="Using a global rule with SIG4ORIP will remove SIG4 Auth if this is intented change to IP authentication"
-                /]
+            [@cfException
+                mode=listMode
+                description="Invalid Authentication Config"
+                context=component
+                detail="Using a global IP Address with SIG4ORIP will remove SIG4 Auth. If this is intented change to IP authentication"
+            /]
         [/#if]
 
         [#assign esAdvancedOptions = {} ]
