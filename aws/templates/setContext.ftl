@@ -495,34 +495,63 @@
 
 [#-- IP Address Groups - "global" is default --]
 [#assign ipAddressGroups =
-    getEffectiveIPAddressGroups(
-        {
-            "global" : {
-                "Id" : "global",
-                "Name" : "global",
-                "IsOpen" : true
-            }
-        } +
-        blueprintObject.IPAddressGroups!{}
-    ) ]
+    getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups!{} ) ]
 
 [#function getIPAddressGroup group]
     [#local groupId = group?is_hash?then(group.Id, group) ]
-    [#if (ipAddressGroups[groupId]!{})?has_content ]
-        [#return ipAddressGroups[groupId] ]
-    [#else]
-        [@cfException
-            mode=listMode
-            description="Unknown IP address group"
-            context=group /]
-        [#-- Treat missing group as open --]
-        [#return
-            {
-                "Id" : groupId,
-                "IsOpen" : true,
-                "CIDR" : []
-            } ]
-    [/#if]
+    [#switch groupId]
+        [#case "_global"]
+        [#case "_global_"]
+        [#case "__global__"]
+            [#return
+                {
+                    "Id" : groupId,
+                    "Name" : groupId,
+                    "IsOpen" : true
+                } ]
+            [#break]
+
+        [#case "_segment"]
+        [#case "_segment_"]
+        [#case "__segment__"]
+            [#local segmentCIDR = [] ]
+            [#list zones as zone]
+                [#local zoneIP =
+                    getExistingReference(
+                        formatComponentEIPId("mgmt", "nat", zone),
+                        IP_ADDRESS_ATTRIBUTE_TYPE
+                    ) ]
+                [#if zoneIP?has_content]
+                    [#local segmentCIDR += [zoneIP] ]
+                [/#if]
+            [/#list]
+            [#return
+                {
+                    "Id" : groupId,
+                    "Name" : groupId,
+                    "IsOpen" : false,
+                    "CIDR" : segmentCIDR
+                } ]
+            [#break]
+
+        [#default]
+            [#if (ipAddressGroups[groupId]!{})?has_content ]
+                [#return ipAddressGroups[groupId] ]
+            [#else]
+                [@cfException
+                    mode=listMode
+                    description="Unknown IP address group"
+                    context=group /]
+                [#-- Treat missing group as open --]
+                [#return
+                    {
+                        "Id" : groupId,
+                        "IsOpen" : true,
+                        "CIDR" : []
+                    } ]
+            [/#if]
+            [#break]
+    [/#switch]
 [/#function]
 
 [#function getGroupCIDRs groups checkIsOpen=true]
