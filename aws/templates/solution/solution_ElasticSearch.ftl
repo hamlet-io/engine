@@ -43,16 +43,6 @@
                 [#assign esCIDRs += [zoneIP] ]
             [/#if]
         [/#list]
-        [#list 1..20 as i]
-            [#assign externalIP =
-                getExistingReference(
-                    formatComponentEIPId("mgmt", "nat", "external" + i)
-                )
-            ]
-            [#if externalIP?has_content]
-                [#assign esCIDRs += [externalIP] ]
-            [/#if]
-        [/#list]
 
         [#assign esAdvancedOptions = {} ]
         [#list solution.AdvancedOptions as option]
@@ -65,7 +55,7 @@
 
         [#assign AccessPolicyStatements = [] ]
 
-        [#if solution.Authentication != "SIG4"  ]
+        [#if esAuthentication != "SIG4"  ]
 
             [#assign AccessPolicyStatements +=
                 [
@@ -83,7 +73,7 @@
                             }) +
                         attributeIfTrue(
                             "Null",
-                            esAuthentication == "SIG4IP",
+                            esAuthentication == "SIG4ORIP",
                             {
                                 "aws:principaltype" : true
                             }
@@ -94,7 +84,7 @@
              ]
         [/#if]
 
-        [#if solution.Authentication == "IP" || solution.Authentication == "SIG4IP" ]
+        [#if esAuthentication == "IP" || esAuthentication == "SIG4ORIP" ]
             [#assign AccessPolicyStatements += 
                 [
                     getPolicyStatement(
