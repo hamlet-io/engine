@@ -24,7 +24,7 @@
             "Name" : ["Task", "Subcomponent"]
         },
         {
-            "Name" : ["Port", "Subcomponent"]
+            "Name" : ["PortMapping", "Port", "Subcomponent"]
         },
         {
             "Name" : ["Mount", "Subcomponent"]
@@ -142,11 +142,7 @@
             "Default" : ""
         },
         {
-            "Name" : "Port",
-            "Default" : ""
-        },
-        {
-            "Name" : "PortMapping",
+            "Name" : ["PortMapping", "Port"],
             "Default" : ""
         },
         {

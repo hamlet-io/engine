@@ -1594,10 +1594,16 @@
         [#local subComponentId = "" ]
 
         [#-- Check if suboccurrence linking is required --]
+        [#-- Support multiple alternatives --]
         [#local subComponents = getOccurrenceSubComponents(core.Type) ]
         [#list subComponents as subComponent]
-            [#local linkAttribute = subComponent.Link!"" ]
-            [#local subComponentId = link[linkAttribute]!"" ]
+            [#local linkAttributes = asFlattenedArray(subComponent.Link!"") ]
+            [#list linkAttributes as linkAttribute]
+                [#local subComponentId = link[linkAttribute]!"" ]
+                [#if subComponentId?has_content ]
+                    [#break]
+                [/#if]
+            [/#list]
             [#if subComponentId?has_content ]
                 [#break]
             [/#if]
@@ -1864,40 +1870,28 @@
     [#assign core = occurrence.Core]
     [#assign targetTierId = (port.LB.Tier) ]
     [#assign targetComponentId = (port.LB.Component) ]
-    [#assign portName = valueIfContent(
-                (portMappings[port.LB.PortMapping].Source)!"",
-                port.LB.PortMapping,
-                port.Name
-            )]
-
-    [#assign targetLinkKey = formatName(
-            port.LB.LinkName,
-            portName) ]
-    [#assign targetLinkId = formatId(
-            port.LB.LinkName,
-            portName
-    )]
-
-    [#assign targetSource =
-        contentIfContent(
-            port.LB.Port,
-            portName
-        ) ]
+    [#assign targetLinkName = formatName(port.LB.LinkName) ]
+    [#assign portMapping = contentIfContent(port.LB.PortMapping, port.Name)]
 
     [#-- Need to be careful to allow an empty value for --]
     [#-- Instance/Version to be explicitly provided and --]
-    [#-- correctly handled in getLinkTarget             --]
+    [#-- correctly handled in getLinkTarget.            --]
+    [#--                                                --]
+    [#-- Also note that the LinkName configuration      --]
+    [#-- must be provided if more than one port is used --]
+    [#-- (e.g. classic ELB) to avoid links overwriting  --]
+    [#-- each other.                                    --]
     [#local targetLink =
         {
-            "Id" : targetLinkId,
-            "Name" : port.LB.LinkName,
+            "Id" : targetLinkName,
+            "Name" : targetLinkName,
             "Tier" : targetTierId,
             "Component" : targetComponentId,
             "Priority" : port.LB.Priority
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
-        attributeIfContent("Port",  targetSource)
+        attributeIfContent("PortMapping",  portMapping)
     ]
 
     [#-- This lookup is purely to determine the correct attributes for the link   --]
@@ -1912,7 +1906,7 @@
 
             [#local targetGroup = port.LB.TargetGroup]
 
-            [#if (ports[targetSource].Protocol) != "TCP" ]
+            [#if (ports[targetLoadBalancer.State.Attributes["PORT"]].Protocol) != "TCP" ]
                 [#local targetPath = port.LB.Path]
             [#else]
                 [#local targetPath = "" ]
@@ -1952,9 +1946,21 @@
         [/#if]
     [/#if]
 
-    [@cfDebug listMode { targetLinkKey : targetLink } false /]
+    [@cfDebug listMode { targetLinkName : targetLink } false /]
 
-    [#return { targetLinkKey : targetLink } ]
+    [#return { targetLinkName : targetLink } ]
+[/#function]
+
+[#function isDuplicateLink links link ]
+
+    [#local linkKey = ""]
+    [#list link as key,value]
+        [#local linkKey = key]
+        [#break]
+    [/#list]
+
+    [#return (links[linkKey])?? ]
+
 [/#function]
 
 [#-- CIDRs --]
