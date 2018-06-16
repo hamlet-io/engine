@@ -404,7 +404,7 @@
         [#if deploymentSubsetRequired("epilogue", false)]
             [@cfScript
                 mode=listMode
-                content=
+                content=(getExistingReference(userPoolId)?has_content)?then(
                 [
                     "case $\{STACK_OPERATION} in",
                     "  create|update)",
@@ -433,7 +433,11 @@
                 [
                     "       ;;",
                     "       esac"
+                ],
+                [
+                    "warning \"Please run another update to complete the configuration\""
                 ]
+                )
             /]
         [/#if]
     [/#list]
