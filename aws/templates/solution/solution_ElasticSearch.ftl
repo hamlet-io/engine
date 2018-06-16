@@ -289,22 +289,26 @@
         [#if deploymentSubsetRequired("epilogue", false)]
             [@cfScript
                 mode=listMode
-                content=
-                    [
-                        "case $\{STACK_OPERATION} in",
-                        "  create|update)",
-                        "       # Get cli config file",
-                        "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
-                        "       # Apply CLI level updates to ES Domain",
-                        "       info \"Applying cli level configurtion\""
-                        "       update_es_domain" +
-                        "       \"" + region + "\" " + 
-                        "       \"" + getExistingReference(esId) + "\" " + 
-                        "       \"$\{tmpdir}/cli-" + 
-                        esId + "-" + esUpdateCommand + ".json\" || return $?"
-                        "   ;;",
-                        "   esac"
-                    ]  
+                content= (getExistingReference(esId)?has_content)?then(
+                        [
+                            "case $\{STACK_OPERATION} in",
+                            "  create|update)",
+                            "       # Get cli config file",
+                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                            "       # Apply CLI level updates to ES Domain",
+                            "       info \"Applying cli level configurtion\""
+                            "       update_es_domain" +
+                            "       \"" + region + "\" " + 
+                            "       \"" + getExistingReference(esId) + "\" " + 
+                            "       \"$\{tmpdir}/cli-" + 
+                            esId + "-" + esUpdateCommand + ".json\" || return $?"
+                            "   ;;",
+                            "   esac"
+                        ],
+                        [
+                            "warning \"Please run another update to complete the configuration\""
+                        ]
+                    )
             /]
         [/#if]
 
