@@ -401,42 +401,59 @@
             /]
         [/#if]
         
+        [#if deploymentSubsetRequired("prologue", false)]
+            [@cfScript 
+                mode=listMode
+                content=(getExistingReference(userPoolId)?has_content)?then(
+                    [
+                        " # Get cli config file",
+                        " split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                        " case $\{STACK_OPERATION} in",
+                        "   create|update)",
+                        "        domainaction=\"create\"",
+                        "        ;;",
+                        "    delete)",
+                        "       domainaction=\"delete\"",
+                        "       ;;",
+                        " esac",
+                        " # Manage Userpool Domain",
+                        " manage_congnito_domain" +
+                        " \"" + region + "\" " + 
+                        " \"" + getExistingReference(userPoolId) + "\" " + 
+                        " \"$\{tmpdir}/cli-" + 
+                            userPoolId + "-" + userPoolDomainCommand + ".json\" \"$\{domainaction}\" || return $?"
+                    ],
+                    [
+                        "warning \"Please run another update to complete the configuration\""
+                    ]
+                )
+            /]
+        [/#if]
+
         [#if deploymentSubsetRequired("epilogue", false)]
             [@cfScript
                 mode=listMode
                 content=(getExistingReference(userPoolId)?has_content)?then(
-                [
-                    "case $\{STACK_OPERATION} in",
-                    "  create|update)",
-                    "       # Get cli config file",
-                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
-                    "       # Set Userpool Domain",
-                    "       set_congnito_domain" +
-                    "       \"" + region + "\" " + 
-                    "       \"" + getExistingReference(userPoolId) + "\" " + 
-                    "       \"$\{tmpdir}/cli-" + 
-                    userPoolId + "-" + userPoolDomainCommand + ".json\" || return $?"
-                ] +
-                [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
-                (userPoolManualTriggerConfig?has_content)?then(
+                    [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
+                    (userPoolManualTriggerConfig?has_content)?then(
+                        [
+                            "case $\{STACK_OPERATION} in",
+                            "  create|update)",
+                            "       # Add Manual Cognito Triggers",
+                            "       info \"Adding Cognito Triggers that are not part of cloudformation\""
+                            "       update_cognito_userpool" +
+                            " \"" + region + "\" " + 
+                            " \"" + getExistingReference(userPoolId) + "\" " + 
+                            " \"$\{tmpdir}/cli-" + 
+                            userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?",
+                            "       ;;",
+                            "       esac"
+                        ],
+                        []
+                    ) ,
                     [
-                        "# Add Manual Cognito Triggers",
-                        "info \"Adding Cognito Triggers that are not part of cloudformation\""
-                        "update_cognito_userpool" +
-                        " \"" + region + "\" " + 
-                        " \"" + getExistingReference(userPoolId) + "\" " + 
-                        " \"$\{tmpdir}/cli-" + 
-                        userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?"
-                    ],
-                    []
-                ) +
-                [
-                    "       ;;",
-                    "       esac"
-                ],
-                [
-                    "warning \"Please run another update to complete the configuration\""
-                ]
+                        "warning \"Please run another update to complete the configuration\""
+                    ]
                 )
             /]
         [/#if]

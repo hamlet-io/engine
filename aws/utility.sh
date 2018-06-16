@@ -711,31 +711,47 @@ function update_cognito_userpool() {
   aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}"
 }
 
-function set_congnito_domain() { 
+function manage_congnito_domain() { 
   local region="$1"; shift
   local userpoolid="$1"; shift
   local configfile="$1"; shift
+  local action="$1"; shift
 
   local return_status=0
 
-  domain="$( jq '.Domain' < $configfile )"
-  domain_userpool="$( aws --region ${region} cognito-idp describe-user-pool-domain --domain ${domain} | jq '.DomainDescription.UserPoolId' )"
+  domain="$( jq -r '.Domain' < $configfile )"
+  domain_userpool="$( aws --region ${region} cognito-idp describe-user-pool-domain --domain ${domain} | jq -r '.DomainDescription.UserPoolId | select (.!=null)' )"
 
-  if [[ -n "${domain_userpool}" ]]; then
-    info "Adding domain to user pool"
-    aws --region ${region} cognito-idp create-user-pool-domain --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" 
-    return_status=$?
+  if [[ -z "${domain_userpool}" ]]; then
+    
+    case "${action}" in 
+        create)
+            info "Adding domain to userpool"
+            aws --region "${region}" cognito-idp create-user-pool-domain --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $?
+            return_status=$?
+            ;;
+        delete)
+            info "Domain not assigned to a userpool. Nothing to do"
+            ;;
+    esac
 
-  elif [[ "${domain_userpool}" -ne "${userpoolid}" ]]; then
-    fatal "User Pool Domain ${domain} is used by userpool ${domain_userpool}"
+  elif [[ "${domain_userpool}" != "${userpoolid}" ]]; then
+    error "User Pool Domain ${domain} is used by userpool ${domain_userpool}"
     return_status=255
 
   else  
-    info "User Pool domain already configured"
-  fi  
+    case "${action}" in 
+        create)
+            info "User Pool domain already configured"
+            ;;
+        delete)
+            info "Deleting domain from user pool"
+            aws --region "${region}" cognito-idp delete-user-pool-domain --user-pool-id "${userpoolid}" --domain "${domain}" || return $?
+            ;;
+    esac
+  fi
 
   return ${return_status}
-
 }
 
 # -- ElasticSearch -- 
