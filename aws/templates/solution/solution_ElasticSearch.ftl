@@ -97,7 +97,7 @@
              ]
         [/#if]
 
-        [#if esAuthentication == "IP" || esAuthentication == "SIG4ORIP" ]
+        [#if ( esAuthentication == "IP" || esAuthentication == "SIG4ORIP" ) && esCIDRs?has_content  ]
             [#assign AccessPolicyStatements += 
                 [
                     getPolicyStatement(
