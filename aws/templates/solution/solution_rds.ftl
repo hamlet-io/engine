@@ -104,39 +104,56 @@
             [@cfScript
                 mode=listMode
                 content=
-                [] +
+                [
+                    "case $\{STACK_OPERATION} in",
+                    "  create|update)"
+                ] +
                 [#-- If a manual snapshot has been added the pseudo stack output should be replaced with an automated one --]
-                (solution.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content)?then(
+                (getExistingReference(rdsId)?has_content)?then(
+                    (solution.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content)?then(
+                        [
+                            "# Create RDS snapshot",
+                            "function create_deploy_snapshot() {",
+                            "info \"Creating Pre-Deployment snapshot... \"",
+                            "create_snapshot" +
+                            " \"" + region + "\" " +
+                            " \"" + rdsFullName + "\" " +
+                            " \"" + rdsPreDeploySnapshotId + "\" || return $?",
+                            "create_pseudo_stack" + " " +
+                            "\"RDS Pre-Deploy Snapshot\"" + " " +
+                            "\"$\{pseudo_stack_file}\"" + " " +
+                            "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?",
+                            "}",
+                            "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
+                            "create_deploy_snapshot || return $?"
+                        ],
+                        []) +
+                    (solution.Backup.SnapshotOnDeploy && solution.Encrypted)?then(
+                        [
+                            "# Encrypt RDS snapshot",
+                            "function convert_plaintext_snapshot() {",
+                            "info \"Checking Snapshot Encryption... \"",
+                            "encrypt_snapshot" +
+                            " \"" + region + "\" " +
+                            " \"" + rdsPreDeploySnapshotId + "\" " +
+                            " \"" + segmentKMSKey + "\" || return $?",
+                            "}",
+                            "convert_plaintext_snapshot || return $?"
+                        ],
+                        []
+                    ),
                     [
-                        "# Create RDS snapshot",
-                        "function create_deploy_snapshot() {",
-                        "info \"Creating Pre-Deployment snapshot... \"",
-                        "create_snapshot" +
-                        " \"" + region + "\" " +
-                        " \"" + rdsFullName + "\" " +
-                        " \"" + rdsPreDeploySnapshotId + "\" || return $?",
-                        "create_pseudo_stack" + " " +
-                        "\"RDS Pre-Deploy Snapshot\"" + " " +
-                        "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?",
-                        "}",
                         "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
-                        "create_deploy_snapshot || return $?"
-                    ],
-                    []) +
-                (solution.Backup.SnapshotOnDeploy && solution.Encrypted)?then(
-                    [
-                        "# Encrypt RDS snapshot",
-                        "function convert_plaintext_snapshot() {",
-                        "info \"Checking Snapshot Encryption... \"",
-                        "encrypt_snapshot" +
-                        " \"" + region + "\" " +
-                        " \"" + rdsPreDeploySnapshotId + "\" " +
-                        " \"" + segmentKMSKey + "\" || return $?",
-                        "}",
-                        "convert_plaintext_snapshot || return $?"
-                    ],
-                    [])
+                        "create_pseudo_stack" + " " +
+                        "\"RDS Manual Snapshot Restore\"" + " " +
+                        "\"$\{pseudo_stack_file}\"" + " " +
+                        "\"manualsnapshotX" + rdsId + "Xname\" " + "\"\" || return $?"
+                    ] 
+                ) +
+                [
+                    " ;;",
+                    " esac"
+                ]
             /]
         [/#if]
 
@@ -193,6 +210,7 @@
                 mode=listMode
                 id=rdsOptionGroupId
                 type="AWS::RDS::OptionGroup"
+                deletionPolicy="Retain"
                 properties=
                     {
                         "EngineName": engine,
@@ -271,7 +289,10 @@
             [@cfScript
                 mode=listMode
                 content=
-                [] +
+                [
+                    "case $\{STACK_OPERATION} in",
+                    "  create|update)"
+                ] +
                 ( solution.GenerateCredentials.Enabled && !(rdsEncryptedPassword?has_content))?then(
                     [
                         "# Generate Master Password",
@@ -348,7 +369,11 @@
                         "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
                         "reset_master_password || return $?"
                     ],
-                [])
+                []) +
+                [            
+                    "       ;;",
+                    "       esac"
+                ]
             /]
         [/#if]
     [/#list]
