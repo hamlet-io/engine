@@ -55,7 +55,7 @@
 
         [#assign AccessPolicyStatements = [] ]
 
-        [#if esAuthentication != "SIG4"  ]
+        [#if esAuthentication == "SIG4" ]
 
             [#assign AccessPolicyStatements +=
                 [
@@ -65,19 +65,32 @@
                         {
                             "AWS" : "*"
                         },
-                        attributeIfTrue(
-                            "NotIpAddress",
-                            !esCIDRs?seq_contains("0.0.0.0/0"),
-                            {
-                                "aws:SourceIp": esCIDRs
-                            }) +
-                        attributeIfTrue(
-                            "Null",
-                            esAuthentication == "SIG4ORIP",
-                            {
+                        {
+                            "Null" : { 
                                 "aws:principaltype" : true
                             }
-                        ), 
+                        }, 
+                        false
+                    )
+                ]
+             ]
+        [/#if]
+
+        [#if ( esAuthentication == "SIG4" || esAuthentication == "IP" ) && !esCIDRs?seq_contains("0.0.0.0/0") ]
+
+            [#assign AccessPolicyStatements +=
+                [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS" : "*"
+                        },
+                        {
+                            "NotIpAddress" : { 
+                                "aws:SourceIp": esCIDRs
+                            }
+                        }, 
                         false
                     )
                 ]
@@ -178,6 +191,7 @@
                 type="AWS::Elasticsearch::Domain"
                 properties=
                     {
+                        "AccessPolicies" : getPolicyDocumentContent(AccessPolicyStatements),
                         "ElasticsearchVersion" : solution.Version,
                         "ElasticsearchClusterConfig" :
                             {
@@ -215,11 +229,6 @@
                                 )
                         } +
                         attributeIfContent("Iops", volume.Iops!"")) +
-                    attributeIfContent(
-                        "AccessPolicies", 
-                        AccessPolicyStatements, 
-                        getPolicyDocumentContent(AccessPolicyStatements) 
-                    ) + 
                     attributeIfTrue(
                         "EncryptionAtRestOptions",
                         solution.Encrypted,
