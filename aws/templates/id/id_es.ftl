@@ -24,7 +24,7 @@
             },
             {
                 "Name" : "IPAddressGroups",
-                "Default" : []
+                "Mandatory" : true
             },
             {
                 "Name" : "AdvancedOptions",

@@ -32,17 +32,6 @@
         [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
         [#assign volume = (storageProfile.Volumes["codeontap"])!{}]
         [#assign esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
-        [#list zones as zone]
-            [#assign zoneIP =
-                getExistingReference(
-                    formatComponentEIPId("mgmt", "nat", zone),
-                    IP_ADDRESS_ATTRIBUTE_TYPE
-                )
-            ]
-            [#if zoneIP?has_content]
-                [#assign esCIDRs += [zoneIP] ]
-            [/#if]
-        [/#list]
 
         [#if !esCIDRs?has_content ]
             [@cfException
