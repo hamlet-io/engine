@@ -1,15 +1,16 @@
 [#ftl]
 
 [#-- Format an ARN --]
-[#function formatTypedArnResource resourceType resource resourceSeparator=":"]
+[#function formatTypedArnResource resourceType resource resourceSeparator=":" subresources=[] ]
     [#return
         {
             "Fn::Join": [
                 resourceSeparator,
                 [
                     resourceType,
-                    resource
-                ]
+                    resource,
+                    subresources
+                ] 
             ]
         }
     ]

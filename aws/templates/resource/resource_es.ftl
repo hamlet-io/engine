@@ -19,3 +19,19 @@
     }
 ]
 
+
+[#function formatESDomainArn esId region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } ]
+    [#return
+        formatRegionalArn(
+            "es",
+            formatTypedArnResource(
+                "domain"
+                getReference(esId),
+                "/",
+                "*"
+            ) ,
+            region,
+            account
+        )
+    ]
+[/#function]
