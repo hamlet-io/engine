@@ -1130,10 +1130,17 @@
     },
     "redis": {
       "Port": 6379,
+      "Protocol": "TCP",
+      "IPProtocol": "tcp"
+    },
+    "smtp": {
+      "Port": 25,
+      "Protocol": "TCP",
       "IPProtocol": "tcp"
     },
     "ssh": {
       "Port": 22,
+      "Protocol": "TCP",
       "IPProtocol": "tcp"
     },
     "ws": {
@@ -1205,6 +1212,10 @@
     "playwss": {
       "Source": "wss",
       "Destination": "playws"
+    },
+    "smtp": {
+      "Source": "smtp",
+      "Destination": "smtp"
     },
     "ws": {
       "Source": "ws",
