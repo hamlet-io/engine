@@ -8,7 +8,7 @@
                 resourceSeparator,
                 [
                     resourceType,
-                    resource,
+                    resource
                 ] +
                 subresources
             ]
