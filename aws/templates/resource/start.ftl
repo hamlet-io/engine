@@ -9,8 +9,8 @@
                 [
                     resourceType,
                     resource,
-                    subresources
-                ] 
+                ] +
+                subresources
             ]
         }
     ]
