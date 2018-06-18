@@ -1138,6 +1138,11 @@
       "Protocol": "TCP",
       "IPProtocol": "tcp"
     },
+    "hsmtp": {
+      "Port": 2025,
+      "Protocol": "TCP",
+      "IPProtocol": "tcp"
+    },
     "ssh": {
       "Port": 22,
       "Protocol": "TCP",
@@ -1216,6 +1221,10 @@
     "smtp": {
       "Source": "smtp",
       "Destination": "smtp"
+    },
+    "hsmtp": {
+      "Source": "smtp",
+      "Destination": "hsmtp"
     },
     "ws": {
       "Source": "ws",
