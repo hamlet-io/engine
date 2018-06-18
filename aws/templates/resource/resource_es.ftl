@@ -20,7 +20,7 @@
 ]
 
 
-[#function formatESDomainArn esId region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } ]
+[#function formatESDomainArn esId indexPath=["*"] region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } ]
     [#return
         formatRegionalArn(
             "es",
@@ -28,7 +28,7 @@
                 "domain"
                 getReference(esId),
                 "/",
-                "*"
+                indexPath
             ) ,
             region,
             account
