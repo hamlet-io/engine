@@ -157,8 +157,9 @@
 
                                 [#if securityGroupSources?is_enumerable ]
                                     
-                                    [#list securityGroupSources as source ]
-                                        [#assign securityGroupCIDR = getGroupCIDRs([source])]
+                                    [#assign securityGroupCIDRs = getGroupCIDRs(securityGroupSources)]
+                                    [#list securityGroupCIDRs as source ]
+                                        
                                         [@createSecurityGroupIngress
                                             mode=listMode
                                             id=
@@ -169,10 +170,10 @@
                                                         "dynamic",
                                                         ports[portMapping.HostPort].Port
                                                     ),
-                                                    source
+                                                    replaceAlphaNumericOnly(source)
                                                 )
                                             port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
-                                            cidr=securityGroupCIDR
+                                            cidr=source
                                             groupId=ecsSecurityGroupId
                                     /]
                                     [/#list]
