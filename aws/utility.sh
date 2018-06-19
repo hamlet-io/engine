@@ -805,7 +805,9 @@ function syncFilesToBucket() {
     if [[ -f "${file}" ]]; then
       case "$(fileExtension "${file}")" in
         zip)
-          unzip "${file}" -d "${tmp_dir}"
+          # Always use local time to force redeploy of files
+          # in case we are reverting to an earlier version
+          unzip -DD "${file}" -d "${tmp_dir}"
           ;;
         *)
           cp "${file}" "${tmp_dir}"
