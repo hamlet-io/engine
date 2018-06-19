@@ -145,7 +145,6 @@
             {
                 "HealthCheckPort" : (destination.HealthCheck.Port)!"traffic-port",
                 "HealthCheckProtocol" : (destination.HealthCheck.Protocol)!destination.Protocol,
-                "HealthCheckPath" : destination.HealthCheck.Path,
                 "HealthCheckIntervalSeconds" : destination.HealthCheck.Interval,
                 "HealthCheckTimeoutSeconds" : destination.HealthCheck.Timeout,
                 "HealthyThresholdCount" : destination.HealthCheck.HealthyThreshold,
@@ -165,11 +164,17 @@
                     "Matcher" : { "HttpCode" : (destination.HealthCheck.SuccessCodes)!"" }
                 },
                 (destination.HealthCheck.SuccessCodes)!"") + 
-            valueIfContent(
+            valueIfTrue(
                 {
                     "TargetType" : targetType
                 },
-                targetType
+                targetType == "ip"
+            ) + 
+            valueIfContent(
+                {
+                    "HealthCheckPath" : (destination.HealthCheck.Path)!""
+                },
+                (destination.HealthCheck.Path)!""
             )
         tags= getCfTemplateCoreTags(name, tier, component)
         outputs=ALB_TARGET_GROUP_OUTPUT_MAPPINGS

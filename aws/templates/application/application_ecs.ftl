@@ -23,7 +23,7 @@
             [#assign taskId = resources["task"].Id ]
             [#assign containers = getTaskContainers(occurrence, subOccurrence) ]
 
-            [#assign lbTargetType = ""]
+            [#assign lbTargetType = "instance"]
 
             [#if solution.NetworkMode == "awsvpc" ]
                         
@@ -71,8 +71,13 @@
                                 [#switch linkCore.Type]
 
                                     [#case LB_PORT_COMPONENT_TYPE]
+
+                                        [#assign securityGroupSources = linkResources["sg"].Id  ]
+
                                         [#switch linkAttributes["ENGINE"] ] 
                                             [#case "network" ]
+                                                [#assign securityGroupSources = linkConfiguration.IPAddressGroups + [ "_localnet" ] ]
+
                                             [#case "application" ]
                                                 [#assign targetId = (linkResources["targetgroups"][loadBalancer.TargetGroup].Id)!"" ]
                                                 [#if !targetId?has_content]
@@ -150,24 +155,45 @@
 
                                 [#assign dependencies += [targetId] ]
 
-                                [#assign loadBalancerSecurityGroupId = linkResources["sg"].Id ]
-
-                                [@createSecurityGroupIngress
-                                    mode=listMode
-                                    id=
-                                        formatContainerSecurityGroupIngressId(
-                                            ecsSecurityGroupId,
-                                            container,
-                                            portMapping.DynamicHostPort?then(
-                                                "dynamic",
-                                                ports[portMapping.HostPort].Port
+                                [#if securityGroupSources?is_enumerable ]
+                                    
+                                    [#list securityGroupSources as source ]
+                                        [#assign securityGroupCIDR = getGroupCIDRs([source])]
+                                        [@createSecurityGroupIngress
+                                            mode=listMode
+                                            id=
+                                                formatContainerSecurityGroupIngressId(
+                                                    ecsSecurityGroupId,
+                                                    container,
+                                                    portMapping.DynamicHostPort?then(
+                                                        "dynamic",
+                                                        ports[portMapping.HostPort].Port
+                                                    ),
+                                                    source
+                                                )
+                                            port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
+                                            cidr=securityGroupCIDR
+                                            groupId=ecsSecurityGroupId
+                                    /]
+                                    [/#list]
+                                [#else]
+                                    [@createSecurityGroupIngress
+                                        mode=listMode
+                                        id=
+                                            formatContainerSecurityGroupIngressId(
+                                                ecsSecurityGroupId,
+                                                container,
+                                                portMapping.DynamicHostPort?then(
+                                                    "dynamic",
+                                                    ports[portMapping.HostPort].Port
+                                                )
                                             )
-                                        )
-                                    port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
-                                    cidr="0.0.0.0/0"
-                                    groupId=ecsSecurityGroupId
-                                /]
-
+                                        port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
+                                        cidr=securityGroupSources
+                                        groupId=ecsSecurityGroupId
+                                    /]
+                                [/#if]    
+                            
                             [/#if]
                         [/#list]
                     [/#list]
@@ -185,7 +211,8 @@
                         loadBalancers=loadBalancers
                         roleId=ecsServiceRoleId
                         networkMode=solution.NetworkMode
-                        
+                        subnets=subnets![]
+                        securityGroups=getReferences(ecsSecurityGroupId)![]
                         dependencies=dependencies
                     /]
                 [/#if]

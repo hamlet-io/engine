@@ -87,8 +87,7 @@
                 attributeIfContent("ExtraHosts", extraHosts) +
                 attributeIfContent("Memory", container.MaximumMemory!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
-                attributeIfContent("PortMappings", portMappings) + 
-                attributeIfContent("NetworkMode", networkMode)
+                attributeIfContent("PortMappings", portMappings) 
             ]
         ]
     [/#list]
@@ -97,7 +96,8 @@
         "ContainerDefinitions" : definitions
         } + 
         attributeIfContent("Volumes", volumes)  + 
-        attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE))
+        attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE)) + 
+        attributeIfContent("NetworkMode", networkMode)
     ]
 
     [#if delegatedDeployment ]
@@ -141,8 +141,7 @@
             } + 
             valueIfContent(
                 {
-                    "LoadBalancers" : loadBalancers![],
-                    "Role" : getReference(roleId)
+                    "LoadBalancers" : loadBalancers![]
                 },
                 loadBalancers![]) +
             valueIfTrue(
@@ -155,6 +154,12 @@
                     }
                 },
                 networkMode == "awsvpc"
+            ) + 
+            valueIfTrue(
+                {
+                    "Role" : getReference(roleId)
+                },
+                (loadBalancers![])?has_content && networkMode != "awsvpc"
             )
         dependencies=dependencies
     /]

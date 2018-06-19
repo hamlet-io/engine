@@ -1022,6 +1022,19 @@
         "Timeout": "5"
       }
     },
+    "httpredirect" : {
+      "Port" : 80,
+      "Protocol" : "HTTP",
+      "IPProtocol" : "tcp",
+      "HealthCheck" : {
+        "Path" : "/",
+        "HealthyThreshold" : "2",
+        "UnhealthyThreshold" : "3",
+        "Interval" : "30",
+        "Timeout" : "5",
+        "SuccessCodes" : "301"
+      }
+    },
     "https": {
       "Port": 443,
       "Protocol": "HTTPS",
@@ -1189,6 +1202,10 @@
     "httpalt": {
       "Source": "http",
       "Destination": "httpalt"
+    },
+    "httpredirect" : {
+      "Source" : "http",
+      "Destination" : "httpredirect"
     },
     "https": {
       "Source": "https",

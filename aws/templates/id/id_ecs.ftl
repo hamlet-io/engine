@@ -377,9 +377,10 @@
                 occurrence.Core.Version.Id)]
 [/#function]
 
-[#function formatContainerSecurityGroupIngressId resourceId container portRange]
+[#function formatContainerSecurityGroupIngressId resourceId container portRange source=""]
     [#return formatDependentSecurityGroupIngressId(
                 resourceId,
                 getContainerId(container),
-                portRange)]
+                portRange,
+                source)]
 [/#function]
