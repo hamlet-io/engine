@@ -88,7 +88,7 @@
                 attributeIfContent("Memory", container.MaximumMemory!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
                 attributeIfContent("PortMappings", portMappings) + 
-                attributeIfContent("NetworkMode". networkMode)
+                attributeIfContent("NetworkMode", networkMode)
             ]
         ]
     [/#list]
@@ -117,7 +117,7 @@
     [/#if]
 [/#macro]
 
-[#macro createECSService mode id ecsId desiredCount taskId loadBalancers networkMode="" subnetIds=[] securityGroupIds=[] roleId="" dependencies=""]
+[#macro createECSService mode id ecsId desiredCount taskId loadBalancers networkMode="" subnets=[] securityGroups=[] roleId="" dependencies=""]
 
     [@cfResource
         mode=mode
@@ -145,16 +145,16 @@
                     "Role" : getReference(roleId)
                 },
                 loadBalancers![]) +
-            (networkMode == "awsvpc")?then(
+            valueIfTrue(
                 {
                     "NetworkConfiguration" : {
                         "AwsvpcConfiguration" : {
-                            "SecurityGroups" : getReferences( securityGroupIds )
-                            "Subnets" : getReferences( subnetIds ) 
+                            "SecurityGroups" : securityGroups,
+                            "Subnets" : subnets
                         }
                     }
                 },
-                {}
+                networkMode == "awsvpc"
             )
         dependencies=dependencies
     /]

@@ -276,7 +276,15 @@
                     "Id" : formatDependentRoleId(taskId),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }    
-            ),
+            ) + 
+            attributeIfTrue(
+                "securityGroup",
+                solution.NetworkMode == "awsvpc",
+                {
+                    "Id" : formatResourceId( AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE, core.Id ),
+                    "Name" : core.FullName,
+                    "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
+                }),
             "Attributes" : {},
             "Roles" : {
                 "Inbound" : {},

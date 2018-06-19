@@ -23,12 +23,37 @@
             [#assign taskId = resources["task"].Id ]
             [#assign containers = getTaskContainers(occurrence, subOccurrence) ]
 
+            [#assign lbTargetType = ""]
+
+            [#if solution.NetworkMode == "awsvpc" ]
+                        
+                [#assign subnets = multiAZ?then(
+                    getSubnets(tier),
+                    getSubnets(tier)[0..0]
+                )]
+
+                [#assign lbTargetType = "ip" ]
+
+                [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
+                [#assign ecsSecurityGroupName = resources["securityGroup"].Name ]
+                
+            [/#if] 
+
             [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
 
                 [#assign serviceId = resources["service"].Id  ]
                 [#assign serviceDependencies = []]
 
                 [#if deploymentSubsetRequired("ecs", true)]
+
+                    [#if solution.NetworkMode == "awsvpc" ]
+                        [@createSecurityGroup
+                            mode=listMode
+                            tier=tier
+                            component=component
+                            id=ecsSecurityGroupId
+                            name=ecsSecurityGroupName /]
+                    [/#if]
 
                     [#assign loadBalancers = [] ]
                     [#assign dependencies = [] ]
@@ -61,7 +86,9 @@
                                                             name=formatName(linkCore.FullName,loadBalancer.TargetGroup)
                                                             tier=linkCore.Tier
                                                             component=linkCore.Component
-                                                            destination=ports[portMapping.HostPort] /]
+                                                            destination=ports[portMapping.HostPort]
+                                                            targetType=lbTargetType
+                                                            /]
 
                                                         [#assign listenerRuleId = formatALBListenerRuleId(link, loadBalancer.TargetGroup) ]
                                                         [@createListenerRule
@@ -89,6 +116,20 @@
                                                 [#break]
                                                 
                                             [#case "classic"]
+
+                                                [#if solution.NetworkMode == "awsvpc" ]
+                                                    [@cfException
+                                                        mode=listMode
+                                                        description="Network mode not compatible with LB"
+                                                        context=
+                                                            {
+                                                                "Description" : "The current container network mode is not compatible with this load balancer engine",
+                                                                "NetworkMode" : solution.NetworkMode,
+                                                                "LBEngine" : linkAttributes["ENGINE"]
+                                                            }
+                                                    /]
+                                                [/#if]
+
                                                 [#assign lbId =  linkAttributes["LB"] ]
                                                 [#-- Classic ELB's register the instance so we only need 1 registration --]
                                                 [#-- TODO: Change back to += when AWS allows multiple load balancer registrations per container --]

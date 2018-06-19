@@ -136,7 +136,7 @@
     /]
 [/#macro]
 
-[#macro createTargetGroup mode id name tier component destination]
+[#macro createTargetGroup mode id name tier component destination targetType=""]
     [@cfResource
         mode=mode
         id=id
@@ -164,7 +164,13 @@
                 {
                     "Matcher" : { "HttpCode" : (destination.HealthCheck.SuccessCodes)!"" }
                 },
-                (destination.HealthCheck.SuccessCodes)!"")
+                (destination.HealthCheck.SuccessCodes)!"") + 
+            valueIfContent(
+                {
+                    "TargetType" : targetType
+                },
+                targetType
+            )
         tags= getCfTemplateCoreTags(name, tier, component)
         outputs=ALB_TARGET_GROUP_OUTPUT_MAPPINGS
     /]
