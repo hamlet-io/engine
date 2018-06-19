@@ -47,10 +47,14 @@
                     {
                         "Name" : "MasterUserName",
                         "Default" : "root"
-                    }
+                    },
                     {
                         "Name" : "CharacterLength",
                         "Default" : 20
+                    },
+                    {
+                        "Name" : "EncryptionScheme",
+                        "Default" : ""
                     }
                 ]
             },

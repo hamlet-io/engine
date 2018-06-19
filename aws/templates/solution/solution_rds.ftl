@@ -64,12 +64,21 @@
         [#assign rdsOptionGroupId = resources["optionGroup"].Id ]
 
         [#assign rdsDatabaseName = solution.DatabaseName!productName]
+        [#assign passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
+                solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
+                "" )]
 
         [#if solution.GenerateCredentials.Enabled ]
             [#assign rdsUsername = solution.GenerateCredentials.MasterUserName]
             [#assign rdsPasswordLength = solution.GenerateCredentials.CharacterLength]
             [#assign rdsPassword = "DummyPassword" ]
-            [#assign rdsEncryptedPassword = getExistingReference(rdsId, GENERATEDPASSWORD_ATTRIBUTE_TYPE)]
+            [#assign rdsEncryptedPassword = (
+                getExistingReference(
+                    rdsId, 
+                    GENERATEDPASSWORD_ATTRIBUTE_TYPE)
+                )?remove_beginning(
+                    passwordEncryptionScheme
+                )]
         [#else]
             [#assign rdsUsername = attributes.USERNAME ]
             [#assign rdsPassword = attributes.PASSWORD ]
@@ -312,7 +321,7 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Master Password\"" + " " +
                         "\"$\{password_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" || return $?",
+                        "\"" + rdsId + "Xgeneratedpassword\" \"" + passwordEncryptionScheme + "$\{encrypted_master_password}\" || return $?",
                         "info \"Generating URL... \"",
                         "rds_url=\"$(get_rds_url" +
                         " \"" + engine + "\" " +
@@ -328,7 +337,7 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Connection URL\"" + " " +
                         "\"$\{url_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
+                        "\"" + rdsId + "Xurl\" \"" + passwordEncryptionScheme + "$\{encrypted_rds_url}\" || return $?",
                         "}",
                         "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\" ",
                         "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
@@ -364,7 +373,7 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Connection URL\"" + " " +
                         "\"$\{url_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
+                        "\"" + rdsId + "Xurl\" \"" + passwordEncryptionScheme + "$\{encrypted_rds_url}\" || return $?",
                         "}",
                         "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
                         "reset_master_password || return $?"
