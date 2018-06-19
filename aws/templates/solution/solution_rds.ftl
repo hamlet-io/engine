@@ -74,7 +74,7 @@
                     rdsId, 
                     GENERATEDPASSWORD_ATTRIBUTE_TYPE)
                 )?remove_beginning(
-                    solution.GenerateCredentials.VariablePrefix
+                    solution.GenerateCredentials.EncryptionScheme
                 )]
         [#else]
             [#assign rdsUsername = attributes.USERNAME ]
@@ -318,7 +318,7 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Master Password\"" + " " +
                         "\"$\{password_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xgeneratedpassword\" \"" + solution.GenerateCredentials.VariablePrefix + "$\{encrypted_master_password}\" || return $?",
+                        "\"" + rdsId + "Xgeneratedpassword\" \"" + solution.GenerateCredentials.EncryptionScheme + "$\{encrypted_master_password}\" || return $?",
                         "info \"Generating URL... \"",
                         "rds_url=\"$(get_rds_url" +
                         " \"" + engine + "\" " +
@@ -334,7 +334,7 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Connection URL\"" + " " +
                         "\"$\{url_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xurl\" \"" + solution.GenerateCredentials.VariablePrefix + "$\{encrypted_rds_url}\" || return $?",
+                        "\"" + rdsId + "Xurl\" \"" + solution.GenerateCredentials.EncryptionScheme + "$\{encrypted_rds_url}\" || return $?",
                         "}",
                         "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\" ",
                         "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
@@ -370,7 +370,7 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Connection URL\"" + " " +
                         "\"$\{url_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xurl\" \"" + solution.GenerateCredentials.VariablePrefix + "$\{encrypted_rds_url}\" || return $?",
+                        "\"" + rdsId + "Xurl\" \"" + solution.GenerateCredentials.EncryptionScheme + "$\{encrypted_rds_url}\" || return $?",
                         "}",
                         "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
                         "reset_master_password || return $?"

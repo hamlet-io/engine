@@ -53,7 +53,7 @@
                         "Default" : 20
                     },
                     {
-                        "Name" : "VariablePrefix",
+                        "Name" : "EncryptionScheme",
                         "Default" : ""
                     }
                 ]
