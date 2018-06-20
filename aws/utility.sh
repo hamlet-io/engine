@@ -164,7 +164,7 @@ function generateComplexString() {
   # String suitable for a password - Alphanumeric and special characters
   local length="$1"; shift
 
-  echo "$(dd bs=256 count=1 if=/dev/urandom | base64 | env LC_CTYPE=C tr -dc '[:punct:][:alnum:]' | tr -d '@"/'  | fold -w "${length}" | head -n 1)" || return $?
+  echo "$(dd bs=256 count=1 if=/dev/urandom | base64 | env LC_CTYPE=C tr -dc '[:punct:][:alnum:]' | tr -d '@"/+'  | fold -w "${length}" | head -n 1)" || return $?
 }
 
 function generateSimpleString() {
