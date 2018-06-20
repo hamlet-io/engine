@@ -246,6 +246,7 @@
     [#local solution = occurrence.Configuration.Solution ]
 
     [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
+    [#local taskName = core.Name]
 
     [#return
         {
@@ -256,6 +257,7 @@
                 },
                 "task" : {
                     "Id" : taskId,
+                    "Name" : taskName,
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
             } +
