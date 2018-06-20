@@ -115,9 +115,9 @@ KID="${KID/-/X}"
 CONTAINER="${KID%X*}"
 
 # Find the cluster
-CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
+CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
 if [[ -z "${CLUSTER_ARN}" ]]; then
-    CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
+    CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}.*ecsX${RID}X${CID}.*)\").arn")
 
     if [[ -z "${CLUSTER_ARN}" ]]; then
         fatal "Unable to locate ECS cluster"
@@ -126,9 +126,9 @@ if [[ -z "${CLUSTER_ARN}" ]]; then
 fi
 
 # Find the task definition
-TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${SEGMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
+TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}-${SEGMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
 if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
-    TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}-${SEGMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
+    TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
 
     if [[ -z "${TASK_DEFINITION_ARN}" ]; then ]
         fatal "Unable to locate task definition"
