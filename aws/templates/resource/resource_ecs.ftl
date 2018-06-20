@@ -1,6 +1,6 @@
 [#-- ECS --]
 
-[#macro createECSTask mode id containers networkMode="" delegatedDeployment=false role="" dependencies=""]
+[#macro createECSTask mode id name containers networkMode="" fixedName=false role="" dependencies=""]
 
     [#local definitions = [] ]
     [#local volumes = [] ]
@@ -97,24 +97,17 @@
         } + 
         attributeIfContent("Volumes", volumes)  + 
         attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE)) + 
-        attributeIfContent("NetworkMode", networkMode)
+        attributeIfContent("NetworkMode", networkMode) + 
+        attributeIfTrue("Family", fixedName, name )
     ]
 
-    [#if delegatedDeployment ]
-        [#-- Allows for container definitions to be written to a config file for processing by another service (e.g. Jenkins) --]
-        [@cfConfig
-            mode=listMode
-            content=taskProperties
-        /]
-    [#else]
-        [@cfResource
-            mode=mode
-            id=id
-            type="AWS::ECS::TaskDefinition"
-            properties=taskProperties
-            dependencies=dependencies
-        /]
-    [/#if]
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::ECS::TaskDefinition"
+        properties=taskProperties
+        dependencies=dependencies
+    /]
 [/#macro]
 
 [#macro createECSService mode id ecsId desiredCount taskId loadBalancers networkMode="" subnets=[] securityGroups=[] roleId="" dependencies=""]

@@ -21,11 +21,13 @@
             [#assign resources = subOccurrence.State.Resources]
 
             [#assign taskId = resources["task"].Id ]
+            [#assign taskName = resources["task"].Name ]
             [#assign containers = getTaskContainers(occurrence, subOccurrence) ]
 
+            [#assign networkMode = (solution.NetworkMode)!"" ]
             [#assign lbTargetType = "instance"]
 
-            [#if solution.NetworkMode == "awsvpc" ]
+            [#if networkMode == "awsvpc" ]
                         
                 [#assign subnets = multiAZ?then(
                     getSubnets(tier),
@@ -46,7 +48,7 @@
 
                 [#if deploymentSubsetRequired("ecs", true)]
 
-                    [#if solution.NetworkMode == "awsvpc" ]
+                    [#if networkMode == "awsvpc" ]
                         [@createSecurityGroup
                             mode=listMode
                             tier=tier
@@ -122,14 +124,14 @@
                                                 
                                             [#case "classic"]
 
-                                                [#if solution.NetworkMode == "awsvpc" ]
+                                                [#if networkMode == "awsvpc" ]
                                                     [@cfException
                                                         mode=listMode
                                                         description="Network mode not compatible with LB"
                                                         context=
                                                             {
                                                                 "Description" : "The current container network mode is not compatible with this load balancer engine",
-                                                                "NetworkMode" : solution.NetworkMode,
+                                                                "NetworkMode" : networkMode,
                                                                 "LBEngine" : linkAttributes["ENGINE"]
                                                             }
                                                     /]
@@ -211,7 +213,7 @@
                         taskId=taskId
                         loadBalancers=loadBalancers
                         roleId=ecsServiceRoleId
-                        networkMode=solution.NetworkMode
+                        networkMode=networkMode
                         subnets=subnets![]
                         securityGroups=getReferences(ecsSecurityGroupId)![]
                         dependencies=dependencies
@@ -285,23 +287,18 @@
                 [/#list]
             [/#if]
 
-            [#assign delegateTaskConfigFile = false]
-            [#if core.Type == ECS_TASK_COMPONENT_TYPE ] 
-                [#if solution.DelegateDeployment ]
-                    [#assign delegateTaskConfigFile = true]
-                [/#if]
-            [/#if]
 
-            [#if deploymentSubsetRequired("ecs", true) || ( delegateTaskConfigFile && deploymentSubsetRequired("config", false))]
+            [#if deploymentSubsetRequired("ecs", true) ]
 
                 [@createECSTask
                     mode=listMode
                     id=taskId
+                    name=taskName
                     containers=containers
                     role=roleId
-                    networkMode=solution.NetworkMode
+                    networkMode=networkMode
                     dependencies=dependencies
-                    delegatedDeployment=solution.DelegateDeployment
+                    fixedName=solution.FixedName
                 /]
 
             [/#if]
@@ -332,29 +329,6 @@
                                 operationsBucket,
                                 getOccurrenceSettingValue(subOccurrence, "SETTINGS_PREFIX")
                             ) /]
-                [/#if]
-            [/#if]
-
-            [#if deploymentSubsetRequired("epilogue", false)]
-                [#if delegateTaskConfigFile ]
-                    [@cfScript
-                        mode=listMode
-                        content=
-                            getLocalFileScript(
-                                "configFiles",
-                                "$\{CONFIG}",
-                                "config.json"
-                            ) +
-                            syncFilesToBucketScript(
-                                "configFiles",
-                                regionId,
-                                operationsBucket,
-                                formatRelativePath(
-                                    getOccurrenceSettingValue(subOccurrence, "SETTINGS_PREFIX"),
-                                    "config"
-                                )
-                            )
-                            /]
                 [/#if]
             [/#if]
        [/#list]

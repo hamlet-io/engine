@@ -905,7 +905,7 @@
                 [#break]
 
             [#case "task"]
-                [#local result = getTaskState(occurrence)]
+                [#local result = getTaskState(occurrence, parentOccurrence)]
                 [#break]
 
             [#case "userpool"]
