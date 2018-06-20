@@ -130,7 +130,7 @@ TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r "
 if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
     TASK_DEFINITION_ARN=$(aws --region ${REGION} ecs list-task-definitions | jq -r ".taskDefinitionArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}.*ecsTaskX${RID}X${CID}X${KID}.*)\").arn")
 
-    if [[ -z "${TASK_DEFINITION_ARN}" ]; then
+    if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
         fatal "Unable to locate task definition"
         return 255
     fi
