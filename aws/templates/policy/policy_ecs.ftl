@@ -20,7 +20,7 @@
     ]
 [/#function]
 
-[#function ecsTaskRunPermission ecsId taskId ]
+[#function ecsTaskRunPermission ecsId ]
 
     [#local clusterArn = formatEcsClusterArn(ecsId)]
     [#return
@@ -38,20 +38,11 @@
             getPolicyStatement(
                 [
                     "ecs:RunTask",
-                    "ecs:StartTask"
-                ],
-                getReference(taskId),
-                {
-                    "ArnEquals" :{
-                        "ecs:cluster" : clusterArn 
-                    }
-                }
-            ),
-            getPolicyStatement(
-                [
+                    "ecs:StartTask",
                     "ecs:StopTask"
                 ],
                 "*",
+                "",
                 {
                     "ArnEquals" :{
                         "ecs:cluster" : clusterArn

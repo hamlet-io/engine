@@ -343,7 +343,7 @@
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {
-                    "run" :  ecsTaskRunPermission(ecsId, taskId) +
+                    "run" :  ecsTaskRunPermission(ecsId) +
                         solution.UseTaskRole?then(
                             iamPassRolePermission(
                                 getExistingReference(taskRoleId, ARN_ATTRIBUTE_TYPE)
@@ -362,12 +362,11 @@
             "ecs",
             formatRelativePath(
                 "cluster",
-                    getReference(ecsId)
+                getReference(ecsId)
             )
         )
     ]
 [/#function]
-
 
 [#-- Container --]
 
