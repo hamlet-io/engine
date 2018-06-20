@@ -136,7 +136,7 @@
     /]
 [/#macro]
 
-[#macro createTargetGroup mode id name tier component destination]
+[#macro createTargetGroup mode id name tier component destination targetType=""]
     [@cfResource
         mode=mode
         id=id
@@ -145,7 +145,6 @@
             {
                 "HealthCheckPort" : (destination.HealthCheck.Port)!"traffic-port",
                 "HealthCheckProtocol" : (destination.HealthCheck.Protocol)!destination.Protocol,
-                "HealthCheckPath" : destination.HealthCheck.Path,
                 "HealthCheckIntervalSeconds" : destination.HealthCheck.Interval,
                 "HealthCheckTimeoutSeconds" : destination.HealthCheck.Timeout,
                 "HealthyThresholdCount" : destination.HealthCheck.HealthyThreshold,
@@ -164,7 +163,19 @@
                 {
                     "Matcher" : { "HttpCode" : (destination.HealthCheck.SuccessCodes)!"" }
                 },
-                (destination.HealthCheck.SuccessCodes)!"")
+                (destination.HealthCheck.SuccessCodes)!"") + 
+            valueIfTrue(
+                {
+                    "TargetType" : targetType
+                },
+                targetType == "ip"
+            ) + 
+            valueIfContent(
+                {
+                    "HealthCheckPath" : (destination.HealthCheck.Path)!""
+                },
+                (destination.HealthCheck.Path)!""
+            )
         tags= getCfTemplateCoreTags(name, tier, component)
         outputs=ALB_TARGET_GROUP_OUTPUT_MAPPINGS
     /]

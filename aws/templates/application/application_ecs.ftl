@@ -23,12 +23,37 @@
             [#assign taskId = resources["task"].Id ]
             [#assign containers = getTaskContainers(occurrence, subOccurrence) ]
 
+            [#assign lbTargetType = "instance"]
+
+            [#if solution.NetworkMode == "awsvpc" ]
+                        
+                [#assign subnets = multiAZ?then(
+                    getSubnets(tier),
+                    getSubnets(tier)[0..0]
+                )]
+
+                [#assign lbTargetType = "ip" ]
+
+                [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
+                [#assign ecsSecurityGroupName = resources["securityGroup"].Name ]
+                
+            [/#if] 
+
             [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
 
                 [#assign serviceId = resources["service"].Id  ]
                 [#assign serviceDependencies = []]
 
                 [#if deploymentSubsetRequired("ecs", true)]
+
+                    [#if solution.NetworkMode == "awsvpc" ]
+                        [@createSecurityGroup
+                            mode=listMode
+                            tier=tier
+                            component=component
+                            id=ecsSecurityGroupId
+                            name=ecsSecurityGroupName /]
+                    [/#if]
 
                     [#assign loadBalancers = [] ]
                     [#assign dependencies = [] ]
@@ -46,8 +71,13 @@
                                 [#switch linkCore.Type]
 
                                     [#case LB_PORT_COMPONENT_TYPE]
+
+                                        [#assign securityGroupSources = linkResources["sg"].Id  ]
+
                                         [#switch linkAttributes["ENGINE"] ] 
                                             [#case "network" ]
+                                                [#assign securityGroupSources = linkConfiguration.IPAddressGroups + [ "_localnet" ] ]
+
                                             [#case "application" ]
                                                 [#assign targetId = (linkResources["targetgroups"][loadBalancer.TargetGroup].Id)!"" ]
                                                 [#if !targetId?has_content]
@@ -61,7 +91,9 @@
                                                             name=formatName(linkCore.FullName,loadBalancer.TargetGroup)
                                                             tier=linkCore.Tier
                                                             component=linkCore.Component
-                                                            destination=ports[portMapping.HostPort] /]
+                                                            destination=ports[portMapping.HostPort]
+                                                            targetType=lbTargetType
+                                                            /]
 
                                                         [#assign listenerRuleId = formatALBListenerRuleId(link, loadBalancer.TargetGroup) ]
                                                         [@createListenerRule
@@ -89,6 +121,20 @@
                                                 [#break]
                                                 
                                             [#case "classic"]
+
+                                                [#if solution.NetworkMode == "awsvpc" ]
+                                                    [@cfException
+                                                        mode=listMode
+                                                        description="Network mode not compatible with LB"
+                                                        context=
+                                                            {
+                                                                "Description" : "The current container network mode is not compatible with this load balancer engine",
+                                                                "NetworkMode" : solution.NetworkMode,
+                                                                "LBEngine" : linkAttributes["ENGINE"]
+                                                            }
+                                                    /]
+                                                [/#if]
+
                                                 [#assign lbId =  linkAttributes["LB"] ]
                                                 [#-- Classic ELB's register the instance so we only need 1 registration --]
                                                 [#-- TODO: Change back to += when AWS allows multiple load balancer registrations per container --]
@@ -109,24 +155,46 @@
 
                                 [#assign dependencies += [targetId] ]
 
-                                [#assign loadBalancerSecurityGroupId = linkResources["sg"].Id ]
-
-                                [@createSecurityGroupIngress
-                                    mode=listMode
-                                    id=
-                                        formatContainerSecurityGroupIngressId(
-                                            ecsSecurityGroupId,
-                                            container,
-                                            portMapping.DynamicHostPort?then(
-                                                "dynamic",
-                                                ports[portMapping.HostPort].Port
+                                [#if securityGroupSources?is_enumerable ]
+                                    
+                                    [#assign securityGroupCIDRs = getGroupCIDRs(securityGroupSources)]
+                                    [#list securityGroupCIDRs as source ]
+                                        
+                                        [@createSecurityGroupIngress
+                                            mode=listMode
+                                            id=
+                                                formatContainerSecurityGroupIngressId(
+                                                    ecsSecurityGroupId,
+                                                    container,
+                                                    portMapping.DynamicHostPort?then(
+                                                        "dynamic",
+                                                        ports[portMapping.HostPort].Port
+                                                    ),
+                                                    replaceAlphaNumericOnly(source)
+                                                )
+                                            port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
+                                            cidr=source
+                                            groupId=ecsSecurityGroupId
+                                    /]
+                                    [/#list]
+                                [#else]
+                                    [@createSecurityGroupIngress
+                                        mode=listMode
+                                        id=
+                                            formatContainerSecurityGroupIngressId(
+                                                ecsSecurityGroupId,
+                                                container,
+                                                portMapping.DynamicHostPort?then(
+                                                    "dynamic",
+                                                    ports[portMapping.HostPort].Port
+                                                )
                                             )
-                                        )
-                                    port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
-                                    cidr="0.0.0.0/0"
-                                    groupId=ecsSecurityGroupId
-                                /]
-
+                                        port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
+                                        cidr=securityGroupSources
+                                        groupId=ecsSecurityGroupId
+                                    /]
+                                [/#if]    
+                            
                             [/#if]
                         [/#list]
                     [/#list]
@@ -143,6 +211,9 @@
                         taskId=taskId
                         loadBalancers=loadBalancers
                         roleId=ecsServiceRoleId
+                        networkMode=solution.NetworkMode
+                        subnets=subnets![]
+                        securityGroups=getReferences(ecsSecurityGroupId)![]
                         dependencies=dependencies
                     /]
                 [/#if]
@@ -228,6 +299,7 @@
                     id=taskId
                     containers=containers
                     role=roleId
+                    networkMode=solution.NetworkMode
                     dependencies=dependencies
                     delegatedDeployment=solution.DelegateDeployment
                 /]

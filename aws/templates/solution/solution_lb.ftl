@@ -54,6 +54,8 @@
                 [#assign sourcePort = (ports[source])!{} ]
                 [#assign destinationPort = (ports[destination])!{} ]
 
+                [#assign targetType = solution.TargetType ]
+
                 [#if !(sourcePort?has_content && destinationPort?has_content)]
                     [#continue ]
                 [/#if]
@@ -96,7 +98,8 @@
                             name=targetGroupName
                             tier=tier
                             component=component
-                            destination=destinationPort /]
+                            destination=destinationPort
+                            targetType=targetType /]
 
                         [@createALBListener
                             mode=listMode

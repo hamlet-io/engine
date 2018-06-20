@@ -533,6 +533,18 @@
                     "CIDR" : segmentCIDR
                 } ]
             [#break]
+        
+        [#case "_localnet"]
+        [#case "_localnet_"]
+        [#case "__localnet__"]
+            [#return
+            {
+                "Id" : groupId,
+                "Name" : groupId,
+                "IsOpen" : false,
+                "CIDR" : [ segmentObject.Network.CIDR.Address + "/" + segmentObject.Network.CIDR.Mask ]
+            } ]
+            [#break]
 
         [#default]
             [#if (ipAddressGroups[groupId]!{})?has_content ]

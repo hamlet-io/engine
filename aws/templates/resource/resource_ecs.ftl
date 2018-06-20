@@ -1,6 +1,6 @@
 [#-- ECS --]
 
-[#macro createECSTask mode id containers delegatedDeployment=false role="" dependencies=""]
+[#macro createECSTask mode id containers networkMode="" delegatedDeployment=false role="" dependencies=""]
 
     [#local definitions = [] ]
     [#local volumes = [] ]
@@ -87,7 +87,7 @@
                 attributeIfContent("ExtraHosts", extraHosts) +
                 attributeIfContent("Memory", container.MaximumMemory!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
-                attributeIfContent("PortMappings", portMappings)
+                attributeIfContent("PortMappings", portMappings) 
             ]
         ]
     [/#list]
@@ -96,7 +96,8 @@
         "ContainerDefinitions" : definitions
         } + 
         attributeIfContent("Volumes", volumes)  + 
-        attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE))
+        attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE)) + 
+        attributeIfContent("NetworkMode", networkMode)
     ]
 
     [#if delegatedDeployment ]
@@ -116,8 +117,7 @@
     [/#if]
 [/#macro]
 
-[#macro createECSService mode id ecsId desiredCount taskId loadBalancers roleId="" dependencies=""]
-
+[#macro createECSService mode id ecsId desiredCount taskId loadBalancers networkMode="" subnets=[] securityGroups=[] roleId="" dependencies=""]
 
     [@cfResource
         mode=mode
@@ -141,10 +141,26 @@
             } + 
             valueIfContent(
                 {
-                    "LoadBalancers" : loadBalancers![],
+                    "LoadBalancers" : loadBalancers![]
+                },
+                loadBalancers![]) +
+            valueIfTrue(
+                {
+                    "NetworkConfiguration" : {
+                        "AwsvpcConfiguration" : {
+                            "SecurityGroups" : securityGroups,
+                            "Subnets" : subnets
+                        }
+                    }
+                },
+                networkMode == "awsvpc"
+            ) + 
+            valueIfTrue(
+                {
                     "Role" : getReference(roleId)
                 },
-                loadBalancers![])
+                (loadBalancers![])?has_content && networkMode != "awsvpc"
+            )
         dependencies=dependencies
     /]
 [/#macro]

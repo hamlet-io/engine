@@ -59,6 +59,10 @@
             },
             {
                 "Name" : "Mapping"
+            },
+            {
+                "Name" : "TargetType",
+                "Default" : "instance"
             }
         ]
     }]
