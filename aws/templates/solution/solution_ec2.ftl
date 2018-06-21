@@ -82,38 +82,10 @@
                         [#case "application"]
                         [#case "network"]
                             [#if link.TargetGroup?has_content ]
-                                [#assign targetId = (linkTargetResources["targetgroups"][link.TargetGroup].Id) ]
-                                [#if targetId?has_content]
-
-                                    [#if deploymentSubsetRequired("ec2", true)]
-                                        [#if isPartOfCurrentDeploymentUnit(targetId)]
-
-                                            [@createTargetGroup
-                                                mode=listMode
-                                                id=targetId
-                                                name=formatName(linkTargetCore.FullName,link.TargetGroup)
-                                                tier=link.Tier
-                                                component=link.Component
-                                                destination=ports[link.Port]
-                                            /]
-                                            [#assign listenerRuleId = formatALBListenerRuleId(occurrence, link.TargetGroup) ]
-                                            [@createListenerRule
-                                                mode=listMode
-                                                id=listenerRuleId
-                                                listenerId=linkTargetResources["listener"].Id
-                                                actions=getListenerRuleForwardAction(targetId)
-                                                conditions=getListenerRulePathCondition(link.TargetPath)
-                                                priority=link.Priority!100
-                                                dependencies=targetId
-                                            /]
-
-                                            [#assign componentDependencies += [targetId]]
-
-                                        [/#if]
-                                        [#assign configSets +=
-                                            getInitConfigLBTargetRegistration(targetId)]
-                                    [/#if]
-                                [/#if]
+                            
+                                [#assign targetId = (linkTargetResources["targetgroup"].Id) ]
+                                [#assign configSets += getInitConfigLBTargetRegistration(targetId)]
+                                            
                             [/#if]
                             [#break]
 

@@ -177,6 +177,10 @@
                         [/#switch]
                     [/#if]
                 [#break]
+                [#case LB_PORT_COMPONENT_TYPE]
+                    [#if linkTargetResources[LB_PORT_COMPONENT_TYPE].Deployed]
+                    [/#if]
+                [#break]
             [/#switch]
         [/#list]
 

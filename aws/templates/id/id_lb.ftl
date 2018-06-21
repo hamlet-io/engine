@@ -8,14 +8,6 @@
 [#assign AWS_ALB_LISTENER_RULE_RESOURCE_TYPE = "listenerRule" ]
 [#assign AWS_ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
 
-[#function formatALBListenerRuleId occurrence name ]
-    [#return formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, occurrence.Core.Id, name) ]
-[/#function]
-
-[#function formatALBTargetGroupId occurrence name ]
-    [#return formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, occurrence.Core.Id, name) ]
-[/#function]
-
 [#-- Components --]
 [#assign LB_COMPONENT_TYPE = "lb" ]
 [#assign LB_PORT_COMPONENT_TYPE = "lbport" ]
@@ -67,6 +59,19 @@
             {
                 "Name" : "TargetType",
                 "Default" : "instance"
+            },
+            {
+                "Name" : "Path",
+                "Default" : "default"
+            },
+            {
+                "Name" : "Priority",
+                "Default" : "default"
+            },
+            {
+                "Name" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             }
         ]
     }]
@@ -105,6 +110,7 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
+    [#local parentCore = parent.Core ]
     [#local parentSolution = parent.Configuration.Solution ]
     [#local parentState = parent.State ]
 
@@ -114,7 +120,12 @@
 
     [#local sourcePort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Source])!{} ]
 
-    [#local id = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id) ]
+    [#local listenerId = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, parentCore.Id, sourcePort) ]
+
+    [#local path = (solution.Path == "default")?then(
+        "",
+        solution.Path
+    )]
 
     [#if (sourcePort.Certificate)!false ]
         [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
@@ -130,29 +141,31 @@
         {
             "Resources" : {
                 "listener" : {
-                    "Id" : id,
+                    "Id" : listenerId,
                     "Type" : AWS_ALB_LISTENER_RESOURCE_TYPE
                 },
                 "sg" : {
-                    "Id" : formatDependentSecurityGroupId(id),
+                    "Id" : formatDependentSecurityGroupId(listenerId),
                     "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
-                "targetgroups" : {
-                    "default" : {
-                        "Id" : formatALBTargetGroupId(occurrence, "default"),
-                        "Name" : formatName(core.FullName, "default"),
-                        "Type" : AWS_ALB_TARGET_GROUP_RESOURCE_TYPE
-                    }
+                "listenerRule" : {
+                    "Id" : formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_ALB_LISTENER_RULE_RESOURCE_TYPE
+                },
+                "targetgroup" : {
+                    "Id" : formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, occurrence.Core.Id),
+                    "Name" : formatName(core.FullName),
+                    "Type" : AWS_ALB_TARGET_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
                 "LB" : lbId,
                 "ENGINE" : engine,
                 "FQDN" : fqdn,
-                "URL" : scheme + "://" + fqdn,
+                "URL" : scheme + "://" + fqdn + path,
                 "INTERNAL_FQDN" : internalFqdn,
-                "INTERNAL_URL" : scheme + "://" + internalFqdn,
+                "INTERNAL_URL" : scheme + "://" + internalFqdn + path,
                 "PORT" : sourcePort.Name
             },
             "Roles" : {
