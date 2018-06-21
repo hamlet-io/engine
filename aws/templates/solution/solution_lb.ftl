@@ -89,6 +89,7 @@
 
             [#if !(sourcePort?has_content && destinationPort?has_content)]
                 [#continue ]
+            [/#if]
 
             [#list solution.Links?values as link]
                 [#if link?is_hash]
