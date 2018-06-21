@@ -40,6 +40,7 @@
             [#assign engine = solution.Engine]
             [#assign idleTimeout = solution.IdleTimeout]
             [#assign listenerId = resources["listener"].Id ]
+            [#assign defaultListener = false]
     
             [#assign securityGroupId = resources["sg"].Id]
             [#assign securityGroupName = resources["sg"].Name]
@@ -47,20 +48,35 @@
             [#assign targetGroupId = resources["targetgroup"].Id]
             [#assign targetGroupName = resources["targetgroup"].Name]
 
-            [#assign lbSecurityGroupIds += [securityGroupId] ]
-
             [#assign mapping = solution.Mapping!core.SubComponent.Name ]
             [#assign source = (portMappings[mapping].Source)!"" ]
             [#assign destination = (portMappings[mapping].Destination)!"" ]
             [#assign sourcePort = (ports[source])!{} ]
             [#assign destinationPort = (ports[destination])!{} ]
 
-            [#assign path = (solution.Path == "default")?then("", solution.Path)]
-
+            [#assign priority = solution.Priority + subOccurrence?index ]
+            
             [#assign listenerRuleId = resources["listenerRule"].Id ]
-            [#assign listenerRuleConditions = getListenerRulePathCondition(path)]
+            [#assign listenerRuleRequired = false ]
             [#assign listenerRuleConfig = {}]
             [#assign listenerRuleCommand = "createListenerRule" ]
+
+            [#if engine == "application" ]
+
+                [#if solution.Path == "default" ]
+                    [#assign defaultListener = true]
+                    [#assign path = "*"]
+                [#else]
+                    [#assign path = solution.Path ]
+                    [#assign listenerRuleRequired = true ]
+                [/#if]
+
+            [#else]
+                [#assign defaultListener = true]
+                [#assign path = "" ]
+            [/#if]
+
+            [#assign listenerRuleConditions = getListenerRulePathCondition(path)]
 
             [#if !(sourcePort?has_content && destinationPort?has_content)]
                 [#continue ]
@@ -102,7 +118,7 @@
                     [/#if]
 
                     [#assign linkTargetCore = linkTarget.Core ]
-                    [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                    [#assign linkTargetSolution = linkTarget.Configuration.Solution ]
                     [#assign linkTargetResources = linkTarget.State.Resources ]
                     [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
@@ -113,10 +129,12 @@
                             [#assign userPoolId = linkTargetResources["userpool"].Id ]
                             [#assign userPoolClientId = linkTargetResources["client"].Id ]
                             [#assign userPoolDomain = linkTargetResources["userpool"].HostName ]
+
+                            [#assign listenerRuleRequired = true ]
                             [#assign listenerRuleConfig = 
                                 {
                                     "Conditions" : listenerRuleConditions,
-                                    "Priority" : solution.Priority,
+                                    "Priority" : priority,
                                     "Actions" : [
                                         {
                                             "Type" : "authenticate-cognito",
@@ -126,7 +144,7 @@
                                                 "UserPoolDomain" : userPoolDomain,
                                                 "SessionCookieName" : solution.Authentication.SessionCookieName,
                                                 "SessionTimeout" : solution.Authentication.SessionTimeout,
-                                                "Scope" : linkTargetConfiguration.OAuthScope,
+                                                "Scope" : linkTargetSolution.OAuth.Scopes?join(", "),
                                                 "OnUnauthenticatedRequest" : "authenticate"
                                             },
                                             "Order" : 1
@@ -144,20 +162,23 @@
             [/#list]
 
             [#if engine == "application" || engine == "classic" ]
-                [@createSecurityGroup
-                    mode=listMode
-                    id=securityGroupId
-                    name=securityGroupName
-                    tier=tier
-                    component=component
-                    ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidr} ]/]
+                [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
+                    [@createSecurityGroup
+                        mode=listMode
+                        id=securityGroupId
+                        name=securityGroupName
+                        tier=tier
+                        component=component
+                        ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidr} ]/]
+                [/#if]
             [/#if]
 
             [#switch engine ]
                 [#case "application"]
                 [#case "network"]
 
-                    [#if path == "default" ]
+                    [#if defaultListener ]
+                        [#assign lbSecurityGroupIds += [securityGroupId] ]
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                             [@createALBListener
                                 mode=listMode
@@ -169,60 +190,91 @@
                         [/#if]
                     [/#if]
 
-                    [#if listenerRuleConfig?has_content ]
+                    [#if listenerRuleRequired ]
+                        [#if listenerRuleConfig?has_content ]
 
-                        [#if deploymentSubsetRequired("cli", false)]
+                            [#if deploymentSubsetRequired("cli", false)]
 
-                            [@cfCli 
-                                mode=listMode
-                                id=listenterRuleId
-                                command=listenerRuleCommand
-                                content=listenerRuleConfig
-                            /]
+                                [@cfCli 
+                                    mode=listMode
+                                    id=listenerRuleId
+                                    command=listenerRuleCommand
+                                    content=listenerRuleConfig
+                                /]
 
-                        [/#if]
+                            [/#if]
 
-                        [#if deploymentSubsetRequired("epilogue", false) && cliConfigRequired ]
-                            [@cfScript
-                                mode=listMode
-                                content= (getExistingReference(listenterId)?has_content)?then(
+                            [#if deploymentSubsetRequired("prologue", false) ]
+                                [@cfScript
+                                    mode=listMode
+                                    content=(getExistingReference(listenerRuleId)?has_content)?then(
                                         [
                                             "case $\{STACK_OPERATION} in",
-                                            "  create|update)",
-                                            "       # Get cli config file",
-                                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
-                                            "       # Apply CLI level updates to ELB listener",
-                                            "       info \"Applying cli level configurtion\""
-                                            "       listener_rule_arn=$( create_elbv2_rule" +
+                                            "  delete)",
+                                            "       delete_elbv2_rule" +
                                             "       \"" + region + "\" " + 
-                                            "       \"" + getExistingReference(listenterId) + "\" " + 
-                                            "       \"$\{tmpdir}/cli-" + 
-                                                    listenterRuleId + "-" + listenerRuleCommand + ".json\")"
-                                            "       create_pseudo_stack" + " " +
-                                            "       \"LB Listener Rule\"" + " " +
-                                            "       \"$\{url_pseudo_stack_file}\"" + " " +
-                                            "       \"" + listenterRuleId + "Xarn\" \"$\{listener_rule_arn}\" || return $?",
+                                            "       \"" + getExistingReference(listenerRuleId) + "\" " 
                                             "   ;;",
                                             "   esac"
                                         ],
-                                        [
-                                            "warning \"Please run another update to complete the configuration\""
-                                        ]
-                                    )
-                            /]
-                        [/#if]
+                                        []
+                                    ) 
+                                /]
+                            [/#if]
+                            [#if deploymentSubsetRequired("epilogue", false) ]
+                                [@cfScript
+                                    mode=listMode
+                                    content= (getExistingReference(listenerId)?has_content)?then(
+                                                [
+                                                    "case $\{STACK_OPERATION} in",
+                                                    "  create|update)",
+                                                    "       # Get cli config file",
+                                                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                                                    "       # Apply CLI level updates to ELB listener",
+                                                    "       info \"Applying cli level configurtion\""
+                                                ] +
+                                                (getExistingReference(listenerRuleId)?has_content)?then(
+                                                    [
+                                                        "       update_elbv2_rule" +
+                                                        "       \"" + region + "\" " + 
+                                                        "       \"" + getExistingReference(listenerRuleId) + "\" " + 
+                                                        "       \"$\{tmpdir}/cli-" + 
+                                                                listenerRuleId + "-" + listenerRuleCommand + ".json\""
+                                                    ],
+                                                    [
+                                                        "       listener_rule_arn=$( create_elbv2_rule" +
+                                                        "       \"" + region + "\" " + 
+                                                        "       \"" + getExistingReference(listenerId) + "\" " + 
+                                                        "       \"$\{tmpdir}/cli-" + 
+                                                                listenerRuleId + "-" + listenerRuleCommand + ".json\")"
+                                                        "       create_pseudo_stack" + " " +
+                                                        "       \"LB Listener Rule\"" + " " +
+                                                        "       \"$\{url_pseudo_stack_file}\"" + " " +
+                                                        "       \"" + listenerRuleId + "Xarn\" \"$\{listener_rule_arn}\" || return $?"
+                                                    ]
+                                                ) +
+                                                [
+                                                    "   ;;",
+                                                    "   esac"
+                                                ],
+                                            [
+                                                "warning \"Please run another update to complete the configuration\""
+                                            ]
+                                        )
+                                /]
+                            [/#if]
 
-                    [#else]
-
-                        [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
-                            [@createListenerRule
-                                mode=listMode
-                                id=listenerRuleId
-                                listenerId=listenerId
-                                actions=getListenerRuleForwardAction(targetGroupId)
-                                conditions=listenerRuleConditions
-                                priority=solution.Priority
-                                dependencies=targetId /]
+                        [#else]
+                            [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
+                                [@createListenerRule
+                                    mode=listMode
+                                    id=listenerRuleId
+                                    listenerId=listenerId
+                                    actions=getListenerRuleForwardAction(targetGroupId)
+                                    conditions=listenerRuleConditions
+                                    priority=priority
+                                    dependencies=targetId /]
+                            [/#if]
                         [/#if]
 
                     [/#if]
@@ -240,6 +292,7 @@
                     [#break]
 
                 [#case "classic"]
+                    [#assign lbSecurityGroupIds += [securityGroupId] ]
                     [#assign classicListeners +=
                         [
                             {
@@ -334,7 +387,7 @@
                         idleTimeout=idleTimeout
                      /]
                 [#break]
-                å
+
             [#case "classic"]
             
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]

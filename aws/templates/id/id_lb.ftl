@@ -66,12 +66,25 @@
             },
             {
                 "Name" : "Priority",
-                "Default" : "default"
+                "Default" : 100
             },
             {
                 "Name" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Name" : "Authentication",
+                "Children" : [
+                    {
+                        "Name" : "SessionCookieName",
+                        "Default" : "AWSELBAuthSessionCookie"
+                    },
+                    {
+                        "Name" : "SessionTimeout",
+                        "Default" : 604800
+                    }
+                ]
             }
         ]
     }]
@@ -119,7 +132,6 @@
     [#local lbId = parentState.Resources["lb"].Id]
 
     [#local sourcePort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Source])!{} ]
-
     [#local listenerId = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, parentCore.Id, sourcePort) ]
 
     [#local path = (solution.Path == "default")?then(
@@ -137,6 +149,10 @@
         [#local fqdn = internalFqdn ]
         [#local scheme ="http" ]
     [/#if]
+
+    [#local url = scheme + "://" + fqdn  ]
+    [#local internalUrl = scheme + "://" + internalFqdn ]
+    
     [#return
         {
             "Resources" : {
@@ -163,10 +179,12 @@
                 "LB" : lbId,
                 "ENGINE" : engine,
                 "FQDN" : fqdn,
-                "URL" : scheme + "://" + fqdn + path,
+                "URL" : url + path,
                 "INTERNAL_FQDN" : internalFqdn,
-                "INTERNAL_URL" : scheme + "://" + internalFqdn + path,
-                "PORT" : sourcePort.Name
+                "INTERNAL_URL" : internalUrl + path,
+                "PORT" : sourcePort.Name,
+                "AUTH_CALLBACK_URL" : url + "/oauth2/idpresponse",
+                "AUTH_CALLBACK_INTERNAL_URL" : internalUrl + "/oauth2/idpresponse"
             },
             "Roles" : {
                 "Inbound" : {},
