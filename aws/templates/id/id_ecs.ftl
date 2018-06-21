@@ -177,7 +177,7 @@
                 "Default" : true
             },
             {
-                "Name" : "DelegateDeployment",
+                "Name" : "FixedName",
                 "Default" : false
             }
         ]
@@ -232,7 +232,6 @@
                 }
             ),
             "Attributes" : {
-                
             },
             "Roles" : {
                 "Inbound" : {},
@@ -247,6 +246,7 @@
     [#local solution = occurrence.Configuration.Solution ]
 
     [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
+    [#local taskName = core.Name]
 
     [#return
         {
@@ -257,6 +257,7 @@
                 },
                 "task" : {
                     "Id" : taskId,
+                    "Name" : taskName,
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
             } +
@@ -294,23 +295,23 @@
     ]
 [/#function]
 
-[#function getTaskState occurrence]
+[#function getTaskState occurrence parent]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
-    [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
-    [#local taskRoleId = formatDependentRoleId(taskId)]
+    [#local parentResources = parent.State.Resources ]
+    [#local ecsId = parentResources["cluster"].Id ]
 
-    [#local taskDefinitionPath = formatRelativePath(
-                                    getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
-                                    "config")]
-    [#local taskDefinitionFileName = "config.json"]
+    [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
+    [#local taskName = core.Name]
+    [#local taskRoleId = formatDependentRoleId(taskId)]
 
     [#return
         {
             "Resources" : {
                 "task" : {
                     "Id" : taskId,
+                    "Name" : taskName,
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
             } +
@@ -331,40 +332,39 @@
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }    
             ),
-            "Attributes" : {} + 
+            "Attributes" : {
+                "ECSHOST" : getExistingReference(ecsId)
+            } + 
                 attributeIfTrue(
-                    "DEFINITIONFILE",
-                    solution.DelegateDeployment,
-                    formatRelativePath(
-                        taskDefinitionPath,
-                        taskDefinitionFileName
-                    )
-                ) +
-                attributeIfTrue(
-                    "DEFINITIONBUCKET",
-                    solution.DelegateDeployment,
-                    operationsBucket
+                    "DEFINITION",
+                    solution.FixedName,
+                    taskName
                 ),
             "Roles" : {
                 "Inbound" : {},
-                "Outbound" : {} + 
-                    attributeIfTrue(
-                        "deploy",
-                        solution.DelegateDeployment,
-                        s3ReadPermission(
-                            operationsBucket, 
-                            taskDefinitionPath,
-                            taskDefinitionFileName
-                        )+
+                "Outbound" : {
+                    "run" :  ecsTaskRunPermission(ecsId) +
                         solution.UseTaskRole?then(
                             iamPassRolePermission(
                                 getExistingReference(taskRoleId, ARN_ATTRIBUTE_TYPE)
-                            )
-                            ,{}
-                        )
-                    )
+                            ),
+                            []
+                        ) 
+                } 
             }
         }
+    ]
+[/#function]
+
+[#function formatEcsClusterArn ecsId account={ "Ref" : "AWS::AccountId" }]
+    [#return
+        formatRegionalArn(
+            "ecs",
+            formatRelativePath(
+                "cluster",
+                getReference(ecsId)
+            )
+        )
     ]
 [/#function]
 
