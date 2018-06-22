@@ -159,7 +159,7 @@
                             id=formatDependentSecurityGroupIngressId(
                                 resources["securityGroup"].Id
                                 link.Id)
-                            port=link.Port
+                            port=link.DestinationPort
                             cidr=linkTargetResources["sg"].Id
                             groupId=computeClusterSecurityGroupId /]
                     [/#if]

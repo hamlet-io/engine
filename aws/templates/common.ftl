@@ -1887,12 +1887,13 @@
             "Name" : targetLinkName,
             "Tier" : targetTierId,
             "Component" : targetComponentId,
+            "Priority" : port.LB.Priority
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
-        attributeIfContent("PortMapping",  portMapping)
+        attributeIfContent("PortMapping",  portMapping) + 
+        attributeIfContent("DestinationPort" , port.Name)
     ]
-
     [@cfDebug listMode { targetLinkName : targetLink } false /]
 
     [#return { targetLinkName : targetLink } ]
