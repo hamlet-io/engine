@@ -115,7 +115,7 @@
                     },
                     {
                         "Name" : "Permissions",
-                        "Default" "ro"
+                        "Default" : "ro"
                     },
                     {
                         "Name" : "IPAddressGroups",
@@ -123,7 +123,7 @@
                     },
                     {
                         "Name" : "Prefix",
-                        "Default" : "*"
+                        "Default" : ""
                     }
                 ]
             }
@@ -157,7 +157,8 @@
                         "Id" : formatResourceId(AWS_S3_BUCKET_POLICY_RESOURCE_TYPE, core.Id),
                         "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
                     }
-                }
+                },
+                {}
             ),
             "Attributes" : {
                 "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
