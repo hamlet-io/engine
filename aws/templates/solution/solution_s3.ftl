@@ -15,6 +15,10 @@
         [#assign s3Id = resources["bucket"].Id ]
         [#assign s3Name = resources["bucket"].Name ]
 
+        [#assign publicPrefix = solution.PublicAccess.Prefix]
+        [#assign publicIPWhiteList =
+                s3IPAccessCondition(getGroupCIDRs(solution.PublicAccess.IPAddressGroups, true)) ]
+
         [#assign sqsIds = [] ]
         [#assign sqsNotifications = [] ]
         [#assign dependencies = [] ]
@@ -52,6 +56,48 @@
                 [/#if]
             [/#if]
         [/#list]
+
+        [#if solution.PublicAccess.Enabled ]
+
+            [#assign bucketPolicyId = resources["bucketpolicy"].Id ]
+
+            [#assign policyStatements = [] ]
+
+            [#switch solution.PublicAccess.Permissions ]
+                [#case "ro" ]
+                    [#assign policyStatements = s3ReadPermission(
+                                                    s3Name,
+                                                    publicPrefix,
+                                                    "*",
+                                                    "*",
+                                                    publicIPWhiteList)]
+                    [#break]
+                [#case "wo" ]
+                    [#assign policyStatements = s3WritePermission(
+                                                    s3Name,
+                                                    publicPrefix,
+                                                    "*",
+                                                    "*",
+                                                    publicIPWhiteList)]
+                    [#break]
+                [#case "rw" ]
+                    [#assign policyStatements = s3AllPermission(
+                                                    s3Name,
+                                                    publicPrefix,
+                                                    "*",
+                                                    "*",
+                                                    publicIPWhiteList)]
+                    [#break]
+            [/#switch]
+
+            [@createBucketPolicy
+                mode=listMode
+                id=bucketPolicyId
+                bucket=s3Name
+                statements=policyStatements
+                dependencies=s3Id
+            /]
+        [/#if]
 
         [@createS3Bucket
             mode=listMode
