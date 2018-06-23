@@ -12,10 +12,12 @@
         [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
     [/#if]  
 
-    [@Policy
-        globalAdministratorAccess()
-    /]
-
-    [@ManagedPolicy settings["AWS_AUTOMATION_POLICIES"]?split(",") /]
+    [#if settings["AWS_AUTOMATION_POLICIES"]?has_content ]
+        [@ManagedPolicy settings["AWS_AUTOMATION_POLICIES"]?split(",") /]
+    [#else]
+        [@Policy
+            globalAdministratorAccess()
+        /]
+    [/#if]
 
     [#break]
