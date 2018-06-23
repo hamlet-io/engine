@@ -16,4 +16,6 @@
         globalAdministratorAccess()
     /]
 
+    [@ManagedPolicy settings["AWS_AUTOMATION_POLICIES"]?split(",") /]
+
     [#break]

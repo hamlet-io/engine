@@ -249,6 +249,16 @@
     [/#if]
 [/#macro]
 
+[#macro ManagedPolicy arns...]
+    [#if (containerListMode!"") == "model"]
+        [#assign context += 
+            {
+                "ManagedPolicy" : (context.ManagedPolicy![]) + asFlattenedArray(arns)
+            }
+        ]
+    [/#if]
+[/#macro]
+
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
 [#function defaultEnvironment occurrence]
