@@ -12,6 +12,13 @@
         [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
     [/#if]  
 
+    [#if settings["AWSPROFILEVOLUME"]?has_content ]
+        [#assign awsProfilePath = "/var/opt/awsprofile/" ]
+
+        [@Volume "awsprofile" awsProfilePath settings["AWSPROFILEVOLUME"] /]
+        [@Variable "AWS_CONFIG_FILE" awsProfilePath + "config" /]
+    [/#if]
+
     [#if settings["AWS_AUTOMATION_POLICIES"]?has_content ]
         [@ManagedPolicy settings["AWS_AUTOMATION_POLICIES"]?split(",") /]
     [#else]
