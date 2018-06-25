@@ -507,7 +507,8 @@
                 container.MemoryReservation*ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER
             ) +
             attributeIfContent("PortMappings", containerPortMappings) +
-            attributeIfContent("IngressRules", ingressRules)
+            attributeIfContent("IngressRules", ingressRules) +
+            attributeIfContent("RunCapabilities", container.RunCapabilities)
         ]
 
         [#-- Add in container specifics including override of defaults --]
