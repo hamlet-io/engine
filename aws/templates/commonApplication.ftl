@@ -489,7 +489,8 @@
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
-                "Policy" : standardPolicies(task)
+                "Policy" : standardPolicies(task),
+                "Privileged" : container.Privileged
             } +
             attributeIfContent("LogGroup", containerLogGroup) +
             attributeIfContent("ImageVersion", container.Version) +

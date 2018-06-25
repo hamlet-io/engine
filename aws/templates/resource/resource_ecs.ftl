@@ -94,7 +94,8 @@
                                                 "Add" : container.RunCapabilities
                                             }
                                         }
-                                    )
+                                    ) +
+                attributeIfTrue("Privileged", container.Privileged, container.Privileged)
             ]
         ]
     [/#list]

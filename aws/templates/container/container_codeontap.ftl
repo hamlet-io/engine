@@ -12,6 +12,8 @@
         [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
     [/#if]  
 
+    [@Volume "dockerstore" "/var/lib/docker/vfs/dir/" settings["AWSPROFILEVOLUME"] + "/docker-images" /]
+
     [#if settings["AWSPROFILEVOLUME"]?has_content ]
         [#assign awsProfilePath = "/var/opt/awsprofile/" ]
 

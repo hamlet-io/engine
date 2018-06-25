@@ -36,7 +36,11 @@
         {
             "Name" : "RunCapabilities",
             "Default" : []
-        }
+        },
+        {
+            "Name" : "Privileged",
+            "Default" : false
+        },
         {
             "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"]
         },
