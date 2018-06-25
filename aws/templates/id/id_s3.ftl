@@ -105,6 +105,27 @@
                         "Default": ""
                     }
                 ]
+            },
+            {
+                "Name" : "PublicAccess",
+                "Children" : [
+                    {
+                        "Name" : "Enabled",
+                        "Default" : false
+                    },
+                    {
+                        "Name" : "Permissions",
+                        "Default" : "ro"
+                    },
+                    {
+                        "Name" : "IPAddressGroups",
+                        "Default" : [ "_localnet" ]
+                    },
+                    {
+                        "Name" : "Prefix",
+                        "Default" : ""
+                    }
+                ]
             }
             "Style",
             "Notifications"
@@ -113,6 +134,7 @@
     
 [#function getS3State occurrence]
     [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatOccurrenceS3Id(occurrence)]
     [#local name = formatOccurrenceBucketName(occurrence) ]
@@ -128,7 +150,16 @@
                             name),
                     "Type" : AWS_S3_RESOURCE_TYPE
                 }
-            },
+            } +
+            solution.PublicAccess.Enabled?then(
+                {
+                    "bucketpolicy" : {
+                        "Id" : formatResourceId(AWS_S3_BUCKET_POLICY_RESOURCE_TYPE, core.Id),
+                        "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
+                    }
+                },
+                {}
+            ),
             "Attributes" : {
                 "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
                 "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
