@@ -36,6 +36,10 @@
                     "Default" : "application"
                 },
                 {
+                    "Name" : "IdleTimeout", 
+                    "Default" : 60
+                }
+                {
                     "Name" : "HealthCheckPort",
                     "Default" : ""
                 }

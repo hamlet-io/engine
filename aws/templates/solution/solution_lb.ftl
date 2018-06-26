@@ -19,6 +19,7 @@
             [#assign lbSecurityGroupIds = [] ]
 
             [#assign engine = solution.Engine]
+            [#assign idleTimeout = solution.IdleTimeout]
 
             [#assign healthCheckPort = "" ]
             [#if engine == "classic" ]
@@ -173,7 +174,8 @@
                         securityGroups=lbSecurityGroupIds
                         logs=lbLogs
                         type=engine
-                        bucket=operationsBucket /]
+                        bucket=operationsBucket
+                        idleTimeout=idleTimeout /]
                     [#break]
                 
                 [#case "classic"]
@@ -200,6 +202,7 @@
                         securityGroups=lbSecurityGroupIds 
                         logs=lbLogs 
                         bucket=operationsBucket 
+                        idleTimeout=idleTimeout
                      /]
                 [#break]
             [/#switch ]
