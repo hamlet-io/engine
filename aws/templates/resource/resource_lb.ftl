@@ -60,7 +60,32 @@
     }
 ]
 
-[#macro createALB mode id name shortName tier component securityGroups type logs=false bucket=""]
+[#macro createALB mode id name shortName tier component securityGroups type idleTimeout logs=false bucket=""]
+
+    [#assign loadBalancerAttributes = [
+        {
+            "idle_timeout.timeout_seconds" : idleTimeout
+        }
+    ] + 
+    (logs && type == "application")?then(
+        [
+            {
+                "Key" : "access_logs.s3.enabled",
+                "Value" : true
+            },
+            {
+                "Key" : "access_logs.s3.bucket",
+                "Value" : bucket
+            },
+            {
+                "Key" : "access_logs.s3.prefix",
+                "Value" : ""
+            }
+        ],
+        []
+    )
+    ]
+
     [@cfResource
         mode=mode
         id=id
@@ -69,30 +94,14 @@
             {
                 "Subnets" : getSubnets(tier),
                 "Scheme" : (tier.Network.RouteTable == "external")?then("internet-facing","internal"),
-                "Name" : shortName
+                "Name" : shortName,
+                "LoadBalancerAttributes" : loadBalancerAttributes
             } +
             attributeIfTrue(
                 "Type",
                 type != "application",
                 type
-            ) +
-            attributeIfTrue(
-                "LoadBalancerAttributes",
-                logs && type == "application",
-                [
-                    {
-                        "Key" : "access_logs.s3.enabled",
-                        "Value" : true
-                    },
-                    {
-                        "Key" : "access_logs.s3.bucket",
-                        "Value" : bucket
-                    },
-                    {
-                        "Key" : "access_logs.s3.prefix",
-                        "Value" : ""
-                    }
-            ]) + 
+            ) + 
             attributeIfTrue(
                 "SecurityGroups",
                 type == "application",
@@ -220,7 +229,7 @@
     /]
 [/#macro]
 
-[#macro createClassicLB mode id name shortName tier component listeners healthCheck securityGroups logs=false bucket="" dependencies="" ]
+[#macro createClassicLB mode id name shortName tier component listeners healthCheck securityGroups idleTimeout logs=false bucket="" dependencies="" ]
         [@cfResource
         mode=listMode
         id=id
@@ -235,7 +244,10 @@
                         "internal"
                     ),
                 "SecurityGroups": getReferences(securityGroups),
-                "LoadBalancerName" : shortName
+                "LoadBalancerName" : shortName,
+                "ConnectionSettings" : {
+                    "IdleTimeout" : idleTimeout
+                }
             } +
             multiAZ?then(
                 {
