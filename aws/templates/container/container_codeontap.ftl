@@ -7,12 +7,16 @@
     [@DefaultCoreVariables enabled=false /]
     [@DefaultEnvironmentVariables enabled=false /]
 
+    [@Settings {
+        "JAVA_OPTS" : "-Dhudson.remoting.Launcher.pingIntervalSec=1200",
+        "ENABLE_DOCKER" : "true"
+    }
+    /]
+
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#if settings["CODEONTAPVOLUME"]?has_content ]
         [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
     [/#if]  
-
-    [@Volume "dockerstore" "/var/lib/docker/vfs/dir/" settings["AWSPROFILEVOLUME"] + "/docker-images" /]
 
     [#if settings["AWSPROFILEVOLUME"]?has_content ]
         [#assign awsProfilePath = "/var/opt/awsprofile/" ]

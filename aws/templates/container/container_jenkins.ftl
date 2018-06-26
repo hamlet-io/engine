@@ -5,7 +5,8 @@
 
     [@Settings {
             "ECS_ARN" :  getExistingReference(ecsId),
-            "MAXMEMORY" : container.MemoryReservation
+            "MAXMEMORY" : container.MemoryReservation,
+            "JAVA_OPTS" : "-Dhudson.slaves.ChannelPinger.pingIntervalSeconds=1200 -Dhudson.slaves.ChannelPinger.pingTimeoutSeconds=30" 
         }
     /]
 

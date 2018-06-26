@@ -88,14 +88,14 @@
                 attributeIfContent("Memory", container.MaximumMemory!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
                 attributeIfContent("PortMappings", portMappings) + 
-                attributeIfContent("LinuxParameters", container.RunCapabilities, 
+                attributeIfContent("LinuxParameters", container.RunCapabilities![], 
                                         {
                                             "Capabilities" : {
-                                                "Add" : container.RunCapabilities
+                                                "Add" : container.RunCapabilities![]
                                             }
                                         }
                                     ) +
-                attributeIfTrue("Privileged", container.Privileged, container.Privileged)
+                attributeIfTrue("Privileged", container.Privileged, container.Privileged!"")
             ]
         ]
     [/#list]
