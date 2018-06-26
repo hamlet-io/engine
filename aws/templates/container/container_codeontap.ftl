@@ -9,9 +9,9 @@
 
     [@Settings {
         "JAVA_OPTS" : "-Dhudson.remoting.Launcher.pingIntervalSec=1200",
-        "ENABLE_DOCKER" : "true"
-    }
-    /]
+        "ENABLE_DOCKER" : "true",
+        "AWS_AUTOMATION_USER" : "ROLE"
+    }/]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#if settings["CODEONTAPVOLUME"]?has_content ]
