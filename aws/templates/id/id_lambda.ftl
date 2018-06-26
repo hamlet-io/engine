@@ -172,7 +172,9 @@
             },
             "Roles" : {
                 "Inbound" : {},
-                "Outbound" : {}
+                "Outbound" : {
+                    "invoke" : lambdaInvokePermission(id)
+                }
             }
         }
     ]
