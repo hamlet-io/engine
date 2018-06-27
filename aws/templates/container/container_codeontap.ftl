@@ -13,6 +13,8 @@
         "AWS_AUTOMATION_USER" : "ROLE"
     }/]
 
+    [@Volume "dockerlib" "/var/lib/docker/" "/cache/" + core.Name + "/" + getContainerName(container) + "/dockerlib/" /]
+
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#if settings["CODEONTAPVOLUME"]?has_content ]
         [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
