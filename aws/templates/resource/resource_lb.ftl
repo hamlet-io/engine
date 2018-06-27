@@ -64,7 +64,8 @@
 
     [#assign loadBalancerAttributes = [
         {
-            "idle_timeout.timeout_seconds" : idleTimeout
+            "Key" : "idle_timeout.timeout_seconds",
+            "Value" : idleTimeout
         }
     ] + 
     (logs && type == "application")?then(
