@@ -17,6 +17,7 @@
         [#assign lbSecurityGroupIds = [] ]
 
         [#assign engine = solution.Engine]
+        [#assign idleTimeout = solution.IdleTimeout]
 
         [#assign healthCheckPort = "" ]
         [#if engine == "classic" ]
@@ -37,11 +38,17 @@
             [#assign solution = subOccurrence.Configuration.Solution ]
             [#assign resources = subOccurrence.State.Resources ]
 
-            [#assign engine = solution.Engine]
-            [#assign idleTimeout = solution.IdleTimeout]
             [#assign listenerId = resources["listener"].Id ]
             [#assign defaultListener = false]
     
+            [#assign ipAddressGroups = solution.IPAddressGroups ]
+
+            [#if !solution.IPAddressGroups?seq_contains("_localnet") && tier.Network.RouteTable != "external" ]
+                [#assign ipAddressGroups += [ "_localnet"] ]
+            [/#if]
+
+            [#assign cidrs= getGroupCIDRs(ipAddressGroups) ]
+
             [#assign securityGroupId = resources["sg"].Id]
             [#assign securityGroupName = resources["sg"].Name]
 
@@ -85,18 +92,7 @@
             [#assign portProtocols += [ sourcePort.Protocol ] ]
             [#assign portProtocols += [ destinationPort.Protocol] ]
 
-            [#assign cidr= getGroupCIDRs(solution.IPAddressGroups) ]
-
-            [#-- Internal ILBs may not have explicit IP Address Groups --]
-            [#assign cidr =
-                cidr?has_content?then(
-                    cidr,
-                    (tier.Network.RouteTable == "external")?then(
-                        [],
-                        segmentObject.Network.CIDR.Address + "/" + segmentObject.Network.CIDR.Mask
-                    )) ]
-
-
+            
             [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id, sourcePort.Name) ]
             [#assign hostName = getHostName(certificateObject, subOccurrence) ]
             [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
@@ -169,7 +165,8 @@
                         name=securityGroupName
                         tier=tier
                         component=component
-                        ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidr} ]/]
+                        ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidrs} ]/]
+
                 [/#if]
             [/#if]
 
@@ -359,11 +356,39 @@
                         type=engine
                         bucket=operationsBucket
                         idleTimeout=idleTimeout /]
-                    [#break]
+                [/#if]
+                [#break]
                 
-                [#case "classic"]
+            [#case "classic"]
                 
+                [#assign healthCheck = {
+                    "Target" : healthCheckPort.HealthCheck.Protocol!healthCheckPort.Protocol + ":" 
+                                + (healthCheckPort.HealthCheck.Port!healthCheckPort.Port)?c + healthCheckPort.HealthCheck.Path!"",
+                    "HealthyThreshold" : healthCheckPort.HealthCheck.HealthyThreshold,
+                    "UnhealthyThreshold" : healthCheckPort.HealthCheck.UnhealthyThreshold,
+                    "Interval" : healthCheckPort.HealthCheck.Interval,
+                    "Timeout" : healthCheckPort.HealthCheck.Timeout
+                }]
 
+                [@createClassicLB 
+                    mode=listMode 
+                    id=lbId 
+                    name=lbName 
+                    shortName=lbShortName
+                    tier=tier
+                    component=component 
+                    listeners=classicListeners 
+                    healthCheck=healthCheck 
+                    securityGroups=lbSecurityGroupIds 
+                    logs=lbLogs 
+                    bucket=operationsBucket 
+                    idleTimeout=idleTimeout
+                    /]
+                [#break]
+
+            [#case "classic"]
+            
+                [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                     [#assign healthCheck = {
                         "Target" : healthCheckPort.HealthCheck.Protocol!healthCheckPort.Protocol + ":" 
                                     + (healthCheckPort.HealthCheck.Port!healthCheckPort.Port)?c + healthCheckPort.HealthCheck.Path!"",
@@ -385,37 +410,9 @@
                         securityGroups=lbSecurityGroupIds 
                         logs=lbLogs 
                         bucket=operationsBucket 
-                        idleTimeout=idleTimeout
-                     /]
+                    /]
+                [/#if]
                 [#break]
-
-            [#case "classic"]
-            
-                    [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
-                        [#assign healthCheck = {
-                            "Target" : healthCheckPort.HealthCheck.Protocol!healthCheckPort.Protocol + ":" 
-                                        + (healthCheckPort.HealthCheck.Port!healthCheckPort.Port)?c + healthCheckPort.HealthCheck.Path!"",
-                            "HealthyThreshold" : healthCheckPort.HealthCheck.HealthyThreshold,
-                            "UnhealthyThreshold" : healthCheckPort.HealthCheck.UnhealthyThreshold,
-                            "Interval" : healthCheckPort.HealthCheck.Interval,
-                            "Timeout" : healthCheckPort.HealthCheck.Timeout
-                        }]
-
-                        [@createClassicLB 
-                            mode=listMode 
-                            id=lbId 
-                            name=lbName 
-                            shortName=lbShortName
-                            tier=tier
-                            component=component 
-                            listeners=classicListeners 
-                            healthCheck=healthCheck 
-                            securityGroups=lbSecurityGroupIds 
-                            logs=lbLogs 
-                            bucket=operationsBucket 
-                        /]
-                    [/#if]
-            [#break]
         [/#switch ]
     [/#list]
 [/#if]
