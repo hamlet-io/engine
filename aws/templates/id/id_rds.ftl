@@ -90,11 +90,14 @@
     [#local fqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE)]
     [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
+    [#local encryptionScheme = solution.EncryptionScheme?has_content?then(
+                        solution.EncryptionScheme?ensure_ends_with(":"),
+                        "" )]
 
     [#if solution.GenerateCredentials.Enabled ]
         [#local masterUsername = solution.GenerateCredentials.MasterUserName ]
-        [#local masterPassword = getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE) ]
-        [#local url = getExistingReference(id, URL_ATTRIBUTE_TYPE) ]
+        [#local masterPassword = encryptionScheme + getExistingReference(id, GENERATEDPASSWORD_ATTRIBUTE_TYPE) ]
+        [#local url = encryptionScheme + getExistingReference(id, URL_ATTRIBUTE_TYPE) ]
     [#else]
         [#-- don't flag an error if credentials missing but component is not enabled --]
         [#local masterUsername = getOccurrenceSettingValue(occurrence, "MASTER_USERNAME", !solution.Enabled) ]

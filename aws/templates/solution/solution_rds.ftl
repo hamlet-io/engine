@@ -73,12 +73,12 @@
             [#assign rdsPasswordLength = solution.GenerateCredentials.CharacterLength]
             [#assign rdsPassword = "DummyPassword" ]
             [#assign rdsEncryptedPassword = (
-                getExistingReference(
-                    rdsId, 
-                    GENERATEDPASSWORD_ATTRIBUTE_TYPE)
-                )?remove_beginning(
-                    passwordEncryptionScheme
-                )]
+                        getExistingReference(
+                            rdsId, 
+                            GENERATEDPASSWORD_ATTRIBUTE_TYPE)
+                        )?remove_beginning(
+                            passwordEncryptionScheme
+                        )]
         [#else]
             [#assign rdsUsername = attributes.USERNAME ]
             [#assign rdsPassword = attributes.PASSWORD ]
@@ -295,6 +295,9 @@
         [#if deploymentSubsetRequired("epilogue", false)]
 
             [#assign rdsFQDN = getExistingReference(rdsId, DNS_ATTRIBUTE_TYPE)]
+
+            [#assign passwordPsuedoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
+            [#assign urlPsuedoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
             [@cfScript
                 mode=listMode
                 content=
@@ -321,7 +324,7 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Master Password\"" + " " +
                         "\"$\{password_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xgeneratedpassword\" \"" + passwordEncryptionScheme + "$\{encrypted_master_password}\" || return $?",
+                        "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" || return $?",
                         "info \"Generating URL... \"",
                         "rds_url=\"$(get_rds_url" +
                         " \"" + engine + "\" " +
@@ -337,10 +340,10 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Connection URL\"" + " " +
                         "\"$\{url_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xurl\" \"" + passwordEncryptionScheme + "$\{encrypted_rds_url}\" || return $?",
+                        "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
                         "}",
-                        "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\" ",
-                        "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
+                        "password_pseudo_stack_file=" + passwordPsuedoStackFile,
+                        "url_pseudo_stack_file=" +  urlPsuedoStackFile,
                         "generate_master_password || return $?"
                     ],
                     []) +
@@ -373,9 +376,9 @@
                         "create_pseudo_stack" + " " +
                         "\"RDS Connection URL\"" + " " +
                         "\"$\{url_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xurl\" \"" + passwordEncryptionScheme + "$\{encrypted_rds_url}\" || return $?",
+                        "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?"
                         "}",
-                        "url_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\" ",
+                        "url_pseudo_stack_file=" +  urlPsuedoStackFile,
                         "reset_master_password || return $?"
                     ],
                 []) +
