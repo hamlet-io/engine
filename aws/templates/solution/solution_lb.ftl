@@ -246,10 +246,11 @@
                                                         "       \"" + region + "\" " + 
                                                         "       \"" + getExistingReference(listenerId) + "\" " + 
                                                         "       \"$\{tmpdir}/cli-" + 
-                                                                listenerRuleId + "-" + listenerRuleCommand + ".json\")"
+                                                                listenerRuleId + "-" + listenerRuleCommand + ".json\")",
+                                                        "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                                                         "       create_pseudo_stack" + " " +
                                                         "       \"LB Listener Rule\"" + " " +
-                                                        "       \"$\{url_pseudo_stack_file}\"" + " " +
+                                                        "       \"$\{pseudo_stack_file}\"" + " " +
                                                         "       \"" + listenerRuleId + "Xarn\" \"$\{listener_rule_arn}\" || return $?"
                                                     ]
                                                 ) +

@@ -77,6 +77,17 @@
                 [#case LB_PORT_COMPONENT_TYPE]
                     [#assign targetGroupPermission = true]
 
+                    [#if deploymentSubsetRequired(EC2_COMPONENT_TYPE, true)]
+                        [@createSecurityGroupIngress
+                            mode=listMode
+                            id=formatDependentSecurityGroupIngressId(
+                                resources["securityGroup"].Id
+                                link.Id)
+                            port=link.DestinationPort
+                            cidr=linkTargetResources["sg"].Id
+                            groupId=ec2SecurityGroupId /]
+                    [/#if]
+
                     [#switch linkTargetAttributes["ENGINE"]]
 
                         [#case "application"]
