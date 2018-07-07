@@ -8,13 +8,13 @@
     [@DefaultEnvironmentVariables enabled=false /]
 
     [@Settings {
-        "JAVA_OPTS" : "-Dhudson.remoting.Launcher.pingIntervalSec=1200",
         "AWS_AUTOMATION_USER" : "ROLE"
     }/]
+    
+    [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp" ]
 
-    [#if settings["ENABLE_DOCKER"] ]
-        [@Volume "dockerlib" "/var/lib/docker/" "/cache/" + core.Name + "/" + getContainerName(container) + "/dockerlib/" /]
-    [/#if]
+    [@Volume "dockerDaemon" "/var/run/docker.sock" settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock" /]
+    [@Volume "dockerStage" dockerStageDir dockerStageDir /]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#if settings["CODEONTAPVOLUME"]?has_content ]

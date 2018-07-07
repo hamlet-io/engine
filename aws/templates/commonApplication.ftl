@@ -211,6 +211,16 @@
     [/#if]
 [/#macro]
 
+[#macro WorkingDirectory workingDirectory ]
+        [#if ((containerListMode!"") == "model")]
+        [#assign context +=
+            {
+                "WorkingDirectory" : workingDirectory
+            }
+        ]
+    [/#if]
+[/#macro]
+
 [#macro Volume name containerPath hostPath="" readOnly=false]
     [#if (containerListMode!"") == "model"]
         [#assign context +=

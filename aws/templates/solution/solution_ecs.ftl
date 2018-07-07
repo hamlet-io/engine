@@ -29,7 +29,7 @@
         [#assign configSets =  
                 getInitConfigDirectories() + 
                 getInitConfigBootstrap(component.Role!"") +
-                getInitConfigECSAgent(ecsId, defaultLogDriver) ]
+                getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers) ]
         
         [#assign efsMountPoints = {}]
     

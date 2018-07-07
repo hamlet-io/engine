@@ -94,6 +94,19 @@
                     "Name" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Name" : "DockerUsers",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Name" : "UserName"
+                        },
+                        {
+                            "Name" : "UID",
+                            "Mandatory" : true
+                        }
+                    ]
                 }
             ],
             "Components" : [
