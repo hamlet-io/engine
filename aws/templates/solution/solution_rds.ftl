@@ -296,8 +296,8 @@
 
             [#assign rdsFQDN = getExistingReference(rdsId, DNS_ATTRIBUTE_TYPE)]
 
-            [#assign passwordPsuedoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
-            [#assign urlPsuedoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
+            [#assign passwordPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
+            [#assign urlPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
             [@cfScript
                 mode=listMode
                 content=
