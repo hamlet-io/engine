@@ -367,14 +367,23 @@
                 [/#list]
             [#else]
                 [#if port.IPAddressGroups?has_content]
-                    [#list getGroupCIDRs(port.IPAddressGroups ) as cidr]
-                        [#local ingressRules += [ {
-                            "port" : port.DynamicHostPort?then(0,contentIfContent(
-                                                                            port.Container!"",
-                                                                            port.Name )),
-                            "cidr" : cidr
-                        }]]
-                    [/#list]
+                    [#if solution.NetworkMode == "awsvpc" ]
+                        [#list getGroupCIDRs(port.IPAddressGroups ) as cidr]
+                            [#local ingressRules += [ {
+                                "port" : port.DynamicHostPort?then(0,contentIfContent(
+                                                                                port.Container!"",
+                                                                                port.Name )),
+                                "cidr" : cidr
+                            }]]
+                        [/#list]
+                    [#else]
+                        [@cfException
+                            mode=listMode
+                            description="Port IP Address Groups not supported for network type"
+                            context=container
+                            detail=port /]
+                        [#continue]
+                    [/#if]
                 [/#if]
             [/#if]
         [/#list]
