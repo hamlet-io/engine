@@ -38,7 +38,7 @@
 
                 [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
                 [#assign ecsSecurityGroupName = resources["securityGroup"].Name ]
-                
+
             [/#if] 
 
             [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
@@ -195,10 +195,26 @@
                                         cidr=securityGroupSources
                                         groupId=ecsSecurityGroupId
                                     /]
-                                [/#if]    
-                            
-                            [/#if]
+                                [/#if]  
+                                
+                            [/#if]  
                         [/#list]
+                        [#if container.IngressRules?has_content ]
+                            [#list container.IngressRules as ingressRule ]
+                                [@createSecurityGroupIngress
+                                        mode=listMode
+                                        id=formatContainerSecurityGroupIngressId(
+                                                ecsSecurityGroupId,
+                                                container,
+                                                ingressRule.port,
+                                                replaceAlphaNumericOnly(ingressRule.cidr)
+                                            )
+                                        port=ingressRule.port
+                                        cidr=ingressRule.cidr
+                                        groupId=ecsSecurityGroupId
+                                    /]
+                            [/#list]
+                        [/#if]
                     [/#list]
 
                     [@createECSService

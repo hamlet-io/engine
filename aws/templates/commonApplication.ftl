@@ -319,50 +319,73 @@
     [#list solution.Containers?values as container]
         [#local containerPortMappings = [] ]
         [#local containerLinks = container.Links ]
+        [#local ingressRules = []]
 
         [#list container.Ports?values as port]
 
-            [#local lbLink = getLBLink( task, port )]
-            
-            [#if isDuplicateLink(containerLinks, lbLink) ]
-                [@cfException
-                    mode=listMode
-                    description="Duplicate Link Name"
-                    context=containerLinks
-                    detail=lbLink /]
-                [#continue]
-            [/#if]
+            [#if port.LB.Configured] 
+                [#local lbLink = getLBLink( task, port )]
+                
+                [#if isDuplicateLink(containerLinks, lbLink) ]
+                    [@cfException
+                        mode=listMode
+                        description="Duplicate Link Name"
+                        context=containerLinks
+                        detail=lbLink /]
+                    [#continue]
+                [/#if]
 
-            [#-- Treat the LB link like any other - this will also detect --]
-            [#-- if the target is missing                                 --]
-            [#local containerLinks += lbLink]
+                [#-- Treat the LB link like any other - this will also detect --]
+                [#-- if the target is missing                                 --]
+                [#local containerLinks += lbLink]
 
-            [#local containerPortMapping =
-                {
-                    "ContainerPort" :
-                        contentIfContent(
-                            port.Container!"",
-                            port.Name
-                        ),
-                    "HostPort" : port.Name,
-                    "DynamicHostPort" : port.DynamicHostPort
-                } ]
-
-            [#-- Ports should only be defined if connecting to a load balancer --]
-            [#list lbLink as key,loadBalancer]
-                [#local containerPortMapping +=
+                [#local containerPortMapping =
                     {
-                        "LoadBalancer" :
-                            {
-                                "Link" : loadBalancer.Name,
-                                "TargetGroup" : loadBalancer.TargetGroup!"",
-                                "Priority" : port.LB.Priority,
-                                "Path" : loadBalancer.TargetPath!""
-                            }
-                    }
-                ]
-                [#local containerPortMappings += [containerPortMapping] ]
-            [/#list]
+                        "ContainerPort" :
+                            contentIfContent(
+                                port.Container!"",
+                                port.Name
+                            ),
+                        "HostPort" : port.Name,
+                        "DynamicHostPort" : port.DynamicHostPort
+                    } ]
+
+                [#-- Ports should only be defined if connecting to a load balancer --]
+                [#list lbLink as key,loadBalancer]
+                    [#local containerPortMapping +=
+                        {
+                            "LoadBalancer" :
+                                {
+                                    "Link" : loadBalancer.Name,
+                                    "TargetGroup" : loadBalancer.TargetGroup!"",
+                                    "Priority" : port.LB.Priority,
+                                    "Path" : loadBalancer.TargetPath!""
+                                }
+                        }
+                    ]
+                    [#local containerPortMappings += [containerPortMapping] ]
+                [/#list]
+            [#else]
+                [#if port.IPAddressGroups?has_content]
+                    [#if solution.NetworkMode == "awsvpc" ]
+                        [#list getGroupCIDRs(port.IPAddressGroups ) as cidr]
+                            [#local ingressRules += [ {
+                                "port" : port.DynamicHostPort?then(0,contentIfContent(
+                                                                                port.Container!"",
+                                                                                port.Name )),
+                                "cidr" : cidr
+                            }]]
+                        [/#list]
+                    [#else]
+                        [@cfException
+                            mode=listMode
+                            description="Port IP Address Groups not supported for network type"
+                            context=container
+                            detail=port /]
+                        [#continue]
+                    [/#if]
+                [/#if]
+            [/#if]
         [/#list]
 
         [#local logDriver =
@@ -473,7 +496,8 @@
                 !container.MaximumMemory??,
                 container.MemoryReservation*ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER
             ) +
-            attributeIfContent("PortMappings", containerPortMappings)
+            attributeIfContent("PortMappings", containerPortMappings) +
+            attributeIfContent("IngressRules", ingressRules)
         ]
 
         [#-- Add in container specifics including override of defaults --]

@@ -52,6 +52,10 @@
                 {
                     "Name" : "LB",
                     "Children" : lbChildConfiguration
+                },
+                {
+                    "Name" : "IPAddressGroups",
+                    "Default" : []
                 }
             ]
         },
@@ -286,7 +290,9 @@
                     "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }),
-            "Attributes" : {},
+            "Attributes" : {
+                "Name" : core.Name
+            },
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}
