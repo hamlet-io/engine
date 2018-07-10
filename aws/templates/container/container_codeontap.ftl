@@ -1,6 +1,9 @@
 [#case "codeontap"]
     [#assign settings = context.DefaultEnvironment]
 
+    [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp" ]
+    [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock" ]
+
     [@Attributes image="gen3-jenkins-slave" /]
     
     [@DefaultLinkVariables enabled=false /]
@@ -8,12 +11,11 @@
     [@DefaultEnvironmentVariables enabled=false /]
 
     [@Settings {
-        "AWS_AUTOMATION_USER" : "ROLE"
+        "AWS_AUTOMATION_USER" : "ROLE",
+        "DOCKER_STAGE_DIR" : dockerStageDir
     }/]
-    
-    [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp" ]
 
-    [@Volume "dockerDaemon" "/var/run/docker.sock" settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock" /]
+    [@Volume "dockerDaemon" "/var/run/docker.sock" dockerHostDaemon  /]
     [@Volume "dockerStage" dockerStageDir dockerStageDir /]
 
     [#-- Validate that the appropriate settings have been provided for the container to work --]
