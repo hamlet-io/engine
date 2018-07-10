@@ -132,6 +132,7 @@
     [#local lbId = parentState.Resources["lb"].Id]
 
     [#local sourcePort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Source])!{} ]
+    [#local destinationPort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Destination])!{} ]
     [#local listenerId = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, parentCore.Id, sourcePort) ]
 
     [#local path = (solution.Path == "default")?then(
@@ -183,6 +184,8 @@
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : internalUrl + path,
                 "PORT" : sourcePort.Name,
+                "SOURCE_PORT" : sourcePort.Name,
+                "DESTINATION_PORT" : destinationPort.Name,
                 "AUTH_CALLBACK_URL" : url + "/oauth2/idpresponse",
                 "AUTH_CALLBACK_INTERNAL_URL" : internalUrl + "/oauth2/idpresponse"
             },

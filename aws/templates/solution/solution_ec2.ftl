@@ -83,7 +83,7 @@
                             id=formatDependentSecurityGroupIngressId(
                                 resources["securityGroup"].Id
                                 link.Id)
-                            port=link.DestinationPort
+                            port=linkTargetAttributes["DESTINATION_PORT"]
                             cidr=linkTargetResources["sg"].Id
                             groupId=ec2SecurityGroupId /]
                     [/#if]

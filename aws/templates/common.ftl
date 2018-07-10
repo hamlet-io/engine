@@ -1891,8 +1891,7 @@
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
-        attributeIfContent("PortMapping",  portMapping) + 
-        attributeIfContent("DestinationPort" , port.Name)
+        attributeIfContent("PortMapping",  portMapping) 
     ]
     [@cfDebug listMode { targetLinkName : targetLink } false /]
 
