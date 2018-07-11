@@ -708,7 +708,16 @@ function update_cognito_userpool() {
   local userpoolid="$1"; shift
   local configfile="$1"; shift
 
-  aws --region ${region} cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}"
+  aws --region "${region}" cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}"
+}
+
+function update_userpool_client() {
+  local region="$1"; shift
+  local userpoolid="$1"; shift
+  local userpoolclientid="$1"; shift
+  local configfile="$1"; shift
+
+  aws --region "${region}" cognito-idp update-user-pool-client --user-pool-id "${userpoolid}" --client-id "${userpoolclientid}" --cli-input-json "file://${configfile}"
 }
 
 function manage_congnito_domain() { 
@@ -761,6 +770,37 @@ function update_es_domain() {
   local configfile="$1"; shift 
 
   aws --region "${region}" es update-elasticsearch-domain-config --domain-name "${esid}" --cli-input-json "file://${configfile}" || return $?
+}
+
+# -- Elastic Load Balancing -- 
+function create_elbv2_rule() {
+  local region="$1"; shift
+  local listenerid="$1"; shift
+  local configfile="$1"; shift 
+
+  rule_arn="$(aws --region "${region}" elbv2 create-rule --listener-arn "${listenerid}" --cli-input-json "file://${configfile}" | jq -r '.Rules[0].RuleArn | select (.!=null)')"
+
+  if [[ -z "${rule_arn}" ]]; then 
+    fatal "Rule was not created"
+    return 255
+  else
+    echo "${rule_arn}"
+  fi
+}
+
+function update_elbv2_rule() { 
+  local region="$1"; shift
+  local ruleid="$1"; shift
+  local configfile="$1"; shift 
+
+  aws --region "${region}" elbv2 modify-rule --rule-arn "${ruleid}" --cli-input-json "file://${configfile}" || return $?
+}
+
+function delete_elbv2_rule() {
+  local region="$1"; shift
+  local ruleid="$1"; shift
+
+  aws --region "${region}" elbv2 delete-rule --rule-arn "${ruleid}" || return $?
 }
 
 # -- S3 --

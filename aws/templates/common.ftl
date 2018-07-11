@@ -1891,61 +1891,8 @@
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
-        attributeIfContent("PortMapping",  portMapping)
+        attributeIfContent("PortMapping",  portMapping) 
     ]
-
-    [#-- This lookup is purely to determine the correct attributes for the link   --]
-    [#-- The calling code should still check that the target link actually exists --]
-    [#-- using the value returned by this function                                --]
-    [#if targetTierId?has_content && targetComponentId?has_content]
-        [#local targetLoadBalancer = getLinkTarget(occurrence, targetLink) ]
-
-        [@cfDebug listMode targetLoadBalancer false /]
-
-        [#if targetLoadBalancer?has_content ]
-
-            [#local targetGroup = port.LB.TargetGroup]
-
-            [#if (ports[targetLoadBalancer.State.Attributes["PORT"]].Protocol) != "TCP" ]
-                [#local targetPath = port.LB.Path]
-            [#else]
-                [#local targetPath = "" ]
-            [/#if]
-
-            [#if targetPath?has_content]
-                [#-- target group name must be provided if path provided --]
-                [#if !targetGroup?has_content]
-                    [@cfException
-                        listMode "No target group for provided path" occurrence /]
-                    [#local targetGroup = "default" ]
-                [/#if]
-            [#else]
-                [#if !targetGroup?has_content]
-                    [#-- Create target group for container if it --]
-                    [#-- is versioned and load balancer isn't    --]
-                    [#if core.Version.Name?has_content &&
-                            !targetLoadBalancer.Core.Version.Name?has_content]
-                        [#local targetPath = "/" + core.Version.Name + "/*" ]
-                        [#local targetGroup = core.Version.Name ]
-                    [#else]
-                        [#local targetGroup = "default" ]
-                        [#local targetPath = ""]
-                    [/#if]
-                [/#if]
-            [/#if]
-
-            [#local targetLink +=
-                attributeIfContent(
-                    "TargetPath",
-                    targetPath
-                ) +
-                attributeIfContent(
-                    "TargetGroup",
-                    targetGroup
-                )]
-        [/#if]
-    [/#if]
-
     [@cfDebug listMode { targetLinkName : targetLink } false /]
 
     [#return { targetLinkName : targetLink } ]

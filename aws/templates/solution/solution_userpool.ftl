@@ -29,8 +29,11 @@
         [#assign userPoolTriggerConfig = {}]
         [#assign userPoolManualTriggerConfig = {}]
         [#assign smsConfig = {}]
-        
-        [#assign userPoolUpdateCommand = "updateUserPool" ]     
+        [#assign callbackUrls = []]
+        [#assign logoutUrls = []]
+
+        [#assign userPoolUpdateCommand = "updateUserPool" ]
+        [#assign userPoolClientUpdateCommand = "updateUserPoolClient" ]     
         [#assign userPoolDomainCommand = "setDomainUserPool" ]       
     
         [#assign emailVerificationMessage =
@@ -88,6 +91,14 @@
             [#assign linkTargetAttributes = linkTarget.State.Attributes]
 
             [#switch linkTargetCore.Type]
+                [#case LB_PORT_COMPONENT_TYPE]
+                    [#assign callbackUrls += [
+                        linkTargetAttributes["AUTH_CALLBACK_URL"],
+                        linkTargetAttributes["AUTH_CALLBACK_INTERNAL_URL"]
+                        ]
+                    ]
+                    [#break]
+
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
                     [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
@@ -175,6 +186,10 @@
                                 ]
                                 [#break]
                         [/#switch]
+                    [/#if]
+                [#break]
+                [#case LB_PORT_COMPONENT_TYPE]
+                    [#if linkTargetResources[LB_PORT_COMPONENT_TYPE].Deployed]
                     [/#if]
                 [#break]
             [/#switch]
@@ -399,6 +414,25 @@
                 command=userPoolDomainCommand
                 content=userPoolDomain
             /]
+
+            [#assign updateUserPoolClient = 
+                {
+                    "CallbackURLs": callbackUrls,
+                    "LogoutURLs": logoutUrls,
+                    "AllowedOAuthFlows": solution.OAuth.Flows,
+                    "AllowedOAuthScopes": solution.OAuth.Scopes,
+                    "AllowedOAuthFlowsUserPoolClient": true,
+                    "SupportedIdentityProviders" : [ "COGNITO" ]
+                }
+            ]
+
+            [@cfCli
+                mode=listMode
+                id=userPoolClientId
+                command=userPoolClientUpdateCommand
+                content=updateUserPoolClient
+            /]
+
         [/#if]
         
         [#if deploymentSubsetRequired("prologue", false)]
@@ -434,23 +468,36 @@
             [@cfScript
                 mode=listMode
                 content=(getExistingReference(userPoolId)?has_content)?then(
+                    [
+                        " # Get cli config file",
+                        " split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)",
+                        "       # Manage Userpool client",
+                        "       update_userpool_client" +
+                        "       \"" + region + "\" " + 
+                        "       \"" + getExistingReference(userPoolId) + "\" " + 
+                        "       \"" + getExistingReference(userPoolClientId) + "\" " + 
+                        "       \"$\{tmpdir}/cli-" + 
+                            userPoolClientId + "-" + userPoolClientUpdateCommand + ".json\" || return $?"
+                    ] +
                     [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
                     (userPoolManualTriggerConfig?has_content)?then(
                         [
-                            "case $\{STACK_OPERATION} in",
-                            "  create|update)",
                             "       # Add Manual Cognito Triggers",
                             "       info \"Adding Cognito Triggers that are not part of cloudformation\""
                             "       update_cognito_userpool" +
                             " \"" + region + "\" " + 
                             " \"" + getExistingReference(userPoolId) + "\" " + 
                             " \"$\{tmpdir}/cli-" + 
-                            userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?",
-                            "       ;;",
-                            "       esac"
+                            userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?"
                         ],
                         []
-                    ) ,
+                    )+
+                    [
+                        "       ;;",
+                        "       esac"
+                    ],
                     [
                         "warning \"Please run another update to complete the configuration\""
                     ]

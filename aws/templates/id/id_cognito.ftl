@@ -53,6 +53,19 @@
                 "Default" : false
             },
             {
+                "Name" : "OAuth",
+                "Children" : [
+                    {
+                        "Name" : "Scopes",
+                        "Default" : [ "openid" ]
+                    },
+                    {
+                        "Name" : "Flows",
+                        "Default" : [ "code" ]
+                    }
+                ]
+            },
+            {
                 "Name" : "PasswordPolicy",
                 "Children" : [
                     {
@@ -147,6 +160,7 @@
                 "USER_POOL" : getReference(userPoolId),
                 "IDENTITY_POOL" : getReference(identityPoolId),
                 "CLIENT" : getReference(userPoolClientId),
+                "CLIENTSECRET" : getReference(userPoolClientId, PASSWORD_ATTRIBUTE_TYPE),
                 "REGION" : regionId
             },
             "Roles" : {

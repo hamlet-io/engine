@@ -81,35 +81,7 @@
                                                 [#assign securityGroupSources = linkConfiguration.IPAddressGroups + [ "_localnet" ] ]
 
                                             [#case "application" ]
-                                                [#assign targetId = (linkResources["targetgroups"][loadBalancer.TargetGroup].Id)!"" ]
-                                                [#if !targetId?has_content]
-                                                    [#assign targetId = formatALBTargetGroupId(link, loadBalancer.TargetGroup) ]
-
-                                                    [#if isPartOfCurrentDeploymentUnit(targetId)]
-
-                                                        [@createTargetGroup
-                                                            mode=listMode
-                                                            id=targetId
-                                                            name=formatName(linkCore.FullName,loadBalancer.TargetGroup)
-                                                            tier=linkCore.Tier
-                                                            component=linkCore.Component
-                                                            destination=ports[portMapping.HostPort]
-                                                            targetType=lbTargetType
-                                                            /]
-
-                                                        [#assign listenerRuleId = formatALBListenerRuleId(link, loadBalancer.TargetGroup) ]
-                                                        [@createListenerRule
-                                                            mode=listMode
-                                                            id=listenerRuleId
-                                                            listenerId=linkResources["listener"].Id
-                                                            actions=getListenerRuleForwardAction(targetId)
-                                                            conditions=getListenerRulePathCondition(loadBalancer.Path)
-                                                            priority=loadBalancer.Priority!100
-                                                            dependencies=targetId
-                                                        /]
-                                                        [#assign dependencies += [listenerRuleId] ]
-                                                    [/#if]
-                                                [/#if]
+                                                [#assign targetId = (linkResources["targetgroup"].Id)!"" ]
 
                                                 [#assign loadBalancers +=
                                                     [

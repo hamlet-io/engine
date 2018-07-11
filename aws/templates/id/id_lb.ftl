@@ -8,14 +8,6 @@
 [#assign AWS_ALB_LISTENER_RULE_RESOURCE_TYPE = "listenerRule" ]
 [#assign AWS_ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
 
-[#function formatALBListenerRuleId occurrence name ]
-    [#return formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, occurrence.Core.Id, name) ]
-[/#function]
-
-[#function formatALBTargetGroupId occurrence name ]
-    [#return formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, occurrence.Core.Id, name) ]
-[/#function]
-
 [#-- Components --]
 [#assign LB_COMPONENT_TYPE = "lb" ]
 [#assign LB_PORT_COMPONENT_TYPE = "lbport" ]
@@ -67,6 +59,32 @@
             {
                 "Name" : "TargetType",
                 "Default" : "instance"
+            },
+            {
+                "Name" : "Path",
+                "Default" : "default"
+            },
+            {
+                "Name" : "Priority",
+                "Default" : 100
+            },
+            {
+                "Name" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
+            },
+            {
+                "Name" : "Authentication",
+                "Children" : [
+                    {
+                        "Name" : "SessionCookieName",
+                        "Default" : "AWSELBAuthSessionCookie"
+                    },
+                    {
+                        "Name" : "SessionTimeout",
+                        "Default" : 604800
+                    }
+                ]
             }
         ]
     }]
@@ -105,6 +123,7 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
+    [#local parentCore = parent.Core ]
     [#local parentSolution = parent.Configuration.Solution ]
     [#local parentState = parent.State ]
 
@@ -113,8 +132,13 @@
     [#local lbId = parentState.Resources["lb"].Id]
 
     [#local sourcePort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Source])!{} ]
+    [#local destinationPort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Destination])!{} ]
+    [#local listenerId = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, parentCore.Id, sourcePort) ]
 
-    [#local id = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, core.Id) ]
+    [#local path = (solution.Path == "default")?then(
+        "",
+        solution.Path
+    )]
 
     [#if (sourcePort.Certificate)!false ]
         [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
@@ -126,34 +150,44 @@
         [#local fqdn = internalFqdn ]
         [#local scheme ="http" ]
     [/#if]
+
+    [#local url = scheme + "://" + fqdn  ]
+    [#local internalUrl = scheme + "://" + internalFqdn ]
+    
     [#return
         {
             "Resources" : {
                 "listener" : {
-                    "Id" : id,
+                    "Id" : listenerId,
                     "Type" : AWS_ALB_LISTENER_RESOURCE_TYPE
                 },
                 "sg" : {
-                    "Id" : formatDependentSecurityGroupId(id),
+                    "Id" : formatDependentSecurityGroupId(listenerId),
                     "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
-                "targetgroups" : {
-                    "default" : {
-                        "Id" : formatALBTargetGroupId(occurrence, "default"),
-                        "Name" : formatName(core.FullName, "default"),
-                        "Type" : AWS_ALB_TARGET_GROUP_RESOURCE_TYPE
-                    }
+                "listenerRule" : {
+                    "Id" : formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_ALB_LISTENER_RULE_RESOURCE_TYPE
+                },
+                "targetgroup" : {
+                    "Id" : formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, occurrence.Core.Id),
+                    "Name" : formatName(core.FullName),
+                    "Type" : AWS_ALB_TARGET_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
                 "LB" : lbId,
                 "ENGINE" : engine,
                 "FQDN" : fqdn,
-                "URL" : scheme + "://" + fqdn,
+                "URL" : url + path,
                 "INTERNAL_FQDN" : internalFqdn,
-                "INTERNAL_URL" : scheme + "://" + internalFqdn,
-                "PORT" : sourcePort.Name
+                "INTERNAL_URL" : internalUrl + path,
+                "PORT" : sourcePort.Name,
+                "SOURCE_PORT" : sourcePort.Name,
+                "DESTINATION_PORT" : destinationPort.Name,
+                "AUTH_CALLBACK_URL" : url + "/oauth2/idpresponse",
+                "AUTH_CALLBACK_INTERNAL_URL" : internalUrl + "/oauth2/idpresponse"
             },
             "Roles" : {
                 "Inbound" : {},
