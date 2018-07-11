@@ -214,13 +214,13 @@
             [#if solution.UseTaskRole]
                 [#assign roleId = resources["taskrole"].Id ]
                 [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
-                    [@createRole
-                        mode=listMode
-                        id=roleId
-                        trustedServices=["ecs-tasks.amazonaws.com"]
-                    /]
+                    [#assign managedPolicy = []]
 
                     [#list containers as container]
+                        [#if container.ManagedPolicy?has_content ]
+                            [#assign managedPolicy += container.ManagedPolicy ]
+                        [/#if]
+
                         [#if container.Policy?has_content]
                             [#assign policyId = formatDependentPolicyId(taskId, container.Id) ]
                             [@createPolicy
@@ -247,6 +247,13 @@
                             [#assign dependencies += [policyId] ]
                         [/#if]
                     [/#list]
+
+                    [@createRole
+                        mode=listMode
+                        id=roleId
+                        trustedServices=["ecs-tasks.amazonaws.com"]
+                        managedArns=managedPolicy
+                    /]
                 [/#if]
             [#else]
                 [#assign roleId = "" ]

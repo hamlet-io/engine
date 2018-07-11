@@ -34,6 +34,14 @@
             "Default" : false
         },
         {
+            "Name" : "RunCapabilities",
+            "Default" : []
+        },
+        {
+            "Name" : "Privileged",
+            "Default" : false
+        },
+        {
             "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"]
         },
         {
@@ -86,6 +94,19 @@
                     "Name" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Name" : "DockerUsers",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Name" : "UserName"
+                        },
+                        {
+                            "Name" : "UID",
+                            "Mandatory" : true
+                        }
+                    ]
                 }
             ],
             "Components" : [

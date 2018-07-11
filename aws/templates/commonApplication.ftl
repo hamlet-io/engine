@@ -211,6 +211,16 @@
     [/#if]
 [/#macro]
 
+[#macro WorkingDirectory workingDirectory ]
+        [#if ((containerListMode!"") == "model")]
+        [#assign context +=
+            {
+                "WorkingDirectory" : workingDirectory
+            }
+        ]
+    [/#if]
+[/#macro]
+
 [#macro Volume name containerPath hostPath="" readOnly=false]
     [#if (containerListMode!"") == "model"]
         [#assign context +=
@@ -244,6 +254,16 @@
         [#assign context +=
             {
                 "Policy" : (context.Policy![]) + asFlattenedArray(statements)
+            }
+        ]
+    [/#if]
+[/#macro]
+
+[#macro ManagedPolicy arns...]
+    [#if (containerListMode!"") == "model"]
+        [#assign context += 
+            {
+                "ManagedPolicy" : (context.ManagedPolicy![]) + asFlattenedArray(arns)
             }
         ]
     [/#if]
@@ -479,7 +499,8 @@
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
-                "Policy" : standardPolicies(task)
+                "Policy" : standardPolicies(task),
+                "Privileged" : container.Privileged
             } +
             attributeIfContent("LogGroup", containerLogGroup) +
             attributeIfContent("ImageVersion", container.Version) +
@@ -497,7 +518,8 @@
                 container.MemoryReservation*ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER
             ) +
             attributeIfContent("PortMappings", containerPortMappings) +
-            attributeIfContent("IngressRules", ingressRules)
+            attributeIfContent("IngressRules", ingressRules) +
+            attributeIfContent("RunCapabilities", container.RunCapabilities)
         ]
 
         [#-- Add in container specifics including override of defaults --]

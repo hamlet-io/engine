@@ -260,7 +260,16 @@
     ]
 [/#function]
 
-[#function getInitConfigECSAgent ecsId defaultLogDriver ignoreErrors=false ]
+[#function getInitConfigECSAgent ecsId defaultLogDriver dockerUsers=[] ignoreErrors=false ]
+    [#local dockerUsersEnv = "" ]
+
+    [#if dockerUsers?has_content ] 
+        [#list dockerUsers as userName,details ]
+            [#local dockerUsersEnv += details.UserName?has_content?then(details.UserName,userName) + ":" + details.UID + "," ]
+        [/#list] 
+    [/#if]
+    [#local dockerUsersEnv = dockerUsersEnv?remove_ending(",")]
+
     [#return 
         {
         "ecs": {
@@ -278,7 +287,11 @@
                         "env" : {
                             "ECS_CLUSTER" : getReference(ecsId),
                             "ECS_LOG_DRIVER" : defaultLogDriver
-                        },
+                        } +
+                        attributeIfContent(
+                            "DOCKER_USERS",
+                            dockerUsersEnv
+                        ),
                         "ignoreErrors" : ignoreErrors
                     }
                 }

@@ -87,7 +87,16 @@
                 attributeIfContent("ExtraHosts", extraHosts) +
                 attributeIfContent("Memory", container.MaximumMemory!"") +
                 attributeIfContent("Cpu", container.Cpu!"") +
-                attributeIfContent("PortMappings", portMappings) 
+                attributeIfContent("PortMappings", portMappings) + 
+                attributeIfContent("LinuxParameters", container.RunCapabilities![], 
+                                        {
+                                            "Capabilities" : {
+                                                "Add" : container.RunCapabilities![]
+                                            }
+                                        }
+                                    ) +
+                attributeIfTrue("Privileged", container.Privileged, container.Privileged!"") + 
+                attributeIfContent("WorkingDirectory", container.WorkingDirectory!"")
             ]
         ]
     [/#list]
