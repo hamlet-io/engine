@@ -96,7 +96,7 @@
                                         }
                                     ) +
                 attributeIfTrue("Privileged", container.Privileged, container.Privileged!"") + 
-                attributeIfContent("WorkingDirectory", container.WorkingDirectory)
+                attributeIfContent("WorkingDirectory", container.WorkingDirectory!"")
             ]
         ]
     [/#list]
