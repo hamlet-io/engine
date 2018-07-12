@@ -131,6 +131,7 @@
                         id=
                             formatDependentSecurityGroupIngressId(
                                 ec2SecurityGroupId,
+                                link.Id,
                                 destinationPort,
                                 replaceAlphaNumericOnly(cidr)
                             )
@@ -146,6 +147,7 @@
                         id=
                             formatDependentSecurityGroupIngressId(
                                 ec2SecurityGroupId,
+                                link.Id,
                                 destinationPort
                             )
                         port=destinationPort

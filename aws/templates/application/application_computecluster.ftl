@@ -206,6 +206,7 @@
                         id=
                             formatDependentSecurityGroupIngressId(
                                 computeClusterSecurityGroupId,
+                                link.Id,
                                 destinationPort,
                                 replaceAlphaNumericOnly(cidr)
                             )
@@ -221,6 +222,7 @@
                         id=
                             formatDependentSecurityGroupIngressId(
                                 computeClusterSecurityGroupId,
+                                link.Id,
                                 destinationPort
                             )
                         port=destinationPort
