@@ -73,20 +73,23 @@
             [#assign linkTargetResources = linkTarget.State.Resources ]
             [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
+            [#assign sourceSecurityGroupIds = []]
+            [#assign sourceIPAddressGroups = [] ]
+
             [#switch linkTargetCore.Type]
                 [#case LB_PORT_COMPONENT_TYPE]
                     [#assign targetGroupPermission = true]
+                    [#assign destinationPort = linkTargetAttributes["DESTINATION_PORT"]]
 
-                    [#if deploymentSubsetRequired(EC2_COMPONENT_TYPE, true)]
-                        [@createSecurityGroupIngress
-                            mode=listMode
-                            id=formatDependentSecurityGroupIngressId(
-                                resources["securityGroup"].Id
-                                link.Id)
-                            port=linkTargetAttributes["DESTINATION_PORT"]
-                            cidr=linkTargetResources["sg"].Id
-                            groupId=ec2SecurityGroupId /]
-                    [/#if]
+                    [#switch linkTargetAttributes["ENGINE"] ] 
+                        [#case "application" ]
+                        [#case "classic"]
+                            [#assign sourceSecurityGroupIds += [ linkTargetResources["sg"].Id ] ]
+                            [#break]
+                        [#case "network" ]
+                            [#assign sourceIPAddressGroups = linkTargetConfiguration.IPAddressGroups + [ "_localnet" ] ]
+                            [#break]
+                    [/#switch]
 
                     [#switch linkTargetAttributes["ENGINE"]]
 
@@ -117,6 +120,40 @@
                         )]
                     [#break]
             [/#switch]
+
+            [#if deploymentSubsetRequired(EC2_COMPONENT_TYPE, true)] 
+
+                [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups)]
+                [#list securityGroupCIDRs as cidr ]
+                    
+                    [@createSecurityGroupIngress
+                        mode=listMode
+                        id=
+                            formatDependentSecurityGroupIngressId(
+                                ec2SecurityGroupId,
+                                destinationPort,
+                                replaceAlphaNumericOnly(cidr)
+                            )
+                        port=destinationPort
+                        cidr=cidr
+                        groupId=ec2SecurityGroupId
+                /]
+                [/#list]
+
+                [#list sourceSecurityGroupIds as group ]
+                    [@createSecurityGroupIngress
+                        mode=listMode
+                        id=
+                            formatDependentSecurityGroupIngressId(
+                                ec2SecurityGroupId,
+                                destinationPort
+                            )
+                        port=destinationPort
+                        cidr=group
+                        groupId=ec2SecurityGroupId
+                    /]
+                [/#list]
+            [/#if]
         [/#list]
 
         [#if deploymentSubsetRequired("iam", true) &&
