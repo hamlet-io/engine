@@ -147,7 +147,7 @@
                                             formatContainerSecurityGroupIngressId(
                                                 ecsSecurityGroupId,
                                                 container,
-                                                link.Id
+                                                link.Id,
                                                 portMapping.DynamicHostPort?then(
                                                     "dynamic",
                                                     ports[portMapping.HostPort].Port
@@ -167,7 +167,7 @@
                                             formatContainerSecurityGroupIngressId(
                                                 ecsSecurityGroupId,
                                                 container,
-                                                link.Id
+                                                link.Id,
                                                 portMapping.DynamicHostPort?then(
                                                     "dynamic",
                                                     ports[portMapping.HostPort].Port
