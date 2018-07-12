@@ -41,13 +41,12 @@
             [#assign listenerId = resources["listener"].Id ]
             [#assign defaultListener = false]
     
-            [#assign ipAddressGroups = solution.IPAddressGroups ]
-
+            [#assign portIpAddressGroups = solution.IPAddressGroups ]
             [#if !solution.IPAddressGroups?seq_contains("_localnet") && tier.Network.RouteTable != "external" ]
-                [#assign ipAddressGroups += [ "_localnet"] ]
+                [#assign portIpAddressGroups += [ "_localnet"] ]
             [/#if]
 
-            [#assign cidrs= getGroupCIDRs(ipAddressGroups) ]
+            [#assign cidrs = getGroupCIDRs(portIpAddressGroups)]
 
             [#assign securityGroupId = resources["sg"].Id]
             [#assign securityGroupName = resources["sg"].Name]
@@ -370,20 +369,22 @@
                     "Timeout" : healthCheckPort.HealthCheck.Timeout
                 }]
 
-                [@createClassicLB 
-                    mode=listMode 
-                    id=lbId 
-                    name=lbName 
-                    shortName=lbShortName
-                    tier=tier
-                    component=component 
-                    listeners=classicListeners 
-                    healthCheck=healthCheck 
-                    securityGroups=lbSecurityGroupIds 
-                    logs=lbLogs 
-                    bucket=operationsBucket 
-                    idleTimeout=idleTimeout
-                    /]
+                [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
+                    [@createClassicLB 
+                        mode=listMode 
+                        id=lbId 
+                        name=lbName 
+                        shortName=lbShortName
+                        tier=tier
+                        component=component 
+                        listeners=classicListeners 
+                        healthCheck=healthCheck 
+                        securityGroups=lbSecurityGroupIds 
+                        logs=lbLogs 
+                        bucket=operationsBucket 
+                        idleTimeout=idleTimeout
+                        /]
+                [/#if]
                 [#break]
 
             [#case "classic"]
