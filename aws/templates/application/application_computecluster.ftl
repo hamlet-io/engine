@@ -149,20 +149,23 @@
             [#assign linkTargetResources = linkTarget.State.Resources ]
             [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
+            [#assign sourceSecurityGroupIds = []]
+            [#assign sourceIPAddressGroups = [] ]
+
             [#switch linkTargetCore.Type]
                 [#case LB_PORT_COMPONENT_TYPE]
                     [#assign targetGroupPermission = true]
+                    [#assign destinationPort = linkTargetAttributes["DESTINATION_PORT"]]
 
-                    [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
-                        [@createSecurityGroupIngress
-                            mode=listMode
-                            id=formatDependentSecurityGroupIngressId(
-                                resources["securityGroup"].Id
-                                link.Id)
-                            port=linkTargetAttributes["DESTINATION_PORT"]
-                            cidr=linkTargetResources["sg"].Id
-                            groupId=computeClusterSecurityGroupId /]
-                    [/#if]
+                    [#switch linkTargetAttributes["ENGINE"] ] 
+                        [#case "application" ]
+                        [#case "classic"]
+                            [#assign sourceSecurityGroupIds += [ linkTargetResources["sg"].Id ] ]
+                            [#break]
+                        [#case "network" ]
+                            [#assign sourceIPAddressGroups = linkTargetConfiguration.IPAddressGroups + [ "_localnet" ] ]
+                            [#break]
+                    [/#switch]
 
                     [#switch linkTargetAttributes["ENGINE"]]
 
@@ -192,6 +195,42 @@
                         )]
                     [#break]
             [/#switch]
+
+            [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)] 
+
+                [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups)]
+                [#list securityGroupCIDRs as cidr ]
+                    
+                    [@createSecurityGroupIngress
+                        mode=listMode
+                        id=
+                            formatDependentSecurityGroupIngressId(
+                                computeClusterSecurityGroupId,
+                                link.Id,
+                                destinationPort,
+                                replaceAlphaNumericOnly(cidr)
+                            )
+                        port=destinationPort
+                        cidr=cidr
+                        groupId=computeClusterSecurityGroupId
+                /]
+                [/#list]
+
+                [#list sourceSecurityGroupIds as group ]
+                    [@createSecurityGroupIngress
+                        mode=listMode
+                        id=
+                            formatDependentSecurityGroupIngressId(
+                                computeClusterSecurityGroupId,
+                                link.Id,
+                                destinationPort
+                            )
+                        port=destinationPort
+                        cidr=group
+                        groupId=computeClusterSecurityGroupId
+                    /]
+                [/#list]
+            [/#if]
         [/#list]
 
         [#assign configSets += getInitConfigScriptsDeployment(scriptsFile, environmentVariables, solution.UseInitAsService, false)]

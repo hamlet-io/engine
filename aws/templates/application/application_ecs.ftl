@@ -70,16 +70,26 @@
                                 [#assign linkConfiguration = link.Configuration.Solution ]
                                 [#assign linkAttributes = link.State.Attributes ]
                                 [#assign targetId = "" ]
+                                
+                                [#assign sourceSecurityGroupIds = []]
+                                [#assign sourceIPAddressGroups = [] ]
+                                
                                 [#switch linkCore.Type]
 
                                     [#case LB_PORT_COMPONENT_TYPE]
 
-                                        [#assign securityGroupSources = linkResources["sg"].Id  ]
+                                        [#switch linkAttributes["ENGINE"] ] 
+                                            [#case "application" ]
+                                            [#case "classic"]
+                                                [#assign sourceSecurityGroupIds += [ linkResources["sg"].Id ] ]
+                                                [#break]
+                                            [#case "network" ]
+                                                [#assign sourceIPAddressGroups = linkConfiguration.IPAddressGroups + [ "_localnet" ] ]
+                                                [#break]
+                                        [/#switch]
 
                                         [#switch linkAttributes["ENGINE"] ] 
                                             [#case "network" ]
-                                                [#assign securityGroupSources = linkConfiguration.IPAddressGroups + [ "_localnet" ] ]
-
                                             [#case "application" ]
                                                 [#assign targetId = (linkResources["targetgroup"].Id)!"" ]
 
@@ -95,7 +105,6 @@
                                                 [#break]
                                                 
                                             [#case "classic"]
-
                                                 [#if networkMode == "awsvpc" ]
                                                     [@cfException
                                                         mode=listMode
@@ -129,46 +138,46 @@
 
                                 [#assign dependencies += [targetId] ]
 
-                                [#if securityGroupSources?is_enumerable ]
+                                [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups)]
+                                [#list securityGroupCIDRs as cidr ]
                                     
-                                    [#assign securityGroupCIDRs = getGroupCIDRs(securityGroupSources)]
-                                    [#list securityGroupCIDRs as source ]
-                                        
-                                        [@createSecurityGroupIngress
-                                            mode=listMode
-                                            id=
-                                                formatContainerSecurityGroupIngressId(
-                                                    ecsSecurityGroupId,
-                                                    container,
-                                                    portMapping.DynamicHostPort?then(
-                                                        "dynamic",
-                                                        ports[portMapping.HostPort].Port
-                                                    ),
-                                                    replaceAlphaNumericOnly(source)
-                                                )
-                                            port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
-                                            cidr=source
-                                            groupId=ecsSecurityGroupId
-                                    /]
-                                    [/#list]
-                                [#else]
                                     [@createSecurityGroupIngress
                                         mode=listMode
                                         id=
                                             formatContainerSecurityGroupIngressId(
                                                 ecsSecurityGroupId,
                                                 container,
+                                                link.Id,
+                                                portMapping.DynamicHostPort?then(
+                                                    "dynamic",
+                                                    ports[portMapping.HostPort].Port
+                                                ),
+                                                replaceAlphaNumericOnly(cidr)
+                                            )
+                                        port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
+                                        cidr=cidr
+                                        groupId=ecsSecurityGroupId
+                                /]
+                                [/#list]
+
+                                [#list sourceSecurityGroupIds as group ]
+                                    [@createSecurityGroupIngress
+                                        mode=listMode
+                                        id=
+                                            formatContainerSecurityGroupIngressId(
+                                                ecsSecurityGroupId,
+                                                container,
+                                                link.Id,
                                                 portMapping.DynamicHostPort?then(
                                                     "dynamic",
                                                     ports[portMapping.HostPort].Port
                                                 )
                                             )
                                         port=portMapping.DynamicHostPort?then(0, portMapping.HostPort)
-                                        cidr=securityGroupSources
+                                        cidr=group
                                         groupId=ecsSecurityGroupId
                                     /]
-                                [/#if]  
-                                
+                                [/#list]
                             [/#if]  
                         [/#list]
                         [#if container.IngressRules?has_content ]
