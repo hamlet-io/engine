@@ -113,17 +113,34 @@
                     [/#if]
 
                     [#assign linkTargetCore = linkTarget.Core ]
-                    [#assign linkTargetSolution = linkTarget.Configuration.Solution ]
+                    [#assign linkTargetConfiguration = linkTarget.Configuration ]
                     [#assign linkTargetResources = linkTarget.State.Resources ]
                     [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-
+                    
                     [#switch linkTargetCore.Type]
 
-                        [#case USERPOOL_COMPONENT_TYPE] 
+                        [#case USERPOOL_COMPONENT_TYPE]
+                        [#case "external" ]
                             [#assign cognitoIntegration = true ]
-                            [#assign userPoolId = linkTargetResources["userpool"].Id ]
-                            [#assign userPoolClientId = linkTargetResources["client"].Id ]
-                            [#assign userPoolDomain = linkTargetResources["userpool"].HostName ]
+
+                            [#if linkTargetCore.Type == "external" ]
+                                [#-- Workaround for userpools in other segments --]
+                                [#assign userPoolDomain = linkTargetAttributes["USERPOOL_HOSTNAME"] ]
+                                [#assign userPoolArn = linkTargetAttributes["USERPOOL_ARN"] ]
+                                [#assign userPoolClientId = linkTargetAttributes["USERPOOL_CLIENTID"] ]
+                                [#assign userPoolSessionCookieName = linkTargetAttributes["USERPOOL_SESSION_COOKIENAME"] ]
+                                [#assign userPoolSessionTimeout = linkTargetAttributes["USERPOOL_SESSION_TIMEOUT"] ]
+                                [#assign userPoolOauthScope = linkTargetAttributes["USERPOOL_OAUTH_SCOPE"] ]
+                            [#else]
+                                [#assign userPoolId = linkTargetResources["userpool"].Id ]
+                                [#assign userPoolClientId = linkTargetResources["client"].Id ]
+                                [#assign userPoolDomain = linkTargetResources["userpool"].HostName ]
+                                [#assign userPoolArn = getExistingReference(userPoolId, ARN_ATTRIBUTE_TYPE) ]
+                                [#assign userPoolClientId = getExistingReference(userPoolClientId) ]
+                                [#assign userPoolSessionCookieName = solution.Authentication.SessionCookieName ]
+                                [#assign userPoolSessionTimeout = solution.Authentication.SessionTimeout ]
+                                [#assign userPoolOauthScope =  linkTargetConfiguration.Solution.OAuth.Scopes?join(", ") ]
+                            [/#if]
 
                             [#assign listenerRuleRequired = true ]
                             [#assign listenerRuleConfig = 
@@ -134,12 +151,12 @@
                                         {
                                             "Type" : "authenticate-cognito",
                                             "AuthenticateCognitoConfig" : {
-                                                "UserPoolArn" : getExistingReference(userPoolId, ARN_ATTRIBUTE_TYPE),
-                                                "UserPoolClientId" : getExistingReference(userPoolClientId),
+                                                "UserPoolArn" : userPoolArn,
+                                                "UserPoolClientId" : userPoolClientId,
                                                 "UserPoolDomain" : userPoolDomain,
-                                                "SessionCookieName" : solution.Authentication.SessionCookieName,
-                                                "SessionTimeout" : solution.Authentication.SessionTimeout,
-                                                "Scope" : linkTargetSolution.OAuth.Scopes?join(", "),
+                                                "SessionCookieName" : userPoolSessionCookieName,
+                                                "SessionTimeout" : userPoolSessionTimeout,
+                                                "Scope" : userPoolOauthScope,
                                                 "OnUnauthenticatedRequest" : "authenticate"
                                             },
                                             "Order" : 1

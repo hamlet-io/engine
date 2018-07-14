@@ -86,7 +86,7 @@
             [/#if]
 
             [#assign linkTargetCore = linkTarget.Core]
-            [#assign linkTargetConfiguration = linkTarget.Configuration]
+            [#assign linkTargetConfiguration = linkTarget.Configuration ]
             [#assign linkTargetResources = linkTarget.State.Resources]
             [#assign linkTargetAttributes = linkTarget.State.Attributes]
 
@@ -98,7 +98,14 @@
                         ]
                     ]
                     [#break]
+                
+                [#case "external" ]
+                    [#if linkTargetAttributes["AUTH_CALLBACK_URL"]?has_content ]
+                        [#assign callbackUrls += linkTargetAttributes["AUTH_CALLBACK_URL"]?split(",") ]
+                    [/#if]
 
+                    [#break]
+                    
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
                     [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
