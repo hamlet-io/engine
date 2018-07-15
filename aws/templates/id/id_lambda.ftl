@@ -118,6 +118,10 @@
             {
                 "Name" : "PredefineLogGroup",
                 "Default" : false
+            },
+            {
+                "Name" : "EnvironmentAsFile",
+                "Default" : false
             }
         ]
     }

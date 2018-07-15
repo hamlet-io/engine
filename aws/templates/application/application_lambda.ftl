@@ -79,7 +79,9 @@
             [#assign containerId = formatContainerFragmentId(occurrence, context)]
             [#include containerList?ensure_starts_with("/")]
 
-            [#assign context += getFinalEnvironment(fn, context) ]
+            [#assign finalEnvironment = getFinalEnvironment(fn, context, solution.EnvironmentAsFile) ]
+            [#assign finalAsFileEnvironment = getFinalEnvironment(fn, context, false) ]
+            [#assign context += finalEnvironment ]
 
             [#assign roleId = formatDependentRoleId(fnId)]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
@@ -263,6 +265,12 @@
                 [#assign containerListMode = listMode]
                 [#include containerList?ensure_starts_with("/")]
             [/#if]
+            [#if solution.EnvironmentAsFile && deploymentSubsetRequired("config", false)]
+                [@cfConfig
+                    mode=listMode
+                    content=finalAsFileEnvironment.Environment
+                /]
+            [/#if]
             [#if deploymentSubsetRequired("prologue", false)]
                 [#-- Copy any asFiles needed by the task --]
                 [#assign asFiles = getAsFileSettings(fn.Configuration.Settings.Product) ]
@@ -277,6 +285,25 @@
                                 regionId,
                                 operationsBucket,
                                 getOccurrenceSettingValue(fn, "SETTINGS_PREFIX")
+                            ) /]
+                [/#if]
+                [#if solution.EnvironmentAsFile]
+                    [@cfScript
+                        mode=listMode
+                        content=
+                            getLocalFileScript(
+                                "configFiles",
+                                "$\{CONFIG}",
+                                "config.json"
+                            ) +
+                            syncFilesToBucketScript(
+                                "configFiles",
+                                regionId,
+                                operationsBucket,
+                                formatRelativePath(
+                                    getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                                    "config"
+                                )
                             ) /]
                 [/#if]
             [/#if]
