@@ -305,24 +305,31 @@
     ]
 [/#function]
 
-[#function getFinalEnvironment occurrence context ]
+[#function getFinalEnvironment occurrence context asFile=false]
     [#return
         {
             "Environment" :
                 valueIfTrue(
-                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Core) +
-                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
-                    context.DefaultCoreVariables
+                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Core),
+                    context.DefaultCoreVariables || asFile
                 ) +
                 valueIfTrue(
-                    context.DefaultEnvironment,
-                    context.DefaultEnvironmentVariables
-                ) +
-                valueIfTrue(
-                    getDefaultLinkVariables(context),
-                    context.DefaultLinkVariables
-                ) +
-                context.Environment
+                    { "CONFIG_FILE" : "config/config.json"},
+                    asFile,
+                    valueIfTrue(
+                        getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
+                        context.DefaultCoreVariables
+                    ) +
+                    valueIfTrue(
+                        context.DefaultEnvironment,
+                        context.DefaultEnvironmentVariables
+                    ) +
+                    valueIfTrue(
+                        getDefaultLinkVariables(context),
+                        context.DefaultLinkVariables
+                    ) +
+                    context.Environment
+                )
         } ]
 [/#function]
 
