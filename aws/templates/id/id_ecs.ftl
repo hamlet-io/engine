@@ -164,6 +164,10 @@
             {
                 "Name" : "NetworkMode",
                 "Default" : ""
+            },
+            {
+                "Name" : "ContainerNetworkLinks",
+                "Default" : false
             }
         ],
         ECS_TASK_COMPONENT_TYPE : [

@@ -26,6 +26,7 @@
 
             [#assign networkMode = (solution.NetworkMode)!"" ]
             [#assign lbTargetType = "instance"]
+            [#assign networkLinks = [] ]
 
             [#if networkMode == "awsvpc" ]
                         
@@ -60,6 +61,24 @@
                     [#assign loadBalancers = [] ]
                     [#assign dependencies = [] ]
                     [#list containers as container]
+
+                        [#-- allow local network comms between containers in the same service --]
+                        [#if solution.ContainerNetworkLinks ]
+                            [#if solution.NetworkMode == "bridge" ]
+                                [#assign networkLinks += [ container.Name ] ]
+                            [#else]
+                                [@cfException
+                                    mode=listMode
+                                    description="Network links only avaialble on bridge mode"
+                                    context=
+                                        {
+                                            "Description" : "Container links are only available in bridge mode",
+                                            "NetworkMode" : solution.NetworkMode
+                                        }
+                                /]
+                            [/#if]
+                        [/#if]
+
                         [#list container.PortMappings![] as portMapping]
                             [#if portMapping.LoadBalancer?has_content]
                                 [#assign loadBalancer = portMapping.LoadBalancer]
@@ -301,6 +320,7 @@
                     networkMode=networkMode
                     dependencies=dependencies
                     fixedName=solution.FixedName
+                    networkLinks=networkLinks
                 /]
 
             [/#if]
