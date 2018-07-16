@@ -301,7 +301,7 @@
                                 regionId,
                                 operationsBucket,
                                 formatRelativePath(
-                                    getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                                    getOccurrenceSettingValue(fn, "SETTINGS_PREFIX"),
                                     "config"
                                 )
                             ) /]
