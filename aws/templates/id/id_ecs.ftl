@@ -70,6 +70,10 @@
         {
             "Name" : "Version",
             "Default" : ""
+        },
+        {
+            "Name" : "ContainerNetworkLinks",
+            "Default" : []
         }
     ]
 ]

@@ -1,6 +1,6 @@
 [#-- ECS --]
 
-[#macro createECSTask mode id name containers networkMode="" fixedName=false role="" networkLinks=[] dependencies=""]
+[#macro createECSTask mode id name containers networkMode="" fixedName=false role="" dependencies=""]
 
     [#local definitions = [] ]
     [#local volumes = [] ]
@@ -97,7 +97,7 @@
                                     ) +
                 attributeIfTrue("Privileged", container.Privileged, container.Privileged!"") + 
                 attributeIfContent("WorkingDirectory", container.WorkingDirectory!"") + 
-                attributeIfContent("Links", removeValueFromArray(networkLinks, container.Name) )
+                attributeIfContent("Links", container.ContainerNetworkLinks![] )
             ]
         ]
     [/#list]
