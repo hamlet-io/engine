@@ -526,7 +526,8 @@
             ) +
             attributeIfContent("PortMappings", containerPortMappings) +
             attributeIfContent("IngressRules", ingressRules) +
-            attributeIfContent("RunCapabilities", container.RunCapabilities)
+            attributeIfContent("RunCapabilities", container.RunCapabilities) +
+            attributeIfContent("ContainerNetworkLinks", container.ContainerNetworkLinks)
         ]
 
         [#-- Add in container specifics including override of defaults --]

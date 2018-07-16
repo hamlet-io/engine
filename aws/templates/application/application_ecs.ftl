@@ -320,7 +320,6 @@
                     networkMode=networkMode
                     dependencies=dependencies
                     fixedName=solution.FixedName
-                    networkLinks=networkLinks
                 /]
 
             [/#if]
