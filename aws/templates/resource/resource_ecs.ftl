@@ -97,7 +97,7 @@
                                     ) +
                 attributeIfTrue("Privileged", container.Privileged, container.Privileged!"") + 
                 attributeIfContent("WorkingDirectory", container.WorkingDirectory!"") + 
-                attributeIfContent("Links", networkLinks)
+                attributeIfContent("Links", removeValueFromArray(networkLinks, container.Name) )
             ]
         ]
     [/#list]

@@ -73,6 +73,16 @@
     ]
 [/#function]
 
+[#function removeValueFromArray array string ]
+    [#local result = [] ]
+    [#list array as item ]
+        [#if item != string ]
+            [#local result += [ item ] ]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
 [#function asSerialisableString arg]
     [#if arg?is_hash || arg?is_sequence ]
         [#return getJSON(arg) ]
