@@ -314,7 +314,7 @@
                     context.DefaultCoreVariables || asFile
                 ) +
                 valueIfTrue(
-                    { "CONFIG_FILE" : "config/config.json"},
+                    { "SETTINGS_FILE" : "config/config.json"},
                     asFile,
                     valueIfTrue(
                         getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
