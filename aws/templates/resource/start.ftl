@@ -17,22 +17,35 @@
     [#return resourceType + resourceSeparator + resource]
 [/#function]
 
-[#function formatArn partition service region account resource]
-    [#return
-        {
-            "Fn::Join": [
-                ":",
-                [
-                    "arn",
-                    partition,
-                    service,
-                    region,
-                    account,
-                    resource
+[#function formatArn partition service region account resource asString=false]
+    [#if asString ]
+        [#return 
+            [
+                "arn",
+                partition,
+                service,
+                region,
+                account,
+                resource
+            ]?join(":")
+        ]
+    [#else]
+        [#return
+            {
+                "Fn::Join": [
+                    ":",
+                    [
+                        "arn",
+                        partition,
+                        service,
+                        region,
+                        account,
+                        resource
+                    ]
                 ]
-            ]
-        }
-    ]
+            }
+        ]
+    [/#if]
 [/#function]
 
 [#function formatRegionalArn service resource region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" }]
