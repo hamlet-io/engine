@@ -90,8 +90,8 @@
     [#local fqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE)]
     [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
-    [#local encryptionScheme = solution.EncryptionScheme?has_content?then(
-                        solution.EncryptionScheme?ensure_ends_with(":"),
+    [#local encryptionScheme = (solution.GenerateCredentials.EncryptionScheme)?has_content?then(
+                        solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
                         "" )]
 
     [#if solution.GenerateCredentials.Enabled ]
