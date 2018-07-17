@@ -342,8 +342,8 @@
                         "\"$\{url_pseudo_stack_file}\"" + " " +
                         "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
                         "}",
-                        "password_pseudo_stack_file=" + passwordPsuedoStackFile,
-                        "url_pseudo_stack_file=" +  urlPsuedoStackFile,
+                        "password_pseudo_stack_file=" + passwordPseudoStackFile,
+                        "url_pseudo_stack_file=" +  urlPseudoStackFile,
                         "generate_master_password || return $?"
                     ],
                     []) +
@@ -378,7 +378,7 @@
                         "\"$\{url_pseudo_stack_file}\"" + " " +
                         "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?"
                         "}",
-                        "url_pseudo_stack_file=" +  urlPsuedoStackFile,
+                        "url_pseudo_stack_file=" +  urlPseudoStackFile,
                         "reset_master_password || return $?"
                     ],
                 []) +
