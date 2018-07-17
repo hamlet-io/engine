@@ -5,12 +5,10 @@
         [
             getPolicyStatement(
                 actions,
-                [
-                    s3BucketArn,
-                    s3BucketArn + 
+                "arn:aws:s3:::" + 
+                    (getExistingReference(bucket)?has_content)?then(getExistingReference(bucket),bucket) +
                         key?has_content?then("/" + key,  "") +
-                        object?has_content?then("/" + object, "")
-                ],
+                        object?has_content?then("/" + object, ""),
                 principals,
                 conditions)
         ]
