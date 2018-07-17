@@ -171,8 +171,14 @@
             },
             "Attributes" : {
                 "REGION" : regionId,
-                "ARN" : getExistingReference(id,ARN_ATTRIBUTE_TYPE),
-                "NAME" : getExistingReference(id)
+                "ARN" : formatArn(
+                            regionObject.Partition,
+                            "lambda", 
+                            regionId,
+                            accountObject.AWSId,
+                            "function:" + core.FullName,
+                            true),
+                "NAME" : core.FullName
             },
             "Roles" : {
                 "Inbound" : {},
