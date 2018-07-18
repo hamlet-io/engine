@@ -20,10 +20,8 @@
     [#if key?has_content || object?has_content ]
         [#local s3PrefixCondition =
             { 
-                "_s3PrefixFilter" : {
-                    "StringLike" : {
-                        "s3:prefix" : (key?has_content?then(key, "") + object?has_content?then("/" + object, ""))?remove_beginning("/")
-                    }
+                "StringLike" : {
+                    "s3:prefix" : (key?has_content?then(key, "") + object?has_content?then("/" + object, ""))?remove_beginning("/")
                 }
             }
         ]
