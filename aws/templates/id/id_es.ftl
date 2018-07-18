@@ -60,6 +60,7 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local esId = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
+    [#local esHostName = getReference(esId, DNS_ATTRIBUTE_TYPE) ]
 
     [#return
         {
@@ -75,8 +76,11 @@
                 }
             },
             "Attributes" : {
-                "FQDN" : getReference(esId, DNS_ATTRIBUTE_TYPE),
-                "AUTH" : solution.Authentication
+                "AUTH" : solution.Authentication,
+                "FQDN" : esHostName,
+                "URL" : "https://" + esHostName,
+                "KIBANA_URL" : "https://" + esHostName + "/_plugin/kibana/,
+                "PORT" : 443
             },
             "Roles" : {
                 "Outbound" : {
