@@ -76,6 +76,7 @@
                 }
             },
             "Attributes" : {
+                "REGION" : regionId,
                 "AUTH" : solution.Authentication,
                 "FQDN" : esHostName,
                 "URL" : "https://" + esHostName,
