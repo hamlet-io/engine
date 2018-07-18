@@ -79,7 +79,7 @@
                 "AUTH" : solution.Authentication,
                 "FQDN" : esHostName,
                 "URL" : "https://" + esHostName,
-                "KIBANA_URL" : "https://" + esHostName + "/_plugin/kibana/,
+                "KIBANA_URL" : "https://" + esHostName + "/_plugin/kibana/",
                 "PORT" : 443
             },
             "Roles" : {
