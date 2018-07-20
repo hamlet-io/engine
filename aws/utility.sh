@@ -1097,9 +1097,9 @@ function check_rds_snapshot_username() {
     snapshot_username="$( echo "${snapshot_info}" | jq -r '.DBSnapshots[0].MasterUsername' )"
 
     if [[ "${snapshot_username}" != "${expected_username}" ]]; then
-    
+
       error "Snapshot Username does not match the expected username"
-      error "Update the GenerateCredentials.MasterUserName property to match the snapshot username"
+      error "Update the RDS username configuration to match the snapshot username"
       error "    Snapshot username: ${snapshot_username}"
       error "    Configured username: ${expected_username}"
       return 128
