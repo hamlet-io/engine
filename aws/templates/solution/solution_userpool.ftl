@@ -103,7 +103,9 @@
                     [#if linkTargetAttributes["AUTH_CALLBACK_URL"]?has_content ]
                         [#assign callbackUrls += linkTargetAttributes["AUTH_CALLBACK_URL"]?split(",") ]
                     [/#if]
-
+                    [#if linkTargetAttributes["AUTH_SIGNOUT_URL"]?has_content ]
+                        [#assign logoutUrls += linkTargetAttributes["AUTH_SIGNOUT_URL"]?split(",") ]
+                    [/#if]
                     [#break]
                     
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
