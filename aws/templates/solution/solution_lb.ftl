@@ -134,7 +134,7 @@
                             [#else]
                                 [#assign userPoolId = linkTargetResources["userpool"].Id ]
                                 [#assign userPoolClientId = linkTargetResources["client"].Id ]
-                                [#assign userPoolDomain = linkTargetResources["userpool"].HostName ]
+                                [#assign userPoolDomain = linkTargetResources["domain"].Name ]
                                 [#assign userPoolArn = getExistingReference(userPoolId, ARN_ATTRIBUTE_TYPE) ]
                                 [#assign userPoolClientId = getExistingReference(userPoolClientId) ]
                                 [#assign userPoolSessionCookieName = solution.Authentication.SessionCookieName ]
