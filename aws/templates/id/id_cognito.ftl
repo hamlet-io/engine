@@ -5,7 +5,7 @@
 [#assign AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient"]
 [#assign AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
 [#assign AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE = "rolemapping"]
-[#assign AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE = "userpoolDomain" ]
+[#assign AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE = "userpooldomain" ]
 
 [#-- Components --]
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
