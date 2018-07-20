@@ -13,7 +13,8 @@
 
         [#assign userPoolId                 = resources["userpool"].Id]
         [#assign userPoolName               = resources["userpool"].Name]
-        [#assign userPoolHostName           = resources["userpool"].HostName]
+        [#assign userPoolDomainId           = resources["domain"].Id]
+        [#assign userPoolHostName           = resources["domain"].Name]
         [#assign userPoolClientId           = resources["client"].Id]
         [#assign userPoolClientName         = resources["client"].Name]
         [#assign userPoolRoleId             = resources["userpoolrole"].Id]
@@ -34,7 +35,7 @@
 
         [#assign userPoolUpdateCommand = "updateUserPool" ]
         [#assign userPoolClientUpdateCommand = "updateUserPoolClient" ]     
-        [#assign userPoolDomainCommand = "setDomainUserPool" ]       
+        [#assign userPoolDomainCommand = "setDomainUserPool" ]
     
         [#assign emailVerificationMessage =
             getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationMessage"], true) ]
@@ -353,6 +354,17 @@
         [#-- So to use the CLI to update the lambda triggers we need to generate all of the custom configuration we use in the CF template and use this as the update --]
         [#if deploymentSubsetRequired("cli", false)]
 
+            [#assign userPoolDomain = {
+                "Domain" : userPoolHostName
+            }]
+
+            [@cfCli 
+                mode=listMode
+                id=userPoolDomainId
+                command=userPoolDomainCommand
+                content=userPoolDomain
+            /]
+
             [#assign userpoolConfig = {
                 "UserPoolId": getExistingReference(userPoolId),
                 "Policies": getUserPoolPasswordPolicy( 
@@ -413,17 +425,6 @@
                 /]
             [/#if]
 
-            [#assign userPoolDomain = {
-                "Domain" : userPoolHostName
-            }]
-
-            [@cfCli 
-                mode=listMode
-                id=userPoolId
-                command=userPoolDomainCommand
-                content=userPoolDomain
-            /]
-
             [#assign updateUserPoolClient = 
                 {
                     "CallbackURLs": callbackUrls,
@@ -464,7 +465,7 @@
                         " \"" + region + "\" " + 
                         " \"" + getExistingReference(userPoolId) + "\" " + 
                         " \"$\{tmpdir}/cli-" + 
-                            userPoolId + "-" + userPoolDomainCommand + ".json\" \"$\{domainaction}\" || return $?"
+                            userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"$\{domainaction}\" || return $?"
                     ],
                     [
                         "warning \"Please run another update to complete the configuration\""

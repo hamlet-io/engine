@@ -5,6 +5,7 @@
 [#assign AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient"]
 [#assign AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
 [#assign AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE = "rolemapping"]
+[#assign AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE = "userpoolDomain" ]
 
 [#-- Components --]
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
@@ -104,6 +105,9 @@
     [#assign userPoolId = formatResourceId(AWS_COGNITO_USERPOOL_RESOURCE_TYPE, core.Id)]
     [#assign userPoolName = formatSegmentFullName(core.Name)]
 
+    [#assign userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
+    [#assign userPoolDomainName = formatName("auth", core.ShortFullName, vpc?remove_beginning("vpc-"))]
+
     [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
     [#assign userPoolClientName = formatSegmentFullName(core.Name)]
 
@@ -123,11 +127,12 @@
                 "userpool" : {
                     "Id" : userPoolId,
                     "Name" : userPoolName,
-                    "HostName" : formatName(
-                        "auth",
-                        core.ShortFullName,
-                        vpc?remove_beginning("vpc-")),
                     "Type" : AWS_COGNITO_USERPOOL_RESOURCE_TYPE
+                },
+                "domain" : {
+                    "Id" : userPoolDomainId,
+                    "Name" : userPoolDomainName,
+                    "Type" : AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE
                 },
                 "client" : {
                     "Id" : userPoolClientId,
