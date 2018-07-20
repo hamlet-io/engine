@@ -1084,6 +1084,40 @@ function set_rds_master_password() {
   aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null
 }
 
+function check_rds_snapshot_username() {
+  local region="$1"; shift
+  local db_snapshot_identifier="$1"; shift
+  local expected_username="$1"; shift 
+
+  info "Checking snapshot username matches expected username"
+
+  snapshot_info="$(aws --region ${region} rds describe-db-snapshots --include-shared --include-public --db-snapshot-identifier ${db_snapshot_identifier} || return $? )"
+
+  if [[ -n "${snapshot_info}" ]]; then 
+    snapshot_username="$( echo "${snapshot_info}" | jq -r '.DBSnapshots[0].MasterUsername' )"
+
+    if [[ "${snapshot_username}" != "${expected_username}" ]]; then
+    
+      error "Snapshot Username does not match the expected username"
+      error "Update the GenerateCredentials.MasterUserName property to match the snapshot username"
+      error "    Snapshot username: ${snapshot_username}"
+      error "    Configured username: ${expected_username}"
+      return 128
+
+    else 
+
+      info "Snapshot Username is the same as the expected username"
+      return 0
+
+    fi
+  else
+  
+    error "Snapshot ${db_snapshot_identifier} - Not Found"
+    return 255
+  
+  fi
+}
+
 function get_rds_url() {
   local engine="$1"; shift
   local username="$1"; shift
