@@ -21,12 +21,6 @@
     { 
         REFERENCE_ATTRIBUTE_TYPE : { 
             "UserRef" : true
-        },
-        NAME_ATTRIBUTE_TYPE : { 
-            "Attribute" : "Name" 
-        },
-        PASSWORD_ATTRIBUTE_TYPE : {
-            "Attribute" : "ClientSecret"
         }
     }
 ]

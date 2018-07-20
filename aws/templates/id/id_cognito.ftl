@@ -165,7 +165,6 @@
                 "USER_POOL" : getReference(userPoolId),
                 "IDENTITY_POOL" : getReference(identityPoolId),
                 "CLIENT" : getReference(userPoolClientId),
-                "CLIENTSECRET" : getReference(userPoolClientId, PASSWORD_ATTRIBUTE_TYPE),
                 "REGION" : regionId
             },
             "Roles" : {
