@@ -44,6 +44,10 @@
                 "Children" : wafChildConfiguration
             },
             {
+                "Name" : "EndpointType",
+                "Default" : "EDGE"
+            },
+            {
                 "Name" : "CloudFront",
                 "Children" : [
                     {
@@ -143,6 +147,9 @@
     [#local cfPresent          = solution.CloudFront.Configured && solution.CloudFront.Enabled ]
     [#local mappingPresent     = mappingPresent && (!cfPresent || solution.CloudFront.Mapping) ]
 
+    [#local endpointType       = solution.EndpointType ]
+    [#local isEdgeEndpointType = solution.EndpointType == "EDGE" ]
+
     [#local internalFqdn =
         formatDomainName(
             getExistingReference(apiId),
@@ -177,7 +184,7 @@
                 [#local internalPath = "/" + stageName ]
             [/#if]
 
-            [#if cfPresent ]
+            [#if cfPresent && isEdgeEndpointType]
                 [#local signingFqdn = formatDomainName(formatName("sig4", hostName), certificateObject.Domain.Name)]
             [/#if]
         [#else]
