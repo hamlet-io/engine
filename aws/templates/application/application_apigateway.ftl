@@ -362,19 +362,30 @@
                     type="AWS::ApiGateway::DomainName"
                     properties=
                         {
-                            "CertificateArn":
-                                getExistingReference(
-                                    domainCertificateId,
-                                    ARN_ATTRIBUTE_TYPE,
-                                    valueIfTrue(
-                                        "us-east-1",
-                                        isEdgeEndpointType,
+                            "DomainName" : domainFqdn
+                        } +
+                        valueIfTrue(
+                            {
+                                "CertificateArn":
+                                    getExistingReference(
+                                        domainCertificateId,
+                                        ARN_ATTRIBUTE_TYPE,
+                                        "us-east-1"
+                                    )
+                            },
+                            isEdgeEndpointType,
+                            {
+                                "RegionalCertificateArn":
+                                    getExistingReference(
+                                        domainCertificateId,
+                                        ARN_ATTRIBUTE_TYPE,
                                         regionId
                                     )
                                 ),
-                            "DomainName" : domainFqdn
-                        }
+                            }
+                        )
                     outputs={}
+                    dependencies=apiId
                 /]
                 [@cfResource
                     mode=listMode
