@@ -381,7 +381,6 @@
                                         ARN_ATTRIBUTE_TYPE,
                                         regionId
                                     )
-                                ),
                             }
                         )
                     outputs={}
