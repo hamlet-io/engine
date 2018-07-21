@@ -119,6 +119,16 @@
                 ] +
                 [#-- If a manual snapshot has been added the pseudo stack output should be replaced with an automated one --]
                 (getExistingReference(rdsId)?has_content)?then(
+                    (rdsManualSnapshot?has_content)?then(
+                        [
+                            "# Check Snapshot MasterUserName",
+                            "check_rds_snapshot_username" +
+                            " \"" + region + "\" " +
+                            " \"" + rdsManualSnapshot + "\" " +
+                            " \"" + rdsUsername + "\" || return $?" 
+                        ],
+                        []
+                    ) +
                     (solution.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content)?then(
                         [
                             "# Create RDS snapshot",
