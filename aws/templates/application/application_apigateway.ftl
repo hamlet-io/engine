@@ -33,7 +33,7 @@
             ]
         ]
         [#assign stageVariables = {} ]
-        
+
         [#assign containerId =
             solution.Container?has_content?then(
                 solution.Container,
@@ -135,6 +135,9 @@
             }
         ]
 
+        [#assign endpointType           = solution.EndpointType ]
+        [#assign isEdgeEndpointType     = endpointType == "EDGE" ]
+
         [#assign certificatePresent     = solution.Certificate.Configured && solution.Certificate.Enabled ]
 
         [#assign mappingPresent         = solution.Mapping.Configured && solution.Mapping.Enabled ]
@@ -191,7 +194,15 @@
                                             ".json")
                         },
                         "Name" : apiName
-                    }
+                    } +
+                    valueIfTrue(
+                        {
+                            "EndpointConfiguration" : {
+                                "Types" : [endpointType]
+                            }
+                        },
+                        !isEdgeEndpointType
+                    )
                 outputs=APIGATEWAY_OUTPUT_MAPPINGS
             /]
 
@@ -257,7 +268,7 @@
                         cfOriginId,
                         valueIfTrue(
                             cfOriginFqdn,
-                            certificatePresent && mappingPresent,
+                            certificatePresent && mappingPresent && isEdgeEndpointType,
                             {
                                 "Fn::Join" : [
                                     ".",
@@ -351,7 +362,16 @@
                     type="AWS::ApiGateway::DomainName"
                     properties=
                         {
-                            "CertificateArn": getExistingReference(domainCertificateId, ARN_ATTRIBUTE_TYPE, "us-east-1"),
+                            "CertificateArn":
+                                getExistingReference(
+                                    domainCertificateId,
+                                    ARN_ATTRIBUTE_TYPE,
+                                    valueIfTrue(
+                                        "us-east-1",
+                                        isEdgeEndpointType,
+                                        regionId
+                                    )
+                                ),
                             "DomainName" : domainFqdn
                         }
                     outputs={}
