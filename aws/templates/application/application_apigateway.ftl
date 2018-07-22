@@ -380,7 +380,10 @@
                                         domainCertificateId,
                                         ARN_ATTRIBUTE_TYPE,
                                         regionId
-                                    )
+                                    ),
+                                "EndpointConfiguration" : {
+                                    "Types" : [endpointType]
+                                }
                             }
                         )
                     outputs={}
