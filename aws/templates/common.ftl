@@ -893,6 +893,14 @@
             [#case "lambda"]
                 [#local result = getLambdaState(occurrence)]
                 [#break]
+            
+            [#case MOBILENOTIFIER_COMPONENT_TYPE ]
+                [#local result = getMobileNotifierState(occurrence)]
+                [#break]
+
+            [#case MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE ]
+                [#local result = getMobileNotifierPlatformState(occurrence)]
+                [#break]
 
             [#case "rds"]
                 [#local result = getRDSState(occurrence)]

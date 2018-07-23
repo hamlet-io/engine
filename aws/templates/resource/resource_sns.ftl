@@ -60,3 +60,35 @@
     [@createSNSTopic mode, id, formatName(productName, extensions) /]
 [/#macro]
 
+
+[#function getSNSPlatformAppAttributes roleId="" successSample="" credential="" principal="" ]
+    [#return 
+            {
+                "SuccessFeedbackRoleArn"    : getReference(roleId),
+                "FailureFeedbackRoleArn"    : getReference(roleId),
+                "SuccessFeedbackSampleRate" : successSample
+            } + 
+            attributeIfContent(
+                "PlatformCredential",
+                credential,
+                credential
+            ) + 
+            attributeIfContent(
+                "PlatformPrincipal",
+                principal,
+                principal
+            )]
+[/#function]
+
+[#function getSNSPlatformAppCreateCli name platform roleId successSample credential="" principal="" ]
+    [#return 
+        {
+            "Name" : name,
+            "Platform" : platform,
+            "Attributes" : getSNSPlatformAppAttributes(
+                                roleId,
+                                successSample,
+                                credential,
+                                principal)
+        }]
+[/#function]

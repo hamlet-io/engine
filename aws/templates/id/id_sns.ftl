@@ -3,6 +3,7 @@
 [#-- Resources --]
 [#assign AWS_SNS_TOPIC_RESOURCE_TYPE = "snstopic"]
 [#assign AWS_SNS_SUBSCRIPTION_RESOURCE_TYPE = "snssub"]
+[#assign AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE = "snsplatformapp" ]
 
 [#function formatSNSTopicId ids...]
     [#return formatResourceId(

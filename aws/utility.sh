@@ -873,6 +873,51 @@ function deleteTreeFromBucket() {
   aws --region "${region}" s3 rm "${optional_arguments[@]}" --recursive "s3://${bucket}/${prefix}/"
 }
 
+# -- SNS -- 
+function create_sns_platformapp() {
+  local region="$1"; shift
+  local name="$1"; shift
+  local configfile="$1"; shift 
+
+  platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${name}" --cli-input-json "file://${configfile}" | jq -r '.PlatformApplicationArn | select (.!=null)') )"
+
+  if [[ -z "${platform_app_arn}" ]]; then 
+    fatal "Platform app was not created"
+    return 255
+  else
+    echo "${platform_app_arn}"
+  fi
+}
+
+function update_sns_platformapp() {
+  local region="$1"; shift
+  local arn="$1"; shift
+  local configfile="$1"; shift 
+  
+  aws --region "${region}" sns update-platform-application-attributes --platform-application-arn "${arn}" --cli-input-json "file://${configfile}" || return $?
+}
+
+function delete_sns_platformapp() {
+  local region="$1"; shift
+  local arn="$1"; shift
+
+  aws --region "${region}" sns delete-platform-application --platform-application-arn "${arn}" || return $?
+}
+
+function cleanup_sns_platformapps() { 
+  local region="$1"; shift
+  local mobilenotifiername="$1"; shift
+  local expectedplatformarns="$1"; shift
+
+  all_platform_apps="$(aws --region "${region}" sns list-platform-applications )"
+  mobile_notifier_apps="$(echo "${all_platform_apps}" | jq --arg namefilter "${mobilenotifiername}" -c '[ .PlatformApplications.[] | select( .PlatformApplicationArn | contains("/" + $namefilter + "/")) ]')"
+  
+  if [[ -z "${mobile_notifier_apps}" ]]; then 
+
+  fi
+
+}
+
 # -- PKI --
 function create_pki_credentials() {
   local dir="$1"; shift
