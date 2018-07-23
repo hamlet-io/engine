@@ -107,6 +107,13 @@
                                         tier,
                                         component)]
 
+        [#assign dbParameters = {} ]
+        [#list solution.DBParameters as key,value ]
+            [#if key != "Name" && key != "Id" ]
+                [#assign dbParameters += { key : value }]
+            [/#if]
+        [/#list]
+
         [#assign processorProfile = getProcessor(tier, component, "RDS")]
 
         [#if deploymentSubsetRequired("prologue", false)]
@@ -214,8 +221,7 @@
                     {
                         "Family" : family,
                         "Description" : rdsFullName,
-                        "Parameters" : {
-                        }
+                        "Parameters" : dbParameters
                     }
                 tags=
                     getCfTemplateCoreTags(

@@ -76,7 +76,11 @@
                 ]
             },
             "AutoMinorVersionUpgrade",
-            "DatabaseName"
+            "DatabaseName",
+            {
+                "Name" : "DBParameters",
+                "Default" : {}
+            }
         ]
 }]
 
