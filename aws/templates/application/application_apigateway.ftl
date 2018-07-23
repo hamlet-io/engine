@@ -292,7 +292,8 @@
                                 ["Host"],
                                 endpointType == "REGIONAL",
                                 []
-                            ) ) ]
+                            ),
+                        solution.CloudFront.Compress) ]
                 [#assign restrictions = {} ]
                 [#if solution.CloudFront.CountryGroups?has_content]
                     [#list asArray(solution.CloudFront.CountryGroups) as countryGroup]
