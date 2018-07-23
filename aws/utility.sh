@@ -1271,8 +1271,10 @@ function semver_compare {
 function invalidate_distribution() {
     local region="$1"; shift
     local distribution_id="$1"; shift
-    local paths="${1:-/*}"; shift
+
+    local paths=("/*")
+    [[ -n "$1" ]] && local paths=("$@")
 
     # Note paths is intentionally not escaped as each token needs to be separately parsed
-    aws --region "${region}" cloudfront create-invalidation --distribution-id "${distribution_id}" --paths ${paths}
+    aws --region "${region}" cloudfront create-invalidation --distribution-id "${distribution_id}" --paths "${paths[@]}"
 }
