@@ -720,7 +720,7 @@ function update_userpool_client() {
   aws --region "${region}" cognito-idp update-user-pool-client --user-pool-id "${userpoolid}" --client-id "${userpoolclientid}" --cli-input-json "file://${configfile}"
 }
 
-function manage_congnito_domain() { 
+function manage_congnito_domain() {
   local region="$1"; shift
   local userpoolid="$1"; shift
   local configfile="$1"; shift
@@ -732,8 +732,8 @@ function manage_congnito_domain() {
   domain_userpool="$( aws --region ${region} cognito-idp describe-user-pool-domain --domain ${domain} | jq -r '.DomainDescription.UserPoolId | select (.!=null)' )"
 
   if [[ -z "${domain_userpool}" ]]; then
-    
-    case "${action}" in 
+
+    case "${action}" in
         create)
             info "Adding domain to userpool"
             aws --region "${region}" cognito-idp create-user-pool-domain --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $?
@@ -748,8 +748,8 @@ function manage_congnito_domain() {
     error "User Pool Domain ${domain} is used by userpool ${domain_userpool}"
     return_status=255
 
-  else  
-    case "${action}" in 
+  else
+    case "${action}" in
         create)
             info "User Pool domain already configured"
             ;;
@@ -763,24 +763,24 @@ function manage_congnito_domain() {
   return ${return_status}
 }
 
-# -- ElasticSearch -- 
-function update_es_domain() { 
+# -- ElasticSearch --
+function update_es_domain() {
   local region="$1"; shift
-  local esid="$1"; shift 
-  local configfile="$1"; shift 
+  local esid="$1"; shift
+  local configfile="$1"; shift
 
   aws --region "${region}" es update-elasticsearch-domain-config --domain-name "${esid}" --cli-input-json "file://${configfile}" || return $?
 }
 
-# -- Elastic Load Balancing -- 
+# -- Elastic Load Balancing --
 function create_elbv2_rule() {
   local region="$1"; shift
   local listenerid="$1"; shift
-  local configfile="$1"; shift 
+  local configfile="$1"; shift
 
   rule_arn="$(aws --region "${region}" elbv2 create-rule --listener-arn "${listenerid}" --cli-input-json "file://${configfile}" | jq -r '.Rules[0].RuleArn | select (.!=null)')"
 
-  if [[ -z "${rule_arn}" ]]; then 
+  if [[ -z "${rule_arn}" ]]; then
     fatal "Rule was not created"
     return 255
   else
@@ -788,10 +788,10 @@ function create_elbv2_rule() {
   fi
 }
 
-function update_elbv2_rule() { 
+function update_elbv2_rule() {
   local region="$1"; shift
   local ruleid="$1"; shift
-  local configfile="$1"; shift 
+  local configfile="$1"; shift
 
   aws --region "${region}" elbv2 modify-rule --rule-arn "${ruleid}" --cli-input-json "file://${configfile}" || return $?
 }
@@ -1087,13 +1087,13 @@ function set_rds_master_password() {
 function check_rds_snapshot_username() {
   local region="$1"; shift
   local db_snapshot_identifier="$1"; shift
-  local expected_username="$1"; shift 
+  local expected_username="$1"; shift
 
   info "Checking snapshot username matches expected username"
 
   snapshot_info="$(aws --region ${region} rds describe-db-snapshots --include-shared --include-public --db-snapshot-identifier ${db_snapshot_identifier} || return $? )"
 
-  if [[ -n "${snapshot_info}" ]]; then 
+  if [[ -n "${snapshot_info}" ]]; then
     snapshot_username="$( echo "${snapshot_info}" | jq -r '.DBSnapshots[0].MasterUsername' )"
 
     if [[ "${snapshot_username}" != "${expected_username}" ]]; then
@@ -1104,17 +1104,17 @@ function check_rds_snapshot_username() {
       error "    Configured username: ${expected_username}"
       return 128
 
-    else 
+    else
 
       info "Snapshot Username is the same as the expected username"
       return 0
 
     fi
   else
-  
+
     error "Snapshot ${db_snapshot_identifier} - Not Found"
     return 255
-  
+
   fi
 }
 
@@ -1265,4 +1265,14 @@ function semver_compare {
   fi
 
   echo -n 0
+}
+
+# -- Cloudfront handling --
+function invalidate_distribution() {
+    local region="$1"; shift
+    local distribution_id="$1"; shift
+    local paths="${1:-/*}"; shift
+
+    # Note paths is intentionally not escaped as each token needs to be separately parsed
+    aws --region "${region}" cloudfront create-invalidation --distribution-id "${distribution_id}" --paths ${paths}
 }

@@ -58,6 +58,10 @@
                                 "Default" : 0
                             }
                         ]
+                    },
+                    {
+                        "Name" : "Compress",
+                        "Default" : true
                     }
                 ]
             },

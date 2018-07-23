@@ -1,6 +1,6 @@
 [#-- SPA --]
 
-[#if componentType = "spa"]
+[#if componentType == SPA_COMPONENT_TYPE]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -11,6 +11,7 @@
         [#assign core = occurrence.Core ]
         [#assign solution = occurrence.Configuration.Solution ]
         [#assign settings = occurrence.Configuration.Settings ]
+        [#assign resources = occurrence.State.Resources]
 
         [#assign containerId =
             solution.Container?has_content?then(
@@ -46,6 +47,7 @@
             /]
         [/#if]
         [#if deploymentSubsetRequired("prologue", false)]
+
             [@cfScript
                 mode=listMode
                 content=
@@ -80,6 +82,31 @@
                             "config"
                         )
                     ) /]
+
+            [#assign cfId = resources["cf"].Id]
+
+            [@cfScript
+                mode=listMode
+                content=(getExistingReference(cfId)?has_content)?then(
+                    [
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)"
+                    ] +
+                    [
+                        "# Invalidate distribution",
+                        "info \"Invalidating cloudfront distribution ... \"",
+                        "invalidate_distribution" +
+                        " \"" + region + "\" " +
+                        " \"" + getExistingReference(cfId) + "\" || return $?"
+
+                    ] +
+                    [
+                        "       ;;",
+                        "       esac"
+                    ],
+                    []
+                )
+            /]
         [/#if]
     [/#list]
 [/#if]

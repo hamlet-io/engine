@@ -83,8 +83,8 @@
         {
             "QueryString" : true
         }
-    viewerProtocolPolicy="redirect-to-https"
     compress=false
+    viewerProtocolPolicy="redirect-to-https"
     smoothStreaming=false
     trustedSigners=[]
 ]
@@ -114,7 +114,7 @@
     ]
 [/#function]
 
-[#function getCFAPIGatewayCacheBehaviour origin customHeaders=[]]
+[#function getCFAPIGatewayCacheBehaviour origin customHeaders=[] compress=true]
     [#return
         getCFCacheBehaviour(
             origin,
@@ -153,12 +153,13 @@
                     "Referer"
                 ] + customHeaders,
                 "QueryString" : true
-            }
+            },
+            compress
         )
     ]
 [/#function]
 
-[#function getCFSPACacheBehaviour origin path="" ttl={"Default" : 600}]
+[#function getCFSPACacheBehaviour origin path="" ttl={"Default" : 600}  compress=true]
     [#return
         getCFCacheBehaviour(
             origin,
@@ -180,7 +181,8 @@
                     "Forward" : "all"
                 },
                 "QueryString" : true
-            }
+            },
+            compress
         )
     ]
 [/#function]

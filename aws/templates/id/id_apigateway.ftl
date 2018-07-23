@@ -73,6 +73,10 @@
                     {
                         "Name" : "Mapping",
                         "Default" : false
+                    },
+                    {
+                        "Name" : "Compress",
+                        "Default" : true
                     }
                 ]
             },
