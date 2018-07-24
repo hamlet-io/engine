@@ -59,16 +59,29 @@
                     [#assign linkDirection = linkTarget.Direction ]
 
                     [#switch linkTargetCore.Type]
-                        [#case USERPOOL_COMPONENT_TYPE]
-                        [#case APIGATEWAY_COMPONENT_TYPE]
+                        [#case USERPOOL_COMPONENT_TYPE ]
+                        [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
+                        [#case APIGATEWAY_COMPONENT_TYPE ]
+                        
                             [#if linkTargetResources[(linkTargetCore.Type)].Deployed &&
-                                    (linkDirection == "inbound")]
-                                [@createLambdaPermission
-                                    mode=listMode
-                                    id=formatLambdaPermissionId(fn, "link", linkName)
-                                    targetId=fnId
-                                    source=linkTargetRoles.Inbound["invoke"]
-                                /]
+                                    (linkDirection == "inbound" )]
+                                [#if linkTargetRoles.Inbound["invoke"]!""?has_content ]
+                                    [@createLambdaPermission
+                                        mode=listMode
+                                        id=formatLambdaPermissionId(fn, "link", linkName)
+                                        targetId=fnId
+                                        source=linkTargetRoles.Inbound["invoke"]
+                                    /]
+                                [/#if]
+
+                                [#if linkTargetRoles.Inbound["logwatch"]!""?has_content ]
+                                    [@createLambdaPermission
+                                        mode=listMode
+                                        id=formatLambdaPermissionId(fn, "logwatch", linkName)
+                                        targetId=fnId
+                                        source=linkTargetRoles.Inbound["logwatch"]
+                                    /]
+                                [/#if]
                             [/#if]
                             [#break]
 
@@ -217,23 +230,42 @@
                     /]
                 [/#list]
 
-                [#list solution.Metrics?values as metric ]
+                [#list solution.LogWatchers as logwatcher ]
 
-                    [#switch metric.Type ]
-                        [#case "logFilter" ]
+                    [#switch logwatcher.Type ]
+                        [#case "Metric" ]
                             [@createLogMetric
                                 mode=listMode
-                                id=formatDependentLogMetricId(fnId, metric.Id)
+                                id=formatDependentLogMetricId(fnId, logwatcher.Id)
                                 name=formatName(metric.Name, fnName)
                                 logGroup=lgName
-                                filter=metric.LogPattern
+                                filter=logwatcher.LogPattern
                                 namespace=formatProductRelativePath()
                                 value=1
                                 dependencies=fnId
                             /]
                         [#break]
-                    [/#switch]
 
+                        [#case "Subscription" ]
+                            [#list logwatcher.Links as logWatcherLink ]
+                                [#assign logWatcherLink = getLinkTarget(occurrence, logWatcherLink) ]
+                                [#assign linkTargetCore = linkTarget.Core ]
+                                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+                                [#switch linkTargetCore.Type]
+
+                                    [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
+                                        [@createLogSubscription 
+                                            mode=listMode
+                                            id=formatDependentLogSubscriptionId(fnId, logwatcher.Id)
+                                            logGroup=lgName
+                                            filter=logwatch.LogPattern
+                                            destinationArn=linkTargetAttributes["ARN"]
+                                            /]
+                                        [#break]
+                                [/#switch]
+                            [/#list]
+                        [#break]
+                    [/#switch]
                 [/#list]
 
                 [#list solution.Alerts?values as alert ]

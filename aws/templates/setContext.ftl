@@ -87,26 +87,27 @@
 ]
 
 [#assign
-    metricChildrenConfiguration = [
-        {
-            "Name" : "Name",
-            "Type" : STRING_TYPE,
-            "Mandatory" : true
-        }
+    logWatcherChildrenConfiguration = [
         {
             "Name" : "Type",
             "Type" : STRING_TYPE,
             "Mandatory" : true
-        }
+        },
         {
             "Name" : "LogPattern",
             "Type" : STRING_TYPE,
             "Default" : ""
+        },
+        {
+            "Name" : "Links",
+            "Subobjects" : true,
+            "Children" : linkChildrenConfiguration
         }
     ]
 ]
 
-[#assign alertChildrenConfiguration = [
+[#assign 
+    alertChildrenConfiguration = [
         "Description",
         {
             "Name" : "Name",
