@@ -16,6 +16,15 @@
                 {
                     "Name" : "SuccessSampleRate",
                     "Default" : 100
+                },
+                {
+                    "Name" : "Credentials",
+                    "Children" : [
+                        {
+                            "Name" : "EncryptionScheme",
+                            "Default" : "base64"
+                        }
+                    ]
                 }
             ],
             "Components" : [
@@ -33,6 +42,14 @@
             {
                 "Name" : "SuccessSampleRate"
             },
+            {
+                    "Name" : "Credentials",
+                    "Children" : [
+                        {
+                            "Name" : "EncryptionScheme"
+                        }
+                    ]
+                }
             { 
                 "Name" : "Links",
                 "Subobjects" : true,

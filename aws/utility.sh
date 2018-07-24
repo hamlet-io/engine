@@ -874,19 +874,51 @@ function deleteTreeFromBucket() {
 }
 
 # -- SNS -- 
-function create_sns_platformapp() {
+function deploy_sns_platformapp() {
   local region="$1"; shift
-  local name="$1"; shift
+  local action="$1"; shift
+  local id="$1"; shift
+  local encryption_scheme="$1"; shift
   local configfile="$1"; shift 
 
-  platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${name}" --cli-input-json "file://${configfile}" | jq -r '.PlatformApplicationArn | select (.!=null)') )"
+  platform_principal="$(jq -r '.Attributes.PlatformPrincipal | select (.!=null)' < "${configfile}" )"
+  platform_certificate="$(jq -r '.Attributes.PlatformCertificate | select (.!=null)' < "${configfile}" )"
 
-  if [[ -z "${platform_app_arn}" ]]; then 
-    fatal "Platform app was not created"
-    return 255
-  else
-    echo "${platform_app_arn}"
+  #Decrypt the principal and certificate if they are encrypted
+  if [[ "${platform_principal}" == "${encryption_scheme}*" ]]; then
+      decrypted_platform_principal="$( decrypt_kms_string "${region}" "${platform_principal#${encryption_scheme}}" || return $? )"
+  else 
+      decrypted_platform_principal="${platform_principal}"
   fi
+
+  if [[ "${platform_certificate}" == "${encryption_scheme}*" ]]; then
+    decrypted_platform_certificate="$( decrypt_kms_string "${region}" "${platform_certificate#${encryption_scheme}}" || return $? )"
+  else 
+    decrypted_platform_certificate="${platform_certificate}"
+  fi
+
+  jq -rc --arg principal "${decrypted_platform_principal}" --arg certificate "${decrypted_platform_certificate}" \
+        ' . | if $principal != "" then .Attributes.PlatformPrincipal = $principal else . end 
+            | if $certificate != "" then .Attributes.PlatformCertificate = $certificate else . end' < "${configfile}" > "${configfile}_decrypted"
+
+  case "${action}" in
+    "create")
+      platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${id}" --cli-input-json "file://${configfile}_decrypted" | jq -r '.PlatformApplicationArn | select (.!=null)') )"
+
+      if [[ -z "${platform_app_arn}" ]]; then 
+        fatal "Platform app was not created"
+        return 255
+      else
+        echo "${platform_app_arn}"
+        return 0
+      fi  
+      ;;
+
+    "update" )
+      aws --region "${region}" sns update-platform-application-attributes --platform-application-arn "${id}" --cli-input-json "file://${configfile}_decrypted" || return $?
+      return 0
+      ;;
+  esac
 }
 
 function update_sns_platformapp() {
@@ -894,7 +926,7 @@ function update_sns_platformapp() {
   local arn="$1"; shift
   local configfile="$1"; shift 
   
-  aws --region "${region}" sns update-platform-application-attributes --platform-application-arn "${arn}" --cli-input-json "file://${configfile}" || return $?
+  
 }
 
 function delete_sns_platformapp() {
@@ -906,14 +938,15 @@ function delete_sns_platformapp() {
 
 function cleanup_sns_platformapps() { 
   local region="$1"; shift
-  local mobilenotifiername="$1"; shift
-  local expectedplatformarns="$1"; shift
+  local mobile_notifier_name="$1"; shift
+  local expected_platform_arns="$1"; shift
 
   all_platform_apps="$(aws --region "${region}" sns list-platform-applications )"
-  mobile_notifier_apps="$(echo "${all_platform_apps}" | jq --arg namefilter "${mobilenotifiername}" -c '[ .PlatformApplications.[] | select( .PlatformApplicationArn | contains("/" + $namefilter + "/")) ]')"
-  
-  if [[ -z "${mobile_notifier_apps}" ]]; then 
+  current_platform_arns="$(echo "${all_platform_apps}" | jq --arg namefilter "${mobile_notifier_name}" -c '[ .PlatformApplications.[] | select( .PlatformApplicationArn | endswith("/" + $namefilter)) ]')"
 
+  if [[ -z "${current_platform_arns}" ]]; then 
+    unexpected_platform_arns="$(jq --arg expectedarns "${expected_platform_arns}" -arg currentarns "${current_platform_arns}" '$current_platform_arns - $expected_platform_arns')"
+    echo "${unexpected_platform_arns}"
   fi
 
 }

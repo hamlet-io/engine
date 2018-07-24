@@ -13,8 +13,10 @@
         [#assign resources = occurrence.State.Resources]
 
         [#assign successSampleRate = solution.SuccessSampleRate ]
+        [#assign encryptionScheme = solution.Credentials.EncryptionScheme?ensure_ends_with(":")]
 
         [#assign platformAppNames = []]
+        [#assign deployedPlatformAppArns = []]
 
         [#assign roleId = resources["role"].Id]
 
@@ -43,11 +45,14 @@
             [#assign resources = subOccurrence.State.Resources ]
 
             [#assign successSampleRate = solution.SuccessSampleRate!successSampleRate ] 
+            [#assign encryptionScheme = solution.EncryptionScheme!encryptionScheme]
 
             [#assign platformAppId = resources["platformapplication"].Id]
             [#assign platformAppName = resources["platformapplication"].Name ]
             [#assign platformAppCreateCliId = formatId( platformAppId, "create" )]
             [#assign platformAppUpdateCliId = formatId( platformAppId, "update" )]
+
+            [#assign deployedPlatformAppArns += getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE )]
 
             [#assign platformAppNames += [ platformAppName ] ]
 
@@ -152,7 +157,7 @@
                     /]
                 [/#if]
 
-                [#if deploymentSubsetRequired("prologue", false) ]
+                [#if deploymentSubsetRequired( "epilogue", false) ]
                     [@cfScript
                         mode=listMode
                         content= 
@@ -167,9 +172,11 @@
                             ] +
                             (getExistingReference(platformAppId)?has_content)?then(
                                 [
-                                    "       update_sns_platformapp" +
+                                    "       deploy_sns_platformapp" +
                                     "       \"" + region + "\" " + 
+                                    "       \"update\" " +
                                     "       \"" + getExistingReference(platformAppId) + "\" " + 
+                                    "       \"" + encryptionScheme + "\" " +
                                     "       \"$\{tmpdir}/cli-" + 
                                             platformAppUpdateCliId + "-" + platformAppUpdateCommand + ".json\"",
                                     "    ;;",
@@ -181,9 +188,11 @@
                                     "       \"" + getExistingReference(platformAppId) + "\" "
                                 ],
                                 [
-                                    "       platform_app_arn=$( create_sns_platformapp" +
+                                    "       platform_app_arn=$( deploy_sns_platformapp" +
                                     "       \"" + region + "\" " + 
+                                    "       \"create\" " +
                                     "       \"" + platformAppName + "\" " + 
+                                    "       \"" + encryptionScheme + "\" " +
                                     "       \"$\{tmpdir}/cli-" + 
                                             platformAppCreateCliId + "-" + platformAppCreateCommand + ".json\")",
                                     "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-" + core.SubComponent.Id + "-pseudo-stack.json\" ",
@@ -203,8 +212,26 @@
         [/#list]
 
         
-        [#if deploymentSubsetRequired("epilogue", false) ]
-            
+        [#if deploymentSubsetRequired( "prologue", false) ]
+            [@cfScript
+                mode=listMode
+                content= 
+                    deployedPlatformAppArns?has_content?then(
+                        [
+                            "# Mobile Notifier Cleanup
+                            "case $\{STACK_OPERATION} in",
+                            "  create|update)"
+                            "       info \"Cleanig up platforms that have been removed from config\"",
+                            "       cleanup_sns_platformapps " + 
+                            "       \"" + region + "\" " + 
+                            "       \"" + platformAppName + "\" " + 
+                            "       \"" + getJSON(deployedPlatformAppArns, true) + "\ || return $?",
+                            "       ;;",
+                            "       esac"   
+                        ],
+                        []
+                    )
+            /]
         [/#if]
 
     [/#list]
