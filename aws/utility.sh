@@ -921,14 +921,6 @@ function deploy_sns_platformapp() {
   esac
 }
 
-function update_sns_platformapp() {
-  local region="$1"; shift
-  local arn="$1"; shift
-  local configfile="$1"; shift 
-  
-  
-}
-
 function delete_sns_platformapp() {
   local region="$1"; shift
   local arn="$1"; shift

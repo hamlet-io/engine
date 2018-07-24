@@ -15,7 +15,6 @@
         [#assign successSampleRate = solution.SuccessSampleRate ]
         [#assign encryptionScheme = solution.Credentials.EncryptionScheme?ensure_ends_with(":")]
 
-        [#assign platformAppNames = []]
         [#assign deployedPlatformAppArns = []]
 
         [#assign roleId = resources["role"].Id]
@@ -52,10 +51,12 @@
             [#assign platformAppCreateCliId = formatId( platformAppId, "create" )]
             [#assign platformAppUpdateCliId = formatId( platformAppId, "update" )]
 
-            [#assign deployedPlatformAppArns += getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE )]
-
-            [#assign platformAppNames += [ platformAppName ] ]
-
+            [#assign platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ] 
+            
+            [#if platformArn?has_content ]
+                [#assign deployedPlatformAppArns += [ platformArn ] ]
+            [/#if]
+            
             [#assign isPlatformApp = false]
 
             [#assign engine = solution.Engine!core.SubComponent.Id ]
@@ -162,7 +163,7 @@
                         mode=listMode
                         content= 
                             [
-                                "# Platform: " + core.SubComponent.Id 
+                                "# Platform: " + core.SubComponent.Id,
                                 "case $\{STACK_OPERATION} in",
                                 "  create|update)",
                                 "       # Get cli config file",
@@ -218,14 +219,14 @@
                 content= 
                     deployedPlatformAppArns?has_content?then(
                         [
-                            "# Mobile Notifier Cleanup
+                            "# Mobile Notifier Cleanup",
                             "case $\{STACK_OPERATION} in",
-                            "  create|update)"
+                            "  create|update)",
                             "       info \"Cleanig up platforms that have been removed from config\"",
                             "       cleanup_sns_platformapps " + 
                             "       \"" + region + "\" " + 
                             "       \"" + platformAppName + "\" " + 
-                            "       \"" + getJSON(deployedPlatformAppArns, true) + "\ || return $?",
+                            "       \"" + getJSON(deployedPlatformAppArns, true) + "\" || return $?",
                             "       ;;",
                             "       esac"   
                         ],
