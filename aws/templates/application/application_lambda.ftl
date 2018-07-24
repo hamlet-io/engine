@@ -306,6 +306,27 @@
                                 )
                             ) /]
                 [/#if]
+                [@cfScript
+                    mode=listMode
+                    content=
+                        [
+                            "case $\{STACK_OPERATION} in",
+                            "  delete)"
+                        ] +
+                        [
+                            "# Release ENIs",
+                            "info \"Realising ENIs ... \"",
+                            "release_enis" +
+                            " \"" + region + "\" " +
+                            " \"" + fnName + "\" || return $?"
+
+                        ] +
+                        [
+                            "       ;;",
+                            "       esac"
+                        ],
+                        []
+                /]
             [/#if]
         [/#list]
     [/#list]

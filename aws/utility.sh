@@ -1276,3 +1276,19 @@ function invalidate_distribution() {
     # Note paths is intentionally not escaped as each token needs to be separately parsed
     aws --region "${region}" cloudfront create-invalidation --distribution-id "${distribution_id}" --paths ${paths}
 }
+
+# -- ENI interface removal  --
+function release_enis() {
+    local region="$1"; shift
+    local requester_id="$1"; shift
+    local attachment_id
+    local network_interface_id
+    local eni_list_file="$( getTempFile eni_list_XXXX.json)"
+    
+    aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values=*${requester_id} > "${eni_list_file}" || return $?
+    
+    attachment_id=$(jq -r ".NetworkInterfaces[].Attachment.AttachmentId" < "${eni_list_file}") || return $?
+    network_interface_id=$(jq -r ".NetworkInterfaces[].NetworkInterfaceId" < "${eni_list_file}") || return $?
+    aws --region "${region}" ec2 detach-network-interface --attachment-id "${attachment_id}" || return $?
+    aws --region "${region}" ec2 delete-network-interface --network-interface-id "${attachment_id}" || return $?
+}
