@@ -1290,5 +1290,5 @@ function release_enis() {
     attachment_id=$(jq -r ".NetworkInterfaces[].Attachment.AttachmentId" < "${eni_list_file}") || return $?
     network_interface_id=$(jq -r ".NetworkInterfaces[].NetworkInterfaceId" < "${eni_list_file}") || return $?
     aws --region "${region}" ec2 detach-network-interface --attachment-id "${attachment_id}" || return $?
-    aws --region "${region}" ec2 delete-network-interface --network-interface-id "${attachment_id}" || return $?
+    aws --region "${region}" ec2 delete-network-interface --network-interface-id "${network_interface_id}" || return $?
 }
