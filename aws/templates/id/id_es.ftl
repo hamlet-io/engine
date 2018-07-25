@@ -60,7 +60,7 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local esId = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
-    [#local esHostName = getReference(esId, DNS_ATTRIBUTE_TYPE) ]
+    [#local esHostName = getExistingReference(esId, DNS_ATTRIBUTE_TYPE) ]
 
     [#return
         {
