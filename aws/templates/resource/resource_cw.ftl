@@ -54,10 +54,10 @@
 
 [#macro createLogSubscription mode id logGroup filter destination role="" dependencies=""  ]
 
-    [#destinationArn = destination?starts_with("arn:")?then(
-        destination,
-        getReference(destination, ARN_ATTRIBUTE_TYPE )
-    )]
+    [#local destinationArn = destination?starts_with("arn:")?then(
+                                destination,
+                                getReference(destination, ARN_ATTRIBUTE_TYPE )
+                            )]
 
     [@cfResource
         mode=mode

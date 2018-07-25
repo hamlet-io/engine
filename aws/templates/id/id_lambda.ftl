@@ -181,9 +181,9 @@
 [#function getFunctionState occurrence]
     [#local core = occurrence.Core]
 
-    [#assign id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
+    [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
 
-    [#assign lgName = formatAbsolutePath("aws", "lambda", core.FullName)]
+    [#local lgName = formatAbsolutePath("aws", "lambda", core.FullName)]
 
     [#return
         {
@@ -216,7 +216,7 @@
                         "Principal" : "logs." + regionId + "amazonaws.com",
                         "SourceArn" : formatCloudWatchLogArn(lgName)
                     }
-                }
+                },
                 "Outbound" : {
                     "invoke" : lambdaInvokePermission(id)
                 }
