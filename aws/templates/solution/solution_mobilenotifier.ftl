@@ -27,7 +27,8 @@
                 policies=
                     [
                         getPolicyDocument(
-                            cwLogsProducePermission(),
+                                cwLogsProducePermission() +
+                                cwLogsConfigurePermission(),
                             "logging")
                     ]
             /]
@@ -59,16 +60,16 @@
             
             [#assign isPlatformApp = false]
 
-            [#assign engine = solution.Engine!core.SubComponent.Id ]
+            [#assign engine = solution.Engine!core.SubComponent.Name ]
 
             [#assign platformAppCreateCli = {} ]
             [#assign platformAppUpdateCli = {} ]
 
             [#assign platformAppPrincipal =
-                getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Id + "_Principal"], true) ]
+                getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Principal"], true) ]
             
-            [#assign platformAppCertificate =
-                getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Id + "_Certificate"], true) ]
+            [#assign platformAppCredential =
+                getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Credential"], true) ]
 
             [#assign engineFamily = "" ]
             
@@ -97,13 +98,13 @@
             [#switch engineFamily ]
                 [#case "APPLE" ]
                     [#assign isPlatformApp = true]
-                    [#if !platformAppCertificate?has_content || !platformAppPrincipal?has_content ]
+                    [#if !platformAppCredential?has_content || !platformAppPrincipal?has_content ]
                         [@cfException 
                             mode=listMode 
-                            description="Missing Credentials - Requires both Certificate and Principal" 
+                            description="Missing Credentials - Requires both Credential and Principal" 
                             context=component 
                             detail={
-                                "Certificate" : platformAppCertificate!"",
+                                "Credential" : platformAppCredential!"",
                                 "Principal" : platformAppPrincipal!""
                             } /]
                     [/#if]
@@ -132,14 +133,14 @@
                             engine, 
                             roleId,
                             successSampleRate, 
-                            platformAppCertificate,
+                            platformAppCredential,
                             platformAppPrincipal )]
 
                     [#assign platformAppUpdateCli = 
                         getSNSPlatformAppAttributes(
                             roleId, 
                             successSampleRate 
-                            platformAppCertificate,
+                            platformAppCredential,
                             platformAppPrincipal )]
 
                     [@cfCli 
@@ -196,6 +197,7 @@
                                     "       \"" + encryptionScheme + "\" " +
                                     "       \"$\{tmpdir}/cli-" + 
                                             platformAppCreateCliId + "-" + platformAppCreateCommand + ".json\")",
+                                    "       info \"Created $\{platform_app_arn}\" ",
                                     "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-" + core.SubComponent.Id + "-pseudo-stack.json\" ",
                                     "       create_pseudo_stack" + " " +
                                     "       \"SNS Platform Application\" " +

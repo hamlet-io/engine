@@ -882,28 +882,31 @@ function deploy_sns_platformapp() {
   local configfile="$1"; shift 
 
   platform_principal="$(jq -r '.Attributes.PlatformPrincipal | select (.!=null)' < "${configfile}" )"
-  platform_certificate="$(jq -r '.Attributes.PlatformCertificate | select (.!=null)' < "${configfile}" )"
+  platform_credential="$(jq -r '.Attributes.PlatformCredential | select (.!=null)' < "${configfile}" )"
+  platform_engine="$(jq -r '.Platform | select (.!=null)' < "${configfile}" )"
 
   #Decrypt the principal and certificate if they are encrypted
-  if [[ "${platform_principal}" == "${encryption_scheme}*" ]]; then
+  if [[ "${platform_principal}" == "${encryption_scheme}"* ]]; then
+      info "Decrypting Principal"
       decrypted_platform_principal="$( decrypt_kms_string "${region}" "${platform_principal#${encryption_scheme}}" || return $? )"
   else 
       decrypted_platform_principal="${platform_principal}"
   fi
 
-  if [[ "${platform_certificate}" == "${encryption_scheme}*" ]]; then
-    decrypted_platform_certificate="$( decrypt_kms_string "${region}" "${platform_certificate#${encryption_scheme}}" || return $? )"
+  if [[ "${platform_credential}" == "${encryption_scheme}"* ]]; then
+    decrypted_platform_credential="$( decrypt_kms_string "${region}" "${platform_credential#${encryption_scheme}}" || return $? )"
   else 
-    decrypted_platform_certificate="${platform_certificate}"
+    decrypted_platform_credential="${platform_credential}"
   fi
-
-  jq -rc --arg principal "${decrypted_platform_principal}" --arg certificate "${decrypted_platform_certificate}" \
-        ' . | if $principal != "" then .Attributes.PlatformPrincipal = $principal else . end 
-            | if $certificate != "" then .Attributes.PlatformCertificate = $certificate else . end' < "${configfile}" > "${configfile}_decrypted"
 
   case "${action}" in
     "create")
-      platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${id}" --cli-input-json "file://${configfile}_decrypted" | jq -r '.PlatformApplicationArn | select (.!=null)') )"
+      platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${id}" \
+        --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" \
+        --platform="${platform_engine}" | jq -r '.PlatformApplicationArn | select (.!=null)' )"
+
+      jq -rc '. | del(.Name) | del(.Platform) | del(.Attributes.PlatformPrincipal) | del(.Attributes.PlatformCredential)' < "${configfile}" > "${configfile}_create"
+      aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_create" || return $? 
 
       if [[ -z "${platform_app_arn}" ]]; then 
         fatal "Platform app was not created"
@@ -915,7 +918,8 @@ function deploy_sns_platformapp() {
       ;;
 
     "update" )
-      aws --region "${region}" sns update-platform-application-attributes --platform-application-arn "${id}" --cli-input-json "file://${configfile}_decrypted" || return $?
+      jq -rc '. | del(.PlatformPrincipal) | del(.PlatformCredential)' < "${configfile}" > "${configfile}_update"
+      aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${id}" --cli-input-json "file://${configfile}_update" || return $?
       return 0
       ;;
   esac

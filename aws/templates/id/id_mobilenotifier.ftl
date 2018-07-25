@@ -15,7 +15,7 @@
                 },
                 {
                     "Name" : "SuccessSampleRate",
-                    "Default" : 100
+                    "Default" : "100"
                 },
                 {
                     "Name" : "Credentials",

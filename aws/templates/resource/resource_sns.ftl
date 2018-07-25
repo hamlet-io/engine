@@ -64,8 +64,8 @@
 [#function getSNSPlatformAppAttributes roleId="" successSample="" credential="" principal="" ]
     [#return 
             {
-                "SuccessFeedbackRoleArn"    : getReference(roleId),
-                "FailureFeedbackRoleArn"    : getReference(roleId),
+                "SuccessFeedbackRoleArn"    : getReference(roleId, ARN_ATTRIBUTE_TYPE),
+                "FailureFeedbackRoleArn"    : getReference(roleId, ARN_ATTRIBUTE_TYPE),
                 "SuccessFeedbackSampleRate" : successSample
             } + 
             attributeIfContent(
