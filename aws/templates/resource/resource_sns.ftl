@@ -63,7 +63,8 @@
 
 [#function getSNSPlatformAppAttributes roleId="" successSample="" credential="" principal="" ]
     [#return 
-            {
+        {  
+            "Attributes" : {
                 "SuccessFeedbackRoleArn"    : getReference(roleId, ARN_ATTRIBUTE_TYPE),
                 "FailureFeedbackRoleArn"    : getReference(roleId, ARN_ATTRIBUTE_TYPE),
                 "SuccessFeedbackSampleRate" : successSample
@@ -77,18 +78,6 @@
                 "PlatformPrincipal",
                 principal,
                 principal
-            )]
-[/#function]
-
-[#function getSNSPlatformAppCreateCli name platform roleId successSample credential="" principal="" ]
-    [#return 
-        {
-            "Name" : name,
-            "Platform" : platform,
-            "Attributes" : getSNSPlatformAppAttributes(
-                                roleId,
-                                successSample,
-                                credential,
-                                principal)
-        }]
+            )
+            }]
 [/#function]

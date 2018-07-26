@@ -34,8 +34,7 @@
             /]
         [/#if]
 
-        [#assign platformAppCreateCommand = "createPlatformApp" ]
-        [#assign platformAppUpdateCommand = "updatePlatformApp" ]
+        [#assign platformAppAttributesCommand = "attributesPlatformApp" ]
         [#assign platformAppDeleteCommand = "deletePlatformApp" ]
 
         [#list occurrence.Occurrences![] as subOccurrence]
@@ -49,8 +48,7 @@
 
             [#assign platformAppId = resources["platformapplication"].Id]
             [#assign platformAppName = resources["platformapplication"].Name ]
-            [#assign platformAppCreateCliId = formatId( platformAppId, "create" )]
-            [#assign platformAppUpdateCliId = formatId( platformAppId, "update" )]
+            [#assign platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
 
             [#assign platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ] 
             
@@ -126,17 +124,8 @@
             
             [#if isPlatformApp ]
                 [#if deploymentSubsetRequired("cli", false ) ]
-
-                    [#assign platformAppCreateCli = 
-                        getSNSPlatformAppCreateCli( 
-                            platformAppName, 
-                            engine, 
-                            roleId,
-                            successSampleRate, 
-                            platformAppCredential,
-                            platformAppPrincipal )]
-
-                    [#assign platformAppUpdateCli = 
+                
+                    [#assign platformAppAttributes = 
                         getSNSPlatformAppAttributes(
                             roleId, 
                             successSampleRate 
@@ -145,70 +134,47 @@
 
                     [@cfCli 
                         mode=listMode
-                        id=platformAppCreateCliId
-                        command=platformAppCreateCommand
-                        content=platformAppCreateCli
+                        id=platformAppAttributesCliId
+                        command=platformAppAttributesCommand
+                        content=platformAppAttributes
                     /]
 
-
-                    [@cfCli 
-                        mode=listMode
-                        id=platformAppUpdateCliId
-                        command=platformAppUpdateCommand
-                        content=platformAppUpdateCli
-                    /]
                 [/#if]
 
                 [#if deploymentSubsetRequired( "epilogue", false) ]
+
                     [@cfScript
                         mode=listMode
                         content= 
                             [
-                                "# Platform: " + core.SubComponent.Id,
+                                "# Platform: " + core.SubComponent.Name,
                                 "case $\{STACK_OPERATION} in",
                                 "  create|update)",
                                 "       # Get cli config file",
                                 "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
-                                "       # Apply CLI level updates to Application Platform",
-                                "       info \"Applying cli level configurtion\""
-                            ] +
-                            (getExistingReference(platformAppId)?has_content)?then(
-                                [
-                                    "       deploy_sns_platformapp" +
-                                    "       \"" + region + "\" " + 
-                                    "       \"update\" " +
-                                    "       \"" + getExistingReference(platformAppId) + "\" " + 
-                                    "       \"" + encryptionScheme + "\" " +
-                                    "       \"$\{tmpdir}/cli-" + 
-                                            platformAppUpdateCliId + "-" + platformAppUpdateCommand + ".json\"",
-                                    "    ;;",
-                                    "  delete)",
-                                    "       # Delete SNS Platform Application",
-                                    "       info \"Deleting SNS Platform App " + getExistingReference(platformAppId) + "\" ",
-                                    "       delete_sns_platformapp" +
-                                    "       \"" + region + "\" " + 
-                                    "       \"" + getExistingReference(platformAppId) + "\" "
-                                ],
-                                [
-                                    "       platform_app_arn=$( deploy_sns_platformapp" +
-                                    "       \"" + region + "\" " + 
-                                    "       \"create\" " +
-                                    "       \"" + platformAppName + "\" " + 
-                                    "       \"" + encryptionScheme + "\" " +
-                                    "       \"$\{tmpdir}/cli-" + 
-                                            platformAppCreateCliId + "-" + platformAppCreateCommand + ".json\")",
-                                    "       info \"Created $\{platform_app_arn}\" ",
-                                    "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-" + core.SubComponent.Id + "-pseudo-stack.json\" ",
-                                    "       create_pseudo_stack" + " " +
-                                    "       \"SNS Platform Application\" " +
-                                    "       \"$\{pseudo_stack_file}\"" + " " +
-                                    "       \"" + platformAppId + "Xarn\" \"$\{platform_app_arn}\" || return $?"
-                                ]
-                            ) +
-                            [
+                                "       info \"Deploying SNS PlatformApp: " + core.SubComponent.Name + "\"",
+                                "       platform_app_arn=\"$(deploy_sns_platformapp" +
+                                "       \"" + region + "\" " + 
+                                "       \"" + platformAppName + "\" " + 
+                                "       \"" + encryptionScheme + "\" " +
+                                "       \"" + engine + "\" " + 
+                                "       \"$\{tmpdir}/cli-" + 
+                                        platformAppAttributesCliId + "-" + platformAppAttributesCommand + ".json\")\"",
+                                "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")" + core.SubComponent.Id + "-pseudo-stack.json\" ",
+                                "       create_pseudo_stack" + " " +
+                                "       \"SNS Platform App\"" + " " +
+                                "       \"$\{pseudo_stack_file}\"" + " " +
+                                "       \"" + platformAppId + "Xarn\" \"$\{platform_app_arn}\" || return $?",
+                                "       ;;",
+                                "  delete)",
+                                "       # Delete SNS Platform Application",
+                                "       info \"Deleting SNS Platform App " + core.SubComponent.Name + "\" ",
+                                "       delete_sns_platformapp" +
+                                "       \"" + region + "\" " + 
+                                "       \"" + platformArn + "\" "
                                 "   ;;",
                                 "   esac"
-                            ]
+                            ] 
                     /]
                 [/#if]
             [/#if]
@@ -219,21 +185,19 @@
             [@cfScript
                 mode=listMode
                 content= 
-                    deployedPlatformAppArns?has_content?then(
-                        [
-                            "# Mobile Notifier Cleanup",
-                            "case $\{STACK_OPERATION} in",
-                            "  create|update)",
-                            "       info \"Cleanig up platforms that have been removed from config\"",
-                            "       cleanup_sns_platformapps " + 
-                            "       \"" + region + "\" " + 
-                            "       \"" + platformAppName + "\" " + 
-                            "       \"" + getJSON(deployedPlatformAppArns, true) + "\" || return $?",
-                            "       ;;",
-                            "       esac"   
-                        ],
-                        []
-                    )
+                    [
+                        "# Mobile Notifier Cleanup",
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)",
+                        "       info \"Cleanig up platforms that have been removed from config\"",
+                        "       cleanup_sns_platformapps " + 
+                        "       \"" + region + "\" " + 
+                        "       \"" + platformAppName + "\" " + 
+                        "       '" + getJSON(deployedPlatformAppArns, false) + "' || return $?",
+                        "       ;;",
+                        "       esac"   
+                    ]
+                    
             /]
         [/#if]
 

@@ -876,18 +876,16 @@ function deleteTreeFromBucket() {
 # -- SNS -- 
 function deploy_sns_platformapp() {
   local region="$1"; shift
-  local action="$1"; shift
   local id="$1"; shift
   local encryption_scheme="$1"; shift
+  local engine="$1"; shift
   local configfile="$1"; shift 
 
-  platform_principal="$(jq -r '.Attributes.PlatformPrincipal | select (.!=null)' < "${configfile}" )"
-  platform_credential="$(jq -r '.Attributes.PlatformCredential | select (.!=null)' < "${configfile}" )"
-  platform_engine="$(jq -r '.Platform | select (.!=null)' < "${configfile}" )"
+  platform_principal="$(jq -rc '.Attributes.PlatformPrincipal | select (.!=null)' < "${configfile}" )"
+  platform_credential="$(jq -rc '.Attributes.PlatformCredential | select (.!=null)' < "${configfile}" )"
 
   #Decrypt the principal and certificate if they are encrypted
   if [[ "${platform_principal}" == "${encryption_scheme}"* ]]; then
-      info "Decrypting Principal"
       decrypted_platform_principal="$( decrypt_kms_string "${region}" "${platform_principal#${encryption_scheme}}" || return $? )"
   else 
       decrypted_platform_principal="${platform_principal}"
@@ -899,30 +897,22 @@ function deploy_sns_platformapp() {
     decrypted_platform_credential="${platform_credential}"
   fi
 
-  case "${action}" in
-    "create")
-      platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${id}" \
-        --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" \
-        --platform="${platform_engine}" | jq -r '.PlatformApplicationArn | select (.!=null)' )"
+  jq -rc '. | del(.Attributes.PlatformPrincipal) | del(.Attributes.PlatformCredential)' < "${configfile}" > "${configfile}_decrypted"
 
-      jq -rc '. | del(.Name) | del(.Platform) | del(.Attributes.PlatformPrincipal) | del(.Attributes.PlatformCredential)' < "${configfile}" > "${configfile}_create"
-      aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_create" || return $? 
+  platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${id}" \
+    --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" \
+    --platform="${engine}" | jq -rc '.PlatformApplicationArn | select (.!=null)' )" 
+  
+  udpate_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
 
-      if [[ -z "${platform_app_arn}" ]]; then 
-        fatal "Platform app was not created"
-        return 255
-      else
-        echo "${platform_app_arn}"
-        return 0
-      fi  
-      ;;
-
-    "update" )
-      jq -rc '. | del(.PlatformPrincipal) | del(.PlatformCredential)' < "${configfile}" > "${configfile}_update"
-      aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${id}" --cli-input-json "file://${configfile}_update" || return $?
-      return 0
-      ;;
-  esac
+  if [[ -z "${platform_app_arn}" ]]; then 
+    fatal "Platform app was not created"
+    return 255
+  else
+    echo "${platform_app_arn}"
+    return 0
+  fi  
+      
 }
 
 function delete_sns_platformapp() {
@@ -937,14 +927,24 @@ function cleanup_sns_platformapps() {
   local mobile_notifier_name="$1"; shift
   local expected_platform_arns="$1"; shift
 
-  all_platform_apps="$(aws --region "${region}" sns list-platform-applications )"
-  current_platform_arns="$(echo "${all_platform_apps}" | jq --arg namefilter "${mobile_notifier_name}" -c '[ .PlatformApplications.[] | select( .PlatformApplicationArn | endswith("/" + $namefilter)) ]')"
+  pushTempDir "${mobile_notifier_name}_cleanup_XXXX"
+  local tmp_file="$(getTopTempDir)/cleanup.sh"
 
-  if [[ -z "${current_platform_arns}" ]]; then 
-    unexpected_platform_arns="$(jq --arg expectedarns "${expected_platform_arns}" -arg currentarns "${current_platform_arns}" '$current_platform_arns - $expected_platform_arns')"
-    echo "${unexpected_platform_arns}"
+  all_platform_apps="$(aws --region "${region}" sns list-platform-applications )"
+  current_platform_arns="$(echo "${all_platform_apps}" | jq --arg namefilter "${mobile_notifier_name}" -rc '.PlatformApplications[] | select( .PlatformApplicationArn | endswith("/" + $namefilter)) | [ .PlatformApplicationArn ]')"
+
+  if [[ -n "${current_platform_arns}" ]]; then 
+    unexpected_platform_arns="$(echo "${expected_platform_arns}" | jq --argjson currentarns "${current_platform_arns}" '. - $currentarns')"
+    info "Found the following unexpected Platforms: ${unexpected_platform_arns}"
+    echo "${unexpected_platform_arns}" | jq --arg region "${region}" -r '.[] | "delete_sns_platform \($region) \(.)"' > "${tmp_file}"
+
+    if [[ -f "${tmp_file}" ]]; then 
+      ./"${tmp_file}"
+    fi
   fi
 
+  popTempDir
+  return $?
 }
 
 # -- PKI --
