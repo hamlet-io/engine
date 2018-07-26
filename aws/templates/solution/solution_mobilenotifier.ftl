@@ -48,6 +48,8 @@
 
             [#assign platformAppId = resources["platformapplication"].Id]
             [#assign platformAppName = resources["platformapplication"].Name ]
+            [#assign engine = resources["platformapplication"].Engine ]
+
             [#assign platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
 
             [#assign platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ] 
@@ -57,8 +59,6 @@
             [/#if]
             
             [#assign isPlatformApp = false]
-
-            [#assign engine = solution.Engine!core.SubComponent.Name ]
 
             [#assign platformAppCreateCli = {} ]
             [#assign platformAppUpdateCli = {} ]

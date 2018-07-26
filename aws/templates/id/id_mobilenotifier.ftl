@@ -86,6 +86,7 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE, core.Id) ]
+    [#local engine = solution.Engine!core.SubComponent.Name  ]
 
     [#local result =
         {
@@ -93,14 +94,20 @@
                 "platformapplication" : {
                     "Id" : id,
                     "Name" : core.FullName,
+                    "Engine" : engine,
                     "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE 
                 }
             },
             "Attributes" : {
+                "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
+                "ENGINE" : engine,
+                "TOPIC_PREFIX" : id
             },
             "Roles" : {
                 "Inbound" : {},
-                "Outbound" : {}
+                "Outbound" : {
+                    "invoke" : snsPublishPlatformApplication(id)
+                }
             }
         }
     ]
