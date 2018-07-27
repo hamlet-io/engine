@@ -2,8 +2,8 @@
 
 [#-- Resources --]
 [#assign AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE = "lg" ]
-[#assign AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE = "lmetric" ]
 [#assign AWS_CLOUDWATCH_DASHBOARD_RESOURCE_TYPE = "dashboard" ]
+[#assign AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE = "lmetric" ]
 [#assign AWS_CLOUDWATCH_ALARM_RESOURCE_TYPE = "alarm" ]
 
 [#function formatLogGroupId ids...]
