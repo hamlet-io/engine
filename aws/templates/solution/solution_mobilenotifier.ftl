@@ -160,11 +160,12 @@
                                 "       \"" + engine + "\" " + 
                                 "       \"$\{tmpdir}/cli-" + 
                                         platformAppAttributesCliId + "-" + platformAppAttributesCommand + ".json\")\"",
-                                "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")" + core.SubComponent.Id + "-pseudo-stack.json\" ",
+                                "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-" + core.SubComponent.Id + "-pseudo-stack.json\" ",
                                 "       create_pseudo_stack" + " " +
                                 "       \"SNS Platform App\"" + " " +
                                 "       \"$\{pseudo_stack_file}\"" + " " +
-                                "       \"" + platformAppId + "Xarn\" \"$\{platform_app_arn}\" || return $?",
+                                "       \"" + platformAppId + "Xarn\" \"$\{platform_app_arn}\"" +
+                                "       \"" + platformAppId + "\" \"" + core.Name + "\" || return $?",
                                 "       ;;",
                                 "  delete)",
                                 "       # Delete SNS Platform Application",
@@ -189,7 +190,7 @@
                         "# Mobile Notifier Cleanup",
                         "case $\{STACK_OPERATION} in",
                         "  create|update)",
-                        "       info \"Cleanig up platforms that have been removed from config\"",
+                        "       info \"Cleaning up platforms that have been removed from config\"",
                         "       cleanup_sns_platformapps " + 
                         "       \"" + region + "\" " + 
                         "       \"" + platformAppName + "\" " + 

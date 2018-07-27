@@ -86,7 +86,7 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE, core.Id) ]
-    [#local engine = solution.Engine!core.SubComponent.Name  ]
+    [#local engine = solution.Engine!core.SubComponent.Name?upper_case  ]
 
     [#local result =
         {
@@ -106,7 +106,8 @@
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {
-                    "invoke" : snsPublishPlatformApplication(id)
+                    "default" : "publish",
+                    "publish" : snsPublishPlatformApplication(id)
                 }
             }
         }

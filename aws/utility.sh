@@ -937,9 +937,10 @@ function cleanup_sns_platformapps() {
     unexpected_platform_arns="$(echo "${expected_platform_arns}" | jq --argjson currentarns "${current_platform_arns}" '. - $currentarns')"
     info "Found the following unexpected Platforms: ${unexpected_platform_arns}"
     echo "${unexpected_platform_arns}" | jq --arg region "${region}" -r '.[] | "delete_sns_platform \($region) \(.)"' > "${tmp_file}"
-
+    
     if [[ -f "${tmp_file}" ]]; then 
-      ./"${tmp_file}"
+      chmod u+x "${tmp_file}"
+      "${tmp_file}"
     fi
   fi
 

@@ -44,24 +44,26 @@
 
 [#function snsPublishPlatformApplication topic_prefix="" ]
     [#return 
-        getPolicyStatement(
-            [
-                "sns:GetPlatformApplicationAttributes",
-                "sns:CreatePlatformEndpoint",
-                "sns:GetEndpointAttributes",
-                "sns:ListEndpointsByPlatformApplication",
-                "sns:SetEndpointAttributes"   
-            ]
-        ) + 
-        getPolicyStatement(
-            [
-                "sns:CreateTopic",
-                "sns:Publish"
-            ],
-            formatRegionalArn(
-                "sns", 
-                topic_prefix + "*"
+        [
+            getPolicyStatement(
+                [
+                    "sns:GetPlatformApplicationAttributes",
+                    "sns:CreatePlatformEndpoint",
+                    "sns:GetEndpointAttributes",
+                    "sns:ListEndpointsByPlatformApplication",
+                    "sns:SetEndpointAttributes"   
+                ]
+            ),
+            getPolicyStatement(
+                [
+                    "sns:CreateTopic",
+                    "sns:Publish"
+                ],
+                formatRegionalArn(
+                    "sns", 
+                    topic_prefix + "*"
+                )
             )
-        )
+        ]
     ]
 [/#function]
