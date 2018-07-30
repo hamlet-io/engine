@@ -406,10 +406,16 @@
 [#-- Container --]
 
 [#function formatContainerFragmentId occurrence container]
-    [#return formatName(
-                getContainerId(container),
-                occurrence.Core.Instance.Id,
-                occurrence.Core.Version.Id)]
+    [#local containerId = getContainerId(container) ]
+    [#if containerId?starts_with("_") ]
+        [#return containerId ]
+    [#else]
+        [#return 
+                formatName(
+                    getContainerId(container),
+                    occurrence.Core.Instance.Id,
+                    occurrence.Core.Version.Id)]
+    [/#if]
 [/#function]
 
 [#function formatContainerSecurityGroupIngressId resourceId container portRange source=""]

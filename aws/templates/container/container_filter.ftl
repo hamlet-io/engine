@@ -1,4 +1,6 @@
 [#case "filter"]
+[#case "_filter"]
+
     [#-- DATA and QUERY credentials (USERNAME, PASSWORD) expected in env --]
     [#-- TODO(mfl): change container to use standard ES atributes --]
     [#assign es = component.Links["es"]]

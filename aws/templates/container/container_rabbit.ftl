@@ -1,5 +1,7 @@
 [#case "rabbit"]
+[#case "_rabbit"]
 [#case "rabbittask"]
+[#case "_rabbittask"]
 
     [@Attributes image="rabbitmq-autocluster" /]
 

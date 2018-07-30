@@ -1,4 +1,6 @@
 [#case "jenkins"]
+[#case "_jenkins"]
+
     [@Attributes image="jenkins-master" /]
    
     [#assign settings = context.DefaultEnvironment]

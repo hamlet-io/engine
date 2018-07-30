@@ -1,4 +1,6 @@
 [#case "logstash"]
+[#case "_logstash"]
+
     [#assign esConfiguration = configurationObject.ElasticSearch]
 
     [@Attributes name="logstash" /]
