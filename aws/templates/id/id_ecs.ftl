@@ -412,7 +412,7 @@
     [#else]
         [#return 
                 formatName(
-                    getContainerId(container),
+                    containerId,
                     occurrence.Core.Instance.Id,
                     occurrence.Core.Version.Id)]
     [/#if]
