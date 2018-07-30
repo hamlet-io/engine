@@ -24,13 +24,14 @@
                     solution.Container,
                     getComponentId(core.Component)
                 ) ]
+            [#assign contextLinks = getLinkTargets(fn) ]
             [#assign context =
                 {
                     "Id" : containerId,
                     "Name" : containerId,
                     "Instance" : core.Instance.Id,
                     "Version" : core.Version.Id,
-                    "DefaultEnvironment" : defaultEnvironment(fn),
+                    "DefaultEnvironment" : defaultEnvironment(fn, contextLinks),
                     "Environment" : {},
                     "S3Bucket" : getRegistryEndPoint("lambda", occurrence),
                     "S3Key" :
@@ -40,7 +41,7 @@
                             getOccurrenceBuildReference(occurrence),
                             "lambda.zip"
                         ),
-                    "Links" : getLinkTargets(fn),
+                    "Links" : contextLinks,
                     "DefaultCoreVariables" : true,
                     "DefaultEnvironmentVariables" : true,
                     "DefaultLinkVariables" : true,

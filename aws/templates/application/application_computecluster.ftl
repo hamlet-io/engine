@@ -81,15 +81,16 @@
                 getComponentId(component)
             ) ]
 
+        [#assign contextLinks = getLinkTargets(occurrence, links) ]
         [#assign context =
             {
                 "Id" : containerId,
                 "Name" : containerId,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
-                "DefaultEnvironment" : defaultEnvironment(occurrence),
+                "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
                 "Environment" : {},
-                "Links" : getLinkTargets(occurrence, links),
+                "Links" : contextLinks,
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true

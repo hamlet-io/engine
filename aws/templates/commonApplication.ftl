@@ -94,10 +94,10 @@
     [#return result]
 [/#function]
 
-[#function getDefaultLinkVariables context]
-    [#local result = context + {"Environment": {} }]
-    [#list context.Links as name,value]
-        [#if value.Direction != "inbound"]
+[#function getDefaultLinkVariables links includeInbound=false]
+    [#local result = {"Links" : links, "Environment": {} }]
+    [#list links as name,value]
+        [#if (value.Direction != "inbound") || includeInbound]
             [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
         [/#if]
     [/#list]
@@ -271,11 +271,12 @@
 
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
-[#function defaultEnvironment occurrence]
+[#function defaultEnvironment occurrence links]
     [#return
         occurrence.Configuration.Environment.General +
         occurrence.Configuration.Environment.Build +
-        occurrence.Configuration.Environment.Sensitive
+        occurrence.Configuration.Environment.Sensitive +
+        getDefaultLinkVariables(links, true)
     ]
 [/#function]
 
@@ -321,11 +322,11 @@
                         context.DefaultCoreVariables
                     ) +
                     valueIfTrue(
-                        context.DefaultEnvironment,
+                        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product),
                         context.DefaultEnvironmentVariables
                     ) +
                     valueIfTrue(
-                        getDefaultLinkVariables(context),
+                        getDefaultLinkVariables(context.Links),
                         context.DefaultLinkVariables
                     ) +
                     context.Environment
@@ -475,6 +476,7 @@
                 {}
             )]
 
+        [#assign contextLinks = getLinkTargets(task, containerLinks) ]
         [#assign context =
             {
                 "Id" : getContainerId(container),
@@ -495,14 +497,14 @@
                 "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
-                "DefaultEnvironment" : defaultEnvironment(task),
+                "DefaultEnvironment" : defaultEnvironment(task, contextLinks),
                 "Environment" :
                     {
                         "APP_RUN_MODE" : getContainerMode(container),
                         "AWS_REGION" : regionId,
                         "AWS_DEFAULT_REGION" : regionId
                     },
-                "Links" : getLinkTargets(task, containerLinks),
+                "Links" : contextLinks,
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
