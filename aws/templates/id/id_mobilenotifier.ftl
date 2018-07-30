@@ -101,7 +101,7 @@
             "Attributes" : {
                 "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
                 "ENGINE" : engine,
-                "TOPIC_PREFIX" : id
+                "TOPIC_PREFIX" : core.ShortFullName
             },
             "Roles" : {
                 "Inbound" : {},
