@@ -1,4 +1,6 @@
 [#case "codeontap"]
+[#case "_codeontap"]
+
     [#assign settings = context.DefaultEnvironment]
 
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp" ]

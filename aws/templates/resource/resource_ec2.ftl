@@ -265,7 +265,7 @@
 
     [#if dockerUsers?has_content ] 
         [#list dockerUsers as userName,details ]
-            [#local dockerUsersEnv += details.UserName?has_content?then(details.UserName,userName) + ":" + details.UID + "," ]
+            [#local dockerUsersEnv += details.UserName?has_content?then(details.UserName,userName) + ":" + details.UID?c + "," ]
         [/#list] 
     [/#if]
     [#local dockerUsersEnv = dockerUsersEnv?remove_ending(",")]

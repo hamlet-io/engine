@@ -1,4 +1,5 @@
 [#case "redirector"]
+[#case "_redirector"]
 
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]

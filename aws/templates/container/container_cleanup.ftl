@@ -1,4 +1,6 @@
 [#case "cleanup"]
+[#case "_cleanup" ]
+
     [@Attributes image="cleanup" /]
 
     [@Variables
