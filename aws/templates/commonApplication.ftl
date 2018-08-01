@@ -289,7 +289,8 @@
             []
         ) +
         valueIfTrue(
-            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)),
+            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)) + 
+            s3ListPermission(operationsBucket, getSettingsFilePrefix(occurrence)),
             permissions.AsFile,
             []
         ) +
@@ -322,7 +323,7 @@
                         context.DefaultCoreVariables
                     ) +
                     valueIfTrue(
-                        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product),
+                        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product, true),
                         context.DefaultEnvironmentVariables
                     ) +
                     valueIfTrue(
