@@ -289,17 +289,20 @@
             []
         ) +
         valueIfTrue(
-            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)),
+            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)) + 
+            s3ListPermission(operationsBucket, getSettingsFilePrefix(occurrence)),
             permissions.AsFile,
             []
         ) +
         valueIfTrue(
-            s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence)),
+            s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence))+
+            s3ListPermission(dataBucket, getAppDataFilePrefix(occurrence)),
             permissions.AppData,
             []
         ) +
         valueIfTrue(
-            s3AllPermission(dataBucket, getAppDataPublicFilePrefix(occurrence)),
+            s3AllPermission(dataBucket, getAppDataPublicFilePrefix(occurrence))+ 
+            s3ListPermission(dataBucket, getAppDataPublicFilePrefix(occurrence)),
             permissions.AppPublic && getAppDataPublicFilePrefix(occurrence)?has_content,
             []
         )
@@ -322,7 +325,7 @@
                         context.DefaultCoreVariables
                     ) +
                     valueIfTrue(
-                        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product),
+                        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product, true),
                         context.DefaultEnvironmentVariables
                     ) +
                     valueIfTrue(
