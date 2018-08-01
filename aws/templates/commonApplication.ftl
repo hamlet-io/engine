@@ -295,14 +295,12 @@
             []
         ) +
         valueIfTrue(
-            s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence))+
-            s3ListPermission(dataBucket, getAppDataFilePrefix(occurrence)),
+            s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence)),
             permissions.AppData,
             []
         ) +
         valueIfTrue(
-            s3AllPermission(dataBucket, getAppDataPublicFilePrefix(occurrence))+ 
-            s3ListPermission(dataBucket, getAppDataPublicFilePrefix(occurrence)),
+            s3AllPermission(dataBucket, getAppDataPublicFilePrefix(occurrence)),
             permissions.AppPublic && getAppDataPublicFilePrefix(occurrence)?has_content,
             []
         )
