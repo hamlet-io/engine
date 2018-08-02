@@ -15,3 +15,15 @@
     ]
 [/#function]
 
+[#function cwLogsConfigurePermission ]
+    [#return
+        [
+            getPolicyStatement(
+                [
+                    "logs:PutMetricFilter",
+                    "logs:PutRetentionPolicy"
+                ]
+            )
+        ]
+    ]
+[/#function]

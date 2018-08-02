@@ -28,7 +28,10 @@
         },
         {
             "Name" : ["Mount", "Subcomponent"]
-        }
+        },
+        {
+            "Name" : ["Platform"]
+        },
         "Instance",
         "Version"
     ]

@@ -873,6 +873,81 @@ function deleteTreeFromBucket() {
   aws --region "${region}" s3 rm "${optional_arguments[@]}" --recursive "s3://${bucket}/${prefix}/"
 }
 
+# -- SNS -- 
+function deploy_sns_platformapp() {
+  local region="$1"; shift
+  local id="$1"; shift
+  local encryption_scheme="$1"; shift
+  local engine="$1"; shift
+  local configfile="$1"; shift 
+
+  platform_principal="$(jq -rc '.Attributes.PlatformPrincipal | select (.!=null)' < "${configfile}" )"
+  platform_credential="$(jq -rc '.Attributes.PlatformCredential | select (.!=null)' < "${configfile}" )"
+
+  #Decrypt the principal and certificate if they are encrypted
+  if [[ "${platform_principal}" == "${encryption_scheme}"* ]]; then
+      decrypted_platform_principal="$( decrypt_kms_string "${region}" "${platform_principal#${encryption_scheme}}" || return $? )"
+  else 
+      decrypted_platform_principal="${platform_principal}"
+  fi
+
+  if [[ "${platform_credential}" == "${encryption_scheme}"* ]]; then
+    decrypted_platform_credential="$( decrypt_kms_string "${region}" "${platform_credential#${encryption_scheme}}" || return $? )"
+  else 
+    decrypted_platform_credential="${platform_credential}"
+  fi
+
+  jq -rc '. | del(.Attributes.PlatformPrincipal) | del(.Attributes.PlatformCredential)' < "${configfile}" > "${configfile}_decrypted"
+
+  platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${id}" \
+    --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" \
+    --platform="${engine}" | jq -rc '.PlatformApplicationArn | select (.!=null)' )" 
+  
+  udpate_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
+
+  if [[ -z "${platform_app_arn}" ]]; then 
+    fatal "Platform app was not created"
+    return 255
+  else
+    echo "${platform_app_arn}"
+    return 0
+  fi  
+      
+}
+
+function delete_sns_platformapp() {
+  local region="$1"; shift
+  local arn="$1"; shift
+
+  aws --region "${region}" sns delete-platform-application --platform-application-arn "${arn}" || return $?
+}
+
+function cleanup_sns_platformapps() { 
+  local region="$1"; shift
+  local mobile_notifier_name="$1"; shift
+  local expected_platform_arns="$1"; shift
+
+  pushTempDir "${mobile_notifier_name}_cleanup_XXXX"
+  local tmp_file="$(getTopTempDir)/cleanup.sh"
+
+  all_platform_apps="$(aws --region "${region}" sns list-platform-applications )"
+  current_platform_arns="$(echo "${all_platform_apps}" | jq --arg namefilter "${mobile_notifier_name}" -rc '.PlatformApplications[] | select( .PlatformApplicationArn | endswith("/" + $namefilter)) | [ .PlatformApplicationArn ]')"
+
+  if [[ -n "${current_platform_arns}" ]]; then 
+    unexpected_platform_arns="$(echo "${expected_platform_arns}" | jq --argjson currentarns "${current_platform_arns}" '. - $currentarns')"
+    info "Found the following unexpected Platforms: ${unexpected_platform_arns}"
+    echo "${unexpected_platform_arns}" | jq --arg region "${region}" -r '.[] | "delete_sns_platform \($region) \(.)"' > "${tmp_file}"
+    
+    if [[ -f "${tmp_file}" ]]; then 
+      chmod u+x "${tmp_file}"
+      "${tmp_file}"
+    fi
+  fi
+
+  popTempDir
+  return $?
+}
+
 # -- PKI --
 function create_pki_credentials() {
   local dir="$1"; shift
