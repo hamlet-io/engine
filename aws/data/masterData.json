@@ -1,7 +1,7 @@
 {
   "Regions": {
     "ap-northeast-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Tokyo",
       "Zones": {
         "a": {
@@ -22,14 +22,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-cdd63eb2",
-          "EC2": "ami-92df37ed",
-          "ECS": "ami-a99d8ad5"
+          "NAT": "ami-fe9d4a81",
+          "EC2": "ami-9c9443e3",
+          "ECS": "ami-7d0c7a90"
         }
       }
     },
     "ap-northeast-2": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Seoul",
       "Zones": {
         "a": {
@@ -50,14 +50,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-8e0fa6e0",
-          "EC2": "ami-c10fa6af",
-          "ECS": "ami-9d56f9f3"
+          "NAT": "ami-aed86dc0",
+          "EC2": "ami-ebc47185",
+          "ECS": "ami-8f44f3e1"
         }
       }
     },
     "ap-south-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Mumbai",
       "Zones": {
         "a": {
@@ -78,14 +78,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-7fd5f610",
-          "EC2": "ami-76d6f519",
-          "ECS": "ami-72edc81d"
+          "NAT": "ami-a186acce",
+          "EC2": "ami-5a8da735",
+          "ECS": "ami-f4b88a9b"
         }
       }
     },
     "ap-southeast-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Singapore",
       "Zones": {
         "a": {
@@ -108,14 +108,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-3093a64c",
-          "EC2": "ami-de90a5a2",
-          "ECS": "ami-846144f8"
+          "NAT": "ami-cd8083b1",
+          "EC2": "ami-ed838091",
+          "ECS": "ami-ae1b5a44"
         }
       }
     },
     "ap-southeast-2": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Sydney",
       "Zones": {
         "a": {
@@ -142,14 +142,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-943cebf6",
-          "EC2": "ami-423bec20",
-          "ECS": "ami-efda148d"
+          "NAT": "ami-37f82155",
+          "EC2": "ami-33f92051",
+          "ECS": "ami-706cca12"
         }
       }
     },
     "ca-central-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Central",
       "Zones": {
         "a": {
@@ -170,14 +170,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-e3890987",
-          "EC2": "ami-338a0a57",
-          "ECS": "ami-897ff9ed"
+          "NAT": "ami-f0e56794",
+          "EC2": "ami-03e86a67",
+          "ECS": "ami-c1b63ba5"
         }
       }
     },
     "cn-north-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Beijing",
       "Zones": {
         "a": {
@@ -204,7 +204,7 @@
       }
     },
     "eu-central-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Frankfurt",
       "Zones": {
         "a": {
@@ -225,14 +225,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0097b5eb",
-          "EC2": "ami-9a91b371",
-          "ECS": "ami-9fc39c74"
+          "NAT": "ami-da526d31",
+          "EC2": "ami-a058674b",
+          "ECS": "ami-9fe2e074"
         }
       }
     },
     "eu-west-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Ireland",
       "Zones": {
         "a": {
@@ -259,14 +259,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-650c381c",
-          "EC2": "ami-ca0135b3",
-          "ECS": "ami-2d386654"
+          "NAT": "ami-4ab4b8a0",
+          "EC2": "ami-e4515e0e",
+          "ECS": "ami-39d530d4"
         }
       }
     },
     "eu-west-2": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "London",
       "Zones": {
         "a": {
@@ -287,14 +287,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-756d8f12",
-          "EC2": "ami-a36f8dc4",
-          "ECS": "ami-2218f945"
+          "NAT": "ami-bbb950dc",
+          "EC2": "ami-b2b55cd5",
+          "ECS": "ami-2e9866c5"
         }
       }
     },
     "eu-west-3": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Paris",
       "Zones": {
         "a": {
@@ -315,14 +315,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-519c2d2c",
-          "EC2": "ami-969c2deb",
-          "ECS": "ami-250eb858"
+          "NAT": "ami-2bf54556",
+          "EC2": "ami-d50bbaa8",
+          "ECS": "ami-e976c694"
         }
       }
     },
     "sa-east-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Sao Paulo",
       "Zones": {
         "a": {
@@ -349,14 +349,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0b81dc67",
-          "EC2": "ami-3885d854",
-          "ECS": "ami-4a7e2826"
+          "NAT": "ami-34ca9058",
+          "EC2": "ami-83d58fef",
+          "ECS": "ami-a2c6e7ce"
         }
       }
     },
     "us-east-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "North Virginia",
       "Zones": {
         "b": {
@@ -389,14 +389,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-54ca472b",
-          "EC2": "ami-14c5486b",
-          "ECS": "ami-aff65ad2"
+          "NAT": "ami-980554e7",
+          "EC2": "ami-cfe4b2b0",
+          "ECS": "ami-644a431b"
         }
       }
     },
     "us-east-2": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Ohio",
       "Zones": {
         "a": {
@@ -423,14 +423,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-882914ed",
-          "EC2": "ami-922914f7",
-          "ECS": "ami-64300001"
+          "NAT": "ami-f70f3692",
+          "EC2": "ami-40142d25",
+          "ECS": "ami-79d8e21c"
         }
       }
     },
     "us-gov-west-1": {
-      "Partition" : "aws-us-gov",
+      "Partition": "aws-us-gov",
       "Locality": "US",
       "Zones": {
         "a": {
@@ -457,7 +457,7 @@
       }
     },
     "us-west-1": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "North California",
       "Zones": {
         "b": {
@@ -478,14 +478,14 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-1a0e107a",
-          "EC2": "ami-25110f45",
-          "ECS": "ami-69677709"
+          "NAT": "ami-8c8761ef",
+          "EC2": "ami-0e86606d",
+          "ECS": "ami-4351bc20"
         }
       }
     },
     "us-west-2": {
-      "Partition" : "aws",
+      "Partition": "aws",
       "Locality": "Oregon",
       "Zones": {
         "a": {
@@ -512,9 +512,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-78502100",
-          "EC2": "ami-e251209a",
-          "ECS": "ami-40ddb938"
+          "NAT": "ami-79eca201",
+          "EC2": "ami-0ad99772",
+          "ECS": "ami-f189d189"
         }
       }
     }
@@ -957,11 +957,11 @@
       "EC2": {
         "Processor": "t2.micro"
       },
-      "ComputeCluster" : {
-        "Processor" : "t2.micro",
-        "MinPerZone" : 1,
-        "MaxPerZone" : 1,
-        "DesiredPerZone" : 1
+      "ComputeCluster": {
+        "Processor": "t2.micro",
+        "MinPerZone": 1,
+        "MaxPerZone": 1,
+        "DesiredPerZone": 1
       },
       "ECS": {
         "Processor": "t2.medium",
@@ -1039,17 +1039,17 @@
         "Timeout": "5"
       }
     },
-    "httpredirect" : {
-      "Port" : 80,
-      "Protocol" : "HTTP",
-      "IPProtocol" : "tcp",
-      "HealthCheck" : {
-        "Path" : "/",
-        "HealthyThreshold" : "2",
-        "UnhealthyThreshold" : "3",
-        "Interval" : "30",
-        "Timeout" : "5",
-        "SuccessCodes" : "301"
+    "httpredirect": {
+      "Port": 80,
+      "Protocol": "HTTP",
+      "IPProtocol": "tcp",
+      "HealthCheck": {
+        "Path": "/",
+        "HealthyThreshold": "2",
+        "UnhealthyThreshold": "3",
+        "Interval": "30",
+        "Timeout": "5",
+        "SuccessCodes": "301"
       }
     },
     "https": {
@@ -1220,9 +1220,9 @@
       "Source": "http",
       "Destination": "httpalt"
     },
-    "httpredirect" : {
-      "Source" : "http",
-      "Destination" : "httpredirect"
+    "httpredirect": {
+      "Source": "http",
+      "Destination": "httpredirect"
     },
     "https": {
       "Source": "https",
