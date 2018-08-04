@@ -97,7 +97,9 @@
                                     ) +
                 attributeIfTrue("Privileged", container.Privileged, container.Privileged!"") + 
                 attributeIfContent("WorkingDirectory", container.WorkingDirectory!"") + 
-                attributeIfContent("Links", container.ContainerNetworkLinks![] )
+                attributeIfContent("Links", container.ContainerNetworkLinks![] ) + 
+                attributeIfContent("EntryPoint", container.EntryPoint![]) + 
+                attributeIfContent("Command", container.Command![])
             ]
         ]
     [/#list]

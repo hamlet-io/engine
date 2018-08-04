@@ -249,6 +249,32 @@
     [/#if]
 [/#macro]
 
+[#macro EntryPoint entrypoint ]
+    [#if ((containerListMode!"") == "model") ]
+        [#assign context += 
+            {
+                "EntryPoint" : entrypoint?is_string?then(
+                    entrypoint?split(" "),
+                    entrypoint
+                )
+            }
+        ]
+    [/#if]
+[/#macro]
+
+[#macro Command command ]
+    [#if ((containerListMode!"") == "model") ]
+        [#assign context += 
+            {
+                "Command" : command?is_string?then(
+                    command?split(" "),
+                    command
+                )
+            }
+        ]
+    [/#if]
+[/#macro]
+
 [#macro Policy statements...]
     [#if (containerListMode!"") == "model"]
         [#assign context +=
