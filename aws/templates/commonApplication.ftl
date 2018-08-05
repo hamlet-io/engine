@@ -349,7 +349,8 @@
                         context.DefaultCoreVariables
                     ) +
                     valueIfTrue(
-                        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product, true),
+                        occurrence.Configuration.Environment.General +
+                            occurrence.Configuration.Environment.Sensitive,
                         context.DefaultEnvironmentVariables
                     ) +
                     valueIfTrue(
