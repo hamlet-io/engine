@@ -1286,12 +1286,12 @@ function release_enis() {
     aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values=*${requester_id} > "${eni_list_file}" || return $?
     
     for attachment_id in $( jq -r '.NetworkInterfaces[].Attachment.AttachmentId' < "${eni_list_file}" ) ; do
-        if [[ -z "${attachment_id}" ]] && [[ -n "${attachment_id}" ]]; then
+        if [[ -n "${attachment_id}" ]]; then
             aws --region "${region}" ec2 detach-network-interface --attachment-id "${attachment_id}" || return $?
         fi
     done
     for network_interface_id in $( jq -r '.NetworkInterfaces[].NetworkInterfaceId' < "${eni_list_file}" ) ; do
-        if [[ -z "${network_interface_id}" ]] && [[ -n "${network_interface_id}" ]]; then
+        if [[ -n "${network_interface_id}" ]]; then
             aws --region "${region}" ec2 delete-network-interface --network-interface-id "${network_interface_id}" || return $?
         fi
     done
