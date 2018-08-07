@@ -3,6 +3,7 @@
 [#-- Resources --]
 [#assign AWS_IAM_POLICY_RESOURCE_TYPE="policy" ]
 [#assign AWS_IAM_ROLE_RESOURCE_TYPE="role" ]
+[#assign AWS_IAM_USER_RESOURCE_TYPE="user"]
 
 [#function formatPolicyId ids...]
     [#return formatResourceId(

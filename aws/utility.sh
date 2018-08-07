@@ -701,6 +701,36 @@ function encrypt_kms_string() {
   aws --region "${region}" kms encrypt --key-id "${kms_key_id}" --plaintext "${value}" --query CiphertextBlob --output text
 }
 
+# -- IAM --
+function create_iam_accesskey() {
+  local region="$1"; shift
+  local username="$1"; shift 
+
+  accesskey="$(aws --region "${region}" iam create-access-key --user-name "${username}" )" || return $?
+
+  if [[ -z "${accesskey}" ]]; then  
+    access_key_id = "$( echo "${accesskey}" | jq -r '.AccessKey.AccessKeyId')"
+    secret_access_key = "$( echo "${accesskey}" | jq -r '.AccessKey.SecretAccessKey')"
+
+    encry
+
+    echo "${access_key_id} ${secret_access_key}"
+    return 0
+  
+  else
+    fatal "Could not generate accesskey for ${username}"
+    return 255
+  fi
+}
+
+
+function set_iam_userpassword() {
+  local region="$1"; shift
+  local username="$1"; shift 
+  local password="$1"; shift
+
+  aws --region "${region}" iam  update-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
+}
 # -- Cognito --
 
 function update_cognito_userpool() {

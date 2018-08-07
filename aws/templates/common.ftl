@@ -926,6 +926,10 @@
                 [#local result = getTaskState(occurrence, parentOccurrence)]
                 [#break]
 
+            [#case USER_COMPONENT_TYPE ]
+                [#local result = getUserState(occurrence) ]
+                [#break]
+
             [#case "userpool"]
                 [#local result = getUserPoolState(occurrence)]
                 [#break]
