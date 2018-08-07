@@ -79,6 +79,10 @@
                     {
                         "Name" : "InputPath",
                         "Default" : "/healthcheck"
+                    },
+                    {
+                        "Name" : "Input",
+                        "Default" : ""
                     }
                 ]
             },

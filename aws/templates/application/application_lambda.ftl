@@ -183,6 +183,7 @@
                         targetId=fnId
                         enabled=schedule.Enabled
                         scheduleExpression=schedule.Expression
+                        input=schedule.Input
                         path=schedule.InputPath
                         dependencies=fnId
                     /]
