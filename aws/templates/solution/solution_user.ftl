@@ -30,6 +30,31 @@
                 passwordEncryptionScheme
             )]
 
+        
+        [#-- Add in container specifics including override of defaults --]
+        [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
+        [#assign contextLinks = getLinkTargets(occurrence) ]
+        [#assign context =
+            {
+                "Id" : containerId,
+                "Name" : containerId,
+                "Instance" : core.Instance.Id,
+                "Version" : core.Version.Id,
+                "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+                "Environment" : {},
+                "Links" : contextLinks,
+                "DefaultCoreVariables" : false,
+                "DefaultEnvironmentVariables" : false,
+                "DefaultLinkVariables" : false
+            }
+        ]
+        
+        [#if solution.Container?has_content ]
+            [#assign containerListMode = "model"]
+            [#assign containerId = formatContainerFragmentId(occurrence, context)]
+            [#include containerList?ensure_starts_with("/")]
+        [/#if]
+
         [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]
             [@cfResource
                 mode=listMode
@@ -38,7 +63,16 @@
                 properties=
                     {
                         "UserName" : userName
-                    }
+                    } + 
+                    attributeIfContent(
+                        "ManagedPolicyArns",
+                        context.ManagedPolicy
+                    ) + 
+                    attributeIfContent(
+                        "Policies",
+                        context.Policy
+                    )
+                    attributeIfContent("Variables", stageVariables)
                 outputs=USER_OUTPUT_MAPPINGS
             /]
         [/#if]

@@ -7,6 +7,10 @@
     {
         USER_COMPONENT_TYPE : {
             "Attributes" : [
+                {
+                    "Name" : "Container",
+                    "Default" : ""
+                },
                 { 
                     "Name" : "Links",
                     "Subobjects" : true,
