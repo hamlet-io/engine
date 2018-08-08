@@ -72,7 +72,6 @@
                         "Policies",
                         context.Policy
                     )
-                    attributeIfContent("Variables", stageVariables)
                 outputs=USER_OUTPUT_MAPPINGS
             /]
         [/#if]

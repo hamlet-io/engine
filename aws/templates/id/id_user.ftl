@@ -1,4 +1,4 @@
-[#-- MOBILENOTIFIER --]
+[#-- USER --]
 
 [#-- Components --]
 [#assign USER_COMPONENT_TYPE = "user" ]
