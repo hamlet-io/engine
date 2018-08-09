@@ -62,6 +62,7 @@
         type="AWS::IAM::Policy"
         properties=
             getPolicyDocument(statements, name) +
+            attributeIfContent("Users", users, getReferences(users)) +
             attributeIfContent("Roles", roles, getReferences(roles)) 
         outputs={}
         dependencies=dependencies

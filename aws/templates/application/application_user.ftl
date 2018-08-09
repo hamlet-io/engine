@@ -16,6 +16,8 @@
         [#assign userType = solution.Type?lower_case]
         [#assign userPasswordLength = solution.GenerateCredentials.CharacterLength ]
 
+        [#assign dependencies = []]
+
         [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
 
         [#assign passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
@@ -62,6 +64,33 @@
         [/#if]
 
         [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]
+
+            [#if context.Policy?has_content]
+                [#assign policyId = formatDependentPolicyId(userId)]
+                [@createPolicy
+                    mode=listMode
+                    id=policyId
+                    name=context.Name
+                    statements=context.Policy
+                    users=userId
+                /]
+                [#assign dependencies += [policyId] ]
+            [/#if]
+
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(solution.Links) ]
+
+            [#if linkPolicies?has_content]
+                [#assign policyId = formatDependentPolicyId(userId, "links")]
+                [@createPolicy
+                    mode=listMode
+                    id=policyId
+                    name="links"
+                    statements=linkPolicies
+                    users=userId
+                /]
+                [#assign dependencies += [policyId] ]
+            [/#if]
+
             [@cfResource
                 mode=listMode
                 id=userId
@@ -79,6 +108,7 @@
                         context.Policy![]
                     )
                 outputs=USER_OUTPUT_MAPPINGS
+                dependencies=dependencies
             /]
         [/#if]
 
