@@ -13,8 +13,10 @@
         [#assign userId = resources["user"].Id ]
         [#assign userName = resources["user"].Name]
 
-        [#assign userType = solution.Type]
+        [#assign userType = solution.Type?lower_case]
         [#assign userPasswordLength = solution.GenerateCredentials.CharacterLength ]
+
+        [#assign dependencies = []]
 
         [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
 
@@ -30,6 +32,12 @@
                 passwordEncryptionScheme
             )]
 
+
+        [#assign containerId =
+            solution.Container?has_content?then(
+                solution.Container,
+                getComponentId(component)
+            ) ]
         
         [#-- Add in container specifics including override of defaults --]
         [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
@@ -56,6 +64,33 @@
         [/#if]
 
         [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]
+
+            [#if context.Policy?has_content]
+                [#assign policyId = formatDependentPolicyId(userId)]
+                [@createPolicy
+                    mode=listMode
+                    id=policyId
+                    name=context.Name
+                    statements=context.Policy
+                    users=userId
+                /]
+                [#assign dependencies += [policyId] ]
+            [/#if]
+
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(solution.Links) ]
+
+            [#if linkPolicies?has_content]
+                [#assign policyId = formatDependentPolicyId(userId, "links")]
+                [@createPolicy
+                    mode=listMode
+                    id=policyId
+                    name="links"
+                    statements=linkPolicies
+                    users=userId
+                /]
+                [#assign dependencies += [policyId] ]
+            [/#if]
+
             [@cfResource
                 mode=listMode
                 id=userId
@@ -66,13 +101,14 @@
                     } + 
                     attributeIfContent(
                         "ManagedPolicyArns",
-                        context.ManagedPolicy
+                        context.ManagedPolicy![]
                     ) + 
                     attributeIfContent(
                         "Policies",
-                        context.Policy
+                        context.Policy![]
                     )
                 outputs=USER_OUTPUT_MAPPINGS
+                dependencies=dependencies
             /]
         [/#if]
 
@@ -86,7 +122,7 @@
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
                 ] +
-                ( userType == "System" && !(encryptedPassword?has_content))?then(
+                ( userType == "system" && !(encryptedPassword?has_content))?then(
                     [
                         "# Generate IAM AccessKey",
                         "function generate_iam_accesskey() {",
@@ -108,7 +144,7 @@
                         "generate_iam_accesskey || return $?"
                     ],
                     []) +
-                ( userType == "User" && !(encryptedPassword?has_content) )?then(
+                ( userType == "user" && !(encryptedPassword?has_content) )?then(
                     [
                         "# Generate User Password",
                         "function generate_user_password() {",
