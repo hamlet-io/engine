@@ -62,7 +62,7 @@
                     "invoke" : {
                         "Principal" : userArn
                     }
-                }
+                },
                 "Outbound" : {}
             }
         }

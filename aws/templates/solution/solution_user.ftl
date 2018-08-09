@@ -30,6 +30,12 @@
                 passwordEncryptionScheme
             )]
 
+
+        [#assign containerId =
+            solution.Container?has_content?then(
+                solution.Container,
+                getComponentId(component)
+            ) ]
         
         [#-- Add in container specifics including override of defaults --]
         [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
@@ -66,11 +72,11 @@
                     } + 
                     attributeIfContent(
                         "ManagedPolicyArns",
-                        context.ManagedPolicy
+                        context.ManagedPolicy![]
                     ) + 
                     attributeIfContent(
                         "Policies",
-                        context.Policy
+                        context.Policy![]
                     )
                 outputs=USER_OUTPUT_MAPPINGS
             /]
@@ -86,7 +92,7 @@
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
                 ] +
-                ( userType == "System" && !(encryptedPassword?has_content))?then(
+                ( userType == "system" && !(encryptedPassword?has_content))?then(
                     [
                         "# Generate IAM AccessKey",
                         "function generate_iam_accesskey() {",
@@ -108,7 +114,7 @@
                         "generate_iam_accesskey || return $?"
                     ],
                     []) +
-                ( userType == "User" && !(encryptedPassword?has_content) )?then(
+                ( userType == "user" && !(encryptedPassword?has_content) )?then(
                     [
                         "# Generate User Password",
                         "function generate_user_password() {",
