@@ -957,6 +957,11 @@
       "EC2": {
         "Processor": "t2.micro"
       },
+      "EMR" : {
+        "Processor" :  "m4.large",
+        "DesiredCorePerZone" : 1,
+        "DesiredTaskPerZone" : 1
+      },
       "ComputeCluster": {
         "Processor": "t2.micro",
         "MinPerZone": 1,
