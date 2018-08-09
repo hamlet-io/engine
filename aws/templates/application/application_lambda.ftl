@@ -308,6 +308,28 @@
                                 )
                             ) /]
                 [/#if]
+                [@cfScript
+                    mode=listMode
+                    content=(vpc?has_content && solution.VPCAccess)?then(
+                        [
+                            "case $\{STACK_OPERATION} in",
+                            "  delete)"
+                        ] +
+                        [
+                            "# Release ENIs",
+                            "info \"Realising ENIs ... \"",
+                            "release_enis" +
+                            " \"" + region + "\" " +
+                            " \"" + fnName + "\" || return $?"
+
+                        ] +
+                        [
+                            "       ;;",
+                            "       esac"
+                        ],
+                        []
+                    )
+                /]
             [/#if]
         [/#list]
     [/#list]
