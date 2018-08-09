@@ -13,7 +13,7 @@
         [#assign userId = resources["user"].Id ]
         [#assign userName = resources["user"].Name]
 
-        [#assign userType = solution.Type]
+        [#assign userType = solution.Type?lower_case]
         [#assign userPasswordLength = solution.GenerateCredentials.CharacterLength ]
 
         [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
@@ -92,7 +92,7 @@
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
                 ] +
-                ( userType?lower_case == "system" && !(encryptedPassword?has_content))?then(
+                ( userType == "system" && !(encryptedPassword?has_content))?then(
                     [
                         "# Generate IAM AccessKey",
                         "function generate_iam_accesskey() {",
@@ -114,7 +114,7 @@
                         "generate_iam_accesskey || return $?"
                     ],
                     []) +
-                ( userType?lower_case == "user" && !(encryptedPassword?has_content) )?then(
+                ( userType == "user" && !(encryptedPassword?has_content) )?then(
                     [
                         "# Generate User Password",
                         "function generate_user_password() {",
