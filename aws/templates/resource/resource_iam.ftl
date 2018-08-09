@@ -185,3 +185,21 @@
     /]
 [/#macro]
 
+[#assign USER_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : { 
+            "Attribute" : "Arn"
+        },
+        USERNAME_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
+        }
+    }
+]
+[#assign outputMappings +=
+    {
+        AWS_IAM_USER_RESOURCE_TYPE : USER_OUTPUT_MAPPINGS
+    }
+]
