@@ -113,7 +113,7 @@ CID="${CID%-*}"
 KID="${KID/-/X}"
 
 # Handle container name
-if [[ -n "${CONTIANER}" ]]; then 
+if [[ -n "${CONTAINER}" ]]; then 
     CONTAINER="${KID%X*}"
 fi
 
