@@ -10,14 +10,18 @@
     {
         DATAPIPELINE_COMPONENT_TYPE : [
             {
+                "Name" : "Container",
+                "Default" : ""
+            },
+            {
                 "Name" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
-            },
+            }
         ]
     }]
 
-[#function getComputeClusterState occurrence]
+[#function getDataPipelineState occurrence]
     
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]

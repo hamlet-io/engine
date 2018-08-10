@@ -61,8 +61,7 @@
                 "sqs:GetQueue*", 
                 "sqs:PurgeQueue", 
                 "sqs:ReceiveMessage" 
-            ]
-            ),
+            ]) + 
         getPolicyStatement(
             [ "iam:CreateServiceLinkedRole" ],
             "*",

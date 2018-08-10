@@ -839,6 +839,10 @@
             [#case "contentnode"]
                 [#local result = getContentNodeState(occurrence)]
                 [#break]
+            
+            [#case DATAPIPELINE_COMPONENT_TYPE ]
+                [#local result = getDataPipelineState(occurrence)]
+                [#break]
 
             [#case EC2_COMPONENT_TYPE]
                 [#local result = getEC2State(occurrence)]
