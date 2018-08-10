@@ -50,6 +50,9 @@ ENV_NAME=
 # Parse options
 while getopts ":d:e:hi:t:v:w:" opt; do
     case $opt in
+        c)
+            CONTAINER="${OPTARG}"
+            ;;
         d)
             DELAY="${OPTARG}"
             ;;
