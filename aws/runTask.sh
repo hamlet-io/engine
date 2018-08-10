@@ -18,6 +18,7 @@ Usage: $(basename $0) -t TIER -i COMPONENT -w TASK -e ENV -v VALUE -d DELAY
 
 where
 
+(o) -c CONTAINER    is the name of the container that environment details are applied to
 (o) -d DELAY        is the interval between checking the progress of the task
 (o) -e ENV          is the name of an environment variable to define for the task
     -h              shows this text
@@ -112,7 +113,9 @@ CID="${CID%-*}"
 KID="${KID/-/X}"
 
 # Handle container name
-CONTAINER="${KID%X*}"
+if [[ -n "${CONTIANER}" ]]; then 
+    CONTAINER="${KID%X*}"
+fi
 
 # Find the cluster
 CLUSTER_ARN=$(aws --region ${REGION} ecs list-clusters | jq -r ".clusterArns[] | capture(\"(?<arn>.*${PRODUCT}-${ENVIRONMENT}-${SEGMENT}.*ecsX${RID}X${CID}.*)\").arn")
@@ -166,4 +169,4 @@ cat "${status_file}"
 RESULT=$(jq ".exitCode" < "${status_file}" | grep -m 1 -v "^0$" | tr -d '"' )
 RESULT=${RESULT:-0}
 
-
+return $RESULT
