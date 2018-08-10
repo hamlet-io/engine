@@ -18,14 +18,14 @@ Usage: $(basename $0) -t TIER -i COMPONENT -w TASK -e ENV -v VALUE -d DELAY
 
 where
 
-(o) -c CONTAINER    is the name of the container that environment details are applied to
-(o) -d DELAY        is the interval between checking the progress of the task
-(o) -e ENV          is the name of an environment variable to define for the task
-    -h              shows this text
-(o) -i COMPONENT    is the name of the component in the solution where the task is defined
-(o) -t TIER         is the name of the tier in the solution where the task is defined
-(o) -v VALUE        is the value for the last environment value defined (via -e) for the task
-(m) -w TASK         is the name of the task to be run
+(o) -c CONTAINER_ID     is the name of the container that environment details are applied to
+(o) -d DELAY            is the interval between checking the progress of the task
+(o) -e ENV              is the name of an environment variable to define for the task
+    -h                  shows this text
+(o) -i COMPONENT        is the name of the component in the solution where the task is defined
+(o) -t TIER             is the name of the tier in the solution where the task is defined
+(o) -v VALUE            is the value for the last environment value defined (via -e) for the task
+(m) -w TASK             is the name of the task to be run
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -48,17 +48,17 @@ ENV_STRUCTURE="\"environment\":["
 ENV_NAME=
 
 # Parse options
-while getopts ":d:e:hi:t:v:w:" opt; do
+while getopts ":c:d:e:hi:t:v:w:" opt; do
     case $opt in
         c)
-            CONTAINER="${OPTARG}"
+            CONTAINER_ID="${OPTARG}"
             ;;
         d)
             DELAY="${OPTARG}"
             ;;
         e)
             # Separate environment variable definitions
-            if [[ -n "${ENV_NAME}" ]]; then 
+            if [[ -n "${ENV_NAME}" ]]; then
               ENV_STRUCTURE="${ENV_STRUCTURE},"
             fi
             ENV_NAME="${OPTARG}"
@@ -116,7 +116,9 @@ CID="${CID%-*}"
 KID="${KID/-/X}"
 
 # Handle container name
-if [[ -n "${CONTAINER}" ]]; then 
+if [[ -n "${CONTAINER_ID}" ]]; then
+    CONTAINER="${CONTAINER_ID}"
+else
     CONTAINER="${KID%X*}"
 fi
 
@@ -127,7 +129,7 @@ if [[ -z "${CLUSTER_ARN}" ]]; then
 
     if [[ -z "${CLUSTER_ARN}" ]]; then
         fatal "Unable to locate ECS cluster"
-        return 255
+        exit
     fi
 fi
 
@@ -138,7 +140,7 @@ if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
 
     if [[ -z "${TASK_DEFINITION_ARN}" ]]; then
         fatal "Unable to locate task definition"
-        return 255
+        exit
     fi
 fi
 
