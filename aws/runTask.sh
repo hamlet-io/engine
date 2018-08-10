@@ -168,5 +168,3 @@ aws --region ${REGION} ecs describe-tasks --cluster ${CLUSTER_ARN} --tasks ${TAS
 cat "${status_file}"
 RESULT=$(jq ".exitCode" < "${status_file}" | grep -m 1 -v "^0$" | tr -d '"' )
 RESULT=${RESULT:-0}
-
-return $RESULT
