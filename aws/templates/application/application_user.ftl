@@ -32,20 +32,16 @@
                 passwordEncryptionScheme
             )]
 
+        [#assign fragment =
+            contentIfContent(solution.Fragment, getComponentId(component)) ]
 
-        [#assign containerId =
-            solution.Container?has_content?then(
-                solution.Container,
-                getComponentId(component)
-            ) ]
-        
         [#-- Add in container specifics including override of defaults --]
         [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
         [#assign contextLinks = getLinkTargets(occurrence) ]
         [#assign context =
             {
-                "Id" : containerId,
-                "Name" : containerId,
+                "Id" : fragment,
+                "Name" : fragment,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
                 "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
@@ -57,10 +53,11 @@
             }
         ]
         
-        [#if solution.Container?has_content ]
-            [#assign containerListMode = "model"]
-            [#assign containerId = formatContainerFragmentId(occurrence, context)]
-            [#include containerList?ensure_starts_with("/")]
+        [#if solution.Fragment?has_content ]
+            [#assign fragmentListMode = "model"]
+            [#assign fragmentId = formatFragmentId(context)]
+            [#assign containerId = fragmentId]
+            [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
         [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]

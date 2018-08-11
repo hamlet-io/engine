@@ -55,7 +55,7 @@ mkdir -p "${CACHE_DIR}"
 # The blueprint is handled specially as its logic is different to the others
 TEMPLATE_COMPOSITES=(
     "account" "product" "segment" "solution" "application" \
-    "policy" "container" "id" "name" "resource")
+    "policy" "fragment" "id" "name" "resource")
 for composite in "${TEMPLATE_COMPOSITES[@]}"; do
     # Define the composite
     declare -gx COMPOSITE_${composite^^}="${CACHE_DIR}/composite_${composite}.ftl"

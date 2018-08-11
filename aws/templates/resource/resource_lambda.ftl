@@ -25,7 +25,7 @@
         AWS_LAMBDA_PERMISSION_RESOURCE_TYPE : LAMBDA_PERMISSION_OUTPUT_MAPPINGS
     }
 ]
-[#macro createLambdaFunction mode id container roleId securityGroupIds=[] subnetIds=[] dependencies=""]
+[#macro createLambdaFunction mode id settings roleId securityGroupIds=[] subnetIds=[] dependencies=""]
     [@cfResource
         mode=mode
         id=id
@@ -33,21 +33,21 @@
         properties=
             {
                 "Code" : {
-                    "S3Bucket" : container.S3Bucket,
-                    "S3Key" : container.S3Key
+                    "S3Bucket" : settings.S3Bucket,
+                    "S3Key" : settings.S3Key
                 },                                            
-                "FunctionName" : container.Name,
-                "Description" : container.Description,
-                "Handler" : container.Handler,
+                "FunctionName" : settings.Name,
+                "Description" : settings.Description,
+                "Handler" : settings.Handler,
                 "Role" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
-                "Runtime" : container.RunTime
+                "Runtime" : settings.RunTime
             } + 
-            attributeIfContent("Environment", container.Environment!{}, {"Variables" : container.Environment}) +
-            attributeIfTrue("MemorySize", container.MemorySize > 0, container.MemorySize) +
-            attributeIfTrue("Timeout", container.Timeout > 0, container.Timeout) +
+            attributeIfContent("Environment", settings.Environment!{}, {"Variables" : settings.Environment}) +
+            attributeIfTrue("MemorySize", settings.MemorySize > 0, settings.MemorySize) +
+            attributeIfTrue("Timeout", settings.Timeout > 0, settings.Timeout) +
             attributeIfTrue(
                 "KmsKeyArn",
-                container.UseSegmentKey!false,
+                settings.UseSegmentKey!false,
                 getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)) + 
             attributeIfContent(
                 "VpcConfig",

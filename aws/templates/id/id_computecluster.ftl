@@ -4,7 +4,10 @@
 [#assign componentConfiguration +=
     {
         COMPUTECLUSTER_COMPONENT_TYPE : [
-            "Container",
+            {
+                "Name" : ["Fragment", "Container"],
+                "Default" : ""
+            },
             {
                 "Name" : "Links",
                 "Subobjects" : true,

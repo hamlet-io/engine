@@ -18,6 +18,18 @@
             extensions) ]
 [/#function]
 
+[#function formatFragmentId context occurrence={}]
+    [#if context.Id?starts_with("_") ]
+        [#return context.Id ]
+    [#else]
+        [#return
+                formatName(
+                    context.Id,
+                    context.Instance!occurrence.Core.Instance.Id,
+                    context.Version!occurrence.Core.Version.Id)]
+    [/#if]
+[/#function]
+
 [#-- Resource id = type + ids --]
 
 [#function getResourceType resourceId]

@@ -8,7 +8,7 @@
         USER_COMPONENT_TYPE : {
             "Attributes" : [
                 {
-                    "Name" : "Container",
+                    "Name" : ["Fragment", "Container"],
                     "Default" : ""
                 },
                 { 
