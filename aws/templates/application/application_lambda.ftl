@@ -295,7 +295,7 @@
                             getLocalFileScript(
                                 "configFiles",
                                 "$\{CONFIG}",
-                                "config.json"
+                                "config_" + runId + ".json"
                             ) +
                             syncFilesToBucketScript(
                                 "configFiles",
