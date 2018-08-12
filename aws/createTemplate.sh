@@ -391,6 +391,12 @@ function process_template() {
           existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
           [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
 
+          if [[ -z "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" ]]; then
+            sed_patterns+=("-e" "s/${run_id}//g")
+            existing_run_id="$( jq -r ".Metadata.RunId | select(.!=null)" < "${output_file}" )"
+            [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id}//g")
+          fi
+
           cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
           cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
 

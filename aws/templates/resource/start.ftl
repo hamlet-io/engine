@@ -644,7 +644,8 @@
                   {
                       "Prepared" : .now?iso_utc,
                       "RequestReference" : requestReference,
-                      "ConfigurationReference" : configurationReference
+                      "ConfigurationReference" : configurationReference,
+                      "RunId" : runId
                   } +
                   attributeIfContent("CostCentre", accountObject.CostCentre!""),
               "Resources" : templateResources,
