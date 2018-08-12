@@ -708,11 +708,9 @@ function create_iam_accesskey() {
 
   accesskey="$(aws --region "${region}" iam create-access-key --user-name "${username}" )" || return $?
 
-  if [[ -z "${accesskey}" ]]; then  
-    access_key_id = "$( echo "${accesskey}" | jq -r '.AccessKey.AccessKeyId')"
-    secret_access_key = "$( echo "${accesskey}" | jq -r '.AccessKey.SecretAccessKey')"
-
-    encry
+  if [[ -n "${accesskey}" ]]; then  
+    access_key_id="$( echo "${accesskey}" | jq -r '.AccessKey.AccessKeyId')"
+    secret_access_key="$( echo "${accesskey}" | jq -r '.AccessKey.SecretAccessKey')"
 
     echo "${access_key_id} ${secret_access_key}"
     return 0
