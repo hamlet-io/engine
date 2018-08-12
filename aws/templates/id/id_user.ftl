@@ -60,7 +60,7 @@
             "Attributes" : {
                 "USERNAME" : getExistingReference(userId),
                 "ARN" : userArn,
-                "ACCESS_KEY" : getExistingReference(userId, USER_ATTRIBUTE_TYPE)?ensure_starts_with(encryptionScheme),
+                "ACCESS_KEY" : getExistingReference(userId, USER_ATTRIBUTE_TYPE),
                 "SECRET_KEY" : getExistingReference(userId, PASSWORD_ATTRIBUTE_TYPE)?ensure_starts_with(encryptionScheme)
             },
             "Roles" : {
