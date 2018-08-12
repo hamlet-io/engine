@@ -17,15 +17,15 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "Type",
-                    "Default" : "system"
-                },
-                {
                     "Name" : "GenerateCredentials",
                     "Children" : [
                         {
+                            "Name" : "Formats",
+                            "Default"  : [ "system" ]
+                        }
+                        {
                             "Name" : "EncryptionScheme",
-                            "Default" : "base64"
+                            "Default" : ""
                         },
                         {
                             "Name" : "CharacterLength",
@@ -44,6 +44,10 @@
     [#local userId = formatResourceId(AWS_IAM_USER_RESOURCE_TYPE, core.Id) ]
     [#local userArn = getExistingReference(userId, ARN_ATTRIBUTE_TYPE)]
 
+    [#local encryptionScheme = (solution.GenerateCredentials.EncryptionScheme)?has_content?then(
+                    solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
+                    "" )]
+
     [#local result =
         {
             "Resources" : {
@@ -55,7 +59,9 @@
             },
             "Attributes" : {
                 "USERNAME" : getExistingReference(userId),
-                "ARN" : userArn
+                "ARN" : userArn,
+                "ACCESS_KEY" : getExistingReference(userId, USER_ATTRIBUTE_TYPE)?ensure_starts_with(encryptionScheme),
+                "SECRET_KEY" : getExistingReference(userId, PASSWORD_ATTRIBUTE_TYPE)?ensure_starts_with(encryptionScheme)
             },
             "Roles" : {
                 "Inbound" : {

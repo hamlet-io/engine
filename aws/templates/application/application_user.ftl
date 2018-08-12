@@ -13,10 +13,8 @@
         [#assign userId = resources["user"].Id ]
         [#assign userName = resources["user"].Name]
 
-        [#assign userType = solution.Type?lower_case]
+        [#assign credentialFormats = solution.GenerateCredentials.Formats]
         [#assign userPasswordLength = solution.GenerateCredentials.CharacterLength ]
-
-        [#assign dependencies = []]
 
         [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
 
@@ -24,10 +22,18 @@
             solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
             "" )]
 
-        [#assign encryptedPassword = (
+        [#assign encryptedSystemPassword = (
             getExistingReference(
                 userId, 
                 PASSWORD_ATTRIBUTE_TYPE)
+            )?remove_beginning(
+                passwordEncryptionScheme
+            )]
+        
+        [#assign encryptedConsolePassword = (
+            getExistingReference(
+                userId, 
+                GENERATEDPASSWORD_ATTRIBUTE_TYPE)
             )?remove_beginning(
                 passwordEncryptionScheme
             )]
@@ -71,10 +77,9 @@
                     statements=context.Policy
                     users=userId
                 /]
-                [#assign dependencies += [policyId] ]
             [/#if]
 
-            [#assign linkPolicies = getLinkTargetsOutboundRoles(solution.Links) ]
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
 
             [#if linkPolicies?has_content]
                 [#assign policyId = formatDependentPolicyId(userId, "links")]
@@ -85,7 +90,6 @@
                     statements=linkPolicies
                     users=userId
                 /]
-                [#assign dependencies += [policyId] ]
             [/#if]
 
             [@cfResource
@@ -99,13 +103,8 @@
                     attributeIfContent(
                         "ManagedPolicyArns",
                         context.ManagedPolicy![]
-                    ) + 
-                    attributeIfContent(
-                        "Policies",
-                        context.Policy![]
-                    )
+                    ) 
                 outputs=USER_OUTPUT_MAPPINGS
-                dependencies=dependencies
             /]
         [/#if]
 
@@ -119,7 +118,7 @@
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
                 ] +
-                ( userType == "system" && !(encryptedPassword?has_content))?then(
+                ( credentialFormats?seq_contains("system") && !(encryptedSystemPassword?has_content))?then(
                     [
                         "# Generate IAM AccessKey",
                         "function generate_iam_accesskey() {",
@@ -138,11 +137,11 @@
                         "\"" + userId + "Xusername\" \"$\{access_key_array[0]}\" " +
                         "\"" + userId + "Xpassword\" \"$\{encrypted_secret_key}\" || return $?",
                         "}",
-                        "password_pseudo_stack_file=" + credentialsPseudoStackFile,
+                        "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-creds-system-pseudo-stack.json\" ",
                         "generate_iam_accesskey || return $?"
                     ],
                     []) +
-                ( userType == "user" && !(encryptedPassword?has_content) )?then(
+                ( credentialFormats?seq_contains("console") && !(encryptedConsolePassword?has_content) )?then(
                     [
                         "# Generate User Password",
                         "function generate_user_password() {",
@@ -163,7 +162,7 @@
                         "\"$\{password_pseudo_stack_file}\"" + " " +
                         "\"" + userId + "Xgeneratedpassword\" \"$\{encrypted_user_password}\" || return $?",
                         "}",
-                        "password_pseudo_stack_file=" + credentialsPseudoStackFile,
+                        "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-creds-console-pseudo-stack.json\" ",
                         "generate_user_password || return $?"
                     ],
                 []) +
