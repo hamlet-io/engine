@@ -361,7 +361,7 @@ function process_stack() {
           aws --region ${REGION} cloudformation create-change-set \
               --stack-name "${STACK_NAME}" --change-set-name "${INITIAL_CHANGE_SET_NAME}" \
               --template-body "file://${stripped_template_file}" \
-              --capabilities CAPABILITY_IAM > /dev/null || return $?
+              --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM > /dev/null || return $?
 
           #Wait for change set to be processed 
           aws --region ${REGION} cloudformation wait change-set-create-complete \
@@ -405,7 +405,7 @@ function process_stack() {
                     aws --region ${REGION} cloudformation create-change-set \
                         --stack-name "${STACK_NAME}" --change-set-name "${CHANGE_SET_NAME}" \
                         --template-body "file://${stripped_template_file}" \
-                        --capabilities CAPABILITY_IAM  || return $?
+                        --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM  || return $?
 
                     #Wait for change set to be processed 
                     aws --region ${REGION} cloudformation wait change-set-create-complete \
@@ -450,7 +450,7 @@ function process_stack() {
 
             # Create Action 
             info "Creating the "${STACK_NAME}" stack..."
-            aws --region ${REGION} cloudformation create-stack --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" --capabilities CAPABILITY_IAM > /dev/null || return $?
+            aws --region ${REGION} cloudformation create-stack --stack-name "${STACK_NAME}" --template-body "file://${stripped_template_file}" --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM > /dev/null || return $?
 
             wait_for_stack_execution
 
