@@ -328,9 +328,10 @@
 
                 [#-- Pick any extra macros in the container fragments --]
                 [#list (solution.Containers!{})?values as container]
-                    [#assign containerListMode = listMode]
-                    [#assign containerId = formatContainerFragmentId(occurrence, container)]
-                    [#include containerList?ensure_starts_with("/")]
+                    [#assign fragmentListMode = listMode]
+                    [#assign fragmentId = formatFragmentId(container, occurrence)]
+                    [#assign containerId = fragmentId]
+                    [#include fragmentList?ensure_starts_with("/")]
                 [/#list]
 
             [/#if]

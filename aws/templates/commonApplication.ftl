@@ -38,10 +38,10 @@
                 "WEB")]
 [/#function]
 
-[#-- Container List Macros --]
+[#-- Fragment List Macros --]
 
 [#macro Attributes name="" image="" version="" essential=true]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context +=
             {
                 "Essential" : essential
@@ -63,7 +63,7 @@
 [/#function]
 
 [#macro Variable name value]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context = addVariableToContext(context, name, value) ]
     [/#if]
 [/#macro]
@@ -105,7 +105,7 @@
 [/#function]
 
 [#macro Link name link="" attributes=[] rawName=false ignoreIfNotDefined=false]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context =
             addLinkVariablesToContext(
                 context,
@@ -118,19 +118,19 @@
 [/#macro]
 
 [#macro DefaultLinkVariables enabled=true ]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context += { "DefaultLinkVariables" : enabled } ]
     [/#if]
 [/#macro]
 
 [#macro DefaultCoreVariables enabled=true ]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context += { "DefaultCoreVariables" : enabled } ]
     [/#if]
 [/#macro]
 
 [#macro DefaultEnvironmentVariables enabled=true ]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context += { "DefaultEnvironmentVariables" : enabled } ]
     [/#if]
 [/#macro]
@@ -192,7 +192,7 @@
 [/#macro]
 
 [#macro Host name value]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context +=
             {
                 "Hosts" : (context.Hosts!{}) + { name : value }
@@ -202,7 +202,7 @@
 [/#macro]
 
 [#macro Hosts hosts]
-    [#if ((containerListMode!"") == "model") && hosts?is_hash]
+    [#if ((fragmentListMode!"") == "model") && hosts?is_hash]
         [#assign context +=
             {
                 "Hosts" : (context.Hosts!{}) + hosts
@@ -212,7 +212,7 @@
 [/#macro]
 
 [#macro WorkingDirectory workingDirectory ]
-        [#if ((containerListMode!"") == "model")]
+        [#if ((fragmentListMode!"") == "model")]
         [#assign context +=
             {
                 "WorkingDirectory" : workingDirectory
@@ -222,7 +222,7 @@
 [/#macro]
 
 [#macro Volume name containerPath hostPath="" readOnly=false]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context +=
             {
                 "Volumes" :
@@ -240,7 +240,7 @@
 [/#macro]
 
 [#macro Volumes volumes]
-    [#if ((containerListMode!"") == "model") && volumes?is_hash]
+    [#if ((fragmentListMode!"") == "model") && volumes?is_hash]
         [#assign context +=
             {
                 "Volumes" : (context.Volumes!{}) + volumes
@@ -250,7 +250,7 @@
 [/#macro]
 
 [#macro EntryPoint entrypoint ]
-    [#if ((containerListMode!"") == "model") ]
+    [#if ((fragmentListMode!"") == "model") ]
         [#assign context += 
             {
                 "EntryPoint" : entrypoint?is_string?then(
@@ -263,7 +263,7 @@
 [/#macro]
 
 [#macro Command command ]
-    [#if ((containerListMode!"") == "model") ]
+    [#if ((fragmentListMode!"") == "model") ]
         [#assign context += 
             {
                 "Command" : command?is_string?then(
@@ -276,7 +276,7 @@
 [/#macro]
 
 [#macro Policy statements...]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context +=
             {
                 "Policy" : (context.Policy![]) + asFlattenedArray(statements)
@@ -286,7 +286,7 @@
 [/#macro]
 
 [#macro ManagedPolicy arns...]
-    [#if (containerListMode!"") == "model"]
+    [#if (fragmentListMode!"") == "model"]
         [#assign context += 
             {
                 "ManagedPolicy" : (context.ManagedPolicy![]) + asFlattenedArray(arns)
@@ -560,10 +560,11 @@
             attributeIfContent("ContainerNetworkLinks", container.ContainerNetworkLinks)
         ]
 
-        [#-- Add in container specifics including override of defaults --]
-        [#assign containerListMode = "model"]
-        [#assign containerId = formatContainerFragmentId(task, container)]
-        [#include containerList]
+        [#-- Add in fragment specifics including override of defaults --]
+        [#assign fragmentListMode = "model"]
+        [#assign fragmentId = formatFragmentId(context)]
+        [#assign containerId = fragmentId]
+        [#include fragmentList]
 
         [#assign context += getFinalEnvironment(task, context) ]
 

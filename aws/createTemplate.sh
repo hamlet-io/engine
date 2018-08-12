@@ -173,7 +173,7 @@ function process_template() {
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       pass_list=("template")
       passes=("template")
-      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
+      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "FRAGMENT" )
 
       # Blueprint applies across accounts and regions
       for pass in "${pass_list[@]}"; do
@@ -225,7 +225,7 @@ function process_template() {
 
     segment)
       for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="seg-"; done
-      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER" )
+      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "FRAGMENT" )
 
       # LEGACY: Support old formats for existing stacks so they can be updated
       if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
@@ -254,13 +254,13 @@ function process_template() {
 
     application)
       for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="app-"; done
-      template_composites+=("APPLICATION" "CONTAINER" )
+      template_composites+=("APPLICATION" "FRAGMENT" )
       passes=("${passes[@]}" "config")
       ;;
 
     multiple)
       for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="multi-"; done
-      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "CONTAINER")
+      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "FRAGMENT")
       ;;
 
     *)

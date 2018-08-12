@@ -13,16 +13,14 @@
         [#assign settings = occurrence.Configuration.Settings ]
         [#assign resources = occurrence.State.Resources]
 
-        [#assign containerId =
-            solution.Container?has_content?then(
-                solution.Container,
-                getComponentId(component)
-            ) ]
+        [#assign fragment =
+            contentIfContent(solution.Fragment, getComponentId(component)) ]
+
         [#assign contextLinks = getLinkTargets(occurrence) ]
         [#assign context =
             {
-                "Id" : containerId,
-                "Name" : containerId,
+                "Id" : fragment,
+                "Name" : fragment,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
                 "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
@@ -35,9 +33,10 @@
         ]
 
         [#-- Add in container specifics including override of defaults --]
-        [#assign containerListMode = "model"]
-        [#assign containerId = formatContainerFragmentId(occurrence, context)]
-        [#include containerList?ensure_starts_with("/")]
+        [#assign fragmentListMode = "model"]
+        [#assign fragmentId = formatFragmentId(context)]
+        [#assign containerId = fragmentId]
+        [#include fragmentList?ensure_starts_with("/")]
 
         [#assign context += getFinalEnvironment(occurrence, context) ]
 

@@ -1085,6 +1085,36 @@ function cleanup_cmdb_repo_to_v1_1_0() {
   return 0
 }
 
+# container_* files now should be fragment_*
+function upgrade_cmdb_repo_to_v1_2_0() {
+  local root_dir="$1";shift
+  local dry_run="$1";shift
+
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  local tmp_dir="$(getTopTempDir)"
+  local return_status=0
+
+  readarray -t legacy_files < <(find "${root_dir}" -type f \
+    -name "container_*.ftl" )
+  for legacy_file in "${legacy_files[@]}"; do
+    debug "Checking ${legacy_file}..."
+    replacement_filename="$(fileName "${legacy_file}")"
+    replacement_filename="${replacement_filename/container_/fragment_}"
+    replacement_file="$(filePath "${legacy_file}")/${replacement_filename}"
+    [[ -f "${replacement_file}" ]] && continue
+    info "Renaming ${legacy_file} to ${replacement_file}..."
+
+    if [[ -n "${dry_run}" ]]; then
+      continue
+    fi
+    git_mv "${legacy_file}" "${replacement_file}" || { return_status=1; break; }
+  done
+
+  popTempDir
+
+  return ${return_status}
+}
+
 function process_cmdb() {
   local root_dir="$1";shift
   local action="$1";shift
@@ -1131,7 +1161,9 @@ function process_cmdb() {
         continue
       fi
 
+      pushd "${cmdb_repo}" > /dev/null 2>&1
       ${action,,}_cmdb_repo_to_${version//./_} "${cmdb_repo}" "${dry_run}"; return_status=$?
+      popd > /dev/null 2>&1
 
       if [[ "${return_status}" -eq 0 ]]; then
         # Only check the first version to be applied for a dryrun
@@ -1163,7 +1195,7 @@ function upgrade_cmdb() {
   local versions="$1";shift
 
   local required_versions=(${versions})
-  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0")
+  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0")
 
   process_cmdb "${root_dir}" "upgrade" "${required_versions[*]}" ${dry_run}
 }

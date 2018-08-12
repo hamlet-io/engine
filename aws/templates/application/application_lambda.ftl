@@ -19,16 +19,14 @@
             [#assign lgId = resources["lg"].Id ]
             [#assign lgName = resources["lg"].Name ]
 
-            [#assign containerId =
-                solution.Container?has_content?then(
-                    solution.Container,
-                    getComponentId(core.Component)
-                ) ]
+            [#assign fragment =
+                contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
+
             [#assign contextLinks = getLinkTargets(fn) ]
             [#assign context =
                 {
-                    "Id" : containerId,
-                    "Name" : containerId,
+                    "Id" : fragment,
+                    "Name" : fragment,
                     "Instance" : core.Instance.Id,
                     "Version" : core.Version.Id,
                     "DefaultEnvironment" : defaultEnvironment(fn, contextLinks),
@@ -75,10 +73,11 @@
                 [/#list]
             [/#if]
 
-            [#-- Add in container specifics including override of defaults --]
-            [#assign containerListMode = "model"]
-            [#assign containerId = formatContainerFragmentId(occurrence, context)]
-            [#include containerList?ensure_starts_with("/")]
+            [#-- Add in fragment specifics including override of defaults --]
+            [#assign fragmentListMode = "model"]
+            [#assign fragmentId = formatFragmentId(context)]
+            [#assign containerId = fragmentId]
+            [#include fragmentList?ensure_starts_with("/")]
 
             [#assign finalEnvironment = getFinalEnvironment(fn, context, solution.EnvironmentAsFile) ]
             [#assign finalAsFileEnvironment = getFinalEnvironment(fn, context, false) ]
@@ -147,7 +146,7 @@
                 [@createLambdaFunction
                     mode=listMode
                     id=fnId
-                    container=context +
+                    settings=context +
                         {
                             "Handler" : solution.Handler,
                             "RunTime" : solution.RunTime,
@@ -263,9 +262,9 @@
                     [/#switch]
                 [/#list]
 
-                [#-- Pick any extra macros in the container fragment --]
-                [#assign containerListMode = listMode]
-                [#include containerList?ensure_starts_with("/")]
+                [#-- Pick any extra macros in the fragment --]
+                [#assign fragmentListMode = listMode]
+                [#include fragmentList?ensure_starts_with("/")]
             [/#if]
             [#if solution.EnvironmentAsFile && deploymentSubsetRequired("config", false)]
                 [@cfConfig

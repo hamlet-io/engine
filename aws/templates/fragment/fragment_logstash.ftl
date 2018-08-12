@@ -10,7 +10,7 @@
             "LOGS" : logsBucket,
             "REGION" : regionId,
             "PRODUCT" : productId,
-            "CONTAINER" : containerId,
+            "CONTAINER" : fragmentId,
             "ES" : esConfiguration.EndPoint
         }
     /]

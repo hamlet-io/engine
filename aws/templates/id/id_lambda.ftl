@@ -36,7 +36,10 @@
             ]
         },
         LAMBDA_FUNCTION_COMPONENT_TYPE : [
-            "Container",
+            {
+                "Name" : ["Fragment", "Container"],
+                "Default" : ""
+            },
             {
                 "Name" : "Handler",
                 "Mandatory" : true
