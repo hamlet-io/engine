@@ -126,15 +126,16 @@
                         "info \"Generating IAM AccessKey... \"",
                         "access_key=\"$(create_iam_accesskey" +
                         " \"" + region + "\" " +
-                        " \"" + userName + "\" )\"",
+                        " \"" + userName + "\" || return $?)\"",
+                        "access_key_array=($access_key)",
                         "encrypted_secret_key=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
-                        " \"$\{access_key[1]}\" " +
+                        " \"$\{access_key_array[1]}\" " +
                         " \"" + segmentKMSKey + "\" || return $?)\"",
                         "create_pseudo_stack" + " " +
                         "\"IAM User AccessKey\"" + " " +
                         "\"$\{password_pseudo_stack_file}\"" + " " +
-                        "\"" + userId + "Xusername\" \"$\{access_key[0]}\" " +
+                        "\"" + userId + "Xusername\" \"$\{access_key_array[0]}\" " +
                         "\"" + userId + "Xpassword\" \"$\{encrypted_secret_key}\" || return $?",
                         "}",
                         "password_pseudo_stack_file=" + credentialsPseudoStackFile,
