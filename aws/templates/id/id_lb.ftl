@@ -183,6 +183,7 @@
                 "URL" : url + path,
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : internalUrl + path,
+                "PATH" : path,
                 "PORT" : sourcePort.Name,
                 "SOURCE_PORT" : sourcePort.Name,
                 "DESTINATION_PORT" : destinationPort.Name,
