@@ -24,6 +24,8 @@
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
 
+        [#assign environmentVariables = {}]
+
         [#assign configSetName = componentType ]
         [#assign configSets =
                 getInitConfigDirectories() +
@@ -58,6 +60,26 @@
                 [/#if]
             [/#if]
         [/#list]
+
+        [#assign contextLinks = getLinkTargets(occurrence, links) ]
+        [#assign context =
+            {
+                "Id" : getComponentId(component),
+                "Name" : getComponentId(component),
+                "Instance" : core.Instance.Id,
+                "Version" : core.Version.Id,
+                "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+                "Environment" : {},
+                "Links" : contextLinks,
+                "DefaultCoreVariables" : true,
+                "DefaultEnvironmentVariables" : false,
+                "DefaultLinkVariables" : true
+            }
+        ]
+
+        [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
+
+        [#assign configSets +=  getInitConfigEnvFacts(environmentVariables, false) ]
 
         [#list links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link) ]
