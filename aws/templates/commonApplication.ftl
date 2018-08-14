@@ -267,7 +267,7 @@
         [#assign context += 
             {
                 "Command" : command?is_string?then(
-                    command?split(" "),
+                    [ command ],
                     command
                 )
             }
