@@ -200,7 +200,8 @@
                             s3ReadPermission(codeBucket) +
                             s3ListPermission(operationsBucket) +
                             s3WritePermission(operationsBucket, "DOCKERLogs") +
-                            s3WritePermission(operationsBucket, "Backups"),
+                            s3WritePermission(operationsBucket, "Backups") + 
+                            cwLogsProducePermission(ec2LogGroupName),
                             "basic")
                     ] + targetGroupPermission?then(
                         [

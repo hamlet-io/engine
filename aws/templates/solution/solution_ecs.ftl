@@ -54,7 +54,8 @@
                                 s3ReadPermission(codeBucket) +
                                 s3ListPermission(operationsBucket) +
                                 s3WritePermission(operationsBucket, getSegmentBackupsFilePrefix()) +
-                                s3WritePermission(operationsBucket, "DOCKERLogs"),
+                                s3WritePermission(operationsBucket, "DOCKERLogs") + 
+                                cwLogsProducePermission(ecsLogGroupName),
                             "docker")
                     ]
             /]

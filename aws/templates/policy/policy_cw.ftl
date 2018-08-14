@@ -1,6 +1,11 @@
 [#-- Cloud Watch --]
 
-[#function cwLogsProducePermission ]
+[#function cwLogsProducePermission logGroupName="" ]
+    [#local logGroupArn = logGroupName?has_content?then(
+                    formatRegionalArn(
+                            "log-group",
+                            logGroupName + "*"),
+                    "")]
     [#return
         [
             getPolicyStatement(
@@ -10,7 +15,8 @@
                     "logs:PutLogEvents",
                     "logs:DescribeLogGroups",
                     "logs:DescribeLogStreams"
-                ])
+                ],
+                logGroupArn)
         ]
     ]
 [/#function]
