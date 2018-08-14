@@ -334,6 +334,68 @@
     ]
 [/#function]
 
+[#function getInitConfigLogAgent logProfile logGroupPrefix ignoreErrors=false ]
+    [#local logContent = [
+        "[general]",
+        "state_file = /var/lib/awslogs/agent-state",
+        " "
+    ]]
+
+    [#list logProfile.LogFileGroups as logFileGroup ]
+        [#local logGroup = logFileGroups[logFileGroup] ]
+        [#local logGroupName = logGroupPrefix + "/" + logGroup.Name ]
+        [#list logGroup.LogFiles as logFile ]
+            [#local logFileDetails = logFiles[logFile] ]
+            [#local logContent +=
+                [
+                    "[" + logFileDetails.FilePath + "]",
+                    "file = " + logFileDetails.FilePath,
+                    "log_group_name = " + logGroupName,
+                    "log_stream_name = {instance_id}" + logFileDetails.FilePath
+                ] + 
+                (logFileDetails.TimeFormat!"")?has_content?then(
+                    [ "datetime_format = " + logFileDetails.TimeFormat ],
+                    []
+                ) + 
+                (logFileDetails.MultiLinePattern!"")?has_content?then(
+                    [ "awslogs-multiline-pattern = " + logFileDetails.MultiLinePattern ],
+                    []
+                ) + 
+                [ " " ]
+            ]
+        [/#list]
+    [/#list]
+
+    [#return 
+        {
+            "LogConfig" : {
+                "packages" : {
+                    "yum" : {
+                        "awslogs" : [],
+                        "jq" : []
+                    }
+                },
+                "files" : {
+                    "/etc/awslogs/awslogs.conf" : {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                logContent
+                            ]
+                        },
+                        "mode" : "000755"
+                    }
+                },
+                "commands": {
+                    "ConfigureLogsAgent" : {
+                        "command" : "/opt/codeontap/bootstrap/awslogs.sh",
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
 
 [#macro createEC2LaunchConfig mode id 
     processorProfile

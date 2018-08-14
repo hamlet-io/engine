@@ -209,6 +209,9 @@
 [#assign processors = blueprintObject.Processors]
 [#assign ports = blueprintObject.Ports]
 [#assign portMappings = blueprintObject.PortMappings]
+[#assign logFiles = blueprintObject.LogFiles ]
+[#assign logFileGroups = blueprintObject.LogFileGroups]
+[#assign logFileProfiles = blueprintObject.LogFileProfiles ]
 
 [#-- Regions --]
 [#if region?has_content]

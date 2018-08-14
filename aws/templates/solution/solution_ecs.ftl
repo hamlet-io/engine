@@ -25,6 +25,8 @@
         [#assign defaultLogDriver = solution.LogDriver ]
         [#assign fixedIP = solution.FixedIP ]
 
+        [#assign logFileProfile = getLogFileProfile(tier, component, "ECS")]
+
         [#assign configSetName = componentType ]
         [#assign configSets =  
                 getInitConfigDirectories() + 
@@ -52,7 +54,8 @@
                                 s3ReadPermission(codeBucket) +
                                 s3ListPermission(operationsBucket) +
                                 s3WritePermission(operationsBucket, getSegmentBackupsFilePrefix()) +
-                                s3WritePermission(operationsBucket, "DOCKERLogs"),
+                                s3WritePermission(operationsBucket, "DOCKERLogs") + 
+                                cwLogsProducePermission(ecsLogGroupName),
                             "docker")
                     ]
             /]
@@ -74,6 +77,25 @@
                 id=ecsLogGroupId
                 name=ecsLogGroupName /]
         [/#if]
+
+        [#assign logProfileGroupPrefix = formatLogFileGroupName( ecsLogGroupName )]
+        [#list logFileProfile.LogFileGroups as logGroup ]
+            [#assign logProfileGroupId = formatLogFileGroupId( ecsLogGroupId, logGroup) ]
+            [#assign logProfileGroupName = formatPath(false, logProfileGroupPrefix, logGroup)]
+
+            [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
+                [@createLogGroup 
+                    mode=listMode
+                    id=logProfileGroupId
+                    name=logProfileGroupName /]
+            [/#if]
+        [/#list]
+
+        [#assign configSets +=
+            getInitConfigLogAgent(
+                logFileProfile,
+                logProfileGroupPrefix
+            )]
             
         [#if deploymentSubsetRequired("ecs", true)]
     

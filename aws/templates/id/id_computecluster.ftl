@@ -81,6 +81,11 @@
                     "Name" : core.FullName,
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
+                "lg" : {             
+                    "Id" : formatLogGroupId(core.Id),
+                    "Name" : core.FullAbsolutePath,
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                },
                 "launchConfig" : {
                     "Id" : formatResourceId(
                                 AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE,

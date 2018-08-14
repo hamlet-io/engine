@@ -1741,6 +1741,23 @@
     [/#if]
 [/#function]
 
+[#function getLogFileProfile tier component type extensions... ]
+    [#local tc = formatComponentShortName(
+                    tier,
+                    component,
+                    extensions)]
+    [#local defaultProfile = "default"]
+    [#if (component[type].LogFileProfile)??]
+        [#return component[type].LogFileProfile]
+    [/#if]
+    [#if (logFileProfiles[defaultProfile][tc])??]
+        [#return logFileProfiles[defaultProfile][tc]]
+    [/#if]
+    [#if (logFileProfiles[defaultProfile][type])??]
+        [#return logFileProfiles[defaultProfile][type]]
+    [/#if]
+[/#function]
+
 [#-- Get storage settings --]
 [#function getStorage tier component type extensions...]
     [#local tc = formatComponentShortName(

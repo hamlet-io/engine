@@ -20,6 +20,12 @@
         [#assign ec2SecurityGroupName   = resources["sg"].Name]
         [#assign ec2RoleId              = resources["ec2Role"].Id]
         [#assign ec2InstanceProfileId   = resources["instanceProfile"].Id]
+        [#assign ec2LogGroupId          = resources["lg"].Id]
+        [#assign ec2LogGroupName        = resources["lg"].Name]
+
+        [#assign processorProfile       = getProcessor(tier, component, "EC2")]
+        [#assign storageProfile         = getStorage(tier, component, "EC2")]
+        [#assign logFileProfile         = getLogFileProfile(tier, component, "EC2")]
 
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
@@ -194,7 +200,8 @@
                             s3ReadPermission(codeBucket) +
                             s3ListPermission(operationsBucket) +
                             s3WritePermission(operationsBucket, "DOCKERLogs") +
-                            s3WritePermission(operationsBucket, "Backups"),
+                            s3WritePermission(operationsBucket, "Backups") + 
+                            cwLogsProducePermission(ec2LogGroupName),
                             "basic")
                     ] + targetGroupPermission?then(
                         [
@@ -205,6 +212,25 @@
                         [])
             /]
         [/#if]
+
+        [#assign logProfileGroupPrefix = formatLogFileGroupName( ec2LogGroupName )]
+        [#list logFileProfile.LogFileGroups as logGroup ]
+            [#assign logProfileGroupId = formatLogFileGroupId( ec2LogGroupId, logGroup) ]
+            [#assign logProfileGroupName = formatPath(false, logProfileGroupPrefix, logGroup)]
+
+            [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
+                [@createLogGroup 
+                    mode=listMode
+                    id=logProfileGroupId
+                    name=logProfileGroupName /]
+            [/#if]
+        [/#list]
+
+        [#assign configSets +=
+            getInitConfigLogAgent(
+                logFileProfile,
+                logProfileGroupPrefix
+            )]
 
         [#if deploymentSubsetRequired("ec2", true)]
 
@@ -236,8 +262,6 @@
                     [#assign zoneEc2EIPId               = zoneResources[zone.Id]["ec2EIP"].Id]
                     [#assign zoneEc2EIPAssociationId    = zoneResources[zone.Id]["ec2EIPAssociation"].Id]
 
-                    [#assign processorProfile = getProcessor(tier, component, "EC2")]
-                    [#assign storageProfile = getStorage(tier, component, "EC2")]
                     [#assign updateCommand = "yum clean all && yum -y update"]
                     [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
                     [#if environmentId == "prod"]

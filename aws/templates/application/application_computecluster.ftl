@@ -14,13 +14,17 @@
 
         [#assign dockerHost = solution.DockerHost]
 
-        [#assign computeClusterRoleId = resources["role"].Id ]
-        [#assign computeClusterInstanceProfileId = resources["instanceProfile"].Id ]
-        [#assign computeClusterAutoScaleGroupId = resources["autoScaleGroup"].Id ]
-        [#assign computeClusterAutoScaleGroupName = resources["autoScaleGroup"].Name ]
-        [#assign computeClusterLaunchConfigId = resources["launchConfig"].Id ]
-        [#assign computeClusterSecurityGroupId = resources["securityGroup"].Id ]
-        [#assign computeClusterSecurityGroupName = resources["securityGroup"].Name ]
+        [#assign computeClusterRoleId               = resources["role"].Id ]
+        [#assign computeClusterInstanceProfileId    = resources["instanceProfile"].Id ]
+        [#assign computeClusterAutoScaleGroupId     = resources["autoScaleGroup"].Id ]
+        [#assign computeClusterAutoScaleGroupName   = resources["autoScaleGroup"].Name ]
+        [#assign computeClusterLaunchConfigId       = resources["launchConfig"].Id ]
+        [#assign computeClusterSecurityGroupId      = resources["securityGroup"].Id ]
+        [#assign computeClusterSecurityGroupName    = resources["securityGroup"].Name ]
+        [#assign computeClusterLogGroupId           = resources["lg"].Id]
+        [#assign computeClusterLogGroupName        = resources["lg"].Name]
+
+        [#assign logFileProfile = getLogFileProfile(tier, component, "ComputeCluster")]
 
         [#assign targetGroupPermission = false ]
         [#assign targetGroups = [] ]
@@ -121,7 +125,8 @@
                             s3ReadPermission(codeBucket) +
                             s3ListPermission(operationsBucket) +
                             s3WritePermission(operationsBucket, "DOCKERLogs") +
-                            s3WritePermission(operationsBucket, "Backups"),
+                            s3WritePermission(operationsBucket, "Backups") +
+                            cwLogsProducePermission(computeClusterLogGroupName),
                             "basic")
                     ] + targetGroupPermission?then(
                         [
@@ -233,6 +238,25 @@
         [/#list]
 
         [#assign configSets += getInitConfigScriptsDeployment(scriptsFile, environmentVariables, solution.UseInitAsService, false)]
+
+        [#assign logProfileGroupPrefix = formatLogFileGroupName( computeClusterLogGroupName )]
+        [#list logFileProfile.LogFileGroups as logGroup ]
+            [#assign logProfileGroupId = formatLogFileGroupId( computeClusterLogGroupId, logGroup) ]
+            [#assign logProfileGroupName = formatPath(false, logProfileGroupPrefix, logGroup)]
+
+            [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
+                [@createLogGroup 
+                    mode=listMode
+                    id=logProfileGroupId
+                    name=logProfileGroupName /]
+            [/#if]
+        [/#list]
+
+        [#assign configSets +=
+            getInitConfigLogAgent(
+                logFileProfile,
+                logProfileGroupPrefix
+            )]
 
         [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
 

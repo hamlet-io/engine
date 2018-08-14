@@ -1360,5 +1360,106 @@
         }
       }
     }
+  },
+  "LogFiles" : {
+    "/var/log/dmesg" : {
+      "FilePath" : "/var/log/dmesg"
+    },
+    "/var/log/messages" : {
+      "FilePath" : "/var/log/messages",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/secure" : {
+      "FilePath" : "/var/log/secure",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/cron" : {
+      "FilePath" : "/var/log/cron",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/cloud-init.log" : {
+      "FilePath" : "/var/log/cloud-init.log",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/cloud-init-output.log" : {
+      "FilePath" : "/var/log/cloud-init-output.log",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/audit/audit.log" : {
+      "FilePath" : "/var/log/audit/audit.log",
+      "MultiLinePattern" : "^type"
+    },
+    "/var/log/amazon/ssm/amazon-ssm-agent.log" : {
+      "FilePath" : "/var/log/amazon/ssm/amazon-ssm-agent.log",
+      "MultiLinePattern" : "^INFO"
+    },
+    "/var/log/aide/aide.log" : {
+      "FilePath" : "/var/log/aide/aide.log",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/docker" : {
+      "FilePath" : "/var/log/docker",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/ecs/ecs-init.log" : {
+      "FilePath" : "/var/log/ecs/ecs-init.log",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/ecs/ecs-agent.log" : {
+      "FilePath" : "/var/log/ecs/ecs-agent.log",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/ecs/audit.log" : {
+      "FilePath" : "/var/log/ecs/audit.log",
+      "TimeFormat"  : "%b %d %H:%M:%S"
+    }
+  },
+  "LogFileGroups" : {
+    "security" : {
+      "LogFiles" : [
+        "/var/log/secure",
+        "/var/log/audit/audit.log",
+        "/var/log/aide/aide.log"
+      ]
+    },
+    "system" : {
+      "LogFiles" : [
+        "/var/log/dmesg",
+        "/var/log/messages",
+        "/var/log/cron"
+      ]
+    },
+    "docker" : {
+      "LogFiles" : [
+        "/var/log/docker"
+      ]
+    },
+    "aws-ecs" : {
+      "LogFiles" : [
+        "/var/log/ecs/ecs-init.log",
+        "/var/log/ecs/ecs-agent.log",
+        "/var/log/ecs/audit.log"
+      ]
+    },
+    "aws-system" : {
+      "LogFiles" : [
+        "/var/log/cloud-init.log",
+        "/var/log/cloud-init-output.log",
+        "/var/log/amazon/ssm/amazon-ssm-agent.log" 
+      ]
+    }
+  },
+  "LogFileProfiles" : { 
+    "default" : {
+      "EC2" : {
+        "LogFileGroups" : ["system", "aws-system", "security", "docker"]
+      },
+      "ComputeCluster" : {
+        "LogFileGroups" : ["system", "aws-system", "security", "docker"]
+      },
+      "ECS" : {
+        "LogFileGroups" : ["system", "aws-system", "security", "docker", "aws-ecs"]
+      }
+    }
   }
 }

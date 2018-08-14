@@ -158,6 +158,11 @@
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
+                "lg" : {             
+                    "Id" : formatLogGroupId(core.Id),
+                    "Name" : core.FullAbsolutePath,
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                },
                 "Zones" : zoneResources
             },
             "Attributes" : {

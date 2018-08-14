@@ -12,6 +12,21 @@
                 ids)]
 [/#function]
 
+[#function formatLogFileGroupId resourceId extensions... ]
+    [#return 
+        formatLogGroupId( resourceId,
+                          "logfile",
+                          extensions)]
+[/#function]
+
+[#function formatLogFileGroupName resourceName extensions... ]
+    [#return
+        formatPath( false, 
+                    resourceName, 
+                    "logfile", 
+                    extensions)]
+[/#function]
+
 [#function formatDependentLogGroupId resourceId extensions...]
     [#return formatDependentResourceId(
                 AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
