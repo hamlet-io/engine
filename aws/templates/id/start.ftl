@@ -120,6 +120,7 @@
 [#assign ALLOCATION_ATTRIBUTE_TYPE = "id" ]
 [#assign CANONICAL_ID_ATTRIBUTE_TYPE = "canonicalid" ]
 [#assign CERTIFICATE_ATTRIBUTE_TYPE = "certificate" ]
+[#assign KEY_ATTRIBUTE_TYPE = "key" ]
 [#assign QUALIFIER_ATTRIBUTE_TYPE = "qualifier" ]
 [#assign ROOT_ATTRIBUTE_TYPE = "root" ]
 [#assign PORT_ATTRIBUTE_TYPE = "port" ]

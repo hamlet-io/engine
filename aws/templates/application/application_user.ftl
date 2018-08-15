@@ -131,11 +131,17 @@
                         " \"" + region + "\" " +
                         " \"$\{access_key_array[1]}\" " +
                         " \"" + segmentKMSKey + "\" || return $?)\"",
+                        "smtp_password=\"$(get_iam_smtp_password \"$\{access_key_array[1]}\" )",
+                        "encrypted_smtp_password=\"$(encrypt_kms_string" +
+                        " \"" + region + "\" " +
+                        " \"$\{smtp_password}\" " +
+                        " \"" + segmentKMSKey + "\" || return $?)\"",
                         "create_pseudo_stack" + " " +
                         "\"IAM User AccessKey\"" + " " +
                         "\"$\{password_pseudo_stack_file}\"" + " " +
                         "\"" + userId + "Xusername\" \"$\{access_key_array[0]}\" " +
-                        "\"" + userId + "Xpassword\" \"$\{encrypted_secret_key}\" || return $?",
+                        "\"" + userId + "Xpassword\" \"$\{encrypted_secret_key}\" " + 
+                        "\"" + userId + "Xkey\" \"$\{encrypted_smtp_password}\" || return $?",
                         "}",
                         "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-creds-system-pseudo-stack.json\" ",
                         "generate_iam_accesskey || return $?"
