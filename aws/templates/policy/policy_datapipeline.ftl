@@ -61,7 +61,12 @@
                 "sqs:GetQueue*", 
                 "sqs:PurgeQueue", 
                 "sqs:ReceiveMessage" 
-            ]) + 
+            ])
+    ]
+[/#function]
+
+[#function dataPipelineSerivceLinkedRole ]
+    [#return
         getPolicyStatement(
             [ "iam:CreateServiceLinkedRole" ],
             "*",

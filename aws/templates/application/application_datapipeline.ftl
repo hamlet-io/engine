@@ -89,6 +89,10 @@
                         getPolicyDocument(
                             dataPipelineGlobalAccess(),
                             "base"
+                        ),
+                        getPolicyDocument(
+                            dataPipelineSerivceLinkedRole(),
+                            "servicelink"
                         )
                     ]
             /]
@@ -104,6 +108,10 @@
                         getPolicyDocument(
                             dataPipelineBaseResourceAccess(),
                             "base"
+                        ),
+                        getPolicyDocument(
+                            standardPolicies(occurrence),
+                            "standard"
                         )
                     ]
             /]
@@ -134,14 +142,25 @@
         [/#if]
 
         [#if deploymentSubsetRequired("cli", false)]
-            
+
+            [#assign coreTags = getCfTemplateCoreTags(
+                        pipelineName,
+                        tier,
+                        component) ]
+
+            [#assign cliTags = [] ]
+            [#list coreTags as tag ]
+                [#assign cliTags += [
+                    {
+                    "key" : tag.Key,
+                    "value" : tag.Value
+                } ] ]
+            [/#list]
+
             [#assign pipelineCreateCliConfig = {
                 "name" : pipelineName,
                 "uniqueId" : pipelineId,
-                "tags" : getCfTemplateCoreTags(
-                        pipelineName,
-                        tier,
-                        component)
+                "tags" : cliTags
             }]
 
             [@cfCli 
