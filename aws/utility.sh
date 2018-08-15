@@ -797,7 +797,7 @@ function create_data_pipeline() {
   local configfile="$1"; shift
 
   pipeline="$(aws --region "${region}" datapipeline create-pipeline --cli-input-json "file://${configfile}" || return $?)" 
-  if [[ -z "${pipeline}" ]]; then 
+  if [[ -n "${pipeline}" ]]; then 
     echo "${pipeline}" | jq -r '.pipelineId | select (.!=null)'
     return 0
   
