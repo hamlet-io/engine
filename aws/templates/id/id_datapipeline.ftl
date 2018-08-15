@@ -27,11 +27,13 @@
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence) ]
 
+    [#local pipelineId = formatResourceId( AWS_DATA_PIPELINE_RESOURCE_TYPE, core.Id )]
+
     [#return
         {
             "Resources" : {
                 "dataPipeline" : {
-                    "Id" : formatResourceId( AWS_DATA_PIPELINE_RESOURCE_TYPE, core.Id ),
+                    "Id" : pipelineId,
                     "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
@@ -50,7 +52,7 @@
                 }
             },
             "Attributes" : {
-                "ID" : getExistingReference( dataPipeline )
+                "ID" : getExistingReference( pipelineId )
             },
             "Roles" : {
                 "Inbound" : {},
