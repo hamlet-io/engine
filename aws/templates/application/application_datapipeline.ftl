@@ -84,7 +84,12 @@
                     "elasticmapreduce.amazonaws.com",
                     "datapipeline.amazonaws.com"
                 ]
-                policies=[ getDataPipelineStatement() ]
+                policies=
+                    [ 
+                        getPolicyDocument(
+                            dataPipelineGlobalAccess() 
+                        )
+                    ]
             /]
 
             [@createRole
@@ -93,7 +98,12 @@
                 trustedServices=[
                     "ec2.amazonaws.com"  
                 ]
-                policies=[ getDataPipelineResourceStatement() ]
+                policies=
+                    [ 
+                        getPolicyDocument(
+                            dataPipelineBaseResourceAccess() 
+                        )
+                    ]
             /]
 
             [#if context.Policy?has_content]

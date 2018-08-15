@@ -1,5 +1,5 @@
 
-[#function getDataPipelineStatement ]
+[#function dataPipelineGlobalAccess ]
     [#return
         getPolicyStatement(
             [
@@ -75,7 +75,7 @@
     ]
 [/#function]
 
-[#function getDataPipelineResourceStatement ]
+[#function dataPipelineBaseResourceAccess ]
     [#return
         getPolicyStatement(
             [
