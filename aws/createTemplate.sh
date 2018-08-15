@@ -255,7 +255,7 @@ function process_template() {
     application)
       for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="app-"; done
       template_composites+=("APPLICATION" "FRAGMENT" )
-      passes=("${passes[@]}" "config")
+      passes=("${passes[@]}" "cli" "config")
       ;;
 
     multiple)
