@@ -173,7 +173,7 @@
                 id=formatDependentSecurityGroupIngressId(
                     securityGroupId,
                     "local")
-                port=-1
+                port=0
                 cidr=securityGroupId
                 groupId=securityGroupId /]
         [/#if]
