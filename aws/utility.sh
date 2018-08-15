@@ -796,7 +796,7 @@ function create_data_pipeline() {
   local region="$1"; shift
   local configfile="$1"; shift
 
-  pipeline="$(aws --region "${region}" datapipeline create --cli-input-json "file://${configfile}" || return $?)" 
+  pipeline="$(aws --region "${region}" datapipeline create-pipeline --cli-input-json "file://${configfile}" || return $?)" 
   if [ -z "${pipeline}"]; then 
     echo "${pipeline}" | jq -r '.pipelineId | select (.!=null)'
     return 0
@@ -814,7 +814,7 @@ function update_data_pipeline() {
   local parameterobjectfile="$1"; shift
   local parametervaluefile="$1"; shift 
 
-  pipeline_details="$(aws --region "${region}" datapipeline put-pipeline-definition --pipeline-id --pipeline-definition "file://${definitionfile}" --parameter-objects "file://${parameterobjectfile}" --parameter-values-uri "file://${parametervaluefile}" )"
+  pipeline_details="$(aws --region "${region}" datapipeline put-pipeline-definition --pipeline-id "${pipelineid}" --pipeline-definition "file://${definitionfile}" --parameter-objects "file://${parameterobjectfile}" --parameter-values-uri "file://${parametervaluefile}" )"
   pipeline_errored="$(echo "${pipeline_details}" | jq -r '.errored ')"
 
   if [[ "${pipeline_errored}" == "false" ]]; then 
