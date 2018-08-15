@@ -27,18 +27,20 @@
         [#assign pipelineCreateCommand = "createPipeline"]
 
         [#assign parameterValues = {
-            "_REGION" : regionId,
-            "_SUBNET_ID" : getSubnets(tier)[0],
-            "_SECURITY_GROUP_ID" : getExistingReference(securityGroupId),
-            "_SSH_KEY_PAIR" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
-            "_INSTANCE_TYPE_EC2" : ec2ProcessorProfile.Processor,
-            "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
-            "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone,
-            "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone,
-            "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + "/datapipeline/" + core.Name + "/logs",
-            "_ROLE_PIPELINE_ARN" : getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE),
-            "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE),
-            "_AVAILABILITY_ZONE" : zones[0].AWSZone
+            "values" : {
+                "_REGION" : regionId,
+                "_SUBNET_ID" : getSubnets(tier)[0],
+                "_SECURITY_GROUP_ID" : getExistingReference(securityGroupId),
+                "_SSH_KEY_PAIR" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
+                "_INSTANCE_TYPE_EC2" : ec2ProcessorProfile.Processor,
+                "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
+                "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone,
+                "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone,
+                "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + "/datapipeline/" + core.Name + "/logs",
+                "_ROLE_PIPELINE_ARN" : getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE),
+                "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE),
+                "_AVAILABILITY_ZONE" : zones[0].AWSZone
+            }
         }]
     
         [#assign fragment =
