@@ -13,7 +13,6 @@
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
         
-
         [#assign pipelineId = resources["dataPipeline"].Id]
         [#assign pipelineName = resources["dataPipeline"].Name]
         [#assign pipelineRoleId = resources["pipelineRole"].Id]
@@ -60,13 +59,13 @@
                 "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
                 "Environment" : {},
                 "Links" : contextLinks,
-                "DefaultCoreVariables" : false,
-                "DefaultEnvironmentVariables" : false,
-                "DefaultLinkVariables" : false
+                "DefaultCoreVariables" : ,
+                "DefaultEnvironmentVariables" : true,
+                "DefaultLinkVariables" : true
             }
         ]
         
-        [#if solution.Container?has_content ]
+        [#if solution.Fragment?has_content ]
             [#assign containerListMode = "model"]
             [#assign containerId = formatContainerFragmentId(occurrence, context)]
             [#include containerList?ensure_starts_with("/")]
