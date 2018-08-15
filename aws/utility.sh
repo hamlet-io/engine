@@ -721,6 +721,13 @@ function create_iam_accesskey() {
   fi
 }
 
+function get_iam_smtp_password() { 
+  local secretkey="$1"; shift
+
+  (echo -en "\x02"; echo -n 'SendRawEmail' \
+  | openssl dgst -sha256 -hmac $secretkey -binary) \
+  | openssl enc -base64
+}
 
 function set_iam_userpassword() {
   local region="$1"; shift
