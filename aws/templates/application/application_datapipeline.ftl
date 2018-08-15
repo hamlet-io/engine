@@ -42,7 +42,7 @@
             "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
             "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone,
             "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone,
-            "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + "/datapipeline/" + core.Name,
+            "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + "/datapipeline/" + core.Name + "/logs",
             "_ROLE_PIPELINE_ARN" : getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE),
             "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE),
             "_AVAILABILITY_ZONE" : zones[0].AWSZone
@@ -192,30 +192,30 @@
             [#if deploymentSubsetRequired("epilogue", false) ]
                 [@cfScript
                     mode=listMode
-                    content= 
-                        [
-                            getBuildScript(
-                                "pipelineFiles",
-                                regionId,
-                                "pipeline",
-                                productName,
-                                occurrence,
-                                "pipeline.zip"
-                            ) +
-                            syncFilesToBucketScript(
-                                "pipelineFiles",
-                                regionId,
-                                operationsBucket,
-                                formatRelativePath(
-                                    getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
-                                    "pipeline"
-                                )
-                            ) +
-                            getLocalFileScript(
-                                "configFiles",
-                                "$\{CONFIG}",
-                                "config.json"
-                            ) + 
+                    content=                     
+                        getBuildScript(
+                            "pipelineFiles",
+                            regionId,
+                            "pipeline",
+                            productName,
+                            occurrence,
+                            "pipeline.zip"
+                        ) +
+                        syncFilesToBucketScript(
+                            "pipelineFiles",
+                            regionId,
+                            operationsBucket,
+                            formatRelativePath(
+                                getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                                "pipeline"
+                            )
+                        ) +
+                        getLocalFileScript(
+                            "configFiles",
+                            "$\{CONFIG}",
+                            "config.json"
+                        ) +
+                        [ 
                             "case $\{STACK_OPERATION} in",
                             "  create|update)",
                             "       mkdir \"$\{tmpdir}/pipeline\" ",
