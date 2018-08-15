@@ -186,32 +186,6 @@
                                 getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX")
                             ) /]
                 [/#if]
-
-                [@cfScript
-                    mode=listMode
-                    content=
-                        getBuildScript(
-                            "pipelineFiles",
-                            regionId,
-                            "scripts",
-                            productName,
-                            occurrence,
-                            "scripts.zip"
-                        ) +
-                        getBuildScript(
-                            "pipelineFiles",
-                            regionId,
-                            "scripts",
-                            productName,
-                            occurrence,
-                            "parameters.json"
-                        ) +
-                        getLocalFileScript(
-                            "configFiles",
-                            "$\{CONFIG}",
-                            "config.json"
-                        )
-                /]
             
             [/#if]
 
@@ -220,16 +194,48 @@
                     mode=listMode
                     content= 
                         [
+                            getBuildScript(
+                                "pipelineFiles",
+                                regionId,
+                                "pipeline",
+                                productName,
+                                occurrence,
+                                "pipeline.zip"
+                            ) +
+                            syncFilesToBucketScript(
+                                "pipelineFiles",
+                                regionId,
+                                operationsBucket,
+                                formatRelativePath(
+                                    getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                                    "pipeline"
+                                )
+                            ) +
+                            getLocalFileScript(
+                                "configFiles",
+                                "$\{CONFIG}",
+                                "config.json"
+                            ) + 
                             "case $\{STACK_OPERATION} in",
                             "  create|update)",
+                            "       mkdir \"$\{tmpdir}/pipeline\" ",
+                            "       unzip \"$\{tmpdir}/pipeline.zip\" -d \"$\{tmpdir}/pipeline\" ",
                             "       # Get cli config file",
                             "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
-                            "       # Apply CLI level updates to ELB listener",
+                            "       # Create Data pipeline",
                             "       info \"Applying cli level configurtion\""
                             "       pipelineId=\"$(create_data_pipeline" +
                             "       \"" + region + "\" " + 
                             "       \"$\{tmpdir}/cli-" + 
-                                        pipelineId + "-" + pipelineCreateCommand + ".json\")\""
+                                        pipelineId + "-" + pipelineCreateCommand + ".json\")\"",
+                            "       # Add Pipeline Definition" ,
+                            "       info \"Updating pipeline definition\"",
+                            "       update_data_pipeline" +
+                            "       \"" + region + "\" " +
+                            "       \"$\{pipelineId}\" " +
+                            "       \"$\{tmpdir}/pipeline/pipeline-definition.json\" " + 
+                            "       \"$\{tmpdir}/pipeline/pipeline-parameters.json\" " + 
+                            "       \"$\{CONFIG}/config.json\" || return $?",
                             "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                             "       create_pseudo_stack" + " " +
                             "       \"Data Pipeline\"" + " " +
@@ -238,7 +244,6 @@
                             "   ;;",
                             "   esac"
                         ]
-                    
                 /]
             [/#if]
     
