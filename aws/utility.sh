@@ -791,6 +791,43 @@ function manage_congnito_domain() {
   return ${return_status}
 }
 
+# -- Data Pipeline -- 
+function create_data_pipeline() { 
+  local region="$1"; shift
+  local configfile="$1"; shift
+
+  pipeline="$(aws --region "${region}" datapipeline create --cli-input-json "file://${configfile}" || return $?)" 
+  if [ -z "${pipeline}"]; then 
+    echo "${pipeline}" | jq -r '.pipelineId | select (.!=null)'
+    return 0
+  
+  else 
+    fatal "Could not create pipeline"
+    return 255
+  fi 
+}
+
+function update_data_pipeline() { 
+  local region="$1"; shift
+  local pipelineid="$1"; shift
+  local definitionfile="$1"; shift
+  local parameterobjectfile="$1"; shift
+  local parametervaluefile="$1"; shift 
+
+  pipeline_details="$(aws --region "${region}" datapipeline put-pipeline-definition --pipeline-id --pipeline-definition "file://${definitionfile}" --parameter-objects "file://${parameterobjectfile}" --parameter-values-uri "file://${parametervaluefile}" )"
+  pipeline_errored="$(echo "${pipeline_details}" | jq -r '.errored ')"
+
+  if [[ "${pipeline_errored}" == "false" ]]; then 
+    info "Pipeline definition update successful"
+    info "${pipeline_details}"
+    return 0 
+  else
+    fatal "Pipeline definition did not work as expected"
+    fatal "${pipeline_details}"
+    return 255
+  fi
+}
+
 # -- ElasticSearch --
 function update_es_domain() {
   local region="$1"; shift
