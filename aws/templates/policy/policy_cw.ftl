@@ -5,7 +5,7 @@
                     formatRegionalArn(
                             "log-group",
                             logGroupName + "*"),
-                    "")]
+                    "*")]
     [#return
         [
             getPolicyStatement(
