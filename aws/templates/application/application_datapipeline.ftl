@@ -26,12 +26,6 @@
 
         [#assign pipelineCreateCommand = "createPipeline"]
 
-        [#assign containerId =
-            solution.Container?has_content?then(
-                solution.Container,
-                getComponentId(component)
-            ) ]
-
         [#assign parameterValues = {
             "_REGION" : regionId,
             "_SUBNET_ID" : getSubnets(tier)[0],
@@ -47,28 +41,31 @@
             "_AVAILABILITY_ZONE" : zones[0].AWSZone
         }]
     
+        [#assign fragment =
+            contentIfContent(solution.Fragment, getComponentId(component)) ]
+
         [#-- Add in container specifics including override of defaults --]
         [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
         [#assign contextLinks = getLinkTargets(occurrence) ]
         [#assign context =
             {
-                "Id" : containerId,
-                "Name" : containerId,
+                "Id" : fragment,
+                "Name" : fragment,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
                 "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
                 "Environment" : {},
                 "Links" : contextLinks,
-                "DefaultCoreVariables" : ,
-                "DefaultEnvironmentVariables" : true,
+                "DefaultCoreVariables" : false,
+                "DefaultEnvironmentVariables" : false,
                 "DefaultLinkVariables" : true
             }
         ]
         
         [#if solution.Fragment?has_content ]
-            [#assign containerListMode = "model"]
-            [#assign containerId = formatContainerFragmentId(occurrence, context)]
-            [#include containerList?ensure_starts_with("/")]
+            [#assign fragmentListMode = "model"]
+            [#assign fragmentId = formatFragmentId(context)]
+            [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
         [#assign parameterValues += getFinalEnvironment(occurrence, context).Environment ]
