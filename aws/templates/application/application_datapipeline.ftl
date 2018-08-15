@@ -27,7 +27,6 @@
         [#assign pipelineCreateCommand = "createPipeline"]
 
         [#assign parameterValues = {
-            "values" : {
                 "_REGION" : regionId,
                 "_SUBNET_ID" : getSubnets(tier)[0],
                 "_SECURITY_GROUP_ID" : getExistingReference(securityGroupId),
@@ -40,7 +39,6 @@
                 "_ROLE_PIPELINE_ARN" : getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE),
                 "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE),
                 "_AVAILABILITY_ZONE" : zones[0].AWSZone
-            }
         }]
     
         [#assign fragment =
@@ -176,7 +174,9 @@
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig
                 mode=listMode
-                content=parameterValues
+                content={
+                    "values" : parameterValues
+                }
             /]
         [/#if]
 
