@@ -149,7 +149,8 @@
                         component) ]
 
             [#assign cliTags = [] ]
-            [#list coreTags as tag ]
+            [#-- datapiplines only allow 10 tags --]
+            [#list coreTags[0..*10] as tag ]
                 [#assign cliTags += [
                     {
                     "key" : tag.Key,
