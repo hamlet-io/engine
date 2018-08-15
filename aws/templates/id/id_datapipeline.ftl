@@ -50,7 +50,7 @@
                 }
             },
             "Attributes" : {
-                
+                "ID" : getExistingReference( dataPipeline )
             },
             "Roles" : {
                 "Inbound" : {},
