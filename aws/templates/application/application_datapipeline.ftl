@@ -87,7 +87,8 @@
                 policies=
                     [ 
                         getPolicyDocument(
-                            dataPipelineGlobalAccess() 
+                            dataPipelineGlobalAccess(),
+                            "base"
                         )
                     ]
             /]
@@ -101,7 +102,8 @@
                 policies=
                     [ 
                         getPolicyDocument(
-                            dataPipelineBaseResourceAccess() 
+                            dataPipelineBaseResourceAccess(),
+                            "base"
                         )
                     ]
             /]
