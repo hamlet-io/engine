@@ -39,9 +39,18 @@
                 "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
                 "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone?c,
                 "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone?c,
-                "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + "/datapipeline/" + core.Name + "/logs",
                 "_ROLE_PIPELINE_NAME" : getExistingReference(pipelineRoleId ),
-                "_ROLE_RESOURCE_NAME" : getExistingReference(resourceRoleId )
+                "_ROLE_RESOURCE_NAME" : getExistingReference(resourceRoleId ),
+                "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + 
+                                                formatAbsolutePath(
+                                                    "datapipeline",
+                                                    core.FullName,
+                                                    "logs"),
+                "_PIPELINE_CODE_URI" :  "s3://" + operationsBucket + 
+                                                formatAbsolutePath(
+                                                    getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                                                    "pipeline"
+                                                )
         }]
     
         [#assign fragment =
