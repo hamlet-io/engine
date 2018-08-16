@@ -17,7 +17,8 @@
         [#assign pipelineName = resources["dataPipeline"].Name]
         [#assign pipelineRoleId = resources["pipelineRole"].Id]
         [#assign resourceRoleId = resources["resourceRole"].Id]
-        [#assign resourceRoleName = resourceRole["resourceRole"].Name]
+        [#assign resourceRoleName = resources["resourceRole"].Name]
+        [#assign resourceInstanceProfileId = resources["resourceInstanceProfile"].Id]
 
         [#assign securityGroupId = resources["securityGroup"].Id]
         [#assign securityGroupName = resources["securityGroup"].Name]
@@ -39,8 +40,8 @@
                 "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone?c,
                 "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone?c,
                 "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + "/datapipeline/" + core.Name + "/logs",
-                "_ROLE_PIPELINE_ARN" : getExistingReference(pipelineRoleId ),
-                "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId )
+                "_ROLE_PIPELINE_NAME" : getExistingReference(pipelineRoleId ),
+                "_ROLE_RESOURCE_NAME" : getExistingReference(resourceRoleId )
         }]
     
         [#assign fragment =
@@ -107,12 +108,12 @@
 
             [@cfResource
                 mode=listMode
-                id=ec2InstanceProfileId
+                id=resourceInstanceProfileId
                 type="AWS::IAM::InstanceProfile"
                 properties=
                     {
                         "Path" : "/",
-                        "Roles" : [getReference(ec2RoleId)],
+                        "Roles" : [getReference(resourceRoleId)],
                         "InstanceProfileName" : resourceRoleName
                     }
                 outputs={}

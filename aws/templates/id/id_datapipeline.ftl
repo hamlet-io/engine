@@ -62,6 +62,10 @@
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "pipeline" ),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
+                "resourceInstanceProfile" : {
+                    "Id" : formatResourceId( AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE, core.Id ),
+                    "Type" : AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE
+                },
                 "resourceRole" : {
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "resource" ),
                     "Name" : core.FullName,
