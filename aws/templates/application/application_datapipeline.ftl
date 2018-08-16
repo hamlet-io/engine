@@ -99,68 +99,93 @@
             /]
         [/#if]
 
-        [#if deploymentSubsetRequired("iam", true) 
-            && isPartOfCurrentDeploymentUnit(pipelineRoleId) 
-            && isPartOfCurrentDeploymentUnit(resourceRoleId) ]
+        [#if deploymentSubsetRequired("iam", true) ]
 
             [#-- Create a role under which the function will run and attach required policies --]
             [#-- The role is mandatory though there may be no policies attached to it --]
-            [@createRole
-                mode=listMode
-                id=pipelineRoleId
-                trustedServices=[
-                    "elasticmapreduce.amazonaws.com",
-                    "datapipeline.amazonaws.com"
-                ]
-                managedArns=["arn:aws:iam::aws:policy/service-role/AWSDataPipelineRole"]
-            /]
-
-            [@cfResource
-                mode=listMode
-                id=resourceInstanceProfileId
-                type="AWS::IAM::InstanceProfile"
-                properties=
-                    {
-                        "Path" : "/",
-                        "Roles" : [getReference(resourceRoleId)],
-                        "InstanceProfileName" : resourceRoleName
-                    }
-                outputs={}
-            /]
-
-            [@createRole
-                mode=listMode
-                id=resourceRoleId
-                name=resourceRoleName
-                trustedServices=[
-                    "ec2.amazonaws.com"
-                ]
-                managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforDataPipelineRole"]
-            /]
-
-            [#if context.Policy?has_content]
-                [#assign policyId = formatDependentPolicyId(pipelineId)]
-                [@createPolicy
+            [#if isPartOfCurrentDeploymentUnit(pipelineRoleId) ]
+                [@createRole
                     mode=listMode
-                    id=policyId
-                    name=context.Name
-                    statements=context.Policy
-                    roles=resourceRoleId
+                    id=pipelineRoleId
+                    trustedServices=[
+                        "elasticmapreduce.amazonaws.com",
+                        "datapipeline.amazonaws.com"
+                    ]
+                    managedArns=["arn:aws:iam::aws:policy/service-role/AWSDataPipelineRole"]
                 /]
             [/#if]
 
-            [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
-
-            [#if linkPolicies?has_content]
-                [#assign policyId = formatDependentPolicyId(pipelineId, "links")]
-                [@createPolicy
+            [#if isPartOfCurrentDeploymentUnit(securityGroupId) ]
+                [@createSecurityGroup
                     mode=listMode
-                    id=policyId
-                    name="links"
-                    statements=linkPolicies
-                    roles=resourceRoleId
+                    id=securityGroupId
+                    name=securityGroupName
+                    tier=tier
+                    component=component 
+                /]
+
+                [@createSecurityGroupIngress
+                    mode=listMode
+                    id=formatDependentSecurityGroupIngressId(
+                        securityGroupId,
+                        "local")
+                    port="any"
+                    cidr=securityGroupId
+                    groupId=securityGroupId /]
+            [/#if]
+
+            [#if isPartOfCurrentDeploymentUnit(resourceInstanceProfileId) ]
+                [@cfResource
+                    mode=listMode
+                    id=resourceInstanceProfileId
+                    type="AWS::IAM::InstanceProfile"
+                    properties=
+                        {
+                            "Path" : "/",
+                            "Roles" : [getReference(resourceRoleId)],
+                            "InstanceProfileName" : resourceRoleName
+                        }
+                    outputs={}
                 /]
             [/#if]
+
+            [#if isPartOfCurrentDeploymentUnit(resourceRoleId) ]
+                [@createRole
+                    mode=listMode
+                    id=resourceRoleId
+                    name=resourceRoleName
+                    trustedServices=[
+                        "ec2.amazonaws.com"
+                    ]
+                    managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforDataPipelineRole"]
+                /]
+
+                [#if context.Policy?has_content]
+                    [#assign policyId = formatDependentPolicyId(pipelineId)]
+                    [@createPolicy
+                        mode=listMode
+                        id=policyId
+                        name=context.Name
+                        statements=context.Policy
+                        roles=resourceRoleId
+                    /]
+                [/#if]
+
+                [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
+
+                [#if linkPolicies?has_content]
+                    [#assign policyId = formatDependentPolicyId(pipelineId, "links")]
+                    [@createPolicy
+                        mode=listMode
+                        id=policyId
+                        name="links"
+                        statements=linkPolicies
+                        roles=resourceRoleId
+                    /]
+                [/#if]
+                
+            [/#if]
+
         [/#if]
 
         [#if deploymentSubsetRequired("cli", false)]
@@ -192,25 +217,6 @@
                 command=pipelineCreateCommand
                 content=pipelineCreateCliConfig
             /]
-        [/#if]
-
-        [#if deploymentSubsetRequired(DATAPIPELINE_COMPONENT_TYPE, true) ]
-            [@createSecurityGroup
-                mode=listMode
-                id=securityGroupId
-                name=securityGroupName
-                tier=tier
-                component=component 
-            /]
-
-            [@createSecurityGroupIngress
-                mode=listMode
-                id=formatDependentSecurityGroupIngressId(
-                    securityGroupId,
-                    "local")
-                port=0
-                cidr=securityGroupId
-                groupId=securityGroupId /]
         [/#if]
 
         [#if deploymentSubsetRequired("prologue", false)]
