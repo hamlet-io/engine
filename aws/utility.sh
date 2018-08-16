@@ -1436,6 +1436,7 @@ function release_enis() {
     for network_interface_id in $( jq -r '.NetworkInterfaces[].NetworkInterfaceId' < "${eni_list_file}" ) ; do
         if [[ -n "${network_interface_id}" ]]; then
             info "Deleting ${network_interface_id} ..."
+            aws --region "${region}" ec2 wait network-interface-available --network-interface-id "${network_interface_id}" || return $?
             aws --region "${region}" ec2 delete-network-interface --network-interface-id "${network_interface_id}" || return $?
         fi
     done
