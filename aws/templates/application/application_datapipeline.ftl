@@ -17,6 +17,7 @@
         [#assign pipelineName = resources["dataPipeline"].Name]
         [#assign pipelineRoleId = resources["pipelineRole"].Id]
         [#assign resourceRoleId = resources["resourceRole"].Id]
+        [#assign resourceRoleName = resourceRole["resourceRole"].Name]
 
         [#assign securityGroupId = resources["securityGroup"].Id]
         [#assign securityGroupName = resources["securityGroup"].Name]
@@ -35,11 +36,11 @@
                 "_INSTANCE_TYPE_EC2" : ec2ProcessorProfile.Processor,
                 "_INSTANCE_IMAGE_EC2" : regionObject.AMIs.Centos.EC2,
                 "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
-                "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone,
-                "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone,
+                "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone?c,
+                "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone?c,
                 "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + "/datapipeline/" + core.Name + "/logs",
-                "_ROLE_PIPELINE_ARN" : getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE),
-                "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE)
+                "_ROLE_PIPELINE_ARN" : getExistingReference(pipelineRoleId ),
+                "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId )
         }]
     
         [#assign fragment =
@@ -75,7 +76,7 @@
         [#list parameterValues as key,value ]
             [#assign myParameterValues += 
                 {
-                    key?ensure_starts_with("my") : value                
+                    key?ensure_starts_with("my") : value
                 }]
         [/#list]
 
@@ -101,36 +102,30 @@
                     "elasticmapreduce.amazonaws.com",
                     "datapipeline.amazonaws.com"
                 ]
-                policies=
-                    [ 
-                        getPolicyDocument(
-                            dataPipelineGlobalAccess(),
-                            "base"
-                        ),
-                        getPolicyDocument(
-                            dataPipelineSerivceLinkedRole(),
-                            "servicelink"
-                        )
-                    ]
+                managedArns=["arn:aws:iam::aws:policy/service-role/AWSDataPipelineRole"]
+            /]
+
+            [@cfResource
+                mode=listMode
+                id=ec2InstanceProfileId
+                type="AWS::IAM::InstanceProfile"
+                properties=
+                    {
+                        "Path" : "/",
+                        "Roles" : [getReference(ec2RoleId)],
+                        "InstanceProfileName" : resourceRoleName
+                    }
+                outputs={}
             /]
 
             [@createRole
                 mode=listMode
                 id=resourceRoleId
+                name=resourceRoleName
                 trustedServices=[
-                    "ec2.amazonaws.com"  
+                    "ec2.amazonaws.com"
                 ]
-                policies=
-                    [ 
-                        getPolicyDocument(
-                            dataPipelineBaseResourceAccess(),
-                            "base"
-                        ),
-                        getPolicyDocument(
-                            standardPolicies(occurrence),
-                            "standard"
-                        )
-                    ]
+                managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforDataPipelineRole"]
             /]
 
             [#if context.Policy?has_content]
@@ -273,7 +268,7 @@
                             "       \"$\{pipelineId}\" " +
                             "       \"$\{tmpdir}/pipeline/pipeline-definition.json\" " + 
                             "       \"$\{tmpdir}/pipeline/pipeline-parameters.json\" " + 
-                            "       \"$\{CONFIG}/config.json\" || return $?",
+                            "       \"$\{tmpdir}/config.json\" || return $?",
                             "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                             "       create_pseudo_stack" + " " +
                             "       \"Data Pipeline\"" + " " +

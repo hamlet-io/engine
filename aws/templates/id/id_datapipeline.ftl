@@ -64,6 +64,7 @@
                 },
                 "resourceRole" : {
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "resource" ),
+                    "Name" : core.FullName,
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "securityGroup" : {
