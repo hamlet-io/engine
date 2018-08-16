@@ -134,21 +134,6 @@
                     groupId=securityGroupId /]
             [/#if]
 
-            [#if isPartOfCurrentDeploymentUnit(resourceInstanceProfileId) ]
-                [@cfResource
-                    mode=listMode
-                    id=resourceInstanceProfileId
-                    type="AWS::IAM::InstanceProfile"
-                    properties=
-                        {
-                            "Path" : "/",
-                            "Roles" : [getReference(resourceRoleId)],
-                            "InstanceProfileName" : resourceRoleName
-                        }
-                    outputs={}
-                /]
-            [/#if]
-
             [#if isPartOfCurrentDeploymentUnit(resourceRoleId) ]
                 [@createRole
                     mode=listMode
@@ -158,6 +143,19 @@
                         "ec2.amazonaws.com"
                     ]
                     managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforDataPipelineRole"]
+                /]
+
+                [@cfResource
+                    mode=listMode
+                    id=resourceInstanceProfileId
+                    type="AWS::IAM::InstanceProfile"
+                    properties=
+                        {
+                            "Path" : "/",
+                            "Roles" : [ getReference(resourceRoleId) ],
+                            "InstanceProfileName" : resourceRoleName
+                        }
+                    outputs={}
                 /]
 
                 [#if context.Policy?has_content]
