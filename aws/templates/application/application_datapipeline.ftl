@@ -27,7 +27,7 @@
         [#assign pipelineCreateCommand = "createPipeline"]
 
         [#assign parameterValues = {
-                "_AVAILABILITY_ZONE" : zones[0].AWSZone
+                "_AVAILABILITY_ZONE" : zones[0].AWSZone,
                 "_VPC_ID" : vpc,
                 "_SUBNET_ID" : getSubnets(tier)[0],
                 "_SECURITY_GROUP_ID" : getExistingReference(securityGroupId),
@@ -58,7 +58,7 @@
                 "Environment" : {},
                 "Links" : contextLinks,
                 "DefaultCoreVariables" : false,
-                "DefaultEnvironmentVariables" : false,
+                "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true
             }
         ]
