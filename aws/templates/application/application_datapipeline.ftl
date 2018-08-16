@@ -27,18 +27,19 @@
         [#assign pipelineCreateCommand = "createPipeline"]
 
         [#assign parameterValues = {
-                "_REGION" : regionId,
+                "_AVAILABILITY_ZONE" : zones[0].AWSZone,
+                "_VPC_ID" : vpc,
                 "_SUBNET_ID" : getSubnets(tier)[0],
                 "_SECURITY_GROUP_ID" : getExistingReference(securityGroupId),
                 "_SSH_KEY_PAIR" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                 "_INSTANCE_TYPE_EC2" : ec2ProcessorProfile.Processor,
+                "_INSTANCE_IMAGE_EC2" : regionObject.AMIs.Centos.EC2,
                 "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
                 "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone,
                 "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone,
                 "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + "/datapipeline/" + core.Name + "/logs",
                 "_ROLE_PIPELINE_ARN" : getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE),
-                "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE),
-                "_AVAILABILITY_ZONE" : zones[0].AWSZone
+                "_ROLE_RESOURCE_ARN" : getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE)
         }]
     
         [#assign fragment =
@@ -57,7 +58,7 @@
                 "Environment" : {},
                 "Links" : contextLinks,
                 "DefaultCoreVariables" : false,
-                "DefaultEnvironmentVariables" : false,
+                "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true
             }
         ]
@@ -70,6 +71,22 @@
 
         [#assign parameterValues += getFinalEnvironment(occurrence, context).Environment ]
 
+        [#assign myParameterValues = {}]
+        [#list parameterValues as key,value ]
+            [#assign myParameterValues += 
+                {
+                    key?ensure_starts_with("my") : value                
+                }]
+        [/#list]
+
+        [#if deploymentSubsetRequired("config", false)]
+            [@cfConfig
+                mode=listMode
+                content={
+                    "values" : myParameterValues
+                }
+            /]
+        [/#if]
 
         [#if deploymentSubsetRequired("iam", true) 
             && isPartOfCurrentDeploymentUnit(pipelineRoleId) 
@@ -169,15 +186,6 @@
                 id=pipelineId
                 command=pipelineCreateCommand
                 content=pipelineCreateCliConfig
-            /]
-        [/#if]
-
-        [#if deploymentSubsetRequired("config", false)]
-            [@cfConfig
-                mode=listMode
-                content={
-                    "values" : parameterValues
-                }
             /]
         [/#if]
 
