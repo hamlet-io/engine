@@ -75,7 +75,7 @@
         [#list parameterValues as key,value ]
             [#assign myParameterValues += 
                 {
-                    "my" + key : value                
+                    key?ensure_starts_with("my") : value                
                 }]
         [/#list]
 
