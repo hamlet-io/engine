@@ -216,7 +216,7 @@
         [#assign logProfileGroupPrefix = formatLogFileGroupName( ec2LogGroupName )]
         [#list logFileProfile.LogFileGroups as logGroup ]
             [#assign logProfileGroupId = formatLogFileGroupId( ec2LogGroupId, logGroup) ]
-            [#assign logProfileGroupName = formatPath(false, logProfileGroupPrefix, logGroup)]
+            [#assign logProfileGroupName = formatAbsolutePath(logProfileGroupPrefix, logGroup)]
 
             [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
                 [@createLogGroup 

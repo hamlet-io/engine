@@ -81,7 +81,7 @@
         [#assign logProfileGroupPrefix = formatLogFileGroupName( ecsLogGroupName )]
         [#list logFileProfile.LogFileGroups as logGroup ]
             [#assign logProfileGroupId = formatLogFileGroupId( ecsLogGroupId, logGroup) ]
-            [#assign logProfileGroupName = formatPath(false, logProfileGroupPrefix, logGroup)]
+            [#assign logProfileGroupName = formatAbsolutePath(logProfileGroupPrefix, logGroup)]
 
             [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
                 [@createLogGroup 

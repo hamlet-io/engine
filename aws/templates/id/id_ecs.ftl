@@ -253,17 +253,13 @@
                 "launchConfig" : {
                     "Id" : formatEC2LaunchConfigId(core.Tier, core.Component),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
-                }
-            } +
-            attributeIfTrue(
-                "lg",
-                solution.ClusterLogGroup,
-                {
+                },
+                "lg" : {
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
-            ),
+            },
             "Attributes" : {
             },
             "Roles" : {
