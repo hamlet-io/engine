@@ -361,7 +361,7 @@
                     [ "awslogs-multiline-pattern = " + logFileDetails.MultiLinePattern + "\n" ],
                     []
                 ) + 
-                [ " " ]
+                [ "\n" ]
             ]
         [/#list]
     [/#list]
