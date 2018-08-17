@@ -3,8 +3,8 @@
 [#function cwLogsProducePermission logGroupName="" ]
     [#local logGroupArn = logGroupName?has_content?then(
                     formatRegionalArn(
-                            "log-group",
-                            logGroupName + "*"),
+                            "logs",
+                            "log-group:" + logGroupName + "*"),
                     "*")]
     [#return
         [
