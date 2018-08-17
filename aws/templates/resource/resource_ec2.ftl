@@ -336,8 +336,8 @@
 
 [#function getInitConfigLogAgent logProfile logGroupPrefix ignoreErrors=false ]
     [#local logContent = [
-        "[general] \n",
-        "state_file = /var/lib/awslogs/agent-state \n",
+        "[general]\n",
+        "state_file = /var/lib/awslogs/agent-state\n",
         "\n"
     ]]
 
@@ -348,7 +348,7 @@
             [#local logFileDetails = logFiles[logFile] ]
             [#local logContent +=
                 [
-                    "[" + logFileDetails.FilePath + "] \n",
+                    "[" + logFileDetails.FilePath + "]\n",
                     "file = " + logFileDetails.FilePath + "\n",
                     "log_group_name = " + logGroupName + "\n",
                     "log_stream_name = {instance_id}" + logFileDetails.FilePath + "\n"
