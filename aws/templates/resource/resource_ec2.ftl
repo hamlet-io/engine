@@ -338,7 +338,7 @@
     [#local logContent = [
         "[general] \n",
         "state_file = /var/lib/awslogs/agent-state \n",
-        " "
+        "\n"
     ]]
 
     [#list logProfile.LogFileGroups as logFileGroup ]
