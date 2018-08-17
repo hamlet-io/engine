@@ -22,7 +22,7 @@
         [#assign computeClusterSecurityGroupId      = resources["securityGroup"].Id ]
         [#assign computeClusterSecurityGroupName    = resources["securityGroup"].Name ]
         [#assign computeClusterLogGroupId           = resources["lg"].Id]
-        [#assign computeClusterLogGroupName        = resources["lg"].Name]
+        [#assign computeClusterLogGroupName         = resources["lg"].Name]
 
         [#assign logFileProfile = getLogFileProfile(tier, component, "ComputeCluster")]
 
@@ -242,7 +242,7 @@
         [#assign logProfileGroupPrefix = formatLogFileGroupName( computeClusterLogGroupName )]
         [#list logFileProfile.LogFileGroups as logGroup ]
             [#assign logProfileGroupId = formatLogFileGroupId( computeClusterLogGroupId, logGroup) ]
-            [#assign logProfileGroupName = formatPath(false, logProfileGroupPrefix, logGroup)]
+            [#assign logProfileGroupName = formatAbsolutePath(logProfileGroupPrefix, logGroup)]
 
             [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
                 [@createLogGroup 
