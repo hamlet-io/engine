@@ -377,15 +377,17 @@
                 },
                 "files" : {
                     "/etc/awslogs/awscli.conf" : {
-                        "Fn::Join" : [
-                            "",
-                            [
-                                "[plugins]\n",
-                                "cwlogs = cwlogs\n",
-                                "[default]\n",
-                                "region = " + regionId + "\n"
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                [
+                                    "[plugins]\n",
+                                    "cwlogs = cwlogs\n",
+                                    "[default]\n",
+                                    "region = " + regionId + "\n"
+                                ]
                             ]
-                        ]   
+                        }   
                     },
                     "/etc/awslogs/awslogs.conf" : {
                         "content" : {
