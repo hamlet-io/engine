@@ -78,10 +78,9 @@
                 name=ecsLogGroupName /]
         [/#if]
 
-        [#assign logProfileGroupPrefix = formatLogFileGroupName( ecsLogGroupName )]
         [#list logFileProfile.LogFileGroups as logGroup ]
             [#assign logProfileGroupId = formatLogFileGroupId( ecsLogGroupId, logGroup) ]
-            [#assign logProfileGroupName = formatAbsolutePath(logProfileGroupPrefix, logGroup)]
+            [#assign logProfileGroupName = formatLogFileGroupName(ecsLogGroupName, logGroup)]
 
             [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
                 [@createLogGroup 
@@ -94,7 +93,7 @@
         [#assign configSets +=
             getInitConfigLogAgent(
                 logFileProfile,
-                logProfileGroupPrefix
+                formatLogFileGroupName(ecsLogGroupName)
             )]
             
         [#if deploymentSubsetRequired("ecs", true)]

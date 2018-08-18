@@ -21,10 +21,9 @@
 
 [#function formatLogFileGroupName resourceName extensions... ]
     [#return
-        formatPath( false, 
-                    resourceName, 
-                    "logfile", 
-                    extensions)]
+        formatAbsolutePath( resourceName, 
+                            "logfile", 
+                                extensions)]
 [/#function]
 
 [#function formatDependentLogGroupId resourceId extensions...]

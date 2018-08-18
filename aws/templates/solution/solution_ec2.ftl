@@ -213,10 +213,9 @@
             /]
         [/#if]
 
-        [#assign logProfileGroupPrefix = formatLogFileGroupName( ec2LogGroupName )]
         [#list logFileProfile.LogFileGroups as logGroup ]
             [#assign logProfileGroupId = formatLogFileGroupId( ec2LogGroupId, logGroup) ]
-            [#assign logProfileGroupName = formatAbsolutePath(logProfileGroupPrefix, logGroup)]
+            [#assign logProfileGroupName = formatLogFileGroupName(ec2LogGroupName, logGroup)]
 
             [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
                 [@createLogGroup 
@@ -229,7 +228,7 @@
         [#assign configSets +=
             getInitConfigLogAgent(
                 logFileProfile,
-                logProfileGroupPrefix
+                formatLogFileGroupName(ecsLogGroupName)
             )]
 
         [#if deploymentSubsetRequired("ec2", true)]
