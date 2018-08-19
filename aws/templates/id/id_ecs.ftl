@@ -258,6 +258,11 @@
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                },
+                "lgInstanceLog" : {
+                    "Id" : formatLogGroupId(core.Id, "instancelog"),
+                    "Name" : formatAbsolutePath( core.FullAbsolutePath, "instancelog"),
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

@@ -239,22 +239,17 @@
 
         [#assign configSets += getInitConfigScriptsDeployment(scriptsFile, environmentVariables, solution.UseInitAsService, false)]
 
-        [#list logFileProfile.LogFileGroups as logGroup ]
-            [#assign logProfileGroupId = formatLogFileGroupId(computeClusterLogGroupId, logGroup) ]
-            [#assign logProfileGroupName = formatLogFileGroupName(computeClusterLogGroupName, logGroup)]
-
-            [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
-                [@createLogGroup 
-                    mode=listMode
-                    id=logProfileGroupId
-                    name=logProfileGroupName /]
-            [/#if]
-        [/#list]
+        [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(computeClusterLogGroupId) ]
+            [@createLogGroup 
+                mode=listMode
+                id=computeClusterLogGroupId
+                name=computeClusterLogGroupName /]
+        [/#if]
 
         [#assign configSets +=
             getInitConfigLogAgent(
                 logFileProfile,
-                formatLogFileGroupName(ecsLogGroupName)
+                computeClusterLogGroupName
             )]
 
         [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
