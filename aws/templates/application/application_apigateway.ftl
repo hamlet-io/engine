@@ -49,7 +49,8 @@
                 "Links" : contextLinks,
                 "DefaultCoreVariables" : false,
                 "DefaultEnvironmentVariables" : false,
-                "DefaultLinkVariables" : false
+                "DefaultLinkVariables" : false,
+                "Policy" : []
             }
         ]
 
@@ -172,6 +173,30 @@
         [#assign docsS3BucketName       = resources["docs"].Name]
         [#assign docsS3BucketPolicyId   = resources["docspolicy"].Id ]
 
+        [#assign apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
+        [#assign apiPolicyStatements    = valueIfContent(
+                                              [
+                                                  getPolicyStatement(
+                                                      "execute-api:Invoke",
+                                                      "*",
+                                                      "*",
+                                                      getIPCondition(apiPolicyCidr)
+                                                  )
+                                              ],
+                                              apiPolicyCidr,
+                                              []
+                                          ) +
+                                          context.Policy ]
+
+        [#if ((!cfPresent) || (!wafPresent)) && (!(apiPolicyCidr?has_content)) ]
+            [@cfException
+                mode=listMode
+                description="No IP Address Groups provided for API Gateway"
+                context=occurrence
+            /]
+            [#continue]
+        [/#if]
+
         [#if deploymentSubsetRequired("apigateway", true)]
             [@cfResource
                 mode=listMode
@@ -194,13 +219,17 @@
                         },
                         "Name" : apiName
                     } +
-                    valueIfTrue(
+                    attributeIfTrue(
+                        "EndpointConfiguration",
+                        !isEdgeEndpointType,
                         {
-                            "EndpointConfiguration" : {
-                                "Types" : [endpointType]
-                            }
-                        },
-                        !isEdgeEndpointType
+                            "Types" : [endpointType]
+                        }
+                    ) +
+                    attributeIfContent(
+                        "Policy",
+                        apiPolicyStatements,
+                        getPolicyDocumentContent(apiPolicyStatements)
                     )
                 outputs=APIGATEWAY_OUTPUT_MAPPINGS
             /]
@@ -421,7 +450,7 @@
 
             [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
                 [#assign docsS3IPWhitelist =
-                    s3IPAccessCondition(
+                    getIPCondition(
                         getGroupCIDRs(solution.Publish.IPAddressGroups)) ]
 
                 [@createBucketPolicy

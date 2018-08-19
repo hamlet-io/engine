@@ -1,41 +1,3 @@
-[#-- IAM --]
-
-[#function getPolicyStatement actions resources="*" principals="" conditions="" allow=true sid=""]
-    [#return
-        {
-            "Action" : actions,
-            "Resource" : resources,
-            "Effect" :
-                allow?then(
-                    "Allow",
-                    "Deny"
-                )
-        } +
-        attributeIfContent("Sid", sid) +
-        attributeIfContent("Principal", principals) +
-        attributeIfContent("Condition", conditions)
-    ]
-[/#function]
-
-[#function getPolicyDocumentContent statements version="2012-10-17" id=""]
-    [#return
-        {
-            "Statement": asArray(statements),
-            "Version": version
-        } +
-        attributeIfContent("Id", id)
-    ]
-[/#function]
-
-[#function getPolicyDocument statements name=""]
-    [#return
-        {
-            "PolicyDocument" : getPolicyDocumentContent(statements)
-        }+
-        attributeIfContent("PolicyName", name)
-    ]
-[/#function]
-
 [#function formatIAMArn resource account={ "Ref" : "AWS::AccountId" }]
     [#return
         formatGlobalArn(
@@ -63,7 +25,7 @@
         properties=
             getPolicyDocument(statements, name) +
             attributeIfContent("Users", users, getReferences(users)) +
-            attributeIfContent("Roles", roles, getReferences(roles)) 
+            attributeIfContent("Roles", roles, getReferences(roles))
         outputs={}
         dependencies=dependencies
     /]
@@ -97,7 +59,6 @@
         outputs={}
         dependencies=dependencies
     /]
-    [#assign policyCount = policyCount!0 + 1]
 [/#macro]
 
 [#assign ROLE_OUTPUT_MAPPINGS =
@@ -105,10 +66,10 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "Attribute" : "Arn"
         },
-        NAME_ATTRIBUTE_TYPE : { 
+        NAME_ATTRIBUTE_TYPE : {
             "UseRef" : true
         }
     }
@@ -126,7 +87,7 @@
             federatedServices=[]
             trustedAccounts=[]
             multiFactor=false
-            condition=""
+            condition={}
             path=""
             name=""
             managedArns=[]
@@ -150,33 +111,25 @@
             attributeIfTrue(
                 "AssumeRolePolicyDocument",
                 trustedServices?has_content || trustedAccountArns?has_content || federatedServices?has_content,
-                {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Principal":
-                                attributeIfContent("Service", trustedServices) +
-                                attributeIfContent("AWS", trustedAccountArns) +
-                                attributeIfContent("Federated", federatedServices),
-                            "Action": valueIfTrue( 
-                                            [ "sts:AssumeRoleWithWebIdentity" ],
-                                            federatedServices?has_content,
-                                            [ "sts:AssumeRole" ]
-                                        )
-
-                        } +
-                        attributeIfTrue(
-                            "Condition",
-                            multiFactor,
-                            {
-                                "Bool": {
-                                  "aws:MultiFactorAuthPresent": "true"
-                                }
-                            }) + 
-                        attributeIfContent("Condition", condition)
-                    ]
-                }) +
+                getPolicyDocumentContent(
+                    getPolicyStatement(
+                        valueIfTrue(
+                            [ "sts:AssumeRoleWithWebIdentity" ],
+                            federatedServices?has_content,
+                            [ "sts:AssumeRole" ]
+                        ),
+                        "",
+                        attributeIfContent("Service", trustedServices) +
+                            attributeIfContent("AWS", trustedAccountArns) +
+                            attributeIfContent("Federated", federatedServices),
+                        valueIfTrue(
+                            getMFAPresentCondition(),
+                            multiFactor
+                        ) +
+                        condition
+                    )
+                )
+            ) +
             attributeIfContent("ManagedPolicyArns", managedArns) +
             attributeIfContent("Path", path) +
             attributeIfContent("RoleName", name) +
@@ -191,10 +144,10 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "Attribute" : "Arn"
         },
-        USERNAME_ATTRIBUTE_TYPE : { 
+        USERNAME_ATTRIBUTE_TYPE : {
             "UseRef" : true
         }
     }
