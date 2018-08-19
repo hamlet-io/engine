@@ -22,6 +22,8 @@
         [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
         [#assign ecsLogGroupId = resources["lg"].Id ]
         [#assign ecsLogGroupName = resources["lg"].Name ]
+        [#assign ecsInstanceLogGroupId = resources["lgInstanceLog"].Id]
+        [#assign ecsInstanceLogGroupName = resources["lgInstanceLog"].Name]
         [#assign defaultLogDriver = solution.LogDriver ]
         [#assign fixedIP = solution.FixedIP ]
 
@@ -78,22 +80,17 @@
                 name=ecsLogGroupName /]
         [/#if]
 
-        [#list logFileProfile.LogFileGroups as logGroup ]
-            [#assign logProfileGroupId = formatLogFileGroupId( ecsLogGroupId, logGroup) ]
-            [#assign logProfileGroupName = formatLogFileGroupName(ecsLogGroupName, logGroup)]
-
-            [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
-                [@createLogGroup 
-                    mode=listMode
-                    id=logProfileGroupId
-                    name=logProfileGroupName /]
-            [/#if]
-        [/#list]
+        [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(ecsInstanceLogGroupId) ]
+            [@createLogGroup 
+                mode=listMode
+                id=ecsInstanceLogGroupId
+                name=ecsInstanceLogGroupName /]
+        [/#if]
 
         [#assign configSets +=
             getInitConfigLogAgent(
                 logFileProfile,
-                formatLogFileGroupName(ecsLogGroupName)
+                ecsInstanceLogGroupName
             )]
             
         [#if deploymentSubsetRequired("ecs", true)]

@@ -213,22 +213,17 @@
             /]
         [/#if]
 
-        [#list logFileProfile.LogFileGroups as logGroup ]
-            [#assign logProfileGroupId = formatLogFileGroupId( ec2LogGroupId, logGroup) ]
-            [#assign logProfileGroupName = formatLogFileGroupName(ec2LogGroupName, logGroup)]
-
-            [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(logProfileGroupId) ]
-                [@createLogGroup 
-                    mode=listMode
-                    id=logProfileGroupId
-                    name=logProfileGroupName /]
-            [/#if]
-        [/#list]
+        [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(ec2LogGroupId) ]
+            [@createLogGroup 
+                mode=listMode
+                id=ec2LogGroupId
+                name=ec2LogGroupName /]
+        [/#if]
 
         [#assign configSets +=
             getInitConfigLogAgent(
                 logFileProfile,
-                formatLogFileGroupName(ecsLogGroupName)
+                ec2LogGroupName
             )]
 
         [#if deploymentSubsetRequired("ec2", true)]
