@@ -1432,15 +1432,18 @@ function release_enis() {
     local requester_id="$1"; shift
     local eni_list_file="$( getTempFile eni_list_XXXX.json)"
     
-    aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values=*${requester_id} > "${eni_list_file}" || return $?
+    aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values="*${requester_id}" > "${eni_list_file}" || return $?
     
     for attachment_id in $( jq -r '.NetworkInterfaces[].Attachment.AttachmentId' < "${eni_list_file}" ) ; do
         if [[ -n "${attachment_id}" ]]; then
+            info "Detaching ${attachment_id} ..."
             aws --region "${region}" ec2 detach-network-interface --attachment-id "${attachment_id}" || return $?
         fi
     done
     for network_interface_id in $( jq -r '.NetworkInterfaces[].NetworkInterfaceId' < "${eni_list_file}" ) ; do
         if [[ -n "${network_interface_id}" ]]; then
+            info "Deleting ${network_interface_id} ..."
+            aws --region "${region}" ec2 wait network-interface-available --network-interface-id "${network_interface_id}" || return $?
             aws --region "${region}" ec2 delete-network-interface --network-interface-id "${network_interface_id}" || return $?
         fi
     done
