@@ -788,6 +788,10 @@ behaviour.
                 [#local result = getContentNodeState(occurrence)]
                 [#break]
 
+            [#case DATASET_COMPONENT_TYPE ]
+                [#local result = getDataSetState(occurrence)]
+                [#break]
+            
             [#case DATAPIPELINE_COMPONENT_TYPE ]
                 [#local result = getDataPipelineState(occurrence)]
                 [#break]

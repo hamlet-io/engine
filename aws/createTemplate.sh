@@ -185,6 +185,24 @@ function process_template() {
       pass_description["template"]="blueprint"
       pass_suffix["template"]=".json"
       ;;
+    
+    buildblueprint)
+      # this is expected to run from an automation context
+      cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
+      pass_list=("template")
+      passes=("template")
+      template_composites+=("APPLICATION" "FRAGMENT" )
+
+      # Blueprint applies across accounts and regions
+      for pass in "${pass_list[@]}"; do
+        pass_account_prefix["${pass}"]=""
+        pass_region_prefix["${pass}"]=""
+      done
+
+      pass_level_prefix["template"]="build_blueprint-"
+      pass_description["template"]="buildblueprint"
+      pass_suffix["template"]=".json"
+      ;;
 
     account)
       cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"

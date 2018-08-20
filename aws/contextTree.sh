@@ -671,6 +671,7 @@ function isValidUnit() {
   # Known levels
   declare -gA unit_required=( \
     ["blueprint"]="false" \
+    ["buildblueprint"]="true" \
     ["account"]="true" \
     ["product"]="true" \
     ["application"]="true" \
@@ -686,6 +687,7 @@ function isValidUnit() {
     # Default deployment units for each level
     declare -ga ACCOUNT_UNITS_ARRAY=("audit" "s3" "cert" "roles" "apigateway" "waf")
     declare -ga PRODUCT_UNITS_ARRAY=("s3" "sns" "cert" "cmk")
+    declare -ga BUILDBLUEPRINT_UNITS_ARRAY=(${unit})
     declare -ga APPLICATION_UNITS_ARRAY=(${unit})
     declare -ga SOLUTION_UNITS_ARRAY=(${unit})
     declare -ga SEGMENT_UNITS_ARRAY=("iam" "lg" "eip" "s3" "cmk" "cert" "vpc" "nat" "ssh" "dns" "eipvpc" "eips3vpc")
