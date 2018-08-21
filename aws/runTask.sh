@@ -26,6 +26,8 @@ where
 (o) -t TIER             is the name of the tier in the solution where the task is defined
 (o) -v VALUE            is the value for the last environment value defined (via -e) for the task
 (m) -w TASK             is the name of the task to be run
+(o) -x INSTANCE         is the instance of the task to be run
+(o) -y VERSION          is the version of the task to be run
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -48,7 +50,7 @@ ENV_STRUCTURE="\"environment\":["
 ENV_NAME=
 
 # Parse options
-while getopts ":c:d:e:hi:t:v:w:" opt; do
+while getopts ":c:d:e:hi:t:v:x:y:w:" opt; do
     case $opt in
         c)
             CONTAINER_ID="${OPTARG}"
@@ -78,6 +80,12 @@ while getopts ":c:d:e:hi:t:v:w:" opt; do
             ;;
         w)
             TASK="${OPTARG}"
+            ;;
+        x)  
+            INSTANCE="${OPTARG}"
+            ;;
+        y)  
+            VERSION="${OPTARG}"
             ;;
         \?)
             fatalOption
@@ -115,11 +123,20 @@ CID="${CID%-*}"
 # Handle task mode
 KID="${KID/-/X}"
 
+# Add Instance and Version to KID
+if [[ -n "${INSTANCE}" && "${INSTANCE}" != "default" ]]; then
+    KID="${KID}X${INSTANCE}"
+fi 
+
+if [[ -n "${VERSION}" ]]; then
+    KID="${KID}X${VERSION}"
+fi
+
 # Handle container name
 if [[ -n "${CONTAINER_ID}" ]]; then
     CONTAINER="${CONTAINER_ID}"
 else
-    CONTAINER="${KID%X*}"
+    CONTAINER="${KID%%X*}"
 fi
 
 # Find the cluster
