@@ -97,7 +97,7 @@ status_file="$(getTopTempDir)/snapshot_rds_status.txt"
 # Ensure we are in the right place
 checkInSegmentDirectory
 
-DB_INSTANCE_IDENTIFIER="${PRODUCT}-${SEGMENT}-${TIER}-${COMPONENT}"
+DB_INSTANCE_IDENTIFIER="${PRODUCT}-${ENVIRONMENT}-${TIER}-${COMPONENT}"
 DB_SNAPSHOT_IDENTIFIER="${DB_INSTANCE_IDENTIFIER}-$(date -u +%Y-%m-%d-%H-%M-%S)"
 if [[ "${SUFFIX}" != "" ]]; then
     DB_SNAPSHOT_IDENTIFIER="${DB_SNAPSHOT_IDENTIFIER}-${SUFFIX}"
