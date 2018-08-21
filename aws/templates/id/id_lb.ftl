@@ -128,7 +128,7 @@
                     },
                     {
                         "Name" : "StatusCode",
-                        "Default" : 200
+                        "Default" : 404
                     }
                 ]
             }
