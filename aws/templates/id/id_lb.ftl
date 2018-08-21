@@ -99,15 +99,15 @@
                     },
                     {
                         "Name" : "Host",
-                        "Default" : "#{host}"
+                        "Default" : "#\{host}"
                     },
                     {
                         "Name" : "Path",
-                        "Default" : "#{path}"
+                        "Default" : "#\{path}"
                     },
                     {
                         "Name" : "Query",
-                        "Default" : "#{query}"
+                        "Default" : "#\{query}"
                     },
                     {
                         "Name" : "Permanent",

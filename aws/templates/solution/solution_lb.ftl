@@ -45,8 +45,20 @@
             [#-- defined with different names --]
             [#assign listenerId = resources["listener"].Id ]
             [#assign firstMappingForPort = !listenerPortsSeen?seq_contains(listenerId) ]
-            [#assign listenerPortsSeen =
-                        getUniqueArrayElements(listenerPortsSeen, listenerId) ]
+            [#switch engine ]
+                [#case "application"]
+                    [#if solution.Path != "default" ]
+                        [#-- Only create the listener for default mappings      --]
+                        [#-- The ordering of ports changes with their naming    --]
+                        [#-- so it isn't sufficient to use the first occurrence --]
+                        [#-- of a listener                                      --]
+                        [#assign firstMappingForPort = false ]
+                    [/#if]
+                    [#break]
+            [/#switch]
+            [#if firstMappingForPort]
+                [#assign listenerPortsSeen += [listenerId] ]
+            [/#if]
 
             [#-- Determine the IP whitelisting required --]
             [#assign portIpAddressGroups = solution.IPAddressGroups ]
@@ -101,7 +113,7 @@
             [#assign listenerRuleConditions = asArray(getListenerRulePathCondition(path)) ]
 
             [#-- Redirect rule processing --]
-            [#if solution.Redirect.Configured && solution.Redirect.Enabled]
+            [#if solution.Redirect.Configured]
                 [#assign listenerRuleRequired = true ]
                 [#assign listenerRuleConfig =
                     {
@@ -119,17 +131,29 @@
             [/#if]
 
             [#-- Fixed rule processing --]
-            [#if solution.Fixed.Configured && solution.Fixed.Enabled]
+            [#if solution.Fixed.Configured]
                 [#assign listenerRuleRequired = true ]
+                [#assign fixedMessage = getOccurrenceSettingValue(subOccurrence, ["Fixed", "Message"], true) ]
+                [#assign fixedContentType = getOccurrenceSettingValue(subOccurrence, ["Fixed", "ContentType"], true) ]
+                [#assign fixedStatusCode = getOccurrenceSettingValue(subOccurrence, ["Fixed", "StatusCode"], true) ]
                 [#assign listenerRuleConfig =
                     {
                         "Conditions" : listenerRuleConditions,
                         "Priority" : priority,
-                        "Actions" : asArray(
-                                        getListenerRuleFixedAction(
-                                            solution.Fixed.Message,
-                                            solution.Fixed.ContentType,
-                                            solution.Fixed.Host))
+                        "Actions" :
+                            asArray(
+                                getListenerRuleFixedAction(
+                                    contentIfContent(
+                                        fixedMessage,
+                                        solution.Fixed.Message),
+                                    contentIfContent(
+                                        fixedContentType,
+                                        solution.Fixed.ContentType),
+                                    contentIfContent(
+                                        fixedStatusCode,
+                                        solution.Fixed.StatusCode)
+                                )
+                            )
                     } ]
             [/#if]
 

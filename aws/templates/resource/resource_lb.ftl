@@ -216,11 +216,11 @@
         {
             "Type": "redirect",
             "RedirectConfig": {
-                "Protocol": "string",
-                "Port": "string",
-                "Host": "string",
-                "Path": "string",
-                "Query": "string",
+                "Protocol": protocol,
+                "Port": port,
+                "Host": host,
+                "Path": path,
+                "Query": query,
                 "StatusCode": valueIfTrue("HTTP_301", permanent, "HTTP_302")
             }
         } +
