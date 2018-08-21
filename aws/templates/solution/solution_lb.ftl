@@ -102,6 +102,7 @@
                     [#else]
                         [#assign path = solution.Path ]
                         [#assign listenerRuleRequired = true ]
+                        [#-- Initially assume tg will be required for explicit path --]
                         [#assign targetGroupRequired = true ]
                     [/#if]
                     [#break]
@@ -115,6 +116,7 @@
             [#-- Redirect rule processing --]
             [#if solution.Redirect.Configured]
                 [#assign listenerRuleRequired = true ]
+                [#assign targetGroupRequired = false ]
                 [#assign listenerRuleConfig =
                     {
                         "Conditions" : listenerRuleConditions,
@@ -133,6 +135,7 @@
             [#-- Fixed rule processing --]
             [#if solution.Fixed.Configured]
                 [#assign listenerRuleRequired = true ]
+                [#assign targetGroupRequired = false ]
                 [#assign fixedMessage = getOccurrenceSettingValue(subOccurrence, ["Fixed", "Message"], true) ]
                 [#assign fixedContentType = getOccurrenceSettingValue(subOccurrence, ["Fixed", "ContentType"], true) ]
                 [#assign fixedStatusCode = getOccurrenceSettingValue(subOccurrence, ["Fixed", "StatusCode"], true) ]
@@ -241,6 +244,7 @@
 
                         [#case SPA_COMPONENT_TYPE]
                             [#assign listenerRuleRequired = true ]
+                            [#assign targetGroupRequired = false ]
                             [#assign listenerRuleConfig =
                                 {
                                     "Conditions" : listenerRuleConditions,
