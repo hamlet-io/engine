@@ -97,7 +97,14 @@ status_file="$(getTopTempDir)/snapshot_rds_status.txt"
 # Ensure we are in the right place
 checkInSegmentDirectory
 
-DB_INSTANCE_IDENTIFIER="${PRODUCT}-${SEGMENT}-${TIER}-${COMPONENT}"
+ENVIRONMENT_SUFFIX="-${ENVIRONMENT}"
+SEGMENT_SUFFIX="-${SEGMENT}"
+if [[ ("${SEGMENT}" == "${ENVIRONMENT}") ||
+        ("${SEGMENT}" == "default") ]]; then
+    SEGMENT_SUFFIX=""
+fi 
+COMPONENT_SUFFIX="-${COMPONENT}"
+DB_INSTANCE_IDENTIFIER="${PRODUCT}${ENVIRONMENT_SUFFIX}${SEGMENT_SUFFIX}${COMPONENT_SUFFIX}"
 DB_SNAPSHOT_IDENTIFIER="${DB_INSTANCE_IDENTIFIER}-$(date -u +%Y-%m-%d-%H-%M-%S)"
 if [[ "${SUFFIX}" != "" ]]; then
     DB_SNAPSHOT_IDENTIFIER="${DB_SNAPSHOT_IDENTIFIER}-${SUFFIX}"
