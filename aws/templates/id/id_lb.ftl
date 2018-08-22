@@ -85,6 +85,52 @@
                         "Default" : 604800
                     }
                 ]
+            },
+            {
+                "Name" : "Redirect",
+                "Children" : [
+                    {
+                        "Name" : "Protocol",
+                        "Default" : "https"
+                    },
+                    {
+                        "Name" : "Port",
+                        "Default" : "443"
+                    },
+                    {
+                        "Name" : "Host",
+                        "Default" : "#\{host}"
+                    },
+                    {
+                        "Name" : "Path",
+                        "Default" : "#\{path}"
+                    },
+                    {
+                        "Name" : "Query",
+                        "Default" : "#\{query}"
+                    },
+                    {
+                        "Name" : "Permanent",
+                        "Default" : false
+                    }
+                ]
+            },
+            {
+                "Name" : "Fixed",
+                "Children" : [
+                    {
+                        "Name" : "Message",
+                        "Default" : "This application is currently unavailable. Please try again later."
+                    },
+                    {
+                        "Name" : "ContentType",
+                        "Default" : "text/plain"
+                    },
+                    {
+                        "Name" : "StatusCode",
+                        "Default" : 404
+                    }
+                ]
             }
         ]
     }]

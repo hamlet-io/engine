@@ -201,25 +201,53 @@
     /]
 [/#macro]
 
-[#function getListenerRuleForwardAction targetGroupId]
+[#function getListenerRuleForwardAction targetGroupId order=""]
     [#return
-        [
-            {
-                "Type": "forward",
-                "TargetGroupArn": getReference(targetGroupId)
+        {
+            "Type": "forward",
+            "TargetGroupArn": getReference(targetGroupId, ARN_ATTRIBUTE_TYPE)
+        } +
+        attributeIfContent("Order", order)
+    ]
+[/#function]
+
+[#function getListenerRuleRedirectAction protocol port host path query permanent=true order=""]
+    [#return
+        {
+            "Type": "redirect",
+            "RedirectConfig": {
+                "Protocol": protocol,
+                "Port": port,
+                "Host": host,
+                "Path": path,
+                "Query": query,
+                "StatusCode": valueIfTrue("HTTP_301", permanent, "HTTP_302")
             }
-        ]
+        } +
+        attributeIfContent("Order", order)
+    ]
+[/#function]
+
+[#function getListenerRuleFixedAction message contentType statusCode order=""]
+    [#return
+        {
+            "Type": "fixed-response",
+            "FixedResponseConfig": {
+                "MessageBody": message,
+                "ContentType": contentType,
+                "StatusCode": statusCode
+            }
+        } +
+        attributeIfContent("Order", order)
     ]
 [/#function]
 
 [#function getListenerRulePathCondition paths]
     [#return
-        [
-            {
-                "Field": "path-pattern",
-                "Values": asArray(paths)
-            }
-        ]
+        {
+            "Field": "path-pattern",
+            "Values": asArray(paths)
+        }
     ]
 [/#function]
 
@@ -231,8 +259,8 @@
         properties=
             {
                 "Priority" : priority,
-                "Actions" : actions,
-                "Conditions": conditions,
+                "Actions" : asArray(actions),
+                "Conditions": asArray(conditions),
                 "ListenerArn" : getReference(listenerId, ARN_ATTRIBUTE_TYPE)
             }
         outputs=ALB_LISTENER_RULE_OUTPUT_MAPPINGS
