@@ -29,6 +29,7 @@
         [#assign pipelineCreateCommand = "createPipeline"]
 
         [#assign parameterValues = {
+                "_AWS_REGION" : regionId,
                 "_AVAILABILITY_ZONE" : zones[0].AWSZone,
                 "_VPC_ID" : vpc,
                 "_SUBNET_ID" : getSubnets(tier)[0],
@@ -68,7 +69,7 @@
                 "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
                 "Environment" : {},
                 "Links" : contextLinks,
-                "DefaultCoreVariables" : false,
+                "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true
             }
@@ -80,7 +81,8 @@
             [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
-        [#assign parameterValues += getFinalEnvironment(occurrence, context).Environment ]
+        [#assign context += getFinalEnvironment(occurrence, context) ]
+        [#assign parameterValues += context.Environment ]
 
         [#assign myParameterValues = {}]
         [#list parameterValues as key,value ]
