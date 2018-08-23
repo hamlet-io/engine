@@ -52,7 +52,7 @@
                                                     formatAbsolutePath(
                                                         getRegistryPrefix("dataset", occurrence),
                                                         productName,
-                                                        getOccurrenceBuildUnit(occurrence),
+                                                        getOccurrenceBuildUnit(occurrence)
                                                     ),
                         "DATASET_LOCATION" : "s3://" + getRegistryEndPoint("swagger", occurrence) + 
                                                     formatAbsolutePath(
@@ -67,7 +67,7 @@
                     [#local masterDataLocation = formatName( core.FullName, solution.Prefix )]
                     [#local attributes += { 
                         "DATASET_ENGINE" : "rdsSnapshot",
-                        "DATASET_PREFIX" : formatAbsolutePath(solution.Prefix)
+                        "DATASET_PREFIX" : formatAbsolutePath(solution.Prefix),
                         "DATASET_MASTER_LOCATION" : formatName( "dataset", core.FullName, solution.Prefix),
                         "DATASET_REGISTRY" : formatName( "dataset",  core.FullName ),
                         "DATASET_LOCATION" : formatName( "dataset",  core.FullName, getOccurrenceBuildReference(occurrence) )
