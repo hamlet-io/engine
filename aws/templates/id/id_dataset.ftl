@@ -22,11 +22,23 @@
     
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
-    [#local buildReference = getOccurrenceBuildReference(occurrence) ]
+    [#local buildReference = getOccurrenceBuildReference(occurrence, true ) ]
     [#local attributes = {}]
 
-    [#list solution.Links["DATASOURCE"]?values as link]
+    []
+    [#assign linkCount = 0 ]
+    [#list solution.Links?values as link]
         [#if link?is_hash]
+            [#assign linkCount += 1 ]
+            [#if linkCount > 1 ]
+                [@cfException
+                    mode=listMode
+                    description="A data set can only have one data source"
+                    context=subOccurrence
+                /]
+                [#continue]
+            [/#if]
+
             [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
             [@cfDebug listMode linkTarget false /]
@@ -46,20 +58,20 @@
                 [#case S3_COMPONENT_TYPE ]
                     [#local attributes += { 
                         "DATASET_ENGINE" : "s3",
-                        "DATASET_PREFIX" : formatAbsolutePath(solution.Prefix),
+                        "DATASET_PREFIX" : formatRelativePath(solution.Prefix),
                         "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + formatAbsolutePath(solution.Prefix),
-                        "DATASET_REGISTRY" : "s3://" + getRegistryEndPoint("swagger", occurrence) + 
+                        "DATASET_REGISTRY" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
                                                     formatAbsolutePath(
                                                         getRegistryPrefix("dataset", occurrence),
                                                         productName,
                                                         getOccurrenceBuildUnit(occurrence)
                                                     ),
-                        "DATASET_LOCATION" : "s3://" + getRegistryEndPoint("swagger", occurrence) + 
+                        "DATASET_LOCATION" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
                                                     formatAbsolutePath(
                                                         getRegistryPrefix("dataset", occurrence),
                                                         productName,
                                                         getOccurrenceBuildUnit(occurrence),
-                                                        getOccurrenceBuildReference(occurrence)
+                                                        buildReference
                                                     )
                     }]
                     [#break]
@@ -67,10 +79,10 @@
                     [#local masterDataLocation = formatName( core.FullName, solution.Prefix )]
                     [#local attributes += { 
                         "DATASET_ENGINE" : "rdsSnapshot",
-                        "DATASET_PREFIX" : formatAbsolutePath(solution.Prefix),
+                        "DATASET_PREFIX" : formatRelativePath(solution.Prefix),
                         "DATASET_MASTER_LOCATION" : formatName( "dataset", core.FullName, solution.Prefix),
                         "DATASET_REGISTRY" : formatName( "dataset",  core.FullName ),
-                        "DATASET_LOCATION" : formatName( "dataset",  core.FullName, getOccurrenceBuildReference(occurrence) )
+                        "DATASET_LOCATION" : formatName( "dataset",  core.FullName, buildReference )
                     }]
                     [#break]
                 
