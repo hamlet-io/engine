@@ -9,20 +9,36 @@
 [#assign componentConfiguration +=
     {
         SQS_COMPONENT_TYPE : [
-            "DelaySeconds",
-            "MaximumMessageSize",
-            "MessageRetentionPeriod",
-            "ReceiveMessageWaitTimeSeconds",
+            {
+                "Name" : "DelaySeconds",
+                "Type" : "number"
+            },
+            {
+                "Name" : "MaximumMessageSize",
+                "Type" : "number"
+            },
+            {
+                "Name" : "MessageRetentionPeriod",
+                "Type" : "number"
+            },
+            {
+                "Name" : "ReceiveMessageWaitTimeSeconds",
+                "Type" : "number"
+            },
             {
                 "Name" : "DeadLetterQueue",
                 "Children" : [
                     {
                         "Name" : "MaxReceives",
+                        "Type" : "number",
                         "Default" : 0
                     }
                 ]
             },
-            "VisibilityTimeout"
+            {
+                "Name" : "VisibilityTimeout",
+                "Type" : "number"
+            }
         ]
     }]
     

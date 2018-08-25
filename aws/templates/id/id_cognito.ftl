@@ -17,40 +17,47 @@
         USERPOOL_COMPONENT_TYPE : [
             { 
                 "Name" : "MFA",
+                "Type" : "boolean",
                 "Default" : false
             },
             {
                 "Name" : "AdminCreatesUser",
+                "Type" : "boolean",
                 "Default" : true
             },
             {
                 "Name" : "UnusedAccountTimeout",
+                "Type" : "number",
                 "Default" : 7
             },
             {
                 "Name" : "VerifyEmail",
+                "Type" : "boolean",
                 "Default" : true
             },
             {
                 "Name" : "VerifyPhone",
+                "Type" : "boolean",
                 "Default" : false
             },
             {
                 "Name" : "LoginAliases",
-                "Default" : [
-                    "email"
-                ]
+                "Type" : "array",
+                "Default" : ["email"]
             },
             {
                 "Name" : "ClientGenerateSecret",
+                "Type" : "boolean",
                 "Default" : false
             },
             {
                 "Name" : "ClientTokenValidity",
+                "Type" : "number",
                 "Default" : 30
             },
             {
                 "Name" : "AllowUnauthenticatedIds",
+                "Type" : "boolean",
                 "Default" : false
             },
             {
@@ -58,10 +65,12 @@
                 "Children" : [
                     {
                         "Name" : "Scopes",
+                        "Type" : "array",
                         "Default" : [ "openid" ]
                     },
                     {
                         "Name" : "Flows",
+                        "Type" : "array",
                         "Default" : [ "code" ]
                     }
                 ]
@@ -70,23 +79,28 @@
                 "Name" : "PasswordPolicy",
                 "Children" : [
                     {
-                       "Name" : "MinimumLength",
-                       "Default" : "10"
+                        "Name" : "MinimumLength",
+                        "Type" : "number",
+                        "Default" : 10
                     },
                     {
                         "Name" : "Lowercase",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "Uppercase",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "Numbers",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "SpecialCharacters",
+                        "Type" : "boolean",
                         "Default" : true
                     }
                 ] 

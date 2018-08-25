@@ -8,6 +8,7 @@
         SPA_COMPONENT_TYPE : [
             {
                 "Name" : ["Fragment", "Container"],
+                "Type" : "string",
                 "Default" : ""
             },
             {
@@ -23,26 +24,32 @@
                 "Children" : [
                     {
                         "Name" : "AssumeSNI",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "EnableLogging",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "CountryGroups",
+                        "Type" : "array",
                         "Default" : []
                     },
                     {
                         "Name" : "ErrorPage",
+                        "Type" : "string",
                         "Default" : "/index.html"
                     },
                     {
                         "Name" : "DeniedPage",
+                        "Type" : "string",
                         "Default" : ""
                     },
                     {
                         "Name" : "NotFoundPage",
+                        "Type" : "string",
                         "Default" : ""
                     },
                     {
@@ -50,20 +57,24 @@
                         "Children" : [
                             {
                                 "Name" : "Default",
+                                "Type" : "number",
                                 "Default" : 600
                             },
                             {
                                 "Name" : "Maximum",
+                                "Type" : "number",
                                 "Default" : 31536000
                             },
                             {
                                 "Name" : "Minimum",
+                                "Type" : "number",
                                 "Default" : 0
                             }
                         ]
                     },
                     {
                         "Name" : "Compress",
+                        "Type" : "boolean",
                         "Default" : true
                     }
                 ]

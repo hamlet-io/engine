@@ -13,14 +13,17 @@
             "Prefix",
             {
                 "Name" : "Engine",
+                "Type" : "string",
                 "Default" : "github"
             },
             {
                 "Name" : "Branch",
+                "Type" : "string",
                 "Default" : "master"
             },
             {
                 "Name" : "Repository",
+                "Type" : "string",
                 "Default" : ""
             }
         ]
@@ -61,10 +64,12 @@
                 "Children" : [
                     {
                         "Name" : "Host",
+                        "Type" : "string",
                         "Default" : ""
                     },
                     {
                         "Name" : "Style",
+                        "Type" : "string",
                         "Default" : "single"
                     },
                     {
@@ -73,38 +78,47 @@
 
                             {
                                 "Name" : "Product",
+                                "Type" : "boolean",
                                 "Default" : true
                             },
                             {
                                 "Name" : "Environment",
+                                "Type" : "boolean",
                                 "Default" : false
                             },
                             {
                                 "Name" : "Solution",
+                                "Type" : "boolean",
                                 "Default" : false
                             },
                             {
                                 "Name" : "Segment",
+                                "Type" : "boolean",
                                 "Default" : true
                             },
                             {
                                 "Name" : "Tier",
+                                "Type" : "boolean",
                                 "Default": false
                             },
                             {
                                 "Name" : "Component",
+                                "Type" : "boolean",
                                 "Default" : false
                             },
                             {
                                 "Name" : "Instance",
+                                "Type" : "boolean",
                                 "Default" : false
                             },
                             {
                                 "Name" : "Version",
+                                "Type" : "boolean",
                                 "Default" : false
                             },
                             {
                                 "Name" : "Host",
+                                "Type" : "boolean",
                                 "Default": false
                             }
                         ]

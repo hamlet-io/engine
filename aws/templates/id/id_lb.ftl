@@ -21,18 +21,23 @@
             "Attributes" : [
                 {
                     "Name" : "Logs",
+                    "Type" : "boolean",
                     "Default" : false
                 },
                 {
                     "Name" : "Engine",
+                    "Type" : "string",
+                    "Values" : ["application", "network", "classic"],
                     "Default" : "application"
                 },
                 {
                     "Name" : "IdleTimeout", 
+                    "Type" : "number",
                     "Default" : 60
                 }
                 {
                     "Name" : "HealthCheckPort",
+                    "Type" : "string",
                     "Default" : ""
                 }
             ],
@@ -47,25 +52,32 @@
         LB_PORT_COMPONENT_TYPE : [
             {
                 "Name" : "IPAddressGroups",
+                "Type" : "array",
                 "Default" : []
             },
             {
                 "Name" : "Certificate",
+                "Type" : "object",
                 "Default" : {}
             },
             {
-                "Name" : "Mapping"
+                "Name" : "Mapping",
+                "Type" : "string"
             },
             {
                 "Name" : "TargetType",
+                "Type" : "string",
+                "Values" : ["instance", "ip"],
                 "Default" : "instance"
             },
             {
                 "Name" : "Path",
+                "Type" : "string",
                 "Default" : "default"
             },
             {
                 "Name" : "Priority",
+                "Type" : "number",
                 "Default" : 100
             },
             {
@@ -78,10 +90,12 @@
                 "Children" : [
                     {
                         "Name" : "SessionCookieName",
+                        "Type" : "string",
                         "Default" : "AWSELBAuthSessionCookie"
                     },
                     {
                         "Name" : "SessionTimeout",
+                        "Type" : "number",
                         "Default" : 604800
                     }
                 ]
@@ -91,26 +105,32 @@
                 "Children" : [
                     {
                         "Name" : "Protocol",
+                        "Type" : "string",
                         "Default" : "https"
                     },
                     {
                         "Name" : "Port",
+                        "Type" : "string",
                         "Default" : "443"
                     },
                     {
                         "Name" : "Host",
+                        "Type" : "string",
                         "Default" : "#\{host}"
                     },
                     {
                         "Name" : "Path",
+                        "Type" : "string",
                         "Default" : "#\{path}"
                     },
                     {
                         "Name" : "Query",
+                        "Type" : "string",
                         "Default" : "#\{query}"
                     },
                     {
                         "Name" : "Permanent",
+                        "Type" : "boolean",
                         "Default" : false
                     }
                 ]
@@ -120,14 +140,17 @@
                 "Children" : [
                     {
                         "Name" : "Message",
+                        "Type" : "string",
                         "Default" : "This application is currently unavailable. Please try again later."
                     },
                     {
                         "Name" : "ContentType",
+                        "Type" : "string",
                         "Default" : "text/plain"
                     },
                     {
                         "Name" : "StatusCode",
+                        "Type" : "number",
                         "Default" : 404
                     }
                 ]

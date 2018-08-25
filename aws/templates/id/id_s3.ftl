@@ -78,13 +78,18 @@
                 "Name" : "Lifecycle",
                 "Children" : [
                     {
-                        "Name" : "Expiration"
+                        "Name" : "Expiration",
+                        "Types" : ["string", "number"],
+                        "Description" : "Provide either a date or a number of days"
                     },
                     {
-                        "Name" : "Offline"
+                        "Name" : "Offline",
+                        "Types" : ["string", "number"],
+                        "Description" : "Provide either a date or a number of days"
                     },
                     {
                         "Name" : "Versioning",
+                        "Type" : "boolean",
                         "Default" : false
                     }
                 ]
@@ -94,10 +99,12 @@
                 "Children" : [
                     {
                         "Name": "Index",
+                        "Type" : "string",
                         "Default": "index.html"
                     },
                     {
                         "Name": "Error",
+                        "Type" : "string",
                         "Default": ""
                     }
                 ]
@@ -107,24 +114,36 @@
                 "Children" : [
                     {
                         "Name" : "Enabled",
+                        "Type" : "boolean",
                         "Default" : false
                     },
                     {
                         "Name" : "Permissions",
+                        "Type" : "string",
+                        "Values" : ["ro", "wo", "rw"],
                         "Default" : "ro"
                     },
                     {
                         "Name" : "IPAddressGroups",
+                        "Type" : "array",
                         "Default" : [ "_localnet" ]
                     },
                     {
                         "Name" : "Prefix",
+                        "Type" : "string",
                         "Default" : ""
                     }
                 ]
+            },
+            {
+                "Name" : "Style",
+                "Type" : "string",
+                "Description" : "TODO(mfl): Think this can be removed"
+            },
+            {
+                "Name" : "Notifications",
+                "Type" : "object"
             }
-            "Style",
-            "Notifications"
         ]
     }]
     

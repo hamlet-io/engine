@@ -15,6 +15,7 @@
                 },
                 {
                     "Name" : "SuccessSampleRate",
+                    "Type" : "string",
                     "Default" : "100"
                 },
                 {
@@ -22,6 +23,8 @@
                     "Children" : [
                         {
                             "Name" : "EncryptionScheme",
+                            "Type" : "string",
+                            "Values" : ["base64"],
                             "Default" : "base64"
                         }
                     ]
@@ -37,16 +40,20 @@
         },
         MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE : [
             {
-                "Name" : "Engine"
+                "Name" : "Engine",
+                "Type" : "string"
             },
             {
-                "Name" : "SuccessSampleRate"
+                "Name" : "SuccessSampleRate",
+                "Type" : "string"
             },
             {
                     "Name" : "Credentials",
                     "Children" : [
                         {
-                            "Name" : "EncryptionScheme"
+                            "Name" : "EncryptionScheme",
+                            "Type" : "string",
+                            "Values" : ["base64"]
                         }
                     ]
                 }

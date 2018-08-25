@@ -42,24 +42,30 @@
                 "Children" : [
                     {
                         "Name" : "Enabled",
+                        "Type" : "boolean",
                         "Default" : false
                     },
                     {
                         "Name" : "MasterUserName",
+                        "Type" : "string",
                         "Default" : "root"
                     },
                     {
                         "Name" : "CharacterLength",
+                        "Type" : "number",
                         "Default" : 20
                     },
                     {
                         "Name" : "EncryptionScheme",
+                        "Type" : "string",
+                        "Values" : ["base64"],
                         "Default" : ""
                     }
                 ]
             },
             {
                 "Name" : "Size",
+                "Type" : "string",
                 "Default" : "20"
             },
             {
@@ -67,18 +73,27 @@
                 "Children" : [
                     {
                         "Name" : "RetentionPeriod",
+                        "Type" : "number",
                         "Default" : 35
                     },
                     {
                         "Name" : "SnapshotOnDeploy",
+                        "Type" : "boolean",
                         "Default" : true
                     }
                 ]
             },
-            "AutoMinorVersionUpgrade",
-            "DatabaseName",
+            {
+                "Name" : "AutoMinorVersionUpgrade",
+                "Type" : "boolean"
+            },
+            {
+                "Name" : "DatabaseName",
+                "Type" : "string"
+            },
             {
                 "Name" : "DBParameters",
+                "Type" : "object",
                 "Default" : {}
             }
         ]

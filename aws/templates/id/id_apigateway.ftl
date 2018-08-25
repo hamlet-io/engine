@@ -53,10 +53,13 @@
             },
             {
                 "Name" : "IPAddressGroups",
+                "Type" : "array",
                 "Default" : []
             },
             {
                 "Name" : "Authentication",
+                "Type" : "string",
+                "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
                 "Default" : "IP"
             },
             {

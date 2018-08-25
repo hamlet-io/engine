@@ -14,6 +14,7 @@
     containerChildrenConfiguration = [
         {
             "Name" : "Cpu",
+            "Type" : "number",
             "Default" : ""
         },
         {
@@ -23,29 +24,38 @@
         },
         {
             "Name" : "LocalLogging",
+            "Type" : "boolean",
             "Default" : false
         },
         {
             "Name" : "LogDriver",
+            "Type" : "string",
+            "Values" : ["awslogs", "json-file", "fluentd"],
             "Default" : "awslogs"
         },
         {
             "Name" : "ContainerLogGroup",
+            "Type" : "boolean",
             "Default" : false
         },
         {
             "Name" : "RunCapabilities",
+            "Type" : "array",
             "Default" : []
         },
         {
             "Name" : "Privileged",
+            "Type" : "boolean",
             "Default" : false
         },
         {
-            "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"]
+            "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
+            "Types" : "number",
+            "Description" : "Set to 0 to not set a maximum"
         },
         {
             "Name" : ["MemoryReservation", "Memory", "ReservedMemory"],
+            "Type" : "number",
             "Mandatory" : true
         },
         {
@@ -55,6 +65,7 @@
                 "Container",
                 {
                     "Name" : "DynamicHostPort",
+                    "Type" : "boolean",
                     "Default" : false
                 }
                 {
@@ -63,16 +74,19 @@
                 },
                 {
                     "Name" : "IPAddressGroups",
+                    "Type" : "array",
                     "Default" : []
                 }
             ]
         },
         {
             "Name" : "Version",
+            "Type" : "string",
             "Default" : ""
         },
         {
             "Name" : "ContainerNetworkLinks",
+            "Type" : "array",
             "Default" : []
         }
     ]
@@ -84,14 +98,18 @@
             "Attributes" : [
                 {
                     "Name" : "FixedIP",
+                    "Type" : "boolean",
                     "Default" : false
                 },
                 {
                     "Name" : "LogDriver",
+                    "Type" : "string",
+                    "Values" : ["awslogs", "json-file", "fluentd"],
                     "Default" : "awslogs"
                 },
                 {
                     "Name" : "ClusterLogGroup",
+                    "Type" : "boolean",
                     "Default" : true
                 },
                 {
@@ -104,10 +122,12 @@
                     "Subobjects" : true,
                     "Children" : [
                         {
-                            "Name" : "UserName"
+                            "Name" : "UserName",
+                            "Type" : "string"
                         },
                         {
                             "Name" : "UID",
+                            "Type" : "string",
                             "Mandatory" : true
                         }
                     ]
@@ -134,10 +154,12 @@
             },
             {
                 "Name" : "DesiredCount",
+                "Type" : "number",
                 "Default" : -1
             },
             {
                 "Name" : "UseTaskRole",
+                "Type" : "boolean",
                 "Default" : true
             },
             {
@@ -145,32 +167,40 @@
                 "Children" : [
                     {
                         "Name" : "Decrypt",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "AsFile",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "AppData",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "AppPublic",
+                        "Type" : "boolean",
                         "Default" : true
                     }
                 ]
             },
             {
                 "Name" : "TaskLogGroup",
+                "Type" : "boolean",
                 "Default" : true
             },
             {
                 "Name" : "NetworkMode",
+                "Type" : "string",
+                "Values" : ["none", "bridge", "awsvpc", "host"],
                 "Default" : ""
             },
             {
                 "Name" : "ContainerNetworkLinks",
+                "Type" : "boolean",
                 "Default" : false
             }
         ],
@@ -182,6 +212,7 @@
             },
             {
                 "Name" : "UseTaskRole",
+                "Type" : "boolean",
                 "Default" : true
             },
             {
@@ -189,28 +220,34 @@
                 "Children" : [
                     {
                         "Name" : "Decrypt",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "AsFile",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "AppData",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "AppPublic",
+                        "Type" : "boolean",
                         "Default" : true
                     }
                 ]
             },
             {
                 "Name" : "TaskLogGroup",
+                "Type" : "boolean",
                 "Default" : true
             },
             {
                 "Name" : "FixedName",
+                "Type" : "boolean",
                 "Default" : false
             }
         ]
