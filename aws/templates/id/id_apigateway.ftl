@@ -52,6 +52,14 @@
                 "Default" : "EDGE"
             },
             {
+                "Name" : "IPAddressGroups",
+                "Default" : []
+            },
+            {
+                "Name" : "Authentication",
+                "Default" : "IP"
+            },
+            {
                 "Name" : "CloudFront",
                 "Children" : [
                     {

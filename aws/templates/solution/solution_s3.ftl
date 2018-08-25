@@ -17,7 +17,7 @@
 
         [#assign publicPrefix = solution.PublicAccess.Prefix]
         [#assign publicIPWhiteList =
-                s3IPAccessCondition(getGroupCIDRs(solution.PublicAccess.IPAddressGroups, true)) ]
+                getIPCondition(getGroupCIDRs(solution.PublicAccess.IPAddressGroups, true)) ]
 
         [#assign sqsIds = [] ]
         [#assign sqsNotifications = [] ]

@@ -202,16 +202,3 @@
             principals,
             conditions)]
 [/#function]
-
-[#function s3IPAccessCondition cidr allow=true ]
-    [#return
-        {
-            allow?then(
-                "IpAddress",
-                "NotIPaddress"
-            ) : {
-                "aws:SourceIp": cidr
-            }
-        }
-    ]
-[/#function]
