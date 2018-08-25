@@ -16,7 +16,7 @@
         AWS_EVENT_RULE_RESOURCE_TYPE : EVENT_RULE_OUTPUT_MAPPINGS
     }
 ]
-[#macro createScheduleEventRule mode id targetId enabled scheduleExpression input="" path="" dependencies=""]
+[#macro createScheduleEventRule mode id targetId enabled scheduleExpression input={} path="" dependencies=""]
 
 
     [#if enabled ] 

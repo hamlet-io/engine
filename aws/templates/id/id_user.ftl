@@ -9,6 +9,7 @@
             "Attributes" : [
                 {
                     "Name" : ["Fragment", "Container"],
+                    "Type" : "string",
                     "Default" : ""
                 },
                 { 
@@ -21,14 +22,19 @@
                     "Children" : [
                         {
                             "Name" : "Formats",
+                            "Type" : "string",
+                            "Values" : ["system", "console"],
                             "Default"  : [ "system" ]
                         }
                         {
                             "Name" : "EncryptionScheme",
+                            "Type" : "string",
+                            "Values" : ["base64"],
                             "Default" : ""
                         },
                         {
                             "Name" : "CharacterLength",
+                            "Type" : "number",
                             "Default" : 20
                         }
                     ]
