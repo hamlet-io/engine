@@ -19,10 +19,6 @@
                     {
                         "Name" : "MaxReceives",
                         "Default" : 0
-                    },
-                    {
-                        "Name" : "Enabled",
-                        "Default" : true
                     }
                 ]
             },

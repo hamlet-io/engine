@@ -114,7 +114,7 @@
             [#assign listenerRuleConditions = asArray(getListenerRulePathCondition(path)) ]
 
             [#-- Redirect rule processing --]
-            [#if solution.Redirect.Configured]
+            [#if solution.Redirect.Configured && solution.Redirect.Enabled]
                 [#assign listenerRuleRequired = true ]
                 [#assign targetGroupRequired = false ]
                 [#assign listenerRuleConfig =
@@ -133,7 +133,7 @@
             [/#if]
 
             [#-- Fixed rule processing --]
-            [#if solution.Fixed.Configured]
+            [#if solution.Fixed.Configured && solution.Fixed.Enabled]
                 [#assign listenerRuleRequired = true ]
                 [#assign targetGroupRequired = false ]
                 [#assign fixedMessage = getOccurrenceSettingValue(subOccurrence, ["Fixed", "Message"], true) ]

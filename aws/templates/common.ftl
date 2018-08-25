@@ -517,36 +517,92 @@
 [#-- It is also possible to define an attribute with a name of "*" which will trigger --]
 [#-- the combining of the objects in addition to any attributes already created --]
 [#function getCompositeObject attributes=[] objects...]
-    [#local result = {} ]
-    [#local candidates = [] ]
 
+    [#-- Ignore any candidate that is not a hash --]
+    [#local candidates = [] ]
     [#list asFlattenedArray(objects) as element]
         [#if element?is_hash]
             [#local candidates += [element] ]
         [/#if]
     [/#list]
 
+    [#-- Normalise attributes --]
+    [#local normalisedAttributes = [] ]
+    [#local enabledSeen = false]
     [#if attributes?has_content]
         [#list asFlattenedArray(attributes) as attribute]
-            [#local attributeNames =
-                attribute?is_sequence?then(
-                    attribute,
-                    attribute?is_hash?then(
-                        attribute.Name?is_sequence?then(
-                            attribute.Name,
-                            [attribute.Name]),
-                        [attribute])) ]
+            [#local normalisedAttribute =
+                {
+                    "Names" : asArray(attribute),
+                    "Types" : ["any"],
+                    "Mandatory" : false,
+                    "DefaultBehaviour" : "ignore",
+                    "DefaultProvided" : false,
+                    "Default" : "",
+                    "Values" : [],
+                    "Children" : [],
+                    "SubObjects" : false,
+                    "PopulateMissingChildren" : true
+                } ]
+            [#if attribute?is_hash ]
+                [#local names = attribute.Names!attribute.Name!"COT:Missing" ]
+                [#if (names?is_string) && (names == "COT:Missing") ]
+                    [@cfException
+                        mode=listMode
+                        description="Attribute must have a \"Name\" attribute"
+                        context= attribute
+                    /]
+                [/#if]
+                [#local normalisedAttribute =
+                    {
+                        "Names" : asArray(names),
+                        "Types" : asArray(attribute.Types!attribute.Type!"any"),
+                        "Mandatory" : attribute.Mandatory!false,
+                        "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
+                        "DefaultProvided" : attribute.Default??,
+                        "Default" : attribute.Default!"",
+                        "Values" : asArray(attribute.Values![]),
+                        "Children" : asArray(attribute.Children![]),
+                        "SubObjects" : attribute.SubObjects!attribute.Subobjects!false,
+                        "PopulateMissingChildren" : attribute.PopulateMissingChildren!true
+                    } ]
+            [/#if]
+            [#local normalisedAttributes += [normalisedAttribute] ]
+            [#local enabledSeen = enabledSeen || normalisedAttribute.Names?seq_contains("Enabled") ]
+        [/#list]
+        [#if !enabledSeen]
+            [#-- Put "Enabled" first to ensure it is processed in case a name of "*" is used --]
+            [#local normalisedAttributes =
+                [
+                    {
+                        "Names" : ["Enabled"],
+                        "Types" : ["boolean"],
+                        "Mandatory" : false,
+                        "DefaultBehaviour" : "ignore",
+                        "DefaultProvided" : true,
+                        "Default" : true,
+                        "Values" : [],
+                        "Children" : [],
+                        "SubObjects" : false,
+                        "PopulateMissingChildren" : true
+                    }
+                ] +
+                normalisedAttributes ]
+        [/#if]
+    [/#if]
 
-            [#local mandatory = attribute?is_hash?then(attribute.Mandatory!false, false) ]
-            [#local defaultProvided = attribute?is_hash?then(attribute.Default??, false) ]
-            [#local children = attribute?is_hash?then(attribute.Children![], []) ]
-            [#local subobjects = attribute?is_hash?then(attribute.Subobjects!false, false) ]
-            [#local populateMissingChildren = attribute?is_hash?then(attribute.PopulateMissingChildren!true, true) ]
+    [#-- Determine the attribute values --]
+    [#local result = {} ]
+    [#if normalisedAttributes?has_content]
+        [#list normalisedAttributes as attribute]
+
+            [#local populateMissingChildren = attribute.PopulateMissingChildren ]
 
             [#-- Look for the first name alternative --]
             [#local providedName = ""]
             [#local providedValue = ""]
-            [#list attributeNames as attributeName]
+            [#local providedCandidate = {}]
+            [#list attribute.Names as attributeName]
                 [#if attributeName == "*"]
                     [#local providedName = "*"]
                 [/#if]
@@ -557,6 +613,7 @@
                         [#if object[attributeName]??]
                             [#local providedName = attributeName ]
                             [#local providedValue = object[attributeName] ]
+                            [#local providedCandidate = object ]
                             [#break]
                         [/#if]
                     [/#list]
@@ -571,7 +628,7 @@
             [#-- Throw an exception if a mandatory attribute is missing      --]
             [#-- If no candidates, assume we are entirely populating missing --]
             [#-- children so ignore mandatory check                          --]
-            [#if mandatory &&
+            [#if attribute.Mandatory &&
                     ( !(providedName?has_content) ) &&
                     candidates?has_content ]
                 [@cfException
@@ -585,7 +642,7 @@
                 /]
 
                 [#-- Provide a value so hopefully generation completes successfully --]
-                [#if children?has_content]
+                [#if attribute.Children?has_content]
                     [#local populateMissingChildren = true ]
                 [#else]
                     [#-- providedName just needs to have content --]
@@ -594,7 +651,7 @@
                 [/#if]
             [/#if]
 
-            [#if children?has_content]
+            [#if attribute.Children?has_content]
                 [#local childObjects = [] ]
                 [#list candidates as object]
                     [#if object[providedName]??]
@@ -603,7 +660,7 @@
                 [/#list]
                 [#if populateMissingChildren || childObjects?has_content]
                     [#local attributeResult = {} ]
-                    [#if subobjects ]
+                    [#if attribute.SubObjects ]
                         [#local subobjectKeys = [] ]
                         [#list childObjects as childObject]
                             [#if childObject?is_hash]
@@ -646,7 +703,7 @@
                                                   "Mandatory" : true
                                               }
                                           ] +
-                                          children,
+                                          attribute.Children,
                                           subobjectValues)
                                 }
                             ]
@@ -659,23 +716,88 @@
                                 },
                                 {}
                             ) +
-                            getCompositeObject(children, childObjects)
+                            getCompositeObject(attribute.Children, childObjects)
                         ]
                     [/#if]
-                    [#local result += { attributeNames[0] : attributeResult } ]
+                    [#local result += { attribute.Names[0] : attributeResult } ]
                 [/#if]
             [#else]
+                [#-- Combine any provided and/or default values --]
                 [#if providedName?has_content ]
+                    [#local typeMatch = false ]
+                    [#-- Perform type conversion and type checking --]
+                    [#list attribute.Types as attributeType]
+                        [#switch attributeType?lower_case]
+                            [#case "object"]
+                                [#local typeMatch = typeMatch || providedValue?is_hash]
+                                [#break]
+                            [#case "array"]
+                                [#local typeMatch = typeMatch || providedValue?is_sequence]
+                                [#break]
+                            [#case "string"]
+                                [#local typeMatch = typeMatch || providedValue?is_string]
+                                [#break]
+                            [#case "number"]
+                                [#local typeMatch = typeMatch || providedValue?is_number]
+                                [#break]
+                            [#case "boolean"]
+                                [#local typeMatch = typeMatch || providedValue?is_boolean]
+                                [#break]
+                            [#case "any"]
+                            [#default]
+                                [#local typeMatch = true ]
+                                [#break]
+                        [/#switch]
+                    [/#list]
+                    [#if !typeMatch ]
+                        [@cfException
+                          mode=listMode
+                          description="Attribute is not of the correct type"
+                          context=
+                            {
+                                "Name" : providedName,
+                                "Value" : providedValue,
+                                "ExpectedTypes" : attribute.Types,
+                                "Candidate" : providedCandidate
+                            } /]
+                    [#else]
+                        [#if attribute.Values?has_content && (!(attribute.Values?seq_contains(providedValue))) ]
+                        [@cfException
+                          mode=listMode
+                          description="Attribute value is not one of the expected values"
+                          context=
+                            {
+                                "Name" : providedName,
+                                "Value" : providedValue,
+                                "ExpectedValues" : attribute.Values,
+                                "Candidate" : providedCandidate
+                            } /]
+                        [/#if]
+                    [/#if]
+
+                    [#if attribute.DefaultProvided ]
+                        [#switch attribute.DefaultBehaviour]
+                            [#case "prefix"]
+                                [#local providedValue = attribute.Default + providedValue ]
+                                [#break]
+                            [#case "postfix"]
+                                [#local providedValue = providedValue + attribute.Default]
+                                [#break]
+                            [#case "ignore"]
+                            [#default]
+                                [#-- Ignore default --]
+                                [#break]
+                        [/#switch]
+                    [/#if]
                     [#local result +=
                         {
-                            attributeNames[0] : providedValue
-                        }
-                    ]
+                            attribute.Names[0] : providedValue
+                        } ]
                 [#else]
-                    [#if defaultProvided ]
+                    [#if attribute.DefaultProvided ]
                         [#local result +=
                             {
-                                attributeNames[0] : attribute.Default
+                                attribute.Names[0] : attribute.Default
                             }
                         ]
                     [/#if]
@@ -688,7 +810,7 @@
     [/#if]
 
     [#list candidates as object]
-        [#local result += object?is_hash?then(object, {}) ]
+        [#local result += object ]
     [/#list]
     [#return result ]
 [/#function]
@@ -839,7 +961,7 @@
             [#case "contentnode"]
                 [#local result = getContentNodeState(occurrence)]
                 [#break]
-            
+
             [#case DATAPIPELINE_COMPONENT_TYPE ]
                 [#local result = getDataPipelineState(occurrence)]
                 [#break]
@@ -897,7 +1019,7 @@
             [#case "lambda"]
                 [#local result = getLambdaState(occurrence)]
                 [#break]
-            
+
             [#case MOBILENOTIFIER_COMPONENT_TYPE ]
                 [#local result = getMobileNotifierState(occurrence)]
                 [#break]
@@ -1336,15 +1458,11 @@
     [#local attributes +=
         [
             {
-                "Name" : "Enabled",
-                "Default" : true
-            },
-            {
-                "Name" : "Export",
+                "Names" : ["Export"],
                 "Default" : []
             },
             {
-                "Name" : "DeploymentUnits",
+                "Names" : ["DeploymentUnits"],
                 "Default" : []
             }
         ]
@@ -1934,7 +2052,7 @@
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
-        attributeIfContent("PortMapping",  portMapping) 
+        attributeIfContent("PortMapping",  portMapping)
     ]
     [@cfDebug listMode { targetLinkName : targetLink } false /]
 

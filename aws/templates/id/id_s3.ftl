@@ -93,10 +93,6 @@
                 "Name" : "Website",
                 "Children" : [
                     {
-                        "Name"  : "Enabled",
-                        "Default" : true
-                    },
-                    {
                         "Name": "Index",
                         "Default": "index.html"
                     },
