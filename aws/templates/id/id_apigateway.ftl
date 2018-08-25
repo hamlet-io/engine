@@ -56,6 +56,10 @@
                 "Default" : []
             },
             {
+                "Name" : "Authentication",
+                "Default" : "IP"
+            },
+            {
                 "Name" : "CloudFront",
                 "Children" : [
                     {

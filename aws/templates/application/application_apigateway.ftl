@@ -173,21 +173,10 @@
         [#assign docsS3BucketName       = resources["docs"].Name]
         [#assign docsS3BucketPolicyId   = resources["docspolicy"].Id ]
 
-        [#assign apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
-        [#assign apiPolicyStatements    = valueIfContent(
-                                              [
-                                                  getPolicyStatement(
-                                                      "execute-api:Invoke",
-                                                      "*",
-                                                      "*",
-                                                      getIPCondition(apiPolicyCidr)
-                                                  )
-                                              ],
-                                              apiPolicyCidr,
-                                              []
-                                          ) +
-                                          context.Policy ]
+        [#assign apiPolicyStatements    = context.Policy ]
+        [#assign apiPolicyAuth          = solution.Authentication?upper_case ]
 
+        [#assign apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
         [#if ((!cfPresent) || (!wafPresent)) && (!(apiPolicyCidr?has_content)) ]
             [@cfException
                 mode=listMode
@@ -195,6 +184,64 @@
                 context=occurrence
             /]
             [#continue]
+        [/#if]
+
+
+        [#-- For SIG4 variants, AWS_IAM must be enabled in the swagger specification      --]
+        [#-- If AWS_IAM is enabled, it's IAM policy is evaluated in the usual fashion     --]
+        [#-- with the resource policy. However if NOT defined, there is no explicit ALLOW --]
+        [#-- (at present) so the resource policy must provide one.                        --]
+        [#-- If an "AWS_ALLOW" were introduced in the swgagger spec to provide the ALLOW, --]
+        [#-- then the switch below could be simplified.                                   --]
+        [#if apiPolicyCidr?has_content ]
+            [#switch apiPolicyAuth ]
+                [#case "IP" ]
+                    [#-- No explicit ALLOW so provide one in the resource policy --]
+                    [#assign apiPolicyStatements +=
+                        [
+                            getPolicyStatement(
+                                "execute-api:Invoke",
+                                formatInvokeApiGatewayArn(apiId),
+                                "*"
+                            ),
+                            getPolicyStatement(
+                                "execute-api:Invoke",
+                                formatInvokeApiGatewayArn(apiId),
+                                "*",
+                                getIPCondition(apiPolicyCidr, false),
+                                false
+                            )
+                        ] ]
+                    [#break]
+
+                [#case "SIG4ORIP" ]
+                    [#-- Resource policy provides ALLOW on IP --]
+                    [#-- AWS_IAM provides ALLOW on SIG4       --]
+                    [#assign apiPolicyStatements +=
+                        [
+                            getPolicyStatement(
+                                "execute-api:Invoke",
+                                formatInvokeApiGatewayArn(apiId),
+                                "*",
+                                getIPCondition(apiPolicyCidr)
+                            )
+                        ] ]
+                    [#break]
+
+                [#case "SIG4ANDIP" ]
+                    [#-- Rely on AWS_IAM to provide the explicit ALLOW to avoid the implicit DENY --]
+                    [#assign apiPolicyStatements +=
+                        [
+                            getPolicyStatement(
+                                "execute-api:Invoke",
+                                formatInvokeApiGatewayArn(apiId),
+                                "*",
+                                getIPCondition(apiPolicyCidr, false),
+                                false
+                            )
+                        ] ]
+                    [#break]
+            [/#switch]
         [/#if]
 
         [#if deploymentSubsetRequired("apigateway", true)]

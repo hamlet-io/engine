@@ -5,8 +5,8 @@
 [#function getPolicyStatement actions resources="*" principals="" conditions="" allow=true sid=""]
     [#return
         {
-            "Action" : actions,
-            "Effect" : allow?then("Allow", "Deny")
+            "Effect" : allow?then("Allow", "Deny"),
+            "Action" : actions
         } +
         attributeIfContent("Sid", sid) +
         attributeIfContent("Resource", resources) +
@@ -48,12 +48,8 @@
 [#function getIPCondition cidrs=[] match=true]
     [#return
         {
-            match?then(
-                "IpAddress",
-                "NotIPaddress"
-            ) : {
-                "aws:SourceIp": asFlattenedArray(cidrs)
-            }
+            match?then("IpAddress", "NotIpAddress") :
+                { "aws:SourceIp": asFlattenedArray(cidrs) }
         }
     ]
 [/#function]
