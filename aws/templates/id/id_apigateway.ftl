@@ -32,11 +32,13 @@
     {
         APIGATEWAY_COMPONENT_TYPE : [
             {
-                "Name" : ["Fragment", "Container"],
+                "Names" : ["Fragment", "Container"],
+                "Type" : "string",
                 "Default" : ""
             },
             {
                 "Name" : "Links",
+                "Type" : "object",
                 "Default" : {}
             },
             {
@@ -45,37 +47,41 @@
             },
             {
                 "Name" : "EndpointType",
+                "Type" : "string",
+                "Values" : ["EDGE", "REGIONAL"],
                 "Default" : "EDGE"
             },
             {
                 "Name" : "CloudFront",
                 "Children" : [
                     {
-                        "Name" : "Enabled",
-                        "Default" : true
-                    },
-                    {
                         "Name" : "AssumeSNI",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "EnableLogging",
+                        "Type" : "boolean",
                         "Default" : true
                     },
                     {
                         "Name" : "CountryGroups",
+                        "Type" : "array",
                         "Default" : []
                     },
                     {
                         "Name" : "CustomHeaders",
+                        "Type" : "array",
                         "Default" : []
                     },
                     {
                         "Name" : "Mapping",
+                        "Type" : "boolean",
                         "Default" : false
                     },
                     {
                         "Name" : "Compress",
+                        "Type" : "boolean",
                         "Default" : true
                     }
                 ]
@@ -83,10 +89,6 @@
             {
                 "Name" : "Certificate",
                 "Children" : [
-                    {
-                        "Name" : "Enabled",
-                        "Default" : true
-                    },
                     {
                         "Name" : "*"
                     }
@@ -96,15 +98,13 @@
                 "Name" : "Publish",
                 "Children" : [
                     {
-                        "Name"  : "Enabled",
-                        "Default" : true
-                    },
-                    {
                         "Name" : "DnsNamePrefix",
+                        "Type" : "string",
                         "Default" : "docs"
                     },
                     {
                         "Name" : "IPAddressGroups",
+                        "Type" : "array",
                         "Default" : []
                     }
                 ]
@@ -113,11 +113,8 @@
                 "Name" : "Mapping",
                 "Children" : [
                     {
-                        "Name"  : "Enabled",
-                        "Default" : true
-                    },
-                    {
                         "Name" : "IncludeStage",
+                        "Type" : "boolean",
                         "Default" : true
                     }
                 ]

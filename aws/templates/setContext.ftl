@@ -8,32 +8,46 @@
         "Product",
         {
             "Name" : "Tier",
+            "Type" : "string",
             "Mandatory" : true
         },
         {
             "Name" : "Component",
+            "Type" : "string",
             "Mandatory" : true
         },
         {
-            "Name" : ["Function", "Subcomponent"]
+            "Name" : ["Function", "Subcomponent"],
+            "Type" : "string"
         },
         {
-            "Name" : ["Service", "Subcomponent"]
+            "Name" : ["Service", "Subcomponent"],
+            "Type" : "string"
         },
         {
-            "Name" : ["Task", "Subcomponent"]
+            "Name" : ["Task", "Subcomponent"],
+            "Type" : "string"
         },
         {
-            "Name" : ["PortMapping", "Port", "Subcomponent"]
+            "Name" : ["PortMapping", "Port", "Subcomponent"],
+            "Type" : "string"
         },
         {
-            "Name" : ["Mount", "Subcomponent"]
+            "Name" : ["Mount", "Subcomponent"],
+            "Type" : "string"
         },
         {
-            "Name" : ["Platform"]
+            "Name" : ["Platform"],
+            "Type" : "string"
         },
-        "Instance",
-        "Version"
+        {
+            "Name" : "Instance",
+            "Type" : "string"
+        },
+        {
+            "Name" : "Version",
+            "Type" : "string"
+        }
     ]
 ]
 
@@ -41,8 +55,14 @@
     linkChildrenConfiguration =
         filterChildrenConfiguration +
         [
-            "Role",
-            "Direction"
+            {
+                "Name" : "Role",
+                "Type" : "string"
+            },
+            {
+                "Name" : "Direction",
+                "Type" : "string"
+            }
         ]
 ]
 
@@ -50,14 +70,17 @@
     metricChildrenConfiguration = [
         {
             "Name" : "Name",
+            "Type" : "string",
             "Mandatory" : true
         }
         {
             "Name" : "Type",
+            "Type" : "string",
             "Mandatory" : true
         }
         {
             "Name" : "LogPattern",
+            "Type" : "string",
             "Default" : ""
         }
     ]
@@ -67,6 +90,7 @@
         "Description",
         {
             "Name" : "Name",
+            "Type" : "string",
             "Mandatory" : true
         },
         {
@@ -74,52 +98,64 @@
             "Children" : [
                 {
                     "Name" : "Name",
+                    "Type" : "string",
                     "Mandatory" : true
                 },
                 {
                     "Name" : "Type",
+                    "Type" : "string",
                     "Mandatory" : true
                 }
             ]
         },
         {
             "Name" : "Threshold",
+            "Type" : "number",
             "Default" : 1
         },
         {
             "Name" : "Severity",
+            "Type" : "string",
             "Default" : "Info"
         },
         {
             "Name" : "Namespace",
+            "Type" : "string",
             "Default" : ""
         },
         {
             "Name" : "Comparison",
+            "Type" : "string",
             "Default" : "Threshold"
         },
         {
             "Name" : "Operator",
+            "Type" : "string",
             "Default" : "GreaterThanOrEqualToThreshold"
         },
         {
             "Name" : "Time",
+            "Type" : "number",
             "Default" : 300
         },
         {
             "Name" : "Periods",
+            "Type" : "number",
             "Default" : 1
         },
         {
             "Name" : "Statistic",
+            "Type" : "string",
             "Default" : "Sum"
         },
         {
             "Name" : "ReportOk",
+            "Type" : "boolean",
             "Default" : false
         },
         {
             "Name" : "MissingData",
+            "Type" : "string",
             "Default" : "notBreaching"
         }
     ]
@@ -128,32 +164,45 @@
 [#assign lbChildConfiguration = [
         {
             "Name" : "Tier",
+            "Type" : "string",
             "Mandatory" : true
         },
         {
             "Name" : "Component",
+            "Type" : "string",
             "Mandatory" : true
         },
         {
             "Name" : "LinkName",
+            "Type" : "string",
             "Default" : "lb"
         },
-        "Instance",
-        "Version",
+        {
+            "Name" : "Instance",
+            "Type" : "string"
+        },
+        {
+            "Name" : "Version",
+            "Type" : "string"
+        },
         {
             "Name" : "Path",
+            "Type" : "string",
             "Default" : ""
         },
         {
             "Name" : ["PortMapping", "Port"],
+            "Type" : "string",
             "Default" : ""
         },
         {
             "Name" : "Priority",
+            "Type" : "number",
             "Default" : 100
         },
         {
             "Name" : "TargetGroup",
+            "Type" : "string",
             "Default" : ""
         }
     ]
@@ -161,19 +210,20 @@
 
 [#assign wafChildConfiguration = [
         {
-            "Name" : "Enabled",
-            "Default" : true
-        },
-        {
             "Name" : "IPAddressGroups",
+            "Type" : "array",
             "Mandatory" : true
         },
         {
             "Name" : "Default",
+            "Type" : "string",
+            "Values" : ["ALLOW", "BLOCK"],
             "Default" : "BLOCK"
         },
         {
             "Name" : "RuleDefault",
+            "Type" : "string",
+            "Values" : ["ALLOW", "BLOCK"],
             "Default" : "ALLOW"
         }
     ]

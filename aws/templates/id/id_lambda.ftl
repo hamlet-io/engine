@@ -72,10 +72,6 @@
                 "Subobjects" : true,
                 "Children" : [
                     {
-                        "Name" : "Enabled",
-                        "Default" : true
-                    },
-                    {
                         "Name" : "Expression",
                         "Default" : "rate(6 minutes)"
                     },

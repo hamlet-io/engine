@@ -72,10 +72,6 @@
                 "Name" : "Certificate",
                 "Children" : [
                     {
-                        "Name" : "Enabled",
-                        "Default" : true
-                    },
-                    {
                         "Name" : "*"
                     }
                 ]
