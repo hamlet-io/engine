@@ -208,7 +208,7 @@ function process_template() {
       ;;
 
     solution)
-      template_composites+=("SOLUTION" )
+      template_composites+=("SOLUTION" "FRAGMENT")
       passes=("${passes[@]}" "cli")
       if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
         for pass in "${pass_list[@]}"; do

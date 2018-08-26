@@ -97,6 +97,11 @@
         ECS_COMPONENT_TYPE : {
             "Attributes" : [
                 {
+                    "Name" : ["Fragment", "Container"],
+                    "Type" : "string",
+                    "Default" : ""
+                },
+                {
                     "Name" : "FixedIP",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
@@ -347,8 +352,8 @@
                 {
                     "Id" : formatDependentRoleId(taskId),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                }    
-            ) + 
+                }
+            ) +
             attributeIfTrue(
                 "securityGroup",
                 solution.NetworkMode == "awsvpc",
@@ -403,11 +408,11 @@
                 {
                     "Id" : taskRoleId,
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                }    
+                }
             ),
             "Attributes" : {
                 "ECSHOST" : getExistingReference(ecsId)
-            } + 
+            } +
                 attributeIfTrue(
                     "DEFINITION",
                     solution.FixedName,
@@ -422,8 +427,8 @@
                                 getExistingReference(taskRoleId, ARN_ATTRIBUTE_TYPE)
                             ),
                             []
-                        ) 
-                } 
+                        )
+                }
             }
         }
     ]
