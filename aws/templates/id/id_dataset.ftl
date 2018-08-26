@@ -35,12 +35,12 @@
     [#local datasetPrefix = formatRelativePath(solution.Prefix)]
     [#local attributes = {
             "DATASET_ENGINE" : solution.Engine,
-            "DATASET_PREFIX" : datasetPrefix,
+            "DATASET_PREFIX" : datasetPrefix
     }]
 
     [#switch solution.Engine ]
         [#case "s3" ]
-            [#local atttirbutes += {
+            [#local attributes += {
                 "DATASET_REGISTRY" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
                                             formatAbsolutePath(
                                                 getRegistryPrefix("dataset", occurrence),
@@ -102,7 +102,6 @@
                     [#local masterDataLocation = formatName( core.FullName, solution.Prefix )]
                     [#local attributes += { 
                         "DATASET_MASTER_LOCATION" : formatName( "dataset", core.FullName, solution.Prefix)
-
                     }]
                     [#break]
                 
