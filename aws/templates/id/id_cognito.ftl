@@ -17,47 +17,47 @@
         USERPOOL_COMPONENT_TYPE : [
             { 
                 "Name" : "MFA",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Name" : "AdminCreatesUser",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Name" : "UnusedAccountTimeout",
-                "Type" : "number",
+                "Type" : NUMBER_TYPE,
                 "Default" : 7
             },
             {
                 "Name" : "VerifyEmail",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Name" : "VerifyPhone",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Name" : "LoginAliases",
-                "Type" : "array",
+                "Type" : ARRAY_OF_STRING_TYPE,
                 "Default" : ["email"]
             },
             {
                 "Name" : "ClientGenerateSecret",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Name" : "ClientTokenValidity",
-                "Type" : "number",
+                "Type" : NUMBER_TYPE,
                 "Default" : 30
             },
             {
                 "Name" : "AllowUnauthenticatedIds",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -65,12 +65,12 @@
                 "Children" : [
                     {
                         "Name" : "Scopes",
-                        "Type" : "array",
+                        "Type" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "openid" ]
                     },
                     {
                         "Name" : "Flows",
-                        "Type" : "array",
+                        "Type" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "code" ]
                     }
                 ]
@@ -80,27 +80,27 @@
                 "Children" : [
                     {
                         "Name" : "MinimumLength",
-                        "Type" : "number",
+                        "Type" : NUMBER_TYPE,
                         "Default" : 10
                     },
                     {
                         "Name" : "Lowercase",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "Uppercase",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "Numbers",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "SpecialCharacters",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ] 

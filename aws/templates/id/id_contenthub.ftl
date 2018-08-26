@@ -13,17 +13,17 @@
             "Prefix",
             {
                 "Name" : "Engine",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : "github"
             },
             {
                 "Name" : "Branch",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : "master"
             },
             {
                 "Name" : "Repository",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : ""
             }
         ]
@@ -64,12 +64,12 @@
                 "Children" : [
                     {
                         "Name" : "Host",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : ""
                     },
                     {
                         "Name" : "Style",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "single"
                     },
                     {
@@ -78,47 +78,47 @@
 
                             {
                                 "Name" : "Product",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default" : true
                             },
                             {
                                 "Name" : "Environment",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default" : false
                             },
                             {
                                 "Name" : "Solution",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default" : false
                             },
                             {
                                 "Name" : "Segment",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default" : true
                             },
                             {
                                 "Name" : "Tier",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default": false
                             },
                             {
                                 "Name" : "Component",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default" : false
                             },
                             {
                                 "Name" : "Instance",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default" : false
                             },
                             {
                                 "Name" : "Version",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default" : false
                             },
                             {
                                 "Name" : "Host",
-                                "Type" : "boolean",
+                                "Type" : BOOLEAN_TYPE,
                                 "Default": false
                             }
                         ]

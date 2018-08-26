@@ -8,11 +8,12 @@
         SPA_COMPONENT_TYPE : [
             {
                 "Name" : ["Fragment", "Container"],
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : ""
             },
             {
                 "Name" : "Links",
+                "Type" : OBJECT_TYPE,
                 "Default" : {}
             },
             {
@@ -24,32 +25,32 @@
                 "Children" : [
                     {
                         "Name" : "AssumeSNI",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "EnableLogging",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "CountryGroups",
-                        "Type" : "array",
+                        "Type" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     },
                     {
                         "Name" : "ErrorPage",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "/index.html"
                     },
                     {
                         "Name" : "DeniedPage",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : ""
                     },
                     {
                         "Name" : "NotFoundPage",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : ""
                     },
                     {
@@ -57,24 +58,24 @@
                         "Children" : [
                             {
                                 "Name" : "Default",
-                                "Type" : "number",
+                                "Type" : NUMBER_TYPE,
                                 "Default" : 600
                             },
                             {
                                 "Name" : "Maximum",
-                                "Type" : "number",
+                                "Type" : NUMBER_TYPE,
                                 "Default" : 31536000
                             },
                             {
                                 "Name" : "Minimum",
-                                "Type" : "number",
+                                "Type" : NUMBER_TYPE,
                                 "Default" : 0
                             }
                         ]
                     },
                     {
                         "Name" : "Compress",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]

@@ -11,7 +11,7 @@
         DATAPIPELINE_COMPONENT_TYPE : [
             {
                 "Name" : ["Fragment", "Container"],
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : ""
             },
             {
@@ -19,22 +19,22 @@
                 "Children" : [
                     {
                         "Name" : "Decrypt",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AsFile",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AppData",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AppPublic",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE",
                         "Default" : true
                     }
                 ]

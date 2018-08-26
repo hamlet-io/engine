@@ -82,10 +82,12 @@
         EC2_COMPONENT_TYPE : [
             {
                 "Name" : "FixedIP",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Name" : "DockerHost",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -99,6 +101,7 @@
                 "Children" : [
                     {
                         "Name" : "IPAddressGroups",
+                        "Type" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     },
                     {
