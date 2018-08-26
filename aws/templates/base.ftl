@@ -11,6 +11,10 @@
     [#return valueIfTrue(value, content?has_content, otherwise) ]
 [/#function]
 
+[#function arrayIfContent value content otherwise=[]]
+    [#return valueIfContent(asArray(value), content, otherwise) ]
+[/#function]
+
 [#function contentIfContent value otherwise={}]
     [#return valueIfTrue(value, value?has_content, otherwise) ]
 [/#function]
