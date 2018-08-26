@@ -7,12 +7,20 @@
     {
         DATASET_COMPONENT_TYPE : [
             {
+                "Name" : "Engine",
+                "Type" : STRING_TYPE,
+                "Values" : ["s3", "rdsSnapshot"],
+                "Default" : "",
+                "Mandatory" : true
+            }
+            {
                 "Name" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
             },
             {
                 "Name" : "Prefix",
+                "Type" : STRING_TYPE,
                 "Default" : ""
             }
         ]
@@ -23,9 +31,39 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence, true ) ]
-    [#local attributes = {}]
 
-    []
+    [#local datasetPrefix = formatRelativePath(solution.Prefix)]
+    [#local attributes = {
+            "DATASET_ENGINE" : solution.Engine,
+            "DATASET_PREFIX" : datasetPrefix,
+    }]
+
+    [#switch solution.Engine ]
+        [#case "s3" ]
+            [#local atttirbutes += {
+                "DATASET_REGISTRY" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
+                                            formatAbsolutePath(
+                                                getRegistryPrefix("dataset", occurrence),
+                                                productName,
+                                                getOccurrenceBuildUnit(occurrence)
+                                            ),
+                "DATASET_LOCATION" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
+                                            formatAbsolutePath(
+                                                getRegistryPrefix("dataset", occurrence),
+                                                productName,
+                                                getOccurrenceBuildUnit(occurrence),
+                                                buildReference
+                                            )
+            }]
+            [#break]
+        [#case "rdsSnapshot" ]
+            [#local attributes += {
+                "DATASET_REGISTRY" : formatName( "dataset",  core.FullName ),
+                "DATASET_LOCATION" : formatName( "dataset",  core.FullName, buildReference )
+            }]
+            [#break]
+    [/#switch]
+
     [#assign linkCount = 0 ]
     [#list solution.Links?values as link]
         [#if link?is_hash]
@@ -57,32 +95,14 @@
             [#switch linkTargetCore.Type]
                 [#case S3_COMPONENT_TYPE ]
                     [#local attributes += { 
-                        "DATASET_ENGINE" : "s3",
-                        "DATASET_PREFIX" : formatRelativePath(solution.Prefix),
-                        "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + formatAbsolutePath(solution.Prefix),
-                        "DATASET_REGISTRY" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
-                                                    formatAbsolutePath(
-                                                        getRegistryPrefix("dataset", occurrence),
-                                                        productName,
-                                                        getOccurrenceBuildUnit(occurrence)
-                                                    ),
-                        "DATASET_LOCATION" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
-                                                    formatAbsolutePath(
-                                                        getRegistryPrefix("dataset", occurrence),
-                                                        productName,
-                                                        getOccurrenceBuildUnit(occurrence),
-                                                        buildReference
-                                                    )
+                        "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + datasetPrefix
                     }]
                     [#break]
                 [#case RDS_COMPONENT_TYPE ]
                     [#local masterDataLocation = formatName( core.FullName, solution.Prefix )]
                     [#local attributes += { 
-                        "DATASET_ENGINE" : "rdsSnapshot",
-                        "DATASET_PREFIX" : formatRelativePath(solution.Prefix),
-                        "DATASET_MASTER_LOCATION" : formatName( "dataset", core.FullName, solution.Prefix),
-                        "DATASET_REGISTRY" : formatName( "dataset",  core.FullName ),
-                        "DATASET_LOCATION" : formatName( "dataset",  core.FullName, buildReference )
+                        "DATASET_MASTER_LOCATION" : formatName( "dataset", core.FullName, solution.Prefix)
+
                     }]
                     [#break]
                 
