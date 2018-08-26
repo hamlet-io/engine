@@ -10,15 +10,54 @@
                 [#-- TODO: Remove outputId parameter below when TODO addressed --]
                 
                 [#assign existingName = getExistingReference(formatAccountS3Id(bucket))]
+                [#assign bucketName = valueIfContent(
+                                            existingName,
+                                            existingName,
+                                            formatName("account", bucket, accountObject.Seed))]
+                [#assign bucketId = formatS3Id(bucket) ]
+                [#assign bucketPolicyId = formatResourceId(AWS_S3_BUCKET_POLICY_RESOURCE_TYPE, bucket ) ]
+
                 [@createS3Bucket
                     mode=listMode
-                    id=formatS3Id(bucket)
-                    name=valueIfContent(
-                            existingName,
-                            existingName,
-                            formatName("account", bucket, accountObject.Seed))
+                    id=bucketId
+                    name=bucketName
                     outputId=formatAccountS3Id(bucket)
                 /]
+
+                [#if bucket == "registry" ]
+                    [#assign sharingSources = accountObject.Registry.ShareAccess ]
+                    [#assign policyStatements = [] ]
+                    [#list sharingSources.AWSAccounts![] as awsAccount ]
+
+                        [#assign accountPrincipal = {
+                            "AWS" : formatGlobalArn(
+                                            "iam",
+                                            "root",
+                                            awsAccount)
+                        }]
+
+                        [#assign policyStatements += 
+                                s3ReadPermission(
+                                    bucketName,
+                                    "",
+                                    "*",
+                                    accountPrincipal 
+                                ) + s3ListPermission(
+                                    bucketName,
+                                    "",
+                                    "*",
+                                    accountPrincipal
+                                )]
+                    [/#list]
+
+                    [@createBucketPolicy
+                        mode=listMode
+                        id=bucketPolicyId
+                        bucket=bucketName
+                        statements=policyStatements
+                        dependencies=bucketId
+                    /]
+                [/#if]
             [/#list]
         [/#if]
         [#if deploymentSubsetRequired("epilogue", false)]
