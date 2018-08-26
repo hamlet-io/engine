@@ -79,17 +79,17 @@
                 "Children" : [
                     {
                         "Name" : "Expiration",
-                        "Types" : ["string", "number"],
+                        "Types" : [STRING_TYPE, NUMBER_TYPE],
                         "Description" : "Provide either a date or a number of days"
                     },
                     {
                         "Name" : "Offline",
-                        "Types" : ["string", "number"],
+                        "Types" : [STRING_TYPE, NUMBER_TYPE],
                         "Description" : "Provide either a date or a number of days"
                     },
                     {
                         "Name" : "Versioning",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : false
                     }
                 ]
@@ -99,12 +99,12 @@
                 "Children" : [
                     {
                         "Name": "Index",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default": "index.html"
                     },
                     {
                         "Name": "Error",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default": ""
                     }
                 ]
@@ -114,35 +114,35 @@
                 "Children" : [
                     {
                         "Name" : "Enabled",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Name" : "Permissions",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Values" : ["ro", "wo", "rw"],
                         "Default" : "ro"
                     },
                     {
                         "Name" : "IPAddressGroups",
-                        "Type" : "array",
+                        "Type" : ARRAY_OF_STRING_TYPE,
                         "Default" : [ "_localnet" ]
                     },
                     {
                         "Name" : "Prefix",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : ""
                     }
                 ]
             },
             {
                 "Name" : "Style",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Description" : "TODO(mfl): Think this can be removed"
             },
             {
                 "Name" : "Notifications",
-                "Type" : "object"
+                "Type" : OBJECT_TYPE
             }
         ]
     }]

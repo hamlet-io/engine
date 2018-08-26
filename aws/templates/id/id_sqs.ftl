@@ -11,33 +11,33 @@
         SQS_COMPONENT_TYPE : [
             {
                 "Name" : "DelaySeconds",
-                "Type" : "number"
+                "Type" : NUMBER_TYPE
             },
             {
                 "Name" : "MaximumMessageSize",
-                "Type" : "number"
+                "Type" : NUMBER_TYPE
             },
             {
                 "Name" : "MessageRetentionPeriod",
-                "Type" : "number"
+                "Type" : NUMBER_TYPE
             },
             {
                 "Name" : "ReceiveMessageWaitTimeSeconds",
-                "Type" : "number"
+                "Type" : NUMBER_TYPE
             },
             {
                 "Name" : "DeadLetterQueue",
                 "Children" : [
                     {
                         "Name" : "MaxReceives",
-                        "Type" : "number",
+                        "Type" : NUMBER_TYPE,
                         "Default" : 0
                     }
                 ]
             },
             {
                 "Name" : "VisibilityTimeout",
-                "Type" : "number"
+                "Type" : NUMBER_TYPE
             }
         ]
     }]

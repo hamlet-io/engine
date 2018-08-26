@@ -21,23 +21,23 @@
             "Attributes" : [
                 {
                     "Name" : "Logs",
-                    "Type" : "boolean",
+                    "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
                     "Name" : "Engine",
-                    "Type" : "string",
+                    "Type" : STRING_TYPE,
                     "Values" : ["application", "network", "classic"],
                     "Default" : "application"
                 },
                 {
                     "Name" : "IdleTimeout", 
-                    "Type" : "number",
+                    "Type" : NUMBER_TYPE,
                     "Default" : 60
                 }
                 {
                     "Name" : "HealthCheckPort",
-                    "Type" : "string",
+                    "Type" : STRING_TYPE,
                     "Default" : ""
                 }
             ],
@@ -52,32 +52,32 @@
         LB_PORT_COMPONENT_TYPE : [
             {
                 "Name" : "IPAddressGroups",
-                "Type" : "array",
+                "Type" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Name" : "Certificate",
-                "Type" : "object",
+                "Type" : OBJECT_TYPE,
                 "Default" : {}
             },
             {
                 "Name" : "Mapping",
-                "Type" : "string"
+                "Type" : STRING_TYPE
             },
             {
                 "Name" : "TargetType",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Values" : ["instance", "ip"],
                 "Default" : "instance"
             },
             {
                 "Name" : "Path",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : "default"
             },
             {
                 "Name" : "Priority",
-                "Type" : "number",
+                "Type" : NUMBER_TYPE,
                 "Default" : 100
             },
             {
@@ -90,12 +90,12 @@
                 "Children" : [
                     {
                         "Name" : "SessionCookieName",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "AWSELBAuthSessionCookie"
                     },
                     {
                         "Name" : "SessionTimeout",
-                        "Type" : "number",
+                        "Type" : NUMBER_TYPE,
                         "Default" : 604800
                     }
                 ]
@@ -105,32 +105,32 @@
                 "Children" : [
                     {
                         "Name" : "Protocol",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "https"
                     },
                     {
                         "Name" : "Port",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "443"
                     },
                     {
                         "Name" : "Host",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "#\{host}"
                     },
                     {
                         "Name" : "Path",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "#\{path}"
                     },
                     {
                         "Name" : "Query",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "#\{query}"
                     },
                     {
                         "Name" : "Permanent",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : false
                     }
                 ]
@@ -140,17 +140,17 @@
                 "Children" : [
                     {
                         "Name" : "Message",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "This application is currently unavailable. Please try again later."
                     },
                     {
                         "Name" : "ContentType",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "text/plain"
                     },
                     {
                         "Name" : "StatusCode",
-                        "Type" : "number",
+                        "Type" : NUMBER_TYPE,
                         "Default" : 404
                     }
                 ]

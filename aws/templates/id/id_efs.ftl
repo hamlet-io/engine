@@ -30,7 +30,7 @@
             "Attributes" : [
                 {
                     "Name" : "Encrypted",
-                    "Type" : "boolean",
+                    "Type" : BOOLEAN_TYPE,
                     "Default" : true
                 }
             ],
@@ -45,7 +45,7 @@
         EFS_MOUNT_COMPONENT_TYPE : [
             {
                 "Name" : "Directory",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Mandatory" : true
             }
         ]

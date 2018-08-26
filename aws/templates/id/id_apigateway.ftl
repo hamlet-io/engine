@@ -33,12 +33,12 @@
         APIGATEWAY_COMPONENT_TYPE : [
             {
                 "Names" : ["Fragment", "Container"],
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : ""
             },
             {
                 "Name" : "Links",
-                "Type" : "object",
+                "Type" : OBJECT_TYPE,
                 "Default" : {}
             },
             {
@@ -47,18 +47,18 @@
             },
             {
                 "Name" : "EndpointType",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Values" : ["EDGE", "REGIONAL"],
                 "Default" : "EDGE"
             },
             {
                 "Name" : "IPAddressGroups",
-                "Type" : "array",
+                "Type" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Name" : "Authentication",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
                 "Default" : "IP"
             },
@@ -67,32 +67,32 @@
                 "Children" : [
                     {
                         "Name" : "AssumeSNI",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "EnableLogging",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "CountryGroups",
-                        "Type" : "array",
+                        "Type" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     },
                     {
                         "Name" : "CustomHeaders",
-                        "Type" : "array",
+                        "Type" : ARRAY_OF_ANY_TYPE,
                         "Default" : []
                     },
                     {
                         "Name" : "Mapping",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Name" : "Compress",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
@@ -110,12 +110,12 @@
                 "Children" : [
                     {
                         "Name" : "DnsNamePrefix",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "docs"
                     },
                     {
                         "Name" : "IPAddressGroups",
-                        "Type" : "array",
+                        "Type" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     }
                 ]
@@ -125,7 +125,7 @@
                 "Children" : [
                     {
                         "Name" : "IncludeStage",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]

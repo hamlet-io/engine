@@ -6,7 +6,7 @@
         COMPUTECLUSTER_COMPONENT_TYPE : [
             {
                 "Name" : ["Fragment", "Container"],
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : ""
             },
             {
@@ -16,32 +16,32 @@
             },
             {
                 "Name" : "UseInitAsService",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Name" : "MinUpdateInstances",
-                "Type" : "number",
+                "Type" : NUMBER_TYPE,
                 "Default" : 1
             }
             {
                 "Name" : "ReplaceOnUpdate",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Name" : "UpdatePauseTime",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : "5M"
             },
             {
                 "Name" : "StartupTimeout",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : "15M"
             },
             {
                 "Name" : "DockerHost",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -50,7 +50,7 @@
                 "Children" : [
                     {
                         "Name" : "IPAddressGroups",
-                        "Type" : "array",
+                        "Type" : ARRAY_OF_STRING_TYPE,
                         "Default" : []
                     },
                     {

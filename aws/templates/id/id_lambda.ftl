@@ -38,12 +38,12 @@
         LAMBDA_FUNCTION_COMPONENT_TYPE : [
             {
                 "Name" : ["Fragment", "Container"],
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : ""
             },
             {
                 "Name" : "Handler",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
@@ -63,12 +63,12 @@
             }
             {
                 "Name" : ["Memory", "MemorySize"],
-                "Type" : "number",
+                "Type" : NUMBER_TYPE,
                 "Default" : 0
             },
             {
                 "Name" : "RunTime",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Values" : ["nodejs", "nodejs4.3", "nodejs6.10", "nodejs8.10", "java8", "python2.7", "python3.6", "dotnetcore1.0", "dotnetcore2.0", "dotnetcore2.1", "nodejs4.3-edge", "go1.x"],
                 "Mandatory" : true
             },
@@ -78,34 +78,34 @@
                 "Children" : [
                     {
                         "Name" : "Expression",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "rate(6 minutes)"
                     },
                     {
                         "Name" : "InputPath",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "/healthcheck"
                     },
                     {
                         "Name" : "Input",
-                        "Type" : "array",
+                        "Type" : OBJECT_TYPE,
                         "Default" : {}
                     }
                 ]
             },
             {
                 "Name" : "Timeout",
-                "Type" : "number",
+                "Type" : NUMBER_TYPE,
                 "Default" : 0
             },
             {
                 "Name" : "VPCAccess",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Name" : "UseSegmentKey",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -113,34 +113,34 @@
                 "Children" : [
                     {
                         "Name" : "Decrypt",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AsFile",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AppData",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AppPublic",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
             },
             {
                 "Name" : "PredefineLogGroup",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
                 "Name" : "EnvironmentAsFile",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             }
         ]

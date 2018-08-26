@@ -13,23 +13,23 @@
         CACHE_COMPONENT_TYPE : [
             {
                 "Name" : "Engine",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Name" : "EngineVersion",
-                "Type" : "string"
+                "Type" : STRING_TYPE
             },
             {
                 "Name" : "Port",
-                "Type" : "string"
+                "Type" : STRING_TYPE
             },
             {
                 "Name" : "Backup",
                 "Children" : [
                     {
                         "Name" : "RetentionPeriod",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : ""
                     }
                 ]

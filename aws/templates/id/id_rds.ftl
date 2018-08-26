@@ -31,10 +31,17 @@
                 "Name" : "Engine",
                 "Mandatory" : true
             },
-            "EngineVersion",
-            "Port",
+            {
+                "Name" : "EngineVersion",
+                "Type" : STRING_TYPE
+            },
+            {
+                "Name" : "Port",
+                "Type" : STRING_TYPE
+            },
             {
                 "Name" : "Encrypted",
+                "Type" : BOOLEAN_TYPE
                 "Default" : false
             },
             {
@@ -42,22 +49,22 @@
                 "Children" : [
                     {
                         "Name" : "Enabled",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : false
                     },
                     {
                         "Name" : "MasterUserName",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : "root"
                     },
                     {
                         "Name" : "CharacterLength",
-                        "Type" : "number",
+                        "Type" : NUMBER_TYPE,
                         "Default" : 20
                     },
                     {
                         "Name" : "EncryptionScheme",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Values" : ["base64"],
                         "Default" : ""
                     }
@@ -65,7 +72,7 @@
             },
             {
                 "Name" : "Size",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : "20"
             },
             {
@@ -73,27 +80,27 @@
                 "Children" : [
                     {
                         "Name" : "RetentionPeriod",
-                        "Type" : "number",
+                        "Type" : NUMBER_TYPE,
                         "Default" : 35
                     },
                     {
                         "Name" : "SnapshotOnDeploy",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
             },
             {
                 "Name" : "AutoMinorVersionUpgrade",
-                "Type" : "boolean"
+                "Type" : BOOLEAN_TYPE
             },
             {
                 "Name" : "DatabaseName",
-                "Type" : "string"
+                "Type" : STRING_TYPE
             },
             {
                 "Name" : "DBParameters",
-                "Type" : "object",
+                "Type" : OBJECT_TYPE,
                 "Default" : {}
             }
         ]

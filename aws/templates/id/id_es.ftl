@@ -20,28 +20,28 @@
         ES_COMPONENT_TYPE : [
             {
                 "Name" : "Authentication",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
                 "Default" : "IP"
             },
             {
                 "Name" : "IPAddressGroups",
-                "Type" : "array",
+                "Type" : ARRAY_OF_STRING_TYPE,
                 "Mandatory" : true
             },
             {
                 "Name" : "AdvancedOptions",
-                "Type" : "array",
+                "Type" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
             },
             {
                 "Name" : "Version",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Default" : "2.3"
             },
             {
                 "Name" : "Encrypted",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
@@ -49,7 +49,7 @@
                 "Children" : [
                     {
                         "Name" : "Hour",
-                        "Type" : "string",
+                        "Type" : STRING_TYPE,
                         "Default" : ""
                     }
                 ]

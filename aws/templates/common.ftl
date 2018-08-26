@@ -1,209 +1,5 @@
 [#ftl]
 
-[#-- Utility arrays --]
-[#assign powersOf2 = [1] ]
-[#list 0..31 as index]
-    [#assign powersOf2 += [2*powersOf2[index]] ]
-[/#list]
-
-
-[#function replaceAlphaNumericOnly string delimeter=""]
-    [#return string?replace("[^a-zA-Z\\d]", delimeter, "r" )]
-[/#function]
-
-[#-- Utility functions --]
-
-[#function asArray arg flatten=false ignoreEmpty=false]
-    [#local result = [] ]
-    [#if arg?is_sequence]
-        [#if flatten]
-            [#list arg as element]
-                [#local result += asArray(element, flatten, ignoreEmpty) ]
-            [/#list]
-        [#else]
-            [#if ignoreEmpty]
-                [#list arg as element]
-                    [#local elementResult = asArray(element, flatten, ignoreEmpty) ]
-                    [#if elementResult?has_content]
-                        [#local result += valueIfTrue([elementResult], element?is_sequence, elementResult) ]
-                    [/#if]
-                [/#list]
-            [#else]
-                [#local result = arg]
-            [/#if]
-        [/#if]
-    [#else]
-        [#local result = valueIfTrue([arg], !ignoreEmpty || arg?has_content, []) ]
-    [/#if]
-
-    [#return result ]
-[/#function]
-
-[#function asFlattenedArray arg ignoreEmpty=false]
-    [#return asArray(arg, true, ignoreEmpty) ]
-[/#function]
-
-[#function getUniqueArrayElements args...]
-    [#local result = [] ]
-    [#list args as arg]
-        [#list asFlattenedArray(arg) as member]
-            [#if !result?seq_contains(member) ]
-                [#local result += [member] ]
-            [/#if]
-        [/#list]
-    [/#list]
-    [#return result ]
-[/#function]
-
-[#function asString arg attribute]
-    [#return
-        arg?is_string?then(
-            arg,
-            arg?is_hash?then(
-                arg[attribute]?has_content?then(
-                    asString(arg[attribute], attribute),
-                    ""
-                ),
-                arg[0]?has_content?then(
-                    asString(arg[0], attribute),
-                    ""
-                )
-            )
-        )
-    ]
-[/#function]
-
-[#function removeValueFromArray array string ]
-    [#local result = [] ]
-    [#list array as item ]
-        [#if item != string ]
-            [#local result += [ item ] ]
-        [/#if]
-    [/#list]
-    [#return result]
-[/#function]
-
-[#function asSerialisableString arg]
-    [#if arg?is_hash || arg?is_sequence ]
-        [#return getJSON(arg) ]
-    [#else]
-        [#return arg ]
-    [/#if]
-[/#function]
-
-[#function getDescendent object default path...]
-    [#local descendent=object]
-    [#list asFlattenedArray(path) as part]
-        [#if descendent[part]??]
-            [#local descendent=descendent[part] ]
-        [#else]
-            [#return default]
-        [/#if]
-    [/#list]
-
-    [#return descendent]
-[/#function]
-
-[#function setDescendent object descendent id path...]
-  [#local effectivePath = asFlattenedArray(path) ]
-    [#if effectivePath?has_content]
-      [#return
-        object +
-        {
-          effectivePath?first :
-            setDescendent(
-              object[effectivePath?first]!{},
-              descendent,
-              id,
-              (effectivePath?size == 1)?then([],effectivePath[1..]))
-        }
-      ]
-    [#else]
-      [#if object[id]?? && object[id]?is_hash]
-          [#return object + { id : object[id] + descendent } ]
-      [/#if]
-      [#return object + { id : descendent } ]
-    [/#if]
-[/#function]
-
-[#function valueIfTrue value condition otherwise={}]
-    [#return condition?then(value, otherwise) ]
-[/#function]
-
-[#function valueIfContent value content otherwise={}]
-    [#return valueIfTrue(value, content?has_content, otherwise) ]
-[/#function]
-
-[#function contentIfContent value otherwise={}]
-    [#return valueIfTrue(value, value?has_content, otherwise) ]
-[/#function]
-
-[#function attributeIfTrue attribute condition value]
-    [#return valueIfTrue({attribute : value}, condition) ]
-[/#function]
-
-[#function attributeIfContent attribute content value={}]
-    [#return attributeIfTrue(
-        attribute,
-        content?has_content,
-        value?has_content?then(value,content)) ]
-[/#function]
-
-[#function firstContent alternatives=[] otherwise={}]
-    [#list asArray(alternatives) as alternative]
-        [#if alternative?has_content]
-            [#return alternative]
-        [/#if]
-    [/#list]
-    [#return otherwise ]
-[/#function]
-
-[#-- Recursively concatenate sequence of non-empty strings with a separator --]
-[#function concatenate args separator]
-    [#local content = []]
-    [#list asFlattenedArray(args) as arg]
-        [#local argValue = arg!"ERROR_INVALID_ARG_TO_CONCATENATE"]
-        [#if argValue?is_hash]
-            [#switch separator]
-                [#case "X"]
-                    [#if (argValue.Core.Internal.IdExtensions)??]
-                        [#local argValue = concatenate(
-                                            argValue.Core.Internal.IdExtensions,
-                                            separator)]
-                    [#else]
-                        [#local argValue = argValue.Id!""]
-                    [/#if]
-                    [#break]
-                [#case "-"]
-                [#case "_"]
-                [#case "/"]
-                    [#if (argValue.Core.Internal.NameExtensions)??]
-                        [#local argValue = concatenate(
-                                            argValue.Core.Internal.NameExtensions,
-                                            separator)]
-                    [#else]
-                        [#local argValue = argValue.Name!""]
-                    [/#if]
-                    [#break]
-                [#default]
-                    [#local argValue = ""]
-                    [#break]
-            [/#switch]
-        [/#if]
-        [#if argValue?is_number]
-            [#local argValue = argValue?c]
-        [/#if]
-        [#if argValue?has_content]
-            [#local content +=
-                [
-                    argValue?remove_beginning(separator)?remove_ending(separator)
-                ]
-            ]
-        [/#if]
-    [/#list]
-    [#return content?join(separator)]
-[/#function]
-
 [#-- Check if a deployment unit occurs anywhere in provided object --]
 [#function deploymentRequired obj unit subObjects=true]
     [#if obj?is_hash]
@@ -244,19 +40,6 @@
             deploymentUnitSubset?lower_case?contains(subset),
             default
         )]
-[/#function]
-
-[#-- Calculate the closest power of 2 --]
-[#function getPowerOf2 value]
-    [#local exponent = -1]
-    [#list powersOf2 as powerOf2]
-        [#if powerOf2 <= value]
-            [#local exponent = powerOf2?index]
-        [#else]
-            [#break]
-        [/#if]
-    [/#list]
-    [#return exponent]
 [/#function]
 
 [#-- S3 settings/appdata storage  --]
@@ -512,10 +295,85 @@
     [#return {} ]
 [/#function]
 
-[#-- Formulate a composite object based on order precedence - lowest to highest  --]
-[#-- If no attributes are provided, simply combine the objects --]
+[#-- Qualification support --
+
+A qualifier allows the value used for a part of a JSON document to vary depending on
+the context. An example might be varying settings depending on the current environment.
+If no qualifier applies, then a "default" value applies.
+
+Central to the operation of qualification is the idea of a filter. A filter consists of one or 
+more values for each of one or more filter attributes. A "MatchBehaviour" is used to compare filters
+for a match.
+
+The current context is represented by the "Context Filter". It is managed dynamically during 
+template processing, and contains values such as the current tenant, product, environment etc.
+
+Each qualifier has a filter and a value. If the filter matches the Context Filter, 
+then the qualifier value is used to amend the default value which applies if no qualifier matches.
+More than one qualifier may match, in which case they are processed in the order they are defined,
+and the result of one match becomes the default for the next match.
+
+One way to think of filters is in terms of Venn Diagrams. Each filter defines a set of configuration 
+entities and if the sets overlap based on the FilterBehaviour, then the qualifier applies. (A similar
+logic is applied for links, where the link filter needs to define a set containing a single, 
+"component" configuration entity.)
+
+The way in which the default value is modified is controlled by the "DefaultBehaviour" of the 
+qualifier. Typically this means simple values will be replaced and for objects,
+the default value is prefix added to the qualifier value.
+
+One or more qualifiers can be added at any point in the JSON document via a reserved "Qualifiers"
+entity. Where the qualified entity is not itself an object, the desired entity is 
+wrapped in an object in order that qualifiers can be attached. In this case, the default value
+should be provided via a "Default" attribute at the same level as the "Qualifiers" attribute.
+
+There is a short form and a long form for qualifiers.
+
+In the short form, the "Qualifiers" entity is an object and each attribute represents a qualifier.
+The attribute name is the value of the filter "Any" attribute, and the MatchBehaviour is "any", 
+meaning the value of the Any attribute needs to match one value in any of the attributes of the 
+Context Filter. The qualifier value is the value of the attribute. Because object attribute 
+processing is not ordered, the short form does not provide fine control in the situation where 
+multiple qualifiers match - effectively they need to be independent.
+
+The short form is useful for simple situations such as setting variation based on environment.
+
+In the long form, the "Qualifiers" entity is an array of qualifier objects. Each qualifier object
+must have a "Filter" attribute and a "Value" attribute, as well as optional "MatchBehaviour" and 
+"DefaultBehaviour" attributes. By default, the MatchBehaviour is "onetoone", meaning a value of 
+each attribute of the qualifier filter must match a value of the same named attribute in the Context
+Filter.
+
+The long form gives full control over the qualification process, and allows ordering of qualifier
+application, depending on the DefaultBehaviour selected.
+
+Note that override (hierarchy) behaviour takes precedence over qualifier (at level variation)
+behaviour.
+
+--]
+
+
+[#assign contextFilter = {} ]
+
+[#function getObjectAndQualifiers object qualifiers...]
+    [#local result = [] ]
+    [#if object?is_hash]
+        [#local result += [object] ]
+        [#list asFlattenedArray(qualifiers) as qualifier]
+            [#if ((object.Qualifiers[qualifier])!"")?is_hash]
+                [#local result += [object.Qualifiers[qualifier]] ]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#return result ]
+[/#function]
+
+[#-- Formulate a composite object based on                                            --]
+[#--   * order precedence - lowest to highest, then                                   --]
+[#--   * qualifiers - less specific to more specific                                  --]
+[#-- If no attributes are provided, simply combine the qualified objects              --]
 [#-- It is also possible to define an attribute with a name of "*" which will trigger --]
-[#-- the combining of the objects in addition to any attributes already created --]
+[#-- the combining of the objects in addition to any attributes already created       --]
 [#function getCompositeObject attributes=[] objects...]
 
     [#-- Ignore any candidate that is not a hash --]
@@ -534,7 +392,7 @@
             [#local normalisedAttribute =
                 {
                     "Names" : asArray(attribute),
-                    "Types" : ["any"],
+                    "Types" : [ANY_TYPE],
                     "Mandatory" : false,
                     "DefaultBehaviour" : "ignore",
                     "DefaultProvided" : false,
@@ -556,7 +414,7 @@
                 [#local normalisedAttribute =
                     {
                         "Names" : asArray(names),
-                        "Types" : asArray(attribute.Types!attribute.Type!"any"),
+                        "Types" : asArray(attribute.Types!attribute.Type!ANY_TYPE),
                         "Mandatory" : attribute.Mandatory!false,
                         "DefaultBehaviour" : attribute.DefaultBehaviour!"ignore",
                         "DefaultProvided" : attribute.Default??,
@@ -576,7 +434,7 @@
                 [
                     {
                         "Names" : ["Enabled"],
-                        "Types" : ["boolean"],
+                        "Types" : [BOOLEAN_TYPE],
                         "Mandatory" : false,
                         "DefaultBehaviour" : "ignore",
                         "DefaultProvided" : true,
@@ -724,32 +582,9 @@
             [#else]
                 [#-- Combine any provided and/or default values --]
                 [#if providedName?has_content ]
-                    [#local typeMatch = false ]
                     [#-- Perform type conversion and type checking --]
-                    [#list attribute.Types as attributeType]
-                        [#switch attributeType?lower_case]
-                            [#case "object"]
-                                [#local typeMatch = typeMatch || providedValue?is_hash]
-                                [#break]
-                            [#case "array"]
-                                [#local typeMatch = typeMatch || providedValue?is_sequence]
-                                [#break]
-                            [#case "string"]
-                                [#local typeMatch = typeMatch || providedValue?is_string]
-                                [#break]
-                            [#case "number"]
-                                [#local typeMatch = typeMatch || providedValue?is_number]
-                                [#break]
-                            [#case "boolean"]
-                                [#local typeMatch = typeMatch || providedValue?is_boolean]
-                                [#break]
-                            [#case "any"]
-                            [#default]
-                                [#local typeMatch = true ]
-                                [#break]
-                        [/#switch]
-                    [/#list]
-                    [#if !typeMatch ]
+                    [#assign providedValue = asType(providedValue, attribute.Types) ]
+                    [#if !isOfType(providedValue, attribute.Types) ]
                         [@cfException
                           mode=listMode
                           description="Attribute is not of the correct type"
@@ -761,17 +596,21 @@
                                 "Candidate" : providedCandidate
                             } /]
                     [#else]
-                        [#if attribute.Values?has_content && (!(attribute.Values?seq_contains(providedValue))) ]
-                        [@cfException
-                          mode=listMode
-                          description="Attribute value is not one of the expected values"
-                          context=
-                            {
-                                "Name" : providedName,
-                                "Value" : providedValue,
-                                "ExpectedValues" : attribute.Values,
-                                "Candidate" : providedCandidate
-                            } /]
+                        [#if attribute.Values?has_content]
+                            [#list asArray(providedValue) as value]
+                                [#if !(attribute.Values?seq_contains(value)) ]
+                                    [@cfException
+                                      mode=listMode
+                                      description="Attribute value is not one of the expected values"
+                                      context=
+                                        {
+                                            "Name" : providedName,
+                                            "Value" : value,
+                                            "ExpectedValues" : attribute.Values,
+                                            "Candidate" : providedCandidate
+                                        } /]
+                                [/#if]
+                            [/#list]
                         [/#if]
                     [/#if]
 
@@ -812,19 +651,6 @@
     [#list candidates as object]
         [#local result += object ]
     [/#list]
-    [#return result ]
-[/#function]
-
-[#function getObjectAndQualifiers object qualifiers...]
-    [#local result = [] ]
-    [#if object?is_hash]
-        [#local result += [object] ]
-        [#list asFlattenedArray(qualifiers) as qualifier]
-            [#if ((object.Qualifiers[qualifier])!"")?is_hash]
-                [#local result += [object.Qualifiers[qualifier]] ]
-            [/#if]
-        [/#list]
-    [/#if]
     [#return result ]
 [/#function]
 
@@ -1774,7 +1600,7 @@
             [/#if]
 
             [#-- Match needs to be exact                            --]
-            [#-- If occurrences don't match, overrides can be added --]
+            [#-- If occurrences do not match, overrides can be added --]
             [#-- to the link.                                       --]
             [#if (core.Instance.Id != instanceToMatch) ||
                 (core.Version.Id != versionToMatch) ]
@@ -2070,134 +1896,6 @@
     [#return (links[linkKey])?? ]
 
 [/#function]
-
-[#-- CIDRs --]
-[#function asCIDR value mask]
-    [#local remainder = value]
-    [#local result = []]
-    [#list 0..3 as index]
-        [#local result = [remainder % 256] + result]
-        [#local remainder = (remainder / 256)?int ]
-    [/#list]
-    [#return [result?join("."), mask]?join("/")]
-[/#function]
-
-[#function analyzeCIDR cidr ]
-    [#local re = cidr?matches(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/(\d{1,2})") ]
-    [#if !re ]
-        [#return {}]
-    [/#if]
-
-    [#local ip = re?groups[1] ]
-    [#local mask = re?groups[2]?number ]
-    [#local parts = re?groups[1]?split(".") ]
-    [#local partMasks = [] ]
-    [#list 0..3 as index]
-        [#local partMask = mask - 8*index ]
-        [#if partMask gte 8]
-            [#local partMask = 8 ]
-        [/#if]
-        [#if partMask lte 0]
-            [#local partMask = 0 ]
-        [/#if]
-        [#local partMasks += [partMask] ]
-    [/#list]
-
-    [#local base = [] ]
-    [#list 0..3 as index]
-        [#local partBits = partMasks[index] ]
-        [#local partValue = parts[index]?number ]
-        [#local baseValue = 0]
-        [#list 7..0 as bit]
-            [#if partBits lte 0]
-                [#break]
-            [/#if]
-            [#if partValue gte powersOf2[bit] ]
-                [#local baseValue += powersOf2[bit] ]
-                [#local partValue -= powersOf2[bit] ]
-            [/#if]
-            [#local partBits -= 1]
-        [/#list]
-        [#local base += [baseValue] ]
-    [/#list]
-    [#local offset = base[3] + 256*(base[2] + 256*(base[1] + 256*base[0])) ]
-
-    [#return
-        {
-            "IP" : ip,
-            "Mask" : mask,
-            "Parts" : parts,
-            "PartMasks" : partMasks,
-            "Base" : base,
-            "Offset" : offset
-        }
-    ]
-[/#function]
-
-[#function expandCIDR cidrs... ]
-    [#local boundaries=[8,16,24,32] ]
-    [#local boundaryOffsets=[24,16,8,0] ]
-    [#local result = [] ]
-    [#list asFlattenedArray(cidrs) as cidr]
-
-        [#local analyzedCIDR = analyzeCIDR(cidr) ]
-        [@cfDebug listMode analyzedCIDR false /]
-
-        [#if !analyzedCIDR?has_content]
-            [#continue]
-        [/#if]
-        [#list 0..boundaries?size-1 as index]
-            [#local boundary = boundaries[index] ]
-            [#if boundary == analyzedCIDR.Mask]
-                [#local result += [cidr] ]
-                [#break]
-            [/#if]
-            [#if boundary > analyzedCIDR.Mask]
-                [#local nextCIDR = analyzedCIDR.Offset ]
-                [#list 0..powersOf2[boundary - analyzedCIDR.Mask]-1 as increment]
-                    [#local result += [asCIDR(nextCIDR, boundary)] ]
-                    [#local nextCIDR += powersOf2[boundaryOffsets[index]] ]
-                [/#list]
-                [#break]
-            [/#if]
-        [/#list]
-    [/#list]
-    [#return result]
-[/#function]
-
-[#-- Output object as JSON --]
-[#function getJSON obj escaped=false]
-    [#local result = ""]
-    [#if obj?is_hash]
-        [#local result += "{"]
-        [#list obj as key,value]
-            [#local result += "\"" + key + "\" : " + getJSON(value)]
-            [#sep][#local result += ","][/#sep]
-        [/#list]
-        [#local result += "}"]
-    [#else]
-        [#if obj?is_sequence]
-            [#local result += "["]
-            [#list obj as entry]
-                [#local result += getJSON(entry)]
-                [#sep][#local result += ","][/#sep]
-            [/#list]
-            [#local result += "]"]
-        [#else]
-            [#if obj?is_string]
-                [#local result = "\"" + obj?json_string + "\""]
-            [#else]
-                [#local result = obj?c]
-            [/#if]
-        [/#if]
-    [/#if]
-    [#return escaped?then(result?json_string, result) ]
-[/#function]
-
-[#-- Utility functions --]
-
-[#macro toJSON obj escaped=false]
-    ${getJSON(obj, escaped)}[/#macro]
 
 [#-- Prologue/epilogue script creation --]
 

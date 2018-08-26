@@ -14,7 +14,7 @@
     containerChildrenConfiguration = [
         {
             "Name" : "Cpu",
-            "Type" : "number",
+            "Type" : NUMBER_TYPE,
             "Default" : ""
         },
         {
@@ -24,38 +24,38 @@
         },
         {
             "Name" : "LocalLogging",
-            "Type" : "boolean",
+            "Type" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
             "Name" : "LogDriver",
-            "Type" : "string",
+            "Type" : STRING_TYPE,
             "Values" : ["awslogs", "json-file", "fluentd"],
             "Default" : "awslogs"
         },
         {
             "Name" : "ContainerLogGroup",
-            "Type" : "boolean",
+            "Type" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
             "Name" : "RunCapabilities",
-            "Type" : "array",
+            "Type" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         },
         {
             "Name" : "Privileged",
-            "Type" : "boolean",
+            "Type" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
             "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
-            "Types" : "number",
+            "Types" : NUMBER_TYPE,
             "Description" : "Set to 0 to not set a maximum"
         },
         {
             "Name" : ["MemoryReservation", "Memory", "ReservedMemory"],
-            "Type" : "number",
+            "Type" : NUMBER_TYPE,
             "Mandatory" : true
         },
         {
@@ -65,7 +65,7 @@
                 "Container",
                 {
                     "Name" : "DynamicHostPort",
-                    "Type" : "boolean",
+                    "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 }
                 {
@@ -74,19 +74,19 @@
                 },
                 {
                     "Name" : "IPAddressGroups",
-                    "Type" : "array",
+                    "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
             ]
         },
         {
             "Name" : "Version",
-            "Type" : "string",
+            "Type" : STRING_TYPE,
             "Default" : ""
         },
         {
             "Name" : "ContainerNetworkLinks",
-            "Type" : "array",
+            "Type" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         }
     ]
@@ -98,18 +98,18 @@
             "Attributes" : [
                 {
                     "Name" : "FixedIP",
-                    "Type" : "boolean",
+                    "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
                     "Name" : "LogDriver",
-                    "Type" : "string",
+                    "Type" : STRING_TYPE,
                     "Values" : ["awslogs", "json-file", "fluentd"],
                     "Default" : "awslogs"
                 },
                 {
                     "Name" : "ClusterLogGroup",
-                    "Type" : "boolean",
+                    "Type" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
@@ -123,11 +123,11 @@
                     "Children" : [
                         {
                             "Name" : "UserName",
-                            "Type" : "string"
+                            "Type" : STRING_TYPE
                         },
                         {
                             "Name" : "UID",
-                            "Type" : "string",
+                            "Type" : STRING_TYPE,
                             "Mandatory" : true
                         }
                     ]
@@ -154,12 +154,12 @@
             },
             {
                 "Name" : "DesiredCount",
-                "Type" : "number",
+                "Type" : NUMBER_TYPE,
                 "Default" : -1
             },
             {
                 "Name" : "UseTaskRole",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
@@ -167,40 +167,40 @@
                 "Children" : [
                     {
                         "Name" : "Decrypt",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AsFile",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AppData",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AppPublic",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
             },
             {
                 "Name" : "TaskLogGroup",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Name" : "NetworkMode",
-                "Type" : "string",
+                "Type" : STRING_TYPE,
                 "Values" : ["none", "bridge", "awsvpc", "host"],
                 "Default" : ""
             },
             {
                 "Name" : "ContainerNetworkLinks",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             }
         ],
@@ -212,7 +212,7 @@
             },
             {
                 "Name" : "UseTaskRole",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
@@ -220,34 +220,34 @@
                 "Children" : [
                     {
                         "Name" : "Decrypt",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AsFile",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AppData",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     },
                     {
                         "Name" : "AppPublic",
-                        "Type" : "boolean",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]
             },
             {
                 "Name" : "TaskLogGroup",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : true
             },
             {
                 "Name" : "FixedName",
-                "Type" : "boolean",
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             }
         ]
