@@ -34,7 +34,7 @@
                     },
                     {
                         "Name" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE",
+                        "Type" : BOOLEAN_TYPE,
                         "Default" : true
                     }
                 ]

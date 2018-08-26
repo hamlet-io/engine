@@ -65,6 +65,8 @@
 
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ecsRoleId)]
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
+
             [@createRole
                 mode=listMode
                 id=ecsRoleId
@@ -85,10 +87,17 @@
                                 s3ListPermission(operationsBucket) +
                                 s3WritePermission(operationsBucket, getSegmentBackupsFilePrefix()) +
                                 s3WritePermission(operationsBucket, "DOCKERLogs") +
-                                cwLogsProducePermission(ecsLogGroupName) +
-                                context.Policy,
+                                cwLogsProducePermission(ecsLogGroupName),
                             "docker")
-                    ]
+                    ] +
+                    valueIfContent(
+                        [getPolicyDocument(context.Policy, "fragment")],
+                        context.Policy,
+                        []) +
+                    valueIfContent(
+                        [getPolicyDocument(linkPolicies, "links")],
+                        linkPolicies,
+                        [])
             /]
 
             [@createRole

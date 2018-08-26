@@ -41,7 +41,7 @@
             },
             {
                 "Name" : "Encrypted",
-                "Type" : BOOLEAN_TYPE
+                "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },
             {
