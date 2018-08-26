@@ -90,14 +90,12 @@
                                 cwLogsProducePermission(ecsLogGroupName),
                             "docker")
                     ] +
-                    valueIfContent(
+                    arrayIfContent(
                         [getPolicyDocument(context.Policy, "fragment")],
-                        context.Policy,
-                        []) +
-                    valueIfContent(
+                        context.Policy) +
+                    arrayIfContent(
                         [getPolicyDocument(linkPolicies, "links")],
-                        linkPolicies,
-                        [])
+                        linkPolicies)
             /]
 
             [@createRole
