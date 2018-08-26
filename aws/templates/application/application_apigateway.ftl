@@ -245,6 +245,7 @@
         [/#if]
 
         [#if deploymentSubsetRequired("apigateway", true)]
+            [#-- Assume extended swagger specification is in the ops bucket --]
             [@cfResource
                 mode=listMode
                 id=apiId
@@ -252,17 +253,12 @@
                 properties=
                     {
                         "BodyS3Location" : {
-                            "Bucket" : getRegistryEndPoint("swagger", occurrence),
-                            "Key" : formatRelativePath(
-                                        getRegistryPrefix("swagger", occurrence),
-                                        productName,
-                                        getOccurrenceBuildUnit(occurrence),
-                                        getOccurrenceBuildReference(occurrence),
-                                        "swagger-" +
-                                            region +
-                                            "-" +
-                                            accountObject.AWSId +
-                                            ".json")
+                            "Bucket" : operationsBucket,
+                            "Key" :
+                                formatRelativePath(
+                                    getSettingsFilePrefix(occurrence),
+                                    "config",
+                                    "swagger_" + runId + ".json")
                         },
                         "Name" : apiName
                     } +
@@ -557,6 +553,64 @@
                     ]
                 /]
             [/#if]
+        [/#if]
+
+        [#if deploymentSubsetRequired("pregeneration", false)]
+            [@cfScript
+                mode=listMode
+                content=
+                    getBuildScript(
+                        "swaggerFiles",
+                        regionId,
+                        "swagger",
+                        productName,
+                        occurrence,
+                        "swagger.zip"
+                    ) +
+                    [
+                        "swagger_file_dir=\"$\{tmpdir}/swagger_files\" ",
+                        "swagger_file=\"$\{swagger_file_dir}/swagger.json\" ",
+                        "legacy_swagger_file=\"$\{swagger_file_dir}/swagger-" + region + "-" + accountObject.AWSId + ".json\"  ",
+                        "#",
+                        "mkdir -p \"$\{swagger_file_dir}\" ",
+                        "unzip \"$\{swaggerFiles[0]}\" -d \"$\{swagger_file_dir}\" ",
+                        "#",
+                        "[[ -f \"$\{legacy_swagger_file}\" ]] && swagger_definition=\"$\{legacy_swagger_file}\" ",
+                        "[[ -f \"$\{swagger_file}\"        ]] && swagger_definition=\"$\{swagger_file}\" ",
+                        "#",
+                        "info \"Adding $\{swagger_definition} to $\{definition_file} ... \" ",
+                        "[[ ! -f \"$\{definition_file}\" ]] && echo \"{}\" > \"$\{definition_file}\"",
+                        "#",
+                        "addJSONAncestorObjects \"$\{swagger_definition}\" \"" + core.Id + "\" > \"$\{swagger_file_dir}/definition.json\" ",
+                        "jqMerge \"$\{definition_file}\" \"$\{swagger_file_dir}/definition.json\" > \"$\{swagger_file_dir}/merged_definition.json\" ",
+                        "cp \"$\{swagger_file_dir}/merged_definition.json\" \"$\{definition_file}\" "
+                    ]
+            /]
+        [/#if]
+        [#if definition?? && deploymentSubsetRequired("config", false)]
+            [@cfConfig
+                mode=listMode
+                content=definition?eval[core.Id]!{}
+            /]
+        [/#if]
+        [#if deploymentSubsetRequired("prologue", false)]
+            [#-- Copy the final swagger definition to the ops bucket --]
+            [@cfScript
+                mode=listMode
+                content=
+                    getLocalFileScript(
+                        "configFiles",
+                        "$\{CONFIG}",
+                        "swagger_" + runId + ".json"
+                    ) +
+                    syncFilesToBucketScript(
+                        "configFiles",
+                        regionId,
+                        operationsBucket,
+                        formatRelativePath(
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                            "config"))
+            /]
         [/#if]
 
         [#switch listMode]

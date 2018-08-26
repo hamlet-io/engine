@@ -126,8 +126,8 @@ function process_template() {
   local template_composites=("POLICY" "ID" "NAME" "RESOURCE")
 
   # Define the possible passes
-  local pass_list=("prologue" "template" "epilogue" "cli" "config")
-  
+  local pass_list=("pregeneration" "prologue" "template" "epilogue" "cli" "config")
+
   # Initialise the components of the pass filenames
   declare -A pass_level_prefix
   declare -A pass_deployment_unit_prefix
@@ -152,6 +152,7 @@ function process_template() {
 
   done
   pass_suffix=(
+    ["pregeneration"]="pregeneration.sh"
     ["prologue"]="prologue.sh"
     ["template"]="template.json"
     ["epilogue"]="epilogue.sh"
@@ -164,7 +165,7 @@ function process_template() {
   pass_description["template"]="cloud formation"
 
   # Default passes
-  local passes=("prologue" "template" "epilogue")
+  local passes=("pregeneration" "prologue" "template" "epilogue")
 
   local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
 
@@ -185,7 +186,7 @@ function process_template() {
       pass_description["template"]="blueprint"
       pass_suffix["template"]=".json"
       ;;
-    
+
     buildblueprint)
       # this is expected to run from an automation context
       cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
@@ -334,6 +335,12 @@ function process_template() {
     local file_description="${pass_description[${pass}]}"
     info "Generating ${file_description} file ...\n"
 
+    # Add the definition file if present for the config pass
+    definition_file="${cf_dir}/${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_account_prefix[${pass}]}${pass_region_prefix[${pass}]}definition.json"
+    if [[ ("${pass}" == "config") && (-s "${definition_file}") ]]; then
+      pass_args+=("-v" "definition=${definition_file}")
+    fi
+
     for pass_alternative in ${pass_alternatives["${pass}"]}; do
 
       [[ "${pass_alternative}" == "primary" ]] && pass_alternative=""
@@ -380,6 +387,11 @@ function process_template() {
         sh)
           # Strip out the whitespace added by freemarker
           sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
+
+          if [[ "${pass}" == "pregeneration" ]]; then
+            info "Processing pregeneration script ..."
+            . "${output_file}"
+          fi
           ;;
 
         json)
@@ -432,6 +444,10 @@ function process_template() {
 function main() {
 
   options "$@" || return $?
+
+  pushTempDir "create_template_XXXX"
+  tmp_dir="$(getTopTempDir)"
+  tmpdir="${tmp_dir}"
 
   case "${LEVEL}" in
     blueprint-disabled)
