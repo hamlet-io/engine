@@ -494,7 +494,7 @@ behaviour.
                     description="Mandatory attribute missing"
                     context=
                         {
-                            "ExpectedNames" : attributeNames,
+                            "ExpectedNames" : attribute.Names,
                             "CandidateObjects" : objects
                         }
                 /]

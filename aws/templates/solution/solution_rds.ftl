@@ -266,6 +266,7 @@
                 [#break]
 
                 [#case "replace2"]
+                    [#assign multiAZ = false]
                     [#if rdsManualSnapshot?has_content ]
                         [#assign snapshotId = rdsManualSnapshot ]
                     [#else]
@@ -342,11 +343,14 @@
                         "\"$\{password_pseudo_stack_file}\"" + " " +
                         "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" || return $?",
                         "info \"Generating URL... \"",
+                        "rds_hostname=\"$(get_rds_hostname" + 
+                        " \"" + region + "\" " +
+                        " \"" + rdsFullName + "\" || return $?)\"",
                         "rds_url=\"$(get_rds_url" +
                         " \"" + engine + "\" " +
                         " \"" + rdsUsername + "\" " +
                         " \"$\{master_password}\" " +
-                        " \"" + rdsFQDN + "\" " +
+                        " \"$\{rds_hostname}\" " +
                         " \"" + port?c + "\" " +
                         " \"" + rdsDatabaseName + "\" || return $?)\"",
                         "encrypted_rds_url=\"$(encrypt_kms_string" +
