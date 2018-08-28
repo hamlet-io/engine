@@ -100,6 +100,42 @@ function options() {
   return 0
 }
 
+function get_swagger_definition_file() {
+  local swagger_zip="$1"; shift
+  local definition_file="$1"; shift
+  local id="$1"; shift
+  local region="$1"; shift
+  local account="$1"; shift
+
+  local swagger_file_dir="${tmpdir}/swagger_files"
+  local swagger_file="${swagger_file_dir}/swagger.json"
+  local legacy_swagger_file="${swagger_file_dir}/swagger-${region}-${account}.json"
+  local swagger_definition=
+
+  mkdir -p "${swagger_file_dir}"
+
+  [[ -s "${swagger_zip}" ]] ||
+      { fatal "Unable to locate swagger zip file ${swagger_zip}"; return 1; }
+
+  unzip "${swagger_zip}" -d "${swagger_file_dir}"  ||
+      { fatal "Unable to unzip swagger zip file ${swagger_zip}"; return 1; }
+
+  [[ -f "${legacy_swagger_file}" ]] && swagger_definition="${legacy_swagger_file}"
+  [[ -f "${swagger_file}"        ]] && swagger_definition="${swagger_file}"
+
+  [[ -n "${swagger_definition}" ]] ||
+      { fatal "Unable to locate swagger file in ${swagger_zip}"; return 1; }
+
+  info "Adding ${swagger_definition} to ${definition_file} ..."
+  [[ -f "${definition_file}" ]] || echo "{}" > "${definition_file}"
+
+  addJSONAncestorObjects "${swagger_definition}" "${id}" > "${swagger_file_dir}/definition.json" || return 1
+  jqMerge "${definition_file}" "${swagger_file_dir}/definition.json" > "${swagger_file_dir}/merged_definition.json" || return 1
+  cp "${swagger_file_dir}/merged_definition.json" "${definition_file}" || return 1
+
+  return 0
+}
+
 function process_template() {
   local level="${1,,}"; shift
   local deployment_unit="${1,,}"; shift
