@@ -22,6 +22,12 @@
                 "Name" : "Prefix",
                 "Type" : STRING_TYPE,
                 "Default" : ""
+            },
+            {
+                "Name" : "BuildEnvironment",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : [],
+                "Mandatory" : true
             }
         ]
     }]
@@ -64,54 +70,56 @@
             [#break]
     [/#switch]
 
-    [#assign linkCount = 0 ]
-    [#list solution.Links?values as link]
-        [#if link?is_hash]
-            [#assign linkCount += 1 ]
-            [#if linkCount > 1 ]
-                [@cfException
-                    mode=listMode
-                    description="A data set can only have one data source"
-                    context=subOccurrence
-                /]
-                [#continue]
-            [/#if]
+    [#if solution.BuildEnvironment?seq_contains( environmentObject.Name ) ]
+        [#assign linkCount = 0 ]
+        [#list solution.Links?values as link]
+            [#if link?is_hash]
+                [#assign linkCount += 1 ]
+                [#if linkCount > 1 ]
+                    [@cfException
+                        mode=listMode
+                        description="A data set can only have one data source"
+                        context=subOccurrence
+                    /]
+                    [#continue]
+                [/#if]
 
-            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
-            [@cfDebug listMode linkTarget false /]
+                [@cfDebug listMode linkTarget false /]
 
-            [#if !linkTarget?has_content]
-                [#continue]
-            [/#if]
+                [#if !linkTarget?has_content]
+                    [#continue]
+                [/#if]
 
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-            
-            [#local attributes += linkTargetAttributes]
-
-            [#switch linkTargetCore.Type]
-                [#case S3_COMPONENT_TYPE ]
-                    [#local attributes += { 
-                        "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + datasetPrefix
-                    }]
-                    [#break]
-                [#case RDS_COMPONENT_TYPE ]
-                    [#local masterDataLocation = formatName( core.FullName, solution.Prefix )]
-                    [#local attributes += { 
-                        "DATASET_MASTER_LOCATION" : formatName( "dataset", core.FullName, solution.Prefix)
-                    }]
-                    [#break]
+                [#assign linkTargetCore = linkTarget.Core ]
+                [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                [#assign linkTargetResources = linkTarget.State.Resources ]
+                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
                 
-                [#default]
-                    [#local attributes += {
-                        "DATASET_ENGINE" : "COTException: DataSet Support not available for " + linkTargetCore.Type
-                    }]
-            [/#switch]
-        [/#if]
-    [/#list]
+                [#local attributes += linkTargetAttributes]
+
+                [#switch linkTargetCore.Type]
+                    [#case S3_COMPONENT_TYPE ]
+                        [#local attributes += { 
+                            "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + datasetPrefix
+                        }]
+                        [#break]
+                    [#case RDS_COMPONENT_TYPE ]
+                        [#local masterDataLocation = formatName( core.FullName, solution.Prefix )]
+                        [#local attributes += { 
+                            "DATASET_MASTER_LOCATION" : formatName( "dataset", core.FullName, solution.Prefix)
+                        }]
+                        [#break]
+                    
+                    [#default]
+                        [#local attributes += {
+                            "DATASET_ENGINE" : "COTException: DataSet Support not available for " + linkTargetCore.Type
+                        }]
+                [/#switch]
+            [/#if]
+        [/#list]
+    [/#if]
 
     [#return
         {
