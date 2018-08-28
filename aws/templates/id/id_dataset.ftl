@@ -46,22 +46,27 @@
 
     [#switch solution.Engine ]
         [#case "s3" ]
+            [#local registryBucket = getRegistryEndPoint("dataset", occurrence) ]
+            [#local registryPrefix = formatAbsolutePath(
+                                                getRegistryPrefix("dataset", occurrence),
+                                                productName,
+                                                getOccurrenceBuildUnit(occurrence))]
             [#local attributes += {
-                "DATASET_REGISTRY" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
+                "DATASET_REGISTRY" : "s3://" + registryBucket + 
+                                                registryPrefix,
+                "DATASET_LOCATION" : "s3://" + registryBucket + 
                                             formatAbsolutePath(
-                                                getRegistryPrefix("dataset", occurrence),
-                                                productName,
-                                                getOccurrenceBuildUnit(occurrence)
-                                            ),
-                "DATASET_LOCATION" : "s3://" + getRegistryEndPoint("dataset", occurrence) + 
-                                            formatAbsolutePath(
-                                                getRegistryPrefix("dataset", occurrence),
-                                                productName,
-                                                getOccurrenceBuildUnit(occurrence),
-                                                buildReference
-                                            )
-            }]
+                                                registryPrefix,
+                                                buildReference)
+                }]
+
+            [#local consumePolicy = 
+                    s3ConsumePermission( 
+                        registryBucket,
+                        registryPrefix)]
+
             [#break]
+
         [#case "rdsSnapshot" ]
             [#local attributes += {
                 "DATASET_REGISTRY" : formatName( "dataset",  core.FullName ),
@@ -104,6 +109,10 @@
                         [#local attributes += { 
                             "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + datasetPrefix
                         }]
+                        [#local producePolicy = s3ProducePermission(
+                                                    linkTargetAttributes.NAME,
+                                                    datasetPrefix
+                            )]
                         [#break]
                     [#case RDS_COMPONENT_TYPE ]
                         [#local masterDataLocation = formatName( core.FullName, solution.Prefix )]
@@ -128,7 +137,11 @@
             "Attributes" : attributes,
             "Roles" : {
                 "Inbound" : {},
-                "Outbound" : {}
+                "Outbound" : {
+                    "default" : "consume",
+                    "produce" : producePolicy!{},
+                    "consume" : consumePolicy!{}
+                }
             }
         }
     ]
