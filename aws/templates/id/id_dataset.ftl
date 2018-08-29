@@ -43,24 +43,27 @@
             "DATASET_ENGINE" : solution.Engine,
             "DATASET_PREFIX" : datasetPrefix
     }]
+    [#local producePolicy = []]
+    [#local consumePolicy = []]
 
     [#switch solution.Engine ]
         [#case "s3" ]
             [#local registryBucket = getRegistryEndPoint("dataset", occurrence) ]
-            [#local registryPrefix = formatAbsolutePath(
+            [#local registryPrefix = formatRelativePath(
                                                 getRegistryPrefix("dataset", occurrence),
                                                 productName,
                                                 getOccurrenceBuildUnit(occurrence))]
             [#local attributes += {
                 "DATASET_REGISTRY" : "s3://" + registryBucket + 
-                                                registryPrefix,
+                                            formatAbsolutePath(
+                                                registryPrefix),
                 "DATASET_LOCATION" : "s3://" + registryBucket + 
                                             formatAbsolutePath(
                                                 registryPrefix,
                                                 buildReference)
                 }]
 
-            [#local consumePolicy = 
+            [#local consumePolicy +=
                     s3ConsumePermission( 
                         registryBucket,
                         registryPrefix)]
@@ -109,9 +112,9 @@
                         [#local attributes += { 
                             "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + datasetPrefix
                         }]
-                        [#local producePolicy = s3ProducePermission(
+                        [#local producePolicy += s3ProducePermission(
                                                     linkTargetAttributes.NAME,
-                                                    datasetPrefix
+                                                    datasetPrefix 
                             )]
                         [#break]
                     [#case RDS_COMPONENT_TYPE ]
@@ -139,8 +142,8 @@
                 "Inbound" : {},
                 "Outbound" : {
                     "default" : "consume",
-                    "produce" : producePolicy!{},
-                    "consume" : consumePolicy!{}
+                    "produce" : producePolicy,
+                    "consume" : consumePolicy
                 }
             }
         }

@@ -189,6 +189,8 @@
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ec2RoleId)]
 
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
+
             [@createRole
                 mode=listMode
                 id=ec2RoleId
@@ -209,7 +211,11 @@
                                 lbRegisterTargetPermission(),
                                 "loadbalancing")
                         ],
-                        [])
+                        []
+                    ) + 
+                    arrayIfContent(
+                        [getPolicyDocument(linkPolicies, "links")],
+                        linkPolicies)
             /]
         [/#if]
 
