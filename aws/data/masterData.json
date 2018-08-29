@@ -990,10 +990,12 @@
   "Product" : {
     "Builds" : { 
       "Data" : { 
-        "Environment" : "int"}, 
+        "Environment" : "int"
+      }, 
       "Code" : {
-        "Environment" : "int"} 
+        "Environment" : "int"
       } 
+    } 
   },
   "Ports": {
     "couchdb": {
