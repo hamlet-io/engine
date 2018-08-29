@@ -22,12 +22,6 @@
                 "Name" : "Prefix",
                 "Type" : STRING_TYPE,
                 "Default" : ""
-            },
-            {
-                "Name" : "BuildEnvironment",
-                "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : [],
-                "Mandatory" : true
             }
         ]
     }]
