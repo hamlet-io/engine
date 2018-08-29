@@ -1231,6 +1231,21 @@ function set_rds_master_password() {
   aws --region "${region}" rds modify-db-instance --db-instance-identifier ${db_identifier} --master-user-password "${password}" 1> /dev/null
 }
 
+function get_rds_hostname() {
+  local region="$1"; shift
+  local db_identifier="$1"; shift
+
+  hostname="$(aws --region "${region}" rds describe-db-instances --db-instance-identifier ${db_identifier} --query 'DBInstances[0].Endpoint.Address' --output text)"
+
+  if [[ "${hostname}" != "None" ]]; then
+    echo "${hostname}"
+    return 0
+  else
+    fatal "hostname not found for rds instance ${db_identifier}"
+    return 255
+  fi
+}
+
 function check_rds_snapshot_username() {
   local region="$1"; shift
   local db_snapshot_identifier="$1"; shift

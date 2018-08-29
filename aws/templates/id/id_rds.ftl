@@ -72,8 +72,8 @@
             },
             {
                 "Name" : "Size",
-                "Type" : STRING_TYPE,
-                "Default" : "20"
+                "Type" : NUMBER_TYPE,
+                "Default" : 20
             },
             {
                 "Name" : "Backup",
