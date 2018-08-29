@@ -987,6 +987,14 @@
       }
     }
   },
+  "Product" : {
+    "Builds" : { 
+      "Data" : { 
+        "Environment" : "int"}, 
+      "Code" : {
+        "Environment" : "int"} 
+      } 
+  },
   "Ports": {
     "couchdb": {
       "Port": 5984,

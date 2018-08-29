@@ -46,6 +46,8 @@
     [#local producePolicy = []]
     [#local consumePolicy = []]
 
+    [#local codeBuildEnv = productObject.Builds.Data.Environment ]
+
     [#switch solution.Engine ]
         [#case "s3" ]
             [#local registryBucket = getRegistryEndPoint("dataset", occurrence) ]
@@ -78,7 +80,7 @@
             [#break]
     [/#switch]
 
-    [#if solution.BuildEnvironment?seq_contains( environmentObject.Name ) ]
+    [#if codeBuildEnv == environmentObject.Id ]
         [#assign linkCount = 0 ]
         [#list solution.Links?values as link]
             [#if link?is_hash]
