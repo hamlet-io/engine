@@ -1,0 +1,509 @@
+[#ftl]
+
+[#assign defaultGatewayErrorMap =
+    {
+        "ACCESS_DENIED": {
+            "Status" : 403,
+            "Code" : "gen01",
+            "Title" : "Authorisation Failure",
+            "Action" : "Please contact the API provider"
+        },
+        "API_CONFIGURATION_ERROR": {
+            "Status" : 500,
+            "Code" : "gen02",
+            "Title" : "Internal API failure",
+            "Action" : "Please contact the API provider"
+        },
+        "AUTHORIZER_CONFIGURATION_ERROR": {
+            "Status" : 500,
+            "Code" : "gen03",
+            "Title" : "Internal API failure",
+            "Action" : "Please contact the API provider"
+        },
+        "AUTHORIZER_FAILURE": {
+            "Status" : 500,
+            "Code" : "gen04",
+            "Title" : "Internal API failure",
+            "Action" : "Please contact the API provider"
+        },
+        "BAD_REQUEST_PARAMETERS": {
+            "Status" : 400,
+            "Code" : "gen05",
+            "Title" : "Parameters not valid",
+            "Action" : "Please check the API documentation"
+        },
+        "BAD_REQUEST_BODY": {
+            "Status" : 400,
+            "Code" : "gen06",
+            "Title" : "Request body not valid",
+            "Action" : "Please check the API documentation"
+        },
+        "EXPIRED_TOKEN": {
+            "Status" : 401,
+            "Code" : "gen07",
+            "Title" : "Expired Token",
+            "Action" : "Please re-authenticate"
+        },
+        "INTEGRATION_FAILURE": {
+            "Status" : 500,
+            "Code" : "gen08",
+            "Title" : "Internal API failure",
+            "Action" : "Please contact the API provider"
+        },
+        "INTEGRATION_TIMEOUT": {
+            "Status" : 500,
+            "Code" : "gen09",
+            "Title" : "Internal API failure",
+            "Action" : "Please contact the API provider"
+        },
+        "INVALID_API_KEY": {
+            "Status" : 401,
+            "Code" : "gen10",
+            "Title" : "Invalid API Key",
+            "Action" : "Please contact the API provider"
+        },
+        "INVALID_SIGNATURE": {
+            "Status" : 401,
+            "Code" : "gen11",
+            "Title" : "Invalid signature",
+            "Action" : "Please check signature implementation"
+        },
+        "MISSING_AUTHENTICATION_TOKEN": {
+            "Status" : 401,
+            "Code" : "gen12",
+            "Title" : "Authentication Failure",
+            "Action" : "Please check the API specification to ensure verb/path are valid"
+        },
+        "QUOTA_EXCEEDED": {
+            "Status" : 429,
+            "Code" : "gen13",
+            "Title" : "Quota exceeded",
+            "Action" : "Please contact the API provider"
+        },
+        "REQUEST_TOO_LARGE": {
+            "Status" : 413,
+            "Code" : "gen14",
+            "Title" : "Request too large",
+            "Action" : "Please check the API documentation"
+        },
+        "RESOURCE_NOT_FOUND": {
+            "Status" : 404,
+            "Code" : "gen15",
+            "Title" : "Resource not found",
+            "Action" : "Please check the API documentation"
+        },
+        "THROTTLED": {
+            "Status" : 429,
+            "Code" : "gen16",
+            "Title" : "Throttling employed",
+            "Action" : "Please contact the API provider"
+        },
+        "UNAUTHORIZED": {
+            "Status" : 403,
+            "Code" : "gen17",
+            "Title" : "Authorisation Failure",
+            "Action" : "Please contact the API provider"
+        },
+        "UNSUPPORTED_MEDIA_TYPE": {
+            "Status" : 415,
+            "Code" : "gen18",
+            "Title" : "Unsupported media type",
+            "Action" : "Please check the API documentation"
+        }
+    }
+]
+
+[#function getSwaggerValidationLevels]
+    [#return
+        {
+            "x-amazon-apigateway-request-validators" : {
+                "all" : {
+                    "validateRequestBody" : true,
+                    "validateRequestParameters" : true
+                },
+                "params" : {
+                    "validateRequestBody" : false,
+                    "validateRequestParameters" : true
+                },
+                "body" : {
+                    "validateRequestBody" : true,
+                    "validateRequestParameters" : false
+                },
+                "none" : {
+                    "validateRequestBody" : false,
+                    "validateRequestParameters" : false
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getSwaggerValidation validationLevel ]
+    [#return
+        {
+            "x-amazon-apigateway-request-validator" : validationLevel
+        }
+    ]
+[/#function]
+
+[#function getSwaggerGlobalSecurity userPoolArns account cognitoPoolName cognitoAuthHeader ]
+    [#local result =
+        {
+            "api_key": {
+              "type": "apiKey",
+              "name": "x-api-key",
+              "in": "header"
+            },
+            "sigv4": {
+              "type": "apiKey",
+              "name": "Authorization",
+              "in": "header",
+              "x-amazon-apigateway-authtype": "awsSigv4"
+            }
+        }
+    ]
+    [#list userPoolArns!{} as key, value]
+        [#if key == account ]
+            [#local result +=
+                {
+                    cognitoPoolName : {
+                        "type": "apiKey",
+                        "name": cognitoAuthHeader,
+                        "in": "header",
+                        "x-amazon-apigateway-authtype": "cognito_user_pools",
+                        "x-amazon-apigateway-authorizer": {
+                            "type": "cognito_user_pools",
+                            "providerARNs": [ value ]
+                        }
+                    }
+                }
+            ]
+        [/#if]
+    [/#list]
+
+    [#return { "securityDefinitions": result } ]
+[/#function]
+
+[#function getSwaggerSecurity sig4Required apiKeyRequired userPoolRequired cognitoPoolName=""]
+    [#return
+        {
+            "security" :
+                arrayIfTrue(
+                    {
+                        "sigv4": []
+                    },
+                    sig4Required
+                ) +
+                arrayIfTrue(
+                    {
+                        "api_key": []
+                    },
+                    apiKeyRequired
+                ) +
+                arrayIfTrue(
+                    {
+                        cognitoPoolName : []
+                    },
+                    userPoolRequired
+                )
+        }
+    ]
+[/#function]
+
+[#function getSwaggerProxyPaths required]
+    [#-- 404 support --]
+    [#-- "/{proxy+}" and "/" paths to passthrough requests for urls which are not in the specification   --]
+    [#-- otherwise API Gateway will report 403. https://forums.aws.amazon.com/thread.jspa?threadID=216684 --]
+    [#return
+        valueIfTrue(
+            {
+                "paths" : {
+                    "{proxy+}" : { "x-amazon-apigateway-any-method" : {} },
+                    "/" : { "x-amazon-apigateway-any-method": {} }
+                }
+            },
+            required
+        )
+     ]
+[/#function]
+
+[#function getSwaggerBinaryMediaTypes types]
+    [#return
+        valueIfContent(
+            {
+                "x-amazon-apigateway-binary-media-types" : types
+            },
+            types
+        )
+    ]
+[/#function]
+
+[#function getSwaggerErrorResponses required errorMap ]
+    [#local result = {}]
+    [#if required]
+        [#local templates = {}]
+        [#list errorMap as key,value]
+            [#local detail =
+                arrayIfContent(
+                    "Description:" + value.Description!"",
+                    value.Description!""
+                ) +
+                arrayIfContent(
+                    "Action:" + value.Action!"",
+                    value.Action!""
+                ) +
+                ["Diagnostics:$context.error.message"]
+            ]
+            [#local template =
+                [
+                    {
+                        "Code" : value.Code,
+                        "Title" : value.Title,
+                        "Detail" : detail?join(", ")
+                    }
+                ]
+            ]
+            [#local templates +=
+                {
+                  key :
+                      {
+                          "statusCode": value.Status,
+                          "responseTemplates":
+                             {
+                                 "application/json": getJSON(template)
+                             }
+                      }
+                }
+            ]
+        [/#list]
+        [#local result = {"x-amazon-apigateway-gateway-responses" : templates} ]
+    [/#if]
+    [#return result]
+[/#function]
+
+[#function getSwaggerCorsHeaders headers=[] methods=[] origin=[] ]
+    [#return
+        {
+            "method.response.header.Access-Control-Allow-Headers": "\'" + headers?join(",")?j_string + "\'",
+            "method.response.header.Access-Control-Allow-Methods": "\'" + methods?join(",")?j_string + "\'",
+            "method.response.header.Access-Control-Allow-Origin" : "\'" + origin?join(",")?j_string + "\'"
+        }
+    ]
+[/#function]
+
+[#function getSwaggerMethodEntry context verb type apiVariable
+    validationLevel sig4Required apiKeyRequired
+    userPoolRequired cognitoPoolName
+    useClientCredsRequired
+    corsConfiguration={} ]
+
+    [#local result =
+        getSwaggerSecurity(sig4Required, apiKeyRequired, userPoolRequired, cognitoPoolName) +
+        getSwaggerValidation(validationLevel)
+    ]
+
+    [#switch type]
+        [#case "docker"]
+        [#case "http_proxy"]
+            [#local result +=
+                {
+                    "x-amazon-apigateway-integration" : {
+                        "type": "http_proxy",
+                        "uri" : "https://$\{stageVariables." + apiVariable + "}",
+                        "passthroughBehavior" : "when_no_match",
+                        "httpMethod" : verb
+                    }
+                }
+            ]
+            [#break]
+
+        [#case "lambda"]
+        [#case "aws_proxy"]
+            [#local result +=
+                {
+                    "x-amazon-apigateway-integration" : {
+                        "type": "aws_proxy",
+                        "uri" : "arn:aws:apigateway:" + context["region"] + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + context["region"] + ":" + context["account"] + ":function:$\{stageVariables." + apiVariable + "}/invocations",
+                        "passthroughBehavior" : "never",
+                        "httpMethod" : "POST"
+                    } +
+                    valueIfTrue(
+                        {
+                            "credentials" : "arn:aws:iam::*:user/*"
+                        },
+                        useClientCredsRequired
+                    ),
+                    "responses" : {}
+                }
+            ]
+            [#break]
+
+        [#case "mock"]
+            [#local result +=
+                {
+                    "x-amazon-apigateway-integration" : {
+                        "type": "mock"
+                    }
+                }
+            ]
+            [#break]
+
+        [#case "mock-cors"]
+            [#local result +=
+                {
+                    "x-amazon-apigateway-integration" : {
+                        "type" : "mock",
+                        "contentHandling" : "CONVERT_TO_TEXT",
+                        "passthroughBehavior" : "when_no_match",
+                        "requestTemplates": {
+                            "application/json": getJSON({ "statusCode" : 200})
+                        },
+                        "contentHandling" : "CONVERT_TO_TEXT",
+                        "responses": {
+                            "default": {
+                                "statusCode": 200,
+                                "responseParameters": corsConfiguration
+                            }
+                        }
+                    }
+                }
+            ]
+            [#break]
+    [/#switch]
+    [#return result]
+[/#function]
+
+[#function extendSwaggerDefinition definition integrations context={} ]
+
+    [#-- General defaults for integrations --]
+    [#local defaultPathPattern            = integrations.Path           ! ".*"]
+    [#local defaultVerbPattern            = integrations.Verb           ! ".*"]
+    [#local defaultType                   = integrations.Type           ! ""]
+    [#local defaultVariable               = integrations.Variable       ! ""]
+    [#local defaultValidationLevel        = integrations.Validation     ! "all"]
+    [#local defaultSig4Required           = integrations.Sig4           ! false]
+    [#local defaultApiKeyRequired         = integrations.ApiKey         ! false]
+    [#local defaultUserPoolRequired       = integrations.userPool       ! false ]
+    [#local defaultUseClientCredsRequired = integrations.useClientCreds ! false ]
+
+    [#-- CORS defaults --]
+    [#local defaultCorsHeaders            = integrations.corsHeaders    ! ["Content-Type","X-Amz-Date","Authorization","X-Api-Key"] ]
+    [#local defaultCorsMethods            = integrations.corsMethods    ! ["*"] ]
+    [#local defaultCorsOrigin             = integrations.corsOrigin     ! ["*"] ]
+
+    [#-- Userpool defaults --]
+    [#local defaultUserPoolArns           = integrations.userPoolArns      ! {} ]
+    [#local defaultCognitoPoolName        = integrations.cognitoPoolName   ! "CognitoUserPool" ]
+    [#local defaultCognitoAuthHeader      = integrations.cognitoAuthHeader ! "Authorization" ]
+
+    [#-- Overall settings --]
+    [#local proxyRequired                 = integrations.Proxy                 ! false]
+    [#local binaryTypes                   = integrations.BinaryTypes           ! []]
+    [#local gatewayErrorReportingRequired = integrations.GatewayErrorReporting ! true ]
+    [#local gatewayErrorMap               = defaultGatewayErrorMap + (integrations.gatewayErrorMap!{}) ]
+
+    [#-- Correct typing error with proxyRequired --]
+    [#if proxyRequired?is_string]
+        [#local proxyRequired = (proxyRequired?lower_case == "true")]
+    [/#if]
+
+    [#-- Start with global configuration --]
+    [#local globalConfiguration =
+        getSwaggerValidationLevels() +
+        getSwaggerValidation(defaultValidationLevel) +
+        getSwaggerGlobalSecurity(defaultUserPoolArns, context["account"], defaultCognitoPoolName, defaultCognitoAuthHeader) +
+        getSwaggerSecurity(defaultSig4Required, defaultApiKeyRequired, defaultUserPoolRequired, defaultCognitoPoolName) +
+        getSwaggerBinaryMediaTypes(binaryTypes) +
+        getSwaggerErrorResponses(gatewayErrorReportingRequired, gatewayErrorMap)
+    ]
+
+    [#local paths = {} ]
+    [#list (definition.paths!{}) + getSwaggerProxyPaths(proxyRequired) as path, pathObject]
+        [#local verbs = {} ]
+
+        [#-- Add default CORS config if no explicit "options" verb --]
+        [#if !pathObject?keys?seq_contains("options")]
+            [#local verbs +=
+                {
+                    "options" : {
+                        "responses": {
+                            "200": {
+                                "description": "Default response for CORS method",
+                                "headers": {
+                                    "Access-Control-Allow-Headers": {
+                                        "type": "string"
+                                    },
+                                    "Access-Control-Allow-Methods": {
+                                        "type": "string"
+                                    },
+                                    "Access-Control-Allow-Origin": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    } +
+                    getSwaggerMethodEntry(
+                        context,
+                        "options",
+                        "mock-cors",
+                        defaultVariable,
+                        defaultValidationLevel,
+                        false,
+                        defaultApiKeyRequired,
+                        false,
+                        "",
+                        false,
+                        getSwaggerCorsHeaders(defaultCorsHeaders,defaultCorsMethods,defaultCorsOrigin)
+                    )
+                }
+            ]
+        [/#if]
+
+        [#list pathObject as verb, verbObject]
+            [#local extendedVerb = {} ]
+            [#list integrations.Patterns![] as pattern]
+                [#if path?matches(pattern.Path ! defaultPathPattern) &&
+                    verb?matches(pattern.Verb ! defaultVerbPattern)]
+                    [#local extendedVerb =
+                        getSwaggerMethodEntry(
+                            context,
+                            verb,
+                            pattern.Type ! defaultType,
+                            pattern.Variable ! defaultVariable,
+                            pattern.Validation ! defaultValidationLevel,
+                            pattern.Sig4 ! defaultSig4Required,
+                            pattern.ApiKey ! defaultApiKeyRequired,
+                            pattern.UserPool ! pattern.userPool ! defaultUserPoolRequired,
+                            pattern.CognitoPoolName ! defaultCognitoPoolName,
+                            pattern.UseClientCreds ! pattern.useClientCreds ! defaultUseClientCredsRequired
+                        )
+                    ]
+                    [#break]
+                [/#if]
+            [/#list]
+            [#if ! extendedVerb?has_content]
+                [#local extendedVerb =
+                    getSwaggerMethodEntry(
+                        context,
+                        verb,
+                        defaultType,
+                        defaultVariable,
+                        defaultValidationLevel,
+                        defaultSig4Required,
+                        defaultApiKeyRequired,
+                        defaultUserPoolRequired,
+                        defaultCognitoPoolName,
+                        defaultUseClientCredsRequired
+                    )
+                ]
+            [/#if]
+            [#local verbs += { verb : extendedVerb } ]
+        [/#list]
+
+        [#local paths += { path : verbs } ]
+    [/#list]
+
+    [#return globalConfiguration + { "paths" : paths } ]
+[/#function]
+

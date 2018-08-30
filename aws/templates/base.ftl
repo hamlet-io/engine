@@ -3,27 +3,31 @@
 -- Logic functions --
 ---------------------]
 
-[#function valueIfTrue value condition otherwise={}]
+[#function valueIfTrue value condition otherwise={} ]
     [#return condition?then(value, otherwise) ]
 [/#function]
 
-[#function valueIfContent value content otherwise={}]
+[#function valueIfContent value content otherwise={} ]
     [#return valueIfTrue(value, content?has_content, otherwise) ]
 [/#function]
 
-[#function arrayIfContent value content otherwise=[]]
+[#function arrayIfTrue value condition otherwise=[] ]
+    [#return condition?then(asArray(value), otherwise) ]
+[/#function]
+
+[#function arrayIfContent value content otherwise=[] ]
     [#return valueIfContent(asArray(value), content, otherwise) ]
 [/#function]
 
-[#function contentIfContent value otherwise={}]
+[#function contentIfContent value otherwise={} ]
     [#return valueIfTrue(value, value?has_content, otherwise) ]
 [/#function]
 
-[#function attributeIfTrue attribute condition value]
+[#function attributeIfTrue attribute condition value ]
     [#return valueIfTrue({attribute : value}, condition) ]
 [/#function]
 
-[#function attributeIfContent attribute content value={}]
+[#function attributeIfContent attribute content value={} ]
     [#return attributeIfTrue(
         attribute,
         content?has_content,

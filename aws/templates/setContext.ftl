@@ -254,6 +254,7 @@
 [#include policyList]
 [#include resourceList]
 [#include "common.ftl"]
+[#include "swagger.ftl"]
 
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
