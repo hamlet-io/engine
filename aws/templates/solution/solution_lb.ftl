@@ -82,6 +82,11 @@
             [#assign portProtocols += [ sourcePort.Protocol ] ]
             [#assign portProtocols += [ destinationPort.Protocol] ]
 
+            [#-- forwarding attributes --]
+            [#assign slowStartTime = solution.SlowStartTime ]
+            [#assign stickinessTime = solution.StickinessTime]
+            [#assign deregistrationTimeut = solution.DeregistrationTimeout]
+
             [#-- Rule setup --]
             [#assign priority = solution.Priority + subOccurrence?index ]
 

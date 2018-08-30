@@ -154,6 +154,26 @@
                         "Default" : 404
                     }
                 ]
+            },
+            {
+                "Name" : "Forward",
+                "Children" : [
+                    {
+                        "Name" : "SlowStartTime",
+                        "Type" : NUMBER_TYPE,
+                        "Default" : -1
+                    },
+                    {
+                        "Name" : "StickinessTime",
+                        "Type" : NUMBER_TYPE,
+                        "Default" : -1
+                    },
+                    {
+                        "Name" : "DeregistrationTimeout",
+                        "Type" : NUMBER_TYPE,
+                        "Default" : 30
+                    }
+                ]
             }
         ]
     }]
