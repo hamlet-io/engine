@@ -146,9 +146,21 @@
     /]
 [/#macro]
 
-[#macro createTargetGroup mode id name tier component destination targetType=""]
+[#macro createTargetGroup mode id name tier component destination attributes targetType=""]
 
     [#local healthCheckProtocol = (destination.HealthCheck.Protocol)!destination.Protocol]
+
+    [#local targetGroupAttributes = [] ]
+    [#list attributes as key,value ]
+        [#local targetGroupAttributes += 
+            [
+                {
+                    "Key" : key,
+                    "Value" : value
+                }
+            ]]
+    [/#list]
+
     [@cfResource
         mode=mode
         id=id
@@ -162,12 +174,7 @@
                 "Port" : destination.Port,
                 "Protocol" : destination.Protocol,
                 "VpcId": vpc,
-                "TargetGroupAttributes" : [
-                    {
-                        "Key" : "deregistration_delay.timeout_seconds",
-                        "Value" : (destination.DeregistrationDelay)!30
-                    }
-                ]
+                "TargetGroupAttributes" : targetGroupAttributes
             } +
             valueIfContent(
                 {

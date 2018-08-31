@@ -33,6 +33,9 @@
         [#assign ingressRules = [] ]
         [#assign listenerPortsSeen = [] ]
 
+        [#assign classicStickinessPolicies = []]
+        [#assign classicConnectionDrainingPolicies = []]
+
         [#list occurrence.Occurrences![] as subOccurrence]
 
             [#assign core = subOccurrence.Core ]
@@ -83,9 +86,7 @@
             [#assign portProtocols += [ destinationPort.Protocol] ]
 
             [#-- forwarding attributes --]
-            [#assign slowStartTime = solution.SlowStartTime ]
-            [#assign stickinessTime = solution.StickinessTime]
-            [#assign deregistrationTimeut = solution.DeregistrationTimeout]
+            [#assign tgAttributes = {}]
 
             [#-- Rule setup --]
             [#assign priority = solution.Priority + subOccurrence?index ]
@@ -289,7 +290,27 @@
             [#-- Process the mapping --]
             [#switch engine ]
                 [#case "application"]
+                    [#assign tgAttributes += 
+                        (solution.StickinessTime > 0)?then(
+                            {
+                                "stickiness.enabled" : true,
+                                "stickiness.type" : "lb_cookie",
+                                "stickiness.lb_cookie.duration_seconds" : solution.StickinessTime
+                            },
+                            {}
+                        ) +
+                        (solution.SlowStartTime > 0)?then(
+                            {
+                                "slow_start.duration_seconds" : solution.SlowStartTime
+                            },
+                            {}
+                        )]
+
                 [#case "network"]
+                    [#assign tgAttributes += 
+                        {
+                            "deregistration_delay.timeout_seconds" : solution.DeregistrationTimeout
+                        }]
 
                     [#if firstMappingForPort ]
                         [#assign lbSecurityGroupIds += [securityGroupId] ]
@@ -403,12 +424,32 @@
                             name=targetGroupName
                             tier=tier
                             component=component
-                            destination=destinationPort /]
+                            destination=destinationPort
+                            attributes=tgAttributes
+                            targetType=solution.TargetType
+                             /]
                     [/#if]
                     [#break]
 
                 [#case "classic"]
                     [#assign lbSecurityGroupIds += [securityGroupId] ]
+
+                    [#if solution.StickinessTime > 0 ]
+                        [#assign classicStickinessPolicies += [
+                            {
+                                "PolicyName" : sourcePort.Name + "_Sticky",
+                                "CookieExpirationPeriod" : solution.StickinessTime
+                            }
+                        ]]
+
+                    [#assign classicStickinessPolicies += 
+                        (solution.StickinessTime > 0)?then(
+                            {
+                                "
+                            }
+                    
+                    ]
+
                     [#assign classicListeners +=
                         [
                             {
