@@ -135,6 +135,11 @@
                                 "loadbalancing")
                         ],
                         [])
+                managedArns=
+                    arrayIfContent(
+                        context.ManagedPolicy
+                        context.ManagedPolicy
+                    )
             /]
 
         [/#if]
