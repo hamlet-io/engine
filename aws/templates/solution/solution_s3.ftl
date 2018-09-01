@@ -117,6 +117,7 @@
                     getS3WebsiteConfiguration(solution.Website.Index, solution.Website.Error),
                     {})
             versioning=solution.Lifecycle.Versioning
+            CORSBehaviours=solution.CORSBehaviours
             dependencies=dependencies
         /]
 

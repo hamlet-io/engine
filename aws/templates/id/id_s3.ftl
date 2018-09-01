@@ -143,6 +143,11 @@
             {
                 "Name" : "Notifications",
                 "Type" : OBJECT_TYPE
+            },
+            {
+                "Name" : "CORSBehaviours",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
             }
         ]
     }]

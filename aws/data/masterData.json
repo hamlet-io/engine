@@ -1476,5 +1476,44 @@
         "LogFileGroups" : ["system", "aws-system", "security", "docker", "aws-ecs"]
       }
     }
+  },
+  "CORSProfiles" : {
+    "S3Read" : {
+      "AllowedOrigins" : [ "*" ],
+      "AllowedMethods" : [ "GET", "HEAD" ],
+      "AllowedHeaders" : [ "*" ],
+      "ExposeHeaders"  : [ "ETag" ],
+      "MaxAge"         : 1800
+    },
+    "S3Write" : {
+      "AllowedOrigins" : [ "*" ],
+      "AllowedMethods" : [ "PUT", "POST" ],
+      "AllowedHeaders" : [ 
+        "Content-Length", 
+        "Content-Type", 
+        "Content-MD5", 
+        "Authorization",
+        "Expect",
+        "x-amz-content-sha256",
+        "x-amz-security-token"
+      ],
+      "ExposeHeaders"  : [ "ETag" ],
+      "MaxAge"         : 1800
+    },
+    "S3Delete" : {
+      "AllowedOrigins" : [ "*" ],
+      "AllowedMethods" : [ "DELETE" ],
+      "AllowedHeaders" : [ 
+        "Content-Length", 
+        "Content-Type", 
+        "Content-MD5", 
+        "Authorization",
+        "Expect",
+        "x-amz-content-sha256",
+        "x-amz-security-token"
+      ],
+      "ExposeHeaders"  : [ "ETag" ],
+      "MaxAge"         : 1800
+    }
   }
 }
