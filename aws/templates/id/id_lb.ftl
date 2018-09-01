@@ -65,12 +65,6 @@
                 "Type" : STRING_TYPE
             },
             {
-                "Name" : "TargetType",
-                "Type" : STRING_TYPE,
-                "Values" : ["instance", "ip"],
-                "Default" : "instance"
-            },
-            {
                 "Name" : "Path",
                 "Type" : STRING_TYPE,
                 "Default" : "default"
@@ -158,6 +152,12 @@
             {
                 "Name" : "Forward",
                 "Children" : [
+                    {
+                        "Name" : "TargetType",
+                        "Type" : STRING_TYPE,
+                        "Values" : ["instance", "ip"],
+                        "Default" : "instance"
+                    },
                     {
                         "Name" : "SlowStartTime",
                         "Type" : NUMBER_TYPE,

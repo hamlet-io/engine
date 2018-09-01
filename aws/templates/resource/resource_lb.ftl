@@ -275,7 +275,7 @@
     /]
 [/#macro]
 
-[#macro createClassicLB mode id name shortName tier component listeners healthCheck securityGroups idleTimeout logs=false bucket="" dependencies="" ]
+[#macro createClassicLB mode id name shortName tier component listeners healthCheck securityGroups idleTimeout deregistrationTimeout stickinessPolicies=[] logs=false bucket="" dependencies="" ]
         [@cfResource
         mode=listMode
         id=id
@@ -313,6 +313,19 @@
                     }
                 },
                 {}
+            ) + 
+            ( deregistrationTimeout > 0 )?then(
+                {
+                    "ConnectionDrainingPolicy" : {
+                        "Enabled" : true,
+                        "Timeout" : deregistrationTimeout
+                    }
+                },
+                {}
+            ) + 
+            attributeIfContent(
+                "LBCookieStickinessPolicy",
+                stickinessPolicies
             )
         tags=
             getCfTemplateCoreTags(

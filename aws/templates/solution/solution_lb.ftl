@@ -34,7 +34,7 @@
         [#assign listenerPortsSeen = [] ]
 
         [#assign classicStickinessPolicies = []]
-        [#assign classicConnectionDrainingPolicies = []]
+        [#assign classicConnectionDrainingTimeouts = []]
 
         [#list occurrence.Occurrences![] as subOccurrence]
 
@@ -87,6 +87,7 @@
 
             [#-- forwarding attributes --]
             [#assign tgAttributes = {}]
+            [#assign classicConnectionDrainingTimeouts += [ solution.Forward.DeregistrationTimeout ]]
 
             [#-- Rule setup --]
             [#assign priority = solution.Priority + subOccurrence?index ]
@@ -291,17 +292,17 @@
             [#switch engine ]
                 [#case "application"]
                     [#assign tgAttributes += 
-                        (solution.StickinessTime > 0)?then(
+                        (solution.Forward.StickinessTime > 0)?then(
                             {
                                 "stickiness.enabled" : true,
                                 "stickiness.type" : "lb_cookie",
-                                "stickiness.lb_cookie.duration_seconds" : solution.StickinessTime
+                                "stickiness.lb_cookie.duration_seconds" : solution.Forward.StickinessTime
                             },
                             {}
                         ) +
-                        (solution.SlowStartTime > 0)?then(
+                        (solution.Forward.SlowStartTime > 0)?then(
                             {
-                                "slow_start.duration_seconds" : solution.SlowStartTime
+                                "slow_start.duration_seconds" : solution.Forward.SlowStartTime
                             },
                             {}
                         )]
@@ -309,7 +310,7 @@
                 [#case "network"]
                     [#assign tgAttributes += 
                         {
-                            "deregistration_delay.timeout_seconds" : solution.DeregistrationTimeout
+                            "deregistration_delay.timeout_seconds" : solution.Forward.DeregistrationTimeout
                         }]
 
                     [#if firstMappingForPort ]
@@ -426,29 +427,25 @@
                             component=component
                             destination=destinationPort
                             attributes=tgAttributes
-                            targetType=solution.TargetType
+                            targetType=solution.Forward.TargetType
                              /]
                     [/#if]
                     [#break]
 
                 [#case "classic"]
                     [#assign lbSecurityGroupIds += [securityGroupId] ]
+                    [#assign classicListenerPolicyNames = []]
 
-                    [#if solution.StickinessTime > 0 ]
+                    [#if solution.Forward.StickinessTime > 0 ]
+                        [#assign stickinessPolicyName = formatName(core.Name, "sticky") ]
+                        [#assign classicListenerPolicyNames += [ stickinessPolicyName ]]
                         [#assign classicStickinessPolicies += [
                             {
-                                "PolicyName" : sourcePort.Name + "_Sticky",
-                                "CookieExpirationPeriod" : solution.StickinessTime
+                                "PolicyName" : stickinessPolicyName,
+                                "CookieExpirationPeriod" : solution.Forward.StickinessTime
                             }
                         ]]
-
-                    [#assign classicStickinessPolicies += 
-                        (solution.StickinessTime > 0)?then(
-                            {
-                                "
-                            }
-                    
-                    ]
+                    [/#if]
 
                     [#assign classicListeners +=
                         [
@@ -462,6 +459,10 @@
                                 "SSLCertificateId",
                                 sourcePort.Certificate!false,
                                 getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
+                            ) + 
+                            attributeIfContent(
+                                "PolicyNames",
+                                classicListenerPolicyNames
                             )
                         ]
                     ]
@@ -543,6 +544,8 @@
                         logs=lbLogs
                         bucket=operationsBucket
                         idleTimeout=idleTimeout
+                        deregistrationTimeout=(classicConnectionDrainingTimeouts?reverse)[0]
+                        stickinessPolicies=classicStickinessPolicies
                         /]
                 [/#if]
                 [#break]
