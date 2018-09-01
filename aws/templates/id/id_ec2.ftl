@@ -91,6 +91,11 @@
                 "Default" : false
             },
             {
+                "Name" : ["Fragment", "Container"],
+                "Type" : "string",
+                "Default" : ""
+            },
+            {
                 "Name" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration

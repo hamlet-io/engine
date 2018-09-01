@@ -106,7 +106,9 @@
 
         [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
 
-        [#assign configSets +=  getInitConfigEnvFacts(environmentVariables, false) ]
+        [#assign configSets +=  
+            getInitConfigEnvFacts(environmentVariables, false) +
+            getInitConfigDirsFiles(context.Files, context.Directories) ]
 
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(computeClusterRoleId)]
