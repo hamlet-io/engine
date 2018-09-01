@@ -295,6 +295,38 @@
     [/#if]
 [/#macro]
 
+[#-- Compute instance fragment macros --]
+[#macro File path mode="644" owner="root" group="root" content=[] ]
+    [#if (fragmentListMode!"") == "model"]
+        [#assign context += 
+            {
+                "Files" : (context.Files!{}) + {
+                    path : {
+                        "mode" : mode,
+                        "owner" : owner,
+                        "group" : group,
+                        "content" : content
+                    }
+                }
+            }]
+    [/#if]
+[/#macro]
+
+[#macro Directory path mode="755" owner="root" group="root" ]
+    [#if (fragmentListMode!"") == "model"]
+        [#assign context +=
+            {
+                "Directories" : (context.Directories!{}) + {
+                    path : {
+                        "mode" : mode,
+                        "owner" : owner,
+                        "group" : group
+                    }
+                }
+            }]
+    [/#if]
+[/#macro]
+
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
 [#function defaultEnvironment occurrence links]

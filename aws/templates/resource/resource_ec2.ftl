@@ -409,6 +409,75 @@
     ]
 [/#function]
 
+[#function getInitConfigDirsFiles files={} directories={} ignoreErrors=false ]
+    
+    [#local initFiles = {} ]
+    [#list files as fileName,file ]
+
+        [#local fileMode = (file.mode?length == 3)?then(
+                                    file.mode?left_pad(6, "0"),
+                                    file.mode )]
+
+        [#local initFiles += 
+            {
+                fileName : {
+                    "content" : { 
+                        "Fn::Join" : [
+                            "",
+                            file.content
+                        ]
+                    },
+                    "group" : file.group,
+                    "owner" : file.owner,
+                    "mode"  : fileMode
+                }
+            }]
+    [/#list]
+
+    [#local initDirFile = [
+        "#!/bin/bash\n"
+        "exec > >(tee /var/log/codeontap/dirsfiles.log|logger -t codeontap-dirsfiles -s 2>/dev/console) 2>&1\n"
+    ]]
+    [#list directories as directoryName,directory ]
+        [#local initDirFile += [
+            "if [[ ! -d \"" + directoryName + "\" ]]; then\n",
+            "   mkdir --parents --mode=" + directory.mode + " \"" + directoryName + "\"\n",
+            "   chown " + directory.owner + ":" + directory.group + " \"" + directoryName + "\"\n",
+            "else\n",
+            "   chown -R " + directory.owner + ":" + directory.group + " \"" + directoryName + "\"\n",
+            "   chmod " + directory.mode + " \"" + directoryName + "\"\n",
+            "fi\n" 
+        ]]
+    [/#list]
+
+    [#return 
+        {
+            "01createDirs" : {
+                "files" : {
+                    "/opt/codeontap/create_dirs.sh" : {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                initDirFile
+                            ]
+                        },
+                        "mode" : "000755"
+                    }
+                },
+                "commands" : {
+                    "CreateDirScript" : {
+                        "command" : "/opt/codeontap/create_dirs.sh",
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            },
+            "02createFiles" : {
+                "files" : initFiles
+            }
+        }
+    ]
+[/#function]
+
 [#macro createEC2LaunchConfig mode id 
     processorProfile
     storageProfile

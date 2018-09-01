@@ -63,6 +63,9 @@
         [#assign fragmentId = formatFragmentId(context)]
         [#include fragmentList?ensure_starts_with("/")]
 
+        [#assign configSets += 
+            getInitConfigDirsFiles(context.Files, context.Directories) ]
+            
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ecsRoleId)]
             [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]

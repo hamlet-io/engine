@@ -67,11 +67,14 @@
             [/#if]
         [/#list]
 
+        [#assign fragment =
+            contentIfContent(solution.Fragment, getComponentId(component)) ]
+
         [#assign contextLinks = getLinkTargets(occurrence, links) ]
         [#assign context =
             {
-                "Id" : getComponentId(component),
-                "Name" : getComponentId(component),
+                "Id" : fragment,
+                "Name" : fragment,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
                 "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
@@ -83,9 +86,16 @@
             }
         ]
 
+        [#-- Add in fragment specifics including override of defaults --]
+        [#assign fragmentListMode = "model"]
+        [#assign fragmentId = formatFragmentId(context)]
+        [#include fragmentList?ensure_starts_with("/")]
+
         [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
 
-        [#assign configSets +=  getInitConfigEnvFacts(environmentVariables, false) ]
+        [#assign configSets +=  
+            getInitConfigEnvFacts(environmentVariables, false) +
+            getInitConfigDirsFiles(context.Files, context.Directories) ]
 
         [#list links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link) ]
