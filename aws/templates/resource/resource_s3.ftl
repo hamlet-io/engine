@@ -154,11 +154,11 @@
             [#assign CORSRules += [
                 {
                     "Id" : behaviour,
-                    "AllowedHeaders" : CORSBehaviour.AllowedHeaders!["*"],
-                    "AllowedMethods" : CORSBehaviour.AllowedMethods!["*"],
-                    "AllowedOrigins" : CORSBehaviour.AllowedOrigins!["*"],
-                    "ExposedHeaders" : CORSBehaviour.ExposedHeaders![],
-                    "MaxAge" : (CORSBehaviour.MaxAge)?c!"30"
+                    "AllowedHeaders" : CORSBehaviour.AllowedHeaders,
+                    "AllowedMethods" : CORSBehaviour.AllowedMethods,
+                    "AllowedOrigins" : CORSBehaviour.AllowedOrigins,
+                    "ExposedHeaders" : CORSBehaviour.ExposedHeaders,
+                    "MaxAge" : (CORSBehaviour.MaxAge)?c
                 }
             ]]
         [/#if]
