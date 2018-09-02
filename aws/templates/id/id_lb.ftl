@@ -65,12 +65,6 @@
                 "Type" : STRING_TYPE
             },
             {
-                "Name" : "TargetType",
-                "Type" : STRING_TYPE,
-                "Values" : ["instance", "ip"],
-                "Default" : "instance"
-            },
-            {
                 "Name" : "Path",
                 "Type" : STRING_TYPE,
                 "Default" : "default"
@@ -152,6 +146,32 @@
                         "Name" : "StatusCode",
                         "Type" : NUMBER_TYPE,
                         "Default" : 404
+                    }
+                ]
+            },
+            {
+                "Name" : "Forward",
+                "Children" : [
+                    {
+                        "Name" : "TargetType",
+                        "Type" : STRING_TYPE,
+                        "Values" : ["instance", "ip"],
+                        "Default" : "instance"
+                    },
+                    {
+                        "Name" : "SlowStartTime",
+                        "Type" : NUMBER_TYPE,
+                        "Default" : -1
+                    },
+                    {
+                        "Name" : "StickinessTime",
+                        "Type" : NUMBER_TYPE,
+                        "Default" : -1
+                    },
+                    {
+                        "Name" : "DeregistrationTimeout",
+                        "Type" : NUMBER_TYPE,
+                        "Default" : 30
                     }
                 ]
             }
