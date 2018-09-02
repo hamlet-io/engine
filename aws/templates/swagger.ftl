@@ -380,7 +380,7 @@
                           "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
                           "integration.request.querystring.Message": "method.request.querystring.Message"
                         },
-                        "credentials" : context[[path,"role"]?join("/")]
+                        "credentials" : context[formatPath(path,"role")]
                     },
                     "responses" : {}
                 }
@@ -557,3 +557,40 @@
     [#return globalConfiguration + { "paths" : paths } ]
 [/#function]
 
+[#function getSwaggerDefinitionRoles definition integrations context={} ]
+    [#local defaultPathPattern = integrations.Path ! ".*"]
+    [#local defaultVerbPattern = integrations.Verb ! ".*"]
+    [#local defaultType        = integrations.Type ! ""]
+    [#local roles = {} ]
+
+    [#list definition.paths!{} as path, pathObject]
+        [#list pathObject as verb, verbObject]
+            [#local type = ""]
+            [#list integrations.Patterns![] as pattern]
+                [#if path?matches(pattern.Path ! defaultPathPattern) &&
+                    verb?matches(pattern.Verb ! defaultVerbPattern)]
+                        [#local type = pattern.Type ! defaultType]
+                        [#break]
+                [/#if]
+            [/#list]
+            [#if !type?has_content]
+                [#local type = defaultType]
+            [/#if]
+            [#switch type]
+                [#case "sms"]
+                    [#local roles +=
+                        {
+                            path :
+                                [
+                                    getPolicyDocument(
+                                        getPolicyStatement("sns:Publish"),
+                                        "swagger"
+                                    )
+                                ]
+                        } ]
+                    [#break]
+            [/#switch]
+        [/#list]
+    [/#list]
+    [#return roles]
+[/#function]

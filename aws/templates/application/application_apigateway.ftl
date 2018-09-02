@@ -594,18 +594,41 @@
                 [#-- Pass definition through - it is legacy and has already has been processed --]
                 [#assign extendedSwaggerDefinition = swaggerDefinition ]
             [#else]
-                [#assign integrations = getOccurrenceSettingValue(occurrence, ["apigw", "Integrations"], true) ]
-                [#if integrations?is_hash]
+                [#assign swaggerIntegrations = getOccurrenceSettingValue(occurrence, ["apigw", "Integrations"], true) ]
+                [#if swaggerIntegrations?is_hash]
+                    [#assign swaggerContext =
+                        {
+                            "Account" : accountObject.AWSId,
+                            "Region" : region,
+                            "CognitoPools" : cognitoPools
+                        } ]
+
+                    [#-- Determine if there are any roles required by specific methods --]
+                    [#assign extendedSwaggerRoles = getSwaggerDefinitionRoles(swaggerDefinition, swaggerIntegrations) ]
+                    [#list extendedSwaggerRoles as path,policies]
+                        [#assign swaggerRoleId = formatDependentRoleId(stageId, path)]
+                        [#-- Roles must be defined in a separate unit so the ARNs are available here --]
+                        [#if deploymentSubsetRequired("iam", false)  &&
+                            isPartOfCurrentDeploymentUnit(swaggerRoleId)]
+                            [@createRole
+                                mode=listMode
+                                id=swaggerRoleId
+                                policies=policies
+                            /]
+                        [/#if]
+                        [#assign swaggerContext +=
+                            {
+                                formatPath(path,"role") : getExistingReference(swaggerRoleId)
+                            } ]
+                    [/#list]
+
+                    [#-- Generate the extended swagger specification --]
                     [#assign extendedSwaggerDefinition =
                         extendSwaggerDefinition(
                             swaggerDefinition,
-                            integrations,
-                            {
-                                "Account" : accountObject.AWSId,
-                                "Region" : region,
-                                "CognitoPools" : cognitoPools
-                            }
-                        ) ]
+                            swaggerIntegrations,
+                            swaggerContext) ]
+
                 [#else]
                     [#assign extendedSwaggerDefinition = {} ]
                     [@cfException
