@@ -96,7 +96,7 @@
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
                 "Policy" : [],
-                "ManagedPolicy: [],
+                "ManagedPolicy" : [],
                 "Files" : {},
                 "Directories" : {}
             }
