@@ -129,6 +129,7 @@
                         versioning=false
                         websiteConfiguration={}
                         cannedACL=""
+                        CORSBehaviours=[]
                         dependencies="" 
                         outputId=""]
 
@@ -145,6 +146,23 @@
             "Status" : "Enabled"
         } ]
     [/#if]
+
+    [#assign CORSRules = [] ]
+    [#list CORSBehaviours as behaviour ]
+        [#assign CORSBehaviour = CORSProfiles[behaviour] ]
+        [#if CORSBehaviour?has_content ]
+            [#assign CORSRules += [
+                {
+                    "Id" : behaviour,
+                    "AllowedHeaders" : CORSBehaviour.AllowedHeaders,
+                    "AllowedMethods" : CORSBehaviour.AllowedMethods,
+                    "AllowedOrigins" : CORSBehaviour.AllowedOrigins,
+                    "ExposedHeaders" : CORSBehaviour.ExposedHeaders,
+                    "MaxAge" : (CORSBehaviour.MaxAge)?c
+                }
+            ]]
+        [/#if]
+    [/#list]
 
     [@cfResource 
         mode=mode
@@ -181,6 +199,13 @@
             attributeIfContent(
                 "VersioningConfiguration",
                 versionConfiguration
+            ) + 
+            attributeIfContent(
+                "CorsConfiguration",
+                CORSRules,
+                {
+                    "CorsRules" : CORSRules
+                }
             )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
