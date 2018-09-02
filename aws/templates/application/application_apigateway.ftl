@@ -64,7 +64,7 @@
 
         [#assign stageVariables += getFinalEnvironment(occurrence, context).Environment ]
 
-        [#assign userPoolArns = [] ]
+        [#assign cognitoPools = {} ]
 
         [#list solution.Links?values as link]
             [#if link?is_hash]
@@ -102,6 +102,16 @@
                         [#break]
 
                     [#case USERPOOL_COMPONENT_TYPE]
+                        [#assign cognitoPools +=
+                            {
+                                link.Name : {
+                                    "Name" : link.Name,
+                                    "Header" : linkTargetAttributes["AUTHORIZATION_HEADER"]!"Authorization",
+                                    "UserPoolArn" : linkTargetAttributes["USER_POOL"],
+                                    "Default" : true
+                                }
+                            } ]
+
                         [#if deploymentSubsetRequired("apigateway", true)]
 
                             [#assign policyId = formatDependentPolicyId(
@@ -591,8 +601,9 @@
                             swaggerDefinition,
                             integrations,
                             {
-                                "account" : accountObject.AWSId,
-                                "region" : region
+                                "Account" : accountObject.AWSId,
+                                "Region" : region,
+                                "CognitoPools" : cognitoPools
                             }
                         ) ]
                 [#else]

@@ -61,6 +61,11 @@
                 "Default" : false
             },
             {
+                "Name" : "AuthorizationHeader",
+                "Type" : STRING_TYPE,
+                "Default" : "Authorization"
+            },
+            {
                 "Name" : "OAuth",
                 "Children" : [
                     {
@@ -176,6 +181,7 @@
                 }
             },
             "Attributes" : {
+                "AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
                 "USER_POOL" : getReference(userPoolId),
                 "IDENTITY_POOL" : getReference(identityPoolId),
                 "CLIENT" : getReference(userPoolClientId),

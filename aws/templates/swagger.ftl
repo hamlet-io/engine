@@ -146,7 +146,39 @@
     ]
 [/#function]
 
-[#function getSwaggerGlobalSecurity context userPoolArns cognitoPoolName cognitoAuthHeader ]
+[#-- Determine the legacy cognito pool(s) info --]
+[#function getLegacyCognitoPools context integrations]
+    [#local result = {} ]
+    [#local name   = integrations.cognitoPoolName  !"CognitoUserPool" ]
+    [#local header = integrations.cognitoAuthHeader!"Authorization" ]
+
+    [#list integrations.UserPoolArns!integrationsObject.userPoolArns!{} as key, value]
+        [#if key == context["Account"] ]
+            [#local result +=
+                {
+                    name : {
+                        "Name" : name,
+                        "Header" : header,
+                        "UserPoolArn" : value,
+                        "Default" : true
+                    }
+                } ]
+        [/#if]
+    [/#list]
+    [#return result ]
+[/#function]
+
+[#-- Determine the cognito pool(s) info --]
+[#function getDefaultCognitoPoolName context]
+    [#list context.CognitoPools!{} as name, value]
+        [#if value.Default!false]
+            [#return value.Name]
+        [/#if]
+    [/#list]
+    [#return "" ]
+[/#function]
+
+[#function getSwaggerGlobalSecurity context ]
     [#local result =
         {
             "api_key": {
@@ -162,24 +194,21 @@
             }
         }
     ]
-    [#list account = context["account"] ]
-    [#list userPoolArns!{} as key, value]
-        [#if key == account ]
-            [#local result +=
-                {
-                    cognitoPoolName : {
-                        "type": "apiKey",
-                        "name": cognitoAuthHeader,
-                        "in": "header",
-                        "x-amazon-apigateway-authtype": "cognito_user_pools",
-                        "x-amazon-apigateway-authorizer": {
-                            "type": "cognito_user_pools",
-                            "providerARNs": [ value ]
-                        }
+    [#list context.CognitoPools!{} as name,value]
+        [#local result +=
+            {
+                name : {
+                    "type": "apiKey",
+                    "name": value.Header,
+                    "in": "header",
+                    "x-amazon-apigateway-authtype": "cognito_user_pools",
+                    "x-amazon-apigateway-authorizer": {
+                        "type": "cognito_user_pools",
+                        "providerARNs": [ value.UserPoolArn ]
                     }
                 }
-            ]
-        [/#if]
+            }
+        ]
     [/#list]
 
     [#return { "securityDefinitions": result } ]
@@ -303,8 +332,6 @@
         getSwaggerValidation(validationLevel)
     ]
 
-    [#local pathPrefix = path?split("/") ]
-
     [#switch type]
         [#case "docker"]
         [#case "http_proxy"]
@@ -326,7 +353,7 @@
                 {
                     "x-amazon-apigateway-integration" : {
                         "type": "aws_proxy",
-                        "uri" : "arn:aws:apigateway:" + context["region"] + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + context["region"] + ":" + context["account"] + ":function:$\{stageVariables." + apiVariable + "}/invocations",
+                        "uri" : "arn:aws:apigateway:" + context["Region"] + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + context["Region"] + ":" + context["Account"] + ":function:$\{stageVariables." + apiVariable + "}/invocations",
                         "passthroughBehavior" : "never",
                         "httpMethod" : "POST"
                     } +
@@ -346,14 +373,14 @@
                 {
                     "x-amazon-apigateway-integration" : {
                         "type": "aws",
-                        "uri" : "arn:aws:apigateway:" + context["region"] + ":sns:action/Publish",
+                        "uri" : "arn:aws:apigateway:" + context["Region"] + ":sns:action/Publish",
                         "passthroughBehavior" : "when_no_match",
                         "httpMethod" : "POST",
                         "requestParameters": {
                           "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
                           "integration.request.querystring.Message": "method.request.querystring.Message"
                         },
-                        "credentials" : context[formatName(pathPrefix,"role")]
+                        "credentials" : context[[path,"role"]?join("/")]
                     },
                     "responses" : {}
                 }
@@ -413,11 +440,6 @@
     [#local defaultCorsMethods            = integrations.corsMethods    ! ["*"] ]
     [#local defaultCorsOrigin             = integrations.corsOrigin     ! ["*"] ]
 
-    [#-- Userpool defaults --]
-    [#local defaultUserPoolArns           = integrations.userPoolArns      ! {} ]
-    [#local defaultCognitoPoolName        = integrations.cognitoPoolName   ! "CognitoUserPool" ]
-    [#local defaultCognitoAuthHeader      = integrations.cognitoAuthHeader ! "Authorization" ]
-
     [#-- Overall settings --]
     [#local proxyRequired                 = integrations.Proxy                 ! false]
     [#local binaryTypes                   = integrations.BinaryTypes           ! []]
@@ -429,11 +451,14 @@
         [#local proxyRequired = (proxyRequired?lower_case == "true")]
     [/#if]
 
+    [#-- Determine the default Cognito pool --]
+    [#local defaultCognitoPoolName = getDefaultCognitoPoolName(context) ]
+
     [#-- Start with global configuration --]
     [#local globalConfiguration =
         getSwaggerValidationLevels() +
         getSwaggerValidation(defaultValidationLevel) +
-        getSwaggerGlobalSecurity(context, defaultUserPoolArns, defaultCognitoPoolName, defaultCognitoAuthHeader) +
+        getSwaggerGlobalSecurity(context) +
         getSwaggerSecurity(defaultSig4Required, defaultApiKeyRequired, defaultUserPoolRequired, defaultCognitoPoolName) +
         getSwaggerBinaryMediaTypes(binaryTypes) +
         getSwaggerErrorResponses(gatewayErrorReportingRequired, gatewayErrorMap)

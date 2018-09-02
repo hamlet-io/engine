@@ -2,13 +2,16 @@
 [#include "base.ftl" ]
 [#include "swagger.ftl" ]
 
-[@toJSON
-    extendSwaggerDefinition(
-        swagger?eval,
-        integrations?eval,
-        {
-            "account" : account,
-            "region" : region
-        }
-    ) /]
+[#assign swaggerObject = swagger?eval ]
+[#assign integrationsObject = integrations?eval ]
+[#assign context =
+    {
+        "Account" : account,
+        "Region" : region
+    } ]
+
+[#-- Determine the Cognito User Pools --]
+[#assign context += {"CognitoPools" : getLegacyCognitoPools(context, integrationsObject)} ]
+
+[@toJSON extendSwaggerDefinition(swaggerObject, integrationsObject, context) /]
 

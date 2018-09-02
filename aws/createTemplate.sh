@@ -108,7 +108,7 @@ function get_swagger_definition_file() {
   local account="$1"; shift
 
   local swagger_file_dir="${tmpdir}/swagger_files"
-  local swagger_file="${swagger_file_dir}/swagger.json"
+  local swagger_file="${swagger_file_dir}/swagger-extended-base.json"
   local legacy_swagger_file="${swagger_file_dir}/swagger-${region}-${account}.json"
   local swagger_definition=
 
