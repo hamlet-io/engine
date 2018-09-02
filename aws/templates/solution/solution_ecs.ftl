@@ -56,7 +56,7 @@
                 "Policy" : [],
                 "ManagedPolicy" : [],
                 "Files" : {},
-                "Directories : {}
+                "Directories" : {}
             }
         ]
 

@@ -94,9 +94,11 @@
                 "Links" : contextLinks,
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
-                "DefaultLinkVariables" : true
+                "DefaultLinkVariables" : true,
+                "Policy" : [],
+                "ManagedPolicy: [],
                 "Files" : {},
-                "Directories : {}
+                "Directories" : {}
             }
         ]
 
@@ -132,18 +134,20 @@
                             s3WritePermission(operationsBucket, "Backups") +
                             cwLogsProducePermission(computeClusterLogGroupName),
                             "basic")
-                    ] + targetGroupPermission?then(
+                    ] + 
+                    targetGroupPermission?then(
                         [
                             getPolicyDocument(
                                 lbRegisterTargetPermission(),
                                 "loadbalancing")
                         ],
-                        [])
-                managedArns=
+                        []
+                    ) +
                     arrayIfContent(
-                        context.ManagedPolicy
-                        context.ManagedPolicy
-                    )
+                        [getPolicyDocument(context.Policy, "fragment")],
+                        context.Policy) 
+                managedArns=
+                    context.ManagedPolicy
             /]
 
         [/#if]

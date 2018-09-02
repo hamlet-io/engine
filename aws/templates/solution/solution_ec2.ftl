@@ -83,8 +83,10 @@
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : false,
                 "DefaultLinkVariables" : true,
+                "Policy" : [],
+                "ManagedPolicy" : [],
                 "Files" : {},
-                "Directories : {}
+                "Directories" : {}
             }
         ]
 
@@ -207,6 +209,8 @@
                 mode=listMode
                 id=ec2RoleId
                 trustedServices=["ec2.amazonaws.com" ]
+                managedArns=
+                    context.ManagedPolicy
                 policies=
                     [
                         getPolicyDocument(
@@ -227,7 +231,10 @@
                     ) + 
                     arrayIfContent(
                         [getPolicyDocument(linkPolicies, "links")],
-                        linkPolicies)
+                        linkPolicies) +
+                    arrayIfContent(
+                        [getPolicyDocument(context.Policy, "fragment")],
+                        context.Policy)
             /]
         [/#if]
 

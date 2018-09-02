@@ -451,8 +451,11 @@
     [/#list]
 
     [#return 
-        {
-            "01createDirs" : {
+        { } +
+        attributeIfContent(
+            "CreateDirs",
+            directories,
+            {
                 "files" : {
                     "/opt/codeontap/create_dirs.sh" : {
                         "content" : {
@@ -470,11 +473,16 @@
                         "ignoreErrors" : ignoreErrors
                     }
                 }
-            },
-            "02createFiles" : {
+            }
+        ) +
+        attributeIfContent(
+            "CreateFiles",
+            files,
+            {
                 "files" : initFiles
             }
-        }
+
+        )
     ]
 [/#function]
 
