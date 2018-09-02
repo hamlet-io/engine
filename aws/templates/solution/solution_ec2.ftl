@@ -82,7 +82,9 @@
                 "Links" : contextLinks,
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : false,
-                "DefaultLinkVariables" : true
+                "DefaultLinkVariables" : true,
+                "Files" : {},
+                "Directories : {}
             }
         ]
 

@@ -95,6 +95,8 @@
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true
+                "Files" : {},
+                "Directories : {}
             }
         ]
 
