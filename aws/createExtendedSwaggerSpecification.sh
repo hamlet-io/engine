@@ -134,6 +134,7 @@ done
 # If the target is a zip file, zip up the generated files
 cd "${tmp_results_dir}"
 if [[ "${EXTENDED_SWAGGER_FILE_EXTENSION}" == "zip" ]]; then
+    cp "${SWAGGER_FILE}" "${EXTENDED_SWAGGER_FILE_BASE}-extended-base.json"
     zip ${EXTENDED_SWAGGER_FILE_BASE}.zip *.json
     rm *.json
 fi

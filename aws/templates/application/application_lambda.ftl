@@ -44,7 +44,7 @@
                     "DefaultEnvironmentVariables" : true,
                     "DefaultLinkVariables" : true,
                     "Policy" : standardPolicies(fn),
-                    "ManagedPolicy: []
+                    "ManagedPolicy" : []
                 }
             ]
 
