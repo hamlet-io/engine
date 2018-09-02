@@ -43,7 +43,8 @@
                     "DefaultCoreVariables" : true,
                     "DefaultEnvironmentVariables" : true,
                     "DefaultLinkVariables" : true,
-                    "Policy" : standardPolicies(fn)
+                    "Policy" : standardPolicies(fn),
+                    "ManagedPolicy: []
                 }
             ]
 
@@ -90,10 +91,7 @@
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
                         ) + 
-                        arrayIfContent(
-                            context.ManagedPolicy
-                            context.ManagedPolicy
-                        )]
+                        context.ManagedPolicy ]
 
                 [#-- Create a role under which the function will run and attach required policies --]
                 [#-- The role is mandatory though there may be no policies attached to it --]
