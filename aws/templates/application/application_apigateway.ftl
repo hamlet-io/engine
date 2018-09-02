@@ -577,12 +577,44 @@
                     ]
             /]
         [/#if]
-        [#if definition?? && deploymentSubsetRequired("config", false)]
-            [@cfConfig
-                mode=listMode
-                content=definition?eval[core.Id]!{}
-            /]
+
+        [#if definition?? ]
+            [#assign swaggerDefinition = definition?eval[core.Id]!{} ]
+            [#if swaggerDefinition["x-amazon-apigateway-request-validator"]?? ]
+                [#-- Pass definition through - it is legacy and has already has been processed --]
+                [#assign extendedSwaggerDefinition = swaggerDefinition ]
+            [#else]
+                [#assign integrations = getOccurrenceSettingValue(occurrence, ["apigw", "Integrations"], true) ]
+                [#if integrations?is_hash]
+                    [#assign extendedSwaggerDefinition =
+                        extendSwaggerDefinition(
+                            swaggerDefinition,
+                            integrations,
+                            {
+                                "account" : accountObject.AWSId,
+                                "region" : region
+                            }
+                        ) ]
+                [#else]
+                    [#assign extendedSwaggerDefinition = {} ]
+                    [@cfException
+                        mode=listMode
+                        description="API Gateway integration definitions should be a hash"
+                        context={ "Integrations" : integrations}
+                    /]
+                [/#if]
+            [/#if]
+
+            [#if extendedSwaggerDefinition?has_content]
+                [#if deploymentSubsetRequired("config", false)]
+                    [@cfConfig
+                        mode=listMode
+                        content=extendedSwaggerDefinition
+                    /]
+                [/#if]
+            [/#if]
         [/#if]
+
         [#if deploymentSubsetRequired("prologue", false)]
             [#-- Copy the final swagger definition to the ops bucket --]
             [@cfScript

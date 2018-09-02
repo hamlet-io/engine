@@ -146,7 +146,7 @@
     ]
 [/#function]
 
-[#function getSwaggerGlobalSecurity userPoolArns account cognitoPoolName cognitoAuthHeader ]
+[#function getSwaggerGlobalSecurity context userPoolArns cognitoPoolName cognitoAuthHeader ]
     [#local result =
         {
             "api_key": {
@@ -162,6 +162,7 @@
             }
         }
     ]
+    [#list account = context["account"] ]
     [#list userPoolArns!{} as key, value]
         [#if key == account ]
             [#local result +=
@@ -291,7 +292,7 @@
     ]
 [/#function]
 
-[#function getSwaggerMethodEntry context verb type apiVariable
+[#function getSwaggerMethodEntry context path verb type apiVariable
     validationLevel sig4Required apiKeyRequired
     userPoolRequired cognitoPoolName
     useClientCredsRequired
@@ -301,6 +302,8 @@
         getSwaggerSecurity(sig4Required, apiKeyRequired, userPoolRequired, cognitoPoolName) +
         getSwaggerValidation(validationLevel)
     ]
+
+    [#local pathPrefix = path?split("/") ]
 
     [#switch type]
         [#case "docker"]
@@ -333,6 +336,25 @@
                         },
                         useClientCredsRequired
                     ),
+                    "responses" : {}
+                }
+            ]
+            [#break]
+
+        [#case "sms"]
+            [#local result +=
+                {
+                    "x-amazon-apigateway-integration" : {
+                        "type": "aws",
+                        "uri" : "arn:aws:apigateway:" + context["region"] + ":sns:action/Publish",
+                        "passthroughBehavior" : "when_no_match",
+                        "httpMethod" : "POST",
+                        "requestParameters": {
+                          "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
+                          "integration.request.querystring.Message": "method.request.querystring.Message"
+                        },
+                        "credentials" : context[formatName(pathPrefix,"role")]
+                    },
                     "responses" : {}
                 }
             ]
@@ -411,7 +433,7 @@
     [#local globalConfiguration =
         getSwaggerValidationLevels() +
         getSwaggerValidation(defaultValidationLevel) +
-        getSwaggerGlobalSecurity(defaultUserPoolArns, context["account"], defaultCognitoPoolName, defaultCognitoAuthHeader) +
+        getSwaggerGlobalSecurity(context, defaultUserPoolArns, defaultCognitoPoolName, defaultCognitoAuthHeader) +
         getSwaggerSecurity(defaultSig4Required, defaultApiKeyRequired, defaultUserPoolRequired, defaultCognitoPoolName) +
         getSwaggerBinaryMediaTypes(binaryTypes) +
         getSwaggerErrorResponses(gatewayErrorReportingRequired, gatewayErrorMap)
@@ -445,6 +467,7 @@
                     } +
                     getSwaggerMethodEntry(
                         context,
+                        path,
                         "options",
                         "mock-cors",
                         defaultVariable,
@@ -468,6 +491,7 @@
                     [#local extendedVerb =
                         getSwaggerMethodEntry(
                             context,
+                            path,
                             verb,
                             pattern.Type ! defaultType,
                             pattern.Variable ! defaultVariable,
@@ -486,6 +510,7 @@
                 [#local extendedVerb =
                     getSwaggerMethodEntry(
                         context,
+                        path,
                         verb,
                         defaultType,
                         defaultVariable,
