@@ -82,7 +82,11 @@
     [#if arg?is_hash || arg?is_sequence ]
         [#return getJSON(arg) ]
     [#else]
-        [#return arg ]
+        [#if arg?is_boolean || arg?is_number ]
+            [#return arg?c]
+        [#else]
+            [#return arg ]
+        [/#if]
     [/#if]
 [/#function]
 
