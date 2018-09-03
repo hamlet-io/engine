@@ -132,7 +132,7 @@
                         },
                         {
                             "Name" : "UID",
-                            "Type" : STRING_TYPE,
+                            "Type" : NUMBER_TYPE,
                             "Mandatory" : true
                         }
                     ]
