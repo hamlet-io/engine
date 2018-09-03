@@ -100,7 +100,8 @@
                     {
                         "Name" : "Protocol",
                         "Type" : STRING_TYPE,
-                        "Default" : "https"
+                        "Values" : ["HTTPS", "#\{protocol}" ],
+                        "Default" : "HTTPS"
                     },
                     {
                         "Name" : "Port",
@@ -115,7 +116,7 @@
                     {
                         "Name" : "Path",
                         "Type" : STRING_TYPE,
-                        "Default" : "#\{path}"
+                        "Default" : "/#\{path}"
                     },
                     {
                         "Name" : "Query",
@@ -125,7 +126,7 @@
                     {
                         "Name" : "Permanent",
                         "Type" : BOOLEAN_TYPE,
-                        "Default" : false
+                        "Default" : true
                     }
                 ]
             },

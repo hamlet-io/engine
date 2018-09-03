@@ -857,6 +857,7 @@ function create_elbv2_rule() {
     return 255
   else
     echo "${rule_arn}"
+    return 0
   fi
 }
 

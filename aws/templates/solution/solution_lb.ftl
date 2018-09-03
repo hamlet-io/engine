@@ -375,14 +375,14 @@
                                                         "       \"" + region + "\" " +
                                                         "       \"" + getExistingReference(listenerRuleId) + "\" " +
                                                         "       \"$\{tmpdir}/cli-" +
-                                                                listenerRuleId + "-" + listenerRuleCommand + ".json\""
+                                                                listenerRuleId + "-" + listenerRuleCommand + ".json\" || return $?"
                                                     ],
                                                     [
                                                         "       listener_rule_arn=$( create_elbv2_rule" +
                                                         "       \"" + region + "\" " +
                                                         "       \"" + getExistingReference(listenerId) + "\" " +
                                                         "       \"$\{tmpdir}/cli-" +
-                                                                listenerRuleId + "-" + listenerRuleCommand + ".json\")",
+                                                                listenerRuleId + "-" + listenerRuleCommand + ".json\" || return $?)",
                                                         "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                                                         "       create_pseudo_stack" + " " +
                                                         "       \"LB Listener Rule\"" + " " +
