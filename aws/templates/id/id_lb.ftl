@@ -100,7 +100,7 @@
                     {
                         "Name" : "Protocol",
                         "Type" : STRING_TYPE,
-                        "Values" : ["HTTPS", "#\{[protocol}" ]
+                        "Values" : ["HTTPS", "#\{protocol}" ],
                         "Default" : "HTTPS"
                     },
                     {
@@ -116,7 +116,7 @@
                     {
                         "Name" : "Path",
                         "Type" : STRING_TYPE,
-                        "Default" : "#\{path}"
+                        "Default" : "/#\{path}"
                     },
                     {
                         "Name" : "Query",
