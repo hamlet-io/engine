@@ -130,8 +130,10 @@ function get_swagger_definition_file() {
   [[ -f "${definition_file}" ]] || echo "{}" > "${definition_file}"
 
   addJSONAncestorObjects "${swagger_definition}" "${id}" > "${swagger_file_dir}/definition.json" || return 1
-  jqMerge "${definition_file}" "${swagger_file_dir}/definition.json" > "${swagger_file_dir}/merged_definition.json" || return 1
-  cp "${swagger_file_dir}/merged_definition.json" "${definition_file}" || return 1
+  # For now we will replace the definition file on the assumption we are only
+  # handling one api per deployment unit.
+  # If more than one is to be supported, then we need to replace what's there rather than merge it
+  cp "${swagger_file_dir}/definition.json" "${definition_file}" || return 1
 
   return 0
 }

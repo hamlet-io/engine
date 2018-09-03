@@ -422,7 +422,7 @@
     [#return result]
 [/#function]
 
-[#function extendSwaggerDefinition definition integrations context={} ]
+[#function extendSwaggerDefinition definition integrations context={} merge=false]
 
     [#-- General defaults for integrations --]
     [#local defaultPathPattern            = integrations.Path           ! ".*"]
@@ -456,6 +456,7 @@
 
     [#-- Start with global configuration --]
     [#local globalConfiguration =
+        valueIfTrue(definition, merge) +
         getSwaggerValidationLevels() +
         getSwaggerValidation(defaultValidationLevel) +
         getSwaggerGlobalSecurity(context) +
@@ -548,7 +549,12 @@
                     )
                 ]
             [/#if]
-            [#local verbs += { verb : extendedVerb } ]
+            [#local verbs +=
+                {
+                    verb :
+                        valueIfTrue(verbObject, merge) +
+                        extendedVerb
+                } ]
         [/#list]
 
         [#local paths += { path : verbs } ]

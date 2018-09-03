@@ -594,7 +594,15 @@
                 [#-- Pass definition through - it is legacy and has already has been processed --]
                 [#assign extendedSwaggerDefinition = swaggerDefinition ]
             [#else]
-                [#assign swaggerIntegrations = getOccurrenceSettingValue(occurrence, ["apigw", "Integrations"], true) ]
+                [#assign swaggerIntegrations = getOccurrenceSettingValue(occurrence, [["apigw"], ["Integrations"]], true) ]
+                [#if !swaggerIntegrations?has_content]
+                    [@cfException
+                        mode=listMode
+                        description="API Gateway integration definitions not found"
+                        context=occurrence
+                    /]
+                    [#assign swaggerIntegrations = {} ]
+                [/#if]
                 [#if swaggerIntegrations?is_hash]
                     [#assign swaggerContext =
                         {
@@ -627,14 +635,15 @@
                         extendSwaggerDefinition(
                             swaggerDefinition,
                             swaggerIntegrations,
-                            swaggerContext) ]
+                            swaggerContext,
+                            true) ]
 
                 [#else]
                     [#assign extendedSwaggerDefinition = {} ]
                     [@cfException
                         mode=listMode
                         description="API Gateway integration definitions should be a hash"
-                        context={ "Integrations" : integrations}
+                        context={ "Integrations" : swaggerIntegrations}
                     /]
                 [/#if]
             [/#if]
