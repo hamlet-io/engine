@@ -100,7 +100,7 @@
                     {
                         "Name" : "Protocol",
                         "Type" : STRING_TYPE,
-                        "Values" : ["HTTPS", "#\{[rotocol}" ]
+                        "Values" : ["HTTPS", "#\{[protocol}" ]
                         "Default" : "HTTPS"
                     },
                     {
