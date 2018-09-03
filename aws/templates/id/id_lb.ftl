@@ -100,7 +100,8 @@
                     {
                         "Name" : "Protocol",
                         "Type" : STRING_TYPE,
-                        "Default" : "https"
+                        "Values" : ["HTTPS", "#\{[rotocol}" ]
+                        "Default" : "HTTPS"
                     },
                     {
                         "Name" : "Port",
@@ -125,7 +126,7 @@
                     {
                         "Name" : "Permanent",
                         "Type" : BOOLEAN_TYPE,
-                        "Default" : false
+                        "Default" : true
                     }
                 ]
             },
