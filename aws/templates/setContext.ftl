@@ -599,7 +599,7 @@
                         IP_ADDRESS_ATTRIBUTE_TYPE
                     ) ]
                 [#if zoneIP?has_content]
-                    [#local segmentCIDR += [zoneIP] ]
+                    [#local segmentCIDR += [zoneIP + "/32" ] ]
                 [/#if]
             [/#list]
             [#return
