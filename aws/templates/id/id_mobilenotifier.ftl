@@ -114,7 +114,7 @@
                 "Inbound" : {},
                 "Outbound" : {
                     "default" : "publish",
-                    "publish" : snsPublishPlatformApplication(id)
+                    "publish" : snsPublishPlatformApplication(core.ShortFullName)
                 }
             }
         }

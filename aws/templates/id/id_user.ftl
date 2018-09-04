@@ -22,7 +22,7 @@
                     "Children" : [
                         {
                             "Name" : "Formats",
-                            "Type" : STRING_TYPE,
+                            "Type" : ARRAY_OF_STRING_TYPE,
                             "Values" : ["system", "console"],
                             "Default"  : [ "system" ]
                         }
