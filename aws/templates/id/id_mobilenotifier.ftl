@@ -93,6 +93,8 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE, core.Id) ]
+    [#local name = core.FullName ]
+    [#local topicPrefix = core.ShortFullName]
     [#local engine = solution.Engine!core.SubComponent.Name?upper_case  ]
 
     [#local result =
@@ -108,13 +110,13 @@
             "Attributes" : {
                 "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
                 "ENGINE" : engine,
-                "TOPIC_PREFIX" : core.ShortFullName
+                "TOPIC_PREFIX" : topicPrefix
             },
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {
                     "default" : "publish",
-                    "publish" : snsPublishPlatformApplication(core.ShortFullName)
+                    "publish" : snsPublishPlatformApplication(name, engine, topicPrefix)
                 }
             }
         }
