@@ -50,13 +50,15 @@
                                 )]
                     [/#list]
 
-                    [@createBucketPolicy
-                        mode=listMode
-                        id=bucketPolicyId
-                        bucket=bucketName
-                        statements=policyStatements
-                        dependencies=bucketId
-                    /]
+                    [#if policyStatements?has_content ]
+                        [@createBucketPolicy
+                            mode=listMode
+                            id=bucketPolicyId
+                            bucket=bucketName
+                            statements=policyStatements
+                            dependencies=bucketId
+                        /]
+                    [/#if]
                 [/#if]
             [/#list]
         [/#if]
