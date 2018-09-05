@@ -42,7 +42,7 @@
             id)]
 [/#function]
 
-[#function snsPublishPlatformApplication platformAppName engine topic_prefix=""  ]
+[#function snsPublishPlatformApplication platformAppName engine topic_prefix ]
     [#return 
         [
             getPolicyStatement(
@@ -67,19 +67,15 @@
                 [
                     "sns:Publish" 
                 ],
-                [ 
-                    formatRegionalArn(
-                        "sns",
-                        "app/" + engine + "/" + platformAppName
-                    ) 
-                ] +
                 [
                     formatRegionalArn(
                         "sns",
+                        "app/" + engine + "/" + platformAppName
+                    ),
+                    formatRegionalArn(
+                        "sns",
                         "endpoint/" + engine + "/" + platformAppName + "*"
-                    )
-                ] + 
-                [    
+                    ),
                     formatRegionalArn(
                         "sns", 
                         topic_prefix + "*"
