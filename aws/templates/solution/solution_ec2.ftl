@@ -137,12 +137,8 @@
 
                         [#case "application"]
                         [#case "network"]
-                            [#if link.TargetGroup?has_content ]
-                            
-                                [#assign targetId = (linkTargetResources["targetgroup"].Id) ]
-                                [#assign configSets += getInitConfigLBTargetRegistration(targetId)]
-                                            
-                            [/#if]
+                            [#assign targetId = (linkTargetResources["targetgroup"].Id) ]
+                            [#assign configSets += getInitConfigLBTargetRegistration(targetId)]
                             [#break]
 
                         [#case "classic" ]
