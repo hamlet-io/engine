@@ -141,8 +141,7 @@
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetResources = linkTarget.State.Resources ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-
-                [@cfDebug listMode linkTarget true /]
+                
                 [#switch linkTargetCore.Type]
                     [#case EFS_MOUNT_COMPONENT_TYPE]
                         [#assign configSets +=
