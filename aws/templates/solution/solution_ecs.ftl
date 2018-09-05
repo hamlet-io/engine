@@ -136,12 +136,13 @@
 
         [#if deploymentSubsetRequired("ecs", true)]
 
-            [#list contextLinks?values as linkTarget]
+            [#list context.Links as linkId,linkTarget]
                 [#assign linkTargetCore = linkTarget.Core ]
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetResources = linkTarget.State.Resources ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
+                [@cfDebug listMode linkTarget true /]
                 [#switch linkTargetCore.Type]
                     [#case EFS_MOUNT_COMPONENT_TYPE]
                         [#assign configSets +=
@@ -149,7 +150,7 @@
                                 linkTargetCore.Id,
                                 linkTargetAttributes.EFS,
                                 linkTargetAttributes.DIRECTORY,
-                                linkTarget.Id
+                                linkId
                             )]
                         [#break]
                 [/#switch]
