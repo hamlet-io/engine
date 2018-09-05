@@ -188,11 +188,8 @@
 
                         [#case "application"]
                         [#case "network"]
-                            [#if link.TargetGroup?has_content ]
-                                [#assign targetId = (linkTargetResources["targetgroup"].Id) ]
-                                [#assign targetGroups += [ getReference(targetId, ARN_ATTRIBUTE_TYPE) ] ]
-                                
-                            [/#if]
+                            [#assign targetId = (linkTargetResources["targetgroup"].Id) ]
+                            [#assign targetGroups += [ getReference(targetId, ARN_ATTRIBUTE_TYPE) ] ]
                             [#break]
 
                         [#case "classic" ]
