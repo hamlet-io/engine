@@ -42,7 +42,7 @@
             id)]
 [/#function]
 
-[#function snsPublishPlatformApplication topic_prefix="" ]
+[#function snsPublishPlatformApplication platformAppName engine topic_prefix ]
     [#return 
         [
             getPolicyStatement(
@@ -56,13 +56,32 @@
             ),
             getPolicyStatement(
                 [
-                    "sns:CreateTopic",
-                    "sns:Publish"
+                    "sns:CreateTopic"
                 ],
                 formatRegionalArn(
                     "sns", 
                     topic_prefix + "*"
                 )
+            ),
+            getPolicyStatement(
+                [
+                    "sns:Publish" 
+                ],
+                [
+                    formatRegionalArn(
+                        "sns",
+                        "app/" + engine + "/" + platformAppName
+                    ),
+                    formatRegionalArn(
+                        "sns",
+                        "endpoint/" + engine + "/" + platformAppName + "*"
+                    ),
+                    formatRegionalArn(
+                        "sns", 
+                        topic_prefix + "*"
+                    )
+                ]
+                
             )
         ]
     ]
