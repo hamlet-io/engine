@@ -25,9 +25,9 @@
                 /]
 
                 [#if bucket == "registry" ]
-                    [#assign sharingSources = accountObject.Registry.ShareAccess ]
+                    [#assign sharingSources = (accountObject.Registry.ShareAccess.AWSAccounts)![] ]
                     [#assign policyStatements = [] ]
-                    [#list sharingSources.AWSAccounts![] as awsAccount ]
+                    [#list sharingSources as awsAccount ]
 
                         [#assign accountPrincipal = {
                             "AWS" : formatGlobalArn(
