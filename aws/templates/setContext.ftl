@@ -270,6 +270,9 @@
 [#assign stackOutputsList =
     stackOutputs?has_content?then(stackOutputs?eval, []) ]
 
+[#assign definitionsObject =
+    definitions?has_content?then(definitions?eval, {}) ]
+
 [#-- Reference data --]
 [#assign regions = blueprintObject.Regions]
 [#assign environments = blueprintObject.Environments]

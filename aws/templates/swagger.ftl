@@ -380,7 +380,7 @@
                           "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
                           "integration.request.querystring.Message": "method.request.querystring.Message"
                         },
-                        "credentials" : context[formatPath(path,"role")]
+                        "credentials" : context[formatAbsolutePath(path,"role")]
                     },
                     "responses" : {}
                 }

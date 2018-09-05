@@ -588,8 +588,8 @@
             /]
         [/#if]
 
-        [#if definition?? ]
-            [#assign swaggerDefinition = definition?eval[core.Id]!{} ]
+        [#if definitionsObject[core.Id]?? ]
+            [#assign swaggerDefinition = definitionsObject[core.Id] ]
             [#if swaggerDefinition["x-amazon-apigateway-request-validator"]?? ]
                 [#-- Pass definition through - it is legacy and has already has been processed --]
                 [#assign extendedSwaggerDefinition = swaggerDefinition ]
@@ -614,7 +614,7 @@
                     [#-- Determine if there are any roles required by specific methods --]
                     [#assign extendedSwaggerRoles = getSwaggerDefinitionRoles(swaggerDefinition, swaggerIntegrations) ]
                     [#list extendedSwaggerRoles as path,policies]
-                        [#assign swaggerRoleId = formatDependentRoleId(stageId, path)]
+                        [#assign swaggerRoleId = formatDependentRoleId(stageId, formatId(path))]
                         [#-- Roles must be defined in a separate unit so the ARNs are available here --]
                         [#if deploymentSubsetRequired("iam", false)  &&
                             isPartOfCurrentDeploymentUnit(swaggerRoleId)]
@@ -626,7 +626,7 @@
                         [/#if]
                         [#assign swaggerContext +=
                             {
-                                formatPath(path,"role") : getExistingReference(swaggerRoleId)
+                                formatAbsolutePath(path,"role") : getExistingReference(swaggerRoleId)
                             } ]
                     [/#list]
 

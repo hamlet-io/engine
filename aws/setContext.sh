@@ -263,6 +263,14 @@ if [[ (("${GENERATION_USE_CACHE}" != "true") &&
     assemble_settings "${GENERATION_DATA_DIR}" "${COMPOSITE_SETTINGS}"
 fi
 
+# Create the composite definitions
+export COMPOSITE_DEFINITIONS="${CACHE_DIR}/composite_definitions.json"
+if [[ (("${GENERATION_USE_CACHE}" != "true") &&
+        ("${GENERATION_USE_DEFINITIONS_CACHE}" != "true")) ||
+      (! -f "${COMPOSITE_DEFINITIONS}") ]]; then
+    assemble_composite_definitions
+fi
+
 # Create the composite stack outputs
 export COMPOSITE_STACK_OUTPUTS="${CACHE_DIR}/composite_stack_outputs.json"
 if [[ (("${GENERATION_USE_CACHE}" != "true") &&

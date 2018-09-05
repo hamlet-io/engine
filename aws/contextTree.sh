@@ -337,6 +337,32 @@ function assemble_settings() {
   return ${return_status}
 }
 
+function assemble_composite_definitions() {
+
+  # Create the composite definitions
+  local restore_nullglob=$(shopt -p nullglob)
+  shopt -s nullglob
+
+  pushTempDir "${FUNCNAME[0]}_XXXX"
+  local tmp_dir="$(getTopTempDir)"
+
+  local stack_array=()
+  [[ (-n "${ACCOUNT}") ]] &&
+      addToArray "definitions_array" "${ACCOUNT_INFRASTRUCTURE_DIR}"/cf/shared/acc*-definition.json
+  [[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
+      addToArray "definitions_array" "${PRODUCT_INFRASTRUCTURE_DIR}"/cf/shared/product*-"${REGION}"*-definition.json
+  [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
+      addToArray "definitions_array" "${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"/*-definition.json
+
+  ${restore_nullglob}
+
+  debug "DEFINITIONS=${definitions_array[*]}"
+  export COMPOSITE_DEFINITIONS="${CACHE_DIR}/composite_definitions.json"
+  jqMerge "${definitions_array[@]}" > "${COMPOSITE_DEFINITIONS}"
+
+  popTempDir
+}
+
 function assemble_composite_stack_outputs() {
 
   # Create the composite stack outputs

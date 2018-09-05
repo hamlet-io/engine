@@ -120,8 +120,18 @@ function get_swagger_definition_file() {
   unzip "${swagger_zip}" -d "${swagger_file_dir}"  ||
       { fatal "Unable to unzip swagger zip file ${swagger_zip}"; return 1; }
 
-  [[ -f "${legacy_swagger_file}" ]] && swagger_definition="${legacy_swagger_file}"
+  # Use existing legacy files in preference to generation as part of deployment
+  # This is mainly so projects using the legacy approach are not affected
+  # To switch to the new approach, delete the apigw.json from the code repo and 
+  # move it to the settings entry for the api gateway component in the cmdb. e.g.
+  # {
+  #    "Integrations" : {
+  #      "Internal" : true,
+  #      "Value" : ... (existing file contents)
+  #    }
+  # }
   [[ -f "${swagger_file}"        ]] && swagger_definition="${swagger_file}"
+  [[ -f "${legacy_swagger_file}" ]] && swagger_definition="${legacy_swagger_file}"
 
   [[ -n "${swagger_definition}" ]] ||
       { fatal "Unable to locate swagger file in ${swagger_zip}"; return 1; }
@@ -352,6 +362,7 @@ function process_template() {
   args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
   args+=("-v" "settings=${COMPOSITE_SETTINGS}")
+  args+=("-v" "definitions=${COMPOSITE_DEFINITIONS}")
   args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")
@@ -372,12 +383,6 @@ function process_template() {
 
     local file_description="${pass_description[${pass}]}"
     info "Generating ${file_description} file ...\n"
-
-    # Add the definition file if present for the config pass
-    definition_file="${cf_dir}/${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_account_prefix[${pass}]}${pass_region_prefix[${pass}]}definition.json"
-    if [[ ("${pass}" == "config") && (-s "${definition_file}") ]]; then
-      pass_args+=("-v" "definition=${definition_file}")
-    fi
 
     for pass_alternative in ${pass_alternatives["${pass}"]}; do
 
@@ -427,8 +432,10 @@ function process_template() {
           sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
 
           if [[ "${pass}" == "pregeneration" ]]; then
+            definition_file="${cf_dir}/${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_account_prefix[${pass}]}${pass_region_prefix[${pass}]}definition.json"
             info "Processing pregeneration script ..."
             . "${output_file}"
+            assemble_composite_definitions
           fi
           ;;
 
