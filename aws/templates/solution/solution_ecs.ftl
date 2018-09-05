@@ -149,7 +149,7 @@
                                 linkTargetCore.Id,
                                 linkTargetAttributes.EFS,
                                 linkTargetAttributes.DIRECTORY,
-                                link.Id
+                                linkTarget.Id
                             )]
                         [#break]
                 [/#switch]
