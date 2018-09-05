@@ -212,7 +212,7 @@
                                 [#assign userPoolArn = linkTargetAttributes["USERPOOL_ARN"] ]
                                 [#assign userPoolClientId = linkTargetAttributes["USERPOOL_CLIENTID"] ]
                                 [#assign userPoolSessionCookieName = linkTargetAttributes["USERPOOL_SESSION_COOKIENAME"] ]
-                                [#assign userPoolSessionTimeout = linkTargetAttributes["USERPOOL_SESSION_TIMEOUT"] ]
+                                [#assign userPoolSessionTimeout = linkTargetAttributes["USERPOOL_SESSION_TIMEOUT"]?number ]
                                 [#assign userPoolOauthScope = linkTargetAttributes["USERPOOL_OAUTH_SCOPE"] ]
                             [#else]
                                 [#assign userPoolId = linkTargetResources["userpool"].Id ]
