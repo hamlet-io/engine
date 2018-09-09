@@ -111,7 +111,7 @@ function get_swagger_definition_file() {
   pushTempDir "${FUNCNAME[0]}_XXXX"
   local swagger_file_dir="$(getTopTempDir)"
 
-  # Name definitions based on the component id
+  # Name definitions based on the component
   local definition_file="${cf_dir}/defn-${name}-${accountId}-${region}-definition.json"
 
   local swagger_file="${swagger_file_dir}/swagger-extended-base.json"
