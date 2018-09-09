@@ -220,8 +220,7 @@ function process_template() {
   # Default passes
   local passes=("pregeneration" "prologue" "template" "epilogue")
 
-  # Not local as needed in get_swagger_definition_file
-  cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+  local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
 
   case "${level}" in
     blueprint)
