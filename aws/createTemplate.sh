@@ -102,23 +102,27 @@ function options() {
 
 function get_swagger_definition_file() {
   local swagger_zip="$1"; shift
-  local definition_file="$1"; shift
   local id="$1"; shift
+  local name="$1"; shift
+  local accountId="$1"; shift
+  local accountNumber="$1"; shift
   local region="$1"; shift
-  local account="$1"; shift
 
-  local swagger_file_dir="${tmpdir}/swagger_files"
+  pushTempDir "${FUNCNAME[0]}_XXXX"
+  local swagger_file_dir="$(getTopTempDir)"
+
+  # Name definitions based on the component id
+  local definition_file="${cf_dir}/defn-${name}-${accountId}-${region}-definition.json"
+
   local swagger_file="${swagger_file_dir}/swagger-extended-base.json"
-  local legacy_swagger_file="${swagger_file_dir}/swagger-${region}-${account}.json"
+  local legacy_swagger_file="${swagger_file_dir}/swagger-${region}-${accountNumber}.json"
   local swagger_definition=
 
-  mkdir -p "${swagger_file_dir}"
-
   [[ -s "${swagger_zip}" ]] ||
-      { fatal "Unable to locate swagger zip file ${swagger_zip}"; return 1; }
+      { fatal "Unable to locate swagger zip file ${swagger_zip}"; popTempDir; return 1; }
 
   unzip "${swagger_zip}" -d "${swagger_file_dir}"  ||
-      { fatal "Unable to unzip swagger zip file ${swagger_zip}"; return 1; }
+      { fatal "Unable to unzip swagger zip file ${swagger_zip}"; popTempDir; return 1; }
 
   # Use existing legacy files in preference to generation as part of deployment
   # This is mainly so projects using the legacy approach are not affected
@@ -134,17 +138,18 @@ function get_swagger_definition_file() {
   [[ -f "${legacy_swagger_file}" ]] && swagger_definition="${legacy_swagger_file}"
 
   [[ -n "${swagger_definition}" ]] ||
-      { fatal "Unable to locate swagger file in ${swagger_zip}"; return 1; }
+      { fatal "Unable to locate swagger file in ${swagger_zip}"; popTempDir; return 1; }
 
-  info "Adding ${swagger_definition} to ${definition_file} ..."
-  [[ -f "${definition_file}" ]] || echo "{}" > "${definition_file}"
+  info "Saving ${swagger_definition} to ${definition_file} ..."
 
-  addJSONAncestorObjects "${swagger_definition}" "${id}" > "${swagger_file_dir}/definition.json" || return 1
-  # For now we will replace the definition file on the assumption we are only
-  # handling one api per deployment unit.
-  # If more than one is to be supported, then we need to replace what's there rather than merge it
-  cp "${swagger_file_dir}/definition.json" "${definition_file}" || return 1
+  # Index via id to allow definitions to be combined into single composite
+  addJSONAncestorObjects "${swagger_definition}" "${id}" > "${swagger_file_dir}/definition.json" ||
+      { popTempDir; return 1; }
 
+  cp "${swagger_file_dir}/definition.json" "${definition_file}" ||
+      { popTempDir; return 1; }
+
+  popTempDir
   return 0
 }
 
@@ -215,7 +220,8 @@ function process_template() {
   # Default passes
   local passes=("pregeneration" "prologue" "template" "epilogue")
 
-  local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+  # Not local as needed in get_swagger_definition_file
+  cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
 
   case "${level}" in
     blueprint)
@@ -432,7 +438,6 @@ function process_template() {
           sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
 
           if [[ "${pass}" == "pregeneration" ]]; then
-            definition_file="${cf_dir}/${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_account_prefix[${pass}]}${pass_region_prefix[${pass}]}definition.json"
             info "Processing pregeneration script ..."
             . "${output_file}"
             assemble_composite_definitions

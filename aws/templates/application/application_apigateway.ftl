@@ -580,10 +580,13 @@
                     [
                         "get_swagger_definition_file" + " " +
                              "\"$\{swaggerFiles[0]}\"" + " " +
-                             "\"$\{definition_file}\"" + " " +
                              "\"" + core.Id + "\"" + " " +
-                             "\"" + region + "\"" + " " +
-                             "\"" + accountObject.AWSId + "\"" + " || return $?"
+                             "\"" + core.Name + "\"" + " " +
+                             "\"" + accountId + "\"" + " " +
+                             "\"" + accountObject.AWSId + "\"" + " " +
+                             "\"" + region + "\"" + " || return $?",
+                        "#"
+
                     ]
             /]
         [/#if]
