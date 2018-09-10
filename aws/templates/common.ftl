@@ -301,46 +301,46 @@ A qualifier allows the value used for a part of a JSON document to vary dependin
 the context. An example might be varying settings depending on the current environment.
 If no qualifier applies, then a "default" value applies.
 
-Central to the operation of qualification is the idea of a filter. A filter consists of one or 
+Central to the operation of qualification is the idea of a filter. A filter consists of one or
 more values for each of one or more filter attributes. A "MatchBehaviour" is used to compare filters
 for a match.
 
-The current context is represented by the "Context Filter". It is managed dynamically during 
+The current context is represented by the "Context Filter". It is managed dynamically during
 template processing, and contains values such as the current tenant, product, environment etc.
 
-Each qualifier has a filter and a value. If the filter matches the Context Filter, 
+Each qualifier has a filter and a value. If the filter matches the Context Filter,
 then the qualifier value is used to amend the default value which applies if no qualifier matches.
 More than one qualifier may match, in which case they are processed in the order they are defined,
 and the result of one match becomes the default for the next match.
 
-One way to think of filters is in terms of Venn Diagrams. Each filter defines a set of configuration 
+One way to think of filters is in terms of Venn Diagrams. Each filter defines a set of configuration
 entities and if the sets overlap based on the FilterBehaviour, then the qualifier applies. (A similar
-logic is applied for links, where the link filter needs to define a set containing a single, 
+logic is applied for links, where the link filter needs to define a set containing a single,
 "component" configuration entity.)
 
-The way in which the default value is modified is controlled by the "DefaultBehaviour" of the 
+The way in which the default value is modified is controlled by the "DefaultBehaviour" of the
 qualifier. Typically this means simple values will be replaced and for objects,
 the default value is prefix added to the qualifier value.
 
 One or more qualifiers can be added at any point in the JSON document via a reserved "Qualifiers"
-entity. Where the qualified entity is not itself an object, the desired entity is 
+entity. Where the qualified entity is not itself an object, the desired entity is
 wrapped in an object in order that qualifiers can be attached. In this case, the default value
 should be provided via a "Default" attribute at the same level as the "Qualifiers" attribute.
 
 There is a short form and a long form for qualifiers.
 
 In the short form, the "Qualifiers" entity is an object and each attribute represents a qualifier.
-The attribute name is the value of the filter "Any" attribute, and the MatchBehaviour is "any", 
-meaning the value of the Any attribute needs to match one value in any of the attributes of the 
-Context Filter. The qualifier value is the value of the attribute. Because object attribute 
-processing is not ordered, the short form does not provide fine control in the situation where 
+The attribute name is the value of the filter "Any" attribute, and the MatchBehaviour is "any",
+meaning the value of the Any attribute needs to match one value in any of the attributes of the
+Context Filter. The qualifier value is the value of the attribute. Because object attribute
+processing is not ordered, the short form does not provide fine control in the situation where
 multiple qualifiers match - effectively they need to be independent.
 
 The short form is useful for simple situations such as setting variation based on environment.
 
 In the long form, the "Qualifiers" entity is an array of qualifier objects. Each qualifier object
-must have a "Filter" attribute and a "Value" attribute, as well as optional "MatchBehaviour" and 
-"DefaultBehaviour" attributes. By default, the MatchBehaviour is "onetoone", meaning a value of 
+must have a "Filter" attribute and a "Value" attribute, as well as optional "MatchBehaviour" and
+"DefaultBehaviour" attributes. By default, the MatchBehaviour is "onetoone", meaning a value of
 each attribute of the qualifier filter must match a value of the same named attribute in the Context
 Filter.
 
@@ -795,7 +795,7 @@ behaviour.
             [#case DATASET_COMPONENT_TYPE ]
                 [#local result = getDataSetState(occurrence)]
                 [#break]
-            
+
             [#case DATAPIPELINE_COMPONENT_TYPE ]
                 [#local result = getDataPipelineState(occurrence)]
                 [#break]
@@ -996,7 +996,7 @@ behaviour.
     ]
 [/#function]
 
-[#function getOccurrenceAccountSettings occurrence]
+[#function getAccountSettings ]
     [#local alternatives = [{"Key" : "shared", "Match" : "exact"}] ]
 
     [#-- Fudge prefixes for accounts --]
@@ -1119,7 +1119,8 @@ behaviour.
 
 [#-- Try to match the desired setting in decreasing specificity --]
 [#-- A single match array or an array of arrays can be provided --]
-[#function getOccurrenceSetting occurrence names emptyIfNotProvided=false]
+[#-- Sets of settings are provide in least to most specific     --]
+[#function getSetting settingSets names emptyIfNotProvided=false]
     [#local nameAlternatives = asArray(names) ]
     [#if !(nameAlternatives[0]?is_sequence) ]
       [#local nameAlternatives = [nameAlternatives] ]
@@ -1136,17 +1137,13 @@ behaviour.
     [/#list]
 
     [#list settingNames as settingName]
-        [#local setting =
-            contentIfContent(
-                (occurrence.Configuration.Settings.Build[settingName])!{},
-                contentIfContent(
-                    (occurrence.Configuration.Settings.Product[settingName])!{},
-                    contentIfContent(
-                        (occurrence.Configuration.Settings.Account[settingName])!{},
-                        (occurrence.Configuration.Settings.Core[settingName])!{}
-                    )
-                )
-            ) ]
+        [#list asArray(settingSets)?reverse as settingSet]
+
+            [#local setting = settingSet[settingName]!{} ]
+            [#if setting?has_content]
+                [#break]
+            [/#if]
+        [/#list]
         [#if setting?has_content]
             [#break]
         [/#if]
@@ -1161,6 +1158,19 @@ behaviour.
                 {"Value" : "COTException: Setting not provided"}
             )
         ) ]
+[/#function]
+
+[#function getOccurrenceSetting occurrence names emptyIfNotProvided=false]
+    [#return getSetting(
+        [
+            occurrence.Configuration.Settings.Core
+            occurrence.Configuration.Settings.Account,
+            occurrence.Configuration.Settings.Product,
+            occurrence.Configuration.Settings.Build
+        ],
+        names,
+        emptyIfNotProvided)
+    ]
 [/#function]
 
 [#function getOccurrenceSettingValue occurrence names emptyIfNotProvided=false]
@@ -1397,7 +1407,7 @@ behaviour.
                                 {
                                     "Settings" : {
                                         "Build" : getOccurrenceBuildSettings(occurrence),
-                                        "Account" : getOccurrenceAccountSettings(occurrence),
+                                        "Account" : getAccountSettings(),
                                         "Product" :
                                             getOccurrenceProductSettings(occurrence) +
                                             getOccurrenceSensitiveSettings(occurrence)

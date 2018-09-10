@@ -685,7 +685,7 @@ function isValidUnit() {
   # Check unit if required
   if [[ "${unit_required[${level}]}" == "true" ]]; then
     # Default deployment units for each level
-    declare -ga ACCOUNT_UNITS_ARRAY=("audit" "s3" "cert" "roles" "apigateway" "waf")
+    declare -ga ACCOUNT_UNITS_ARRAY=("iam" "audit" "s3" "cert" "roles" "apigateway" "waf" "sms")
     declare -ga PRODUCT_UNITS_ARRAY=("s3" "sns" "cert" "cmk")
     declare -ga BUILDBLUEPRINT_UNITS_ARRAY=(${unit})
     declare -ga APPLICATION_UNITS_ARRAY=(${unit})

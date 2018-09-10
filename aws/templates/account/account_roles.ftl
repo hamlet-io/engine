@@ -1,6 +1,6 @@
 [#-- Account level roles --]
-[#if deploymentUnit?contains("roles")]
-    [#if deploymentSubsetRequired("iam", true)]
+[#if deploymentUnit?contains("roles")  || (allDeploymentUnits!false) ]
+    [#if deploymentSubsetRequired("roles", true)]
         [#assign automationRoleId = formatAccountRoleId("automation")]
         [#assign administratorRoleId = formatAccountRoleId("administrator")]
         [#assign viewerRoleId = formatAccountRoleId("viewer")]

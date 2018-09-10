@@ -1,14 +1,14 @@
 [#-- Standard set of buckets for an account --]
-[#if deploymentUnit?contains("s3")]
+[#if deploymentUnit?contains("s3") || (allDeploymentUnits!false) ]
     [#if accountObject.Seed?has_content]
         [#if deploymentSubsetRequired("s3", true)]
-        
+
             [#assign buckets = ["credentials", "code", "registry"] ]
             [#list buckets as bucket]
-            
+
                 [#-- TODO: Should be using formatAccountS3Id() not formatS3Id() --]
                 [#-- TODO: Remove outputId parameter below when TODO addressed --]
-                
+
                 [#assign existingName = getExistingReference(formatAccountS3Id(bucket))]
                 [#assign bucketName = valueIfContent(
                                             existingName,
@@ -36,12 +36,12 @@
                                             awsAccount)
                         }]
 
-                        [#assign policyStatements += 
+                        [#assign policyStatements +=
                                 s3ReadPermission(
                                     bucketName,
                                     "",
                                     "*",
-                                    accountPrincipal 
+                                    accountPrincipal
                                 ) + s3ListPermission(
                                     bucketName,
                                     "",
@@ -84,7 +84,7 @@
                         "  info \"Synching the code bucket ...\"",
                         "  if [[ -d \"$\{GENERATION_STARTUP_DIR}\" ]]; then",
                         "      aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"$\{GENERATION_STARTUP_DIR}/bootstrap/\" \"s3://" +
-                                  codeBucket + 
+                                  codeBucket +
                                   "/bootstrap/\" ||",
                         "         { exit_status=$?; fatal \"Can't sync the code bucket\"; return \"$\{exit_status}\"; }",
                         "  else",

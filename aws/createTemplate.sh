@@ -155,8 +155,8 @@ function process_template() {
     ["prologue"]="prologue.sh"
     ["template"]="template.json"
     ["epilogue"]="epilogue.sh"
-    ["config"]="config.json"
-    ["cli"]="cli.json")
+    ["cli"]="cli.json"
+    ["config"]="config.json")
 
   # Template pass specifics
   pass_deployment_unit_subset["template"]="${deployment_unit_subset}"
@@ -171,7 +171,6 @@ function process_template() {
   case "${level}" in
     blueprint)
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
-      pass_list=("template")
       passes=("template")
       template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "FRAGMENT" )
 
@@ -189,7 +188,6 @@ function process_template() {
     buildblueprint)
       # this is expected to run from an automation context
       cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
-      pass_list=("template")
       passes=("template")
       template_composites+=("APPLICATION" "FRAGMENT" )
 
@@ -208,6 +206,7 @@ function process_template() {
       cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
       for pass in "${pass_list[@]}"; do pass_region_prefix["${pass}"]="${account_region}-"; done
       template_composites+=("ACCOUNT")
+      passes=("${passes[@]}" "cli")
 
       # LEGACY: Support stacks created before deployment units added to account level
       [[ ("${DEPLOYMENT_UNIT}" =~ s3) &&
