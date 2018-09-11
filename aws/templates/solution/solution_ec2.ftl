@@ -26,6 +26,7 @@
         [#assign processorProfile       = getProcessor(tier, component, "EC2")]
         [#assign storageProfile         = getStorage(tier, component, "EC2")]
         [#assign logFileProfile         = getLogFileProfile(tier, component, "EC2")]
+        [#assign bootstrapProfile       = getBootstrapProfile(tier, component, "EC2")]
 
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
@@ -100,6 +101,13 @@
         [#assign configSets +=  
             getInitConfigEnvFacts(environmentVariables, false) +
             getInitConfigDirsFiles(context.Files, context.Directories) ]
+
+        [#list bootstrapProfile.BootStraps as bootstrapName ]
+            [#assign bootstrap = bootstraps[bootstrapName]]
+            [@cfDebug listMode bootstrap true /]
+            [#assign configSets +=
+                getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
+        [/#list]
 
         [#list links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link) ]

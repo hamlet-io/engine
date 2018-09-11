@@ -287,6 +287,9 @@
 [#assign logFileGroups = blueprintObject.LogFileGroups]
 [#assign logFileProfiles = blueprintObject.LogFileProfiles ]
 [#assign CORSProfiles = blueprintObject.CORSProfiles ]
+[#assign scriptStores = blueprintObject.ScriptStores ]
+[#assign bootstraps = blueprintObject.Bootstraps ]
+[#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 
 [#-- Regions --]
 [#if region?has_content]
