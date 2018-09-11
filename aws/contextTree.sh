@@ -337,6 +337,32 @@ function assemble_settings() {
   return ${return_status}
 }
 
+function assemble_composite_definitions() {
+
+  local tmp_file="$( getTempFile "definitions_XXXX" "${tmp_dir}" )"
+
+  # Gather the relevant definitions
+  local restore_nullglob=$(shopt -p nullglob)
+  shopt -s nullglob
+
+  local definitions_array=()
+  [[ (-n "${ACCOUNT}") ]] &&
+      addToArray "definitions_array" "${ACCOUNT_INFRASTRUCTURE_DIR}"/cf/shared/defn*-definition.json
+  [[ (-n "${PRODUCT}") && (-n "${REGION}") ]] &&
+      addToArray "definitions_array" "${PRODUCT_INFRASTRUCTURE_DIR}"/cf/shared/defn*-"${REGION}"*-definition.json
+  [[ (-n "${ENVIRONMENT}") && (-n "${SEGMENT}") && (-n "${REGION}") ]] &&
+      addToArray "definitions_array" "${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"/*-definition.json
+
+  ${restore_nullglob}
+  
+  debug "DEFINITIONS=${definitions_array[*]}"
+  jqMerge "${definitions_array[@]}" > "${tmp_file}"
+  
+  # Escape any freemarker markup
+  export COMPOSITE_DEFINITIONS="${CACHE_DIR}/composite_definitions.json"
+  sed 's/${/$\\{/g' < "${tmp_file}" > "${COMPOSITE_DEFINITIONS}"
+}
+
 function assemble_composite_stack_outputs() {
 
   # Create the composite stack outputs

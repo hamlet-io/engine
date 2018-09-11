@@ -64,7 +64,7 @@
 
         [#assign stageVariables += getFinalEnvironment(occurrence, context).Environment ]
 
-        [#assign userPoolArns = [] ]
+        [#assign cognitoPools = {} ]
 
         [#list solution.Links?values as link]
             [#if link?is_hash]
@@ -102,6 +102,16 @@
                         [#break]
 
                     [#case USERPOOL_COMPONENT_TYPE]
+                        [#assign cognitoPools +=
+                            {
+                                link.Name : {
+                                    "Name" : link.Name,
+                                    "Header" : linkTargetAttributes["AUTHORIZATION_HEADER"]!"Authorization",
+                                    "UserPoolArn" : linkTargetAttributes["USER_POOL"],
+                                    "Default" : true
+                                }
+                            } ]
+
                         [#if deploymentSubsetRequired("apigateway", true)]
 
                             [#assign policyId = formatDependentPolicyId(
@@ -245,6 +255,7 @@
         [/#if]
 
         [#if deploymentSubsetRequired("apigateway", true)]
+            [#-- Assume extended swagger specification is in the ops bucket --]
             [@cfResource
                 mode=listMode
                 id=apiId
@@ -252,17 +263,12 @@
                 properties=
                     {
                         "BodyS3Location" : {
-                            "Bucket" : getRegistryEndPoint("swagger", occurrence),
-                            "Key" : formatRelativePath(
-                                        getRegistryPrefix("swagger", occurrence),
-                                        productName,
-                                        getOccurrenceBuildUnit(occurrence),
-                                        getOccurrenceBuildReference(occurrence),
-                                        "swagger-" +
-                                            region +
-                                            "-" +
-                                            accountObject.AWSId +
-                                            ".json")
+                            "Bucket" : operationsBucket,
+                            "Key" :
+                                formatRelativePath(
+                                    getSettingsFilePrefix(occurrence),
+                                    "config",
+                                    "swagger_" + runId + ".json")
                         },
                         "Name" : apiName
                     } +
@@ -557,6 +563,122 @@
                     ]
                 /]
             [/#if]
+        [/#if]
+
+        [#if deploymentSubsetRequired("pregeneration", false)]
+            [@cfScript
+                mode=listMode
+                content=
+                    getBuildScript(
+                        "swaggerFiles",
+                        regionId,
+                        "swagger",
+                        productName,
+                        occurrence,
+                        "swagger.zip"
+                    ) +
+                    [
+                        "get_swagger_definition_file" + " " +
+                             "\"$\{swaggerFiles[0]}\"" + " " +
+                             "\"" + core.Id + "\"" + " " +
+                             "\"" + core.Name + "\"" + " " +
+                             "\"" + accountId + "\"" + " " +
+                             "\"" + accountObject.AWSId + "\"" + " " +
+                             "\"" + region + "\"" + " || return $?",
+                        "#"
+
+                    ]
+            /]
+        [/#if]
+
+        [#if definitionsObject[core.Id]?? ]
+            [#assign swaggerDefinition = definitionsObject[core.Id] ]
+            [#if swaggerDefinition["x-amazon-apigateway-request-validator"]?? ]
+                [#-- Pass definition through - it is legacy and has already has been processed --]
+                [#assign extendedSwaggerDefinition = swaggerDefinition ]
+            [#else]
+                [#assign swaggerIntegrations = getOccurrenceSettingValue(occurrence, [["apigw"], ["Integrations"]], true) ]
+                [#if !swaggerIntegrations?has_content]
+                    [@cfException
+                        mode=listMode
+                        description="API Gateway integration definitions not found"
+                        context=occurrence
+                    /]
+                    [#assign swaggerIntegrations = {} ]
+                [/#if]
+                [#if swaggerIntegrations?is_hash]
+                    [#assign swaggerContext =
+                        {
+                            "Account" : accountObject.AWSId,
+                            "Region" : region,
+                            "CognitoPools" : cognitoPools
+                        } ]
+
+                    [#-- Determine if there are any roles required by specific methods --]
+                    [#assign extendedSwaggerRoles = getSwaggerDefinitionRoles(swaggerDefinition, swaggerIntegrations) ]
+                    [#list extendedSwaggerRoles as path,policies]
+                        [#assign swaggerRoleId = formatDependentRoleId(stageId, formatId(path))]
+                        [#-- Roles must be defined in a separate unit so the ARNs are available here --]
+                        [#if deploymentSubsetRequired("iam", false)  &&
+                            isPartOfCurrentDeploymentUnit(swaggerRoleId)]
+                            [@createRole
+                                mode=listMode
+                                id=swaggerRoleId
+                                policies=policies
+                            /]
+                        [/#if]
+                        [#assign swaggerContext +=
+                            {
+                                formatAbsolutePath(path,"role") : getExistingReference(swaggerRoleId)
+                            } ]
+                    [/#list]
+
+                    [#-- Generate the extended swagger specification --]
+                    [#assign extendedSwaggerDefinition =
+                        extendSwaggerDefinition(
+                            swaggerDefinition,
+                            swaggerIntegrations,
+                            swaggerContext,
+                            true) ]
+
+                [#else]
+                    [#assign extendedSwaggerDefinition = {} ]
+                    [@cfException
+                        mode=listMode
+                        description="API Gateway integration definitions should be a hash"
+                        context={ "Integrations" : swaggerIntegrations}
+                    /]
+                [/#if]
+            [/#if]
+
+            [#if extendedSwaggerDefinition?has_content]
+                [#if deploymentSubsetRequired("config", false)]
+                    [@cfConfig
+                        mode=listMode
+                        content=extendedSwaggerDefinition
+                    /]
+                [/#if]
+            [/#if]
+        [/#if]
+
+        [#if deploymentSubsetRequired("prologue", false)]
+            [#-- Copy the final swagger definition to the ops bucket --]
+            [@cfScript
+                mode=listMode
+                content=
+                    getLocalFileScript(
+                        "configFiles",
+                        "$\{CONFIG}",
+                        "swagger_" + runId + ".json"
+                    ) +
+                    syncFilesToBucketScript(
+                        "configFiles",
+                        regionId,
+                        operationsBucket,
+                        formatRelativePath(
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                            "config"))
+            /]
         [/#if]
 
         [#switch listMode]

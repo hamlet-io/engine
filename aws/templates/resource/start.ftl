@@ -687,8 +687,14 @@
       [#list templateScript as line]
           ${line}
       [/#list]
-    [#elseif templateConfig?has_content]
-        [@toJSON templateConfig /]
+    [#elseif templateConfig?has_content || exceptionResources?has_content]
+        [@toJSON templateConfig  +
+            valueIfContent(
+                {
+                    "Exceptions" : exceptionResources
+                },
+                exceptionResources
+            ) /]
     [#elseif templateCli?has_content]
         [@toJSON templateCli /]
     [/#if]

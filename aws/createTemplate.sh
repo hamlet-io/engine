@@ -100,6 +100,59 @@ function options() {
   return 0
 }
 
+function get_swagger_definition_file() {
+  local swagger_zip="$1"; shift
+  local id="$1"; shift
+  local name="$1"; shift
+  local accountId="$1"; shift
+  local accountNumber="$1"; shift
+  local region="$1"; shift
+
+  pushTempDir "${FUNCNAME[0]}_XXXX"
+  local swagger_file_dir="$(getTopTempDir)"
+
+  # Name definitions based on the component
+  local definition_file="${cf_dir}/defn-${name}-${accountId}-${region}-definition.json"
+
+  local swagger_file="${swagger_file_dir}/swagger-extended-base.json"
+  local legacy_swagger_file="${swagger_file_dir}/swagger-${region}-${accountNumber}.json"
+  local swagger_definition=
+
+  [[ -s "${swagger_zip}" ]] ||
+      { fatal "Unable to locate swagger zip file ${swagger_zip}"; popTempDir; return 1; }
+
+  unzip "${swagger_zip}" -d "${swagger_file_dir}"  ||
+      { fatal "Unable to unzip swagger zip file ${swagger_zip}"; popTempDir; return 1; }
+
+  # Use existing legacy files in preference to generation as part of deployment
+  # This is mainly so projects using the legacy approach are not affected
+  # To switch to the new approach, delete the apigw.json from the code repo and 
+  # move it to the settings entry for the api gateway component in the cmdb. e.g.
+  # {
+  #    "Integrations" : {
+  #      "Internal" : true,
+  #      "Value" : ... (existing file contents)
+  #    }
+  # }
+  [[ -f "${swagger_file}"        ]] && swagger_definition="${swagger_file}"
+  [[ -f "${legacy_swagger_file}" ]] && swagger_definition="${legacy_swagger_file}"
+
+  [[ -n "${swagger_definition}" ]] ||
+      { fatal "Unable to locate swagger file in ${swagger_zip}"; popTempDir; return 1; }
+
+  info "Saving ${swagger_definition} to ${definition_file} ..."
+
+  # Index via id to allow definitions to be combined into single composite
+  addJSONAncestorObjects "${swagger_definition}" "${id}" > "${swagger_file_dir}/definition.json" ||
+      { popTempDir; return 1; }
+
+  cp "${swagger_file_dir}/definition.json" "${definition_file}" ||
+      { popTempDir; return 1; }
+
+  popTempDir
+  return 0
+}
+
 function process_template() {
   local level="${1,,}"; shift
   local deployment_unit="${1,,}"; shift
@@ -126,8 +179,8 @@ function process_template() {
   local template_composites=("POLICY" "ID" "NAME" "RESOURCE")
 
   # Define the possible passes
-  local pass_list=("prologue" "template" "epilogue" "cli" "config")
-  
+  local pass_list=("pregeneration" "prologue" "template" "epilogue" "cli" "config")
+
   # Initialise the components of the pass filenames
   declare -A pass_level_prefix
   declare -A pass_deployment_unit_prefix
@@ -152,6 +205,7 @@ function process_template() {
 
   done
   pass_suffix=(
+    ["pregeneration"]="pregeneration.sh"
     ["prologue"]="prologue.sh"
     ["template"]="template.json"
     ["epilogue"]="epilogue.sh"
@@ -164,7 +218,7 @@ function process_template() {
   pass_description["template"]="cloud formation"
 
   # Default passes
-  local passes=("prologue" "template" "epilogue")
+  local passes=("pregeneration" "prologue" "template" "epilogue")
 
   local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
 
@@ -185,7 +239,7 @@ function process_template() {
       pass_description["template"]="blueprint"
       pass_suffix["template"]=".json"
       ;;
-    
+
     buildblueprint)
       # this is expected to run from an automation context
       cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
@@ -313,6 +367,7 @@ function process_template() {
   args+=("-v" "accountRegion=${account_region}")
   args+=("-v" "blueprint=${COMPOSITE_BLUEPRINT}")
   args+=("-v" "settings=${COMPOSITE_SETTINGS}")
+  args+=("-v" "definitions=${COMPOSITE_DEFINITIONS}")
   args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")
@@ -380,6 +435,12 @@ function process_template() {
         sh)
           # Strip out the whitespace added by freemarker
           sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
+
+          if [[ "${pass}" == "pregeneration" ]]; then
+            info "Processing pregeneration script ..."
+            . "${output_file}"
+            assemble_composite_definitions
+          fi
           ;;
 
         json)
@@ -432,6 +493,10 @@ function process_template() {
 function main() {
 
   options "$@" || return $?
+
+  pushTempDir "create_template_XXXX"
+  tmp_dir="$(getTopTempDir)"
+  tmpdir="${tmp_dir}"
 
   case "${LEVEL}" in
     blueprint-disabled)

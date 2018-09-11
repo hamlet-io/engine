@@ -254,6 +254,7 @@
 [#include policyList]
 [#include resourceList]
 [#include "common.ftl"]
+[#include "swagger.ftl"]
 
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
@@ -268,6 +269,9 @@
 
 [#assign stackOutputsList =
     stackOutputs?has_content?then(stackOutputs?eval, []) ]
+
+[#assign definitionsObject =
+    definitions?has_content?then(definitions?eval, {}) ]
 
 [#-- Reference data --]
 [#assign regions = blueprintObject.Regions]
