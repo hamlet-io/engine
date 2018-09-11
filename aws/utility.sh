@@ -1021,6 +1021,13 @@ function cleanup_sns_platformapps() {
   return $?
 }
 
+function update_sms_account_attributes() {
+  local region="$1"; shift
+  local configfile="$1"; shift
+
+  aws --region "${region}" sns set-sms-attributes --cli-input-json "file://${configfile}" || return $?
+}
+
 # -- PKI --
 function create_pki_credentials() {
   local dir="$1"; shift

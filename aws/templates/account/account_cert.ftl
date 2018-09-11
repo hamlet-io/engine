@@ -1,5 +1,5 @@
 [#-- Generate certificate --]
-[#if deploymentUnit?contains("cert")]
+[#if deploymentUnit?contains("cert") || (allDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("cert", true)]
         [#assign certificateId = formatCertificateId(accountDomainCertificateId)]
     
