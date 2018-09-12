@@ -1163,10 +1163,10 @@ behaviour.
 [#function getOccurrenceSetting occurrence names emptyIfNotProvided=false]
     [#return getSetting(
         [
-            occurrence.Configuration.Settings.Core
-            occurrence.Configuration.Settings.Account,
-            occurrence.Configuration.Settings.Product,
-            occurrence.Configuration.Settings.Build
+            (occurrence.Configuration.Settings.Account)!{},
+            (occurrence.Configuration.Settings.Product)!{},
+            (occurrence.Configuration.Settings.Core)!{},
+            (occurrence.Configuration.Settings.Build)!{}
         ],
         names,
         emptyIfNotProvided)
