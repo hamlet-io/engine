@@ -188,12 +188,11 @@
 
                         [#case "application"]
                         [#case "network"]
-                            [#assign targetArn = (linkTargetAttributes["TARGET_GROUP_ARN"] )]
-                            [#assign targetGroups += [ targetArn] ]
+                            [#assign targetGroups += [ linkTargetAttributes["TARGET_GROUP_ARN"] ] ]
                             [#break]
 
                         [#case "classic" ]
-                            [#assign lbId =  linkTargetAttributes["LB"] ]
+                            [#assign lbId = linkTargetAttributes["LB"] ]
                             [#-- Classic ELB's register the instance so we only need 1 registration --]
                             [#assign loadBalancers += [ getExistingReference(lbId) ]]
                             [#break]
