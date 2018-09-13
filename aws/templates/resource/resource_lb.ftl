@@ -62,29 +62,33 @@
 
 [#macro createALB mode id name shortName tier component securityGroups type idleTimeout logs=false bucket=""]
 
-    [#assign loadBalancerAttributes = [
-        {
-            "Key" : "idle_timeout.timeout_seconds",
-            "Value" : idleTimeout
-        }
-    ] + 
-    (logs && type == "application")?then(
-        [
-            {
-                "Key" : "access_logs.s3.enabled",
-                "Value" : true
-            },
-            {
-                "Key" : "access_logs.s3.bucket",
-                "Value" : bucket
-            },
-            {
-                "Key" : "access_logs.s3.prefix",
-                "Value" : ""
-            }
-        ],
-        []
-    )
+    [#assign loadBalancerAttributes = 
+        ( type == "application" )?then(
+            [
+                {
+                    "Key" : "idle_timeout.timeout_seconds",
+                    "Value" : idleTimeout
+                }
+            ],
+            []
+        ) +
+        (logs && type == "application")?then(
+            [
+                {
+                    "Key" : "access_logs.s3.enabled",
+                    "Value" : true
+                },
+                {
+                    "Key" : "access_logs.s3.bucket",
+                    "Value" : bucket
+                },
+                {
+                    "Key" : "access_logs.s3.prefix",
+                    "Value" : ""
+                }
+            ],
+            []
+        )
     ]
 
     [@cfResource
@@ -254,6 +258,15 @@
         {
             "Field": "path-pattern",
             "Values": asArray(paths)
+        }
+    ]
+[/#function]
+
+[#function getListenerRuleHostCondition hosts ]
+    [#return 
+        {
+            "Field" : "host-header",
+            "Values" : asArray(hosts)
         }
     ]
 [/#function]

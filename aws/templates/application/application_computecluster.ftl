@@ -188,8 +188,8 @@
 
                         [#case "application"]
                         [#case "network"]
-                            [#assign targetId = (linkTargetResources["targetgroup"].Id) ]
-                            [#assign targetGroups += [ getReference(targetId, ARN_ATTRIBUTE_TYPE) ] ]
+                            [#assign targetArn = (linkTargetAttributes["TARGET_GROUP_ARN"] )]
+                            [#assign targetGroups += [ targetArn] ]
                             [#break]
 
                         [#case "classic" ]

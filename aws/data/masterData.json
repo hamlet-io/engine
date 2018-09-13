@@ -1181,7 +1181,13 @@
     "smtp": {
       "Port": 25,
       "Protocol": "TCP",
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "hsmtp": {
       "Port": 2025,

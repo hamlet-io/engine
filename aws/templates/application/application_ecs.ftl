@@ -110,14 +110,14 @@
                                         [#switch linkAttributes["ENGINE"] ] 
                                             [#case "network" ]
                                             [#case "application" ]
-                                                [#assign targetId = (linkResources["targetgroup"].Id)!"" ]
+                                                [#assign targetArn = (linkAttributes["TARGET_GROUP_ARN"] )]
 
                                                 [#assign loadBalancers +=
                                                     [
                                                         {
                                                             "ContainerName" : container.Name,
                                                             "ContainerPort" : ports[portMapping.ContainerPort].Port,
-                                                            "TargetGroupArn" : getReference(targetId, ARN_ATTRIBUTE_TYPE)
+                                                            "TargetGroupArn" : targetArn
                                                         }
                                                     ]
                                                 ]

@@ -849,10 +849,10 @@ function create_elbv2_rule() {
   local region="$1"; shift
   local listenerid="$1"; shift
   local configfile="$1"; shift
+  
+  rule_arn="$(aws --region "${region}" elbv2 create-rule --listener-arn "${listenerid}" --cli-input-json "file://${configfile}" --query 'Rules[0].RuleArn' --output text || return $? )"
 
-  rule_arn="$(aws --region "${region}" elbv2 create-rule --listener-arn "${listenerid}" --cli-input-json "file://${configfile}" | jq -r '.Rules[0].RuleArn | select (.!=null)')"
-
-  if [[ -z "${rule_arn}" ]]; then
+  if [[ "${rule_arn}" == "None" ]]; then
     fatal "Rule was not created"
     return 255
   else
@@ -861,20 +861,27 @@ function create_elbv2_rule() {
   fi
 }
 
-function update_elbv2_rule() {
+function cleanup_elbv2_rules() { 
   local region="$1"; shift
-  local ruleid="$1"; shift
-  local configfile="$1"; shift
+  local listenerarn="$1"; shift
 
-  aws --region "${region}" elbv2 modify-rule --rule-arn "${ruleid}" --cli-input-json "file://${configfile}" || return $?
+  pushTempDir "elbv2_listener_cleanup_XXXX"
+  local tmp_file="$(getTopTempDir)/cleanup.sh"
+
+  all_listener_rules="$(aws --region "${region}" elbv2 describe-rules --listener-arn "${listenerarn}" --query 'Rules[?!IsDefault].RuleArn' --output json )"
+
+  info "Removing all listener rules from ${listenerarn}"
+  if [[ -n "${all_listener_rules}" ]]; then 
+    echo "${all_listener_rules}" | jq --arg region "${region}" -r '.[] | "aws --region \($region) elbv2 delete-rule --rule-arn \(.)"' > "${tmp_file}"
+    if [[ -f "${tmp_file}" ]]; then 
+      chmod u+x "${tmp_file}"
+      "${tmp_file}"
+    fi
+  fi
+
+  return 0
 }
 
-function delete_elbv2_rule() {
-  local region="$1"; shift
-  local ruleid="$1"; shift
-
-  aws --region "${region}" elbv2 delete-rule --rule-arn "${ruleid}" || return $?
-}
 
 # -- S3 --
 

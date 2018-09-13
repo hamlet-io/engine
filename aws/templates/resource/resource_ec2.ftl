@@ -150,15 +150,15 @@
     ]
 [/#function]
 
-[#function getInitConfigLBTargetRegistration targetGroupId ignoreErrors=false]
+[#function getInitConfigLBTargetRegistration portId targetGroupArn ignoreErrors=false]
     [#return
         {
-            "RegisterWithTG_" + targetGroupId  : {
+            "RegisterWithTG_" + portId  : {
                 "commands" : {
                         "RegsiterWithTG" : {
                         "command" : "/opt/codeontap/bootstrap/register_targetgroup.sh",
                         "env" : {
-                            "TARGET_GROUP_ARN" : getReference(targetGroupId)
+                            "TARGET_GROUP_ARN" : targetGroupArn
                         },
                         "ignoreErrors" : ignoreErrors
                     }
