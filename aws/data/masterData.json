@@ -1482,7 +1482,7 @@
       "AllowedOrigins" : [ "*" ],
       "AllowedMethods" : [ "GET", "HEAD" ],
       "AllowedHeaders" : [ "*" ],
-      "ExposeHeaders"  : [ "ETag" ],
+      "ExposedHeaders"  : [ "ETag" ],
       "MaxAge"         : 1800
     },
     "S3Write" : {
@@ -1497,7 +1497,7 @@
         "x-amz-content-sha256",
         "x-amz-security-token"
       ],
-      "ExposeHeaders"  : [ "ETag" ],
+      "ExposedHeaders"  : [ "ETag" ],
       "MaxAge"         : 1800
     },
     "S3Delete" : {
@@ -1512,7 +1512,7 @@
         "x-amz-content-sha256",
         "x-amz-security-token"
       ],
-      "ExposeHeaders"  : [ "ETag" ],
+      "ExposedHeaders"  : [ "ETag" ],
       "MaxAge"         : 1800
     }
   }
