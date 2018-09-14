@@ -872,13 +872,14 @@ function cleanup_elbv2_rules() {
 
   info "Removing all listener rules from ${listenerarn}"
   if [[ -n "${all_listener_rules}" ]]; then 
-    echo "${all_listener_rules}" | jq --arg region "${region}" -r '.[] | "aws --region \($region) elbv2 delete-rule --rule-arn \(.)"' > "${tmp_file}"
+    echo "${all_listener_rules}" | jq --arg region "${region}" -r '.[] | "aws --region \($region) elbv2 delete-rule --rule-arn \(.) || return $?"' > "${tmp_file}"
     if [[ -f "${tmp_file}" ]]; then 
       chmod u+x "${tmp_file}"
       "${tmp_file}"
     fi
   fi
 
+  popTempDir
   return 0
 }
 
