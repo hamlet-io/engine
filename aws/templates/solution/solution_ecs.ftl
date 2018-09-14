@@ -76,7 +76,6 @@
         
         [#list bootstrapProfile.BootStraps as bootstrapName ]
             [#assign bootstrap = bootstraps[bootstrapName]]
-            [@cfDebug listMode bootstrap true /]
             [#assign configSets +=
                 getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
         [/#list]
