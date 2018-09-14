@@ -1012,7 +1012,13 @@
     },
     "ednp": {
       "Port": 25672,
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "elasticsearch": {
       "Port": 9200,
@@ -1028,7 +1034,13 @@
     },
     "epmd": {
       "Port": 4369,
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "http": {
       "Port": 80,
@@ -1094,7 +1106,13 @@
     },
     "memcached": {
       "Port": 11211,
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "meteor": {
       "Port": 3000,
@@ -1110,11 +1128,23 @@
     },
     "mongodb": {
       "Port": 27017,
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "mysql": {
       "Port": 3306,
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "node": {
       "Port": 9000,
@@ -1155,11 +1185,23 @@
     },
     "postgresql": {
       "Port": 5432,
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "rabbit": {
       "Port": 5672,
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "rabbit-ui": {
       "Port": 15672,
@@ -1176,22 +1218,46 @@
     "redis": {
       "Port": 6379,
       "Protocol": "TCP",
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "smtp": {
       "Port": 25,
       "Protocol": "TCP",
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "hsmtp": {
       "Port": 2025,
       "Protocol": "TCP",
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "ssh": {
       "Port": 22,
       "Protocol": "TCP",
-      "IPProtocol": "tcp"
+      "IPProtocol": "tcp",
+      "HealthCheck" : {
+        "HealthyThreshold": "3",
+        "UnhealthyThreshold": "5",
+        "Interval": "30",
+        "Timeout": "5"
+      }
     },
     "ws": {
       "Port": 80,

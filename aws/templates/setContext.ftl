@@ -206,22 +206,7 @@
             "Type" : STRING_TYPE
         },
         {
-            "Name" : "Path",
-            "Type" : STRING_TYPE,
-            "Default" : ""
-        },
-        {
             "Name" : ["PortMapping", "Port"],
-            "Type" : STRING_TYPE,
-            "Default" : ""
-        },
-        {
-            "Name" : "Priority",
-            "Type" : NUMBER_TYPE,
-            "Default" : 100
-        },
-        {
-            "Name" : "TargetGroup",
             "Type" : STRING_TYPE,
             "Default" : ""
         }

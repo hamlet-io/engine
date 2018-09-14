@@ -144,8 +144,8 @@
 
                         [#case "application"]
                         [#case "network"]
-                            [#assign targetId = (linkTargetResources["targetgroup"].Id) ]
-                            [#assign configSets += getInitConfigLBTargetRegistration(targetId)]
+                            [#assign configSets += getInitConfigLBTargetRegistration(linkTargetCore.Id, linkTargetAttributes["TARGET_GROUP_ARN"])]
+
                             [#break]
 
                         [#case "classic" ]

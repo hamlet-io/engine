@@ -1908,8 +1908,7 @@ behaviour.
             "Id" : targetLinkName,
             "Name" : targetLinkName,
             "Tier" : targetTierId,
-            "Component" : targetComponentId,
-            "Priority" : port.LB.Priority
+            "Component" : targetComponentId
         } +
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +

@@ -61,6 +61,11 @@
                 "Default" : {}
             },
             {
+                "Name" : "HostFilter",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
                 "Name" : "Mapping",
                 "Type" : STRING_TYPE
             },
@@ -145,8 +150,8 @@
                     },
                     {
                         "Name" : "StatusCode",
-                        "Type" : NUMBER_TYPE,
-                        "Default" : 404
+                        "Type" : STRING_TYPE,
+                        "Default" : "404"
                     }
                 ]
             },
@@ -223,7 +228,12 @@
 
     [#local sourcePort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Source])!{} ]
     [#local destinationPort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Destination])!{} ]
+
     [#local listenerId = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, parentCore.Id, sourcePort) ]
+
+    [#local targetGroupId = formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, core.Id) ]
+    [#local defaultTargetGroupId = formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, "default", parentCore.Id, sourcePort ) ]
+    [#local defaultTargetGroupName = formatName("default", parentCore.FullName, sourcePort )]
 
     [#local path = (solution.Path == "default")?then(
         "",
@@ -243,7 +253,18 @@
 
     [#local url = scheme + "://" + fqdn  ]
     [#local internalUrl = scheme + "://" + internalFqdn ]
-    
+
+    [#switch parentSolution.Engine ]
+        [#case "application" ]
+            [#local targetGroupArn = getExistingReference(targetGroupId, ARN_ATTRIBUTE_TYPE)]
+            [#break]
+        [#case "network" ]
+            [#local targetGroupArn = getExistingReference(defaultTargetGroupId, ARN_ATTRIBUTE_TYPE)]
+            [#break]
+        [#default]
+            [#local targetGroupArn = ""]
+    [/#switch]
+
     [#return
         {
             "Resources" : {
@@ -253,16 +274,21 @@
                 },
                 "sg" : {
                     "Id" : formatDependentSecurityGroupId(listenerId),
-                    "Name" : core.FullName,
+                    "Name" : formatName(parentCore.FullName, sourcePort),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
                 "listenerRule" : {
-                    "Id" : formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, core.Id),
+                    "Id" : formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, parentCore.Id, sourcePort, solution.Priority),
                     "Type" : AWS_ALB_LISTENER_RULE_RESOURCE_TYPE
                 },
                 "targetgroup" : {
-                    "Id" : formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, occurrence.Core.Id),
+                    "Id" : targetGroupId,
                     "Name" : formatName(core.FullName),
+                    "Type" : AWS_ALB_TARGET_GROUP_RESOURCE_TYPE
+                },
+                "defaulttg" : {
+                    "Id" : defaultTargetGroupId,
+                    "Name" : defaultTargetGroupName,
                     "Type" : AWS_ALB_TARGET_GROUP_RESOURCE_TYPE
                 }
             },
@@ -278,7 +304,8 @@
                 "SOURCE_PORT" : sourcePort.Name,
                 "DESTINATION_PORT" : destinationPort.Name,
                 "AUTH_CALLBACK_URL" : url + "/oauth2/idpresponse",
-                "AUTH_CALLBACK_INTERNAL_URL" : internalUrl + "/oauth2/idpresponse"
+                "AUTH_CALLBACK_INTERNAL_URL" : internalUrl + "/oauth2/idpresponse",
+                "TARGET_GROUP_ARN" : targetGroupArn
             },
             "Roles" : {
                 "Inbound" : {},
