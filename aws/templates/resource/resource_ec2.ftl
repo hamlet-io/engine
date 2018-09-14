@@ -97,6 +97,83 @@
     ]
 [/#function]
 
+[#function getInitConfigUserBootstrap bootstrap environment={} ignoreErrors=false ]
+    [#local scriptStore = scriptStores[bootstrap.ScriptStore ]]
+    [#local scriptStorePrefix = scriptStore.Destination.Prefix ]
+
+    [#local userBootstrapPackages = {}]
+
+    [#list bootstrap.Packages!{} as provider,packages ]
+        [#local providerPackages = {}]
+        [#if packages?is_sequence ]
+            [#list packages as package ]
+                [#local providerPackages += 
+                    {
+                        package.Name : [] +
+                            (package.Version)?has_content?then(
+                                [ package.Version ],
+                                []
+                            )
+                    }]
+            [/#list]
+        [/#if]
+        [#if providerPackages?has_content ]
+            [#local userBootstrapPackages += 
+                {
+                    provider : providerPackages 
+                }]
+        [/#if]
+    [/#list]
+
+    [#local bootstrapDir = "/opt/codeontap/user/" + bootstrap.Id ]
+    [#local bootstrapFetchFile = bootstrapDir + "/fetch.sh" ]
+    [#local bootstrapScriptsDir = bootstrapDir + "/scripts/" ]
+    [#local bootstrapInitFile = bootstrapScriptsDir + bootstrap.InitScript!"init.sh" ]
+
+    [#return 
+        {
+            "UserBoot_" + bootstrap.Id : {
+                "files" : {
+                    bootstrapFetchFile: {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                [
+                                    "#!/bin/bash -ex\n",
+                                    "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
+                                    "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
+                                    "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\n",
+                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}/" + scriptStorePrefix + " " + bootstrapScriptsDir + " && chmod 0500 " + bootstrapScriptsDir + "*.sh\n"
+                                ]
+                            ]
+                        },
+                        "mode" : "000755"
+                    }
+                },
+                "commands": {
+                    "01Fetch" : {
+                        "command" : bootstrapFetchFile,
+                        "ignoreErrors" : ignoreErrors
+                    },
+                    "02RunScript" : {
+                        "command" : bootstrapInitFile,
+                        "ignoreErrors" : ignoreErrors,
+                        "cwd" : bootstrapScriptsDir
+                    } + 
+                    attributeIfContent(
+                        "env",
+                        environment
+                    )
+                } + 
+                attributeIfContent(
+                    "packages",
+                    userBootstrapPackages
+                )
+            }
+        }
+    ]
+[/#function]
+
 [#function getInitConfigEnvFacts envVariables={} ignoreErrors=false ]
 
     [#local envContent = [

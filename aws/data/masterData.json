@@ -1515,5 +1515,31 @@
       "ExposedHeaders"  : [ "ETag" ],
       "MaxAge"         : 1800
     }
+  },
+  "ScriptStores" : {
+    "_startup" : {
+      "Engine" : "local",
+      "Source" : {
+        "Directory" : "$\\{GENERATION_STARTUP_DIR}/bootstrap"
+      },
+      "Destination" : {
+        "Prefix" : "bootstrap"
+      }
+    }
+  },
+  "Bootstraps" : {
+  },
+  "BootstrapProfiles" : {
+    "default" : {
+      "EC2" : {
+        "BootStraps" : []
+      },
+      "ECS" : {
+        "BootStraps" : []
+      },
+      "ComputeCluster" : {
+        "BootStraps" : []
+      }
+    }
   }
 }

@@ -28,6 +28,9 @@
         [#assign fixedIP = solution.FixedIP ]
 
         [#assign logFileProfile = getLogFileProfile(tier, component, "ECS")]
+        [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ECS")]
+        
+        [#assign environmentVariables = {}]
 
         [#assign configSetName = componentType ]
         [#assign configSets =
@@ -65,8 +68,17 @@
         [#assign fragmentId = formatFragmentId(context)]
         [#include fragmentList?ensure_starts_with("/")]
 
+        [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
+
         [#assign configSets += 
+            getInitConfigEnvFacts(environmentVariables, false) +
             getInitConfigDirsFiles(context.Files, context.Directories) ]
+        
+        [#list bootstrapProfile.BootStraps as bootstrapName ]
+            [#assign bootstrap = bootstraps[bootstrapName]]
+            [#assign configSets +=
+                getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
+        [/#list]
             
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ecsRoleId)]

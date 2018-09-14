@@ -73,24 +73,54 @@
                         existingName,
                         existingName,
                         formatName("account", "registry", accountObject.Seed))]
+
+            [#assign scriptSyncContent = [] ]
+            [#list scriptStores as key,scriptStore ]
+                [#if scriptStore?is_hash]
+                    [#assign storePrefix = scriptStore.Destination.Prefix!key ]
+                    [#assign scriptSyncContent += [
+                        "info \"Synching ScriptStore: " + key + "...\""
+                    ]]
+
+                    [#switch scriptStore.Engine ]
+                        [#case "local" ]
+                            [#assign scriptsDir = scriptStore.Source.Directory?replace("\\\{","{")]
+                            [#assign scriptSyncContent += [
+                                "if [[ -d \"" + scriptsDir + "\" ]]; then",
+                                "       aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"" + scriptsDir + "\" \"s3://" +
+                                        codeBucket + "/" + storePrefix + "/\" ||",
+                                "       { exit_status=$?; fatal \"Can't sync to the code bucket\"; return \"$\{exit_status}\"; }",
+                                "else",
+                                    "fatal \"Local Script store not found - no sync performed\"; return 1",
+                                "fi"
+                            ]]
+                            [#break]
+                            
+                        [#case "github" ]
+                            [#assign scriptSyncContent += [
+                                "stage_dir=\"$\{tmpdir}/" + storePrefix + "\"", 
+                                "mkdir -p \"$\{stage_dir}\"",
+                                "# Clone the Repo",
+                                "clone_git_repo \"github\" \"github.com\" \"" + scriptStore.Source.Repository +"\" \"" + scriptStore.Source.Branch + "\" \"$\{stage_dir}\" ||",
+                                "{ exit_status=$?; fatal \"Can't clone the script store\"; return \"$\{exit_status}\"; }",
+                                "       aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"$\{stage_dir}\" \"s3://" +
+                                        codeBucket + "/" + storePrefix + "/\" ||",
+                                "       { exit_status=$?; fatal \"Can't sync to the code bucket\"; return \"$\{exit_status}\"; }"
+                            ]]
+                            [#break]
+                    [/#switch]
+                [/#if]
+            [/#list]
+
             [#-- Make sure code bucket is up to date and registires initialised --]
             [@cfScript
                 mode=listMode
                 content=
                     [
-                        "function sync_code_bucket() {",
-                        "  local exit_status=",
-                        "  #",
-                        "  info \"Synching the code bucket ...\"",
-                        "  if [[ -d \"$\{GENERATION_STARTUP_DIR}\" ]]; then",
-                        "      aws --region \"$\{ACCOUNT_REGION}\" s3 sync --delete --exclude=\".git*\" \"$\{GENERATION_STARTUP_DIR}/bootstrap/\" \"s3://" +
-                                  codeBucket +
-                                  "/bootstrap/\" ||",
-                        "         { exit_status=$?; fatal \"Can't sync the code bucket\"; return \"$\{exit_status}\"; }",
-                        "  else",
-                        "      fatal \"Startup directory not found - no sync performed\"; return 1",
-                        "  fi",
-                        "  return 0",
+                        "function sync_code_bucket() {"
+                    ] +
+                        scriptSyncContent + 
+                    [
                         "}",
                         "#",
                         "function initialise_registries() {",

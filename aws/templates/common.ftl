@@ -1724,6 +1724,23 @@ behaviour.
     [/#if]
 [/#function]
 
+[#function getBootstrapProfile tier component type extensions... ]
+    [#local tc = formatComponentShortName(
+                    tier,
+                    component,
+                    extensions)]
+    [#local defaultProfile = "default"]
+    [#if (component[type].BootstrapProfile)??]
+        [#return component[type].Bootstrap]
+    [/#if]
+    [#if (bootstrapProfiles[defaultProfile][tc])??]
+        [#return bootstrapProfiles[defaultProfile][tc]]
+    [/#if]
+    [#if (bootstrapProfiles[defaultProfile][type])??]
+        [#return bootstrapProfiles[defaultProfile][type]]
+    [/#if]
+[/#function]
+
 [#-- Get storage settings --]
 [#function getStorage tier component type extensions...]
     [#local tc = formatComponentShortName(
