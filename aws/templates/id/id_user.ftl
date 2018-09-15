@@ -66,7 +66,7 @@
             "Attributes" : {
                 "USERNAME" : getExistingReference(userId),
                 "ARN" : userArn,
-                "ACCESS_KEY" : getExistingReference(userId, USER_ATTRIBUTE_TYPE),
+                "ACCESS_KEY" : getExistingReference(userId, USERNAME_ATTRIBUTE_TYPE),
                 "SECRET_KEY" : getExistingReference(userId, PASSWORD_ATTRIBUTE_TYPE)?ensure_starts_with(encryptionScheme),
                 "SES_SMTP_PASSWORD" : getExistingReference(userId, KEY_ATTRIBUTE_TYPE)?ensure_starts_with(encryptionScheme)
             },
