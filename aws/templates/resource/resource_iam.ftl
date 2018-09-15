@@ -146,9 +146,6 @@
         },
         ARN_ATTRIBUTE_TYPE : {
             "Attribute" : "Arn"
-        },
-        USERNAME_ATTRIBUTE_TYPE : {
-            "UseRef" : true
         }
     }
 ]
