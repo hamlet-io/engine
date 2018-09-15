@@ -131,7 +131,7 @@
                         " \"" + region + "\" " +
                         " \"$\{access_key_array[1]}\" " +
                         " \"" + segmentKMSKey + "\" || return $?)\"",
-                        "smtp_password=\"$(get_iam_smtp_password \"$\{access_key_array[1]}\" )",
+                        "smtp_password=\"$(get_iam_smtp_password \"$\{access_key_array[1]}\" )\"",
                         "encrypted_smtp_password=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{smtp_password}\" " +
