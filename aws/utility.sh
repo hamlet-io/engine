@@ -983,13 +983,14 @@ function deploy_sns_platformapp() {
  
   if [[ -n "${existing_arn}" ]]; then 
     platform_app_arn="${existing_arn}"
+    update_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}"  || return $? )" 
   else
     platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${name}" \
       --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" \
       --platform="${engine}" --query .PlatformApplicationArn --output text )" 
   fi
-
-  udpate_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
+  
+  update_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
 
   if [[ -z "${platform_app_arn}" ]]; then 
     fatal "Platform app was not deployed"
