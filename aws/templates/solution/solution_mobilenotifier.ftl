@@ -156,6 +156,7 @@
                                 "       platform_app_arn=\"$(deploy_sns_platformapp" +
                                 "       \"" + region + "\" " + 
                                 "       \"" + platformAppName + "\" " + 
+                                "       \"" + platformArn + "\" " +
                                 "       \"" + encryptionScheme + "\" " +
                                 "       \"" + engine + "\" " + 
                                 "       \"$\{tmpdir}/cli-" + 

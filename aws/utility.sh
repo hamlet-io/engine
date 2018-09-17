@@ -957,11 +957,12 @@ function deleteTreeFromBucket() {
 # -- SNS -- 
 function deploy_sns_platformapp() {
   local region="$1"; shift
-  local id="$1"; shift
+  local name="$1"; shift
+  local existing_arn="$1"; shift 
   local encryption_scheme="$1"; shift
   local engine="$1"; shift
-  local configfile="$1"; shift 
-
+  local configfile="$1"; shift
+  
   platform_principal="$(jq -rc '.Attributes.PlatformPrincipal | select (.!=null)' < "${configfile}" )"
   platform_credential="$(jq -rc '.Attributes.PlatformCredential | select (.!=null)' < "${configfile}" )"
 
@@ -979,15 +980,20 @@ function deploy_sns_platformapp() {
   fi
 
   jq -rc '. | del(.Attributes.PlatformPrincipal) | del(.Attributes.PlatformCredential)' < "${configfile}" > "${configfile}_decrypted"
-
-  platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${id}" \
-    --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" \
-    --platform="${engine}" | jq -rc '.PlatformApplicationArn | select (.!=null)' )" 
+ 
+  if [[ -n "${existing_arn}" ]]; then 
+    platform_app_arn="${existing_arn}"
+    update_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}"  || return $? )" 
+  else
+    platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${name}" \
+      --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" \
+      --platform="${engine}" --query .PlatformApplicationArn --output text )" 
+  fi
   
-  udpate_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
+  update_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
 
   if [[ -z "${platform_app_arn}" ]]; then 
-    fatal "Platform app was not created"
+    fatal "Platform app was not deployed"
     return 255
   else
     echo "${platform_app_arn}"
