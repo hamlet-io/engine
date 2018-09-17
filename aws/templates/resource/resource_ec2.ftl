@@ -143,7 +143,8 @@
                                     "exec > >(tee /var/log/codeontap/fetch.log|logger -t codeontap-fetch -s 2>/dev/console) 2>&1\n",
                                     "REGION=$(/etc/codeontap/facts.sh | grep cot:accountRegion | cut -d '=' -f 2)\n",
                                     "CODE=$(/etc/codeontap/facts.sh | grep cot:code | cut -d '=' -f 2)\n",
-                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}/" + scriptStorePrefix + " " + bootstrapScriptsDir + " && chmod 0500 " + bootstrapScriptsDir + "*.sh\n"
+                                    "aws --region " + r"${REGION}" + " s3 sync s3://" + r"${CODE}/" + scriptStorePrefix + " " + bootstrapScriptsDir + "\n",
+                                    "find \"" + bootstrapScriptsDir + "\" -type f -exec chmod u+rwx {} \\;\n"
                                 ]
                             ]
                         },
