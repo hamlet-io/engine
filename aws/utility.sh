@@ -980,7 +980,7 @@ function deploy_sns_platformapp() {
   fi
 
   jq -rc '. | del(.Attributes.PlatformPrincipal) | del(.Attributes.PlatformCredential)' < "${configfile}" > "${configfile}_decrypted"
-
+ 
   if [[ -n "${existing_arn}" ]]; then 
     platform_app_arn="${existing_arn}"
   else
@@ -989,7 +989,7 @@ function deploy_sns_platformapp() {
       --platform="${engine}" --query .PlatformApplicationArn --output text )" 
   fi
 
-  udpate_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
+  udpate_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
 
   if [[ -z "${platform_app_arn}" ]]; then 
     fatal "Platform app was not deployed"
