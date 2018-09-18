@@ -75,7 +75,7 @@
                 "Inbound" : {},
                 "Outbound" : {
                     "all" : sqsAllPermission(id),
-                    "event" : sqsAllPermission(id),
+                    "event" : sqsConsumePermission(id),
                     "produce" : sqsProducePermission(id),
                     "consume" : sqsConsumePermission(id)
                 }
