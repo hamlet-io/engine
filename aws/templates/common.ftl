@@ -1741,6 +1741,20 @@ behaviour.
     [/#if]
 [/#function]
 
+[#function getSecurityProfile profileName type engine="" ]
+    [#local profile = {} ]
+    
+    [#if (securityProfiles[profileName][type])??]
+        [#local profile = securityProfiles[profileName][type]]
+    [/#if]
+    
+    [#if engine?has_content && profile[engine]?has_content ]
+        [#return profile[engine] ]
+    [#else]
+        [#return profile ]
+    [/#if]
+[/#function]
+
 [#-- Get storage settings --]
 [#function getStorage tier component type extensions...]
     [#local tc = formatComponentShortName(

@@ -1607,5 +1607,23 @@
         "BootStraps" : []
       }
     }
+  },
+  "SecurityProfiles" : {
+    "default" : {
+      "lb" : {
+        "application" : {
+          "HTTPSProfile" : "ELBSecurityPolicy-TLS-1-2-2017-01"
+        },
+        "classic" : {
+          "HTTPSProfile" : "ELBSecurityPolicy-2016-08"
+        }
+      },
+      "apigateway" : {
+        "HTTPSProfile" : "TLSv1"
+      },
+      "spa" : {
+        "HTTPSProfile" : "TLSv1"
+      }
+    }
   }
 }

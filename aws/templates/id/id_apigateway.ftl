@@ -129,6 +129,16 @@
                         "Default" : true
                     }
                 ]
+            },
+            {
+                "Name" : "Profiles",
+                "Children" : [
+                    {
+                        "Name" : "SecurityProfile",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
             }
         ]
     }]

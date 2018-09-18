@@ -148,6 +148,8 @@
         [#assign endpointType           = solution.EndpointType ]
         [#assign isEdgeEndpointType     = endpointType == "EDGE" ]
 
+        [#assign securityProfile        = getSecurityProfile(solution.Profiles.SecurityProfile, "apigateway")]
+
         [#assign certificatePresent     = solution.Certificate.Configured && solution.Certificate.Enabled ]
 
         [#assign mappingPresent         = solution.Mapping.Configured && solution.Mapping.Enabled ]
@@ -394,6 +396,7 @@
                     certificate=valueIfTrue(
                         getCFCertificate(
                             cfCertificateId,
+                            securityProfile.HTTPSProfile,
                             solution.CloudFront.AssumeSNI),
                         certificatePresent)
                     comment=cfName

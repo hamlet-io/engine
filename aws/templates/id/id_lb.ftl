@@ -31,6 +31,16 @@
                     "Default" : "application"
                 },
                 {
+                    "Name" : "Profiles",
+                    "Children" : [
+                        {
+                            "Name" : "SecurityProfile",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
+                },
+                {
                     "Name" : "IdleTimeout", 
                     "Type" : NUMBER_TYPE,
                     "Default" : 60

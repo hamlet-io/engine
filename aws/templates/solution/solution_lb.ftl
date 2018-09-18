@@ -19,6 +19,8 @@
         [#assign engine = solution.Engine]
         [#assign idleTimeout = solution.IdleTimeout]
 
+        [#assign securityProfile = getSecurityProfile(solution.Profiles.SecurityProfile, LB_COMPONENT_TYPE, engine)]
+
         [#assign healthCheckPort = "" ]
         [#if engine == "classic" ]
             [#if solution.HealthCheckPort?has_content ]
@@ -407,6 +409,7 @@
                                 albId=lbId
                                 defaultTargetGroupId=defaultTargetGroupId
                                 certificateId=certificateId 
+                                sslPolicy=securityProfile.HTTPSProfile
                             /]
 
                             [@createTargetGroup 
@@ -443,6 +446,15 @@
                 [#case "classic"]
                     [#assign lbSecurityGroupIds += [securityGroupId] ]
                     [#assign classicListenerPolicyNames = []]
+                    [#assign classicSSLRequired = sourcePort.Certificate!false ]
+
+                    [#if classicSSLRequired ]
+                        [#assign classicListenerPolicyNames += [
+                            {
+                                "PolicyName" : securityProfile.HTTPSProfile
+                            }
+                        ]]
+                    [/#if]
 
                     [#if solution.Forward.StickinessTime > 0 ]
                         [#assign stickinessPolicyName = formatName(core.Name, "sticky") ]
@@ -465,7 +477,7 @@
                             }  +
                             attributeIfTrue(
                                 "SSLCertificateId",
-                                sourcePort.Certificate!false,
+                                classicSSLRequired,
                                 getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
                             ) + 
                             attributeIfContent(

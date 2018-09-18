@@ -275,6 +275,7 @@
 [#assign scriptStores = blueprintObject.ScriptStores ]
 [#assign bootstraps = blueprintObject.Bootstraps ]
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
+[#assign securityProfiles = blueprintObject.SecurityProfiles ]
 
 [#-- Regions --]
 [#if region?has_content]
