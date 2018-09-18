@@ -697,6 +697,9 @@
       /]
     [#elseif templateScript?has_content]
       #!/bin/bash
+      #--COT-RequestReference=${requestReference}
+      #--COT-ConfigurationReference=${configurationReference}
+      #--COT-RunId=${runId}
       [#list templateScript as line]
           ${line}
       [/#list]

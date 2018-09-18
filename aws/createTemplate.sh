@@ -432,8 +432,29 @@ function process_template() {
 
       case "$(fileExtension "${template_result_file}")" in
         sh)
-          # Strip out the whitespace added by freemarker
-          sed 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' "${template_result_file}" > "${output_file}"
+          # Ignore if only the metadata/timestamps have changed
+          sed_patterns=("-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d')
+          sed_patterns+=("-e" "s/${request_reference}//g")
+          sed_patterns+=("-e" "s/${configuration_reference}//g")
+          
+          existing_request_reference="$( grep "#--COT-RequestReference=" "${output_file}" )"
+          [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference#"#--COT-RequestReference="}//g")
+
+          existing_configuration_reference="$( grep "#--COT-ConfigurationReference=" "${output_file}" )"
+          [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference#"#--COT-ConfigurationReference="}//g")
+
+          if [[ -z "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" ]]; then
+            sed_patterns+=("-e" "s/${run_id}//g")
+            existing_run_id="$( grep "#--COT-RunId=" "${output_file}" )"
+            [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id#"#--COT-RunId="}//g")
+          fi
+
+          cat "${template_result_file}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
+          cat "${output_file}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+
+          diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
+            info "Ignoring unchanged ${file_description} file ...\n" ||
+            cat "${template_result_file}" | sed "-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' > "${output_file}"
 
           if [[ "${pass}" == "pregeneration" ]]; then
             info "Processing pregeneration script ..."
@@ -472,6 +493,7 @@ function process_template() {
           if [[ -z "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" ]]; then
             sed_patterns+=("-e" "s/${run_id}//g")
             existing_run_id="$( jq -r ".Metadata.RunId | select(.!=null)" < "${output_file}" )"
+            [[ -z "${existing_run_id}" ]] && existing_run_id="$( jq -r ".RUN_ID | select(.!=null)" < "${output_file}" )"
             [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id}//g")
           fi
 
