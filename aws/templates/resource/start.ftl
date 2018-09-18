@@ -19,7 +19,7 @@
 
 [#function formatArn partition service region account resource asString=false]
     [#if asString ]
-        [#return 
+        [#return
             [
                 "arn",
                 partition,
@@ -45,6 +45,19 @@
                 ]
             }
         ]
+    [/#if]
+[/#function]
+
+[#function getArn idOrArn existingOnly=false]
+    [#if idOrArn?contains(":")]
+        [#return idOrArn]
+    [#else]
+        [#return
+            valueIfTrue(
+                getExistingReference(idOrArn, ARN_ATTRIBUTE_TYPE),
+                existingOnly,
+                getReference(idOrArn, ARN_ATTRIBUTE_TYPE)
+            ) ]
     [/#if]
 [/#function]
 
@@ -293,14 +306,14 @@
                 ]
             ]
         [/#list]
-        [#local result=returnValue]        
+        [#local result=returnValue]
     [/#if]
     [#if flatten ]
         [#local returnValue = {} ]
         [#list result as entry ]
-            [#local returnValue += 
+            [#local returnValue +=
                 {
-                    entry.Key, entry.Value 
+                    entry.Key, entry.Value
                 }
             ]
         [/#list]
@@ -446,7 +459,7 @@
     [/#switch]
 [/#macro]
 
-[#macro cfCli 
+[#macro cfCli
     mode
     id
     command
@@ -454,10 +467,10 @@
     [#switch mode]
         [#case "cli"]
         [#if content?has_content ]
-            [#assign templateCli += 
+            [#assign templateCli +=
                 {
                     id : {
-                        command : content 
+                        command : content
                     }
                 }
             ]

@@ -54,12 +54,13 @@
                     [#assign linkTargetCore = linkTarget.Core ]
                     [#assign linkTargetConfiguration = linkTarget.Configuration ]
                     [#assign linkTargetResources = linkTarget.State.Resources ]
+                    [#assign linkTargetAttributes = linkTarget.State.Attributes ]
                     [#assign linkTargetRoles = linkTarget.State.Roles ]
                     [#assign linkDirection = linkTarget.Direction ]
 
                     [#switch linkTargetCore.Type]
                         [#case USERPOOL_COMPONENT_TYPE]
-                        [#case "apigateway"]
+                        [#case APIGATEWAY_COMPONENT_TYPE]
                             [#if linkTargetResources[(linkTargetCore.Type)].Deployed &&
                                     (linkDirection == "inbound")]
                                 [@createLambdaPermission
@@ -67,6 +68,20 @@
                                     id=formatLambdaPermissionId(fn, "link", linkName)
                                     targetId=fnId
                                     source=linkTargetRoles.Inbound["invoke"]
+                                /]
+                            [/#if]
+                            [#break]
+
+                        [#-- Event sources --]
+                        [#case SQS_COMPONENT_TYPE]
+                            [#if linkTarget.Role == "event" &&
+                                linkTargetAttributes["ARN"]?has_content]
+                                [@createLambdaEventSource
+                                    mode=listMode
+                                    id=formatLambdaEventSourceId(fn, "link", linkName)
+                                    targetId=fnId
+                                    source=linkTargetAttributes["ARN"]
+                                    batchSize=1
                                 /]
                             [/#if]
                             [#break]
@@ -86,11 +101,11 @@
 
             [#assign roleId = formatDependentRoleId(fnId)]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
-                [#assign managedPolicies = 
+                [#assign managedPolicies =
                         (vpc?has_content && solution.VPCAccess)?then(
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
-                        ) + 
+                        ) +
                         context.ManagedPolicy ]
 
                 [#-- Create a role under which the function will run and attach required policies --]
