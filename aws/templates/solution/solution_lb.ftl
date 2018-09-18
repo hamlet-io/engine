@@ -35,8 +35,21 @@
         [#assign ingressRules = [] ]
         [#assign listenerPortsSeen = [] ]
 
+        [#assign classicPolicies = []]
         [#assign classicStickinessPolicies = []]
         [#assign classicConnectionDrainingTimeouts = []]
+
+        [#assign classicHTTPSPolicyName = "ELBSecurityPolicy"]
+        [#assign classicPolicies += [
+            {
+                "PolicyName" : classicHTTPSPolicyName,
+                "PolicyType" : "SSLNegotiationPolicyType",
+                "Attributes" : [{
+                    "Name"  : "Reference-Security-Policy",
+                    "Value" : securityProfile.HTTPSProfile
+                }]
+            }
+        ]]
 
         [#list occurrence.Occurrences![] as subOccurrence]
 
@@ -450,9 +463,7 @@
 
                     [#if classicSSLRequired ]
                         [#assign classicListenerPolicyNames += [
-                            {
-                                "PolicyName" : securityProfile.HTTPSProfile
-                            }
+                            classicHTTPSPolicyName
                         ]]
                     [/#if]
 
@@ -566,6 +577,7 @@
                         idleTimeout=idleTimeout
                         deregistrationTimeout=(classicConnectionDrainingTimeouts?reverse)[0]
                         stickinessPolicies=classicStickinessPolicies
+                        policies=classicPolicies
                         /]
                 [/#if]
                 [#break]

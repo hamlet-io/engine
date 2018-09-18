@@ -288,7 +288,17 @@
     /]
 [/#macro]
 
-[#macro createClassicLB mode id name shortName tier component listeners healthCheck securityGroups idleTimeout deregistrationTimeout stickinessPolicies=[] logs=false bucket="" dependencies="" ]
+[#macro createClassicLB mode id name shortName tier component 
+            listeners 
+            healthCheck 
+            securityGroups 
+            idleTimeout 
+            deregistrationTimeout
+            policies=[]
+            stickinessPolicies=[] 
+            logs=false 
+            bucket="" 
+            dependencies="" ]
         [@cfResource
         mode=listMode
         id=id
@@ -339,6 +349,10 @@
             attributeIfContent(
                 "LBCookieStickinessPolicy",
                 stickinessPolicies
+            ) +
+            attributeIfContent(
+                "Policies",
+                policies
             )
         tags=
             getCfTemplateCoreTags(
