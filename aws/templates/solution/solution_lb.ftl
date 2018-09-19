@@ -40,16 +40,18 @@
         [#assign classicConnectionDrainingTimeouts = []]
 
         [#assign classicHTTPSPolicyName = "ELBSecurityPolicy"]
-        [#assign classicPolicies += [
-            {
-                "PolicyName" : classicHTTPSPolicyName,
-                "PolicyType" : "SSLNegotiationPolicyType",
-                "Attributes" : [{
-                    "Name"  : "Reference-Security-Policy",
-                    "Value" : securityProfile.HTTPSProfile
-                }]
-            }
-        ]]
+        [#if engine == "classic" ]
+            [#assign classicPolicies += [
+                {
+                    "PolicyName" : classicHTTPSPolicyName,
+                    "PolicyType" : "SSLNegotiationPolicyType",
+                    "Attributes" : [{
+                        "Name"  : "Reference-Security-Policy",
+                        "Value" : securityProfile.HTTPSProfile
+                    }]
+                }
+            ]]
+        [/#if]
 
         [#list occurrence.Occurrences![] as subOccurrence]
 
