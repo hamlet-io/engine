@@ -95,7 +95,7 @@
             dependencies=[] ]
 
     [#local trustedAccountArns = [] ]
-    [#list trustedAccounts as trustedAccount]
+    [#list asArray(trustedAccounts) as trustedAccount]
         [#local trustedAccountArns +=
             [
                 formatAccountPrincipalArn(trustedAccount)
@@ -119,9 +119,9 @@
                             [ "sts:AssumeRole" ]
                         ),
                         "",
-                        attributeIfContent("Service", trustedServices) +
-                            attributeIfContent("AWS", trustedAccountArns) +
-                            attributeIfContent("Federated", federatedServices),
+                        attributeIfContent("Service", asArray(trustedServices)) +
+                            attributeIfContent("AWS", asArray(trustedAccountArns)) +
+                            attributeIfContent("Federated", asArray(federatedServices)),
                         valueIfTrue(
                             getMFAPresentCondition(),
                             multiFactor
@@ -130,10 +130,10 @@
                     )
                 )
             ) +
-            attributeIfContent("ManagedPolicyArns", managedArns) +
+            attributeIfContent("ManagedPolicyArns", asArray(managedArns)) +
             attributeIfContent("Path", path) +
             attributeIfContent("RoleName", name) +
-            attributeIfContent("Policies", policies)
+            attributeIfContent("Policies", asArray(policies))
         outputs=ROLE_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]
