@@ -52,7 +52,7 @@
     /]
 [/#macro]
 
-[#macro createLogSubscription mode id logGroup filter destination role="" dependencies=""  ]
+[#macro createLogSubscription mode id logGroupName filter destination role="" dependencies=""  ]
 
     [#local destinationArn = destination?starts_with("arn:")?then(
                                 destination,
@@ -67,7 +67,7 @@
             {
                 "DestinationArn" : destinationArn,
                 "FilterPattern" : filter,
-                "LogGroupName" : logGroup
+                "LogGroupName" : logGroupName
             } + 
             attributeIfContent("RoleArn", role, getReference(role) )
         dependencies=dependencies

@@ -19,6 +19,8 @@
             [#assign fnLgId = resources["lg"].Id ]
             [#assign fnLgName = resources["lg"].Name ]
 
+            [#assign cwLogsPermissionRequired = false ]
+
             [#assign fragment =
                 contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
 
@@ -255,13 +257,24 @@
                                     [#switch logWatcherLinkTargetCore.Type]
 
                                         [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
+
+                                            [#assign cwLogsPermissionRequired true /]
+
                                             [@createLogSubscription 
                                                 mode=listMode
-                                                id=formatDependentLogSubscriptionId(fnId, logwatcher.Id)
-                                                logGroup=fnLgName
+                                                id=formatDependentLogSubscriptionId(fnId, logWatchLink.Id)
+                                                logGroupName=fnLgName
                                                 filter=logwatcher.LogPattern
                                                 destination=logWatcherLinkTargetAttributes["ARN"]
-                                                /]
+                                            /]
+                                            
+                                            [@createLambdaPermission
+                                                mode=listMode
+                                                id=formatLambdaPermissionId(fn, "cwLogs", logWatchLink.Id)
+                                                targetId=logWatcherLinkTargetCore.Id
+                                                sourcePrincipal="logs." + regionId + ".amazonaws.com" 
+                                                sourceId=fnLgId
+                                            /]
                                             [#break]
                                     [/#switch]
                                 [/#list]
@@ -269,6 +282,7 @@
                         [/#switch]
                     [/#if]
                 [/#list]
+
 
                 [#list solution.Alerts?values as alert ]
 
@@ -278,7 +292,7 @@
                     [#switch alert.Metric.Type]
                         [#case "LogFilter" ]
                             [#-- TODO: Ideally We should use dimensions for filtering but they aren't available on Log Metrics --]
-                            [#-- feature requst has been reaised... --]
+                            [#-- feature requst has been raised... --]
                             [#-- Instead we name the logMetric with the function name and will use that --]
                             [#assign metricName = formatName(alert.Metric.Name, fnName) ]
                         [#break]
