@@ -19,8 +19,6 @@
             [#assign fnLgId = resources["lg"].Id ]
             [#assign fnLgName = resources["lg"].Name ]
 
-            [#assign cwLogsPermissionRequired = false ]
-
             [#assign fragment =
                 contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
 
@@ -258,8 +256,6 @@
 
                                         [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
-                                            [#assign cwLogsPermissionRequired true /]
-
                                             [@createLogSubscription 
                                                 mode=listMode
                                                 id=formatDependentLogSubscriptionId(fnId, logWatchLink.Id)
@@ -268,13 +264,6 @@
                                                 destination=logWatcherLinkTargetAttributes["ARN"]
                                             /]
                                             
-                                            [@createLambdaPermission
-                                                mode=listMode
-                                                id=formatLambdaPermissionId(fn, "cwLogs", logWatchLink.Id)
-                                                targetId=logWatcherLinkTargetCore.Id
-                                                sourcePrincipal="logs." + regionId + ".amazonaws.com" 
-                                                sourceId=fnLgId
-                                            /]
                                             [#break]
                                     [/#switch]
                                 [/#list]
