@@ -17,7 +17,7 @@
 
     [#assign smsS3Id = formatAccountS3Id("ops") ]
     [#assign smsResourceId = "sms" ]
-    [#assign smsCliCommand = "set-sms-attributes" ]
+    [#assign smsCliCommand = "setsmsattributes" ]
 
     [#-- Need to run the unit twice or use an IAM unit so the role can be included in the CLI --]
     [#if deploymentSubsetRequired("cli", false) ]
