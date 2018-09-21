@@ -198,7 +198,7 @@
     ]
 [/#function]
 
-[#function getCFCertificate id assumeSNI=true]
+[#function getCFCertificate id httpsProtocolPolicy assumeSNI=true ]
     [#local acmCertificateArn = getExistingReference(id, ARN_ATTRIBUTE_TYPE, "us-east-1") ]
     [#return
         {
@@ -215,7 +215,7 @@
                         "us-east-1"
                     )
                 ),
-            "MinimumProtocolVersion" : "TLSv1",
+            "MinimumProtocolVersion" : httpsProtocolPolicy,
             "SslSupportMethod" : assumeSNI?then("sni-only", "vip")
         }
     ]

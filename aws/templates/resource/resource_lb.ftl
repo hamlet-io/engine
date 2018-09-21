@@ -118,7 +118,7 @@
     /]
 [/#macro]
 
-[#macro createALBListener mode id port albId defaultTargetGroupId certificateId=""]
+[#macro createALBListener mode id port albId defaultTargetGroupId certificateId="" sslPolicy="" ]
 
     [@cfResource
         mode=mode
@@ -143,7 +143,7 @@
                             "CertificateArn" : getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
                         }
                     ],
-                    "SslPolicy" : "ELBSecurityPolicy-TLS-1-2-2017-01"
+                    "SslPolicy" : sslPolicy
                 },
                 port.Certificate!false)
         outputs=ALB_LISTENER_OUTPUT_MAPPINGS
@@ -288,7 +288,17 @@
     /]
 [/#macro]
 
-[#macro createClassicLB mode id name shortName tier component listeners healthCheck securityGroups idleTimeout deregistrationTimeout stickinessPolicies=[] logs=false bucket="" dependencies="" ]
+[#macro createClassicLB mode id name shortName tier component 
+            listeners 
+            healthCheck 
+            securityGroups 
+            idleTimeout 
+            deregistrationTimeout
+            policies=[]
+            stickinessPolicies=[] 
+            logs=false 
+            bucket="" 
+            dependencies="" ]
         [@cfResource
         mode=listMode
         id=id
@@ -339,6 +349,10 @@
             attributeIfContent(
                 "LBCookieStickinessPolicy",
                 stickinessPolicies
+            ) +
+            attributeIfContent(
+                "Policies",
+                policies
             )
         tags=
             getCfTemplateCoreTags(

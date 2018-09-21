@@ -19,6 +19,8 @@
         [#assign engine = solution.Engine]
         [#assign idleTimeout = solution.IdleTimeout]
 
+        [#assign securityProfile = getSecurityProfile(solution.Profiles.SecurityProfile, LB_COMPONENT_TYPE, engine)]
+
         [#assign healthCheckPort = "" ]
         [#if engine == "classic" ]
             [#if solution.HealthCheckPort?has_content ]
@@ -33,8 +35,23 @@
         [#assign ingressRules = [] ]
         [#assign listenerPortsSeen = [] ]
 
+        [#assign classicPolicies = []]
         [#assign classicStickinessPolicies = []]
         [#assign classicConnectionDrainingTimeouts = []]
+
+        [#assign classicHTTPSPolicyName = "ELBSecurityPolicy"]
+        [#if engine == "classic" ]
+            [#assign classicPolicies += [
+                {
+                    "PolicyName" : classicHTTPSPolicyName,
+                    "PolicyType" : "SSLNegotiationPolicyType",
+                    "Attributes" : [{
+                        "Name"  : "Reference-Security-Policy",
+                        "Value" : securityProfile.HTTPSProfile
+                    }]
+                }
+            ]]
+        [/#if]
 
         [#list occurrence.Occurrences![] as subOccurrence]
 
@@ -407,6 +424,7 @@
                                 albId=lbId
                                 defaultTargetGroupId=defaultTargetGroupId
                                 certificateId=certificateId 
+                                sslPolicy=securityProfile.HTTPSProfile
                             /]
 
                             [@createTargetGroup 
@@ -443,6 +461,13 @@
                 [#case "classic"]
                     [#assign lbSecurityGroupIds += [securityGroupId] ]
                     [#assign classicListenerPolicyNames = []]
+                    [#assign classicSSLRequired = sourcePort.Certificate!false ]
+
+                    [#if classicSSLRequired ]
+                        [#assign classicListenerPolicyNames += [
+                            classicHTTPSPolicyName
+                        ]]
+                    [/#if]
 
                     [#if solution.Forward.StickinessTime > 0 ]
                         [#assign stickinessPolicyName = formatName(core.Name, "sticky") ]
@@ -465,7 +490,7 @@
                             }  +
                             attributeIfTrue(
                                 "SSLCertificateId",
-                                sourcePort.Certificate!false,
+                                classicSSLRequired,
                                 getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
                             ) + 
                             attributeIfContent(
@@ -554,6 +579,7 @@
                         idleTimeout=idleTimeout
                         deregistrationTimeout=(classicConnectionDrainingTimeouts?reverse)[0]
                         stickinessPolicies=classicStickinessPolicies
+                        policies=classicPolicies
                         /]
                 [/#if]
                 [#break]
