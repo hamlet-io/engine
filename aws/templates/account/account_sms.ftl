@@ -26,7 +26,7 @@
         [#assign successSamplingRate =
             contentIfContent(
                 getSetting(smsSettings, ["SMS", "SUCCESS", "SAMPLING", "RATE"], true).Value,
-                100
+                "100"
             ) ]
         [#assign smsType =
             contentIfContent(
