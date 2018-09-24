@@ -42,6 +42,21 @@
             id)]
 [/#function]
 
+[#function snsSMSPermission ]
+    [#return 
+        getPolicyStatement(
+            "sns:Publish",
+            "*",
+            "",
+            {
+                "StringEquals":{
+                    "sns:Protocol" : "sms" 
+                }
+            }
+        )
+    ]
+[/#function]
+
 [#function snsPublishPlatformApplication platformAppName engine topic_prefix ]
     [#return 
         [

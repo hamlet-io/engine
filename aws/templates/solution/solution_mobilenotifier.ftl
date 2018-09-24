@@ -37,6 +37,8 @@
         [#assign platformAppAttributesCommand = "attributesPlatformApp" ]
         [#assign platformAppDeleteCommand = "deletePlatformApp" ]
 
+        [#assign hasPlatformApp = false]
+
         [#list occurrence.Occurrences![] as subOccurrence]
 
             [#assign core = subOccurrence.Core ]
@@ -49,6 +51,11 @@
             [#assign platformAppId = resources["platformapplication"].Id]
             [#assign platformAppName = resources["platformapplication"].Name ]
             [#assign engine = resources["platformapplication"].Engine ]
+
+            [#assign lgId= resources["lg"].Id ]
+            [#assign lgName = resources["lg"].Name ]
+            [#assign lgFailureId = resources["lgfailure"].Id ] 
+            [#assign lgFailureName = resources["lgfailure"].Name ]
 
             [#assign platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
 
@@ -96,6 +103,7 @@
             [#switch engineFamily ]
                 [#case "APPLE" ]
                     [#assign isPlatformApp = true]
+                    [#assign hasPlatformApp = true]
                     [#if !platformAppCredential?has_content || !platformAppPrincipal?has_content ]
                         [@cfException 
                             mode=listMode 
@@ -110,6 +118,7 @@
 
                 [#case "GOOGLE" ]
                     [#assign isPlatformApp = true]
+                    [#assign hasPlatformApp = true]
                     [#if !platformAppPrincipal?has_content ]
                         [@cfException 
                             mode=listMode 
@@ -121,7 +130,86 @@
                     [/#if]
                     [#break]
             [/#switch]
-            
+
+            [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
+
+                [@createLogGroup
+                    mode=listMode
+                    id=lgId
+                    name=lgName /]
+                    
+                [@createLogGroup
+                    mode=listMode
+                    id=lgFailureId
+                    name=lgFailureName /]
+
+                [#list solution.LogWatchers as logWatcherName,logwatcher ]
+                    [@cfDebug listMode logwatcher false /]
+                    [#assign logFilter = logFilters[logwatcher.LogFilter].Pattern ]
+
+                    [#if deploymentSubsetRequired("lambda", true)]
+                        [#switch logwatcher.Type ]
+                            [#case "Metric" ]
+                                [@createLogMetric
+                                    mode=listMode
+                                    id=formatDependentLogMetricId(platformAppId, logwatcher.Id)
+                                    name=formatName(logWatcherName, platformAppName)
+                                    logGroup=lgName
+                                    filter=logFilter
+                                    namespace=formatProductRelativePath()
+                                    value=1
+                                /]
+
+                                [@createLogMetric
+                                    mode=listMode
+                                    id=formatDependentLogMetricId(platformAppId, logwatcher.Id, "failure")
+                                    name=formatName(logWatcherName, platformAppName, "failure")
+                                    logGroup=lgFailureName
+                                    filter=logFilter
+                                    namespace=formatProductRelativePath()
+                                    value=1
+                                /]
+                            [#break]
+
+                            [#case "Subscription" ]
+                                [#list logwatcher.Links as logWatchLinkName,logWatcherLink ]
+                                    [#assign logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
+
+                                    [#if !logWatcherLinkTarget?has_content]
+                                        [#continue]
+                                    [/#if]
+
+                                    [#assign logWatcherLinkTargetCore = logWatcherLinkTarget.Core ]
+                                    [#assign logWatcherLinkTargetAttributes = logWatcherLinkTarget.State.Attributes ]
+                                    [#switch logWatcherLinkTargetCore.Type]
+
+                                        [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
+
+                                            [@createLogSubscription 
+                                                mode=listMode
+                                                id=formatDependentLogSubscriptionId(platformAppId, logWatchLink.Id)
+                                                logGroupName=lgName
+                                                filter=logFilter
+                                                destination=logWatcherLinkTargetAttributes["ARN"]
+                                            /]
+
+                                            [@createLogSubscription 
+                                                mode=listMode
+                                                id=formatDependentLogSubscriptionId(platformAppId, logWatchLink.Id, "failure")
+                                                logGroupName=lgFailureName
+                                                filter=logFilter
+                                                destination=logWatcherLinkTargetAttributes["ARN"]
+                                            /]
+                                            
+                                            [#break]
+                                    [/#switch]
+                                [/#list]
+                            [#break]
+                        [/#switch]
+                    [/#if]
+                [/#list]
+            [/#if]
+
             [#if isPlatformApp ]
                 [#if deploymentSubsetRequired("cli", false ) ]
                 
@@ -182,25 +270,26 @@
             [/#if]
         [/#list]
 
-        
-        [#if deploymentSubsetRequired( "prologue", false) ]
-            [@cfScript
-                mode=listMode
-                content= 
-                    [
-                        "# Mobile Notifier Cleanup",
-                        "case $\{STACK_OPERATION} in",
-                        "  create|update)",
-                        "       info \"Cleaning up platforms that have been removed from config\"",
-                        "       cleanup_sns_platformapps " + 
-                        "       \"" + region + "\" " + 
-                        "       \"" + platformAppName + "\" " + 
-                        "       '" + getJSON(deployedPlatformAppArns, false) + "' || return $?",
-                        "       ;;",
-                        "       esac"   
-                    ]
-                    
-            /]
+        [#if hasPlatformApp ]
+            [#if deploymentSubsetRequired( "prologue", false) ]
+                [@cfScript
+                    mode=listMode
+                    content= 
+                        [
+                            "# Mobile Notifier Cleanup",
+                            "case $\{STACK_OPERATION} in",
+                            "  create|update)",
+                            "       info \"Cleaning up platforms that have been removed from config\"",
+                            "       cleanup_sns_platformapps " + 
+                            "       \"" + region + "\" " + 
+                            "       \"" + platformAppName + "\" " + 
+                            "       '" + getJSON(deployedPlatformAppArns, false) + "' || return $?",
+                            "       ;;",
+                            "       esac"   
+                        ]
+                        
+                /]
+            [/#if]
         [/#if]
 
     [/#list]

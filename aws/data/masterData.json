@@ -1625,5 +1625,40 @@
         "HTTPSProfile" : "TLSv1"
       }
     }
+  },
+  "LogFilters" : {
+    "_all" : {
+      "Pattern" : "*"
+    },
+    "_pylog-critical" : {
+      "Pattern" : "CRITICAL"
+    },
+    "_pylog-error" : {
+      "Pattern" : "?CRITICAL ?ERROR"
+    },
+    "_pylog-warning" : {
+      "Pattern" : "?CRITICAL ?ERROR ?WARNING"
+    },
+    "_pylog-info" : {
+      "Pattern" : "?CRITICAL ?ERROR ?WARNING ?INFO"
+    },
+    "_pylog-debug" : {
+      "Pattern" : "?CRITICAL ?ERROR ?WARNING ?INFO ?DEBUG" 
+    },
+    "apache" : {
+      "Pattern" : "[ip, id, user, timestamp, request, status_code=*, size]"
+    },
+    "_apache-4xx" : {
+      "Pattern" : "[ip, id, user, timestamp, request, status_code=4*, size]"
+    },
+    "_apache-5xx" : {
+      "Pattern" : "[ip, id, user, timestamp, request, status_code=5*, size]"
+    },
+    "_sns-success" : {
+      "Pattern" : "{ $.status = \"SUCCESS\" }"
+    },
+    "_sns-failure" : {
+      "Pattern" : "{ $.status = \"FAILURE\" }"
+    }
   }
 }

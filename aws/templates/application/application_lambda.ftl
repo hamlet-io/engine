@@ -232,6 +232,8 @@
 
                 [#list solution.LogWatchers as logWatcherName,logwatcher ]
 
+                    [#assign logFilter = logFilters[logwatcher.logFilter].Pattern ]
+
                     [#if deploymentSubsetRequired("lambda", true)]
                         [#switch logwatcher.Type ]
                             [#case "Metric" ]
@@ -240,7 +242,7 @@
                                     id=formatDependentLogMetricId(fnId, logwatcher.Id)
                                     name=formatName(logWatcherName, fnName)
                                     logGroup=fnLgName
-                                    filter=logwatcher.LogPattern
+                                    filter=logFilter
                                     namespace=formatProductRelativePath()
                                     value=1
                                     dependencies=fnId
@@ -252,7 +254,12 @@
                                     [#assign logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
                                     [#assign logWatcherLinkTargetCore = logWatcherLinkTarget.Core ]
                                     [#assign logWatcherLinkTargetAttributes = logWatcherLinkTarget.State.Attributes ]
-                                    [#switch logWatcherLinkTargetCore.Type]
+
+                                    [#if !logWatcherLinkTarget?has_content]
+                                        [#continue]
+                                    [/#if]
+
+                                    [#switch logWatcherLinkTargetCore.Type
 
                                         [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
@@ -260,7 +267,7 @@
                                                 mode=listMode
                                                 id=formatDependentLogSubscriptionId(fnId, logWatchLink.Id)
                                                 logGroupName=fnLgName
-                                                filter=logwatcher.LogPattern
+                                                filter=logFilter
                                                 destination=logWatcherLinkTargetAttributes["ARN"]
                                             /]
                                             
@@ -271,7 +278,6 @@
                         [/#switch]
                     [/#if]
                 [/#list]
-
 
                 [#list solution.Alerts?values as alert ]
 

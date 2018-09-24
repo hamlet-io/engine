@@ -94,9 +94,9 @@
             "Mandatory" : true
         },
         {
-            "Name" : "LogPattern",
+            "Name" : "LogFilter",
             "Type" : STRING_TYPE,
-            "Default" : ""
+            "Mandatory" : true
         },
         {
             "Name" : "Links",
@@ -277,6 +277,7 @@
 [#assign bootstraps = blueprintObject.Bootstraps ]
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 [#assign securityProfiles = blueprintObject.SecurityProfiles ]
+[#assign logFilters = blueprintObject.LogFilters]
 
 [#-- Regions --]
 [#if region?has_content]
