@@ -161,12 +161,29 @@
                 }
             },
             "Attributes" : {
-                "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
+                "ARN" : (engine == "SMS")?then(
+                            formatArn(
+                                regionObject.Partition,
+                                "sns", 
+                                regionId,
+                                accountObject.AWSId,
+                                "smsPlaceHolder"
+                            ),
+                            getExistingReference(id, ARN_ATTRIBUTE_TYPE)
+                ),
                 "ENGINE" : engine,
                 "TOPIC_PREFIX" : topicPrefix
             },
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "logwatch" : {
+                        "Principal" : "logs." + regionId + "amazonaws.com",
+                        "SourceArn" : [
+                            formatCloudWatchLogArn(lgName),
+                            formatCloudWatchLogArn(lgFailureName)
+                        ]
+                    }
+                },
                 "Outbound" : {
                     "default" : "publish",
                     "publish" : (engine == "SMS")?then(

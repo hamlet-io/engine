@@ -147,7 +147,7 @@
                     [@cfDebug listMode logwatcher false /]
                     [#assign logFilter = logFilters[logwatcher.LogFilter].Pattern ]
 
-                    [#if deploymentSubsetRequired("lambda", true)]
+                    [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
                         [#switch logwatcher.Type ]
                             [#case "Metric" ]
                                 [@createLogMetric
@@ -158,6 +158,7 @@
                                     filter=logFilter
                                     namespace=formatProductRelativePath()
                                     value=1
+                                    dependencies=lgId
                                 /]
 
                                 [@createLogMetric
@@ -168,6 +169,7 @@
                                     filter=logFilter
                                     namespace=formatProductRelativePath()
                                     value=1
+                                    dependencies=lgFailureId
                                 /]
                             [#break]
 
@@ -187,18 +189,20 @@
 
                                             [@createLogSubscription 
                                                 mode=listMode
-                                                id=formatDependentLogSubscriptionId(platformAppId, logWatchLink.Id)
+                                                id=formatDependentLogSubscriptionId(platformAppId, logwatcher.Id, logWatcherLink.Id)
                                                 logGroupName=lgName
                                                 filter=logFilter
                                                 destination=logWatcherLinkTargetAttributes["ARN"]
+                                                dependencies=lgId
                                             /]
 
                                             [@createLogSubscription 
                                                 mode=listMode
-                                                id=formatDependentLogSubscriptionId(platformAppId, logWatchLink.Id, "failure")
+                                                id=formatDependentLogSubscriptionId(platformAppId, logwatcher.Id, logWatcherLink.Id, "failure")
                                                 logGroupName=lgFailureName
                                                 filter=logFilter
                                                 destination=logWatcherLinkTargetAttributes["ARN"]
+                                                dependencies=lgFailureId
                                             /]
                                             
                                             [#break]

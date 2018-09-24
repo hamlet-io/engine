@@ -57,46 +57,83 @@
                     [#assign linkTargetAttributes = linkTarget.State.Attributes ]
                     [#assign linkTargetRoles = linkTarget.State.Roles ]
                     [#assign linkDirection = linkTarget.Direction ]
+                    [#assign linkRole = linkTarget.Role]
 
-                    [#switch linkTargetCore.Type]
-                        [#case USERPOOL_COMPONENT_TYPE ]
-                        [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
-                        [#case APIGATEWAY_COMPONENT_TYPE ]
-                        
-                            [#if linkTargetResources[(linkTargetCore.Type)].Deployed &&
-                                    (linkDirection == "inbound" )]
-                                [#if linkTargetRoles.Inbound["invoke"]?has_content ]
-                                    [@createLambdaPermission
-                                        mode=listMode
-                                        id=formatLambdaPermissionId(fn, "link", linkName)
-                                        targetId=fnId
-                                        source=linkTargetRoles.Inbound["invoke"]
-                                    /]
-                                [/#if]
+                    [#if linkTarget.Role == "logwatch" && 
+                        linkTargetRoles.Inbound["logwatch"]?has_content  &&
+                        linkDirection == "inbound" ]
 
-                                [#if linkTargetRoles.Inbound["logwatch"]?has_content ]
-                                    [@createLambdaPermission
-                                        mode=listMode
-                                        id=formatLambdaPermissionId(fn, "logwatch", linkName)
-                                        targetId=fnId
-                                        source=linkTargetRoles.Inbound["logwatch"]
-                                    /]
-                                [/#if]
-                            [/#if]
+                    [/#if]
+
+                    [#switch linkDirection ]
+                        [#case "inbound" ]
+                            [#switch linkRole ]
+                                [#case "logwatch" ]
+                                    [#if (linkTargetResources[(linkTargetCore.Type)].Deployed)!false ||
+                                            (linkTargetAttributes["ARN"]!"")?has_content ]
+
+                                        [#assign roleSource = linkTargetRoles.Inbound["logwatch"] ]
+                                        [#if roleSource.SourceArn?is_enumerable ]
+                                            [#list roleSource.SourceArn as arn ]
+                                                [@createLambdaPermission
+                                                    mode=listMode
+                                                    id=formatLambdaPermissionId(fn, "logwatch", linkName, arn?index)
+                                                    targetId=fnId
+                                                    source={
+                                                        "Principal" : roleSource.Principal,
+                                                        "SourceArn" : arn
+                                                    }
+                                                /]
+                                            [/#list]
+                                        [#else]
+                                            [@createLambdaPermission
+                                                    mode=listMode
+                                                    id=formatLambdaPermissionId(fn, "logwatch", linkName)
+                                                    targetId=fnId
+                                                    source=roleSource
+                                                /]
+                                        [/#if]
+                                    [/#if]
+                                    [#break]
+
+                                [#case "invoke" ]
+                                    [#switch linkTargetCore.Type]
+                                        [#case USERPOOL_COMPONENT_TYPE ]
+                                        [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
+                                        [#case APIGATEWAY_COMPONENT_TYPE ]
+                                            [#if linkTargetResources[(linkTargetCore.Type)].Deployed]
+                                                [@createLambdaPermission
+                                                    mode=listMode
+                                                    id=formatLambdaPermissionId(fn, "link", linkName)
+                                                    targetId=fnId
+                                                    source=linkTargetRoles.Inbound["invoke"]
+                                                /]
+                                            [/#if]
+                                            [#break]
+                                            
+                                    [/#switch]    
+                                    [#break]
+                                
+                            [/#switch]
                             [#break]
-
-                        [#-- Event sources --]
-                        [#case SQS_COMPONENT_TYPE]
-                            [#if linkTarget.Role == "event" &&
-                                linkTargetAttributes["ARN"]?has_content]
-                                [@createLambdaEventSource
-                                    mode=listMode
-                                    id=formatLambdaEventSourceId(fn, "link", linkName)
-                                    targetId=fnId
-                                    source=linkTargetAttributes["ARN"]
-                                    batchSize=1
-                                /]
-                            [/#if]
+                        [#case "outbound" ]
+                            [#switch linkRole ]
+                                [#case "event" ]
+                                    [#switch linkTargetCore.Type ]
+                                        [#case SQS_COMPONENT_TYPE ]
+                                            [#if linkTargetAttributes["ARN"]?has_content ]
+                                                [@createLambdaEventSource
+                                                    mode=listMode
+                                                    id=formatLambdaEventSourceId(fn, "link", linkName)
+                                                    targetId=fnId
+                                                    source=linkTargetAttributes["ARN"]
+                                                    batchSize=1
+                                                /]
+                                            [/#if]
+                                            [#break]
+                                    [/#switch]
+                                    [#break]
+                            [/#switch]
                             [#break]
                     [/#switch]
                 [/#list]
@@ -259,7 +296,7 @@
                                         [#continue]
                                     [/#if]
 
-                                    [#switch logWatcherLinkTargetCore.Type
+                                    [#switch logWatcherLinkTargetCore.Type ]
 
                                         [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
