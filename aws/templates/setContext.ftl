@@ -234,6 +234,31 @@
     ]
 ]
 
+[#assign settingsChildConfiguration = [
+        {
+            "Name" : "AsFile",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : false
+        },
+        {
+            "Name" : "Json",
+            "Children" : [
+                {
+                    "Name" : "Escaped",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Name" : "Prefix",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["json"],
+                    "Default" : "json"
+                }
+            ]
+        }
+    ]
+]
+
 [#include idList]
 [#include nameList]
 [#include policyList]

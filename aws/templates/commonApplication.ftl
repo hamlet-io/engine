@@ -251,7 +251,7 @@
 
 [#macro EntryPoint entrypoint ]
     [#if ((fragmentListMode!"") == "model") ]
-        [#assign context += 
+        [#assign context +=
             {
                 "EntryPoint" : entrypoint?is_string?then(
                     entrypoint?split(" "),
@@ -264,7 +264,7 @@
 
 [#macro Command command ]
     [#if ((fragmentListMode!"") == "model") ]
-        [#assign context += 
+        [#assign context +=
             {
                 "Command" : command?is_string?then(
                     [ command ],
@@ -287,7 +287,7 @@
 
 [#macro ManagedPolicy arns...]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context += 
+        [#assign context +=
             {
                 "ManagedPolicy" : (context.ManagedPolicy![]) + asFlattenedArray(arns)
             }
@@ -298,7 +298,7 @@
 [#-- Compute instance fragment macros --]
 [#macro File path mode="644" owner="root" group="root" content=[] ]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context += 
+        [#assign context +=
             {
                 "Files" : (context.Files!{}) + {
                     path : {
@@ -347,7 +347,7 @@
             []
         ) +
         valueIfTrue(
-            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)) + 
+            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)) +
             s3ListPermission(operationsBucket, getSettingsFilePrefix(occurrence)),
             permissions.AsFile,
             []
@@ -365,18 +365,23 @@
     ]
 [/#function]
 
-[#function getFinalEnvironment occurrence context asFile=false]
+[#function getFinalEnvironment occurrence context environmentSettings={}]
+    [#local asFile = environmentSettings.AsFile!false]
+    [#local serialisationConfig = environmentSettings.Json!{}]
     [#return
         {
             "Environment" :
                 valueIfTrue(
-                    getSettingsAsEnvironment(occurrence.Configuration.Settings.Core),
+                    getSettingsAsEnvironment(
+                        occurrence.Configuration.Settings.Core,
+                        serialisationConfig
+                    ),
                     context.DefaultCoreVariables || asFile
                 ) +
                 valueIfTrue(
-                    { 
+                    {
                         "SETTINGS_FILE" : "config/config_" + runId + ".json",
-                        "RUN_ID" : runId 
+                        "RUN_ID" : runId
                     },
                     asFile,
                     valueIfTrue(
@@ -385,8 +390,10 @@
                         context.DefaultCoreVariables
                     ) +
                     valueIfTrue(
-                        occurrence.Configuration.Environment.General +
-                            occurrence.Configuration.Environment.Sensitive,
+                        getSettingsAsEnvironment(
+                            occurrence.Configuration.Settings.Product,
+                            serialisationConfig
+                        )
                         context.DefaultEnvironmentVariables
                     ) +
                     valueIfTrue(
@@ -415,9 +422,9 @@
 
         [#list container.Ports?values as port]
 
-            [#if port.LB.Configured] 
+            [#if port.LB.Configured]
                 [#local lbLink = getLBLink( task, port )]
-                
+
                 [#if isDuplicateLink(containerLinks, lbLink) ]
                     [@cfException
                         mode=listMode
