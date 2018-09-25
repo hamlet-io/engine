@@ -38,6 +38,31 @@
                             "Default" : 20
                         }
                     ]
+                },
+                {
+                "Name" : "Permissions",
+                "Children" : [
+                        {
+                            "Name" : "Decrypt",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AsFile",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppData",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppPublic",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
                 }
             ]
         }
