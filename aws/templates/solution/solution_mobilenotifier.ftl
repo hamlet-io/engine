@@ -19,21 +19,6 @@
 
         [#assign roleId = resources["role"].Id]
 
-        [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
-            [@createRole
-                mode=listMode
-                id=roleId
-                trustedServices=["sns.amazonaws.com" ]
-                policies=
-                    [
-                        getPolicyDocument(
-                                cwLogsProducePermission() +
-                                cwLogsConfigurePermission(),
-                            "logging")
-                    ]
-            /]
-        [/#if]
-
         [#assign platformAppAttributesCommand = "attributesPlatformApp" ]
         [#assign platformAppDeleteCommand = "deletePlatformApp" ]
 
@@ -56,7 +41,7 @@
             [#assign lgName = resources["lg"].Name ]
             [#assign lgFailureId = resources["lgfailure"].Id ] 
             [#assign lgFailureName = resources["lgfailure"].Name ]
-
+            
             [#assign platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
 
             [#assign platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ] 
@@ -131,7 +116,8 @@
                     [#break]
             [/#switch]
 
-            [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
+            [#if deploymentSubsetRequired("lg", true) &&
+                isPartOfCurrentDeploymentUnit(lgId)]     
 
                 [@createLogGroup
                     mode=listMode
@@ -142,6 +128,9 @@
                     mode=listMode
                     id=lgFailureId
                     name=lgFailureName /]
+            [/#if]
+            
+            [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
 
                 [#list solution.LogWatchers as logWatcherName,logwatcher ]
                     [@cfDebug listMode logwatcher false /]
@@ -292,6 +281,23 @@
                             "       esac"   
                         ]
                         
+                /]
+            [/#if]
+
+            [#if deploymentSubsetRequired("iam", true) 
+                && isPartOfCurrentDeploymentUnit(roleId)]
+                
+                [@createRole
+                    mode=listMode
+                    id=roleId
+                    trustedServices=["sns.amazonaws.com" ]
+                    policies=
+                        [
+                            getPolicyDocument(
+                                    cwLogsProducePermission() +
+                                    cwLogsConfigurePermission(),
+                                "logging")
+                        ]
                 /]
             [/#if]
         [/#if]

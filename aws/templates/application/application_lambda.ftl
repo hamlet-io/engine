@@ -59,12 +59,6 @@
                     [#assign linkDirection = linkTarget.Direction ]
                     [#assign linkRole = linkTarget.Role]
 
-                    [#if linkTarget.Role == "logwatch" && 
-                        linkTargetRoles.Inbound["logwatch"]?has_content  &&
-                        linkDirection == "inbound" ]
-
-                    [/#if]
-
                     [#switch linkDirection ]
                         [#case "inbound" ]
                             [#switch linkRole ]
