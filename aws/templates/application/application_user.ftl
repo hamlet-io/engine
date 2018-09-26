@@ -55,7 +55,8 @@
                 "Links" : contextLinks,
                 "DefaultCoreVariables" : false,
                 "DefaultEnvironmentVariables" : false,
-                "DefaultLinkVariables" : false
+                "DefaultLinkVariables" : false,
+                "Policy" : standardPolicies(occurrence)
             }
         ]
         
