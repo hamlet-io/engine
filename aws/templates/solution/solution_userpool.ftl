@@ -425,23 +425,25 @@
                 /]
             [/#if]
 
-            [#assign updateUserPoolClient = 
-                {
-                    "CallbackURLs": callbackUrls,
-                    "LogoutURLs": logoutUrls,
-                    "AllowedOAuthFlows": solution.OAuth.Flows,
-                    "AllowedOAuthScopes": solution.OAuth.Scopes,
-                    "AllowedOAuthFlowsUserPoolClient": true,
-                    "SupportedIdentityProviders" : [ "COGNITO" ]
-                }
-            ]
+            [#if callbackUrls?has_content ]
 
-            [@cfCli
-                mode=listMode
-                id=userPoolClientId
-                command=userPoolClientUpdateCommand
-                content=updateUserPoolClient
-            /]
+                [#assign updateUserPoolClient =  {
+                        "CallbackURLs": callbackUrls,
+                        "LogoutURLs": logoutUrls,
+                        "AllowedOAuthFlows": solution.OAuth.Flows,
+                        "AllowedOAuthScopes": solution.OAuth.Scopes,
+                        "AllowedOAuthFlowsUserPoolClient": true,
+                        "SupportedIdentityProviders" : [ "COGNITO" ]
+                    }
+                ]
+
+                [@cfCli
+                    mode=listMode
+                    id=userPoolClientId
+                    command=userPoolClientUpdateCommand
+                    content=updateUserPoolClient
+                /]
+            [/#if]
 
         [/#if]
         
@@ -482,15 +484,20 @@
                         " # Get cli config file",
                         " split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
                         "case $\{STACK_OPERATION} in",
-                        "  create|update)",
-                        "       # Manage Userpool client",
-                        "       update_userpool_client" +
-                        "       \"" + region + "\" " + 
-                        "       \"" + getExistingReference(userPoolId) + "\" " + 
-                        "       \"" + getExistingReference(userPoolClientId) + "\" " + 
-                        "       \"$\{tmpdir}/cli-" + 
-                            userPoolClientId + "-" + userPoolClientUpdateCommand + ".json\" || return $?"
-                    ] +
+                        "  create|update)"
+                    ] + 
+                    (callbackUrls?has_content)?then(
+                        [
+                            "       # Manage Userpool client",
+                            "       update_userpool_client" +
+                            "       \"" + region + "\" " + 
+                            "       \"" + getExistingReference(userPoolId) + "\" " + 
+                            "       \"" + getExistingReference(userPoolClientId) + "\" " + 
+                            "       \"$\{tmpdir}/cli-" + 
+                                userPoolClientId + "-" + userPoolClientUpdateCommand + ".json\" || return $?"
+                        ],
+                        []
+                    ) +
                     [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
                     (userPoolManualTriggerConfig?has_content)?then(
                         [
