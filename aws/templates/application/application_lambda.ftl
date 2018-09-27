@@ -283,6 +283,11 @@
                             [#case "Subscription" ]
                                 [#list logwatcher.Links as logWatchLinkName,logWatcherLink ]
                                     [#assign logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
+
+                                    [#if !logWatcherLinkTarget?has_content]
+                                        [#continue]
+                                    [/#if]
+
                                     [#assign logWatcherLinkTargetCore = logWatcherLinkTarget.Core ]
                                     [#assign logWatcherLinkTargetAttributes = logWatcherLinkTarget.State.Attributes ]
 
