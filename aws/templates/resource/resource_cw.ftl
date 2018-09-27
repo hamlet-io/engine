@@ -52,6 +52,28 @@
     /]
 [/#macro]
 
+[#macro createLogSubscription mode id logGroupName filter destination role="" dependencies=""  ]
+
+    [#local destinationArn = destination?starts_with("arn:")?then(
+                                destination,
+                                getReference(destination, ARN_ATTRIBUTE_TYPE )
+                            )]
+
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::Logs::SubscriptionFilter"
+        properties=
+            {
+                "DestinationArn" : destinationArn,
+                "FilterPattern" : filter,
+                "LogGroupName" : logGroupName
+            } + 
+            attributeIfContent("RoleArn", role, getReference(role) )
+        dependencies=dependencies
+    /]
+[/#macro]
+
 [#assign DASHBOARD_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -259,3 +281,12 @@
     /]
 [/#macro]
 
+
+[#function formatCloudWatchLogArn lgName account={ "Ref" : "AWS::AccountId" }]
+    [#return
+        formatRegionalArn(
+            "logs",
+            lgName
+        )
+    ]
+[/#function]

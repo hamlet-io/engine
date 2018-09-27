@@ -4,6 +4,7 @@
 [#assign AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE = "lg" ]
 [#assign AWS_CLOUDWATCH_DASHBOARD_RESOURCE_TYPE = "dashboard" ]
 [#assign AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE = "lmetric" ]
+[#assign AWS_CLOUDWATCH_LOG_SUBSCRIPTION_RESOURCE_TYPE = "lsubscription" ]
 [#assign AWS_CLOUDWATCH_ALARM_RESOURCE_TYPE = "alarm" ]
 
 [#function formatLogGroupId ids...]
@@ -27,15 +28,16 @@
                 extensions)]
 [/#function]
 
-[#function formatLogMetricId ids...]
-    [#return formatResourceId(
-                AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
-                ids)]
-[/#function]
-
 [#function formatDependentLogMetricId resourceId extensions...]
     [#return formatDependentResourceId(
                 AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                resourceId,
+                extensions)]
+[/#function]
+
+[#function formatDependentLogSubscriptionId resourceId extensions... ]
+    [#return formatDependentResourceId(
+                AWS_CLOUDWATCH_LOG_SUBSCRIPTION_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]

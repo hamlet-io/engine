@@ -48,19 +48,24 @@
                 "Type" : STRING_TYPE
             },
             {
-                    "Name" : "Credentials",
-                    "Children" : [
-                        {
-                            "Name" : "EncryptionScheme",
-                            "Type" : STRING_TYPE,
-                            "Values" : ["base64"]
-                        }
-                    ]
-                }
+                "Name" : "Credentials",
+                "Children" : [
+                    {
+                        "Name" : "EncryptionScheme",
+                        "Type" : STRING_TYPE,
+                        "Values" : ["base64"]
+                    }
+                ]
+            },
             { 
                 "Name" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Name" : "LogWatchers",
+                "Subobjects" : true,
+                "Children" : logWatcherChildrenConfiguration
             }
         ]
     }]
@@ -97,6 +102,44 @@
     [#local topicPrefix = core.ShortFullName]
     [#local engine = solution.Engine!core.SubComponent.Name?upper_case  ]
 
+    [#local lgNameComponents = 
+        [
+            "sns",
+            { "Ref" : "AWS::Region" },
+            { "Ref" : "AWS::AccountId" }
+        ]]
+
+    [#if engine != "SMS" ] 
+        [#local lgNameComponents += [
+            "app",
+            engine,
+            name
+        ]]
+
+    [#else]
+        [#local lgNameComponents += [
+            "DirectPublishToPhoneNumber"
+        ]]
+    [/#if]
+
+    [#local lgName = 
+        {
+            "Fn::Join" : [
+                "/",
+                lgNameComponents
+            ]
+        }
+    ]
+
+    [#local lgFailureName = 
+        {
+            "Fn::Join" : [
+                "/",
+                lgNameComponents + [ "Failure" ]
+            ]
+        }
+    ]
+
     [#local result =
         {
             "Resources" : {
@@ -105,18 +148,48 @@
                     "Name" : core.FullName,
                     "Engine" : engine,
                     "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE 
+                },
+                "lg" : {
+                    "Id" : formatLogGroupId(core.Id),
+                    "Name" : lgName,
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                },
+                "lgfailure" : {
+                    "Id" : formatLogGroupId(core.Id, "failure"),
+                    "Name" : lgFailureName,
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
-                "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
+                "ARN" : (engine == "SMS")?then(
+                            formatArn(
+                                regionObject.Partition,
+                                "sns", 
+                                regionId,
+                                accountObject.AWSId,
+                                "smsPlaceHolder"
+                            ),
+                            getExistingReference(id, ARN_ATTRIBUTE_TYPE)
+                ),
                 "ENGINE" : engine,
                 "TOPIC_PREFIX" : topicPrefix
             },
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "logwatch" : {
+                        "Principal" : "logs." + regionId + "amazonaws.com",
+                        "SourceArn" : [
+                            formatCloudWatchLogArn(lgName),
+                            formatCloudWatchLogArn(lgFailureName)
+                        ]
+                    }
+                },
                 "Outbound" : {
                     "default" : "publish",
-                    "publish" : snsPublishPlatformApplication(name, engine, topicPrefix)
+                    "publish" : (engine == "SMS")?then(
+                        snsSMSPermission(),
+                        snsPublishPlatformApplication(name, engine, topicPrefix)
+                    )
                 }
             }
         }

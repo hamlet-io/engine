@@ -60,15 +60,15 @@
                 "Children" : linkChildrenConfiguration
             },
             {
-                "Name" : "Metrics",
+                "Name" : "LogWatchers",
                 "Subobjects" : true,
-                "Children" : metricChildrenConfiguration
+                "Children" : logWatcherChildrenConfiguration
             },
             {
                 "Name" : "Alerts",
                 "Subobjects" : true,
                 "Children" : alertChildrenConfiguration
-            }
+            },
             {
                 "Name" : ["Memory", "MemorySize"],
                 "Type" : NUMBER_TYPE,
@@ -181,7 +181,9 @@
 [#function getFunctionState occurrence]
     [#local core = occurrence.Core]
 
-    [#assign id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
+    [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
+
+    [#local lgName = formatAbsolutePath("aws", "lambda", core.FullName)]
 
     [#return
         {
@@ -193,7 +195,7 @@
                 },
                 "lg" : {
                     "Id" : formatLogGroupId(core.Id),
-                    "Name" : formatAbsolutePath("aws", "lambda", core.FullName),
+                    "Name" : lgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
             },
@@ -209,7 +211,12 @@
                 "NAME" : core.FullName
             },
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "logwatch" : {
+                        "Principal" : "logs." + regionId + "amazonaws.com",
+                        "SourceArn" : formatCloudWatchLogArn(lgName)
+                    }
+                },
                 "Outbound" : {
                     "invoke" : lambdaInvokePermission(id)
                 }
