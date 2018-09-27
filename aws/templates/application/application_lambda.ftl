@@ -291,10 +291,6 @@
                                     [#assign logWatcherLinkTargetCore = logWatcherLinkTarget.Core ]
                                     [#assign logWatcherLinkTargetAttributes = logWatcherLinkTarget.State.Attributes ]
 
-                                    [#if !logWatcherLinkTarget?has_content]
-                                        [#continue]
-                                    [/#if]
-
                                     [#switch logWatcherLinkTargetCore.Type ]
 
                                         [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
