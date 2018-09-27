@@ -251,7 +251,7 @@
                 {
                     "Name" : "Prefix",
                     "Type" : STRING_TYPE,
-                    "Values" : ["json"],
+                    "Values" : ["json", ""],
                     "Default" : "json"
                 }
             ]
