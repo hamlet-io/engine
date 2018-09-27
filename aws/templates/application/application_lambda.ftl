@@ -264,7 +264,7 @@
 
                         [#assign roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]] 
 
-                        [#list roleSource.LogGroupIds as logGroupId ]
+                        [#list asArray(roleSource.LogGroupIds) as logGroupId ]
 
                             [#assign logGroupArn = getExistingReference(logGroupId, ARN_ATTRIBUTE_TYPE)]
 
