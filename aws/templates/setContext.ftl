@@ -89,11 +89,6 @@
 [#assign
     logWatcherChildrenConfiguration = [
         {
-            "Name" : "Type",
-            "Type" : STRING_TYPE,
-            "Mandatory" : true
-        },
-        {
             "Name" : "LogFilter",
             "Type" : STRING_TYPE,
             "Mandatory" : true
@@ -102,6 +97,16 @@
             "Name" : "Links",
             "Subobjects" : true,
             "Children" : linkChildrenConfiguration
+        }
+    ]
+]
+
+[#assign
+    logMetricChildrenConfiguration = [
+        {
+            "Name" : "LogFilter",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
         }
     ]
 ]

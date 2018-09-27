@@ -63,9 +63,9 @@
                 "Children" : linkChildrenConfiguration
             },
             {
-                "Name" : "LogWatchers",
+                "Name" : "LogMetrics",
                 "Subobjects" : true,
-                "Children" : logWatcherChildrenConfiguration
+                "Children" : logMetricChildrenConfiguration
             }
         ]
     }]
@@ -122,6 +122,8 @@
         ]]
     [/#if]
 
+    [#local lgId = formatLogGroupId(core.Id)]
+    [#local lgFailureId = formatLogGroupId(core.Id, "failure")]
     [#local lgName = 
         {
             "Fn::Join" : [
@@ -150,12 +152,12 @@
                     "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE 
                 },
                 "lg" : {
-                    "Id" : formatLogGroupId(core.Id),
+                    "Id" : lgId,
                     "Name" : lgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 },
                 "lgfailure" : {
-                    "Id" : formatLogGroupId(core.Id, "failure"),
+                    "Id" : lgFailureId,
                     "Name" : lgFailureName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
@@ -178,10 +180,7 @@
                 "Inbound" : {
                     "logwatch" : {
                         "Principal" : "logs." + regionId + "amazonaws.com",
-                        "SourceArn" : [
-                            formatCloudWatchLogArn(lgName),
-                            formatCloudWatchLogArn(lgFailureName)
-                        ]
+                        "LogGroupIds" : [ lgId, lgFailureId ]
                     }
                 },
                 "Outbound" : {

@@ -117,7 +117,7 @@
             [/#switch]
 
             [#if deploymentSubsetRequired("lg", true) &&
-                isPartOfCurrentDeploymentUnit(lgId)]     
+                isPartOfCurrentDeploymentUnit(lgId)]   
 
                 [@createLogGroup
                     mode=listMode
@@ -128,81 +128,35 @@
                     mode=listMode
                     id=lgFailureId
                     name=lgFailureName /]
-            [/#if]
-            
-            [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
 
-                [#list solution.LogWatchers as logWatcherName,logwatcher ]
-                    [@cfDebug listMode logwatcher false /]
-                    [#assign logFilter = logFilters[logwatcher.LogFilter].Pattern ]
+                [#list solution.LogMetrics as logMetricName,logMetric ]
 
-                    [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
-                        [#switch logwatcher.Type ]
-                            [#case "Metric" ]
-                                [@createLogMetric
-                                    mode=listMode
-                                    id=formatDependentLogMetricId(platformAppId, logwatcher.Id)
-                                    name=formatName(logWatcherName, platformAppName)
-                                    logGroup=lgName
-                                    filter=logFilter
-                                    namespace=formatProductRelativePath()
-                                    value=1
-                                    dependencies=lgId
-                                /]
+                    [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
 
-                                [@createLogMetric
-                                    mode=listMode
-                                    id=formatDependentLogMetricId(platformAppId, logwatcher.Id, "failure")
-                                    name=formatName(logWatcherName, platformAppName, "failure")
-                                    logGroup=lgFailureName
-                                    filter=logFilter
-                                    namespace=formatProductRelativePath()
-                                    value=1
-                                    dependencies=lgFailureId
-                                /]
-                            [#break]
+                    [@createLogMetric
+                        mode=listMode
+                        id=formatDependentLogMetricId(platformAppId, logMetric.Id)
+                        name=formatName(logMetricName, platformAppName)
+                        logGroup=lgName
+                        filter=logFilter
+                        namespace=formatProductRelativePath()
+                        value=1
+                        dependencies=lgId
+                    /]
 
-                            [#case "Subscription" ]
-                                [#list logwatcher.Links as logWatchLinkName,logWatcherLink ]
-                                    [#assign logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
-
-                                    [#if !logWatcherLinkTarget?has_content]
-                                        [#continue]
-                                    [/#if]
-
-                                    [#assign logWatcherLinkTargetCore = logWatcherLinkTarget.Core ]
-                                    [#assign logWatcherLinkTargetAttributes = logWatcherLinkTarget.State.Attributes ]
-                                    [#switch logWatcherLinkTargetCore.Type]
-
-                                        [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
-
-                                            [@createLogSubscription 
-                                                mode=listMode
-                                                id=formatDependentLogSubscriptionId(platformAppId, logwatcher.Id, logWatcherLink.Id)
-                                                logGroupName=lgName
-                                                filter=logFilter
-                                                destination=logWatcherLinkTargetAttributes["ARN"]
-                                                dependencies=lgId
-                                            /]
-
-                                            [@createLogSubscription 
-                                                mode=listMode
-                                                id=formatDependentLogSubscriptionId(platformAppId, logwatcher.Id, logWatcherLink.Id, "failure")
-                                                logGroupName=lgFailureName
-                                                filter=logFilter
-                                                destination=logWatcherLinkTargetAttributes["ARN"]
-                                                dependencies=lgFailureId
-                                            /]
-                                            
-                                            [#break]
-                                    [/#switch]
-                                [/#list]
-                            [#break]
-                        [/#switch]
-                    [/#if]
+                    [@createLogMetric
+                        mode=listMode
+                        id=formatDependentLogMetricId(platformAppId, logMetric.Id, "failure")
+                        name=formatName(logMetricName, platformAppName, "failure")
+                        logGroup=lgFailureName
+                        filter=logFilter
+                        namespace=formatProductRelativePath()
+                        value=1
+                        dependencies=lgFailureId
+                    /]  
                 [/#list]
             [/#if]
-
+            
             [#if isPlatformApp ]
                 [#if deploymentSubsetRequired("cli", false ) ]
                 

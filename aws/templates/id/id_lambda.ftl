@@ -60,6 +60,11 @@
                 "Children" : linkChildrenConfiguration
             },
             {
+                "Name" : "LogMetrics",
+                "Subobjects" : true,
+                "Children" : logMetricChildrenConfiguration
+            },
+            {
                 "Name" : "LogWatchers",
                 "Subobjects" : true,
                 "Children" : logWatcherChildrenConfiguration
@@ -182,6 +187,7 @@
 
     [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
 
+    [#local lgId = formatLogGroupId(core.Id)]
     [#local lgName = formatAbsolutePath("aws", "lambda", core.FullName)]
 
     [#return
@@ -213,7 +219,7 @@
                 "Inbound" : {
                     "logwatch" : {
                         "Principal" : "logs." + regionId + "amazonaws.com",
-                        "SourceArn" : formatCloudWatchLogArn(lgName)
+                        "LogGroupIds" : [ lgId ]
                     }
                 },
                 "Outbound" : {

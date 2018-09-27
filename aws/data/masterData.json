@@ -1628,7 +1628,7 @@
   },
   "LogFilters" : {
     "_all" : {
-      "Pattern" : "*"
+      "Pattern" : ""
     },
     "_pylog-critical" : {
       "Pattern" : "CRITICAL"

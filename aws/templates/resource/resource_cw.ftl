@@ -54,18 +54,13 @@
 
 [#macro createLogSubscription mode id logGroupName filter destination role="" dependencies=""  ]
 
-    [#local destinationArn = destination?starts_with("arn:")?then(
-                                destination,
-                                getReference(destination, ARN_ATTRIBUTE_TYPE )
-                            )]
-
     [@cfResource
         mode=mode
         id=id
         type="AWS::Logs::SubscriptionFilter"
         properties=
             {
-                "DestinationArn" : destinationArn,
+                "DestinationArn" : getReference(destination),
                 "FilterPattern" : filter,
                 "LogGroupName" : logGroupName
             } + 

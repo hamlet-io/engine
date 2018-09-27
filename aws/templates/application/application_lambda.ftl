@@ -62,34 +62,6 @@
                     [#switch linkDirection ]
                         [#case "inbound" ]
                             [#switch linkRole ]
-                                [#case "logwatch" ]
-                                    [#if (linkTargetResources[(linkTargetCore.Type)].Deployed)!false ||
-                                            (linkTargetAttributes["ARN"]!"")?has_content ]
-
-                                        [#assign roleSource = linkTargetRoles.Inbound["logwatch"] ]
-                                        [#if roleSource.SourceArn?is_enumerable ]
-                                            [#list roleSource.SourceArn as arn ]
-                                                [@createLambdaPermission
-                                                    mode=listMode
-                                                    id=formatLambdaPermissionId(fn, "logwatch", linkName, arn?index)
-                                                    targetId=fnId
-                                                    source={
-                                                        "Principal" : roleSource.Principal,
-                                                        "SourceArn" : arn
-                                                    }
-                                                /]
-                                            [/#list]
-                                        [#else]
-                                            [@createLambdaPermission
-                                                    mode=listMode
-                                                    id=formatLambdaPermissionId(fn, "logwatch", linkName)
-                                                    targetId=fnId
-                                                    source=roleSource
-                                                /]
-                                        [/#if]
-                                    [/#if]
-                                    [#break]
-
                                 [#case "invoke" ]
                                     [#switch linkTargetCore.Type]
                                         [#case USERPOOL_COMPONENT_TYPE ]
@@ -190,10 +162,28 @@
             [#if solution.PredefineLogGroup &&
                   deploymentSubsetRequired("lg", true) &&
                   isPartOfCurrentDeploymentUnit(fnLgId) ]
+
                 [@createLogGroup
                     mode=listMode
                     id=fnLgId
                     name=fnLgName /]
+
+                [#list solution.LogMetrics as logMetricName,logMetric ]
+
+                    [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
+
+                    [@createLogMetric
+                        mode=listMode
+                        id=formatDependentLogMetricId(fnId, logMetric.Id)
+                        name=formatName(logMetricName, fnName)
+                        logGroup=fnLgName
+                        filter=logFilter
+                        namespace=formatProductRelativePath()
+                        value=1
+                        dependencies=fnLgId
+                    /]
+ 
+                [/#list]
             [/#if]
 
             [#if deploymentSubsetRequired("lambda", true)]
@@ -263,52 +253,46 @@
 
                 [#list solution.LogWatchers as logWatcherName,logwatcher ]
 
-                    [#assign logFilter = logFilters[logwatcher.logFilter].Pattern ]
+                    [#assign logFilter = logFilters[logwatcher.LogFilter].Pattern ]
 
-                    [#if deploymentSubsetRequired("lambda", true)]
-                        [#switch logwatcher.Type ]
-                            [#case "Metric" ]
-                                [@createLogMetric
+                    [#list logwatcher.Links as logWatcherLinkName,logWatcherLink ]
+                        [#assign logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
+
+                        [#if !logWatcherLinkTarget?has_content]
+                            [#continue]
+                        [/#if]
+
+                        [#assign roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]] 
+
+                        [#list asArray(roleSource.LogGroupIds) as logGroupId ]
+
+                            [#assign logGroupArn = getExistingReference(logGroupId, ARN_ATTRIBUTE_TYPE)]
+
+                            [#if logGroupArn?has_content ]
+
+                                [@createLambdaPermission
                                     mode=listMode
-                                    id=formatDependentLogMetricId(fnId, logwatcher.Id)
-                                    name=formatName(logWatcherName, fnName)
-                                    logGroup=fnLgName
-                                    filter=logFilter
-                                    namespace=formatProductRelativePath()
-                                    value=1
+                                    id=formatLambdaPermissionId(fn, "logwatch", logWatcherLink.Id, logGroupId?index)
+                                    targetId=fnId
+                                    source={
+                                        "Principal" : roleSource.Principal,
+                                        "SourceArn" : logGroupArn
+                                    }
                                     dependencies=fnId
                                 /]
-                            [#break]
 
-                            [#case "Subscription" ]
-                                [#list logwatcher.Links as logWatchLinkName,logWatcherLink ]
-                                    [#assign logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
+                                [@createLogSubscription 
+                                    mode=listMode
+                                    id=formatDependentLogSubscriptionId(fnId, logWatcherLink.Id, logGroupId?index)
+                                    logGroupName=getExistingReference(logGroupId)
+                                    filter=logFilter
+                                    destination=fnId
+                                    dependencies=fnId
+                                /]
 
-                                    [#if !logWatcherLinkTarget?has_content]
-                                        [#continue]
-                                    [/#if]
-
-                                    [#assign logWatcherLinkTargetCore = logWatcherLinkTarget.Core ]
-                                    [#assign logWatcherLinkTargetAttributes = logWatcherLinkTarget.State.Attributes ]
-
-                                    [#switch logWatcherLinkTargetCore.Type ]
-
-                                        [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
-
-                                            [@createLogSubscription 
-                                                mode=listMode
-                                                id=formatDependentLogSubscriptionId(fnId, logWatchLink.Id)
-                                                logGroupName=fnLgName
-                                                filter=logFilter
-                                                destination=logWatcherLinkTargetAttributes["ARN"]
-                                            /]
-                                            
-                                            [#break]
-                                    [/#switch]
-                                [/#list]
-                            [#break]
-                        [/#switch]
-                    [/#if]
+                            [/#if]
+                        [/#list]    
+                    [/#list]
                 [/#list]
 
                 [#list solution.Alerts?values as alert ]
