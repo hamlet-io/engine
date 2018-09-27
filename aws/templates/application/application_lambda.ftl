@@ -139,8 +139,8 @@
             [#assign containerId = fragmentId]
             [#include fragmentList?ensure_starts_with("/")]
 
-            [#assign finalEnvironment = getFinalEnvironment(fn, context, solution.EnvironmentAsFile) ]
-            [#assign finalAsFileEnvironment = getFinalEnvironment(fn, context, false) ]
+            [#assign finalEnvironment = getFinalEnvironment(fn, context, solution.Environment) ]
+            [#assign finalAsFileEnvironment = getFinalEnvironment(fn, context, solution.Environment + {"AsFile" : false}) ]
             [#assign context += finalEnvironment ]
 
             [#assign roleId = formatDependentRoleId(fnId)]
@@ -361,7 +361,7 @@
                 [#assign fragmentListMode = listMode]
                 [#include fragmentList?ensure_starts_with("/")]
             [/#if]
-            [#if solution.EnvironmentAsFile && deploymentSubsetRequired("config", false)]
+            [#if solution.Environment.AsFile && deploymentSubsetRequired("config", false)]
                 [@cfConfig
                     mode=listMode
                     content=finalAsFileEnvironment.Environment
@@ -383,7 +383,7 @@
                                 getOccurrenceSettingValue(fn, "SETTINGS_PREFIX")
                             ) /]
                 [/#if]
-                [#if solution.EnvironmentAsFile]
+                [#if solution.Environment.AsFile]
                     [@cfScript
                         mode=listMode
                         content=

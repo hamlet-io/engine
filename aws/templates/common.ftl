@@ -1211,19 +1211,44 @@ behaviour.
     [#return result ]
 [/#function]
 
-[#function getSettingsAsEnvironment settings sensitive=false obfuscate=false]
+[#function getSettingsAsEnvironment settings format={} ]
+
+    [#local formatting =
+        {
+            "Include" : {
+                "General" : true,
+                "Sensitive" : true
+            },
+            "Obfuscate" : false,
+            "Escaped" : true,
+            "Prefix" : "json"
+        }  +
+        format ]
+
     [#local result = {} ]
+
     [#list settings as key,value]
         [#if value?is_hash]
             [#if value.Internal!false]
                 [#continue]
             [/#if]
-            [#if sensitive && value.Sensitive!false]
-                [#local result += { key : valueIfTrue("****", obfuscate, asSerialisableString(value.Value))} ]
+            [#local serialisedValue =
+                valueIfTrue(
+                    valueIfTrue(
+                        formatting.Prefix?ensure_ends_with(":"),
+                        formatting.Prefix?has_content &&
+                            (value.Value?is_hash || value.Value?is_sequence),
+                        ""
+                    ) +
+                    asSerialisableString(value.Value),
+                    formatting.Escaped,
+                    value.Value) ]
+            [#if ((formatting.Include.General)!true) && !(value.Sensitive!false)]
+                [#local result += { key : serialisedValue} ]
                 [#continue]
             [/#if]
-            [#if (!sensitive) && !(value.Sensitive!false)]
-                [#local result += { key : asSerialisableString(value.Value)} ]
+            [#if ((formatting.Include.Sensitive)!true) && value.Sensitive!false]
+                [#local result += { key : valueIfTrue("****", formatting.Obfuscate, serialisedValue)} ]
                 [#continue]
             [/#if]
         [#else]
@@ -1233,10 +1258,10 @@ behaviour.
     [#return result ]
 [/#function]
 
-[#function getOccurrenceSettingsAsEnvironment occurrence sensitive=false obfuscate=false]
+[#function getOccurrenceSettingsAsEnvironment occurrence format]
     [#return
-        getSettingsAsEnvironment(occurrence.Configuration.Settings.Core, sensitive, obfuscate) +
-        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product, sensitive, obfuscate)
+        getSettingsAsEnvironment(occurrence.Configuration.Settings.Core, format) +
+        getSettingsAsEnvironment(occurrence.Configuration.Settings.Product, format)
     ]
 [/#function]
 
@@ -1437,9 +1462,15 @@ behaviour.
                                         "Build" :
                                             getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
                                         "General" :
-                                            getOccurrenceSettingsAsEnvironment(occurrence, false),
+                                            getOccurrenceSettingsAsEnvironment(
+                                                occurrence,
+                                                {"Include" : {"Sensitive" : false}}
+                                            ),
                                         "Sensitive" :
-                                            getOccurrenceSettingsAsEnvironment(occurrence, true)
+                                            getOccurrenceSettingsAsEnvironment(
+                                                occurrence,
+                                                {"Include" : {"General" : false}}
+                                            )
                                     }
                                 }
                         } ]
@@ -1743,11 +1774,11 @@ behaviour.
 
 [#function getSecurityProfile profileName type engine="" ]
     [#local profile = {} ]
-    
+
     [#if (securityProfiles[profileName][type])??]
         [#local profile = securityProfiles[profileName][type]]
     [/#if]
-    
+
     [#if engine?has_content && profile[engine]?has_content ]
         [#return profile[engine] ]
     [#else]

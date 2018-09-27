@@ -147,9 +147,8 @@
                 "Default" : false
             },
             {
-                "Name" : "EnvironmentAsFile",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
+                "Name" : "Environment",
+                "Children" : settingsChildConfiguration
             }
         ]
     }
