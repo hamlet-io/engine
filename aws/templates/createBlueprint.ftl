@@ -25,6 +25,12 @@
 [#function getTenantBlueprint]
   [#local result=
   {
+    "Metadata" : {
+      "Prepared" : .now?iso_utc,
+      "RequestReference" : requestReference,
+      "ConfigurationReference" : configurationReference,
+      "RunId" : runId
+    },
     "Tenants" : [
       {
         "Id" : tenantObject.Id,
