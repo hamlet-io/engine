@@ -627,6 +627,7 @@
                             [@createRole
                                 mode=listMode
                                 id=swaggerRoleId
+                                trustedServices="apigateway.amazonaws.com"
                                 policies=policies
                             /]
                         [/#if]
