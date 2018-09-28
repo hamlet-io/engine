@@ -448,7 +448,7 @@ function process_template() {
             existing_configuration_reference="$( grep "#--COT-ConfigurationReference=" "${output_file}" )"
             [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference#"#--COT-ConfigurationReference="}//g")
   
-            if [[ -z "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" ]]; then
+            if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
               sed_patterns+=("-e" "s/${run_id}//g")
               existing_run_id="$( grep "#--COT-RunId=" "${output_file}" )"
               [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id#"#--COT-RunId="}//g")
@@ -496,7 +496,7 @@ function process_template() {
           existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
           [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
 
-          if [[ -z "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" ]]; then
+          if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
             sed_patterns+=("-e" "s/${run_id}//g")
             existing_run_id="$( jq -r ".Metadata.RunId | select(.!=null)" < "${output_file}" )"
             [[ -z "${existing_run_id}" ]] && existing_run_id="$( jq -r ".RUN_ID | select(.!=null)" < "${output_file}" )"
