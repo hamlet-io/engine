@@ -300,15 +300,16 @@
                 "DOCS_URL" : "http://" + getExistingReference(docsId, NAME_ATTRIBUTE_TYPE)
             },
             "Roles" : {
-                "Outbound" : {
-                    "default" : "invoke",
-                    "invoke" : apigatewayInvokePermission(apiId, stageName)
-                },
                 "Inbound" : {
+                    "default" : "invoke",
                     "invoke" : {
                         "Principal" : "apigateway.amazonaws.com",
                         "SourceArn" : formatInvokeApiGatewayArn(apiId, stageName)
                     }
+                },
+                "Outbound" : {
+                    "default" : "invoke",
+                    "invoke" : apigatewayInvokePermission(apiId, stageName)
                 }
             }
         }

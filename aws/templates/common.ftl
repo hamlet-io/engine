@@ -1588,9 +1588,9 @@ behaviour.
             targetOccurrence +
             {
                 "State" : getOccurrenceState(targetOccurrence, {}),
-                "Direction" : link.Direction!"outbound"
-            } +
-            attributeIfContent("Role", link.Role!"")
+                "Direction" : link.Direction!"outbound",
+                "Role" : link.Role!"external"
+            }
         ]
     [/#if]
 
@@ -1658,12 +1658,19 @@ behaviour.
 
             [@cfDebug listMode "Link matched target" false /]
 
+            [#-- Determine the role --]
+            [#local direction = link.Direction!"outbound"]
+
+            [#local role =
+                link.Role!
+                (targetSubOccurrence.State.Roles[direction?capitalize]["default"])!""]
+
             [#return
                 targetSubOccurrence +
                 {
-                    "Direction" : link.Direction!"outbound"
-                } +
-                attributeIfContent("Role", link.Role!"") ]
+                    "Direction" : direction,
+                    "Role" : role
+                } ]
         [/#list]
     [/#list]
 
@@ -1704,9 +1711,7 @@ behaviour.
         [#if !isOneResourceDeployed((linkTarget.State.Resources)!{})]
             [#continue]
         [/#if]
-        [#local linkTargetOutboundRoles = (linkTarget.State.Roles.Outbound)!{} ]
-        [#local roleName = linkTarget.Role!linkTargetOutboundRoles["default"]!""]
-        [#local role = linkTargetOutboundRoles[roleName]!{} ]
+        [#local role = (linkTarget.State.Roles.Outbound[linkTarget.Role])!{} ]
         [#if (linkTarget.Direction == "outbound") && role?has_content ]
             [#local roles += asArray(role![]) ]
         [/#if]
