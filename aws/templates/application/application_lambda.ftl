@@ -76,10 +76,10 @@
                                                 /]
                                             [/#if]
                                             [#break]
-                                            
-                                    [/#switch]    
+
+                                    [/#switch]
                                     [#break]
-                                
+
                             [/#switch]
                             [#break]
                         [#case "outbound" ]
@@ -182,7 +182,7 @@
                         value=1
                         dependencies=fnLgId
                     /]
- 
+
                 [/#list]
             [/#if]
 
@@ -262,7 +262,7 @@
                             [#continue]
                         [/#if]
 
-                        [#assign roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]] 
+                        [#assign roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]]
 
                         [#list asArray(roleSource.LogGroupIds) as logGroupId ]
 
@@ -281,7 +281,7 @@
                                     dependencies=fnId
                                 /]
 
-                                [@createLogSubscription 
+                                [@createLogSubscription
                                     mode=listMode
                                     id=formatDependentLogSubscriptionId(fnId, logWatcherLink.Id, logGroupId?index)
                                     logGroupName=getExistingReference(logGroupId)
@@ -291,7 +291,7 @@
                                 /]
 
                             [/#if]
-                        [/#list]    
+                        [/#list]
                     [/#list]
                 [/#list]
 
