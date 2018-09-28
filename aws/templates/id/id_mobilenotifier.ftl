@@ -179,7 +179,7 @@
             "Roles" : {
                 "Inbound" : {
                     "logwatch" : {
-                        "Principal" : "logs." + regionId + "amazonaws.com",
+                        "Principal" : "logs." + regionId + ".amazonaws.com",
                         "LogGroupIds" : [ lgId, lgFailureId ]
                     }
                 },
