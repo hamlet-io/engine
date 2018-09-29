@@ -205,6 +205,12 @@
         [#-- (at present) so the resource policy must provide one.                        --]
         [#-- If an "AWS_ALLOW" were introduced in the swgagger spec to provide the ALLOW, --]
         [#-- then the switch below could be simplified.                                   --]
+        [#--                                                                              --]
+        [#-- TODO: Use explicit apiId reference in policy                                 --]
+        [#-- At present, cloud formation reports a circular reference if the policy       --]
+        [#-- references the apiId. A feature update to allow this has been lodged. Seems  --]
+        [#-- dumb given its a resource policy.                                            --]
+        [#--                                                                              --]
         [#if apiPolicyCidr?has_content ]
             [#switch apiPolicyAuth ]
                 [#case "IP" ]
@@ -213,12 +219,12 @@
                         [
                             getPolicyStatement(
                                 "execute-api:Invoke",
-                                formatInvokeApiGatewayArn(apiId),
+                                formatInvokeApiGatewayArn("*"),
                                 "*"
                             ),
                             getPolicyStatement(
                                 "execute-api:Invoke",
-                                formatInvokeApiGatewayArn(apiId),
+                                formatInvokeApiGatewayArn("*"),
                                 "*",
                                 getIPCondition(apiPolicyCidr, false),
                                 false
@@ -233,7 +239,7 @@
                         [
                             getPolicyStatement(
                                 "execute-api:Invoke",
-                                formatInvokeApiGatewayArn(apiId),
+                                formatInvokeApiGatewayArn("*"),
                                 "*",
                                 getIPCondition(apiPolicyCidr)
                             )
@@ -246,7 +252,7 @@
                         [
                             getPolicyStatement(
                                 "execute-api:Invoke",
-                                formatInvokeApiGatewayArn(apiId),
+                                formatInvokeApiGatewayArn("*"),
                                 "*",
                                 getIPCondition(apiPolicyCidr, false),
                                 false
