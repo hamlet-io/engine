@@ -60,11 +60,11 @@
         type="AWS::Logs::SubscriptionFilter"
         properties=
             {
-                "DestinationArn" : getReference(destination),
+                "DestinationArn" : getArn(destination),
                 "FilterPattern" : filter,
                 "LogGroupName" : logGroupName
             } + 
-            attributeIfContent("RoleArn", role, getReference(role) )
+            attributeIfContent("RoleArn", role, getArn(role) )
         dependencies=dependencies
     /]
 [/#macro]
