@@ -21,11 +21,7 @@
         formatRegionalArn(
             "execute-api",
             formatTypedArnResource(
-                valueIfTrue(
-                    getReference(apiId),
-                    apiId != "*",
-                    "*"
-                ),
+                getReference(apiId),
                 valueIfContent(stageName + "/*", stageName, "*"),
                 "/"
             )

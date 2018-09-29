@@ -380,9 +380,30 @@
                           "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
                           "integration.request.querystring.Message": "method.request.querystring.Message"
                         },
-                        "credentials" : context[formatAbsolutePath(path,"role")]
+                        "credentials" : context[formatAbsolutePath(path,"rolearn")],
+                        "responses" : {
+                          "default" : {
+                            "statusCode" : "200"
+                          },
+                          "4\\d{2}" : {
+                            "statusCode" : "400"
+                          },
+                          "5\\d{2}" : {
+                            "statusCode" : "500"
+                          }
+                        }
                     },
-                    "responses" : {}
+                    "responses" : {
+                      "200" : {
+                        "description" : "SMS accepted"
+                      },
+                      "400" : {
+                        "description" : "Sending disabled"
+                      },
+                      "500" : {
+                        "description" : "Internal error"
+                      }
+                    }
                 }
             ]
             [#break]

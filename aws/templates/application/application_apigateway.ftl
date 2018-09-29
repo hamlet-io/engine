@@ -206,10 +206,10 @@
         [#-- If an "AWS_ALLOW" were introduced in the swgagger spec to provide the ALLOW, --]
         [#-- then the switch below could be simplified.                                   --]
         [#--                                                                              --]
-        [#-- TODO: Use explicit apiId reference in policy                                 --]
-        [#-- At present, cloud formation reports a circular reference if the policy       --]
-        [#-- references the apiId. A feature update to allow this has been lodged. Seems  --]
-        [#-- dumb given its a resource policy.                                            --]
+        [#-- NOTE: the format of the resource arn is non-standard and undocumented at the --]
+        [#-- time of writing. It seems like a workaround to the fact that cloud formation --]
+        [#-- reports a circular reference if the policy references the apiId via the arn. --]
+        [#-- (see case 5398420851)                                                        --]
         [#--                                                                              --]
         [#if apiPolicyCidr?has_content ]
             [#switch apiPolicyAuth ]
@@ -219,12 +219,12 @@
                         [
                             getPolicyStatement(
                                 "execute-api:Invoke",
-                                formatInvokeApiGatewayArn("*"),
+                                "execute-api:/*",
                                 "*"
                             ),
                             getPolicyStatement(
                                 "execute-api:Invoke",
-                                formatInvokeApiGatewayArn("*"),
+                                "execute-api:/*",
                                 "*",
                                 getIPCondition(apiPolicyCidr, false),
                                 false
@@ -239,7 +239,7 @@
                         [
                             getPolicyStatement(
                                 "execute-api:Invoke",
-                                formatInvokeApiGatewayArn("*"),
+                                "execute-api:/*",
                                 "*",
                                 getIPCondition(apiPolicyCidr)
                             )
@@ -252,7 +252,7 @@
                         [
                             getPolicyStatement(
                                 "execute-api:Invoke",
-                                formatInvokeApiGatewayArn("*"),
+                                "execute-api:/*",
                                 "*",
                                 getIPCondition(apiPolicyCidr, false),
                                 false
@@ -639,7 +639,7 @@
                         [/#if]
                         [#assign swaggerContext +=
                             {
-                                formatAbsolutePath(path,"role") : getExistingReference(swaggerRoleId)
+                                formatAbsolutePath(path,"rolearn") : getArn(swaggerRoleId, true)
                             } ]
                     [/#list]
 
