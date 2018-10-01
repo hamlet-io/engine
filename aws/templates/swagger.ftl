@@ -383,7 +383,10 @@
                         "credentials" : context[formatAbsolutePath(path,"rolearn")],
                         "responses" : {
                           "default" : {
-                            "statusCode" : "200"
+                            "statusCode" : "200",
+                            "responseTemplates" : {
+                              "application/json" : "{\"MessageId\" : $input.json('$.PublishResponse.PublishResult.MessageId')}"
+                            }
                           },
                           "4\\\\d{2}" : {
                             "statusCode" : "400"
