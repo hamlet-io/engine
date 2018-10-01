@@ -369,6 +369,7 @@
             [#break]
 
         [#case "sms"]
+            [#-- Force the content type so the api returns the response body as JSON --]
             [#local result +=
                 {
                     "x-amazon-apigateway-integration" : {
@@ -378,7 +379,8 @@
                         "httpMethod" : "POST",
                         "requestParameters": {
                           "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
-                          "integration.request.querystring.Message": "method.request.querystring.Message"
+                          "integration.request.querystring.Message": "method.request.querystring.Message",
+                          "integration.request.header.Content-type": "'application/json'"
                         },
                         "credentials" : context[formatAbsolutePath(path,"rolearn")],
                         "responses" : {
