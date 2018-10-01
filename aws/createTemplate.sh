@@ -126,7 +126,7 @@ function get_swagger_definition_file() {
 
   # Use existing legacy files in preference to generation as part of deployment
   # This is mainly so projects using the legacy approach are not affected
-  # To switch to the new approach, delete the apigw.json from the code repo and 
+  # To switch to the new approach, delete the apigw.json from the code repo and
   # move it to the settings entry for the api gateway component in the cmdb. e.g.
   # {
   #    "Integrations" : {
@@ -375,6 +375,15 @@ function process_template() {
   pushTempDir "create_template_XXXX"
   local tmp_dir="$(getTopTempDir)"
 
+  # Directory where we gather the results
+  # As any file could change, we need to gather them all
+  # and copy as a set at the end of processing if a change
+  # is detected
+  local differences_detected="false"
+  local results_dir="${tmp_dir}/results"
+  mkdir -p "${results_dir}"
+  local results_list=()
+
   # Perform each pass
   for pass in "${passes[@]}"; do
 
@@ -394,13 +403,14 @@ function process_template() {
       pass_args+=("-v" "alternative=${pass_alternative}")
       pass_alternative_prefix="${pass_alternative:+${pass_alternative}-}"
 
-      local output_file="${cf_dir}/${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
-      local template_result_file="${tmp_dir}/${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
-      if [[ ! -f "${output_file}" ]]; then
+      local output_filename="${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+      if [[ ! -f "${cf_dir}/${output_filename}" ]]; then
         # Include account prefix
-        local output_file="${cf_dir}/${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
-        local template_result_file="${tmp_dir}/${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+        local output_filename="${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
       fi
+      local template_result_file="${tmp_dir}/${output_filename}"
+      local output_file="${cf_dir}/${output_filename}"
+      local result_file="${results_dir}/${output_filename}"
 
       ${GENERATION_DIR}/freemarker.sh \
         -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
@@ -432,39 +442,46 @@ function process_template() {
 
       case "$(fileExtension "${template_result_file}")" in
         sh)
+          # Capture the result
+          cat "${template_result_file}" | sed "-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' > "${result_file}"
+          results_list+=("${output_filename}")
+
           if [[ ! -f "${output_file}" ]]; then
-            # First generation - just format
-            cat "${template_result_file}" | sed "-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' > "${output_file}"
+            # First generation
+            differences_detected="true"
           else
 
             # Ignore if only the metadata/timestamps have changed
             sed_patterns=("-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d')
             sed_patterns+=("-e" "s/${request_reference}//g")
             sed_patterns+=("-e" "s/${configuration_reference}//g")
-            
+
             existing_request_reference="$( grep "#--COT-RequestReference=" "${output_file}" )"
             [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference#"#--COT-RequestReference="}//g")
-  
+
             existing_configuration_reference="$( grep "#--COT-ConfigurationReference=" "${output_file}" )"
             [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference#"#--COT-ConfigurationReference="}//g")
-  
+
             if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
               sed_patterns+=("-e" "s/${run_id}//g")
               existing_run_id="$( grep "#--COT-RunId=" "${output_file}" )"
               [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id#"#--COT-RunId="}//g")
             fi
-  
+
             cat "${template_result_file}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
             cat "${output_file}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
-  
+
             diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
-              info "Ignoring unchanged ${file_description} file ...\n" ||
-              cat "${template_result_file}" | sed "-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' > "${output_file}"
+              info "No change in ${file_description} detected ...\n" ||
+              differences_detected="true"
+
           fi
 
           if [[ "${pass}" == "pregeneration" ]]; then
             info "Processing pregeneration script ..."
-            . "${output_file}"
+            [[ "${differences_detected}" == "true" ]] &&
+              . "${result_file}" ||
+              . "${output_file}"
             assemble_composite_definitions
           fi
           ;;
@@ -478,43 +495,58 @@ function process_template() {
             return 1
           fi
 
+          # Capture the result
+          jq --indent 2 '.' < "${template_result_file}" > "${result_file}"
+          results_list+=("${output_filename}")
+
           if [[ ! -f "${output_file}" ]]; then
-            # First generation - just format
-            jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
-            continue
+            # First generation
+            differences_detected="true"
+          else
+
+            # Ignore if only the metadata/timestamps have changed
+            jq_pattern="del(.Metadata)"
+            sed_patterns=("-e" "s/${request_reference}//g")
+            sed_patterns+=("-e" "s/${configuration_reference}//g")
+            sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
+  
+            existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
+            [[ -z "${existing_request_reference}" ]] && existing_request_reference="$( jq -r ".REQUEST_REFERENCE | select(.!=null)" < "${output_file}" )"
+            [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
+  
+            existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
+            [[ -z "${existing_configuration_reference}" ]] && existing_configuration_reference="$( jq -r ".CONFIGURATION_REFERENCE | select(.!=null)" < "${output_file}" )"
+            [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
+  
+            if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
+              sed_patterns+=("-e" "s/${run_id}//g")
+              existing_run_id="$( jq -r ".Metadata.RunId | select(.!=null)" < "${output_file}" )"
+              [[ -z "${existing_run_id}" ]] && existing_run_id="$( jq -r ".RUN_ID | select(.!=null)" < "${output_file}" )"
+              [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id}//g")
+            fi
+  
+            cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
+            cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+  
+            diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
+              info "No change in ${file_description} detected ...\n" ||
+              differences_detected="true"
           fi
-
-          # Ignore if only the metadata/timestamps have changed
-          jq_pattern="del(.Metadata)"
-          sed_patterns=("-e" "s/${request_reference}//g")
-          sed_patterns+=("-e" "s/${configuration_reference}//g")
-          sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
-
-          existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
-          [[ -z "${existing_request_reference}" ]] && existing_request_reference="$( jq -r ".REQUEST_REFERENCE | select(.!=null)" < "${output_file}" )"
-          [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
-
-          existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
-          [[ -z "${existing_configuration_reference}" ]] && existing_configuration_reference="$( jq -r ".CONFIGURATION_REFERENCE | select(.!=null)" < "${output_file}" )"
-          [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
-
-          if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
-            sed_patterns+=("-e" "s/${run_id}//g")
-            existing_run_id="$( jq -r ".Metadata.RunId | select(.!=null)" < "${output_file}" )"
-            [[ -z "${existing_run_id}" ]] && existing_run_id="$( jq -r ".RUN_ID | select(.!=null)" < "${output_file}" )"
-            [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id}//g")
-          fi
-
-          cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
-          cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
-
-          diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
-            info "Ignoring unchanged ${file_description} file ...\n" ||
-            jq --indent 2 '.' < "${template_result_file}" > "${output_file}"
           ;;
       esac
     done
   done
+
+  # Copy the set of result file if necessary
+  if [[ "${differences_detected}" == "true" ]]; then
+    info "Differences detected ..."
+    for f in "${results_list[@]}"; do
+      info "Updating "${f}" ..."
+      cp "${results_dir}/${f}" "${cf_dir}/${f}"
+    done
+  else
+    info "No differences detected."
+  fi
 
   return 0
 }
