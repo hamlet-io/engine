@@ -380,7 +380,7 @@
                         "requestParameters": {
                           "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
                           "integration.request.querystring.Message": "method.request.querystring.Message",
-                          "integration.request.header.Content-type": "'application/json'"
+                          "integration.request.header.Content-Type": "'application/json'"
                         },
                         "credentials" : context[formatAbsolutePath(path,"rolearn")],
                         "responses" : {
