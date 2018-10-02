@@ -203,7 +203,7 @@
         [#-- If AWS_IAM is enabled, it's IAM policy is evaluated in the usual fashion     --]
         [#-- with the resource policy. However if NOT defined, there is no explicit ALLOW --]
         [#-- (at present) so the resource policy must provide one.                        --]
-        [#-- If an "AWS_ALLOW" were introduced in the swgagger spec to provide the ALLOW, --]
+        [#-- If an "AWS_ALLOW" were introduced in the swagger spec to provide the ALLOW,  --]
         [#-- then the switch below could be simplified.                                   --]
         [#--                                                                              --]
         [#-- NOTE: the format of the resource arn is non-standard and undocumented at the --]
@@ -212,6 +212,17 @@
         [#-- (see case 5398420851)                                                        --]
         [#--                                                                              --]
         [#if apiPolicyCidr?has_content ]
+            [#-- Ensure the "default" stage used for deployments can't be accessed externally --]
+            [#assign apiPolicyStatements +=
+                [
+                    getPolicyStatement(
+                        "execute-api:Invoke",
+                        "execute-api:/default/*",
+                        "*",
+                        {},
+                        false
+                    )
+                ] ]
             [#switch apiPolicyAuth ]
                 [#case "IP" ]
                     [#-- No explicit ALLOW so provide one in the resource policy --]

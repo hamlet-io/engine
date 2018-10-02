@@ -325,6 +325,7 @@
     validationLevel sig4Required apiKeyRequired
     userPoolRequired cognitoPoolName
     useClientCredsRequired
+    responses={}
     corsConfiguration={} ]
 
     [#local result =
@@ -375,39 +376,23 @@
                     "x-amazon-apigateway-integration" : {
                         "type": "aws",
                         "uri" : "arn:aws:apigateway:" + context["Region"] + ":sns:action/Publish",
-                        "passthroughBehavior" : "when_no_match",
+                        "passthroughBehavior" : "never",
                         "httpMethod" : "POST",
                         "requestParameters": {
-                          "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
-                          "integration.request.querystring.Message": "method.request.querystring.Message",
-                          "integration.request.header.Content-Type": "'application/json'"
+                            "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
+                            "integration.request.querystring.Message": "method.request.querystring.Message"
+                        },
+                        "requestTemplates" : {
+                            "application/json" : "#set($qs = $input.params().querystring)\r\n#if($!{qs.get(\"SenderID\")} ne \"\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Name\"] = \"AWS.SNS.SMS.SenderID\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Value.DataType\"] = \"String\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Value.StringValue\"] = $qs.get(\"SenderID\"))\r\n#end"
                         },
                         "credentials" : context[formatAbsolutePath(path,"rolearn")],
-                        "responses" : {
-                          "default" : {
-                            "statusCode" : "200",
-                            "responseTemplates" : {
-                              "application/json" : "{\"MessageId\" : $input.json('$.PublishResponse.PublishResult.MessageId')}"
-                            }
-                          },
-                          "4\\\\d{2}" : {
-                            "statusCode" : "400"
-                          },
-                          "5\\\\d{2}" : {
-                            "statusCode" : "500"
-                          }
-                        }
-                    },
-                    "responses" : {
-                      "200" : {
-                        "description" : "SMS accepted"
-                      },
-                      "400" : {
-                        "description" : "Sending disabled"
-                      },
-                      "500" : {
-                        "description" : "Internal error"
-                      }
+                        "responses" :
+                            {
+                                "default" : {
+                                    "statusCode" : "200"
+                                }
+                            } +
+                            contentIfContent(responses)
                     }
                 }
             ]
@@ -529,6 +514,7 @@
                         false,
                         "",
                         false,
+                        {},
                         getSwaggerCorsHeaders(defaultCorsHeaders,defaultCorsMethods,defaultCorsOrigin)
                     )
                 }
@@ -552,7 +538,8 @@
                             pattern.ApiKey ! defaultApiKeyRequired,
                             pattern.UserPool ! pattern.userPool ! defaultUserPoolRequired,
                             pattern.CognitoPoolName ! defaultCognitoPoolName,
-                            pattern.UseClientCreds ! pattern.useClientCreds ! defaultUseClientCredsRequired
+                            pattern.UseClientCreds ! pattern.useClientCreds ! defaultUseClientCredsRequired,
+                            pattern.Responses ! {}
                         )
                     ]
                     [#break]
