@@ -192,7 +192,7 @@
 
     [#if certificatePresent ]
         [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers)]
-        [#local hostName = getHostName(certificateObject, occurrence)]
+        [#local hostName = getHostName(certificateObject, occurrence, certificateObject.Order) ]
         [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
         [#if mappingPresent ]
