@@ -380,7 +380,7 @@
                 ) +
                 valueIfTrue(
                     {
-                        "CONFIG_FILE" : ["s3:/", operationsBucket, getSettingsFilePrefix(occurrence), "config/config_" + runId + ".json"]?join("/"),
+                        "SETTINGS_FILE" : ["s3:/", operationsBucket, getSettingsFilePrefix(occurrence), "config/config_" + runId + ".json"]?join("/"),
                         "RUN_ID" : runId
                     },
                     asFile,
