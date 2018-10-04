@@ -1221,7 +1221,7 @@ behaviour.
             },
             "Obfuscate" : false,
             "Escaped" : true,
-            "Prefix" : "json"
+            "Prefix" : ""
         }  +
         format ]
 
