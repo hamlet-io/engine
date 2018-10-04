@@ -15,6 +15,20 @@
         /]
     [/#if]
 
+    [#assign lgId = formatMobileNotifierLogGroupId(MOBILENOTIFIER_SMS_ENGINE, "", false) ]
+    [#assign lgFailureId = formatMobileNotifierLogGroupId(MOBILENOTIFIER_SMS_ENGINE, "", true) ]
+    [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(lgId) ]
+        [@createLogGroup
+            mode=listMode
+            id=lgId
+            name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", false) /]
+
+        [@createLogGroup
+            mode=listMode
+            id=lgFailureId
+            name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", true) /]
+    [/#if]
+
     [#assign smsS3Id = formatAccountS3Id("ops") ]
     [#assign smsResourceId = "sms" ]
     [#assign smsCliCommand = "setsmsattributes" ]

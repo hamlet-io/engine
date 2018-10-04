@@ -4,11 +4,13 @@
 [#assign MOBILENOTIFIER_COMPONENT_TYPE = "mobilenotifier" ]
 [#assign MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE = "mobilenotiferplatform" ]
 
+[#-- Engines --]
+[#assign MOBILENOTIFIER_SMS_ENGINE = "SMS" ]
 [#assign componentConfiguration +=
     {
         MOBILENOTIFIER_COMPONENT_TYPE : {
             "Attributes" : [
-                { 
+                {
                     "Name" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
@@ -57,7 +59,7 @@
                     }
                 ]
             },
-            { 
+            {
                 "Name" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
@@ -93,6 +95,23 @@
     [#return result ]
 [/#function]
 
+[#function formatMobileNotifierLogGroupId engine name failure=false]
+    [#return
+        formatLogGroupId(
+            valueIfTrue(
+                formatAccountLogGroupId("sms"),
+                engine == MOBILENOTIFIER_SMS_ENGINE,
+                name
+            ),
+            valueIfTrue(
+                "failure"
+                failure,
+                ""
+            )
+        ) ]
+
+[/#function]
+
 [#function getMobileNotifierPlatformState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -102,46 +121,8 @@
     [#local topicPrefix = core.ShortFullName]
     [#local engine = solution.Engine!core.SubComponent.Name?upper_case  ]
 
-    [#local lgNameComponents = 
-        [
-            "sns",
-            { "Ref" : "AWS::Region" },
-            { "Ref" : "AWS::AccountId" }
-        ]]
-
-    [#if engine != "SMS" ] 
-        [#local lgNameComponents += [
-            "app",
-            engine,
-            name
-        ]]
-
-    [#else]
-        [#local lgNameComponents += [
-            "DirectPublishToPhoneNumber"
-        ]]
-    [/#if]
-
-    [#local lgId = formatLogGroupId(core.Id)]
-    [#local lgFailureId = formatLogGroupId(core.Id, "failure")]
-    [#local lgName = 
-        {
-            "Fn::Join" : [
-                "/",
-                lgNameComponents
-            ]
-        }
-    ]
-
-    [#local lgFailureName = 
-        {
-            "Fn::Join" : [
-                "/",
-                lgNameComponents + [ "Failure" ]
-            ]
-        }
-    ]
-
+    [#local lgId = formatMobileNotifierLogGroupId(engine, name, false) ]
+    [#local lgFailureId = formatMobileNotifierLogGroupId(engine, name, true) ]
     [#local result =
         {
             "Resources" : {
@@ -149,24 +130,24 @@
                     "Id" : id,
                     "Name" : core.FullName,
                     "Engine" : engine,
-                    "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE 
+                    "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE
                 },
                 "lg" : {
                     "Id" : lgId,
-                    "Name" : lgName,
+                    "Name" : formatMobileNotifierLogGroupName(engine, name, false),
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 },
                 "lgfailure" : {
                     "Id" : lgFailureId,
-                    "Name" : lgFailureName,
+                    "Name" : formatMobileNotifierLogGroupName(engine, name, true),
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
-                "ARN" : (engine == "SMS")?then(
+                "ARN" : (engine == MOBILENOTIFIER_SMS_ENGINE)?then(
                             formatArn(
                                 regionObject.Partition,
-                                "sns", 
+                                "sns",
                                 regionId,
                                 accountObject.AWSId,
                                 "smsPlaceHolder"
@@ -185,7 +166,7 @@
                 },
                 "Outbound" : {
                     "default" : "publish",
-                    "publish" : (engine == "SMS")?then(
+                    "publish" : (engine == MOBILENOTIFIER_SMS_ENGINE)?then(
                         snsSMSPermission(),
                         snsPublishPlatformApplication(name, engine, topicPrefix)
                     )

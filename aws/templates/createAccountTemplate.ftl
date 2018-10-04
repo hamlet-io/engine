@@ -6,6 +6,7 @@
 [#-- Special processing --]
 [#switch deploymentUnit]
     [#case "iam"]
+    [#case "lg"]
         [#if !(deploymentUnitSubset?has_content)]
             [#assign allDeploymentUnits = true]
             [#assign deploymentUnitSubset = deploymentUnit]
