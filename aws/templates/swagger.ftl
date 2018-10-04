@@ -378,12 +378,8 @@
                         "uri" : "arn:aws:apigateway:" + context["Region"] + ":sns:action/Publish",
                         "passthroughBehavior" : "never",
                         "httpMethod" : "POST",
-                        "requestParameters": {
-                            "integration.request.querystring.PhoneNumber": "method.request.querystring.PhoneNumber",
-                            "integration.request.querystring.Message": "method.request.querystring.Message"
-                        },
                         "requestTemplates" : {
-                            "application/json" : "#set($qs = $input.params().querystring)\r\n#if($!{qs.get(\"SenderID\")} ne \"\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Name\"] = \"AWS.SNS.SMS.SenderID\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Value.DataType\"] = \"String\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Value.StringValue\"] = $qs.get(\"SenderID\"))\r\n#end"
+                            "application/json" : "\r\n#set($phoneNumber = $input.json(\"$.PhoneNumber\"))\r\n#set($message = $input.json(\"$.Message\"))\r\n#set($sender = $input.json(\"$.SenderId\"))\r\n#set($environment = $stageVariables[\"ENVIRONMENT\"])\r\n#set( $newline=\"\r\n\")\r\n#if($sender ne \"\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Name\"] = \"AWS.SNS.SMS.SenderID\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Value.DataType\"] = \"String\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Value.StringValue\"] = \"$sender\")\r\n#end\r\n#if($!{stageVariables[\"ENVIRONMENT\"]} ne \"\")\r\n#set($message = \"${message}${newline}${newline}ENV=$environment\")\r\n#end\r\n#set($context.requestOverride.querystring[\"PhoneNumber"\] = \"${phoneNumber}\")\r\n#set($context.requestOverride.querystring[\"Message\"] = \"${message}\")
                         },
                         "credentials" : context[formatAbsolutePath(path,"rolearn")],
                         "responses" :

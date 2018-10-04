@@ -28,6 +28,12 @@
                 extensions)]
 [/#function]
 
+[#function formatAccountLogGroupId ids...]
+    [#return formatAccountResourceId(
+                AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
+                ids)]
+[/#function]
+
 [#function formatDependentLogMetricId resourceId extensions...]
     [#return formatDependentResourceId(
                 AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,

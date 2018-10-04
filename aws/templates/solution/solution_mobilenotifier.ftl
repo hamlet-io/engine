@@ -30,7 +30,7 @@
             [#assign solution = subOccurrence.Configuration.Solution ]
             [#assign resources = subOccurrence.State.Resources ]
 
-            [#assign successSampleRate = solution.SuccessSampleRate!successSampleRate ] 
+            [#assign successSampleRate = solution.SuccessSampleRate!successSampleRate ]
             [#assign encryptionScheme = solution.EncryptionScheme!encryptionScheme]
 
             [#assign platformAppId = resources["platformapplication"].Id]
@@ -39,17 +39,17 @@
 
             [#assign lgId= resources["lg"].Id ]
             [#assign lgName = resources["lg"].Name ]
-            [#assign lgFailureId = resources["lgfailure"].Id ] 
+            [#assign lgFailureId = resources["lgfailure"].Id ]
             [#assign lgFailureName = resources["lgfailure"].Name ]
-            
+
             [#assign platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
 
-            [#assign platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ] 
-            
+            [#assign platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ]
+
             [#if platformArn?has_content ]
                 [#assign deployedPlatformAppArns += [ platformArn ] ]
             [/#if]
-            
+
             [#assign isPlatformApp = false]
 
             [#assign platformAppCreateCli = {} ]
@@ -57,31 +57,31 @@
 
             [#assign platformAppPrincipal =
                 getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Principal"], true) ]
-            
+
             [#assign platformAppCredential =
                 getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Credential"], true) ]
 
             [#assign engineFamily = "" ]
-            
+
             [#switch engine ]
                 [#case "APNS" ]
                 [#case "APNS_SANDBOX" ]
                     [#assign engineFamily = "APPLE" ]
                     [#break]
-                
+
                 [#case "GCM" ]
                     [#assign engineFamily = "GOOGLE" ]
                     [#break]
-                
-                [#case "SMS" ]
-                    [#assign engineFamily = "SMS" ]
+
+                [#case MOBILENOTIFIER_SMS_ENGINE ]
+                    [#assign engineFamily = MOBILENOTIFIER_SMS_ENGINE ]
                     [#break]
 
                 [#default]
-                    [@cfException 
-                        mode=listMode 
-                        description="Unkown Engine" 
-                        context=component 
+                    [@cfException
+                        mode=listMode
+                        description="Unkown Engine"
+                        context=component
                         detail=engine /]
             [/#switch]
 
@@ -90,10 +90,10 @@
                     [#assign isPlatformApp = true]
                     [#assign hasPlatformApp = true]
                     [#if !platformAppCredential?has_content || !platformAppPrincipal?has_content ]
-                        [@cfException 
-                            mode=listMode 
-                            description="Missing Credentials - Requires both Credential and Principal" 
-                            context=component 
+                        [@cfException
+                            mode=listMode
+                            description="Missing Credentials - Requires both Credential and Principal"
+                            context=component
                             detail={
                                 "Credential" : platformAppCredential!"",
                                 "Principal" : platformAppPrincipal!""
@@ -105,10 +105,10 @@
                     [#assign isPlatformApp = true]
                     [#assign hasPlatformApp = true]
                     [#if !platformAppPrincipal?has_content ]
-                        [@cfException 
-                            mode=listMode 
-                            description="Missing Credential - Requires Principal" 
-                            context=component 
+                        [@cfException
+                            mode=listMode
+                            description="Missing Credential - Requires Principal"
+                            context=component
                             detail={
                                 "Principal" : platformAppPrincipal!""
                             } /]
@@ -117,17 +117,19 @@
             [/#switch]
 
             [#if deploymentSubsetRequired("lg", true) &&
-                isPartOfCurrentDeploymentUnit(lgId)]   
+                isPartOfCurrentDeploymentUnit(lgId)]
 
-                [@createLogGroup
-                    mode=listMode
-                    id=lgId
-                    name=lgName /]
-                    
-                [@createLogGroup
-                    mode=listMode
-                    id=lgFailureId
-                    name=lgFailureName /]
+                [#if engine != MOBILENOTIFIER_SMS_ENGINE]
+                    [@createLogGroup
+                        mode=listMode
+                        id=lgId
+                        name=lgName /]
+
+                    [@createLogGroup
+                        mode=listMode
+                        id=lgFailureId
+                        name=lgFailureName /]
+                [/#if]
 
                 [#list solution.LogMetrics as logMetricName,logMetric ]
 
@@ -153,21 +155,21 @@
                         namespace=formatProductRelativePath()
                         value=1
                         dependencies=lgFailureId
-                    /]  
+                    /]
                 [/#list]
             [/#if]
-            
+
             [#if isPlatformApp ]
                 [#if deploymentSubsetRequired("cli", false ) ]
-                
-                    [#assign platformAppAttributes = 
+
+                    [#assign platformAppAttributes =
                         getSNSPlatformAppAttributes(
-                            roleId, 
-                            successSampleRate 
+                            roleId,
+                            successSampleRate
                             platformAppCredential,
                             platformAppPrincipal )]
 
-                    [@cfCli 
+                    [@cfCli
                         mode=listMode
                         id=platformAppAttributesCliId
                         command=platformAppAttributesCommand
@@ -180,21 +182,21 @@
 
                     [@cfScript
                         mode=listMode
-                        content= 
+                        content=
                             [
                                 "# Platform: " + core.SubComponent.Name,
                                 "case $\{STACK_OPERATION} in",
                                 "  create|update)",
                                 "       # Get cli config file",
-                                "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                                "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
                                 "       info \"Deploying SNS PlatformApp: " + core.SubComponent.Name + "\"",
                                 "       platform_app_arn=\"$(deploy_sns_platformapp" +
-                                "       \"" + region + "\" " + 
-                                "       \"" + platformAppName + "\" " + 
+                                "       \"" + region + "\" " +
+                                "       \"" + platformAppName + "\" " +
                                 "       \"" + platformArn + "\" " +
                                 "       \"" + encryptionScheme + "\" " +
-                                "       \"" + engine + "\" " + 
-                                "       \"$\{tmpdir}/cli-" + 
+                                "       \"" + engine + "\" " +
+                                "       \"$\{tmpdir}/cli-" +
                                         platformAppAttributesCliId + "-" + platformAppAttributesCommand + ".json\")\"",
                                 "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-" + core.SubComponent.Id + "-pseudo-stack.json\" ",
                                 "       create_pseudo_stack" + " " +
@@ -207,11 +209,11 @@
                                 "       # Delete SNS Platform Application",
                                 "       info \"Deleting SNS Platform App " + core.SubComponent.Name + "\" ",
                                 "       delete_sns_platformapp" +
-                                "       \"" + region + "\" " + 
+                                "       \"" + region + "\" " +
                                 "       \"" + platformArn + "\" "
                                 "   ;;",
                                 "   esac"
-                            ] 
+                            ]
                     /]
                 [/#if]
             [/#if]
@@ -221,26 +223,26 @@
             [#if deploymentSubsetRequired( "prologue", false) ]
                 [@cfScript
                     mode=listMode
-                    content= 
+                    content=
                         [
                             "# Mobile Notifier Cleanup",
                             "case $\{STACK_OPERATION} in",
                             "  create|update)",
                             "       info \"Cleaning up platforms that have been removed from config\"",
-                            "       cleanup_sns_platformapps " + 
-                            "       \"" + region + "\" " + 
-                            "       \"" + platformAppName + "\" " + 
+                            "       cleanup_sns_platformapps " +
+                            "       \"" + region + "\" " +
+                            "       \"" + platformAppName + "\" " +
                             "       '" + getJSON(deployedPlatformAppArns, false) + "' || return $?",
                             "       ;;",
-                            "       esac"   
+                            "       esac"
                         ]
-                        
+
                 /]
             [/#if]
 
-            [#if deploymentSubsetRequired("iam", true) 
+            [#if deploymentSubsetRequired("iam", true)
                 && isPartOfCurrentDeploymentUnit(roleId)]
-                
+
                 [@createRole
                     mode=listMode
                     id=roleId
