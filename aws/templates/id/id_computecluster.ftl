@@ -3,47 +3,63 @@
 
 [#assign componentConfiguration +=
     {
-        COMPUTECLUSTER_COMPONENT_TYPE : [
-            {
-                "Name" : ["Fragment", "Container"],
-                "Type" : STRING_TYPE,
-                "Default" : ""
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            },
-            {
-                "Name" : "UseInitAsService",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "AutoScaling",
-                "Children" : autoScalingChildConfiguration
-            },
-            {
-                "Name" : "DockerHost",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "Ports",
-                "Subobjects" : true,
-                "Children" : [
-                    {
-                        "Name" : "IPAddressGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : []
-                    },
-                    {
-                        "Name" : "LB",
-                        "Children" : lbChildConfiguration
-                    }
-                ]
-            }
-        ]
+        COMPUTECLUSTER_COMPONENT_TYPE : { 
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Auto-Scaling IaaS with code deployment"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" :  [
+                {
+                    "Name" : ["Fragment", "Container"],
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                },
+                {
+                    "Name" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Name" : "UseInitAsService",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Name" : "AutoScaling",
+                    "Children" : autoScalingChildConfiguration
+                },
+                {
+                    "Name" : "DockerHost",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Name" : "Ports",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Name" : "IPAddressGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        },
+                        {
+                            "Name" : "LB",
+                            "Children" : lbChildConfiguration
+                        }
+                    ]
+                }
+            ]
+        }
     }]
 
 [#function getComputeClusterState occurrence]

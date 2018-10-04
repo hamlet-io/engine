@@ -10,31 +10,47 @@
 
 [#assign componentConfiguration +=
     {
-        CACHE_COMPONENT_TYPE : [
-            {
-                "Name" : "Engine",
-                "Type" : STRING_TYPE,
-                "Mandatory" : true
-            },
-            {
-                "Name" : "EngineVersion",
-                "Type" : STRING_TYPE
-            },
-            {
-                "Name" : "Port",
-                "Type" : STRING_TYPE
-            },
-            {
-                "Name" : "Backup",
-                "Children" : [
-                    {
-                        "Name" : "RetentionPeriod",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
-                    }
-                ]
-            }
-        ]
+        CACHE_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Managed in-memory cache services"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : "Engine",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Name" : "EngineVersion",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Name" : "Port",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Name" : "Backup",
+                    "Children" : [
+                        {
+                            "Name" : "RetentionPeriod",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        }
+                    ]
+                }
+            ]
+        }
 }]
 
 [#function getCacheState occurrence]

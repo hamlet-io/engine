@@ -95,6 +95,20 @@
 [#assign componentConfiguration +=
     {
         ECS_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "An autoscaling container host cluster"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
             "Attributes" : [
                 {
                     "Name" : ["Fragment", "Container"],
@@ -155,111 +169,143 @@
                 }
             ]
         },
-        ECS_SERVICE_COMPONENT_TYPE : [
-            {
-                "Name" : "Containers",
-                "Subobjects" : true,
-                "Children" : containerChildrenConfiguration
-            },
-            {
-                "Name" : "DesiredCount",
-                "Type" : NUMBER_TYPE,
-                "Default" : -1
-            },
-            {
-                "Name" : "UseTaskRole",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "Permissions",
-                "Children" : [
-                    {
-                        "Name" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "TaskLogGroup",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "NetworkMode",
-                "Type" : STRING_TYPE,
-                "Values" : ["none", "bridge", "awsvpc", "host"],
-                "Default" : ""
-            },
-            {
-                "Name" : "ContainerNetworkLinks",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            }
-        ],
-        ECS_TASK_COMPONENT_TYPE : [
-            {
-                "Name" : "Containers",
-                "Subobjects" : true,
-                "Children" : containerChildrenConfiguration
-            },
-            {
-                "Name" : "UseTaskRole",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "Permissions",
-                "Children" : [
-                    {
-                        "Name" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "TaskLogGroup",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "FixedName",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            }
-        ]
+        ECS_SERVICE_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "An orchestrated container with always on scheduling"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : "Containers",
+                    "Subobjects" : true,
+                    "Children" : containerChildrenConfiguration
+                },
+                {
+                    "Name" : "DesiredCount",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : -1
+                },
+                {
+                    "Name" : "UseTaskRole",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Name" : "Permissions",
+                    "Children" : [
+                        {
+                            "Name" : "Decrypt",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AsFile",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppData",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppPublic",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Name" : "TaskLogGroup",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Name" : "NetworkMode",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["none", "bridge", "awsvpc", "host"],
+                    "Default" : ""
+                },
+                {
+                    "Name" : "ContainerNetworkLinks",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                }
+            ]
+        },
+        ECS_TASK_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "A container defintion which is invoked on demand"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : "Containers",
+                    "Subobjects" : true,
+                    "Children" : containerChildrenConfiguration
+                },
+                {
+                    "Name" : "UseTaskRole",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Name" : "Permissions",
+                    "Children" : [
+                        {
+                            "Name" : "Decrypt",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AsFile",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppData",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppPublic",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Name" : "TaskLogGroup",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Name" : "FixedName",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                }
+            ]
+        }
     } ]
 
 

@@ -9,6 +9,20 @@
 [#assign componentConfiguration +=
     {
         MOBILENOTIFIER_COMPONENT_TYPE : {
+            "Properties"  : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "A managed mobile notification proxy"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
             "Attributes" : [
                 {
                     "Name" : "Links",
@@ -40,36 +54,62 @@
                 }
             ]
         },
-        MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE : [
-            {
-                "Name" : "Engine",
-                "Type" : STRING_TYPE
-            },
-            {
-                "Name" : "SuccessSampleRate",
-                "Type" : STRING_TYPE
-            },
-            {
-                "Name" : "Credentials",
-                "Children" : [
-                    {
-                        "Name" : "EncryptionScheme",
-                        "Type" : STRING_TYPE,
-                        "Values" : ["base64"]
-                    }
-                ]
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            },
-            {
-                "Name" : "LogMetrics",
-                "Subobjects" : true,
-                "Children" : logMetricChildrenConfiguration
-            }
-        ]
+        MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE : {
+            "Properties"  : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "A specific mobile platform notification proxy"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                },
+                {
+                    "Type" : "Note",
+                    "Value" : "SMS Engine requires account level configuration for AWS provider",
+                    "Severity" : "warning"
+                },
+                {
+                    "Type" : "Note",
+                    "Value" : "Platform specific credentials are required and must be provided as credentials",
+                    "Severity" : "info"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : "Engine",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Name" : "SuccessSampleRate",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Name" : "Credentials",
+                    "Children" : [
+                        {
+                            "Name" : "EncryptionScheme",
+                            "Type" : STRING_TYPE,
+                            "Values" : ["base64"]
+                        }
+                    ]
+                },
+                { 
+                    "Name" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Name" : "LogMetrics",
+                    "Subobjects" : true,
+                    "Children" : logMetricChildrenConfiguration
+                }
+            ]
+        }
     }]
 
 [#function getMobileNotifierState occurrence]

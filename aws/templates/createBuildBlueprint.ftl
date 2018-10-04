@@ -1,11 +1,11 @@
 [#ftl]
 [#include "setContext.ftl" ]
 
-[#assign listMode = "blueprint"]
+[#assign listMode = "buildblueprint"]
 [#assign exceptionResources = []]
 [#assign debugResources = []]
 
-[#function getComponentBlueprint ]
+[#function getComponentBuildBlueprint ]
   [#local result={} ]
 
   [#list tiers as tier]
@@ -52,4 +52,6 @@
   [#return result ]
 [/#function]
 
-[@toJSON getComponentBlueprint() /]
+[#if deploymentSubsetRequired("buildblueprint", true)]
+    [@toJSON getComponentBuildBlueprint() /]
+[/#if]

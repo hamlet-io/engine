@@ -26,84 +26,100 @@
 
 [#assign componentConfiguration +=
     {
-        RDS_COMPONENT_TYPE : [
-            {
-                "Name" : "Engine",
-                "Mandatory" : true
-            },
-            {
-                "Name" : "EngineVersion",
-                "Type" : STRING_TYPE
-            },
-            {
-                "Name" : "Port",
-                "Type" : STRING_TYPE
-            },
-            {
-                "Name" : "Encrypted",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "GenerateCredentials",
-                "Children" : [
-                    {
-                        "Name" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : false
-                    },
-                    {
-                        "Name" : "MasterUserName",
-                        "Type" : STRING_TYPE,
-                        "Default" : "root"
-                    },
-                    {
-                        "Name" : "CharacterLength",
-                        "Type" : NUMBER_TYPE,
-                        "Default" : 20
-                    },
-                    {
-                        "Name" : "EncryptionScheme",
-                        "Type" : STRING_TYPE,
-                        "Values" : ["base64"],
-                        "Default" : ""
-                    }
-                ]
-            },
-            {
-                "Name" : "Size",
-                "Type" : NUMBER_TYPE,
-                "Default" : 20
-            },
-            {
-                "Name" : "Backup",
-                "Children" : [
-                    {
-                        "Name" : "RetentionPeriod",
-                        "Type" : NUMBER_TYPE,
-                        "Default" : 35
-                    },
-                    {
-                        "Name" : "SnapshotOnDeploy",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "AutoMinorVersionUpgrade",
-                "Type" : BOOLEAN_TYPE
-            },
-            {
-                "Name" : "DatabaseName",
-                "Type" : STRING_TYPE
-            },
-            {
-                "Name" : "DBParameters",
-                "Type" : OBJECT_TYPE,
-                "Default" : {}
-            }
-        ]
+        RDS_COMPONENT_TYPE : {
+            "Properties"  : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "A managed SQL database instance"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : "Engine",
+                    "Mandatory" : true
+                },
+                {
+                    "Name" : "EngineVersion",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Name" : "Port",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Name" : "Encrypted",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Name" : "GenerateCredentials",
+                    "Children" : [
+                        {
+                            "Name" : "Enabled",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
+                            "Name" : "MasterUserName",
+                            "Type" : STRING_TYPE,
+                            "Default" : "root"
+                        },
+                        {
+                            "Name" : "CharacterLength",
+                            "Type" : NUMBER_TYPE,
+                            "Default" : 20
+                        },
+                        {
+                            "Name" : "EncryptionScheme",
+                            "Type" : STRING_TYPE,
+                            "Values" : ["base64"],
+                            "Default" : ""
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Size",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 20
+                },
+                {
+                    "Name" : "Backup",
+                    "Children" : [
+                        {
+                            "Name" : "RetentionPeriod",
+                            "Type" : NUMBER_TYPE,
+                            "Default" : 35
+                        },
+                        {
+                            "Name" : "SnapshotOnDeploy",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Name" : "AutoMinorVersionUpgrade",
+                    "Type" : BOOLEAN_TYPE
+                },
+                {
+                    "Name" : "DatabaseName",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Name" : "DBParameters",
+                    "Type" : OBJECT_TYPE,
+                    "Default" : {}
+                }
+            ]
+    }
 }]
 
 [#function getRDSState occurrence]

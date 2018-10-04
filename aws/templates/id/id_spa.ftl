@@ -5,100 +5,116 @@
 
 [#assign componentConfiguration +=
     {
-        SPA_COMPONENT_TYPE : [
-            {
-                "Name" : ["Fragment", "Container"],
-                "Type" : STRING_TYPE,
-                "Default" : ""
-            },
-            {
-                "Name" : "Links",
-                "Type" : OBJECT_TYPE,
-                "Default" : {}
-            },
-            {
-                "Name" : "WAF",
-                "Children" : wafChildConfiguration
-            },
-            {
-                "Name" : "CloudFront",
-                "Children" : [
-                    {
-                        "Name" : "AssumeSNI",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "EnableLogging",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "CountryGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : []
-                    },
-                    {
-                        "Name" : "ErrorPage",
-                        "Type" : STRING_TYPE,
-                        "Default" : "/index.html"
-                    },
-                    {
-                        "Name" : "DeniedPage",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
-                    },
-                    {
-                        "Name" : "NotFoundPage",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
-                    },
-                    {
-                        "Name" : "CachingTTL",
-                        "Children" : [
-                            {
-                                "Name" : "Default",
-                                "Type" : NUMBER_TYPE,
-                                "Default" : 600
-                            },
-                            {
-                                "Name" : "Maximum",
-                                "Type" : NUMBER_TYPE,
-                                "Default" : 31536000
-                            },
-                            {
-                                "Name" : "Minimum",
-                                "Type" : NUMBER_TYPE,
-                                "Default" : 0
-                            }
-                        ]
-                    },
-                    {
-                        "Name" : "Compress",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "Certificate",
-                "Children" : [
-                    {
-                        "Name" : "*"
-                    }
-                ]
-            },
-            {
-                "Name" : "Profiles",
-                "Children" : [
-                    {
-                        "Name" : "SecurityProfile",
-                        "Type" : STRING_TYPE,
-                        "Default" : "default"
-                    }
-                ]
-            }
-        ]
+        SPA_COMPONENT_TYPE : {
+            "Properties"  : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "Object stored hosted web application with content distribution management"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : ["Fragment", "Container"],
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                },
+                {
+                    "Name" : "Links",
+                    "Type" : OBJECT_TYPE,
+                    "Default" : {}
+                },
+                {
+                    "Name" : "WAF",
+                    "Children" : wafChildConfiguration
+                },
+                {
+                    "Name" : "CloudFront",
+                    "Children" : [
+                        {
+                            "Name" : "AssumeSNI",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "EnableLogging",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "CountryGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        },
+                        {
+                            "Name" : "ErrorPage",
+                            "Type" : STRING_TYPE,
+                            "Default" : "/index.html"
+                        },
+                        {
+                            "Name" : "DeniedPage",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Name" : "NotFoundPage",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Name" : "CachingTTL",
+                            "Children" : [
+                                {
+                                    "Name" : "Default",
+                                    "Type" : NUMBER_TYPE,
+                                    "Default" : 600
+                                },
+                                {
+                                    "Name" : "Maximum",
+                                    "Type" : NUMBER_TYPE,
+                                    "Default" : 31536000
+                                },
+                                {
+                                    "Name" : "Minimum",
+                                    "Type" : NUMBER_TYPE,
+                                    "Default" : 0
+                                }
+                            ]
+                        },
+                        {
+                            "Name" : "Compress",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Certificate",
+                    "Children" : [
+                        {
+                            "Name" : "*"
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Profiles",
+                    "Children" : [
+                        {
+                            "Name" : "SecurityProfile",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
+                }
+            ]
+        }
     }]
     
 [#function getSPAState occurrence]

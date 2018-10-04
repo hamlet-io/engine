@@ -8,43 +8,59 @@
 
 [#assign componentConfiguration +=
     {
-        DATAPIPELINE_COMPONENT_TYPE : [
-            {
-                "Name" : ["Fragment", "Container"],
-                "Type" : STRING_TYPE,
-                "Default" : ""
-            },
-            {
-                "Name" : "Permissions",
-                "Children" : [
-                    {
-                        "Name" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            }
-        ]
+        DATAPIPELINE_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Managed Data ETL Processing"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : ["Fragment", "Container"],
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                },
+                {
+                    "Name" : "Permissions",
+                    "Children" : [
+                        {
+                            "Name" : "Decrypt",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AsFile",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppData",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppPublic",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                }
+            ]
+        }
     }]
 
 [#function getDataPipelineState occurrence]

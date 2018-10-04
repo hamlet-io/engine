@@ -79,43 +79,59 @@
 
 [#assign componentConfiguration +=
     {
-        EC2_COMPONENT_TYPE : [
-            {
-                "Name" : "FixedIP",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "DockerHost",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : ["Fragment", "Container"],
-                "Type" : "string",
-                "Default" : ""
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            },
-            {
-                "Name" : "Ports",
-                "Subobjects" : true,
-                "Children" : [
-                    {
-                        "Name" : "IPAddressGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : []
-                    },
-                    {
-                        "Name" : "LB",
-                        "Children" : lbChildConfiguration
-                    }
-                ]
-            }
-        ]
+        EC2_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "A single virtual machine with no code deployment "
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : "FixedIP",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Name" : "DockerHost",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Name" : ["Fragment", "Container"],
+                    "Type" : "string",
+                    "Default" : ""
+                },
+                {
+                    "Name" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Name" : "Ports",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Name" : "IPAddressGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        },
+                        {
+                            "Name" : "LB",
+                            "Children" : lbChildConfiguration
+                        }
+                    ]
+                }
+            ]
+        }
     }]
 
 [#function getEC2State occurrence]

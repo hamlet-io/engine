@@ -32,118 +32,149 @@
 
 [#assign componentConfiguration +=
     {
-        APIGATEWAY_COMPONENT_TYPE : [
-            {
-                "Names" : ["Fragment", "Container"],
-                "Type" : STRING_TYPE,
-                "Default" : ""
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            },
-            {
-                "Name" : "WAF",
-                "Children" : wafChildConfiguration
-            },
-            {
-                "Name" : "EndpointType",
-                "Type" : STRING_TYPE,
-                "Values" : ["EDGE", "REGIONAL"],
-                "Default" : "EDGE"
-            },
-            {
-                "Name" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
-            },
-            {
-                "Name" : "Authentication",
-                "Type" : STRING_TYPE,
-                "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
-                "Default" : "IP"
-            },
-            {
-                "Name" : "CloudFront",
-                "Children" : [
-                    {
-                        "Name" : "AssumeSNI",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "EnableLogging",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "CountryGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : []
-                    },
-                    {
-                        "Name" : "CustomHeaders",
-                        "Type" : ARRAY_OF_ANY_TYPE,
-                        "Default" : []
-                    },
-                    {
-                        "Name" : "Mapping",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : false
-                    },
-                    {
-                        "Name" : "Compress",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "Certificate",
-                "Children" : [
-                    {
-                        "Name" : "*"
-                    }
-                ]
-            },
-            {
-                "Name" : "Publish",
-                "Children" : [
-                    {
-                        "Name" : "DnsNamePrefix",
-                        "Type" : STRING_TYPE,
-                        "Default" : "docs"
-                    },
-                    {
-                        "Name" : "IPAddressGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : []
-                    }
-                ]
-            },
-            {
-                "Name" : "Mapping",
-                "Children" : [
-                    {
-                        "Name" : "IncludeStage",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "Profiles",
-                "Children" : [
-                    {
-                        "Name" : "SecurityProfile",
-                        "Type" : STRING_TYPE,
-                        "Default" : "default"
-                    }
-                ]
-            }
-        ],
-        APIGATEWAY_USAGEPLAN_COMPONENT_TYPE : [
+        APIGATEWAY_COMPONENT_TYPE : { 
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Application level API proxy"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : ["Fragment", "Container"],
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                },
+                {
+                    "Name" : "Links",
+                    "Type" : OBJECT_TYPE,
+                    "Default" : {}
+                },
+                {
+                    "Name" : "WAF",
+                    "Children" : wafChildConfiguration
+                },
+                {
+                    "Name" : "EndpointType",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["EDGE", "REGIONAL"],
+                    "Default" : "EDGE"
+                },
+                {
+                    "Name" : "IPAddressGroups",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
+                },
+                {
+                    "Name" : "Authentication",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
+                    "Default" : "IP"
+                },
+                {
+                    "Name" : "CloudFront",
+                    "Children" : [
+                        {
+                            "Name" : "AssumeSNI",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "EnableLogging",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "CountryGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        },
+                        {
+                            "Name" : "CustomHeaders",
+                            "Type" : ARRAY_OF_ANY_TYPE,
+                            "Default" : []
+                        },
+                        {
+                            "Name" : "Mapping",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
+                            "Name" : "Compress",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Certificate",
+                    "Children" : [
+                        {
+                            "Name" : "*"
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Publish",
+                    "Children" : [
+                        {
+                            "Name" : "DnsNamePrefix",
+                            "Type" : STRING_TYPE,
+                            "Default" : "docs"
+                        },
+                        {
+                            "Name" : "IPAddressGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Mapping",
+                    "Children" : [
+                        {
+                            "Name" : "IncludeStage",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Profiles",
+                    "Children" : [
+                        {
+                            "Name" : "SecurityProfile",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
+                }
+            ]
+        },
+        APIGATEWAY_USAGEPLAN_COMPONENT_TYPE : 
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "provides a metered link between an API gateway and an invoking client"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
             {
                 "Name" : "Links",
                 "Subobjects" : true,

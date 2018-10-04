@@ -73,83 +73,99 @@
 
 [#assign componentConfiguration +=
     {
-        S3_COMPONENT_TYPE : [
-            {
-                "Name" : "Lifecycle",
-                "Children" : [
-                    {
-                        "Name" : "Expiration",
-                        "Types" : [STRING_TYPE, NUMBER_TYPE],
-                        "Description" : "Provide either a date or a number of days"
-                    },
-                    {
-                        "Name" : "Offline",
-                        "Types" : [STRING_TYPE, NUMBER_TYPE],
-                        "Description" : "Provide either a date or a number of days"
-                    },
-                    {
-                        "Name" : "Versioning",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : false
-                    }
-                ]
-            },
-            { 
-                "Name" : "Website",
-                "Children" : [
-                    {
-                        "Name": "Index",
-                        "Type" : STRING_TYPE,
-                        "Default": "index.html"
-                    },
-                    {
-                        "Name": "Error",
-                        "Type" : STRING_TYPE,
-                        "Default": ""
-                    }
-                ]
-            },
-            {
-                "Name" : "PublicAccess",
-                "Children" : [
-                    {
-                        "Name" : "Enabled",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : false
-                    },
-                    {
-                        "Name" : "Permissions",
-                        "Type" : STRING_TYPE,
-                        "Values" : ["ro", "wo", "rw"],
-                        "Default" : "ro"
-                    },
-                    {
-                        "Name" : "IPAddressGroups",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : [ "_localnet" ]
-                    },
-                    {
-                        "Name" : "Prefix",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
-                    }
-                ]
-            },
-            {
-                "Name" : "Style",
-                "Type" : STRING_TYPE,
-                "Description" : "TODO(mfl): Think this can be removed"
-            },
-            {
-                "Name" : "Notifications",
-                "Type" : OBJECT_TYPE
-            },
-            {
-                "Name" : "CORSBehaviours",
-                "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
-            }
-        ]
+        S3_COMPONENT_TYPE : {
+            "Properties"  : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "HTTP based object storage service"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : "Lifecycle",
+                    "Children" : [
+                        {
+                            "Name" : "Expiration",
+                            "Types" : [STRING_TYPE, NUMBER_TYPE],
+                            "Description" : "Provide either a date or a number of days"
+                        },
+                        {
+                            "Name" : "Offline",
+                            "Types" : [STRING_TYPE, NUMBER_TYPE],
+                            "Description" : "Provide either a date or a number of days"
+                        },
+                        {
+                            "Name" : "Versioning",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : false
+                        }
+                    ]
+                },
+                { 
+                    "Name" : "Website",
+                    "Children" : [
+                        {
+                            "Name": "Index",
+                            "Type" : STRING_TYPE,
+                            "Default": "index.html"
+                        },
+                        {
+                            "Name": "Error",
+                            "Type" : STRING_TYPE,
+                            "Default": ""
+                        }
+                    ]
+                },
+                {
+                    "Name" : "PublicAccess",
+                    "Children" : [
+                        {
+                            "Name" : "Enabled",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
+                            "Name" : "Permissions",
+                            "Type" : STRING_TYPE,
+                            "Values" : ["ro", "wo", "rw"],
+                            "Default" : "ro"
+                        },
+                        {
+                            "Name" : "IPAddressGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : [ "_localnet" ]
+                        },
+                        {
+                            "Name" : "Prefix",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Style",
+                    "Type" : STRING_TYPE,
+                    "Description" : "TODO(mfl): Think this can be removed"
+                },
+                {
+                    "Name" : "Notifications",
+                    "Type" : OBJECT_TYPE
+                },
+                {
+                    "Name" : "CORSBehaviours",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
+                }
+            ]
+        }
     }]
     
 [#function getS3State occurrence]

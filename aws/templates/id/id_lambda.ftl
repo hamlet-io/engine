@@ -34,6 +34,20 @@
 [#assign componentConfiguration +=
     {
         LAMBDA_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "Container for a Function as a Service deployment"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
             "Attributes" : [],
             "Components" : [
                 {
@@ -43,119 +57,135 @@
                 }
             ]
         },
-        LAMBDA_FUNCTION_COMPONENT_TYPE : [
-            {
-                "Name" : ["Fragment", "Container"],
-                "Type" : STRING_TYPE,
-                "Default" : ""
-            },
-            {
-                "Name" : "Handler",
-                "Type" : STRING_TYPE,
-                "Mandatory" : true
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            },
-            {
-                "Name" : "LogMetrics",
-                "Subobjects" : true,
-                "Children" : logMetricChildrenConfiguration
-            },
-            {
-                "Name" : "LogWatchers",
-                "Subobjects" : true,
-                "Children" : logWatcherChildrenConfiguration
-            },
-            {
-                "Name" : "Alerts",
-                "Subobjects" : true,
-                "Children" : alertChildrenConfiguration
-            },
-            {
-                "Name" : ["Memory", "MemorySize"],
-                "Type" : NUMBER_TYPE,
-                "Default" : 0
-            },
-            {
-                "Name" : "RunTime",
-                "Type" : STRING_TYPE,
-                "Values" : ["nodejs", "nodejs4.3", "nodejs6.10", "nodejs8.10", "java8", "python2.7", "python3.6", "dotnetcore1.0", "dotnetcore2.0", "dotnetcore2.1", "nodejs4.3-edge", "go1.x"],
-                "Mandatory" : true
-            },
-            {
-                "Name" : "Schedules",
-                "Subobjects" : true,
-                "Children" : [
-                    {
-                        "Name" : "Expression",
-                        "Type" : STRING_TYPE,
-                        "Default" : "rate(6 minutes)"
-                    },
-                    {
-                        "Name" : "InputPath",
-                        "Type" : STRING_TYPE,
-                        "Default" : "/healthcheck"
-                    },
-                    {
-                        "Name" : "Input",
-                        "Type" : OBJECT_TYPE,
-                        "Default" : {}
-                    }
-                ]
-            },
-            {
-                "Name" : "Timeout",
-                "Type" : NUMBER_TYPE,
-                "Default" : 0
-            },
-            {
-                "Name" : "VPCAccess",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "UseSegmentKey",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "Permissions",
-                "Children" : [
-                    {
-                        "Name" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "PredefineLogGroup",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "Environment",
-                "Children" : settingsChildConfiguration
-            }
-        ]
+        LAMBDA_FUNCTION_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "A specific entry point for the lambda deployment"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : ["Fragment", "Container"],
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                },
+                {
+                    "Name" : "Handler",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Name" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Name" : "LogMetrics",
+                    "Subobjects" : true,
+                    "Children" : logMetricChildrenConfiguration
+                },
+                {
+                    "Name" : "LogWatchers",
+                    "Subobjects" : true,
+                    "Children" : logWatcherChildrenConfiguration
+                },
+                {
+                    "Name" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
+                },
+                {
+                    "Name" : ["Memory", "MemorySize"],
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 0
+                },
+                {
+                    "Name" : "RunTime",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["nodejs", "nodejs4.3", "nodejs6.10", "nodejs8.10", "java8", "python2.7", "python3.6", "dotnetcore1.0", "dotnetcore2.0", "dotnetcore2.1", "nodejs4.3-edge", "go1.x"],
+                    "Mandatory" : true
+                },
+                {
+                    "Name" : "Schedules",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Name" : "Expression",
+                            "Type" : STRING_TYPE,
+                            "Default" : "rate(6 minutes)"
+                        },
+                        {
+                            "Name" : "InputPath",
+                            "Type" : STRING_TYPE,
+                            "Default" : "/healthcheck"
+                        },
+                        {
+                            "Name" : "Input",
+                            "Type" : OBJECT_TYPE,
+                            "Default" : {}
+                        }
+                    ]
+                },
+                {
+                    "Name" : "Timeout",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 0
+                },
+                {
+                    "Name" : "VPCAccess",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Name" : "UseSegmentKey",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Name" : "Permissions",
+                    "Children" : [
+                        {
+                            "Name" : "Decrypt",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AsFile",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppData",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Name" : "AppPublic",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Name" : "PredefineLogGroup",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Name" : "Environment",
+                    "Children" : settingsChildConfiguration
+                }
+            ]
+        }
     }
 ]
     

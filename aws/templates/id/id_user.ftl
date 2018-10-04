@@ -6,6 +6,20 @@
 [#assign componentConfiguration +=
     {
         USER_COMPONENT_TYPE : {
+            "Properties"  : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "A user with permissions on components deployed in the solution"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
             "Attributes" : [
                 {
                     "Name" : ["Fragment", "Container"],

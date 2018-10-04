@@ -8,38 +8,54 @@
 
 [#assign componentConfiguration +=
     {
-        SQS_COMPONENT_TYPE : [
-            {
-                "Name" : "DelaySeconds",
-                "Type" : NUMBER_TYPE
-            },
-            {
-                "Name" : "MaximumMessageSize",
-                "Type" : NUMBER_TYPE
-            },
-            {
-                "Name" : "MessageRetentionPeriod",
-                "Type" : NUMBER_TYPE
-            },
-            {
-                "Name" : "ReceiveMessageWaitTimeSeconds",
-                "Type" : NUMBER_TYPE
-            },
-            {
-                "Name" : "DeadLetterQueue",
-                "Children" : [
-                    {
-                        "Name" : "MaxReceives",
-                        "Type" : NUMBER_TYPE,
-                        "Default" : 0
-                    }
-                ]
-            },
-            {
-                "Name" : "VisibilityTimeout",
-                "Type" : NUMBER_TYPE
-            }
-        ]
+        SQS_COMPONENT_TYPE : {
+            "Properties"  : [
+                {
+                    "Type"  : "Description",
+                    "Value" : "Managed worker queue engine"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Name" : "DelaySeconds",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Name" : "MaximumMessageSize",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Name" : "MessageRetentionPeriod",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Name" : "ReceiveMessageWaitTimeSeconds",
+                    "Type" : NUMBER_TYPE
+                },
+                {
+                    "Name" : "DeadLetterQueue",
+                    "Children" : [
+                        {
+                            "Name" : "MaxReceives",
+                            "Type" : NUMBER_TYPE,
+                            "Default" : 0
+                        }
+                    ]
+                },
+                {
+                    "Name" : "VisibilityTimeout",
+                    "Type" : NUMBER_TYPE
+                }
+            ]
+        }
     }]
     
 [#function getSQSState occurrence baseState]
