@@ -29,6 +29,15 @@
 
         [#assign logFileProfile = getLogFileProfile(tier, component, "ECS")]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ECS")]
+        [#assign processorProfile = getProcessor(tier, component, "ECS")]
+        [#assign storageProfile = getStorage(tier, component, "ECS")]
+
+        [#assign ecsTags = getCfTemplateCoreTags(
+                        ecsName,
+                        tier,
+                        component,
+                        "",
+                        true)]
         
         [#assign environmentVariables = {}]
 
@@ -172,12 +181,12 @@
                 tier=tier
                 component=component /]
 
-            [#assign processorProfile = getProcessor(tier, component, "ECS")]
+
             [#assign maxSize = processorProfile.MaxPerZone]
             [#if multiAZ]
                 [#assign maxSize = maxSize * zones?size]
             [/#if]
-            [#assign storageProfile = getStorage(tier, component, "ECS")]
+
 
             [@cfResource
                 mode=listMode
@@ -217,40 +226,23 @@
                     getInitConfigEIPAllocation(allocationIds)]
             [/#if]
 
-            [@cfResource
+            [@createEc2AutoScaleGroup 
                 mode=listMode
                 id=ecsAutoScaleGroupId
-                type="AWS::AutoScaling::AutoScalingGroup"
-                metadata=getInitConfig(configSetName, configSets )
-                properties=
-                    {
-                        "Cooldown" : "30",
-                        "LaunchConfigurationName": getReference(ecsLaunchConfigId)
-                    } +
-                    multiAZ?then(
-                        {
-                            "MinSize": processorProfile.MinPerZone * zones?size,
-                            "MaxSize": maxSize,
-                            "DesiredCapacity": processorProfile.DesiredPerZone * zones?size,
-                            "VPCZoneIdentifier": getSubnets(tier)
-                        },
-                        {
-                            "MinSize": processorProfile.MinPerZone,
-                            "MaxSize": maxSize,
-                            "DesiredCapacity": processorProfile.DesiredPerZone,
-                            "VPCZoneIdentifier" : getSubnets(tier)[0..0]
-                        }
-                    )
-                tags=
-                    getCfTemplateCoreTags(
-                        ecsName,
-                        tier,
-                        component,
-                        "",
-                        true)
-                outputs={}
+                tier=tier
+                configSetName=configSetName
+                configSets=configSets
+                launchConfigId=ecsLaunchConfigId
+                processorProfile=processorProfile
+                minUpdateInstances=solution.AutoScale.MinUpdateInstances
+                replaceOnUpdate=solution.AutoScale.ReplaceOnUpdate
+                waitOnSignal=solution.AutoScale.WaitForSignal
+                startupTimeout=solution.AutoScale.StartupTimeout
+                updatePauseTime=solution.AutoScale.UpdatePauseTime
+                activityCooldown=solution.AutoScale.ActivityCooldown  
+                multiAZ=multiAZ
+                tags=ecsTags
             /]
-
 
             [@createEC2LaunchConfig
                 mode=listMode

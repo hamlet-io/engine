@@ -645,3 +645,106 @@
         dependencies=dependencies
     /]
 [/#macro]
+
+[#macro createEc2AutoScaleGroup mode id
+    tier
+    configSetName
+    configSets
+    launchConfigId
+    processorProfile
+    minUpdateInstances
+    replaceOnUpdate
+    waitOnSignal
+    startupTimeout
+    updatePauseTime
+    multiAZ
+    tags
+    activityCooldown
+    loadBalancers=[]
+    targetGroups=[]
+    dependencies="" 
+    outputId=""
+]
+
+    [#assign maxSize = processorProfile.MaxPerZone]
+    [#if multiAZ]
+        [#assign maxSize = maxSize * zones?size]
+    [/#if]
+    [#if maxSize <= minUpdateInstances ]
+        [#assign maxSize = maxSize + minUpdateInstances ]
+    [/#if]
+
+    [#assign desiredCapacity = multiAZ?then(
+        processorProfile.DesiredPerZone * zones?size,
+        processorProfile.DesiredPerZone
+    )]
+
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::AutoScaling::AutoScalingGroup"
+        metadata=getInitConfig(configSetName, configSets )
+        properties=
+            {
+                "Cooldown" : activityCooldown?c,
+                "LaunchConfigurationName": getReference(launchConfigId),
+                "MetricsCollection" : [
+                    {
+                        "Granularity" : "1Minute"
+                    }
+                ]
+            } +
+            multiAZ?then(
+                {
+                    "MinSize": processorProfile.MinPerZone * zones?size,
+                    "MaxSize": maxSize,
+                    "DesiredCapacity": desiredCapacity,
+                    "VPCZoneIdentifier": getSubnets(tier)
+                },
+                {
+                    "MinSize": processorProfile.MinPerZone,
+                    "MaxSize": maxSize,
+                    "DesiredCapacity": desiredCapacity,
+                    "VPCZoneIdentifier" : getSubnets(tier)[0..0]
+                }
+            ) +
+            attributeIfContent(
+                "LoadBalancerNames",
+                loadBalancers,
+                loadBalancers
+            ) +
+            attributeIfContent(
+                "TargetGroupARNs",
+                targetGroups,
+                targetGroups
+            )
+        tags=tags
+        outputs={}
+        outputId=outputId
+        dependencies=dependencies
+        updatePolicy=replaceOnUpdate?then(
+            {
+                "AutoScalingReplacingUpdate" : {
+                    "WillReplace" : true
+                }
+            },
+            {
+                "AutoScalingRollingUpdate" : {
+                    "WaitOnResourceSignals" : waitOnSignal,
+                    "MinInstancesInService" : minUpdateInstances,
+                    "PauseTime" : "PT" + updatePauseTime
+                }
+            }
+        )
+        creationPolicy=
+            (waitOnSignal != true )?then(
+                {
+                    "ResourceSignal" : {
+                        "Count" : desiredCapacity,
+                        "Timeout" : "PT" + startupTimeout
+                    }
+                },
+                {}
+            )
+    /]
+[/#macro]
