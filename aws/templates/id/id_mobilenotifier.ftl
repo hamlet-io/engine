@@ -96,20 +96,13 @@
 [/#function]
 
 [#function formatMobileNotifierLogGroupId engine name failure=false]
+    [#local failureId = valueIfTrue("failure", failure, "") ]
     [#return
-        formatLogGroupId(
-            valueIfTrue(
-                formatAccountLogGroupId("sms"),
-                engine == MOBILENOTIFIER_SMS_ENGINE,
-                name
-            ),
-            valueIfTrue(
-                "failure"
-                failure,
-                ""
-            )
+        valueIfTrue(
+            formatAccountLogGroupId("sms", failureId),
+            engine == MOBILENOTIFIER_SMS_ENGINE,
+            formatLogGroupId(name, failureId)
         ) ]
-
 [/#function]
 
 [#function getMobileNotifierPlatformState occurrence]
