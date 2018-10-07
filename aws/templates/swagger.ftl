@@ -325,6 +325,7 @@
     validationLevel sig4Required apiKeyRequired
     userPoolRequired cognitoPoolName
     useClientCredsRequired
+    requests={}
     responses={}
     corsConfiguration={} ]
 
@@ -378,9 +379,6 @@
                         "uri" : "arn:aws:apigateway:" + context["Region"] + ":sns:action/Publish",
                         "passthroughBehavior" : "never",
                         "httpMethod" : "POST",
-                        "requestTemplates" : {
-                            "application/json" : "#set($phoneNumber = $input.path(\"$.PhoneNumber\"))\r\n#set($message = $input.path(\"$.Message\"))\r\n#set($sender = $!{input.path(\"$.SenderId\")})\r\n#set($environment = $!{stageVariables[\"ENVIRONMENT\"]})\r\n#set( $newline=\"\r\n\")\r\n#if($\{sender} ne \"\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Name\"] = \"AWS.SNS.SMS.SenderID\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Value.DataType\"] = \"String\")\r\n#set($context.requestOverride.querystring[\"MessageAttributes.entry.1.Value.StringValue\"] = \"$\{sender}\")\r\n#end\r\n#if($\{environment} ne \"\")\r\n#set($message = \"$\{message}$\{newline}$\{newline}ENV=$\{environment}\")\r\n#end\r\n#set($context.requestOverride.querystring[\"PhoneNumber\"] = \"$\{phoneNumber}\")\r\n#set($context.requestOverride.querystring[\"Message\"] = \"$\{message}\")"
-                        },
                         "credentials" : context[formatAbsolutePath(path,"rolearn")],
                         "responses" :
                             {
@@ -388,8 +386,9 @@
                                     "statusCode" : "200"
                                 }
                             } +
-                            contentIfContent(responses)
-                    }
+                            responses
+                    } +
+                    requests
                 }
             ]
             [#break]
@@ -511,6 +510,7 @@
                         "",
                         false,
                         {},
+                        {},
                         getSwaggerCorsHeaders(defaultCorsHeaders,defaultCorsMethods,defaultCorsOrigin)
                     )
                 }
@@ -535,6 +535,7 @@
                             pattern.UserPool ! pattern.userPool ! defaultUserPoolRequired,
                             pattern.CognitoPoolName ! defaultCognitoPoolName,
                             pattern.UseClientCreds ! pattern.useClientCreds ! defaultUseClientCredsRequired,
+                            pattern.Requests ! {}
                             pattern.Responses ! {}
                         )
                     ]
