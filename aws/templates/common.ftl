@@ -1847,6 +1847,7 @@ behaviour.
                     "Name" : "Host",
                     "Default" : ""
                 },
+                "HostParts",
                 {
                     "Name" : "IncludeInHost",
                     "Children" : [
@@ -1882,22 +1883,45 @@ behaviour.
 [#function getHostName certificateObject occurrence]
 
     [#local core = occurrence.Core ]
-    [#local includes = certificateObject.IncludeInHost ]
+    [#local includes = certificateObject.IncludeInHost!{} ]
+    [#local hostParts = certificateObject.HostParts ]
+    [#local parts = [] ]
 
+    [#list hostParts as part]
+        [#if includes[part]!true]
+            [#switch part]
+                [#case "Host"]
+                    [#local parts += [certificateObject.Host!""] ]
+                    [#break]
+                [#case "Tier"]
+                    [#local parts += [getTierName(core.Tier)] ]
+                    [#break]
+                [#case "Component"]
+                    [#local parts += [getComponentName(core.Component)] ]
+                    [#break]
+                [#case "Instance"]
+                    [#local parts += [core.Instance.Name!""] ]
+                    [#break]
+                [#case "Version"]
+                    [#local parts += [core.Version.Name!""] ]
+                    [#break]
+                [#case "Segment"]
+                    [#local parts += [segmentName!""] ]
+                    [#break]
+                [#case "Environment"]
+                    [#local parts += [environmentName!""] ]
+                    [#break]
+                [#case "Product"]
+                    [#local parts += [productName!""] ]
+                    [#break]
+            [/#switch]
+        [/#if]
+    [/#list]
     [#return
         valueIfTrue(
             certificateObject.Host,
             certificateObject.Host?has_content && (!(includes.Host)),
-            formatName(
-                valueIfTrue(certificateObject.Host, includes.Host),
-                valueIfTrue(getTierName(core.Tier), includes.Tier),
-                valueIfTrue(getComponentName(core.Component), includes.Component),
-                valueIfTrue(core.Instance.Name!"", includes.Instance),
-                valueIfTrue(core.Version.Name!"", includes.Version),
-                valueIfTrue(segmentName!"", includes.Segment),
-                valueIfTrue(environmentName!"", includes.Environment),
-                valueIfTrue(productName!"", includes.Product)
-            )
+            formatName(parts)
         )
     ]
 ]
