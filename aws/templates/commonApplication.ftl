@@ -42,7 +42,7 @@
 
 [#macro Attributes name="" image="" version="" essential=true]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context +=
+        [#assign _context +=
             {
                 "Essential" : essential
             } +
@@ -64,12 +64,12 @@
 
 [#macro Variable name value]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context = addVariableToContext(context, name, value) ]
+        [#assign _context = addVariableToContext(_context, name, value) ]
     [/#if]
 [/#macro]
 
 [#function getLinkResourceId link alias]
-    [#return (context.Links[link].State.Resources[alias].Id)!"" ]
+    [#return (_context.Links[link].State.Resources[alias].Id)!"" ]
 [/#function]
 
 [#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false]
@@ -106,9 +106,9 @@
 
 [#macro Link name link="" attributes=[] rawName=false ignoreIfNotDefined=false]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context =
+        [#assign _context =
             addLinkVariablesToContext(
-                context,
+                _context,
                 name,
                 contentIfContent(link, name),
                 attributes,
@@ -119,19 +119,19 @@
 
 [#macro DefaultLinkVariables enabled=true ]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context += { "DefaultLinkVariables" : enabled } ]
+        [#assign _context += { "DefaultLinkVariables" : enabled } ]
     [/#if]
 [/#macro]
 
 [#macro DefaultCoreVariables enabled=true ]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context += { "DefaultCoreVariables" : enabled } ]
+        [#assign _context += { "DefaultCoreVariables" : enabled } ]
     [/#if]
 [/#macro]
 
 [#macro DefaultEnvironmentVariables enabled=true ]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context += { "DefaultEnvironmentVariables" : enabled } ]
+        [#assign _context += { "DefaultEnvironmentVariables" : enabled } ]
     [/#if]
 [/#macro]
 
@@ -140,7 +140,7 @@
         [#local name = contentIfContent(value.Setting!"", key) ]
 
         [#if (value.IgnoreIfMissing!false) &&
-            (!((context.DefaultEnvironment[formatSettingName(name)])??)) ]
+            (!((_context.DefaultEnvironment[formatSettingName(name)])??)) ]
                 [#return valueIfTrue(false, asBoolean, "") ]
         [/#if]
     [#else]
@@ -154,7 +154,7 @@
         valueIfTrue(
             true,
             asBoolean,
-            context.DefaultEnvironment[formatSettingName(name)]!
+            _context.DefaultEnvironment[formatSettingName(name)]!
                 "COTException: Variable " + name + " not found"
         ) ]
 [/#function]
@@ -193,9 +193,9 @@
 
 [#macro Host name value]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context +=
+        [#assign _context +=
             {
-                "Hosts" : (context.Hosts!{}) + { name : value }
+                "Hosts" : (_context.Hosts!{}) + { name : value }
             }
         ]
     [/#if]
@@ -203,9 +203,9 @@
 
 [#macro Hosts hosts]
     [#if ((fragmentListMode!"") == "model") && hosts?is_hash]
-        [#assign context +=
+        [#assign _context +=
             {
-                "Hosts" : (context.Hosts!{}) + hosts
+                "Hosts" : (_context.Hosts!{}) + hosts
             }
         ]
     [/#if]
@@ -213,7 +213,7 @@
 
 [#macro WorkingDirectory workingDirectory ]
         [#if ((fragmentListMode!"") == "model")]
-        [#assign context +=
+        [#assign _context +=
             {
                 "WorkingDirectory" : workingDirectory
             }
@@ -223,10 +223,10 @@
 
 [#macro Volume name containerPath hostPath="" readOnly=false]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context +=
+        [#assign _context +=
             {
                 "Volumes" :
-                    (context.Volumes!{}) +
+                    (_context.Volumes!{}) +
                     {
                         name : {
                             "ContainerPath" : containerPath,
@@ -241,9 +241,9 @@
 
 [#macro Volumes volumes]
     [#if ((fragmentListMode!"") == "model") && volumes?is_hash]
-        [#assign context +=
+        [#assign _context +=
             {
-                "Volumes" : (context.Volumes!{}) + volumes
+                "Volumes" : (_context.Volumes!{}) + volumes
             }
         ]
     [/#if]
@@ -251,7 +251,7 @@
 
 [#macro EntryPoint entrypoint ]
     [#if ((fragmentListMode!"") == "model") ]
-        [#assign context +=
+        [#assign _context +=
             {
                 "EntryPoint" : entrypoint?is_string?then(
                     entrypoint?split(" "),
@@ -264,7 +264,7 @@
 
 [#macro Command command ]
     [#if ((fragmentListMode!"") == "model") ]
-        [#assign context +=
+        [#assign _context +=
             {
                 "Command" : command?is_string?then(
                     [ command ],
@@ -277,9 +277,9 @@
 
 [#macro Policy statements...]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context +=
+        [#assign _context +=
             {
-                "Policy" : (context.Policy![]) + asFlattenedArray(statements)
+                "Policy" : (_context.Policy![]) + asFlattenedArray(statements)
             }
         ]
     [/#if]
@@ -287,9 +287,9 @@
 
 [#macro ManagedPolicy arns...]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context +=
+        [#assign _context +=
             {
-                "ManagedPolicy" : (context.ManagedPolicy![]) + asFlattenedArray(arns)
+                "ManagedPolicy" : (_context.ManagedPolicy![]) + asFlattenedArray(arns)
             }
         ]
     [/#if]
@@ -298,9 +298,9 @@
 [#-- Compute instance fragment macros --]
 [#macro File path mode="644" owner="root" group="root" content=[] ]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context +=
+        [#assign _context +=
             {
-                "Files" : (context.Files!{}) + {
+                "Files" : (_context.Files!{}) + {
                     path : {
                         "mode" : mode,
                         "owner" : owner,
@@ -314,9 +314,9 @@
 
 [#macro Directory path mode="755" owner="root" group="root" ]
     [#if (fragmentListMode!"") == "model"]
-        [#assign context +=
+        [#assign _context +=
             {
-                "Directories" : (context.Directories!{}) + {
+                "Directories" : (_context.Directories!{}) + {
                     path : {
                         "mode" : mode,
                         "owner" : owner,
@@ -545,7 +545,7 @@
             )]
 
         [#assign contextLinks = getLinkTargets(task, containerLinks) ]
-        [#assign context =
+        [#assign _context =
             {
                 "Id" : getContainerId(container),
                 "Name" : getContainerName(container),
@@ -602,13 +602,13 @@
 
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(context)]
+        [#assign fragmentId = formatFragmentId(_context)]
         [#assign containerId = fragmentId]
         [#include fragmentList]
 
-        [#assign context += getFinalEnvironment(task, context) ]
+        [#assign _context += getFinalEnvironment(task, _context) ]
 
-        [#local containers += [context] ]
+        [#local containers += [_context] ]
     [/#list]
 
     [#return containers]

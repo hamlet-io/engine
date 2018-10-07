@@ -72,7 +72,7 @@
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
         [#assign contextLinks = getLinkTargets(occurrence, links) ]
-        [#assign context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -93,14 +93,14 @@
 
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(context)]
+        [#assign fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
+        [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
         [#assign configSets +=  
             getInitConfigEnvFacts(environmentVariables, false) +
-            getInitConfigDirsFiles(context.Files, context.Directories) ]
+            getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
         [#list bootstrapProfile.BootStraps as bootstrapName ]
             [#assign bootstrap = bootstraps[bootstrapName]]
@@ -206,14 +206,14 @@
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ec2RoleId)]
 
-            [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
             [@createRole
                 mode=listMode
                 id=ec2RoleId
                 trustedServices=["ec2.amazonaws.com" ]
                 managedArns=
-                    context.ManagedPolicy
+                    _context.ManagedPolicy
                 policies=
                     [
                         getPolicyDocument(
@@ -236,8 +236,8 @@
                         [getPolicyDocument(linkPolicies, "links")],
                         linkPolicies) +
                     arrayIfContent(
-                        [getPolicyDocument(context.Policy, "fragment")],
-                        context.Policy)
+                        [getPolicyDocument(_context.Policy, "fragment")],
+                        _context.Policy)
             /]
         [/#if]
 

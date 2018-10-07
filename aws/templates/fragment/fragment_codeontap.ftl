@@ -1,7 +1,7 @@
 [#case "codeontap"]
 [#case "_codeontap"]
 
-    [#assign settings = context.DefaultEnvironment]
+    [#assign settings = _context.DefaultEnvironment]
 
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp" ]
     [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock" ]

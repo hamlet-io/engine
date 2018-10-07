@@ -44,7 +44,7 @@
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
         [#assign contextLinks = getLinkTargets(occurrence) ]
-        [#assign context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -65,14 +65,14 @@
 
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(context)]
+        [#assign fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
+        [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
         [#assign configSets += 
             getInitConfigEnvFacts(environmentVariables, false) +
-            getInitConfigDirsFiles(context.Files, context.Directories) ]
+            getInitConfigDirsFiles(_context.Files, _context.Directories) ]
         
         [#list bootstrapProfile.BootStraps as bootstrapName ]
             [#assign bootstrap = bootstraps[bootstrapName]]
@@ -82,7 +82,7 @@
             
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ecsRoleId)]
-            [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
             [@createRole
                 mode=listMode
@@ -90,7 +90,7 @@
                 trustedServices=["ec2.amazonaws.com" ]
                 managedArns=
                     ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"] +
-                    context.ManagedPolicy
+                    _context.ManagedPolicy
                 policies=
                     [
                         getPolicyDocument(
@@ -108,8 +108,8 @@
                             "docker")
                     ] +
                     arrayIfContent(
-                        [getPolicyDocument(context.Policy, "fragment")],
-                        context.Policy) +
+                        [getPolicyDocument(_context.Policy, "fragment")],
+                        _context.Policy) +
                     arrayIfContent(
                         [getPolicyDocument(linkPolicies, "links")],
                         linkPolicies)
@@ -148,7 +148,7 @@
 
         [#if deploymentSubsetRequired("ecs", true)]
 
-            [#list context.Links as linkId,linkTarget]
+            [#list _context.Links as linkId,linkTarget]
                 [#assign linkTargetCore = linkTarget.Core ]
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetResources = linkTarget.State.Resources ]

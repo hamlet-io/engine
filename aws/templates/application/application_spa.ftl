@@ -17,7 +17,7 @@
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
         [#assign contextLinks = getLinkTargets(occurrence) ]
-        [#assign context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -34,16 +34,16 @@
 
         [#-- Add in container specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(context)]
+        [#assign fragmentId = formatFragmentId(_context)]
         [#assign containerId = fragmentId]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#assign context += getFinalEnvironment(occurrence, context) ]
+        [#assign _context += getFinalEnvironment(occurrence, _context) ]
 
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig
                 mode=listMode
-                content=context.Environment
+                content=_context.Environment
             /]
         [/#if]
         [#if deploymentSubsetRequired("prologue", false)]

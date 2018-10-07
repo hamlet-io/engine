@@ -67,7 +67,7 @@
                 )
             ) ]
     [#else]
-        [#return context.Environment["APPDATA_PREFIX"] ]
+        [#return _context.Environment["APPDATA_PREFIX"] ]
     [/#if]
 [/#function]
 
@@ -92,7 +92,7 @@
                     )
                 ) ]
         [#else]
-            [#return context.Environment["APPDATA_PUBLIC_PREFIX"] ]
+            [#return _context.Environment["APPDATA_PUBLIC_PREFIX"] ]
         [/#if]
     [#else]
         [#return ""]
@@ -103,7 +103,7 @@
     [#if occurrence?has_content ]
         [#return formatRelativePath("backups", occurrence.Core.FullRelativePath) ]
     [#else]
-        [#return context.Environment["BACKUPS_PREFIX"] ]
+        [#return _context.Environment["BACKUPS_PREFIX"] ]
     [/#if]
 [/#function]
 
@@ -115,7 +115,7 @@
     [#if occurrence?has_content ]
         [#return getSettingsFilePrefix(occurrence) ]
     [#else]
-        [#return context.Environment["SETTINGS_PREFIX"] ]
+        [#return _context.Environment["SETTINGS_PREFIX"] ]
     [/#if]
 [/#function]
 
@@ -123,7 +123,7 @@
     [#if occurrence?has_content]
         [#return getSettingsFilePrefix(occurrence) ]
     [#else]
-        [#return context.Environment["SETTINGS_PREFIX"] ]
+        [#return _context.Environment["SETTINGS_PREFIX"] ]
     [/#if]
 [/#function]
 
@@ -408,7 +408,7 @@ behaviour.
                     [@cfException
                         mode=listMode
                         description="Attribute must have a \"Name\" attribute"
-                        context= attribute
+                        context=attribute
                     /]
                 [/#if]
                 [#local normalisedAttribute =
