@@ -1426,14 +1426,10 @@
     "Wildcard": true,
     "IncludeInHost": {
       "Product": false,
-      "Environment": true,
       "Segment": false,
-      "Tier": false,
-      "Component": true,
-      "Instance": true,
-      "Version": true,
-      "Host": true
+      "Tier": false
     },
+    "HostParts" : ["Host", "Tier", "Component", "Instance", "Version", "Segment", "Environment", "Product"],
     "Qualifiers": {
       "prod": {
         "IncludeInHost": {
