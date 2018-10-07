@@ -23,7 +23,7 @@
                 contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
 
             [#assign contextLinks = getLinkTargets(fn) ]
-            [#assign context =
+            [#assign _context =
                 {
                     "Id" : fragment,
                     "Name" : fragment,
@@ -49,7 +49,7 @@
             ]
 
             [#if deploymentSubsetRequired("lambda", true)]
-                [#list context.Links as linkName,linkTarget]
+                [#list _context.Links as linkName,linkTarget]
 
                     [#assign linkTargetCore = linkTarget.Core ]
                     [#assign linkTargetConfiguration = linkTarget.Configuration ]
@@ -107,13 +107,13 @@
 
             [#-- Add in fragment specifics including override of defaults --]
             [#assign fragmentListMode = "model"]
-            [#assign fragmentId = formatFragmentId(context)]
+            [#assign fragmentId = formatFragmentId(_context)]
             [#assign containerId = fragmentId]
             [#include fragmentList?ensure_starts_with("/")]
 
-            [#assign finalEnvironment = getFinalEnvironment(fn, context, solution.Environment) ]
-            [#assign finalAsFileEnvironment = getFinalEnvironment(fn, context, solution.Environment + {"AsFile" : false}) ]
-            [#assign context += finalEnvironment ]
+            [#assign finalEnvironment = getFinalEnvironment(fn, _context, solution.Environment) ]
+            [#assign finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
+            [#assign _context += finalEnvironment ]
 
             [#assign roleId = formatDependentRoleId(fnId)]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
@@ -122,7 +122,7 @@
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
                             ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
                         ) +
-                        context.ManagedPolicy ]
+                        _context.ManagedPolicy ]
 
                 [#-- Create a role under which the function will run and attach required policies --]
                 [#-- The role is mandatory though there may be no policies attached to it --]
@@ -134,18 +134,18 @@
 
                 /]
 
-                [#if context.Policy?has_content]
+                [#if _context.Policy?has_content]
                     [#assign policyId = formatDependentPolicyId(fnId)]
                     [@createPolicy
                         mode=listMode
                         id=policyId
-                        name=context.Name
-                        statements=context.Policy
+                        name=_context.Name
+                        statements=_context.Policy
                         roles=roleId
                     /]
                 [/#if]
 
-                [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
+                [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
                 [#if linkPolicies?has_content]
                     [#assign policyId = formatDependentPolicyId(fnId, "links")]
@@ -200,7 +200,7 @@
                 [@createLambdaFunction
                     mode=listMode
                     id=fnId
-                    settings=context +
+                    settings=_context +
                         {
                             "Handler" : solution.Handler,
                             "RunTime" : solution.RunTime,

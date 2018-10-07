@@ -60,7 +60,7 @@
         [#-- Add in container specifics including override of defaults --]
         [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
         [#assign contextLinks = getLinkTargets(occurrence) ]
-        [#assign context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -77,12 +77,12 @@
         
         [#if solution.Fragment?has_content ]
             [#assign fragmentListMode = "model"]
-            [#assign fragmentId = formatFragmentId(context)]
+            [#assign fragmentId = formatFragmentId(_context)]
             [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
-        [#assign context += getFinalEnvironment(occurrence, context) ]
-        [#assign parameterValues += context.Environment ]
+        [#assign _context += getFinalEnvironment(occurrence, _context) ]
+        [#assign parameterValues += _context.Environment ]
 
         [#assign myParameterValues = {}]
         [#list parameterValues as key,value ]
@@ -160,18 +160,18 @@
                     outputs={}
                 /]
 
-                [#if context.Policy?has_content]
+                [#if _context.Policy?has_content]
                     [#assign policyId = formatDependentPolicyId(pipelineId)]
                     [@createPolicy
                         mode=listMode
                         id=policyId
-                        name=context.Name
-                        statements=context.Policy
+                        name=_context.Name
+                        statements=_context.Policy
                         roles=resourceRoleId
                     /]
                 [/#if]
 
-                [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
+                [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
                 [#if linkPolicies?has_content]
                     [#assign policyId = formatDependentPolicyId(pipelineId, "links")]

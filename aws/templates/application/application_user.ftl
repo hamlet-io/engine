@@ -44,7 +44,7 @@
         [#-- Add in container specifics including override of defaults --]
         [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
         [#assign contextLinks = getLinkTargets(occurrence) ]
-        [#assign context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -62,25 +62,25 @@
         
         [#if solution.Fragment?has_content ]
             [#assign fragmentListMode = "model"]
-            [#assign fragmentId = formatFragmentId(context)]
+            [#assign fragmentId = formatFragmentId(_context)]
             [#assign containerId = fragmentId]
             [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
         [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]
 
-            [#if context.Policy?has_content]
+            [#if _context.Policy?has_content]
                 [#assign policyId = formatDependentPolicyId(userId)]
                 [@createPolicy
                     mode=listMode
                     id=policyId
-                    name=context.Name
-                    statements=context.Policy
+                    name=_context.Name
+                    statements=_context.Policy
                     users=userId
                 /]
             [/#if]
 
-            [#assign linkPolicies = getLinkTargetsOutboundRoles(context.Links) ]
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
             [#if linkPolicies?has_content]
                 [#assign policyId = formatDependentPolicyId(userId, "links")]
@@ -103,7 +103,7 @@
                     } + 
                     attributeIfContent(
                         "ManagedPolicyArns",
-                        context.ManagedPolicy![]
+                        _context.ManagedPolicy![]
                     ) 
                 outputs=USER_OUTPUT_MAPPINGS
             /]

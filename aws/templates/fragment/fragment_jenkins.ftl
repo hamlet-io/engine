@@ -3,7 +3,7 @@
 
     [@Attributes image="jenkins-master" /]
    
-    [#assign settings = context.DefaultEnvironment]
+    [#assign settings = _context.DefaultEnvironment]
 
     [@Settings {
             "ECS_ARN" :  getExistingReference(ecsId),

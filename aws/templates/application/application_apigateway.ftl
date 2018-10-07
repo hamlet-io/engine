@@ -38,7 +38,7 @@
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
         [#assign contextLinks = getLinkTargets(occurrence) ]
-        [#assign context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -57,12 +57,12 @@
         [#-- Add in fragment specifics including override of defaults --]
         [#if solution.Fragment?has_content ]
             [#assign fragmentListMode = "model"]
-            [#assign fragmentId = formatFragmentId(context)]
+            [#assign fragmentId = formatFragmentId(_context)]
             [#assign containerId = fragmentId]
             [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
-        [#assign stageVariables += getFinalEnvironment(occurrence, context).Environment ]
+        [#assign stageVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
         [#assign cognitoPools = {} ]
 
@@ -185,7 +185,7 @@
         [#assign docsS3BucketName       = resources["docs"].Name]
         [#assign docsS3BucketPolicyId   = resources["docspolicy"].Id ]
 
-        [#assign apiPolicyStatements    = context.Policy ]
+        [#assign apiPolicyStatements    = _context.Policy ]
         [#assign apiPolicyAuth          = solution.Authentication?upper_case ]
 
         [#assign apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]

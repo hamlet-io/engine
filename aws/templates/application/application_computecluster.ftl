@@ -84,7 +84,7 @@
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
         [#assign contextLinks = getLinkTargets(occurrence, links) ]
-        [#assign context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -105,15 +105,15 @@
 
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(context)]
+        [#assign fragmentId = formatFragmentId(_context)]
         [#assign containerId = fragmentId]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#assign environmentVariables += getFinalEnvironment(occurrence, context).Environment ]
+        [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
-        [#assign configSets +=  
+        [#assign configSets +=
             getInitConfigEnvFacts(environmentVariables, false) +
-            getInitConfigDirsFiles(context.Files, context.Directories) ]
+            getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
         [#list bootstrapProfile.BootStraps as bootstrapName ]
             [#assign bootstrap = bootstraps[bootstrapName]]
@@ -141,7 +141,7 @@
                             s3WritePermission(operationsBucket, "Backups") +
                             cwLogsProducePermission(computeClusterLogGroupName),
                             "basic")
-                    ] + 
+                    ] +
                     targetGroupPermission?then(
                         [
                             getPolicyDocument(
@@ -151,10 +151,10 @@
                         []
                     ) +
                     arrayIfContent(
-                        [getPolicyDocument(context.Policy, "fragment")],
-                        context.Policy) 
+                        [getPolicyDocument(_context.Policy, "fragment")],
+                        _context.Policy)
                 managedArns=
-                    context.ManagedPolicy
+                    _context.ManagedPolicy
             /]
 
         [/#if]
@@ -181,7 +181,7 @@
                     [#assign targetGroupPermission = true]
                     [#assign destinationPort = linkTargetAttributes["DESTINATION_PORT"]]
 
-                    [#switch linkTargetAttributes["ENGINE"] ] 
+                    [#switch linkTargetAttributes["ENGINE"] ]
                         [#case "application" ]
                         [#case "classic"]
                             [#assign sourceSecurityGroupIds += [ linkTargetResources["sg"].Id ] ]
@@ -216,11 +216,11 @@
                     [#break]
             [/#switch]
 
-            [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)] 
+            [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
 
                 [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups)]
                 [#list securityGroupCIDRs as cidr ]
-                    
+
                     [@createSecurityGroupIngress
                         mode=listMode
                         id=
@@ -256,7 +256,7 @@
         [#assign configSets += getInitConfigScriptsDeployment(scriptsFile, environmentVariables, solution.UseInitAsService, false)]
 
         [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(computeClusterLogGroupId) ]
-            [@createLogGroup 
+            [@createLogGroup
                 mode=listMode
                 id=computeClusterLogGroupId
                 name=computeClusterLogGroupName /]
