@@ -1428,7 +1428,7 @@
       "Product": false,
       "Segment": false,
       "Tier": false
-    }
+    },
     "HostParts" : ["Host", "Tier", "Component", "Instance", "Version", "Segment", "Environment", "Product"],
     "Qualifiers": {
       "prod": {
