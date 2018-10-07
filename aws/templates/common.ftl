@@ -1879,28 +1879,49 @@ behaviour.
     ]
 [/#function]
 
-[#function getHostName certificateObject occurrence]
+[#function getHostName certificateObject occurrence orderedParts=[]]
 
     [#local core = occurrence.Core ]
     [#local includes = certificateObject.IncludeInHost ]
-
+    [#local result = [] ]
+    [#if !(orderedParts?has_content)]
+        [#local orderedParts = ["Host", "Tier", "Component", "Instance", "Version", "Segment", "Environment", "Product"] ]
+    [/#if]
+    [#list orderedParts as part]
+        [#switch part]
+            [#case "Host"]
+                [#local result += [valueIfTrue(certificateObject.Host, includes.Host)] ]
+                [#break]
+            [#case "Tier"]
+                [#local result += [valueIfTrue(getTierName(core.Tier), includes.Tier)] ]
+                [#break]
+            [#case "Component"]
+                [#local result += [valueIfTrue(getComponentName(core.Component), includes.Component)] ]
+                [#break]
+            [#case "Instance"]
+                [#local result += [valueIfTrue(core.Instance.Name!"", includes.Instance)] ]
+                [#break]
+            [#case "Version"]
+                [#local result += [valueIfTrue(core.Version.Name!"", includes.Version)] ]
+                [#break]
+            [#case "Segment"]
+                [#local result += [valueIfTrue(segmentName!"", includes.Segment)] ]
+                [#break]
+            [#case "Environment"]
+                [#local result += [valueIfTrue(environmentName!"", includes.Environment)] ]
+                [#break]
+            [#case "Product"]
+                [#local result += [valueIfTrue(productName!"", includes.Product)] ]
+                [#break]
+        [/#switch]
+    [/#list]
     [#return
         valueIfTrue(
             certificateObject.Host,
             certificateObject.Host?has_content && (!(includes.Host)),
-            formatName(
-                valueIfTrue(certificateObject.Host, includes.Host),
-                valueIfTrue(getTierName(core.Tier), includes.Tier),
-                valueIfTrue(getComponentName(core.Component), includes.Component),
-                valueIfTrue(core.Instance.Name!"", includes.Instance),
-                valueIfTrue(core.Version.Name!"", includes.Version),
-                valueIfTrue(segmentName!"", includes.Segment),
-                valueIfTrue(environmentName!"", includes.Environment),
-                valueIfTrue(productName!"", includes.Product)
-            )
+            formatName(result)
         )
     ]
-]
 [/#function]
 
 [#-- Directory Structure for ContentHubs --]
