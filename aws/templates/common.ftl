@@ -776,8 +776,12 @@ behaviour.
                 [#local result = getLBPortState(occurrence, parentOccurrence)]
                 [#break]
 
-            [#case "apigateway"]
+            [#case APIGATEWAY_COMPONENT_TYPE]
                 [#local result = getAPIGatewayState(occurrence)]
+                [#break]
+
+            [#case APIGATEWAY_USAGEPLAN_COMPONENT_TYPE]
+                [#local result = getAPIGatewayUsagePlanState(occurrence)]
                 [#break]
 
             [#case "cache"]
