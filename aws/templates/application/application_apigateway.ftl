@@ -1,6 +1,6 @@
 [#-- API Gateway --]
 
-[#if (componentType == "apigateway")]
+[#if (componentType == APIGATEWAY_COMPONENT_TYPE)]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -436,21 +436,16 @@
                         wafAclId,
                         wafPresent)
                 /]
-                [@cfResource
+                [@createAPIUsagePlan
                     mode=listMode
                     id=usagePlanId
-                    type="AWS::ApiGateway::UsagePlan"
-                    properties=
+                    name=usagePlanName
+                    stages=[
                         {
-                            "ApiStages" : [
-                                {
-                                  "ApiId" : getReference(apiId),
-                                  "Stage" : stageName
-                                }
-                            ],
-                            "UsagePlanName" : usagePlanName
+                          "ApiId" : getReference(apiId),
+                          "Stage" : stageName
                         }
-                    outputs={}
+                    ]
                     dependencies=stageId
                 /]
 

@@ -9,9 +9,11 @@
         [#assign core = occurrence.Core ]
         [#assign resources = occurrence.State.Resources]
         [#assign solution = occurrence.Configuration.Solution ]
-    
+
         [#assign userId = resources["user"].Id ]
         [#assign userName = resources["user"].Name]
+        [#assign apikeyId = resources["apikey"].Id ]
+        [#assign apikeyName = resources["apikey"].Name]
 
         [#assign credentialFormats = solution.GenerateCredentials.Formats]
         [#assign userPasswordLength = solution.GenerateCredentials.CharacterLength ]
@@ -24,15 +26,15 @@
 
         [#assign encryptedSystemPassword = (
             getExistingReference(
-                userId, 
+                userId,
                 PASSWORD_ATTRIBUTE_TYPE)
             )?remove_beginning(
                 passwordEncryptionScheme
             )]
-        
+
         [#assign encryptedConsolePassword = (
             getExistingReference(
-                userId, 
+                userId,
                 GENERATEDPASSWORD_ATTRIBUTE_TYPE)
             )?remove_beginning(
                 passwordEncryptionScheme
@@ -59,7 +61,7 @@
                 "Policy" : standardPolicies(occurrence)
             }
         ]
-        
+
         [#if solution.Fragment?has_content ]
             [#assign fragmentListMode = "model"]
             [#assign fragmentId = formatFragmentId(_context)]
@@ -100,13 +102,50 @@
                 properties=
                     {
                         "UserName" : userName
-                    } + 
+                    } +
                     attributeIfContent(
                         "ManagedPolicyArns",
                         _context.ManagedPolicy![]
-                    ) 
+                    )
                 outputs=USER_OUTPUT_MAPPINGS
             /]
+
+            [#-- Manage API keys for the user if linked to usage plans --]
+            [#assign apikeyNeeded = false ]
+            [#list solution.Links?values as link]
+                [#if link?is_hash]
+                    [#assign linkTarget = getLinkTarget(occurrence, link) ]
+
+                    [@cfDebug listMode linkTarget false /]
+
+                    [#if !linkTarget?has_content]
+                        [#continue]
+                    [/#if]
+
+                    [#assign linkTargetResources = linkTarget.State.Resources ]
+
+                    [#switch linkTarget.Core.Type]
+                        [#case APIGATEWAY_USAGEPLAN_COMPONENT_TYPE ]
+                            [#if linkTargetResources["apiusageplan"].Deployed]
+                                [@createAPIUsagePlanMember
+                                    mode=listMode
+                                    id=formatDependentResourceId(AWS_APIGATEWAY_USAGEPLAN_MEMBER_RESOURCE_TYPE, apikeyId, link.Id)
+                                    planId=linkTargetResources["apiusageplan"].Id
+                                    apikeyId=apikeyId
+                                /]
+                            [/#if]
+                            [#assign apikeyNeeded = true]
+                            [#break]
+                    [/#switch]
+                [/#if]
+            [/#list]
+            [#if apikeyNeeded ]
+                [@createAPIKey
+                    mode=listMode
+                    id=apikeyId
+                    name=apikeyName
+                /]
+            [/#if]
         [/#if]
 
         [#if deploymentSubsetRequired("epilogue", false)]
@@ -141,7 +180,7 @@
                         "\"IAM User AccessKey\"" + " " +
                         "\"$\{password_pseudo_stack_file}\"" + " " +
                         "\"" + userId + "Xusername\" \"$\{access_key_array[0]}\" " +
-                        "\"" + userId + "Xpassword\" \"$\{encrypted_secret_key}\" " + 
+                        "\"" + userId + "Xpassword\" \"$\{encrypted_secret_key}\" " +
                         "\"" + userId + "Xkey\" \"$\{encrypted_smtp_password}\" || return $?",
                         "}",
                         "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-creds-system-pseudo-stack.json\" ",
@@ -173,7 +212,7 @@
                         "generate_user_password || return $?"
                     ],
                 []) +
-                [            
+                [
                     "       ;;",
                     "       esac"
                 ]

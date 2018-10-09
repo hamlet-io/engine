@@ -9,6 +9,7 @@
 [#assign AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE = "apiBasePathMapping"]
 [#assign AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE = "apiUsagePlan"]
 [#assign AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE = "apiKey"]
+[#assign AWS_APIGATEWAY_USAGEPLAN_MEMBER_RESOURCE_TYPE = "apiUsagePlanMember"]
 
 [#function formatDependentAPIGatewayAuthorizerId resourceId extensions...]
     [#return formatDependentResourceId(
@@ -26,6 +27,7 @@
 
 [#-- Components --]
 [#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
+[#assign APIGATEWAY_USAGEPLAN_COMPONENT_TYPE = "apiusageplan"]
 [#assign APIGATEWAY_COMPONENT_DOCS_EXTENSION = "docs"]
 
 [#assign componentConfiguration +=
@@ -38,8 +40,8 @@
             },
             {
                 "Name" : "Links",
-                "Type" : OBJECT_TYPE,
-                "Default" : {}
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             },
             {
                 "Name" : "WAF",
@@ -140,6 +142,13 @@
                     }
                 ]
             }
+        ],
+        APIGATEWAY_USAGEPLAN_COMPONENT_TYPE : [
+            {
+                "Name" : "Links",
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
+            }
         ]
     }]
 
@@ -163,7 +172,7 @@
     [#local cfId = formatDependentCFDistributionId(apiId)]
 
     [#local serviceName = "execute-api" ]
-    
+
     [#local certificatePresent = solution.Certificate.Configured && solution.Certificate.Enabled ]
     [#local mappingPresent     = solution.Mapping.Configured && solution.Mapping.Enabled ]
     [#local cfPresent          = solution.CloudFront.Configured && solution.CloudFront.Enabled ]
@@ -215,7 +224,7 @@
                 [#local docsName = formatDomainName(solution.Publish.DnsNamePrefix, fqdn) ]
             [/#if]
         [/#if]
-    [/#if]                                                
+    [/#if]
 
     [#return
         {
@@ -310,6 +319,54 @@
                 "Outbound" : {
                     "default" : "invoke",
                     "invoke" : apigatewayInvokePermission(apiId, stageName)
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getAPIGatewayUsagePlanState occurrence]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+
+    [#local outboundPolicy = [] ]
+
+    [#list solution.Links?values as link]
+        [#if link?is_hash]
+            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+
+            [@cfDebug listMode linkTarget false /]
+
+            [#if !linkTarget?has_content]
+                [#continue]
+            [/#if]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetRoles = linkTarget.State.Roles ]
+
+            [#switch linkTargetCore.Type]
+                [#case APIGATEWAY_COMPONENT_TYPE ]
+                    [#local outboundPolicy += linkTargetRoles.Outbound["invoke"] ]
+                    [#break]
+            [/#switch]
+        [/#if]
+    [/#list]
+
+    [#return
+        {
+            "Resources" : {
+                "apiusageplan" : {
+                    "Id" : formatResourceId(AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE, core.Id),
+                    "Name" : core.FullName,
+                    "Type" : AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE
+                }
+            },
+            "Attributes" : {
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {
+                    "default" : "invoke",
+                    "invoke" : outboundPolicy
                 }
             }
         }

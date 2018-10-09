@@ -86,6 +86,11 @@
                     "Id" : userId,
                     "Name" : core.ShortFullName,
                     "Type" : AWS_IAM_USER_RESOURCE_TYPE
+                },
+                "apikey" : {
+                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE, userId),
+                    "Name" : core.ShortFullName,
+                    "Type" : AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE
                 }
             },
             "Attributes" : {
