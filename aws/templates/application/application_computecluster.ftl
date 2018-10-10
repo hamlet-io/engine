@@ -320,7 +320,7 @@
                 processorProfile=processorProfile
                 minUpdateInstances=solution.AutoScaling.MinUpdateInstances
                 replaceOnUpdate=solution.AutoScaling.ReplaceCluster
-                waitOnSignal=solution.UseInitAsService
+                waitOnSignal=(solution.UseInitAsService != true)
                 startupTimeout=solution.AutoScaling.StartupTimeout
                 updatePauseTime=solution.AutoScaling.UpdatePauseTime
                 activityCooldown=solution.AutoScaling.ActivityCooldown

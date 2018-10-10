@@ -234,12 +234,12 @@
                 configSets=configSets
                 launchConfigId=ecsLaunchConfigId
                 processorProfile=processorProfile
-                minUpdateInstances=solution.AutoScale.MinUpdateInstances
-                replaceOnUpdate=solution.AutoScale.ReplaceOnUpdate
-                waitOnSignal=solution.AutoScale.WaitForSignal
-                startupTimeout=solution.AutoScale.StartupTimeout
-                updatePauseTime=solution.AutoScale.UpdatePauseTime
-                activityCooldown=solution.AutoScale.ActivityCooldown  
+                minUpdateInstances=solution.AutoScaling.MinUpdateInstances
+                replaceOnUpdate=solution.AutoScaling.ReplaceCluster
+                waitOnSignal=solution.AutoScaling.WaitForSignal
+                startupTimeout=solution.AutoScaling.StartupTimeout
+                updatePauseTime=solution.AutoScaling.UpdatePauseTime
+                activityCooldown=solution.AutoScaling.ActivityCooldown  
                 multiAZ=multiAZ
                 tags=ecsTags
             /]
@@ -256,7 +256,7 @@
                 routeTable=tier.Network.RouteTable
                 configSet=configSetName
                 environmentId=environmentId
-                enableCfnSignal=false
+                enableCfnSignal=solution.AutoScaling.WaitForSignal
             /]
         [/#if]
     [/#list]

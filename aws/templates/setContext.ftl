@@ -305,7 +305,7 @@
     {
         "Name" : "ActivityCooldown",
         "Type" : NUMBER_TYPE,
-        "Default" : 60
+        "Default" : 30
     }
 ]]
 
