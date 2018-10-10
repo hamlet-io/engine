@@ -63,7 +63,7 @@ function process_template() {
   export COMPOSITE_BLUEPRINT="${CACHE_DIR}/composite_blueprint.json"
   debug "BLUEPRINT=${blueprint_array[*]}"
   if [[ ! $(arrayIsEmpty "blueprint_array") ]]; then
-      addToArrayHead "blueprint_array" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_BASE_DIR}/data}"/masterData.json
+      addToArrayHead "blueprint_array" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"/masterData.json
       ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${blueprint_array[@]}"
   else
       echo "{}" > "${COMPOSITE_BLUEPRINT}"
@@ -205,15 +205,14 @@ function process_template() {
 
     case "$(fileExtension "${template_result_file}")" in
       md)
+        npm install -g remark-cli
+
         info "${output_file}"
-        if [[ ! -f "${output_file}" ]]; then
-          
+        if [[ ! -d "${output_dir}" ]]; then
           mkdir -p "${output_dir}"
-          # First generation - just format
-          cat "${template_result_file}"  > "${output_file}"
-        else
-          cat "${template_result_file}"  > "${output_file}"
         fi
+        
+        remark "${template_result_file}" -o "${output_file}"
 
         ;;
     esac

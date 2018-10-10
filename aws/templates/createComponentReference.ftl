@@ -200,7 +200,7 @@
     [#local line = "" ]
 
     [#if obj?is_hash]
-        [#local line += "{" ]]
+        [#local line += "\{" ]]
         [#local result += [ line ] ]
         [#local line = "" ]
     
@@ -214,17 +214,27 @@
                 [#local line = "" ]
                 [#local depth ++ ]
                 [#local result += getMDCodeBlock(value, depth ) ]
+            
             [#elseif value?is_sequence ]
+
                 [#local line += "[" ]
                 [#local result += [ line ]]
                 [#local line = "" ]
                 [#local depth ++ ]
                 [#local result += getMDCodeBlock(value, depth ) ]
-            [#elseif value?is_string ]
-                [#local line += ""?left_pad(depth, "\t") + "\"" + value + "\""]
+
+            [#elseif value?is_number || value?is_boolean ]
+                [#local line += "\"" + value?c + "\"" ]
+                [#local result += [ line ]]
+                [#local line = ""]
+
             [#else ]
-                [#local line += value?c ]
+                [#local line += "\"" + value + "\"" ]
+                [#local result += [ line ]]
+                [#local line = ""]
             [/#if]
+
+
             [#sep][#local line += "," ][/#sep]
             [#local result += [ line ]]
             [#local line = ""]
@@ -233,10 +243,14 @@
         [#local depth-- ]
     [#else]
         [#if obj?is_sequence]
+
+            [#local depth++ ]
             [#list obj as entry]
-                [#local result += getMDCodeJSON(entry)]
-                [#sep][#local result += [ "," ]][/#sep]
+                [#local line = ""?left_pad(depth, "\t") +  "\"" + entry  + "\""]
+                [#sep][#local line += [ "," ]][/#sep]
             [/#list]
+            [#local depth--]
+
         [#else]
             [#if obj?is_string]
                 [#local result = [ ""?left_pad(depth, "\t") + "\"" + obj + "\""]]
