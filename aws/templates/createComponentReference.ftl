@@ -195,12 +195,31 @@
     [#return result]
 [/#function]
 
-[#function getMDCodeJSON obj depth=0 ]
-    [#local result = []]
-    [#local line = "" ]
+[#function getJSONEndingToLine content isLast ]
+    [#if !isLast && content?size gt 1 ]
+        [#local line = content[(content?size - 1)]]
+        [#local line += "," ]
+        [#local content = content[0..(content?size - 2)] + [ line ]]
+    [/#if]
 
+    [#return content]
+[/#function]
+
+[#function getNonEmptyArray array ]
+    [#local result = [] ]
+    [#list array as item ]
+        [#if item?has_content ]
+            [#local result += [ item ] ]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#function getMDCodeJSON obj depth=0 ]
+    [#local result = [ "" ]]
+    [#local line = "" ]
     [#if obj?is_hash]
-        [#local line += "\{" ]]
+        [#local line += line?has_content?then("\{", ""?left_pad(depth, "\t") + "\{" ) ]]
         [#local result += [ line ] ]
         [#local line = "" ]
     
@@ -209,22 +228,34 @@
         [#list obj as key,value]
             [#local line = ""?left_pad(depth, "\t") +  "\"" + key  + "\" : " ]
             [#if value?is_hash ]
-                [#local line += "\{" ]
-                [#local result += [ line ]]
-                [#local line = "" ]
-                [#local depth ++ ]
-                [#local result += getMDCodeBlock(value, depth ) ]
+                [#if value?has_content ]
+                    [#local line += line?has_content?then("\{", ""?left_pad(depth, "\t") + "\{" )]
+                    [#local result += [ line ]]
+                    [#local line = "" ]
+                    [#local depth ++ ]
+                    [#local result += getMDCodeJSON(value, depth ) ]
+                [#else]
+                    [#local line += "\{}" ]
+                    [#local result += [ line ]]
+                    [#local line = ""]
+                [/#if]
             
             [#elseif value?is_sequence ]
-
-                [#local line += "[" ]
-                [#local result += [ line ]]
-                [#local line = "" ]
-                [#local depth ++ ]
-                [#local result += getMDCodeBlock(value, depth ) ]
+                [#if value?has_content ]
+                    [#local line += line?has_content?then("[", ""?left_pad(depth, "\t") + "[" )]
+                    [#local result += [ line ]]
+                    [#local line = "" ]
+                    [#local depth ++ ]
+                    [#local result += getMDCodeJSON(value, depth ) ]
+                    [#local depth -- ]
+                [#else]
+                    [#local line += "[]" ]
+                    [#local result += [ line ]]
+                    [#local line = ""]
+                [/#if]
 
             [#elseif value?is_number || value?is_boolean ]
-                [#local line += "\"" + value?c + "\"" ]
+                [#local line += value?c  ]
                 [#local result += [ line ]]
                 [#local line = ""]
 
@@ -233,35 +264,40 @@
                 [#local result += [ line ]]
                 [#local line = ""]
             [/#if]
-
-
-            [#sep][#local line += "," ][/#sep]
+            [#local result = getJSONEndingToLine(result, key?is_last)]
             [#local result += [ line ]]
             [#local line = ""]
         [/#list]
-        [#local result += [ "}"]]
-        [#local depth-- ]
+        [#local depth -- ]
+        [#local result += [ ""?left_pad(depth, "\t") + "}"]]
     [#else]
         [#if obj?is_sequence]
-
-            [#local depth++ ]
             [#list obj as entry]
-                [#local line = ""?left_pad(depth, "\t") +  "\"" + entry  + "\""]
-                [#sep][#local line += [ "," ]][/#sep]
+                [#local result += getMDCodeJSON(entry, depth )]
+                [#local result = getJSONEndingToLine(result, entry?is_last)]
             [/#list]
-            [#local depth--]
-
+            [#local depth -- ]
+            [#if depth > 0 ]
+                [#local result += [ ""?left_pad(depth, "\t") + "]" ]]
+            [/#if]
         [#else]
             [#if obj?is_string]
                 [#local result = [ ""?left_pad(depth, "\t") + "\"" + obj + "\""]]
-            [#else]
+            [#elseif obj?is_boolean || obj?is_number]
                 [#local result = [ ""?left_pad(depth, "\t") + obj?c ]]
             [/#if]
+            [#local depth -- ]
         [/#if]
     [/#if]
     [#return result ]
 [/#function]
 
+[#function getComponentExample component ]
+    [#local result = {}]
+    [#list component as attribute ]
+    
+    [/#list]
+[/#function]
 [#list componentConfiguration as type,component ]
 
     [#if component?is_hash ]
@@ -277,7 +313,9 @@
         [#assign attributeJson =
             getMDHeading("Component Format", 2) +
             getMDCodeBlock(
-                getMDCodeJSON(component.Attributes), 
+                getNonEmptyArray(
+                    getMDCodeJSON(component.Attributes)
+                ), 
                 "json" )]
 
         [#assign attributes =

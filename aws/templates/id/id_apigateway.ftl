@@ -159,7 +159,7 @@
                 }
             ]
         },
-        APIGATEWAY_USAGEPLAN_COMPONENT_TYPE : 
+        APIGATEWAY_USAGEPLAN_COMPONENT_TYPE : {
             "Properties" : [
                 {
                     "Type" : "Description",
@@ -181,6 +181,7 @@
                 "Children" : linkChildrenConfiguration
             }
         ]
+        }
     }]
 
 [#function getAPIGatewayState occurrence]
