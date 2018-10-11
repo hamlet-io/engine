@@ -6,7 +6,7 @@
             getPolicyStatement(
                 actions,
                 valueIfContent(
-                    getReference(id, ARN_ATTRIBUTE_TYPE),
+                    getArn(id),
                     id,
                     formatRegionalArn("sqs", "*")),
                 principals,

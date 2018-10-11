@@ -42,44 +42,71 @@
         ]
     }]
     
-[#function getSQSState occurrence]
+[#function getSQSState occurrence baseState]
     [#local core = occurrence.Core]
 
-    [#local id = formatResourceId(AWS_SQS_RESOURCE_TYPE, core.Id) ]
-    [#local name = core.FullName ]
-
-    [#local dlqId = formatDependentResourceId(AWS_SQS_RESOURCE_TYPE, id, "dlq") ]
-    [#local dlqName = formatName(name, "dlq")]
-
-    [#return
-        {
-            "Resources" : {
-                "queue" : {
-                    "Id" : id,
-                    "Name" : name,
-                    "Type" : AWS_SQS_RESOURCE_TYPE
+    [#if core.External!false]
+        [#local id = baseState.Attributes["ARN"]!"" ]
+        [#return
+            baseState +
+            valueIfContent(
+                {
+                    "Roles" : {
+                        "Inbound" : {},
+                        "Outbound" : {
+                            "all" : sqsAllPermission(id),
+                            "event" : sqsConsumePermission(id),
+                            "produce" : sqsProducePermission(id),
+                            "consume" : sqsConsumePermission(id)
+                        }
+                    }
                 },
-                "dlq" : {
-                    "Id" : dlqId,
-                    "Name" : dlqName,
-                    "Type" : AWS_SQS_RESOURCE_TYPE
+                id,
+                {
+                    "Roles" : {
+                        "Inbound" : {},
+                        "Outbound" : {}
+                    }
                 }
-            },
-            "Attributes" : {
-                "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
-                "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
-                "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
-                "REGION" : regionId
-            },
-            "Roles" : {
-                "Inbound" : {},
-                "Outbound" : {
-                    "all" : sqsAllPermission(id),
-                    "event" : sqsConsumePermission(id),
-                    "produce" : sqsProducePermission(id),
-                    "consume" : sqsConsumePermission(id)
+            )
+        ]
+    [#else]
+        [#local id = formatResourceId(AWS_SQS_RESOURCE_TYPE, core.Id) ]
+        [#local name = core.FullName ]
+    
+        [#local dlqId = formatDependentResourceId(AWS_SQS_RESOURCE_TYPE, id, "dlq") ]
+        [#local dlqName = formatName(name, "dlq")]
+    
+        [#return
+            {
+                "Resources" : {
+                    "queue" : {
+                        "Id" : id,
+                        "Name" : name,
+                        "Type" : AWS_SQS_RESOURCE_TYPE
+                    },
+                    "dlq" : {
+                        "Id" : dlqId,
+                        "Name" : dlqName,
+                        "Type" : AWS_SQS_RESOURCE_TYPE
+                    }
+                },
+                "Attributes" : {
+                    "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
+                    "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
+                    "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
+                    "REGION" : regionId
+                },
+                "Roles" : {
+                    "Inbound" : {},
+                    "Outbound" : {
+                        "all" : sqsAllPermission(id),
+                        "event" : sqsConsumePermission(id),
+                        "produce" : sqsProducePermission(id),
+                        "consume" : sqsConsumePermission(id)
+                    }
                 }
             }
-        }
-    ]
+        ]
+    [/#if]
 [/#function]

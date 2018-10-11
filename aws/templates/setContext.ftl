@@ -82,6 +82,10 @@
             {
                 "Name" : "Direction",
                 "Type" : STRING_TYPE
+            },
+            {
+                "Name" : "Type",
+                "Type" : STRING_TYPE
             }
         ]
 ]
