@@ -767,6 +767,19 @@ behaviour.
             occurrence.Configuration.Environment.General +
             occurrence.Configuration.Environment.Sensitive ]
 
+        [#if (core.External!false) || ((core.Type!"") == "external") ]
+            [#local externalAttributes = {} ]
+            [#list environment as name,value]
+                [#local prefix = core.Component.Name?upper_case + "_"]
+                [#if name?starts_with(prefix)]
+                    [#local externalAttributes += { name?remove_beginning(prefix) : value } ]
+                [/#if]
+            [/#list]
+            [#if externalAttributes?has_content]
+                [#local result += { "Attributes" : externalAttributes } ]
+            [/#if]
+        [/#if]
+
         [#switch core.Type!""]
             [#case LB_COMPONENT_TYPE]
                 [#local result = getLBState(occurrence)]
@@ -829,25 +842,14 @@ behaviour.
                 [#break]
 
             [#case "external"]
-                [#local result =
+                [#local result +=
                     {
-                        "Resources" : {},
-                        "Attributes" : {},
                         "Roles" : {
                             "Inbound" : {},
                             "Outbound" : {}
                         }
                     }
                 ]
-                [#list environment as name,value]
-                    [#local prefix = core.Component.Name?upper_case + "_"]
-                    [#if name?starts_with(prefix)]
-                        [#local result +=
-                        {
-                            "Attributes" : result.Attributes + { name?remove_beginning(prefix) : value }
-                        } ]
-                    [/#if]
-                [/#list]
                 [#break]
 
             [#case "function"]
@@ -882,8 +884,8 @@ behaviour.
                 [#local result = getSPAState(occurrence)]
                 [#break]
 
-            [#case "sqs"]
-                [#local result = getSQSState(occurrence)]
+            [#case SQS_COMPONENT_TYPE]
+                [#local result = getSQSState(occurrence, result)]
                 [#break]
 
             [#case "task"]
@@ -1565,7 +1567,8 @@ behaviour.
         [#local targetOccurrence =
             {
                 "Core" : {
-                    "Type" : "external",
+                    "External" : true,
+                    "Type" : link.Type!"external",
                     "Tier" : {
                         "Id" : link.Tier,
                         "Name" : link.Tier
@@ -1712,7 +1715,9 @@ behaviour.
 [#function getLinkTargetsOutboundRoles LinkTargets ]
     [#local roles = [] ]
     [#list LinkTargets?values as linkTarget]
-        [#if !isOneResourceDeployed((linkTarget.State.Resources)!{})]
+        [#if
+            (!isOneResourceDeployed((linkTarget.State.Resources)!{})) &&
+            (!(linkTarget.Core.External!false)) ]
             [#continue]
         [/#if]
         [#local role = (linkTarget.State.Roles.Outbound[linkTarget.Role])!{} ]
