@@ -20,24 +20,8 @@
                 "Default" : false
             },
             {
-                "Name" : "MinUpdateInstances",
-                "Type" : NUMBER_TYPE,
-                "Default" : 1
-            }
-            {
-                "Name" : "ReplaceOnUpdate",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "UpdatePauseTime",
-                "Type" : STRING_TYPE,
-                "Default" : "5M"
-            },
-            {
-                "Name" : "StartupTimeout",
-                "Type" : STRING_TYPE,
-                "Default" : "15M"
+                "Name" : "AutoScaling",
+                "Children" : autoScalingChildConfiguration
             },
             {
                 "Name" : "DockerHost",
@@ -95,12 +79,21 @@
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 },
                 "launchConfig" : {
-                    "Id" : formatResourceId(
+                    "Id" : solution.AutoScaling.AlwaysReplaceOnUpdate?then(
+                            formatResourceId(
                                 AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE,
                                 core.Id,
                                 [#-- changing the launch config logical Id forces a replacement of the autoscale group instances --]
                                 [#-- we only want this to happen when the build reference changes --]
-                                replaceAlphaNumericOnly(buildReference)),
+                                replaceAlphaNumericOnly(buildReference,
+                                runId)),
+                            formatResourceId(
+                                AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE,
+                                core.Id,
+                                [#-- changing the launch config logical Id forces a replacement of the autoscale group instances --]
+                                [#-- we only want this to happen when the build reference changes --]
+                                replaceAlphaNumericOnly(buildReference))
+                    ),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
                 } 
             },

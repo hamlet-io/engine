@@ -26,6 +26,16 @@
 
         [#assign logFileProfile = getLogFileProfile(tier, component, "ComputeCluster")]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ComputeCluster")]
+        [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
+        [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
+
+        [#assign computeAutoScaleGroupTags =                     
+                getCfTemplateCoreTags(
+                        computeClusterAutoScaleGroupName,
+                        tier,
+                        component,
+                        "",
+                        true)]
 
         [#assign targetGroupPermission = false ]
         [#assign targetGroups = [] ]
@@ -288,23 +298,6 @@
                         groupId=computeClusterSecurityGroupId /]
             [/#list]
 
-            [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
-
-            [#assign maxSize = processorProfile.MaxPerZone]
-            [#if multiAZ]
-                [#assign maxSize = maxSize * zones?size]
-            [/#if]
-            [#if maxSize <= solution.MinUpdateInstances ]
-                [#assign maxSize = maxSize + solution.MinUpdateInstances ]
-            [/#if]
-
-            [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
-
-            [#assign desiredCapacity = multiAZ?then(
-                processorProfile.DesiredPerZone * zones?size,
-                processorProfile.DesiredPerZone
-            )]
-
             [@cfResource
                 mode=listMode
                 id=computeClusterInstanceProfileId
@@ -317,77 +310,24 @@
                 outputs={}
             /]
 
-            [@cfResource
+            [@createEc2AutoScaleGroup 
                 mode=listMode
                 id=computeClusterAutoScaleGroupId
-                type="AWS::AutoScaling::AutoScalingGroup"
-                metadata=getInitConfig(configSetName, configSets )
-                properties=
-                    {
-                        "Cooldown" : "30",
-                        "LaunchConfigurationName": getReference(computeClusterLaunchConfigId),
-                        "MetricsCollection" : [
-                            {
-                                "Granularity" : "1Minute"
-                            }
-                        ]
-                    } +
-                    multiAZ?then(
-                        {
-                            "MinSize": processorProfile.MinPerZone * zones?size,
-                            "MaxSize": maxSize,
-                            "DesiredCapacity": desiredCapacity,
-                            "VPCZoneIdentifier": getSubnets(tier)
-                        },
-                        {
-                            "MinSize": processorProfile.MinPerZone,
-                            "MaxSize": maxSize,
-                            "DesiredCapacity": desiredCapacity,
-                            "VPCZoneIdentifier" : getSubnets(tier)[0..0]
-                        }
-                    ) +
-                    attributeIfContent(
-                        "LoadBalancerNames",
-                        loadBalancers,
-                        loadBalancers
-                    ) +
-                    attributeIfContent(
-                        "TargetGroupARNs",
-                        targetGroups,
-                        targetGroups
-                    )
-                tags=
-                    getCfTemplateCoreTags(
-                        computeClusterAutoScaleGroupName,
-                        tier,
-                        component,
-                        "",
-                        true)
-                outputs={}
-                updatePolicy=solution.ReplaceOnUpdate?then(
-                    {
-                        "AutoScalingReplacingUpdate" : {
-                            "WillReplace" : true
-                        }
-                    },
-                    {
-                        "AutoScalingRollingUpdate" : {
-                            "WaitOnResourceSignals" : (solution.UseInitAsService != true),
-                            "MinInstancesInService" : solution.MinUpdateInstances,
-                            "PauseTime" : "PT" + solution.UpdatePauseTime
-                        }
-                    }
-                )
-                creationPolicy=
-                    (solution.UseInitAsService != true )?then(
-                        {
-                            "ResourceSignal" : {
-                                "Count" : desiredCapacity,
-                                "Timeout" : "PT" + solution.StartupTimeout
-                            }
-                        },
-                        {}
-                    )
+                tier=tier
+                configSetName=configSetName
+                configSets=configSets
+                launchConfigId=computeClusterLaunchConfigId
+                processorProfile=processorProfile
+                minUpdateInstances=solution.AutoScaling.MinUpdateInstances
+                replaceOnUpdate=solution.AutoScaling.ReplaceCluster
+                waitOnSignal=(solution.UseInitAsService != true)
+                startupTimeout=solution.AutoScaling.StartupTimeout
+                updatePauseTime=solution.AutoScaling.UpdatePauseTime
+                activityCooldown=solution.AutoScaling.ActivityCooldown
+                multiAZ=multiAZ
+                targetGroups=targetGroups
+                loadBalancers=loadBalancers
+                tags=computeAutoScaleGroupTags
             /]
 
             [#assign imageId = dockerHost?then(

@@ -123,6 +123,10 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Name" : "AutoScaling",
+                    "Children" : autoScalingChildConfiguration
+                },
+                {
                     "Name" : "DockerUsers",
                     "Subobjects" : true,
                     "Children" : [
@@ -293,7 +297,10 @@
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
                 "launchConfig" : {
-                    "Id" : formatEC2LaunchConfigId(core.Tier, core.Component),
+                    "Id" : solution.AutoScaling.AlwaysReplaceOnUpdate?then(
+                            formatEC2LaunchConfigId(core.Tier, core.Component, runId),
+                            formatEC2LaunchConfigId(core.Tier, core.Component)
+                    ),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
                 },
                 "lg" : {
