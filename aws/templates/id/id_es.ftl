@@ -34,43 +34,43 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Authentication",
+                    "Names" : "Authentication",
                     "Type" : STRING_TYPE,
                     "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
                     "Default" : "IP"
                 },
                 {
-                    "Name" : "IPAddressGroups",
+                    "Names" : "IPAddressGroups",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
-                    "Name" : "AdvancedOptions",
+                    "Names" : "AdvancedOptions",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
                 {
-                    "Name" : "Version",
+                    "Names" : "Version",
                     "Type" : STRING_TYPE,
                     "Default" : "2.3"
                 },
                 {
-                    "Name" : "Encrypted",
+                    "Names" : "Encrypted",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "Snapshot",
+                    "Names" : "Snapshot",
                     "Children" : [
                         {
-                            "Name" : "Hour",
+                            "Names" : "Hour",
                             "Type" : STRING_TYPE,
                             "Default" : ""
                         }
                     ]
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 }

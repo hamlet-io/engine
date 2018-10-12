@@ -25,33 +25,33 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "DelaySeconds",
+                    "Names" : "DelaySeconds",
                     "Type" : NUMBER_TYPE
                 },
                 {
-                    "Name" : "MaximumMessageSize",
+                    "Names" : "MaximumMessageSize",
                     "Type" : NUMBER_TYPE
                 },
                 {
-                    "Name" : "MessageRetentionPeriod",
+                    "Names" : "MessageRetentionPeriod",
                     "Type" : NUMBER_TYPE
                 },
                 {
-                    "Name" : "ReceiveMessageWaitTimeSeconds",
+                    "Names" : "ReceiveMessageWaitTimeSeconds",
                     "Type" : NUMBER_TYPE
                 },
                 {
-                    "Name" : "DeadLetterQueue",
+                    "Names" : "DeadLetterQueue",
                     "Children" : [
                         {
-                            "Name" : "MaxReceives",
+                            "Names" : "MaxReceives",
                             "Type" : NUMBER_TYPE,
                             "Default" : 0
                         }
                     ]
                 },
                 {
-                    "Name" : "VisibilityTimeout",
+                    "Names" : "VisibilityTimeout",
                     "Type" : NUMBER_TYPE
                 }
             ]

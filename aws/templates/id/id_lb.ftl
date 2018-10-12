@@ -39,33 +39,33 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Logs",
+                    "Names" : "Logs",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "Engine",
+                    "Names" : "Engine",
                     "Type" : STRING_TYPE,
                     "Values" : ["application", "network", "classic"],
                     "Default" : "application"
                 },
                 {
-                    "Name" : "Profiles",
+                    "Names" : "Profiles",
                     "Children" : [
                         {
-                            "Name" : "SecurityProfile",
+                            "Names" : "SecurityProfile",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }
                     ]
                 },
                 {
-                    "Name" : "IdleTimeout", 
+                    "Names" : "IdleTimeout", 
                     "Type" : NUMBER_TYPE,
                     "Default" : 60
                 }
                 {
-                    "Name" : "HealthCheckPort",
+                    "Names" : "HealthCheckPort",
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 }
@@ -95,131 +95,131 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "IPAddressGroups",
+                    "Names" : "IPAddressGroups",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
                 {
-                    "Name" : "Certificate",
+                    "Names" : "Certificate",
                     "Type" : OBJECT_TYPE,
                     "Default" : {}
                 },
                 {
-                    "Name" : "HostFilter",
+                    "Names" : "HostFilter",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "Mapping",
+                    "Names" : "Mapping",
                     "Type" : STRING_TYPE
                 },
                 {
-                    "Name" : "Path",
+                    "Names" : "Path",
                     "Type" : STRING_TYPE,
                     "Default" : "default"
                 },
                 {
-                    "Name" : "Priority",
+                    "Names" : "Priority",
                     "Type" : NUMBER_TYPE,
                     "Default" : 100
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "Authentication",
+                    "Names" : "Authentication",
                     "Children" : [
                         {
-                            "Name" : "SessionCookieName",
+                            "Names" : "SessionCookieName",
                             "Type" : STRING_TYPE,
                             "Default" : "AWSELBAuthSessionCookie"
                         },
                         {
-                            "Name" : "SessionTimeout",
+                            "Names" : "SessionTimeout",
                             "Type" : NUMBER_TYPE,
                             "Default" : 604800
                         }
                     ]
                 },
                 {
-                    "Name" : "Redirect",
+                    "Names" : "Redirect",
                     "Children" : [
                         {
-                            "Name" : "Protocol",
+                            "Names" : "Protocol",
                             "Type" : STRING_TYPE,
                             "Values" : ["HTTPS", "#\{protocol}" ],
                             "Default" : "HTTPS"
                         },
                         {
-                            "Name" : "Port",
+                            "Names" : "Port",
                             "Type" : STRING_TYPE,
                             "Default" : "443"
                         },
                         {
-                            "Name" : "Host",
+                            "Names" : "Host",
                             "Type" : STRING_TYPE,
                             "Default" : "#\{host}"
                         },
                         {
-                            "Name" : "Path",
+                            "Names" : "Path",
                             "Type" : STRING_TYPE,
                             "Default" : "/#\{path}"
                         },
                         {
-                            "Name" : "Query",
+                            "Names" : "Query",
                             "Type" : STRING_TYPE,
                             "Default" : "#\{query}"
                         },
                         {
-                            "Name" : "Permanent",
+                            "Names" : "Permanent",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
                     ]
                 },
                 {
-                    "Name" : "Fixed",
+                    "Names" : "Fixed",
                     "Children" : [
                         {
-                            "Name" : "Message",
+                            "Names" : "Message",
                             "Type" : STRING_TYPE,
                             "Default" : "This application is currently unavailable. Please try again later."
                         },
                         {
-                            "Name" : "ContentType",
+                            "Names" : "ContentType",
                             "Type" : STRING_TYPE,
                             "Default" : "text/plain"
                         },
                         {
-                            "Name" : "StatusCode",
+                            "Names" : "StatusCode",
                             "Type" : STRING_TYPE,
                             "Default" : "404"
                         }
                     ]
                 },
                 {
-                    "Name" : "Forward",
+                    "Names" : "Forward",
                     "Children" : [
                         {
-                            "Name" : "TargetType",
+                            "Names" : "TargetType",
                             "Type" : STRING_TYPE,
                             "Values" : ["instance", "ip"],
                             "Default" : "instance"
                         },
                         {
-                            "Name" : "SlowStartTime",
+                            "Names" : "SlowStartTime",
                             "Type" : NUMBER_TYPE,
                             "Default" : -1
                         },
                         {
-                            "Name" : "StickinessTime",
+                            "Names" : "StickinessTime",
                             "Type" : NUMBER_TYPE,
                             "Default" : -1
                         },
                         {
-                            "Name" : "DeregistrationTimeout",
+                            "Names" : "DeregistrationTimeout",
                             "Type" : NUMBER_TYPE,
                             "Default" : 30
                         }

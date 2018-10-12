@@ -22,92 +22,92 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : ["Fragment", "Container"],
+                    "Names" : ["Fragment", "Container"],
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Type" : OBJECT_TYPE,
                     "Default" : {}
                 },
                 {
-                    "Name" : "WAF",
+                    "Names" : "WAF",
                     "Children" : wafChildConfiguration
                 },
                 {
-                    "Name" : "CloudFront",
+                    "Names" : "CloudFront",
                     "Children" : [
                         {
-                            "Name" : "AssumeSNI",
+                            "Names" : "AssumeSNI",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "EnableLogging",
+                            "Names" : "EnableLogging",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "CountryGroups",
+                            "Names" : "CountryGroups",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         },
                         {
-                            "Name" : "ErrorPage",
+                            "Names" : "ErrorPage",
                             "Type" : STRING_TYPE,
                             "Default" : "/index.html"
                         },
                         {
-                            "Name" : "DeniedPage",
+                            "Names" : "DeniedPage",
                             "Type" : STRING_TYPE,
                             "Default" : ""
                         },
                         {
-                            "Name" : "NotFoundPage",
+                            "Names" : "NotFoundPage",
                             "Type" : STRING_TYPE,
                             "Default" : ""
                         },
                         {
-                            "Name" : "CachingTTL",
+                            "Names" : "CachingTTL",
                             "Children" : [
                                 {
-                                    "Name" : "Default",
+                                    "Names" : "Default",
                                     "Type" : NUMBER_TYPE,
                                     "Default" : 600
                                 },
                                 {
-                                    "Name" : "Maximum",
+                                    "Names" : "Maximum",
                                     "Type" : NUMBER_TYPE,
                                     "Default" : 31536000
                                 },
                                 {
-                                    "Name" : "Minimum",
+                                    "Names" : "Minimum",
                                     "Type" : NUMBER_TYPE,
                                     "Default" : 0
                                 }
                             ]
                         },
                         {
-                            "Name" : "Compress",
+                            "Names" : "Compress",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
                     ]
                 },
                 {
-                    "Name" : "Certificate",
+                    "Names" : "Certificate",
                     "Children" : [
                         {
-                            "Name" : "*"
+                            "Names" : "*"
                         }
                     ]
                 },
                 {
-                    "Name" : "Profiles",
+                    "Names" : "Profiles",
                     "Children" : [
                         {
-                            "Name" : "SecurityProfile",
+                            "Names" : "SecurityProfile",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }

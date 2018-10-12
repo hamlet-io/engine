@@ -27,23 +27,23 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Engine",
+                    "Names" : "Engine",
                     "Type" : STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
-                    "Name" : "EngineVersion",
+                    "Names" : "EngineVersion",
                     "Type" : STRING_TYPE
                 },
                 {
-                    "Name" : "Port",
+                    "Names" : "Port",
                     "Type" : STRING_TYPE
                 },
                 {
-                    "Name" : "Backup",
+                    "Names" : "Backup",
                     "Children" : [
                         {
-                            "Name" : "RetentionPeriod",
+                            "Names" : "RetentionPeriod",
                             "Type" : STRING_TYPE,
                             "Default" : ""
                         }

@@ -54,104 +54,104 @@
                     "Default" : ""
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Type" : OBJECT_TYPE,
                     "Default" : {}
                 },
                 {
-                    "Name" : "WAF",
+                    "Names" : "WAF",
                     "Children" : wafChildConfiguration
                 },
                 {
-                    "Name" : "EndpointType",
+                    "Names" : "EndpointType",
                     "Type" : STRING_TYPE,
                     "Values" : ["EDGE", "REGIONAL"],
                     "Default" : "EDGE"
                 },
                 {
-                    "Name" : "IPAddressGroups",
+                    "Names" : "IPAddressGroups",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
                 {
-                    "Name" : "Authentication",
+                    "Names" : "Authentication",
                     "Type" : STRING_TYPE,
                     "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
                     "Default" : "IP"
                 },
                 {
-                    "Name" : "CloudFront",
+                    "Names" : "CloudFront",
                     "Children" : [
                         {
-                            "Name" : "AssumeSNI",
+                            "Names" : "AssumeSNI",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "EnableLogging",
+                            "Names" : "EnableLogging",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "CountryGroups",
+                            "Names" : "CountryGroups",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         },
                         {
-                            "Name" : "CustomHeaders",
+                            "Names" : "CustomHeaders",
                             "Type" : ARRAY_OF_ANY_TYPE,
                             "Default" : []
                         },
                         {
-                            "Name" : "Mapping",
+                            "Names" : "Mapping",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : false
                         },
                         {
-                            "Name" : "Compress",
+                            "Names" : "Compress",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
                     ]
                 },
                 {
-                    "Name" : "Certificate",
+                    "Names" : "Certificate",
                     "Children" : [
                         {
-                            "Name" : "*"
+                            "Names" : "*"
                         }
                     ]
                 },
                 {
-                    "Name" : "Publish",
+                    "Names" : "Publish",
                     "Children" : [
                         {
-                            "Name" : "DnsNamePrefix",
+                            "Names" : "DnsNamePrefix",
                             "Type" : STRING_TYPE,
                             "Default" : "docs"
                         },
                         {
-                            "Name" : "IPAddressGroups",
+                            "Names" : "IPAddressGroups",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         }
                     ]
                 },
                 {
-                    "Name" : "Mapping",
+                    "Names" : "Mapping",
                     "Children" : [
                         {
-                            "Name" : "IncludeStage",
+                            "Names" : "IncludeStage",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
                     ]
                 },
                 {
-                    "Name" : "Profiles",
+                    "Names" : "Profiles",
                     "Children" : [
                         {
-                            "Name" : "SecurityProfile",
+                            "Names" : "SecurityProfile",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }
@@ -176,7 +176,7 @@
             ],
             "Attributes" : [
             {
-                "Name" : "Links",
+                "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
             }

@@ -74,114 +74,114 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : ["Fragment", "Container"],
+                    "Names" : ["Fragment", "Container"],
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 },
                 {
-                    "Name" : "Handler",
+                    "Names" : "Handler",
                     "Type" : STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "LogMetrics",
+                    "Names" : "LogMetrics",
                     "Subobjects" : true,
                     "Children" : logMetricChildrenConfiguration
                 },
                 {
-                    "Name" : "LogWatchers",
+                    "Names" : "LogWatchers",
                     "Subobjects" : true,
                     "Children" : logWatcherChildrenConfiguration
                 },
                 {
-                    "Name" : "Alerts",
+                    "Names" : "Alerts",
                     "Subobjects" : true,
                     "Children" : alertChildrenConfiguration
                 },
                 {
-                    "Name" : ["Memory", "MemorySize"],
+                    "Names" : ["Memory", "MemorySize"],
                     "Type" : NUMBER_TYPE,
                     "Default" : 0
                 },
                 {
-                    "Name" : "RunTime",
+                    "Names" : "RunTime",
                     "Type" : STRING_TYPE,
                     "Values" : ["nodejs", "nodejs4.3", "nodejs6.10", "nodejs8.10", "java8", "python2.7", "python3.6", "dotnetcore1.0", "dotnetcore2.0", "dotnetcore2.1", "nodejs4.3-edge", "go1.x"],
                     "Mandatory" : true
                 },
                 {
-                    "Name" : "Schedules",
+                    "Names" : "Schedules",
                     "Subobjects" : true,
                     "Children" : [
                         {
-                            "Name" : "Expression",
+                            "Names" : "Expression",
                             "Type" : STRING_TYPE,
                             "Default" : "rate(6 minutes)"
                         },
                         {
-                            "Name" : "InputPath",
+                            "Names" : "InputPath",
                             "Type" : STRING_TYPE,
                             "Default" : "/healthcheck"
                         },
                         {
-                            "Name" : "Input",
+                            "Names" : "Input",
                             "Type" : OBJECT_TYPE,
                             "Default" : {}
                         }
                     ]
                 },
                 {
-                    "Name" : "Timeout",
+                    "Names" : "Timeout",
                     "Type" : NUMBER_TYPE,
                     "Default" : 0
                 },
                 {
-                    "Name" : "VPCAccess",
+                    "Names" : "VPCAccess",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
-                    "Name" : "UseSegmentKey",
+                    "Names" : "UseSegmentKey",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "Permissions",
+                    "Names" : "Permissions",
                     "Children" : [
                         {
-                            "Name" : "Decrypt",
+                            "Names" : "Decrypt",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "AsFile",
+                            "Names" : "AsFile",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "AppData",
+                            "Names" : "AppData",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "AppPublic",
+                            "Names" : "AppPublic",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
                     ]
                 },
                 {
-                    "Name" : "PredefineLogGroup",
+                    "Names" : "PredefineLogGroup",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "Environment",
+                    "Names" : "Environment",
                     "Children" : settingsChildConfiguration
                 }
             ]

@@ -90,77 +90,77 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Lifecycle",
+                    "Names" : "Lifecycle",
                     "Children" : [
                         {
-                            "Name" : "Expiration",
+                            "Names" : "Expiration",
                             "Types" : [STRING_TYPE, NUMBER_TYPE],
                             "Description" : "Provide either a date or a number of days"
                         },
                         {
-                            "Name" : "Offline",
+                            "Names" : "Offline",
                             "Types" : [STRING_TYPE, NUMBER_TYPE],
                             "Description" : "Provide either a date or a number of days"
                         },
                         {
-                            "Name" : "Versioning",
+                            "Names" : "Versioning",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : false
                         }
                     ]
                 },
                 { 
-                    "Name" : "Website",
+                    "Names" : "Website",
                     "Children" : [
                         {
-                            "Name": "Index",
+                            "Names": "Index",
                             "Type" : STRING_TYPE,
                             "Default": "index.html"
                         },
                         {
-                            "Name": "Error",
+                            "Names": "Error",
                             "Type" : STRING_TYPE,
                             "Default": ""
                         }
                     ]
                 },
                 {
-                    "Name" : "PublicAccess",
+                    "Names" : "PublicAccess",
                     "Children" : [
                         {
-                            "Name" : "Enabled",
+                            "Names" : "Enabled",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : false
                         },
                         {
-                            "Name" : "Permissions",
+                            "Names" : "Permissions",
                             "Type" : STRING_TYPE,
                             "Values" : ["ro", "wo", "rw"],
                             "Default" : "ro"
                         },
                         {
-                            "Name" : "IPAddressGroups",
+                            "Names" : "IPAddressGroups",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : [ "_localnet" ]
                         },
                         {
-                            "Name" : "Prefix",
+                            "Names" : "Prefix",
                             "Type" : STRING_TYPE,
                             "Default" : ""
                         }
                     ]
                 },
                 {
-                    "Name" : "Style",
+                    "Names" : "Style",
                     "Type" : STRING_TYPE,
                     "Description" : "TODO(mfl): Think this can be removed"
                 },
                 {
-                    "Name" : "Notifications",
+                    "Names" : "Notifications",
                     "Type" : OBJECT_TYPE
                 },
                 {
-                    "Name" : "CORSBehaviours",
+                    "Names" : "CORSBehaviours",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }

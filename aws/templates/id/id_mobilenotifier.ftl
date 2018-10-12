@@ -25,20 +25,20 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "SuccessSampleRate",
+                    "Names" : "SuccessSampleRate",
                     "Type" : STRING_TYPE,
                     "Default" : "100"
                 },
                 {
-                    "Name" : "Credentials",
+                    "Names" : "Credentials",
                     "Children" : [
                         {
-                            "Name" : "EncryptionScheme",
+                            "Names" : "EncryptionScheme",
                             "Type" : STRING_TYPE,
                             "Values" : ["base64"],
                             "Default" : "base64"
@@ -81,30 +81,30 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Engine",
+                    "Names" : "Engine",
                     "Type" : STRING_TYPE
                 },
                 {
-                    "Name" : "SuccessSampleRate",
+                    "Names" : "SuccessSampleRate",
                     "Type" : STRING_TYPE
                 },
                 {
-                    "Name" : "Credentials",
+                    "Names" : "Credentials",
                     "Children" : [
                         {
-                            "Name" : "EncryptionScheme",
+                            "Names" : "EncryptionScheme",
                             "Type" : STRING_TYPE,
                             "Values" : ["base64"]
                         }
                     ]
                 },
                 { 
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "LogMetrics",
+                    "Names" : "LogMetrics",
                     "Subobjects" : true,
                     "Children" : logMetricChildrenConfiguration
                 }

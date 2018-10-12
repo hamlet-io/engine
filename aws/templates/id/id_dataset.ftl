@@ -22,18 +22,18 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Engine",
+                    "Names" : "Engine",
                     "Type" : STRING_TYPE,
                     "Values" : ["s3", "rdsSnapshot"],
                     "Mandatory" : true
-                }
+                },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "Prefix",
+                    "Names" : "Prefix",
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 }

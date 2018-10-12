@@ -112,7 +112,7 @@
     [#if (attribute.Children![])?has_content ]
     
         [#local result = getMDList(
-                            "**" + (attribute.Name!"Unkown Name") + "**", 
+                            "**" + (attribute.Names!"COTException: Attribute without Name") + "**", 
                             false,
                             headerLevel)]
         [#local headerLevel++ ]
@@ -127,7 +127,6 @@
             [#local name = [] ]
             [#local details = []]
             [#switch key ]
-                [#case "Name" ]
                 [#case "Names" ]    
                     [#if value?is_sequence  ]
                         [#if value?size > 1 ] 
@@ -217,14 +216,17 @@
 
 [#function getMDCodeJSON obj depth=0 ]
     [#local result = [ "" ]]
+    [#if depth == 0 ]
+        [#if obj?is_hash ]
+            [#local result += [ "\{" ]]
+        [#else]
+            [#local result += [ "[" ]]
+        [/#if]
+        [#local depth++ ]
+    [/#if]
+
     [#local line = "" ]
     [#if obj?is_hash]
-        [#local line += line?has_content?then("\{", ""?left_pad(depth, "\t") + "\{" ) ]]
-        [#local result += [ line ] ]
-        [#local line = "" ]
-    
-        [#local depth++ ]
-    
         [#list obj as key,value]
             [#local line = ""?left_pad(depth, "\t") +  "\"" + key  + "\" : " ]
             [#if value?is_hash ]
@@ -234,6 +236,7 @@
                     [#local line = "" ]
                     [#local depth ++ ]
                     [#local result += getMDCodeJSON(value, depth ) ]
+                    [#local depth -- ]
                 [#else]
                     [#local line += "\{}" ]
                     [#local result += [ line ]]
@@ -292,12 +295,56 @@
     [#return result ]
 [/#function]
 
-[#function getComponentExample component ]
+[#function getComponentExample componentAttributes ]
     [#local result = {}]
-    [#list component as attribute ]
-    
+    [#list componentAttributes as attribute ]
+        [#if attribute?is_hash ]
+            [#local attributeName = attribute.Names!"COTException: Attribute does not have a name" ]
+            [#local name = attributeName?is_sequence?then(
+                                attributeName[0],
+                                attributeName
+            )]
+
+            [#if attribute.Default?has_content ]
+                [#local value = attribute.Default ]
+            [#elseif attribute.Children?has_content && attribute.Subobjects?has_content ]
+                [#local value = { "example" : getComponentExample(attribute.Children) }]
+
+            [#elseif attribute.Children?has_content && !attribute.Subobjects?has_content ]
+                [#local value = getComponentExample(attribute.Children) ]
+            [#else]
+                [#local attributeType = attribute.Type!UNKNOWN_TYPE ]
+                [#local value = "<" +  attributeType?is_sequence?then(
+                                        attributeType?join(" of "),
+                                        attributeType ) + ">" ] 
+            [/#if]
+            [#local result += {
+                name : value
+            }]
+        [#else]
+            [#local result += { 
+                attribute : UNKNOWN_TYPE
+            }]
+        [/#if]
     [/#list]
+    
+    [#return result]
 [/#function]
+
+[#function getComponentSubExample componentSubComponents ]
+    [#local result = {} ]
+    [#list componentSubComponents as subComponent ]
+
+        [#local result += {
+            subComponent.Component : { 
+                "example" : "< instance of " + subComponent.Type + ">"
+            }
+        }]
+        
+    [/#list]
+    [#return result]
+[/#function]
+
 [#list componentConfiguration as type,component ]
 
     [#if component?is_hash ]
@@ -314,7 +361,10 @@
             getMDHeading("Component Format", 2) +
             getMDCodeBlock(
                 getNonEmptyArray(
-                    getMDCodeJSON(component.Attributes)
+                    getMDCodeJSON( 
+                        getComponentExample(componentAttributes) +
+                        getComponentSubExample(componentSubComponents)
+                    )
                 ), 
                 "json" )]
 
@@ -390,6 +440,6 @@
 [#if line?is_string]
 ${line}
 [#else]
-getJSON(line)
+${getJSON(line)}
 [/#if]
 [/#list]

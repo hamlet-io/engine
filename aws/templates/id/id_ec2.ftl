@@ -96,36 +96,36 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "FixedIP",
+                    "Names" : "FixedIP",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "DockerHost",
+                    "Names" : "DockerHost",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : ["Fragment", "Container"],
+                    "Names" : ["Fragment", "Container"],
                     "Type" : "string",
                     "Default" : ""
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "Ports",
+                    "Names" : "Ports",
                     "Subobjects" : true,
                     "Children" : [
                         {
-                            "Name" : "IPAddressGroups",
+                            "Names" : "IPAddressGroups",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         },
                         {
-                            "Name" : "LB",
+                            "Names" : "LB",
                             "Children" : lbChildConfiguration
                         }
                     ]

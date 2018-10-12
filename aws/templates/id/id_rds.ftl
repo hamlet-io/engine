@@ -43,42 +43,42 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Engine",
+                    "Names" : "Engine",
                     "Mandatory" : true
                 },
                 {
-                    "Name" : "EngineVersion",
+                    "Names" : "EngineVersion",
                     "Type" : STRING_TYPE
                 },
                 {
-                    "Name" : "Port",
+                    "Names" : "Port",
                     "Type" : STRING_TYPE
                 },
                 {
-                    "Name" : "Encrypted",
+                    "Names" : "Encrypted",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "GenerateCredentials",
+                    "Names" : "GenerateCredentials",
                     "Children" : [
                         {
-                            "Name" : "Enabled",
+                            "Names" : "Enabled",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : false
                         },
                         {
-                            "Name" : "MasterUserName",
+                            "Names" : "MasterUserName",
                             "Type" : STRING_TYPE,
                             "Default" : "root"
                         },
                         {
-                            "Name" : "CharacterLength",
+                            "Names" : "CharacterLength",
                             "Type" : NUMBER_TYPE,
                             "Default" : 20
                         },
                         {
-                            "Name" : "EncryptionScheme",
+                            "Names" : "EncryptionScheme",
                             "Type" : STRING_TYPE,
                             "Values" : ["base64"],
                             "Default" : ""
@@ -86,35 +86,35 @@
                     ]
                 },
                 {
-                    "Name" : "Size",
+                    "Names" : "Size",
                     "Type" : NUMBER_TYPE,
                     "Default" : 20
                 },
                 {
-                    "Name" : "Backup",
+                    "Names" : "Backup",
                     "Children" : [
                         {
-                            "Name" : "RetentionPeriod",
+                            "Names" : "RetentionPeriod",
                             "Type" : NUMBER_TYPE,
                             "Default" : 35
                         },
                         {
-                            "Name" : "SnapshotOnDeploy",
+                            "Names" : "SnapshotOnDeploy",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
                     ]
                 },
                 {
-                    "Name" : "AutoMinorVersionUpgrade",
+                    "Names" : "AutoMinorVersionUpgrade",
                     "Type" : BOOLEAN_TYPE
                 },
                 {
-                    "Name" : "DatabaseName",
+                    "Names" : "DatabaseName",
                     "Type" : STRING_TYPE
                 },
                 {
-                    "Name" : "DBParameters",
+                    "Names" : "DBParameters",
                     "Type" : OBJECT_TYPE,
                     "Default" : {}
                 }

@@ -20,40 +20,40 @@
             ],
             "Attributes" :  [
                 {
-                    "Name" : ["Fragment", "Container"],
+                    "Names" : ["Fragment", "Container"],
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "UseInitAsService",
+                    "Names" : "UseInitAsService",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "AutoScaling",
+                    "Names" : "AutoScaling",
                     "Children" : autoScalingChildConfiguration
                 },
                 {
-                    "Name" : "DockerHost",
+                    "Names" : "DockerHost",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "Ports",
+                    "Names" : "Ports",
                     "Subobjects" : true,
                     "Children" : [
                         {
-                            "Name" : "IPAddressGroups",
+                            "Names" : "IPAddressGroups",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
                         },
                         {
-                            "Name" : "LB",
+                            "Names" : "LB",
                             "Children" : lbChildConfiguration
                         }
                     ]

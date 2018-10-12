@@ -7,65 +7,65 @@
 [#assign
     filterChildrenConfiguration = [
         {
-            "Name" : "Any",
+            "Names" : "Any",
             "Type" : STRING_TYPE
         },
         {
-            "Name" : "Tenant",
+            "Names" : "Tenant",
             "Type" : STRING_TYPE
         },
         {
-            "Name" : "Product",
+            "Names" : "Product",
             "Type" : STRING_TYPE
         },
         {
-            "Name" : "Environment",
+            "Names" : "Environment",
             "Type" : STRING_TYPE
         },
         {
-            "Name" : "Segment",
+            "Names" : "Segment",
             "Type" : STRING_TYPE
         },
         {
-            "Name" : "Tier",
+            "Names" : "Tier",
             "Type" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Name" : "Component",
+            "Names" : "Component",
             "Type" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Name" : ["Function"],
+            "Names" : ["Function"],
             "Type" : STRING_TYPE
         },
         {
-            "Name" : ["Service"],
+            "Names" : ["Service"],
             "Type" : STRING_TYPE
         },
         {
-            "Name" : ["Task"],
+            "Names" : ["Task"],
             "Type" : STRING_TYPE
         },
         {
-            "Name" : ["PortMapping", "Port"],
+            "Names" : ["PortMapping", "Port"],
             "Type" : STRING_TYPE
         },
         {
-            "Name" : ["Mount"],
+            "Names" : ["Mount"],
             "Type" : STRING_TYPE
         },
         {
-            "Name" : ["Platform"],
+            "Names" : ["Platform"],
             "Type" : STRING_TYPE
         },
         {
-            "Name" : "Instance",
-            "Type" : STRING_TYPE
+            "Names" : "Instance",
+            "Types" : STRING_TYPE
         },
         {
-            "Name" : "Version",
+            "Names" : "Version",
             "Type" : STRING_TYPE
         }
     ]
@@ -76,11 +76,11 @@
         filterChildrenConfiguration +
         [
             {
-                "Name" : "Role",
+                "Names" : "Role",
                 "Type" : STRING_TYPE
             },
             {
-                "Name" : "Direction",
+                "Names" : "Direction",
                 "Type" : STRING_TYPE
             },
             {
@@ -93,12 +93,12 @@
 [#assign
     logWatcherChildrenConfiguration = [
         {
-            "Name" : "LogFilter",
+            "Names" : "LogFilter",
             "Type" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Name" : "Links",
+            "Names" : "Links",
             "Subobjects" : true,
             "Children" : linkChildrenConfiguration
         }
@@ -108,7 +108,7 @@
 [#assign
     logMetricChildrenConfiguration = [
         {
-            "Name" : "LogFilter",
+            "Names" : "LogFilter",
             "Type" : STRING_TYPE,
             "Mandatory" : true
         }
@@ -119,72 +119,72 @@
     alertChildrenConfiguration = [
         "Description",
         {
-            "Name" : "Name",
+            "Names" : "Name",
             "Type" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Name" : "Metric",
+            "Names" : "Metric",
             "Children" : [
                 {
-                    "Name" : "Name",
+                    "Names" : "Name",
                     "Type" : STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
-                    "Name" : "Type",
+                    "Names" : "Type",
                     "Type" : STRING_TYPE,
                     "Mandatory" : true
                 }
             ]
         },
         {
-            "Name" : "Threshold",
+            "Names" : "Threshold",
             "Type" : NUMBER_TYPE,
             "Default" : 1
         },
         {
-            "Name" : "Severity",
+            "Names" : "Severity",
             "Type" : STRING_TYPE,
             "Default" : "Info"
         },
         {
-            "Name" : "Namespace",
+            "Names" : "Namespace",
             "Type" : STRING_TYPE,
             "Default" : ""
         },
         {
-            "Name" : "Comparison",
+            "Names" : "Comparison",
             "Type" : STRING_TYPE,
             "Default" : "Threshold"
         },
         {
-            "Name" : "Operator",
+            "Names" : "Operator",
             "Type" : STRING_TYPE,
             "Default" : "GreaterThanOrEqualToThreshold"
         },
         {
-            "Name" : "Time",
+            "Names" : "Time",
             "Type" : NUMBER_TYPE,
             "Default" : 300
         },
         {
-            "Name" : "Periods",
+            "Names" : "Periods",
             "Type" : NUMBER_TYPE,
             "Default" : 1
         },
         {
-            "Name" : "Statistic",
+            "Names" : "Statistic",
             "Type" : STRING_TYPE,
             "Default" : "Sum"
         },
         {
-            "Name" : "ReportOk",
+            "Names" : "ReportOk",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
-            "Name" : "MissingData",
+            "Names" : "MissingData",
             "Type" : STRING_TYPE,
             "Default" : "notBreaching"
         }
@@ -193,30 +193,30 @@
 
 [#assign lbChildConfiguration = [
         {
-            "Name" : "Tier",
+            "Names" : "Tier",
             "Type" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Name" : "Component",
+            "Names" : "Component",
             "Type" : STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Name" : "LinkName",
+            "Names" : "LinkName",
             "Type" : STRING_TYPE,
             "Default" : "lb"
         },
         {
-            "Name" : "Instance",
+            "Names" : "Instance",
             "Type" : STRING_TYPE
         },
         {
-            "Name" : "Version",
+            "Names" : "Version",
             "Type" : STRING_TYPE
         },
         {
-            "Name" : ["PortMapping", "Port"],
+            "Names" : ["PortMapping", "Port"],
             "Type" : STRING_TYPE,
             "Default" : ""
         }
@@ -225,18 +225,18 @@
 
 [#assign wafChildConfiguration = [
         {
-            "Name" : "IPAddressGroups",
+            "Names" : "IPAddressGroups",
             "Type" : ARRAY_OF_STRING_TYPE,
             "Mandatory" : true
         },
         {
-            "Name" : "Default",
+            "Names" : "Default",
             "Type" : STRING_TYPE,
             "Values" : ["ALLOW", "BLOCK"],
             "Default" : "BLOCK"
         },
         {
-            "Name" : "RuleDefault",
+            "Names" : "RuleDefault",
             "Type" : STRING_TYPE,
             "Values" : ["ALLOW", "BLOCK"],
             "Default" : "ALLOW"
@@ -246,20 +246,20 @@
 
 [#assign settingsChildConfiguration = [
         {
-            "Name" : "AsFile",
+            "Names" : "AsFile",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
-            "Name" : "Json",
+            "Names" : "Json",
             "Children" : [
                 {
-                    "Name" : "Escaped",
+                    "Names" : "Escaped",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
-                    "Name" : "Prefix",
+                    "Names" : "Prefix",
                     "Type" : STRING_TYPE,
                     "Values" : ["json", ""],
                     "Default" : "json"

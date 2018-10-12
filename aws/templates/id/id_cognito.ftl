@@ -36,102 +36,102 @@
             ],
             "Attributes" : [
                 { 
-                    "Name" : "MFA",
+                    "Names" : "MFA",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "AdminCreatesUser",
+                    "Names" : "AdminCreatesUser",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
-                    "Name" : "UnusedAccountTimeout",
+                    "Names" : "UnusedAccountTimeout",
                     "Type" : NUMBER_TYPE,
                     "Default" : 7
                 },
                 {
-                    "Name" : "VerifyEmail",
+                    "Names" : "VerifyEmail",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
-                    "Name" : "VerifyPhone",
+                    "Names" : "VerifyPhone",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "LoginAliases",
+                    "Names" : "LoginAliases",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : ["email"]
                 },
                 {
-                    "Name" : "ClientGenerateSecret",
+                    "Names" : "ClientGenerateSecret",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "ClientTokenValidity",
+                    "Names" : "ClientTokenValidity",
                     "Type" : NUMBER_TYPE,
                     "Default" : 30
                 },
                 {
-                    "Name" : "AllowUnauthenticatedIds",
+                    "Names" : "AllowUnauthenticatedIds",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "AuthorizationHeader",
+                    "Names" : "AuthorizationHeader",
                     "Type" : STRING_TYPE,
                     "Default" : "Authorization"
                 },
                 {
-                    "Name" : "OAuth",
+                    "Names" : "OAuth",
                     "Children" : [
                         {
-                            "Name" : "Scopes",
+                            "Names" : "Scopes",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : [ "openid" ]
                         },
                         {
-                            "Name" : "Flows",
+                            "Names" : "Flows",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : [ "code" ]
                         }
                     ]
                 },
                 {
-                    "Name" : "PasswordPolicy",
+                    "Names" : "PasswordPolicy",
                     "Children" : [
                         {
-                            "Name" : "MinimumLength",
+                            "Names" : "MinimumLength",
                             "Type" : NUMBER_TYPE,
                             "Default" : 10
                         },
                         {
-                            "Name" : "Lowercase",
+                            "Names" : "Lowercase",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "Uppercase",
+                            "Names" : "Uppercase",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "Numbers",
+                            "Names" : "Numbers",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "SpecialCharacters",
+                            "Names" : "SpecialCharacters",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
                     ] 
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 }

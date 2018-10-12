@@ -12,36 +12,36 @@
         CONTENTHUB_HUB_COMPONENT_TYPE : { 
             "Properties" : [
                 {
-                    "Name" : "Description",
+                    "Type" : "Description",
                     "Value" : "Hub for decentralised content hosting with centralised publishing"
                 },
                 {
-                    "Name" : "Providers",
+                    "Type" : "Providers",
                     "Value" : [ "github" ]
                 },
                 {
-                    "Name" : "ComponentLevel",
+                    "Type" : "ComponentLevel",
                     "Value" : "application"
                 }
             ],
             "Attributes" : [
                 {
-                    "Name" : "Prefix",
+                    "Names" : "Prefix",
                     "Type" : STRING_TYPE,
                     "Mandatory" : true
                 },
                 {
-                    "Name" : "Engine",
+                    "Names" : "Engine",
                     "Type" : STRING_TYPE,
                     "Default" : "github"
                 },
                 {
-                    "Name" : "Branch",
+                    "Names" : "Branch",
                     "Type" : STRING_TYPE,
                     "Default" : "master"
                 },
                 {
-                    "Name" : "Repository",
+                    "Names" : "Repository",
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 }
@@ -95,64 +95,64 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Path",
+                    "Names" : "Path",
                     "Children" : [
                         {
-                            "Name" : "Host",
+                            "Names" : "Host",
                             "Type" : STRING_TYPE,
                             "Default" : ""
                         },
                         {
-                            "Name" : "Style",
+                            "Names" : "Style",
                             "Type" : STRING_TYPE,
                             "Default" : "single"
                         },
                         {
-                            "Name" : "IncludeInPath",
+                            "Names" : "IncludeInPath",
                             "Children" : [
 
                                 {
-                                    "Name" : "Product",
+                                    "Names" : "Product",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default" : true
                                 },
                                 {
-                                    "Name" : "Environment",
+                                    "Names" : "Environment",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default" : false
                                 },
                                 {
-                                    "Name" : "Solution",
+                                    "Names" : "Solution",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default" : false
                                 },
                                 {
-                                    "Name" : "Segment",
+                                    "Names" : "Segment",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default" : true
                                 },
                                 {
-                                    "Name" : "Tier",
+                                    "Names" : "Tier",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default": false
                                 },
                                 {
-                                    "Name" : "Component",
+                                    "Names" : "Component",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default" : false
                                 },
                                 {
-                                    "Name" : "Instance",
+                                    "Names" : "Instance",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default" : false
                                 },
                                 {
-                                    "Name" : "Version",
+                                    "Names" : "Version",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default" : false
                                 },
                                 {
-                                    "Name" : "Host",
+                                    "Names" : "Host",
                                     "Type" : BOOLEAN_TYPE,
                                     "Default": false
                                 }
@@ -161,7 +161,7 @@
                     ]
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 }

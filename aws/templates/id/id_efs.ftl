@@ -43,7 +43,7 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Encrypted",
+                    "Names" : "Encrypted",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
                 }
@@ -73,7 +73,7 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : "Directory",
+                    "Names" : "Directory",
                     "Type" : STRING_TYPE,
                     "Mandatory" : true
                 }

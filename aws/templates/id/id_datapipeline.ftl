@@ -25,37 +25,37 @@
             ],
             "Attributes" : [
                 {
-                    "Name" : ["Fragment", "Container"],
+                    "Names" : ["Fragment", "Container"],
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 },
                 {
-                    "Name" : "Permissions",
+                    "Names" : "Permissions",
                     "Children" : [
                         {
-                            "Name" : "Decrypt",
+                            "Names" : "Decrypt",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "AsFile",
+                            "Names" : "AsFile",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "AppData",
+                            "Names" : "AppData",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         },
                         {
-                            "Name" : "AppPublic",
+                            "Names" : "AppPublic",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
                     ]
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 }
