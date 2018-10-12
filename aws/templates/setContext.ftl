@@ -84,7 +84,7 @@
                 "Type" : STRING_TYPE
             },
             {
-                "Name" : "Type",
+                "Names" : "Type",
                 "Type" : STRING_TYPE
             }
         ]
@@ -271,43 +271,43 @@
 
 [#assign autoScalingChildConfiguration = [
     {
-        "Name" : "WaitForSignal",
+        "Names" : "WaitForSignal",
         "Type" : BOOLEAN_TYPE,
         "Default" : true,
         "Description" : "Wait for a cfn-signal before treating the instances as alive"
     },
     {
-        "Name" : "MinUpdateInstances",
+        "Names" : "MinUpdateInstances",
         "Type" : NUMBER_TYPE,
         "Default" : 1,
         "Description" : "The minimum number of instances which must be available during an update"
     },
     {
-        "Name" : "ReplaceCluster",
+        "Names" : "ReplaceCluster",
         "Type" : BOOLEAN_TYPE,
         "Default" : false,
         "Description" : "When set to true a brand new cluster will be built, if false the instances in the current cluster will be replaced"
     },
     {
-        "Name" : "UpdatePauseTime",
+        "Names" : "UpdatePauseTime",
         "Type" : STRING_TYPE,
         "Default" : "5M",
         "Description" : "How long to pause betweeen updates of instances"
     },
     {
-        "Name" : "StartupTimeout",
+        "Names" : "StartupTimeout",
         "Type" : STRING_TYPE,
         "Default" : "15M",
         "Description" : "How long to wait for a cfn-signal to be received from a host"
     },
     {
-        "Name" : "AlwaysReplaceOnUpdate",
+        "Names" : "AlwaysReplaceOnUpdate",
         "Type" : BOOLEAN_TYPE,
         "Default" : false,
         "Description" : "Replace instances on every update action" 
     },
     {
-        "Name" : "ActivityCooldown",
+        "Names" : "ActivityCooldown",
         "Type" : NUMBER_TYPE,
         "Default" : 30
     }

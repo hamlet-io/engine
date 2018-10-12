@@ -135,8 +135,8 @@ function process_template() {
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       passes=("reference")
 
-      pass_level_prefix["reference"]="blueprint"
-      pass_description["reference"]="blueprint"
+      pass_level_prefix["reference"]="component-reference"
+      pass_description["reference"]="component-reference"
       pass_suffix["reference"]=".md"
       ;;
 
@@ -205,8 +205,6 @@ function process_template() {
 
     case "$(fileExtension "${template_result_file}")" in
       md)
-        npm install -g remark-cli
-
         info "${output_file}"
         if [[ ! -d "${output_dir}" ]]; then
           mkdir -p "${output_dir}"
