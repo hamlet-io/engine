@@ -276,7 +276,7 @@
             [/#switch]
         [/#if]
 
-        [#if deploymentSubsetRequired("lg", true)]
+        [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(accessLgId) ]
             [@createLogGroup
                 mode=listMode
                 id=accessLgId
