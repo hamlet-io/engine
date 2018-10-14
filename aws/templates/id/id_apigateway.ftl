@@ -294,6 +294,11 @@
                 "docspolicy" : {
                     "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION),
                     "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
+                },
+                "accesslg" : {
+                    "Id" : formatDependentLogGroupId(stageId, "access"),
+                    "Name" : formatAbsolutePath(core.FullAbsolutePath, "access"),
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
             },
             "Attributes" : {

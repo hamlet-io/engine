@@ -180,6 +180,9 @@
         [#assign usagePlanId            = resources["apiusageplan"].Id]
         [#assign usagePlanName          = resources["apiusageplan"].Name]
 
+        [#assign accessLgId             = resources["accesslg"].Id]
+        [#assign accessLgName           = resources["accesslg"].Name]
+
         [#assign publishPresent         = solution.Publish.Configured && solution.Publish.Enabled ]
         [#assign docsS3BucketId         = resources["docs"].Id]
         [#assign docsS3BucketName       = resources["docs"].Name]
@@ -273,6 +276,12 @@
             [/#switch]
         [/#if]
 
+        [#if deploymentSubsetRequired("lg", true)]
+            [@createLogGroup
+                mode=listMode
+                id=accessLgId
+                name=accessLgName /]
+        [/#if]
         [#if deploymentSubsetRequired("apigateway", true)]
             [#-- Assume extended swagger specification is in the ops bucket --]
             [@cfResource
@@ -334,7 +343,11 @@
                               "DataTraceEnabled": true
                             }
                         ],
-                        "StageName" : stageName
+                        "StageName" : stageName,
+                        "AccessLogSetting" : {
+                            "DestinationArn" : getArn(accessLgId),
+                            "Format" : "$context.identity.sourceIp $context.identity.caller $context.identity.user $context.identity.userArn [$context.requestTime] $context.apiId $context.httpMethod $context.resourcePath $context.protocol $context.status $context.responseLength $context.requestId"
+                        }
                     } +
                     attributeIfContent("Variables", stageVariables)
                 outputs={}
