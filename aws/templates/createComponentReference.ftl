@@ -74,6 +74,7 @@
 
 [#function getMDString value ]
     [#local result = "" ]
+
     [#if value?is_sequence ]
         [#if value?has_content ]
             [#local result = value?join(", ")]
@@ -95,7 +96,6 @@
     [#if !result?has_content ]
         [#local result = "null" ]
     [/#if]
-
     [#return result]
 [/#function]
 
@@ -178,11 +178,13 @@
                     [#break]
                 
                 [#default]
-                    [#local details += [
-                        getMDList( 
-                            "**" + key + "** - " + getMDString(value), 
-                            false,
-                            (headerLevel + 2)) ]]
+                    [#if value?has_content ]
+                        [#local details += [
+                            getMDList( 
+                                "**" + key + "** - " + getMDString(value), 
+                                false,
+                                (headerLevel + 2)) ]]
+                    [/#if]
             [/#switch]
 
             [#local result += 

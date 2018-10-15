@@ -5,7 +5,11 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_DIR}/common.sh"
 
 # Defaults
-REFERNCE_OUTPUT_DIR_DEFAULT="${GENERATION_BASE_DIR}/dist/reference/"
+REFERENCE_OUTPUT_DIR_DEFAULT="${GENERATION_BASE_DIR}/dist/reference/"
+
+# Create a dir for some temporary files
+dockerstagedir="$(getTempDir "cota_docker_XXXX" "${DOCKER_STAGE_DIR}")"
+chmod a+rwx "${dockerstagedir}"
 
 function usage() {
   cat <<EOF
@@ -16,13 +20,13 @@ Usage: $(basename $0) -l REFERENCE_TYPE -o OUTPUT_FILE
 
 where
 
-(m) -t REFERENCE_TYPE         is the type of object you need the reference for
-(o) -o REFERENCE_OUTPUT_DIR             is the output directory
+(m) -t REFERENCE_TYPE           is the type of object you need the reference for
+(o) -o REFERENCE_OUTPUT_DIR     is the output directory
 (m) mandatory, (o) optional, (d) deprecated
 
 DEFAULTS:
 
-REFERENCE_OUTPUT_DIR              = "${REFERNCE_OUTPUT_DIR_DEFAULT}"
+REFERENCE_OUTPUT_DIR              = "${REFERENCE_OUTPUT_DIR_DEFAULT}"
 
 NOTES:
 
@@ -43,7 +47,7 @@ function options() {
   done
 
   # Defaults
-  REFERENCE_OUTPUT_DIR="${REFERENCE_OUTPUT_DIR:-${REFERNCE_OUTPUT_DIR_DEFAULT}}"
+  REFERENCE_OUTPUT_DIR="${REFERENCE_OUTPUT_DIR:-${REFERENCE_OUTPUT_DIR_DEFAULT}}"
 
   return 0
 }
@@ -171,7 +175,8 @@ function process_template() {
     info "Generating ${type} reference file ...\n"
 
     local output_file="${output_dir}/${output_prefix}${pass_suffix[${pass}]}"
-    local template_result_file="${tmp_dir}/${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+    local template_result_filename="${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+    local template_result_file="${tmp_dir}/${template_result_filename}"
 
     pass_args=("${args[@]}")
 
@@ -209,8 +214,24 @@ function process_template() {
         if [[ ! -d "${output_dir}" ]]; then
           mkdir -p "${output_dir}"
         fi
-        
-        remark "${template_result_file}" -o "${output_file}"
+    
+        mkdir -p "${dockerstagedir}/in/"
+        mkdir -p "${dockerstagedir}/out/"
+
+        cp "${template_result_file}" "${dockerstagedir}/in/${template_result_filename}"
+
+        docker run --rm \
+          -v "${dockerstagedir}/in:/app/indir" \
+          -v "${dockerstagedir}/out:/app/outdir" \
+          codeontap/utilities \
+            remark "/app/indir/${template_result_filename}" -o "/app/outdir/${template_result_filename}" 
+
+        if [[ -f "${dockerstagedir}/out/${template_result_filename}" ]]; then 
+          cp "${dockerstagedir}/out/${template_result_filename}" "${output_file}"
+        else 
+          fatal "Could not find result file"
+          return 1
+        fi
 
         ;;
     esac
