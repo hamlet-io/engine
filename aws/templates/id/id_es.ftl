@@ -17,49 +17,65 @@
 
 [#assign componentConfiguration +=
     {
-        ES_COMPONENT_TYPE : [
-            {
-                "Name" : "Authentication",
-                "Type" : STRING_TYPE,
-                "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
-                "Default" : "IP"
-            },
-            {
-                "Name" : "IPAddressGroups",
-                "Type" : ARRAY_OF_STRING_TYPE,
-                "Mandatory" : true
-            },
-            {
-                "Name" : "AdvancedOptions",
-                "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : []
-            },
-            {
-                "Name" : "Version",
-                "Type" : STRING_TYPE,
-                "Default" : "2.3"
-            },
-            {
-                "Name" : "Encrypted",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "Snapshot",
-                "Children" : [
-                    {
-                        "Name" : "Hour",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
-                    }
-                ]
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            }
-        ]
+        ES_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "A managed ElasticSearch instance"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Authentication",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
+                    "Default" : "IP"
+                },
+                {
+                    "Names" : "IPAddressGroups",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "AdvancedOptions",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : []
+                },
+                {
+                    "Names" : "Version",
+                    "Type" : STRING_TYPE,
+                    "Default" : "2.3"
+                },
+                {
+                    "Names" : "Encrypted",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Names" : "Snapshot",
+                    "Children" : [
+                        {
+                            "Names" : "Hour",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        }
+                    ]
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                }
+            ]
+        }
     }]
 
 [#function getESState occurrence]

@@ -13,79 +13,79 @@
 [#assign
     containerChildrenConfiguration = [
         {
-            "Name" : "Cpu",
+            "Names" : "Cpu",
             "Type" : NUMBER_TYPE,
             "Default" : ""
         },
         {
-            "Name" : "Links",
+            "Names" : "Links",
             "Subobjects" : true,
             "Children" : linkChildrenConfiguration
         },
         {
-            "Name" : "LocalLogging",
+            "Names" : "LocalLogging",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
-            "Name" : "LogDriver",
+            "Names" : "LogDriver",
             "Type" : STRING_TYPE,
             "Values" : ["awslogs", "json-file", "fluentd"],
             "Default" : "awslogs"
         },
         {
-            "Name" : "ContainerLogGroup",
+            "Names" : "ContainerLogGroup",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
-            "Name" : "RunCapabilities",
+            "Names" : "RunCapabilities",
             "Type" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         },
         {
-            "Name" : "Privileged",
+            "Names" : "Privileged",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
         },
         {
-            "Name" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
+            "Names" : ["MaximumMemory", "MemoryMaximum", "MaxMemory"],
             "Types" : NUMBER_TYPE,
             "Description" : "Set to 0 to not set a maximum"
         },
         {
-            "Name" : ["MemoryReservation", "Memory", "ReservedMemory"],
+            "Names" : ["MemoryReservation", "Memory", "ReservedMemory"],
             "Type" : NUMBER_TYPE,
             "Mandatory" : true
         },
         {
-            "Name" : "Ports",
+            "Names" : "Ports",
             "Subobjects" : true,
             "Children" : [
                 "Container",
                 {
-                    "Name" : "DynamicHostPort",
+                    "Names" : "DynamicHostPort",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 }
                 {
-                    "Name" : "LB",
+                    "Names" : "LB",
                     "Children" : lbChildConfiguration
                 },
                 {
-                    "Name" : "IPAddressGroups",
+                    "Names" : "IPAddressGroups",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 }
             ]
         },
         {
-            "Name" : "Version",
+            "Names" : "Version",
             "Type" : STRING_TYPE,
             "Default" : ""
         },
         {
-            "Name" : "ContainerNetworkLinks",
+            "Names" : "ContainerNetworkLinks",
             "Type" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         }
@@ -95,47 +95,61 @@
 [#assign componentConfiguration +=
     {
         ECS_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "An autoscaling container host cluster"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
             "Attributes" : [
                 {
-                    "Name" : ["Fragment", "Container"],
+                    "Names" : ["Fragment", "Container"],
                     "Type" : "string",
                     "Default" : ""
                 },
                 {
-                    "Name" : "FixedIP",
+                    "Names" : "FixedIP",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
-                    "Name" : "LogDriver",
+                    "Names" : "LogDriver",
                     "Type" : STRING_TYPE,
                     "Values" : ["awslogs", "json-file", "fluentd"],
                     "Default" : "awslogs"
                 },
                 {
-                    "Name" : "ClusterLogGroup",
+                    "Names" : "ClusterLogGroup",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
                 },
                 {
-                    "Name" : "Links",
+                    "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
-                    "Name" : "AutoScaling",
+                    "Names" : "AutoScaling",
                     "Children" : autoScalingChildConfiguration
                 },
                 {
-                    "Name" : "DockerUsers",
+                    "Names" : "DockerUsers",
                     "Subobjects" : true,
                     "Children" : [
                         {
-                            "Name" : "UserName",
+                            "Names" : "UserName",
                             "Type" : STRING_TYPE
                         },
                         {
-                            "Name" : "UID",
+                            "Names" : "UID",
                             "Type" : NUMBER_TYPE,
                             "Mandatory" : true
                         }
@@ -155,111 +169,143 @@
                 }
             ]
         },
-        ECS_SERVICE_COMPONENT_TYPE : [
-            {
-                "Name" : "Containers",
-                "Subobjects" : true,
-                "Children" : containerChildrenConfiguration
-            },
-            {
-                "Name" : "DesiredCount",
-                "Type" : NUMBER_TYPE,
-                "Default" : -1
-            },
-            {
-                "Name" : "UseTaskRole",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "Permissions",
-                "Children" : [
-                    {
-                        "Name" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "TaskLogGroup",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "NetworkMode",
-                "Type" : STRING_TYPE,
-                "Values" : ["none", "bridge", "awsvpc", "host"],
-                "Default" : ""
-            },
-            {
-                "Name" : "ContainerNetworkLinks",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            }
-        ],
-        ECS_TASK_COMPONENT_TYPE : [
-            {
-                "Name" : "Containers",
-                "Subobjects" : true,
-                "Children" : containerChildrenConfiguration
-            },
-            {
-                "Name" : "UseTaskRole",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "Permissions",
-                "Children" : [
-                    {
-                        "Name" : "Decrypt",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AsFile",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppData",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "AppPublic",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ]
-            },
-            {
-                "Name" : "TaskLogGroup",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "FixedName",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            }
-        ]
+        ECS_SERVICE_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "An orchestrated container with always on scheduling"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Containers",
+                    "Subobjects" : true,
+                    "Children" : containerChildrenConfiguration
+                },
+                {
+                    "Names" : "DesiredCount",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : -1
+                },
+                {
+                    "Names" : "UseTaskRole",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "Permissions",
+                    "Children" : [
+                        {
+                            "Names" : "Decrypt",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "AsFile",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "AppData",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "AppPublic",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Names" : "TaskLogGroup",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "NetworkMode",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["none", "bridge", "awsvpc", "host"],
+                    "Default" : ""
+                },
+                {
+                    "Names" : "ContainerNetworkLinks",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                }
+            ]
+        },
+        ECS_TASK_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "A container defintion which is invoked on demand"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Containers",
+                    "Subobjects" : true,
+                    "Children" : containerChildrenConfiguration
+                },
+                {
+                    "Names" : "UseTaskRole",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "Permissions",
+                    "Children" : [
+                        {
+                            "Names" : "Decrypt",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "AsFile",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "AppData",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "AppPublic",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Names" : "TaskLogGroup",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "FixedName",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                }
+            ]
+        }
     } ]
 
 

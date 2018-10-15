@@ -5,25 +5,40 @@
 
 [#assign componentConfiguration +=
     {
-        DATASET_COMPONENT_TYPE : [
-            {
-                "Name" : "Engine",
-                "Type" : STRING_TYPE,
-                "Values" : ["s3", "rdsSnapshot"],
-                "Default" : "",
-                "Mandatory" : true
-            }
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            },
-            {
-                "Name" : "Prefix",
-                "Type" : STRING_TYPE,
-                "Default" : ""
-            }
-        ]
+        DATASET_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "A data aretefact that is managed in a similar way to a code unit"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Engine",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["s3", "rdsSnapshot"],
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Names" : "Prefix",
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                }
+            ]
+        }
     }]
 
 [#function getDataSetState occurrence]

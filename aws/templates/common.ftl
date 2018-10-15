@@ -403,7 +403,7 @@ behaviour.
                     "PopulateMissingChildren" : true
                 } ]
             [#if attribute?is_hash ]
-                [#local names = attribute.Names!attribute.Name!"COT:Missing" ]
+                [#local names = attribute.Names!"COT:Missing" ]
                 [#if (names?is_string) && (names == "COT:Missing") ]
                     [@cfException
                         mode=listMode

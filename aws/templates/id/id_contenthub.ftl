@@ -9,24 +9,44 @@
 
 [#assign componentConfiguration +=
     {
-        CONTENTHUB_HUB_COMPONENT_TYPE : [
-            "Prefix",
-            {
-                "Name" : "Engine",
-                "Type" : STRING_TYPE,
-                "Default" : "github"
-            },
-            {
-                "Name" : "Branch",
-                "Type" : STRING_TYPE,
-                "Default" : "master"
-            },
-            {
-                "Name" : "Repository",
-                "Type" : STRING_TYPE,
-                "Default" : ""
-            }
-        ]
+        CONTENTHUB_HUB_COMPONENT_TYPE : { 
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Hub for decentralised content hosting with centralised publishing"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "github" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Prefix",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Engine",
+                    "Type" : STRING_TYPE,
+                    "Default" : "github"
+                },
+                {
+                    "Names" : "Branch",
+                    "Type" : STRING_TYPE,
+                    "Default" : "master"
+                },
+                {
+                    "Names" : "Repository",
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                }
+            ]
+        }
     }]
 
 [#function getContentHubState occurrence]
@@ -58,78 +78,95 @@
 
 [#assign componentConfiguration +=
     {
-        CONTENTHUB_NODE_COMPONENT_TYPE : [
-            {
-                "Name" : "Path",
-                "Children" : [
-                    {
-                        "Name" : "Host",
-                        "Type" : STRING_TYPE,
-                        "Default" : ""
-                    },
-                    {
-                        "Name" : "Style",
-                        "Type" : STRING_TYPE,
-                        "Default" : "single"
-                    },
-                    {
-                        "Name" : "IncludeInPath",
-                        "Children" : [
+        CONTENTHUB_NODE_COMPONENT_TYPE : { 
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Node for decentralised content hosting with centralised publishing"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "github" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "application"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Path",
+                    "Children" : [
+                        {
+                            "Names" : "Host",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Names" : "Style",
+                            "Type" : STRING_TYPE,
+                            "Default" : "single"
+                        },
+                        {
+                            "Names" : "IncludeInPath",
+                            "Children" : [
 
-                            {
-                                "Name" : "Product",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : true
-                            },
-                            {
-                                "Name" : "Environment",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : false
-                            },
-                            {
-                                "Name" : "Solution",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : false
-                            },
-                            {
-                                "Name" : "Segment",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : true
-                            },
-                            {
-                                "Name" : "Tier",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default": false
-                            },
-                            {
-                                "Name" : "Component",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : false
-                            },
-                            {
-                                "Name" : "Instance",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : false
-                            },
-                            {
-                                "Name" : "Version",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : false
-                            },
-                            {
-                                "Name" : "Host",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default": false
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "Name" : "Links",
-                "Default" : {}
-            }
-        ]
+                                {
+                                    "Names" : "Product",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Environment",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : false
+                                },
+                                {
+                                    "Names" : "Solution",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : false
+                                },
+                                {
+                                    "Names" : "Segment",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : true
+                                },
+                                {
+                                    "Names" : "Tier",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default": false
+                                },
+                                {
+                                    "Names" : "Component",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : false
+                                },
+                                {
+                                    "Names" : "Instance",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : false
+                                },
+                                {
+                                    "Names" : "Version",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : false
+                                },
+                                {
+                                    "Names" : "Host",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                }
+            ]
+        }
     }]
 
 [#function getContentNodeState occurrence]

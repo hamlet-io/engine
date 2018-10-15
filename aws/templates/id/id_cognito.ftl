@@ -14,108 +14,129 @@
 
 [#assign componentConfiguration +=
     {
-        USERPOOL_COMPONENT_TYPE : [
-            { 
-                "Name" : "MFA",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "AdminCreatesUser",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "UnusedAccountTimeout",
-                "Type" : NUMBER_TYPE,
-                "Default" : 7
-            },
-            {
-                "Name" : "VerifyEmail",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
-            },
-            {
-                "Name" : "VerifyPhone",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "LoginAliases",
-                "Type" : ARRAY_OF_STRING_TYPE,
-                "Default" : ["email"]
-            },
-            {
-                "Name" : "ClientGenerateSecret",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "ClientTokenValidity",
-                "Type" : NUMBER_TYPE,
-                "Default" : 30
-            },
-            {
-                "Name" : "AllowUnauthenticatedIds",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
-            },
-            {
-                "Name" : "AuthorizationHeader",
-                "Type" : STRING_TYPE,
-                "Default" : "Authorization"
-            },
-            {
-                "Name" : "OAuth",
-                "Children" : [
-                    {
-                        "Name" : "Scopes",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : [ "openid" ]
-                    },
-                    {
-                        "Name" : "Flows",
-                        "Type" : ARRAY_OF_STRING_TYPE,
-                        "Default" : [ "code" ]
-                    }
-                ]
-            },
-            {
-                "Name" : "PasswordPolicy",
-                "Children" : [
-                    {
-                        "Name" : "MinimumLength",
-                        "Type" : NUMBER_TYPE,
-                        "Default" : 10
-                    },
-                    {
-                        "Name" : "Lowercase",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "Uppercase",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "Numbers",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    },
-                    {
-                        "Name" : "SpecialCharacters",
-                        "Type" : BOOLEAN_TYPE,
-                        "Default" : true
-                    }
-                ] 
-            },
-            {
-                "Name" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            }
-        ]
+        USERPOOL_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Managed identity service"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                },
+                {
+                    "Type" : "Note",
+                    "Value" : "Requires second deployment to complete configuration",
+                    "Severity" : "warning"
+                }
+            ],
+            "Attributes" : [
+                { 
+                    "Names" : "MFA",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Names" : "AdminCreatesUser",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "UnusedAccountTimeout",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 7
+                },
+                {
+                    "Names" : "VerifyEmail",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "VerifyPhone",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Names" : "LoginAliases",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : ["email"]
+                },
+                {
+                    "Names" : "ClientGenerateSecret",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Names" : "ClientTokenValidity",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 30
+                },
+                {
+                    "Names" : "AllowUnauthenticatedIds",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Names" : "AuthorizationHeader",
+                    "Type" : STRING_TYPE,
+                    "Default" : "Authorization"
+                },
+                {
+                    "Names" : "OAuth",
+                    "Children" : [
+                        {
+                            "Names" : "Scopes",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : [ "openid" ]
+                        },
+                        {
+                            "Names" : "Flows",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : [ "code" ]
+                        }
+                    ]
+                },
+                {
+                    "Names" : "PasswordPolicy",
+                    "Children" : [
+                        {
+                            "Names" : "MinimumLength",
+                            "Type" : NUMBER_TYPE,
+                            "Default" : 10
+                        },
+                        {
+                            "Names" : "Lowercase",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "Uppercase",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "Numbers",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "SpecialCharacters",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ] 
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                }
+            ]
+        }
     }]
     
 [#function getUserPoolState occurrence]
