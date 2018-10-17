@@ -55,9 +55,8 @@
     [#local result = []]
     [#list asArray(heading) as line ]
         [#local result += [
-            ""?left_pad(level, "#") + " " + heading
-        ] +
-            newLine?then([ "\n" ], [])]
+            ""?left_pad(level, "#") + " " + heading + newLine?then("\n", "  ")
+        ]]
     [/#list]
     [#return result]
 [/#function]
@@ -119,7 +118,7 @@
         [#local result += 
             getMDList(
                 getMDHeading(
-                    "**" + nameArray[0] + "**  ", 
+                    nameArray[0], 
                     3,
                     false),
                 false, 
@@ -150,7 +149,7 @@
                     [#local name += 
                         getMDList(
                             getMDHeading(
-                                "**" + nameArray[0] + "**  ", 
+                                nameArray[0], 
                                 3,
                                 false),
                             false, 
@@ -373,9 +372,11 @@
             getMDHeading("Component Format", 2) +
             getMDCodeBlock(
                 getNonEmptyArray(
-                    getMDCodeJSON( 
-                        getComponentExample(componentAttributes) +
-                        getComponentSubExample(componentSubComponents)
+                    getMDCodeJSON(
+                        {
+                            type :  getComponentExample(componentAttributes) +
+                                    getComponentSubExample(componentSubComponents)
+                        } 
                     )
                 ), 
                 "json" )]
