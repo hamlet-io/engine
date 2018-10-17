@@ -51,11 +51,15 @@
     [#return result]
 [/#function]
 
-[#function getMDHeading heading level=2 ]
-    [#return [
-        ""?left_pad(level, "#") + " " + heading,
-        "\n"
-    ]]
+[#function getMDHeading heading level=2 newLine=true] 
+    [#local result = []]
+    [#list asArray(heading) as line ]
+        [#local result += [
+            ""?left_pad(level, "#") + " " + heading
+        ] +
+            newLine?then([ "\n" ], [])]
+    [/#list]
+    [#return result]
 [/#function]
 
 [#function getMDCodeBlock content language ]
@@ -111,10 +115,16 @@
 
     [#if (attribute.Children![])?has_content ]
     
-        [#local result = getMDList(
-                            "**" + (attribute.Names!"COTException: Attribute without Name") + "**", 
-                            false,
-                            headerLevel)]
+        [#local nameArray = asArray(attribute.Names!["COTException: Attribute without Name"])]
+        [#local result += 
+            getMDList(
+                getMDHeading(
+                    "**" + nameArray[0] + "**  ", 
+                    3,
+                    false),
+                false, 
+                headerLevel 
+            )]
         [#local headerLevel++ ]
         [#list attribute.Children as childAttribute ]
             [#local result += 
@@ -126,70 +136,70 @@
         [#list attribute as key,value ]
             [#local name = [] ]
             [#local details = []]
+            [#local mandatory = false ]
+            [#local hasDefault = false]
+
             [#switch key ]
                 [#case "Names" ]    
-                    [#if value?is_sequence  ]
-                        [#if value?size > 1 ] 
-                            [#local name += 
-                                getMDList(
-                                    "**" + value[0] + "**", 
-                                    false, 
-                                    headerLevel 
-                                ) +
-                                getMDList(
-                                    "**Alternate Names** - " + value[1..]?join(", "), 
-                                    false,
-                                    (headerLevel + 2))
-                                ] 
-                        [#else]
-                            [#local name += 
-                                getMDList(
-                                    "**" + value[0] + "**", 
-                                    false, 
-                                    headerLevel 
-                                )]
-                        [/#if]
-                    [#else]
-                        [#local result += 
-                            getMDList(
-                                "**" + value + "**", 
-                                false,
-                                headerLevel )]
+                    [#local nameArray = asArray(value)]
+                    [#if nameArray?size > 1 ] 
+                        [#local details += 
+                            [ "**Alternate Names** - " + nameArray[1..]?join(", ")]] 
+                    [/#if]
+
+                    [#local name += 
+                        getMDList(
+                            getMDHeading(
+                                "**" + nameArray[0] + "**  ", 
+                                3,
+                                false),
+                            false, 
+                            headerLevel 
+                        )]
+                    [#break]
+
+                [#case "Mandatory" ]
+                    [#local mandatory = value ]
+                    [#break ]
+            
+                [#case "Default" ]
+                    [#if value?has_content ]
+                        [#local hasDefault = true]
+                        [#local details += [
+                                "**" + key + "** - " + getMDString(value)]]
                     [/#if]
                     [#break]
+
                 [#case "Children" ]
                     [#break]
 
                 [#case "Type"]
                     [#if value?is_sequence ]
                         [#local details += [
-                            getMDList( 
-                                "**" + key + "** - " + getMDString(value[0]) + " of " + getMDString(value[1]), 
-                                false,
-                                (headerLevel + 2)) ]]
-                        ]]
+                                "**" + key + "** - " + getMDString(value[0]) + " of " + getMDString(value[1])]]
                     [#else]
                         [#local details += [
-                            getMDList( 
-                                "**" + key + "** - " + getMDString(value), 
-                                false,
-                                (headerLevel + 2)) ]]
+                                "**" + key + "** - " + getMDString(value)]]
                     [/#if]
                     [#break]
                 
                 [#default]
                     [#if value?has_content ]
                         [#local details += [
-                            getMDList( 
-                                "**" + key + "** - " + getMDString(value), 
-                                false,
-                                (headerLevel + 2)) ]]
+                                "**" + key + "** - " + getMDString(value)]]
                     [/#if]
             [/#switch]
 
-            [#local result += 
-                        name + 
-                        details ]
+            [#if value?is_last && !hasDefault ]
+                [#local details += [
+                        "**Mandatory** - " + getMDString(mandatory)]]
+            [/#if]
+
+            [#local result += name ]
+
+            [#list details as line ]
+                [#local result += [ ""?left_pad(headerLevel * 4, " ") + line + "  " ]]
+            [/#list]
         [/#list]
     [/#if]
 
