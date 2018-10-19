@@ -108,7 +108,7 @@
 
     [#if attribute?is_string ]
         [#local attribute = {
-            "Name" : attribute
+            "Names" : attribute
         }]
     [/#if]
 

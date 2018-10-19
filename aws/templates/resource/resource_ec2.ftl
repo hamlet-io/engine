@@ -1,3 +1,11 @@
+[#assign AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        }
+    }
+]
+
 [#function getInitConfig configSetName configKeys=[] ]
     [#local configSet = [] ] 
     [#list configKeys as key,value ]
@@ -574,6 +582,7 @@
     routeTable
     configSet
     environmentId
+    sshFromProxy=sshFromProxySecurityGroup
     enableCfnSignal=false
     dependencies="" 
     outputId=""
@@ -601,9 +610,9 @@
                     [
                         getReference(securityGroupId)
                     ] +
-                    sshFromProxySecurityGroup?has_content?then(
+                    sshFromProxy?has_content?then(
                         [
-                            sshFromProxySecurityGroup
+                            sshFromProxy
                         ],
                         []
                     ),
@@ -666,17 +675,31 @@
     outputId=""
 ]
 
-    [#assign maxSize = processorProfile.MaxPerZone]
-    [#if multiAZ]
-        [#assign maxSize = maxSize * zones?size]
+    [#if processorProfile.MaxCount?has_content ]
+        [#assign maxSize = processorProfile.MaxCount ]
+    [#else]
+        [#assign maxSize = processorProfile.MaxPerZone]
+        [#if multiAZ]
+            [#assign maxSize = maxSize * zones?size]
+        [/#if]
     [/#if]
+
+    [#if processorProfile.MinCount?has_content ]
+        [#assign minSize = processorProfile.MinCount ]
+    [#else]
+        [#assign minSize = processorProfile.MinPerZone]
+        [#if multiAZ]
+            [#assign minSize = minSize * zones?size]
+        [/#if]
+    [/#if]
+
     [#if maxSize <= minUpdateInstances ]
         [#assign maxSize = maxSize + minUpdateInstances ]
     [/#if]
 
-    [#assign desiredCapacity = multiAZ?then(
-        processorProfile.DesiredPerZone * zones?size,
-        processorProfile.DesiredPerZone
+    [#assign desiredCapacity = processorProfile.DesiredCount!multiAZ?then(
+                    processorProfile.DesiredPerZone * zones?size,
+                    processorProfile.DesiredPerZone
     )]
 
     [@cfResource
@@ -696,13 +719,13 @@
             } +
             multiAZ?then(
                 {
-                    "MinSize": processorProfile.MinPerZone * zones?size,
+                    "MinSize": minSize,
                     "MaxSize": maxSize,
                     "DesiredCapacity": desiredCapacity,
                     "VPCZoneIdentifier": getSubnets(tier)
                 },
                 {
-                    "MinSize": processorProfile.MinPerZone,
+                    "MinSize": minSize,
                     "MaxSize": maxSize,
                     "DesiredCapacity": desiredCapacity,
                     "VPCZoneIdentifier" : getSubnets(tier)[0..0]
@@ -719,7 +742,7 @@
                 targetGroups
             )
         tags=tags
-        outputs={}
+        outputs=AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies
         updatePolicy=replaceOnUpdate?then(

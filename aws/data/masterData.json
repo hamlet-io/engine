@@ -864,10 +864,11 @@
             "dashboard"
           ]
         },
-        "ssh-ssh": {
-          "DeploymentUnits": [
-            "ssh"
-          ]
+        "ssh" : {
+          "DeploymentUnits" : ["ssh"],
+          "bastion" : {
+
+          }
         },
         "nat-nat": {
           "DeploymentUnits": [
@@ -943,7 +944,8 @@
       },
       "ECS": {},
       "ElasticSearch": {},
-      "ComputeCluster": {}
+      "ComputeCluster": {},
+      "bastion" : {}
     }
   },
   "Processors": {
@@ -952,6 +954,9 @@
         "Processor": "t2.micro"
       },
       "SSH": {
+        "Processor": "t2.micro"
+      },
+      "bastion" :{
         "Processor": "t2.micro"
       },
       "EC2": {
@@ -1536,6 +1541,9 @@
       },
       "ECS" : {
         "LogFileGroups" : ["system", "aws-system", "security", "docker", "aws-ecs"]
+      },
+      "bastion" : {
+        "LogFileGroups" : ["system", "aws-system", "security"]
       }
     }
   },
@@ -1600,6 +1608,9 @@
         "BootStraps" : []
       },
       "ComputeCluster" : {
+        "BootStraps" : []
+      },
+      "bastion" : {
         "BootStraps" : []
       }
     }
