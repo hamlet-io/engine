@@ -407,7 +407,7 @@ behaviour.
                 [#if (names?is_string) && (names == "COT:Missing") ]
                     [@cfException
                         mode=listMode
-                        description="Attribute must have a \"Name\" attribute"
+                        description="Attribute must have a \"Names\" attribute"
                         context=attribute
                     /]
                 [/#if]
@@ -553,11 +553,11 @@ behaviour.
                                       getCompositeObject(
                                           [
                                               {
-                                                  "Name" : "Id",
+                                                  "Names" : "Id",
                                                   "Mandatory" : true
                                               },
                                               {
-                                                  "Name" : "Name",
+                                                  "Names" : "Name",
                                                   "Mandatory" : true
                                               }
                                           ] +
@@ -899,6 +899,10 @@ behaviour.
             [#case "userpool"]
                 [#local result = getUserPoolState(occurrence)]
                 [#break]
+            
+            [#case BASTION_COMPONENT_TYPE ]
+                [#local result = getBastionState(occurrence)]
+                [#break]
         [/#switch]
     [/#if]
 
@@ -970,7 +974,7 @@ behaviour.
             [/#if]
         [/#list]
     [/#list]
-    [#return asFlattenedSettings(getCompositeObject({ "Name" : "*" }, contexts)) ]
+    [#return asFlattenedSettings(getCompositeObject({ "Names" : "*" }, contexts)) ]
 [/#function]
 
 [#function getOccurrenceCoreSettings occurrence]
@@ -1853,12 +1857,12 @@ behaviour.
                 "Wildcard",
                 "Domain",
                 {
-                    "Name" : "Host",
+                    "Names" : "Host",
                     "Default" : ""
                 },
                 "HostParts",
                 {
-                    "Name" : "IncludeInHost",
+                    "Names" : "IncludeInHost",
                     "Children" : [
                       "Product",
                       "Environment",
