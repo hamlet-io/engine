@@ -47,6 +47,41 @@
                 getInitConfigDirectories() +
                 getInitConfigBootstrap(component.Role!"") ]
 
+        [#assign fragment =
+            contentIfContent(solution.Fragment, getComponentId(component)) ]
+
+        [#assign contextLinks = getLinkTargets(occurrence, links) ]
+        [#assign _context =
+            {
+                "Id" : fragment,
+                "Name" : fragment,
+                "Instance" : core.Instance.Id,
+                "Version" : core.Version.Id,
+                "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+                "Environment" : {},
+                "Links" : contextLinks,
+                "DefaultCoreVariables" : true,
+                "DefaultEnvironmentVariables" : true,
+                "DefaultLinkVariables" : true,
+                "Policy" : standardPolicies(occurrence),
+                "ManagedPolicy" : [],
+                "Files" : {},
+                "Directories" : {}
+            }
+        ]
+
+        [#-- Add in fragment specifics including override of defaults --]
+        [#assign fragmentListMode = "model"]
+        [#assign fragmentId = formatFragmentId(_context)]
+        [#assign containerId = fragmentId]
+        [#include fragmentList?ensure_starts_with("/")]
+
+        [#assign environmentVariables = getFinalEnvironment(occurrence, _context).Environment ]
+
+        [#assign configSets +=
+            getInitConfigEnvFacts(environmentVariables, false) +
+            getInitConfigDirsFiles(_context.Files, _context.Directories) ]
+
         [#if sshEnabled &&
             (
                 (componentType == "bastion") ||
@@ -65,9 +100,14 @@
                             getPolicyDocument(
                                 ec2IPAddressUpdatePermission() +
                                     s3ListPermission(codeBucket) +
-                                    s3ReadPermission(codeBucket),
-                                "ssh")
-                        ]
+                                    s3ReadPermission(codeBucket) + 
+                                    cwLogsProducePermission(computeClusterLogGroupName),
+                                "basic")
+                        ] +
+                        arrayIfContent(
+                            [getPolicyDocument(_context.Policy, "fragment")],
+                            _context.Policy)
+                    managedArns=_context.ManagedPolicy
                 /]
             [/#if]
 
