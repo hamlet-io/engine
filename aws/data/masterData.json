@@ -866,12 +866,13 @@
         },
         "ssh" : {
           "DeploymentUnits" : ["ssh"],
+          "MultiAZ" : true,
           "bastion" : {
               "AutoScaling" : {
                 "DetailedMetrics" : false,
                 "ActivityCooldown" : 180,
                 "MinUpdateInstances" : 0,
-                "AlwaysReplaceOnUpdate" : true
+                "AlwaysReplaceOnUpdate" : false
               }
           }
         },

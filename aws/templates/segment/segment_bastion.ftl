@@ -207,7 +207,7 @@
                     launchConfigId=bastionLaunchConfigId
                     processorProfile=processorProfile
                     autoScalingConfig=solution.AutoScaling
-                    multiAZ=true
+                    multiAZ=multiAZ
                     tags=asgTags
                 /]
 
