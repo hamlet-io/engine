@@ -234,12 +234,7 @@
                 configSets=configSets
                 launchConfigId=ecsLaunchConfigId
                 processorProfile=processorProfile
-                minUpdateInstances=solution.AutoScaling.MinUpdateInstances
-                replaceOnUpdate=solution.AutoScaling.ReplaceCluster
-                waitOnSignal=solution.AutoScaling.WaitForSignal
-                startupTimeout=solution.AutoScaling.StartupTimeout
-                updatePauseTime=solution.AutoScaling.UpdatePauseTime
-                activityCooldown=solution.AutoScaling.ActivityCooldown  
+                autoScalingConfig=solution.AutoScaling
                 multiAZ=multiAZ
                 tags=ecsTags
             /]

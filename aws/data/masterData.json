@@ -867,7 +867,12 @@
         "ssh" : {
           "DeploymentUnits" : ["ssh"],
           "bastion" : {
-
+              "AutoScaling" : {
+                "DetailedMetrics" : false,
+                "ActivityCooldown" : 180,
+                "MinUpdateInstances" : 0,
+                "AlwaysReplaceOnUpdate" : true
+              }
           }
         },
         "nat-nat": {
@@ -1402,7 +1407,6 @@
       "Enabled": true,
       "Active": false,
       "PerSegment": true,
-      "Standalone": true,
       "IPAddressGroups": []
     },
     "S3": {
@@ -1457,6 +1461,14 @@
     },
     "/var/log/cron" : {
       "FilePath" : "/var/log/cron",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/cfn-init.log" : {
+      "FilePath" : "/var/log/cfn-init.log",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/cfn-init-cmd.log" : {
+      "FilePath" : "/var/log/cfn-init-cmd.log",
       "TimeFormat" : "%b %d %H:%M:%S"
     },
     "/var/log/cloud-init.log" : {
@@ -1525,6 +1537,8 @@
     },
     "aws-system" : {
       "LogFiles" : [
+        "/var/log/cfn-init.log",
+        "/var/log/cfn-init-cmd.log",
         "/var/log/cloud-init.log",
         "/var/log/cloud-init-output.log",
         "/var/log/amazon/ssm/amazon-ssm-agent.log" 

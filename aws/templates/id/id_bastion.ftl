@@ -43,6 +43,10 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Names" : "AutoScaling",
+                    "Children" : autoScalingChildConfiguration
+                },
+                {
                     "Names" : "Permissions",
                     "Children" : [
                         {
@@ -111,7 +115,11 @@
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 },
                 "launchConfig" : {
-                    "Id" : formatResourceId(AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE, core.Id),
+
+                    "Id" : solution.AutoScaling.AlwaysReplaceOnUpdate?then(
+                                formatResourceId(AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE, core.Id, runId),
+                                formatResourceId(AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE, core.Id)
+                    ),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
                 } 
             },

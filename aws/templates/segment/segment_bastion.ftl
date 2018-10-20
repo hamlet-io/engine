@@ -38,7 +38,7 @@
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, BASTION_COMPONENT_TYPE)]
         [#assign processorProfile = getProcessor(tier, component, BASTION_COMPONENT_TYPE)]
         [#assign processorProfile += {
-                    "MaxCount" : sshActive?then(1,0),
+                    "MaxCount" : 2,
                     "MinCount" : sshActive?then(1,0),
                     "DesiredCount" : sshActive?then(1,0)
         }]
@@ -89,8 +89,7 @@
             )]
 
             [#if deploymentSubsetRequired("iam", true) &&
-                    isPartOfCurrentDeploymentUnit(bastionRoleId) &&
-                    sshStandalone]
+                    isPartOfCurrentDeploymentUnit(bastionRoleId)]
                 [@createRole
                     mode=listMode
                     id=bastionRoleId
@@ -112,8 +111,7 @@
             [/#if]
 
             [#if deploymentSubsetRequired("eip", true) &&
-                    isPartOfCurrentDeploymentUnit(bastionEIPId) &&
-                    sshStandalone]
+                    isPartOfCurrentDeploymentUnit(bastionEIPId)]
                 [@createEIP
                     mode=listMode
                     id=bastionEIPId
@@ -153,7 +151,7 @@
                             {
                                 "Port" : "ssh",
                                 "CIDR" :
-                                    (sshActive || sshStandalone)?then(
+                                    (sshActive)?then(
                                         getGroupCIDRs(
                                             (segmentObject.SSH.IPAddressGroups)!
                                                 segmentObject.IPAddressGroups![]),
@@ -180,62 +178,54 @@
                         ]
                 /]
 
-                [#if sshStandalone]
+                [@cfResource
+                    mode=listMode
+                    id=bastionInstanceProfileId
+                    type="AWS::IAM::InstanceProfile"
+                    properties=
+                        {
+                            "Path" : "/",
+                            "Roles" : [ getReference(bastionRoleId) ]
+                        }
+                    outputs={}
+                /]
 
-                    [@cfResource
-                        mode=listMode
-                        id=bastionInstanceProfileId
-                        type="AWS::IAM::InstanceProfile"
-                        properties=
-                            {
-                                "Path" : "/",
-                                "Roles" : [ getReference(bastionRoleId) ]
-                            }
-                        outputs={}
-                    /]
+                [#assign asgTags =                     
+                    getCfTemplateCoreTags(
+                        bastionAutoScaleGroupName
+                        tier,
+                        component,
+                        "",
+                        true)]
 
-                    [#assign asgTags =                     
-                        getCfTemplateCoreTags(
-                            bastionAutoScaleGroupName
-                            tier,
-                            component,
-                            "",
-                            true)]
+                [@createEc2AutoScaleGroup 
+                    mode=listMode
+                    id=bastionAutoScaleGroupId
+                    tier=tier
+                    configSetName=configSetName
+                    configSets=configSets
+                    launchConfigId=bastionLaunchConfigId
+                    processorProfile=processorProfile
+                    autoScalingConfig=solution.AutoScaling
+                    multiAZ=true
+                    tags=asgTags
+                /]
 
-                    [@createEc2AutoScaleGroup 
-                        mode=listMode
-                        id=bastionAutoScaleGroupId
-                        tier=tier
-                        configSetName=configSetName
-                        configSets=configSets
-                        launchConfigId=bastionLaunchConfigId
-                        processorProfile=processorProfile
-                        minUpdateInstances=0
-                        replaceOnUpdate=false
-                        waitOnSignal=true
-                        startupTimeout="15M"
-                        updatePauseTime="5M"
-                        activityCooldown=30
-                        multiAZ=true
-                        tags=asgTags
-                    /]
-
-                    [@createEC2LaunchConfig
-                        mode=listMode
-                        id=bastionLaunchConfigId
-                        processorProfile=processorProfile
-                        storageProfile=storageProfile
-                        securityGroupId=bastionSecurityGroupToId
-                        instanceProfileId=bastionInstanceProfileId
-                        resourceId=bastionAutoScaleGroupId
-                        imageId=imageId
-                        routeTable=tier.Network.RouteTable
-                        configSet=configSetName
-                        enableCfnSignal=true
-                        environmentId=environmentId
-                        sshFromProxy=[]
-                    /]
-                [/#if]
+                [@createEC2LaunchConfig
+                    mode=listMode
+                    id=bastionLaunchConfigId
+                    processorProfile=processorProfile
+                    storageProfile=storageProfile
+                    securityGroupId=bastionSecurityGroupToId
+                    instanceProfileId=bastionInstanceProfileId
+                    resourceId=bastionAutoScaleGroupId
+                    imageId=imageId
+                    routeTable=tier.Network.RouteTable
+                    configSet=configSetName
+                    enableCfnSignal=true
+                    environmentId=environmentId
+                    sshFromProxy=[]
+                /]
             [/#if]
         [/#if]
     [/#list]

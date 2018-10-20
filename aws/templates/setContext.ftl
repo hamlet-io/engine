@@ -271,6 +271,12 @@
 
 [#assign autoScalingChildConfiguration = [
     {
+        "Names" : "DetailedMetrics",
+        "Type" : BOOLEAN_TYPE,
+        "Default" : true,
+        "Description" : "Enable the collection of autoscale group detailed metrics"
+    },
+    {
         "Names" : "WaitForSignal",
         "Type" : BOOLEAN_TYPE,
         "Default" : true,
@@ -291,7 +297,7 @@
     {
         "Names" : "UpdatePauseTime",
         "Type" : STRING_TYPE,
-        "Default" : "5M",
+        "Default" : "10M",
         "Description" : "How long to pause betweeen updates of instances"
     },
     {
@@ -480,7 +486,6 @@
     [#assign sshActive = sshEnabled &&
                             ((segmentObject.SSH.Active)!false)]
     [#assign sshPerEnvironment = (segmentObject.SSH.PerSegment)!segmentObject.SSHPerSegment!true]
-    [#assign sshStandalone = ((segmentObject.SSH.Standalone)!false) || natHosted ]
     [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
 
     [#assign operationsBucket =

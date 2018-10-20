@@ -514,15 +514,7 @@
                                 "KeyName": getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                                 "ImageId": regionObject.AMIs.Centos.NAT,
                                 "InstanceType": processorProfile.Processor,
-                                "SecurityGroups" : (sshEnabled && !sshStandalone)?then(
-                                                        [
-                                                            getReference(sshToProxySecurityGroupId),
-                                                            getReference(allToNATSecurityGroupId)
-                                                        ],
-                                                        [
-                                                            getReference(allToNATSecurityGroupId)
-                                                        ]
-                                                    ),
+                                "SecurityGroups" : [ getReference(allToNATSecurityGroupId)],
                                 "IamInstanceProfile" : getReference(instanceProfileId),
                                 "AssociatePublicIpAddress": true,
                                 "UserData": {

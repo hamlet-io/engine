@@ -310,6 +310,11 @@
                 outputs={}
             /]
 
+
+            [#assign autoScalingConfig = solution.AutoScaling + {
+                                                "WaitForSignal" : (solution.UseInitAsService != true)
+                                        }]
+
             [@createEc2AutoScaleGroup 
                 mode=listMode
                 id=computeClusterAutoScaleGroupId
@@ -318,12 +323,7 @@
                 configSets=configSets
                 launchConfigId=computeClusterLaunchConfigId
                 processorProfile=processorProfile
-                minUpdateInstances=solution.AutoScaling.MinUpdateInstances
-                replaceOnUpdate=solution.AutoScaling.ReplaceCluster
-                waitOnSignal=(solution.UseInitAsService != true)
-                startupTimeout=solution.AutoScaling.StartupTimeout
-                updatePauseTime=solution.AutoScaling.UpdatePauseTime
-                activityCooldown=solution.AutoScaling.ActivityCooldown
+                autoScalingConfig=autoScalingConfig
                 multiAZ=multiAZ
                 targetGroups=targetGroups
                 loadBalancers=loadBalancers

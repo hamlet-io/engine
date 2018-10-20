@@ -390,16 +390,20 @@
     [#return 
         {
             "AssignEIP" :  {
-                "command" : "/opt/codeontap/bootstrap/eip.sh",
-                "env" : {
-                    "EIP_ALLOCID" : {
-                        "Fn::Join" : [
-                            " ",
-                            allocationIds
-                        ]
+                "commands" : {
+                    "01AssignEIP" : {
+                        "command" : "/opt/codeontap/bootstrap/eip.sh",
+                        "env" : {
+                            "EIP_ALLOCID" : {
+                                "Fn::Join" : [
+                                    " ",
+                                    asArray(allocationIds)
+                                ]
+                            }
+                        },
+                        "ignoreErrors" : ignoreErrors
                     }
-                },
-                "ignoreErrors" : ignoreErrors
+                }
             }
         }
     ]
@@ -661,14 +665,9 @@
     configSets
     launchConfigId
     processorProfile
-    minUpdateInstances
-    replaceOnUpdate
-    waitOnSignal
-    startupTimeout
-    updatePauseTime
+    autoScalingConfig
     multiAZ
     tags
-    activityCooldown
     loadBalancers=[]
     targetGroups=[]
     dependencies="" 
@@ -693,8 +692,8 @@
         [/#if]
     [/#if]
 
-    [#if maxSize <= minUpdateInstances ]
-        [#assign maxSize = maxSize + minUpdateInstances ]
+    [#if maxSize <= autoScalingConfig.MinUpdateInstances ]
+        [#assign maxSize = maxSize + autoScalingConfig.MinUpdateInstances ]
     [/#if]
 
     [#assign desiredCapacity = processorProfile.DesiredCount!multiAZ?then(
@@ -709,14 +708,19 @@
         metadata=getInitConfig(configSetName, configSets )
         properties=
             {
-                "Cooldown" : activityCooldown?c,
-                "LaunchConfigurationName": getReference(launchConfigId),
-                "MetricsCollection" : [
-                    {
-                        "Granularity" : "1Minute"
-                    }
-                ]
+                "Cooldown" : autoScalingConfig.ActivityCooldown?c,
+                "LaunchConfigurationName": getReference(launchConfigId)
             } +
+            autoScalingConfig.DetailedMetrics?then(
+                {
+                    "MetricsCollection" : [
+                        {
+                            "Granularity" : "1Minute"
+                        }
+                    ]
+                },
+                {}
+            ) +
             multiAZ?then(
                 {
                     "MinSize": minSize,
@@ -745,7 +749,7 @@
         outputs=AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies
-        updatePolicy=replaceOnUpdate?then(
+        updatePolicy=autoScalingConfig.ReplaceCluster?then(
             {
                 "AutoScalingReplacingUpdate" : {
                     "WillReplace" : true
@@ -753,18 +757,18 @@
             },
             {
                 "AutoScalingRollingUpdate" : {
-                    "WaitOnResourceSignals" : waitOnSignal,
-                    "MinInstancesInService" : minUpdateInstances,
-                    "PauseTime" : "PT" + updatePauseTime
+                    "WaitOnResourceSignals" : autoScalingConfig.WaitForSignal,
+                    "MinInstancesInService" : autoScalingConfig.MinUpdateInstances,
+                    "PauseTime" : "PT" + autoScalingConfig.UpdatePauseTime
                 }
             }
         )
         creationPolicy=
-            (waitOnSignal != true )?then(
+            autoScalingConfig.WaitForSignal?then(
                 {
                     "ResourceSignal" : {
                         "Count" : desiredCapacity,
-                        "Timeout" : "PT" + startupTimeout
+                        "Timeout" : "PT" + autoScalingConfig.StartupTimeout
                     }
                 },
                 {}
