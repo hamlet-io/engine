@@ -576,25 +576,6 @@
     ]
 [/#function]
 
-[#function getInitConfigSSMAgent ignoreErrors=false ]
-    [#return 
-        {
-            "SSMAgent" : {
-                "packages" : {
-                    "yum" : {
-                        "amazon-ssm-agent" : []
-                    }
-                },
-                "commands": {
-                    "ConfigureSSMAgent" : {
-                        "command" : "/opt/codeontap/bootstrap/ssm.sh",
-                        "ignoreErrors" : ignoreErrors
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
 
 [#macro createEC2LaunchConfig mode id 
     processorProfile

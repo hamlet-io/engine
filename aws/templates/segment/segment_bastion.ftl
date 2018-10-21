@@ -37,7 +37,12 @@
         [#assign storageProfile = getStorage(tier, component, BASTION_COMPONENT_TYPE)]
         [#assign logFileProfile = getLogFileProfile(tier, component, BASTION_COMPONENT_TYPE)]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, BASTION_COMPONENT_TYPE)]
-        [#assign processorProfile = getProcessor(tier, component, BASTION_COMPONENT_TYPE)]
+
+        [#assign processorProfile = (getProcessor(tier, component, "SSH")?is_string)?then(
+                                        getProcessor(tier, component, BASTION_COMPONENT_TYPE),
+                                        getProcessor(tier, component, "SSH")
+                                    )]
+
         [#assign processorProfile += {
                     "MaxCount" : 2,
                     "MinCount" : sshActive?then(1,0),
@@ -46,12 +51,8 @@
 
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(component.Role!"") +
-                consoleOnly?then(
-                    getInitConfigSSMAgent(),
-                    {}
-                )]
-
+                getInitConfigBootstrap(component.Role!"")]
+                
         [#assign fragment =
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
@@ -169,7 +170,8 @@
                                     (sshActive && !consoleOnly)?then(
                                         getGroupCIDRs(
                                             (segmentObject.SSH.IPAddressGroups)!
-                                                segmentObject.IPAddressGroups![]),
+                                                (segmentObject.IPAddressGroups)!
+                                                (segmentObject.Bastion.IPAddressGroups)![]),
                                         []
                                     )
                             }

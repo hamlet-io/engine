@@ -959,9 +959,6 @@
       "NAT": {
         "Processor": "t2.micro"
       },
-      "SSH": {
-        "Processor": "t2.micro"
-      },
       "bastion" :{
         "Processor": "t2.micro"
       },
@@ -1404,7 +1401,7 @@
       "MultiAZ": false,
       "Hosted": true
     },
-    "SSH": {
+    "Bastion": {
       "Enabled": true,
       "Active": false,
       "PerSegment": true,

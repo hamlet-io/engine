@@ -482,10 +482,10 @@
     [#assign natHosted = (segmentObject.NAT.Hosted)!false]
 
     [#assign sshEnabled = internetAccess &&
-                            ((segmentObject.SSH.Enabled)!true)]
+                            ((segmentObject.SSH.Enabled)!(segmentObject.Bastion.Enabled)!true)]
     [#assign sshActive = sshEnabled &&
-                            ((segmentObject.SSH.Active)!false)]
-    [#assign sshPerEnvironment = (segmentObject.SSH.PerSegment)!segmentObject.SSHPerSegment!true]
+                            ((segmentObject.SSH.Active)!(segmentObject.Bastion.Active)!false)]
+    [#assign sshPerEnvironment = (segmentObject.SSH.PerSegment)!(segmentObject.SSHPerSegment)!(segmentObject.Bastion.PerSegment)!true]
     [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
 
     [#assign consoleOnly = (segmentObject.ConsoleOnly)!false]
