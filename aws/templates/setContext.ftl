@@ -488,6 +488,8 @@
     [#assign sshPerEnvironment = (segmentObject.SSH.PerSegment)!segmentObject.SSHPerSegment!true]
     [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
 
+    [#assign consoleOnly = (segmentObject.ConsoleOnly)!false]
+
     [#assign operationsBucket =
         firstContent(
             getExistingReference(formatS3OperationsId()),

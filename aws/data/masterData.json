@@ -868,12 +868,12 @@
           "DeploymentUnits" : ["ssh"],
           "MultiAZ" : true,
           "bastion" : {
-              "AutoScaling" : {
-                "DetailedMetrics" : false,
-                "ActivityCooldown" : 180,
-                "MinUpdateInstances" : 0,
-                "AlwaysReplaceOnUpdate" : false
-              }
+            "AutoScaling" : {
+              "DetailedMetrics" : false,
+              "ActivityCooldown" : 180,
+              "MinUpdateInstances" : 0,
+              "AlwaysReplaceOnUpdate" : false
+            }
           }
         },
         "nat-nat": {
@@ -1410,6 +1410,7 @@
       "PerSegment": true,
       "IPAddressGroups": []
     },
+    "ConsoleOnly" : false,
     "S3": {
       "IncludeTenant": false
     },

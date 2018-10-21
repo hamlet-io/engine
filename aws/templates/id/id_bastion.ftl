@@ -9,7 +9,7 @@
             "Properties"  : [
                 {
                     "Type"  : "Description",
-                    "Value" : "An SSH bastion instance to manage vpc only components"
+                    "Value" : "An bastion instance to manage vpc only components"
                 },
                 {
                     "Type" : "Providers",
@@ -27,10 +27,10 @@
                     "Default" : false
                 },
                 {
-                    "Names" : "Engine",
+                    "Names" : "OS",
                     "Type" : STRING_TYPE,
-                    "Values" : ["ssh"],
-                    "Default" : "ssh"
+                    "Values" : ["linux"],
+                    "Default" : "linux"
                 },
                 {
                     "Names" : ["Fragment", "Container"],

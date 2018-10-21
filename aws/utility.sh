@@ -1112,6 +1112,27 @@ function delete_ssh_credentials() {
   return 0
 }
 
+
+# -- SSM --
+
+function update_ssm_document() {
+  local region="$1"; shift
+  local name="$1"; shift 
+  local version="$1"; shift
+  local contentfile="$1"; shift 
+
+  local currentHash="$(aws ssm describe-document --region "${region}" --name "${name}" --document-version "${version}" --query 'Document.Hash' --output text || return $?)"  
+  local newHash="$(shasum -a 256 ${contentfile} | cut -d " " -f 1 || return $?)" 
+
+  if [[ "${currentHash}" != "${newHash}" ]]; then
+    aws ssm update-document --region "${region}" --name "${name}" --document-version "${version}" --content "file://${contentfile}" || return $?
+  else 
+    info "No changes required"
+  fi
+
+  return $?
+}
+
 # -- OAI --
 
 function update_oai_credentials() {

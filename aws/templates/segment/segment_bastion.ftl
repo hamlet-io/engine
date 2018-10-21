@@ -24,13 +24,14 @@
         [#assign bastionLgId = resources["lg"].Id]
         [#assign bastionLgName = resources["lg"].Name]
 
+        [#assign bastionOS = solution.OS ]
         [#assign configSetName = componentType]
-
         [#assign sshInVpc = getExistingReference(bastionSecurityGroupFromId, "", "", "vpc")?has_content ]
 
-        [#switch solution.Engine ]
-            [#default]
+        [#switch bastionOS ]
+            [#case "linux" ]
                 [#assign imageId = regionObject.AMIs.Centos.EC2]
+                [#break]
         [/#switch]
 
         [#assign storageProfile = getStorage(tier, component, BASTION_COMPONENT_TYPE)]
@@ -45,7 +46,11 @@
 
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(component.Role!"") ]
+                getInitConfigBootstrap(component.Role!"") +
+                consoleOnly?then(
+                    getInitConfigSSMAgent(),
+                    {}
+                )]
 
         [#assign fragment =
             contentIfContent(solution.Fragment, getComponentId(component)) ]
@@ -105,27 +110,37 @@
                         ] +
                         arrayIfContent(
                             [getPolicyDocument(_context.Policy, "fragment")],
-                            _context.Policy)
+                            _context.Policy) +
+                        consoleOnly?then(
+                            [getPolicyDocument(
+                                ec2SSMSessionManagerPermission() +
+                                ec2SSMAgentUpdatePermission(bastionOS),
+                                "ssm")],
+                            []
+                        )
                     managedArns=_context.ManagedPolicy
                 /]
             [/#if]
 
-            [#if deploymentSubsetRequired("eip", true) &&
-                    isPartOfCurrentDeploymentUnit(bastionEIPId)]
-                [@createEIP
-                    mode=listMode
-                    id=bastionEIPId
-                /]
+            [#if !consoleOnly ]
+                [#if deploymentSubsetRequired("eip", true) &&
+                        isPartOfCurrentDeploymentUnit(bastionEIPId)]
+                    [@createEIP
+                        mode=listMode
+                        id=bastionEIPId
+                    /]
+                [/#if]
+
+                [#assign configSets += 
+                    getInitConfigEIPAllocation(
+                        getReference(
+                            bastionEIPId, 
+                            ALLOCATION_ATTRIBUTE_TYPE
+                        ))]
             [/#if]
 
-            [#assign configSets += 
-                getInitConfigEIPAllocation(
-                    getReference(
-                        bastionEIPId, 
-                        ALLOCATION_ATTRIBUTE_TYPE
-                    ))]
-
-            [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(bastionLgId) ]
+            [#if deploymentSubsetRequired("lg", true) && 
+                    isPartOfCurrentDeploymentUnit(bastionLgId) ]
                 [@createLogGroup
                     mode=listMode
                     id=bastionLgId
@@ -151,7 +166,7 @@
                             {
                                 "Port" : "ssh",
                                 "CIDR" :
-                                    (sshActive)?then(
+                                    (sshActive && !consoleOnly)?then(
                                         getGroupCIDRs(
                                             (segmentObject.SSH.IPAddressGroups)!
                                                 segmentObject.IPAddressGroups![]),
