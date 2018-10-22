@@ -62,7 +62,7 @@
         },
         {
             "Names" : "Instance",
-            "Types" : STRING_TYPE
+            "Type" : STRING_TYPE
         },
         {
             "Names" : "Version",
