@@ -1755,6 +1755,7 @@ behaviour.
     [#if (processors[defaultProfile][type])??]
         [#return processors[defaultProfile][type]]
     [/#if]
+    [#return {}]
 [/#function]
 
 [#function getLogFileProfile tier component type extensions... ]

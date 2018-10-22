@@ -38,9 +38,9 @@
         [#assign logFileProfile = getLogFileProfile(tier, component, BASTION_COMPONENT_TYPE)]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, BASTION_COMPONENT_TYPE)]
 
-        [#assign processorProfile = (getProcessor(tier, component, "SSH")?is_string)?then(
-                                        getProcessor(tier, component, BASTION_COMPONENT_TYPE),
-                                        getProcessor(tier, component, "SSH")
+        [#assign processorProfile = (getProcessor(tier, component, "SSH")?has_content)?then(
+                                        getProcessor(tier, component, "SSH"),
+                                        getProcessor(tier, component, BASTION_COMPONENT_TYPE)
                                     )]
 
         [#assign processorProfile += {
