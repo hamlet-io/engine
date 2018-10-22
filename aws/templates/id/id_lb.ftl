@@ -101,8 +101,7 @@
                 },
                 {
                     "Names" : "Certificate",
-                    "Type" : OBJECT_TYPE,
-                    "Default" : {}
+                    "Children" : certificateChildConfiguration
                 },
                 {
                     "Names" : "HostFilter",
@@ -289,7 +288,7 @@
         [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
         [#local hostName = getHostName(certificateObject, occurrence) ]
 
-        [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
+        [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
         [#local scheme = "https" ]
     [#else]
         [#local fqdn = internalFqdn ]

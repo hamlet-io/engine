@@ -24,12 +24,29 @@
                 extensions)]
 [/#function]
 
+[#function getCertificateDomains certificateObject]
+    [#return certificateObject.Domains![] ]
+[/#function]
+
+[#function getCertificatePrimaryDomain certificateObject]
+    [#list certificate.Domains as domain]
+        [#if domain.Role = DOMAIN_ROLE_PRIMARY]
+            [#return domain ]
+            [#break]
+        [/#if]
+    [/#list]
+    [#return {} ]
+[/#function]
+
 [#function formatDomainCertificateId certificateObject, hostName=""]
-    [#return formatResourceId(
-                AWS_CERTIFICATE_RESOURCE_TYPE,
-                certificateObject.Wildcard?then(
-                    "star",
-                    hostName
-                ),
-                splitDomainName(certificateObject.Domain.Name) )]
+    [#local primaryDomain = getCertificatePrimaryDomain(certificateObject) ]
+    [#return
+        formatResourceId(
+            AWS_CERTIFICATE_RESOURCE_TYPE,
+            certificateObject.Wildcard?then(
+                "star",
+                hostName
+            ),
+            splitDomainName(primaryDomain.Name) 
+        ) ]
 [/#function]

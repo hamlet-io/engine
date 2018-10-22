@@ -114,6 +114,7 @@
                         [#local argValue = argValue.Id!""]
                     [/#if]
                     [#break]
+                [#case "."]
                 [#case "-"]
                 [#case "_"]
                 [#case "/"]

@@ -113,7 +113,7 @@
                 )
             sqsNotifications=sqsNotifications
             websiteConfiguration=
-                (solution.Website.Configured && solution.Website.Enabled)?then(
+                (isPresent(solution.Website))?then(
                     getS3WebsiteConfiguration(solution.Website.Index, solution.Website.Error),
                     {})
             versioning=solution.Lifecycle.Versioning

@@ -143,12 +143,12 @@
 
             [#-- FQDN processing --]
             [#if solution.HostFilter ]
-                [#assign fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
+                [#assign fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
                 [#assign listenerRuleConditions += asArray(getListenerRuleHostCondition(fqdn)) ]
             [/#if]
 
             [#-- Redirect rule processing --]
-            [#if solution.Redirect.Configured && solution.Redirect.Enabled]
+            [#if isPresent(solution.Redirect) ]
                 [#assign targetGroupRequired = false ]
                 [#assign listenerRuleConfig =
                     {
@@ -166,7 +166,7 @@
             [/#if]
 
             [#-- Fixed rule processing --]
-            [#if solution.Fixed.Configured && solution.Fixed.Enabled]
+            [#if isPresent(solution.Fixed) ]
                 [#assign targetGroupRequired = false ]
                 [#assign fixedMessage = getOccurrenceSettingValue(subOccurrence, ["Fixed", "Message"], true) ]
                 [#assign fixedContentType = getOccurrenceSettingValue(subOccurrence, ["Fixed", "ContentType"], true) ]

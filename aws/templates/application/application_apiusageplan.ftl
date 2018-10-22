@@ -1,4 +1,4 @@
-[#-- API Gateway --]
+[#-- API Gateway Usage Plan --]
 
 [#if (componentType == APIGATEWAY_USAGEPLAN_COMPONENT_TYPE)]
     [#list requiredOccurrences(

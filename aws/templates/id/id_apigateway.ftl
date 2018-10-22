@@ -1,5 +1,52 @@
 [#-- API Gateway --]
 
+[#--
+Ideally stages should be a separate subcomponent. However the deployment
+model makes that tricky with the swagger definition associated to the api
+object.
+--]
+
+[#--
+There are multiple modes of deployment offered for the API Gateway, mainly to
+support use of product domains for endpoints. The key
+consideration is the handling of the host header. They reflect the
+changes and improvements AWS have made to the API Gateway over time.
+For whitelisted APIs, mode 4 is the recommended one now.
+
+1) Multi-domain cloudfront + EDGE endpoint
+    . waf based IP whitelisting
+    . multiple cloudfront aliases
+    . host header blocked
+    . EDGE based API Gateway
+    . signing based on AWS API domain name
+    . API-KEY used as shared secret between cloudfront and the API
+2) Single domain cloudfront + EDGE endpoint
+    . waf based IP whitelisting
+    . single cloudfront alias
+    . host header blocked
+    . EDGE based API Gateway
+    . signing based on "sig4-" + alias
+    . API-KEY used as shared secret between cloudfront and the API
+3) Multi-domain cloudfront + REGIONAL endpoint
+    . waf based IP whitelisting
+    . multiple cloudfront aliases
+    . host header passed through to endpoint
+    . REGIONAL based API Gateway
+    . signing based on any of the aliases
+    . API-KEY used as shared secret between cloudfront and the API
+4) API endpoint
+    . policy based IP whitelisting
+    . multiple aliases
+    . EDGE or REGIONAL
+    . signing based on any of the aliases
+    . API-KEY can be used for client metering
+
+If multiple domains are provided, the primary domain is used to provide the
+endpoint for the the API documentation and for the gateway attributes. For
+documentation, the others used to redirect to the primary.
+--]
+
+
 [#-- Resources --]
 [#assign AWS_APIGATEWAY_RESOURCE_TYPE = "apigateway"]
 [#assign AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE = "apiDeploy"]
@@ -32,7 +79,7 @@
 
 [#assign componentConfiguration +=
     {
-        APIGATEWAY_COMPONENT_TYPE : { 
+        APIGATEWAY_COMPONENT_TYPE : {
             "Properties" : [
                 {
                     "Type" : "Description",
@@ -55,8 +102,7 @@
                 },
                 {
                     "Names" : "Links",
-                    "Type" : OBJECT_TYPE,
-                    "Default" : {}
+                    "Children" : linkChildrenConfiguration
                 },
                 {
                     "Names" : "WAF",
@@ -116,11 +162,7 @@
                 },
                 {
                     "Names" : "Certificate",
-                    "Children" : [
-                        {
-                            "Names" : "*"
-                        }
-                    ]
+                    "Children" : certificateChildConfiguration
                 },
                 {
                     "Names" : "Publish",
@@ -199,16 +241,14 @@
     [#local stageId = formatResourceId(AWS_APIGATEWAY_STAGE_RESOURCE_TYPE, core.Id)]
     [#local stageName = core.Version.Name]
 
-    [#local docsId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION)]
-
-    [#local cfId = formatDependentCFDistributionId(apiId)]
-
     [#local serviceName = "execute-api" ]
 
-    [#local certificatePresent = solution.Certificate.Configured && solution.Certificate.Enabled ]
-    [#local mappingPresent     = solution.Mapping.Configured && solution.Mapping.Enabled ]
-    [#local cfPresent          = solution.CloudFront.Configured && solution.CloudFront.Enabled ]
-    [#local mappingPresent     = mappingPresent && (!cfPresent || solution.CloudFront.Mapping) ]
+    [#local certificatePresent = isPresent(solution.Certificate) ]
+    [#local cfPresent          = isPresent(solution.CloudFront) ]
+    [#local wafPresent         = isPresent(solution.WAF) ]
+    [#local mappingPresent     = isPresent(solution.Mapping) &&
+                                     (!cfPresent || solution.CloudFront.Mapping) ]
+    [#local publishPresent     = isPresent(solution.Publish) ]
 
     [#local endpointType       = solution.EndpointType ]
     [#local isEdgeEndpointType = solution.EndpointType == "EDGE" ]
@@ -226,19 +266,34 @@
     [#local internalPath = ""]
     [#local stagePath = "/" + stageName]
     [#local certificateId = "" ]
-    [#local docsName =
-            formatName(
-                solution.Publish.DnsNamePrefix,
-                formatOccurrenceBucketName(occurrence))]
+
+    [#-- Effective API Gateway end points --]
+    [#local hostDomains = [] ]
+    [#local hostName = "" ]
+
+    [#-- Custom domain definitions needed for signing --]
+    [#local customDomains = [] ]
+    [#local customHostName = "" ]
+
+    [#-- Documentation domains --]
+    [#local docsDomains = [] ]
+    [#local docsHostName = "" ]
 
     [#if certificatePresent ]
         [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers)]
-        [#local hostName = getHostName(certificateObject, occurrence)]
+        [#local certificateDomains = getCertificateDomains(certificateObject) ]
+        [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
+        [#local hostName = getHostName(certificateObject, occurrence) ]
+        [#local docsHostName = hostName ]
         [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
         [#if mappingPresent ]
-            [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
-            [#local docsName = formatDomainName(solution.Publish.DnsNamePrefix, fqdn) ]
+            [#-- Mode 2, 3, 4 --]
+            [#local fqdn = formatDomainName(hostName, primaryDomainObject)]
+            [#local hostDomains = certificateDomains ]
+            [#local customDomains = hostDomains ]
+            [#local customHostName = hostName ]
+            [#local docsDomains = hostDomains ]
             [#local signingFqdn = fqdn]
             [#if solution.Mapping.IncludeStage]
                 [#local mappingStage = stageName ]
@@ -248,14 +303,133 @@
             [/#if]
 
             [#if cfPresent && isEdgeEndpointType]
-                [#local signingFqdn = formatDomainName(formatName("sig4", hostName), certificateObject.Domain.Name)]
+                [#-- Mode 2 --]
+                [#local hostDomains = [primaryDomainObject] ]
+                [#local customDomains = hostDomains ]
+                [#local customHostName = formatName("sig4", hostName) ]
+                [#local signingFqdn = formatDomainName(customHostName, primaryDomainObject) ]
             [/#if]
         [#else]
             [#if cfPresent ]
-                [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
-                [#local docsName = formatDomainName(solution.Publish.DnsNamePrefix, fqdn) ]
+                [#-- Mode 1 --]
+                [#local fqdn = formatDomainName(hostName, primaryDomain) ]
+                [#local hostDomains = certificateDomains ]
+                [#local docsDomains = hostDomains ]
             [/#if]
         [/#if]
+    [/#if]
+
+    [#-- Determine the list of hostname alternatives --]
+    [#local fqdns = [] ]
+    [#list hostDomains as domain]
+        [#local fqdns += [ formatDomainName(hostName, domain.Name) ] ]
+    [/#list]
+
+    [#-- Cloudfront resources if required --]
+    [#local cfResources = {} ]
+    [#if cfPresent]
+        [#local cfId = formatDependentCFDistributionId(apiId)]
+        [#local cfResources =
+            {
+                "distribution" : {
+                    "Id" : cfId,
+                    "Name" : formatComponentCFDistributionName(core.Tier, core.Component, occurrence),
+                    "Type" : AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
+                } +
+                valueIfContent(
+                    {
+                        "CertificateId" : certificateId,
+                        "Fqdns" : fqdns
+                    },
+                    fqdns
+                ),
+                "origin" : {
+                    "Id" : "apigateway",
+                    "Fqdn" : signingFqdn,
+                    "Type" : AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE
+                },
+                "usageplan" : {
+                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE, cfId),
+                    "Name" : formatComponentFullName(core.Tier, core.Component, occurrence),
+                    "Type" : AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE
+                }
+            } +
+            attributeIfTrue(
+                "wafacl",
+                wafPresent,
+                {
+                    "Id" : formatDependentWAFAclId(apiId),
+                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
+                    "Type" : AWS_WAF_ACL_RESOURCE_TYPE
+                }
+            ) ]
+    [/#if]
+
+    [#-- Custom domain resources if required --]
+    [#local customDomainResources = {} ]
+    [#list customDomains as domain]
+        [#local customFqdn = formatDomainName(customHostName, domain) ]
+        [#local customFqdnParts = splitDomainName(customFqdn) ]
+        [#local customFqdnId = formatResourceId(AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE, customFqdnParts) ]
+        [#local customDomainResources +=
+            {
+                customFqdn : {
+                    "domain" : {
+                        "Id" : customFqdnId,
+                        "Name" : customFqdn,
+                        "CertificateId" : certificateId,
+                        "Type" : AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE
+                    },
+                    "basepathmapping" : {
+                        "Id" : formatDependentResourceId(AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, customFqdnId),
+                        "Stage" : mappingStage,
+                        "Type" : AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE
+                    }
+                }
+            } ]
+    [/#list]
+
+    [#-- API documentation if required --]
+    [#local docsResources = {} ]
+    [#local docsPrimaryFqdn = "" ]
+    [#if publishPresent ]
+        [#local docsPrimaryFqdn =
+            formatDomainName(
+                solution.Publish.DnsNamePrefix,
+                docsHostName,
+                primaryDomain) ]
+        [#list docsDomains as domain]
+            [#local docsFqdn =
+                formatDomainName(
+                    solution.Publish.DnsNamePrefix,
+                    docsHostName,
+                    domain) ]
+
+            [#local docsFqdnParts = splitDomainName(docsFqdn) ]
+            [#local docsId = formatS3Id(docsFqdnParts) ]
+
+            [#local redirectTo =
+                valueIfTrue(
+                    docsPrimaryFqdn,
+                    (docsPrimaryFqdn != "") && (docsPrimaryFqdn != docsFqdn),
+                    ""
+                ) ]
+            [#local docsResources +=
+                {
+                    docsFqdn : {
+                        "bucket" : {
+                            "Id" : docsId,
+                            "Name" : docsFqdn,
+                            "Type" : AWS_S3_RESOURCE_TYPE,
+                            "RedirectTo" : redirectTo
+                        },
+                        "policy" : {
+                            "Id" : formatBucketPolicyId(docsFqdnParts),
+                            "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
+                        }
+                    }
+                } ]
+         [/#list]
     [/#if]
 
     [#return
@@ -275,64 +449,30 @@
                     "Name" : stageName,
                     "Type" : AWS_APIGATEWAY_STAGE_RESOURCE_TYPE
                 },
-                "apidomain" : {
-                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE, apiId),
-                    "Fqdn" : signingFqdn,
-                    "CertificateId" : certificateId,
-                    "Type" : AWS_APIGATEWAY_DOMAIN_RESOURCE_TYPE
-                },
-                "apibasepathmapping" : {
-                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE, stageId),
-                    "Stage" : mappingStage,
-                    "Type" : AWS_APIGATEWAY_BASEPATHMAPPING_RESOURCE_TYPE
-                },
-                "apiusageplan" : {
-                    "Id" : formatDependentResourceId(AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE, cfId),
-                    "Name" : formatComponentFullName(core.Tier, core.Component, occurrence),
-                    "Type" : AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE
-                },
-                "invalidlogmetric" : {
-                    "Id" : formatDependentLogMetricId(stageId, "invalid"),
-                    "Name" : "Invalid",
-                    "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
-                },
-                "invalidalarm" : {
-                    "Id" : formatDependentAlarmId(stageId, "invalid"),
-                    "Name" : formatComponentAlarmName(core.Tier, core.Component, occurrence,"invalid"),
-                    "Type" : AWS_CLOUDWATCH_ALARM_RESOURCE_TYPE
-                },
-                "cf" : {
-                    "Id" : cfId,
-                    "Name" : formatComponentCFDistributionName(core.Tier, core.Component, occurrence),
-                    "CertificateId" : certificateId,
-                    "Fqdn" : fqdn,
-                    "Type" : AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
-                },
-                "cforigin" : {
-                    "Id" : "apigateway",
-                    "Fqdn" : signingFqdn,
-                    "Type" : AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE
-                },
-                "wafacl" : {
-                    "Id" : formatDependentWAFAclId(apiId),
-                    "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
-                    "Type" : AWS_WAF_ACL_RESOURCE_TYPE
-                },
-                "docs" : {
-                    "Id" : docsId,
-                    "Name" : docsName,
-                    "Type" : AWS_S3_RESOURCE_TYPE
-                },
-                "docspolicy" : {
-                    "Id" : formatBucketPolicyId(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION),
-                    "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
+                "lg" : {
+                    "Id" : formatDependentLogGroupId(stageId),
+                    "Name" : {
+                        "Fn::Join" : [
+                            "",
+                            [
+                                "API-Gateway-Execution-Logs_",
+                                getExistingReference(apiId),
+                                "/",
+                                stageName
+                            ]
+                        ]
+                    },
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 },
                 "accesslg" : {
                     "Id" : formatDependentLogGroupId(stageId, "access"),
                     "Name" : formatAbsolutePath(core.FullAbsolutePath, "access"),
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
-            },
+            } +
+            attributeIfContent("cf", cfResources) +
+            attributeIfContent("docs", docsResources) +
+            attributeIfContent("customDomains", customDomainResources),
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn + stagePath,
@@ -343,8 +483,12 @@
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn + stagePath,
                 "INTERNAL_PATH" : internalPath,
-                "DOCS_URL" : "http://" + getExistingReference(docsId, NAME_ATTRIBUTE_TYPE)
-            },
+            } +
+            attributeIfTrue(
+                "DOCS_URL",
+                docsPrimaryFqdn != "",
+                "http://" + docsPrimaryFqdn
+            ),
             "Roles" : {
                 "Inbound" : {
                     "default" : "invoke",

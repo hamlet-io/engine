@@ -16,18 +16,8 @@
         [#assign dlqId = resources["dlq"].Id ]
         [#assign dlqName = resources["dlq"].Name ]
 
-        [#assign sqsDimensions =
-            [
-                {
-                    "Name" : "QueueName",
-                    "Value" : sqsName
-                }
-            ]
-        ]
-
         [#assign dlqRequired =
-            (solution.DeadLetterQueue.Configured &&
-                solution.DeadLetterQueue.Enabled) ||
+            isPresent(solution.DeadLetterQueue) ||
             ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
         [#if dlqRequired]
             [@createSQSQueue
@@ -55,50 +45,5 @@
                   (environmentObject.Operations.DeadLetterQueue.MaxReceives)!3)
         /]
 
-        [#switch listMode]
-            [#case "dashboard"]
-                [#if getExistingReference(sqsId)?has_content]
-                    [#assign widgets =
-                        [
-                            {
-                                "Type" : "metric",
-                                "Metrics" : [
-                                    {
-                                        "Namespace" : "AWS/SQS",
-                                        "Metric" : "NumberOfMessagesReceived",
-                                        "Dimensions" : sqsDimensions
-                                    }
-                                ],
-                                "Title" : "Received",
-                                "Width" : 6,
-                                "asGraph" : true
-                            },
-                            {
-                                "Type" : "metric",
-                                "Metrics" : [
-                                    {
-                                        "Namespace" : "AWS/SQS",
-                                        "Metric" : "ApproximateAgeOfOldestMessage",
-                                        "Dimensions" : sqsDimensions,
-                                        "Statistic" : "Maximum"
-                                    }
-                                ],
-                                "Title" : "Oldest",
-                                "Width" : 6,
-                                "asGraph" : true
-                            }
-                        ]
-                    ]
-                    [#assign dashboardRows +=
-                        [
-                            {
-                                "Title" : formatName(occurrence),
-                                "Widgets" : widgets
-                            }
-                        ]
-                    ]
-                [/#if]
-                [#break]
-        [/#switch]
     [/#list]
 [/#if]

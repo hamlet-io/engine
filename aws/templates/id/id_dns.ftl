@@ -1,5 +1,11 @@
 [#-- DNS --]
 
+[#-- Primary is used on component attributes --]
+[#assign DOMAIN_ROLE_PRIMARY="primary" ]
+
+[#-- Secondaries allow a smooth transition from one domain to another --]
+[#assign DOMAIN_ROLE_SECONDARY="secondary" ]
+
 [#-- Names --]
 [#function formatHostDomainName host parts style=""]
     [#local result =
