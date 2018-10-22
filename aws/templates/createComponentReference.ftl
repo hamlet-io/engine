@@ -102,12 +102,13 @@
     [#return result]
 [/#function]
 
-[#function getAttributeDetails attribute   ]
+[#function getAttributeDetails attribute currentLevel ]
     [#local result = [] ]
+    [#local headerLevel = currentLevel]
 
     [#if attribute?is_string ]
         [#local attribute = {
-            "Name" : attribute
+            "Names" : attribute
         }]
     [/#if]
 
@@ -120,11 +121,15 @@
             [#local name += " (_" + nameArray[1..]?join(", ") + "_)" ] 
         [/#if]                  
 
-        [#local result += [ name + "  " ]]
+        [#local result += getMDList( 
+                                name,
+                                false,
+                                headerLevel)]
 
+        [#local headerLevel++ ]
         [#list attribute.Children as childAttribute ]
             [#local result += 
-                getAttributeDetails(childAttribute)]
+                getAttributeDetails(childAttribute, headerLevel)]
         [/#list]
     
     [#else]
@@ -148,7 +153,7 @@
                     [#local name += "[" + nameArray[0] + "](#" + nameArray[0] + ")"  ]
 
                     [#if nameArray?size > 1 ] 
-                        [#local name += " (_" + nameArray[1..]?join(", ") + "_)" ] 
+                        [#local name += " _(" + nameArray[1..]?join(", ") + ")_" ] 
                     [/#if]                    
                     [#break]
 
@@ -158,8 +163,7 @@
             
                 [#case "Default" ]
                     [#if value?has_content ]
-                        [#local hasDefault = true]
-                        [#local default +=  key + ": " + getMDString(value)]
+                        [#local default +=  "__" + key + ":__ " + "`" + getMDString(value) + "`"]
                     [/#if]
                     [#break]
 
@@ -174,32 +178,42 @@
                     [/#if]
                     [#break]
                 
+                [#case "Values"]
+                    [#local details += [ "__Possible Values:__ `[" + getMDString(value) + "]`" ]]
+                    [#break]
+
                 [#default]
                     [#if value?has_content ]
                         [#local details += [ "__" + key + ":__ " + getMDString(value) ]  ]
                     [/#if]
             [/#switch]
-
-            [#if value?is_last && !hasDefault ]
-                [#local requiredValue = mandatory?then(
-                                            "__Required__",
-                                            "__Optional__")]
-            [/#if]
-
-
         [/#list]
 
-        [#local result += [ name + " - "
-                requiredValue +  
-                (type?has_content)?then(
-                        " - " + type,
-                        "" ) + 
-                (default?has_content)?then(
-                        " - " + default,
-                        "") + "  "]]
-        [#local result += details?has_content?then(
-                            [ details?join(" ") + "  " ],
-                            [])]
+        [#local requiredValue = mandatory?then(
+                                    "Required",
+                                    "Optional")]
+
+        [#local keydetails = name + " - " +
+                                requiredValue +  
+                                (type?has_content)?then(
+                                        " - " + type,
+                                        "" ) + 
+                                (default?has_content)?then(
+                                        " - " + default,
+                                        "") + "  " ]
+
+        [#local extradetails = details?has_content?then(
+                            details?join("  "),
+                            "")]
+
+        [#local result += getMDList(
+                                keydetails,
+                                false,
+                                headerLevel)]
+
+        [#if extradetails?has_content ]
+            [#local result += [ ""?left_pad(headerLevel * 8, " ") + extradetails ]]
+        [/#if]
     [/#if]
 
     [#return result]
@@ -413,7 +427,7 @@
 
         [#list componentAttributes as attribute ]
             [#assign attributes +=
-                getAttributeDetails(attribute)]
+                getAttributeDetails(attribute, 0)]
         [/#list]
 
         [#list componentSubComponents as subComponent ]
