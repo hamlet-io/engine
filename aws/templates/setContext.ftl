@@ -489,6 +489,7 @@
     [#assign shortNamePrefixes += [productId] ]
     [#assign fullNamePrefixes += [productName] ]
     [#assign cmdbProductLookupPrefixes += ["shared"] ]
+    [#assign segmentQualifiers += [productName, productId] ]
 
 [/#if]
 
