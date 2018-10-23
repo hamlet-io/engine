@@ -144,13 +144,17 @@
                             "create_snapshot" +
                             " \"" + region + "\" " +
                             " \"" + rdsFullName + "\" " +
-                            " \"" + rdsPreDeploySnapshotId + "\" || return $?",
-                            "create_pseudo_stack" + " " +
-                            "\"RDS Pre-Deploy Snapshot\"" + " " +
-                            "\"$\{pseudo_stack_file}\"" + " " +
-                            "\"snapshotX" + rdsId + "Xname\" " + "\"" + rdsPreDeploySnapshotId + "\" || return $?",
+                            " \"" + rdsPreDeploySnapshotId + "\" || return $?"
+                        ] + 
+                        pseudoStackOutputScript(
+                            "RDS Pre-Deploy Snapshot",
+                            { 
+                                formatId("snapshot", rdsId, "name") : rdsPreDeploySnapshotId,
+                                formatId("manualsnapshot", rdsId, "name") : ""
+                            }
+                        ) +
+                        [
                             "}",
-                            "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
                             "create_deploy_snapshot || return $?"
                         ],
                         []) +
@@ -168,13 +172,10 @@
                         ],
                         []
                     ),
-                    [
-                        "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
-                        "create_pseudo_stack" + " " +
-                        "\"RDS Manual Snapshot Restore\"" + " " +
-                        "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"manualsnapshotX" + rdsId + "Xname\" " + "\"\" || return $?"
-                    ] 
+                    pseudoStackOutputScript(
+                            "RDS Manual Snapshot Restore",
+                            { formatId("manualsnapshot", rdsId, "name") : "" }
+                        )
                 ) +
                 [
                     " ;;",
@@ -337,11 +338,14 @@
                         "set_rds_master_password" +
                         " \"" + region + "\" " +
                         " \"" + rdsFullName + "\" " +
-                        " \"$\{master_password}\" || return $?",
-                        "create_pseudo_stack" + " " +
-                        "\"RDS Master Password\"" + " " +
-                        "\"$\{password_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xgeneratedpassword\" \"$\{encrypted_master_password}\" || return $?",
+                        " \"$\{master_password}\" || return $?"
+                    ] +
+                    pseudoStackOutputScript(
+                            "RDS Master Password",
+                            { formatId(rdsId, "generatedpassword") : "$\{encrypted_master_password}" },
+                            "password"
+                    ) +
+                    [
                         "info \"Generating URL... \"",
                         "rds_hostname=\"$(get_rds_hostname" + 
                         " \"" + region + "\" " +
@@ -356,14 +360,15 @@
                         "encrypted_rds_url=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{rds_url}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\"",
-                        "create_pseudo_stack" + " " +
-                        "\"RDS Connection URL\"" + " " +
-                        "\"$\{url_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?",
+                        " \"" + segmentKMSKey + "\" || return $?)\""
+                    ] +
+                    pseudoStackOutputScript(
+                            "RDS Connection URL",
+                            { formatId(rdsId, "url") : "$\{encrypted_rds_url}" },
+                            "url"
+                    ) +
+                    [
                         "}",
-                        "password_pseudo_stack_file=" + passwordPseudoStackFile,
-                        "url_pseudo_stack_file=" +  urlPseudoStackFile,
                         "generate_master_password || return $?"
                     ],
                     []) +
@@ -395,13 +400,15 @@
                         "encrypted_rds_url=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{rds_url}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\"",
-                        "create_pseudo_stack" + " " +
-                        "\"RDS Connection URL\"" + " " +
-                        "\"$\{url_pseudo_stack_file}\"" + " " +
-                        "\"" + rdsId + "Xurl\" \"$\{encrypted_rds_url}\" || return $?"
+                        " \"" + segmentKMSKey + "\" || return $?)\""
+                    ] +
+                    pseudoStackOutputScript(
+                            "RDS Connection URL",
+                            { formatId(rdsId, "url") : "$\{encrypted_rds_url}" },
+                            "url"
+                    ) +
+                    [
                         "}",
-                        "url_pseudo_stack_file=" +  urlPseudoStackFile,
                         "reset_master_password || return $?"
                     ],
                 []) +

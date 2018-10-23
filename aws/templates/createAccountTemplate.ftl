@@ -15,6 +15,7 @@
         [#break]
 [/#switch]
 
+[#assign componentLevel="account" ]
 [@cfTemplate
-    level="account"
+    level=componentLevel
     include=accountList /]

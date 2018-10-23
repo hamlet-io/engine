@@ -14,8 +14,9 @@
         [#break]
 [/#switch]
 
+[#assign componentLevel="segment" ]
 [@cfTemplate
-    level="segment"
+    level=componentLevel
     compositeLists=segmentList /]
 
 
