@@ -85,7 +85,7 @@
 [/#function]
 
 [#-- Get stack output --]
-[#function getStackOutputObject id deploymentUnit="" region="" account=""]
+[#function getStackOutputObject id deploymentUnit="" region="" account=accountObject.AWSId]
     [#list stackOutputsList as stackOutputs]
         [#local outputId = stackOutputs[id]?has_content?then(
                 id,
@@ -114,7 +114,7 @@
     [#return {}]
 [/#function]
 
-[#function getStackOutput id deploymentUnit="" region="" account=""]
+[#function getStackOutput id deploymentUnit="" region="" account=accountObject.AWSId]
     [#local result =
         getStackOutputObject(
             id,
@@ -165,7 +165,7 @@
 [#-- Include a reference to a resource --]
 [#-- Allows resources to share a template or be separated --]
 [#-- Note that if separate, creation order becomes important --]
-[#function getExistingReference resourceId attributeType="" inRegion="" inDeploymentUnit="" inAccount=""]
+[#function getExistingReference resourceId attributeType="" inRegion="" inDeploymentUnit="" inAccount=accountObject.AWSId]
     [#return getStackOutput(formatAttributeId(resourceId, attributeType), inDeploymentUnit, inRegion, inAccount) ]
 [/#function]
 
