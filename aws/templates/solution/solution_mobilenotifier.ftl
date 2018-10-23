@@ -197,13 +197,17 @@
                                 "       \"" + encryptionScheme + "\" " +
                                 "       \"" + engine + "\" " +
                                 "       \"$\{tmpdir}/cli-" +
-                                        platformAppAttributesCliId + "-" + platformAppAttributesCommand + ".json\")\"",
-                                "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-" + core.SubComponent.Id + "-pseudo-stack.json\" ",
-                                "       create_pseudo_stack" + " " +
-                                "       \"SNS Platform App\"" + " " +
-                                "       \"$\{pseudo_stack_file}\"" + " " +
-                                "       \"" + platformAppId + "Xarn\" \"$\{platform_app_arn}\"" +
-                                "       \"" + platformAppId + "\" \"" + core.Name + "\" || return $?",
+                                        platformAppAttributesCliId + "-" + platformAppAttributesCommand + ".json\")\""
+                            ] + 
+                            pseudoStackOutputScript(
+                                "SNS Platform App",
+                                { 
+                                    formatId(platformAppId, "arn") : "$\{platform_app_arn}",
+                                    platformAppId : core.Name
+                                },
+                                core.SubComponent.Id
+                            ) +
+                            [
                                 "       ;;",
                                 "  delete)",
                                 "       # Delete SNS Platform Application",

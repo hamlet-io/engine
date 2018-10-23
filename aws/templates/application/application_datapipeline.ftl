@@ -284,12 +284,16 @@
                             "       \"$\{pipelineId}\" " +
                             "       \"$\{tmpdir}/pipeline/pipeline-definition.json\" " + 
                             "       \"$\{tmpdir}/pipeline/pipeline-parameters.json\" " + 
-                            "       \"$\{tmpdir}/config.json\" || return $?",
-                            "       pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
-                            "       create_pseudo_stack" + " " +
-                            "       \"Data Pipeline\"" + " " +
-                            "       \"$\{pseudo_stack_file}\"" + " " +
-                            "       \"" + pipelineId + "\" \"$\{pipelineId}\" || return $?"
+                            "       \"$\{tmpdir}/config.json\" || return $?"
+                        ] +
+                        pseudoStackOutputScript(
+                            "Data Pipeline",
+                            { 
+                                pipelineId : "$\{pipelineId}"
+                            },
+                            "creds-system"
+                        ) + 
+                        [
                             "   ;;",
                             "   esac"
                         ]

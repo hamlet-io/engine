@@ -729,13 +729,23 @@ function get_iam_smtp_password() {
   | openssl enc -base64
 }
 
-function set_iam_userpassword() {
+function manage_iam_userpassword() {
   local region="$1"; shift
+  local action="$1"; shift
   local username="$1"; shift 
   local password="$1"; shift
 
-  aws --region "${region}" iam  update-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
+  login_profile="$(aws --region "${region}" iam get-login-profile --user-name "${username}" --query 'LoginProfile.UserName' --output text 2>/dev/null )"
+
+  if [[ "${action}" == "delete" && "${login_profile}" == "${username}" ]]; then 
+    aws --region "${region}" iam delete-login-profile --user-name "${username}" || return $?
+  elif [[ "${login_profile}" != "${username}" ]]; then 
+    aws --region "${region}" iam create-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
+  else 
+    aws --region "${region}" iam update-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
+  fi
 }
+
 # -- Cognito --
 
 function update_cognito_userpool() {

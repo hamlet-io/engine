@@ -235,6 +235,25 @@
     [#return result]
 [/#function]
 
+[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=deploymentUnit level=componentLevel ]
+    [#return {
+        "Account" :{ "Value" : account },
+        "Region" : {"Value" : region },
+        "Level" : {"Value" : level},
+        "DeploymentUnit" : {
+            "Value" :
+                deploymentUnit +
+                (
+                    (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
+                    (deploymentUnitSubset?has_content)
+                )?then(
+                    "-" + deploymentUnitSubset?lower_case,
+                    ""
+                )
+        }
+    }]
+[/#function]
+
 [#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false flatten=false]
     [#local result =
         [
@@ -664,23 +683,7 @@
               "Resources" : templateResources,
               "Outputs" :
                   templateOutputs +
-                  {
-                      "Account" :{"Value" : { "Ref" : "AWS::AccountId" }},
-                      "Region" : {"Value" : { "Ref" : "AWS::Region" }},
-                      "Level" : {"Value" : level},
-                      "DeploymentUnit" :
-                          {
-                              "Value" :
-                                  deploymentUnit +
-                                  (
-                                      (!(ignoreDeploymentUnitSubsetInOutputs!false)) &&
-                                      (deploymentUnitSubset?has_content)
-                                  )?then(
-                                      "-" + deploymentUnitSubset?lower_case,
-                                      ""
-                                  )
-                          }
-                  }
+                    getCFTemplateCoreOutputs()
           } +
           valueIfContent(
               {

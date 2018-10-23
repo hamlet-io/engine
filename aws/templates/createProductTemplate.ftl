@@ -36,6 +36,7 @@
 [#-- Product --]
 [#assign rotateKeys = (productObject.RotateKeys)!true]
 
+[#assign componentLevel="product" ]
 [@cfTemplate
-    level="product"
+    level=componentLevel
     include=productList/]

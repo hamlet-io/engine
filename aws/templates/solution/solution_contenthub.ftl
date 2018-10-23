@@ -18,23 +18,18 @@
         [#if deploymentSubsetRequired("prologue", false)]
             [@cfScript
                 mode=listMode
-                content=
-                [
-                    "function create_contenthub_snapshot() {",
-                        "# Create contenthub stack",
-                        "create_pseudo_stack" + " " + 
-                        "\"Content Hub Deployment\"" + " " +
-                        "\"$\{pseudo_stack_file}\"" + " " +
-                        "\"" + contentHubId + "Xengine\" \"" + solution.Engine + "\" " +  
-                        "\"" + contentHubId + "Xrepository\" \"" + solution.Repository + "\" " +
-                        "\"" + contentHubId + "Xprefix\" \"" + contentHubPrefix + "\" " +
-                        "\"" + contentHubId + "Xbranch\" \"" + solution.Branch + "\" " +
-                        "|| return $?", 
-                    "}",
-                    "pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\" ",
-                    "info \"Creating Contenthub Pseudo Stack\"",
-                    "create_contenthub_snapshot || return $?"
-                ]
+                content=[
+                        "info \"Creating Contenthub Pseudo Stack\""
+                    ] + 
+                    pseudoStackOutputScript(
+                        "Content Hub Deployment",
+                        { 
+                            formatId(contentHubId, "engine") : solution.Engine,
+                            formatId(contentHubId, "repository") : solution.Repository,
+                            formatId(contentHubId, "prefix") : contentHubPrefix,
+                            formatId(contentHubId, "branch") : solution.Branch
+                        }
+                    )
             /]
         [/#if]
     [/#list]

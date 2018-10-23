@@ -2135,8 +2135,17 @@ behaviour.
         ] ]
 [/#function]
 
-[#function pseudoStackOutputScript description outputs filesuffix="pseudo" ]
+[#function pseudoStackOutputScript description outputs filesuffix="" ]
     [#local outputString = ""]
+
+    [#list getCFTemplateCoreOutputs(region, accountObject.AWSId) as  key,value ]
+        [#if value?is_hash ]
+            [#local outputs += { key, value.Value } ]
+        [#else ]
+            [#local outputs += { key, vaue } ]
+        [/#if]
+    [/#list]
+
     [#list outputs as key,value ]
         [#local outputString +=
           "\"" + key + "\" \"" + value + "\" "
@@ -2147,7 +2156,7 @@ behaviour.
         [
             "create_pseudo_stack" + " " +
             "\"" + description + "\"" + " " +
-            "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-" + filesuffix + "-stack.json\" " +
+            "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")" + (filesuffix?has_content)?then("-" + filesuffix, "") + "-pseudo-stack.json\" " +
             outputString + " || return $?"
         ]
     ]

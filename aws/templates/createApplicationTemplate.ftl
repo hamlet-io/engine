@@ -21,6 +21,7 @@
 
 [/#switch]
 
+[#assign componentLevel="application" ]
 [@cfTemplate
-    level="application"
+    level=componentLevel
     compositeLists=applicationList /]

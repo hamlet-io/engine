@@ -69,6 +69,23 @@
             [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
+        [#if deploymentSubsetRequired("prologue", false)]
+            [@cfScript
+                mode=listMode
+                content=
+                [
+                    "case $\{STACK_OPERATION} in",
+                    "  delete)",
+                    "   manage_iam_userpassword" +
+                    "   \"" + region + "\" " +
+                    "   \"delete\" " +
+                    "   \"" + userName + "\" || return $?",
+                    "   ;;",
+                    "esac"
+                ] 
+            /]
+        [/#if]
+
         [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]
 
             [#if _context.Policy?has_content]
@@ -175,15 +192,19 @@
                         "encrypted_smtp_password=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{smtp_password}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\"",
-                        "create_pseudo_stack" + " " +
-                        "\"IAM User AccessKey\"" + " " +
-                        "\"$\{password_pseudo_stack_file}\"" + " " +
-                        "\"" + userId + "Xusername\" \"$\{access_key_array[0]}\" " +
-                        "\"" + userId + "Xpassword\" \"$\{encrypted_secret_key}\" " +
-                        "\"" + userId + "Xkey\" \"$\{encrypted_smtp_password}\" || return $?",
+                        " \"" + segmentKMSKey + "\" || return $?)\""
+                    ] +
+                    pseudoStackOutputScript(
+                        "IAM User AccessKey",
+                        { 
+                            formatId(userId, "username") : "$\{access_key_array[0]}",
+                            formatId(userId, "password") : "$\{encrypted_secret_key}",
+                            formatId(userId, "key") : "$\{encrypted_smtp_password}"
+                        },
+                        "creds-system"
+                    ) + 
+                    [
                         "}",
-                        "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-creds-system-pseudo-stack.json\" ",
                         "generate_iam_accesskey || return $?"
                     ],
                     []) +
@@ -199,16 +220,21 @@
                         " \"$\{user_password}\" " +
                         " \"" + segmentKMSKey + "\" || return $?)\"",
                         "info \"Setting User Password... \"",
-                        "set_iam_userpassword" +
+                        "manage_iam_userpassword" +
                         " \"" + region + "\" " +
+                        " \"manage\" " +
                         " \"" + userName + "\" " +
-                        " \"$\{user_password}\" || return $?",
-                        "create_pseudo_stack" + " " +
-                        "\"IAM User Password\"" + " " +
-                        "\"$\{password_pseudo_stack_file}\"" + " " +
-                        "\"" + userId + "Xgeneratedpassword\" \"$\{encrypted_user_password}\" || return $?",
+                        " \"$\{user_password}\" || return $?"
+                    ] +
+                    pseudoStackOutputScript(
+                        "IAM User Password",
+                        { 
+                            formatId(userId, "generatedpassword") : "$\{encrypted_user_password}"
+                        },
+                        "creds-console"
+                    ) + 
+                    [
                         "}",
-                        "password_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-creds-console-pseudo-stack.json\" ",
                         "generate_user_password || return $?"
                     ],
                 []) +

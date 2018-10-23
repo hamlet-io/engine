@@ -34,6 +34,7 @@
         [#break]
 [/#switch]
 
+[#assign componentLevel="multiple" ]
 [@cfTemplate
-    level="multiple"
+    level=componentLevel
     compositeLists=compositeLists /]
