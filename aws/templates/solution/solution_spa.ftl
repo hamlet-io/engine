@@ -12,7 +12,7 @@
         [#assign resources = occurrence.State.Resources]
         [#assign solution = occurrence.Configuration.Solution ]
 
-        [#assign securityProfile    = getSecurityProfile(solution.Profiles.SecurityProfile, SPA_COMPONENT_TYPE)]
+        [#assign securityProfile    = getSecurityProfile(solution.Profiles.Security, SPA_COMPONENT_TYPE)]
 
         [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
         [#assign hostName = getHostName(certificateObject, occurrence) ]
@@ -105,7 +105,7 @@
                         certificateId,
                         securityProfile.HTTPSProfile,
                         solution.CloudFront.AssumeSNI),
-                        isPResent(solution.Certificate)
+                        isPresent(solution.Certificate)
                     )
                 comment=cfName
                 customErrorResponses=getErrorResponse(

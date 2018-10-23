@@ -19,7 +19,7 @@
         [#assign engine = solution.Engine]
         [#assign idleTimeout = solution.IdleTimeout]
 
-        [#assign securityProfile = getSecurityProfile(solution.Profiles.SecurityProfile, LB_COMPONENT_TYPE, engine)]
+        [#assign securityProfile = getSecurityProfile(solution.Profiles.Security, LB_COMPONENT_TYPE, engine)]
 
         [#assign healthCheckPort = "" ]
         [#if engine == "classic" ]

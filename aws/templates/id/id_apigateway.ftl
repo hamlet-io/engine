@@ -102,6 +102,7 @@ documentation, the others used to redirect to the primary.
                 },
                 {
                     "Names" : "Links",
+                    "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
@@ -193,7 +194,7 @@ documentation, the others used to redirect to the primary.
                     "Names" : "Profiles",
                     "Children" : [
                         {
-                            "Names" : "SecurityProfile",
+                            "Names" : "Security",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }
@@ -312,7 +313,7 @@ documentation, the others used to redirect to the primary.
         [#else]
             [#if cfPresent ]
                 [#-- Mode 1 --]
-                [#local fqdn = formatDomainName(hostName, primaryDomain) ]
+                [#local fqdn = formatDomainName(hostName, primaryDomainObject) ]
                 [#local hostDomains = certificateDomains ]
                 [#local docsDomains = hostDomains ]
             [/#if]
@@ -397,7 +398,7 @@ documentation, the others used to redirect to the primary.
             formatDomainName(
                 solution.Publish.DnsNamePrefix,
                 docsHostName,
-                primaryDomain) ]
+                primaryDomainObject) ]
         [#list docsDomains as domain]
             [#local docsFqdn =
                 formatDomainName(
@@ -482,7 +483,7 @@ documentation, the others used to redirect to the primary.
                 "SIGNING_FQDN" : signingFqdn,
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : "https://" + internalFqdn + stagePath,
-                "INTERNAL_PATH" : internalPath,
+                "INTERNAL_PATH" : internalPath
             } +
             attributeIfTrue(
                 "DOCS_URL",

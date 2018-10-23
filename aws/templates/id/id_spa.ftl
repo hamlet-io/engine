@@ -103,7 +103,7 @@
                     "Names" : "Profiles",
                     "Children" : [
                         {
-                            "Names" : "SecurityProfile",
+                            "Names" : "Security",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }

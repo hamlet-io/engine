@@ -124,13 +124,13 @@
         [#assign endpointType           = solution.EndpointType ]
         [#assign isEdgeEndpointType     = endpointType == "EDGE" ]
 
-        [#assign securityProfile        = getSecurityProfile(solution.Profiles.SecurityProfile, "apigateway")]
+        [#assign securityProfile        = getSecurityProfile(solution.Profiles.Security, "apigateway")]
 
         [#assign apiPolicyStatements    = _context.Policy ]
         [#assign apiPolicyAuth          = solution.Authentication?upper_case ]
 
         [#assign apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
-        [#if ((!cfPresent) || (!wafPresent)) && (!(apiPolicyCidr?has_content)) ]
+        [#if (!(resources["cf"]["wafacl"])??) && (!(apiPolicyCidr?has_content)) ]
             [@cfException
                 mode=listMode
                 description="No IP Address Groups provided for API Gateway"
@@ -391,7 +391,7 @@
                 [/#if]
             [/#if]
 
-            [#assign customDomains = resources["domains"]!{} ]
+            [#assign customDomains = resources["customDomains"]!{} ]
             [#list customDomains as key,value]
                 [@cfResource
                     mode=listMode
@@ -431,24 +431,7 @@
                     outputs={}
                     dependencies=apiId
                 /]
-            [/#if]
-        [/#if]
-
-        [#local legacyId = formatS3Id(core.Id,APIGATEWAY_COMPONENT_DOCS_EXTENSION) ]
-        [#if getExistingReference(legacyId)?has_content && deploymentSubsetRequired("prologue", false) ]
-            [#-- Remove legacy docs bucket id - it will likely be recreated with new id format --]
-            [#-- which uses bucket name --]
-            [@cfScript
-                mode=listMode
-                content=
-                [
-                    "FileToSync=()",
-                    "deleteBucket + " " +
-                        regionId + " " +
-                        getExistingReference(legacyId, NAME_ATTRIBUTE_TYPE) + " " +
-                        "|| return $?"
-                ]
-            /]
+            [/#list]
         [/#if]
 
         [#assign docs = resources["docs"]!{} ]
@@ -467,13 +450,15 @@
                 [@cfScript
                     mode=listMode
                     content=
+                        [
+                            "clear_bucket_files=()"
+                        ] +
                         syncFilesToBucketScript(
-                            "clearBucketFiles",
+                            "clear_bucket_files",
                             regionId,
                             bucketName,
                             ""
                         )
-                    ]
                 /]
             [/#if]
 
@@ -540,6 +525,31 @@
                 /]
             [/#if]
         [/#list]
+
+        [#assign legacyId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION) ]
+        [#if getExistingReference(legacyId)?has_content && deploymentSubsetRequired("prologue", false) ]
+            [#-- Remove legacy docs bucket id - it will likely be recreated with new id format --]
+            [#-- which uses bucket name --]
+            [@cfScript
+                mode=listMode
+                content=
+                    [
+                        "clear_bucket_files=()"
+                    ] +
+                    syncFilesToBucketScript(
+                        "clear_bucket_files",
+                        regionId,
+                        getExistingReference(legacyId, NAME_ATTRIBUTE_TYPE),
+                        ""
+                    ) +
+                    [
+                        "deleteBucket" + " " +
+                            regionId + " " +
+                            getExistingReference(legacyId, NAME_ATTRIBUTE_TYPE) + " " +
+                            "|| return $?"
+                    ]
+            /]
+        [/#if]
 
         [#if deploymentSubsetRequired("pregeneration", false)]
             [@cfScript

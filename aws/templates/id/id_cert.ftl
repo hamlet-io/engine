@@ -29,7 +29,7 @@
 [/#function]
 
 [#function getCertificatePrimaryDomain certificateObject]
-    [#list certificate.Domains as domain]
+    [#list certificateObject.Domains as domain]
         [#if domain.Role = DOMAIN_ROLE_PRIMARY]
             [#return domain ]
             [#break]
