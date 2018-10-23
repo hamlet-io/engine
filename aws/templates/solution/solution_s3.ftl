@@ -15,10 +15,6 @@
         [#assign s3Id = resources["bucket"].Id ]
         [#assign s3Name = resources["bucket"].Name ]
 
-        [#assign publicPrefix = solution.PublicAccess.Prefix]
-        [#assign publicIPWhiteList =
-                getIPCondition(getGroupCIDRs(solution.PublicAccess.IPAddressGroups, true)) ]
-
         [#assign sqsIds = [] ]
         [#assign sqsNotifications = [] ]
         [#assign dependencies = [] ]
@@ -57,38 +53,46 @@
             [/#if]
         [/#list]
 
-        [#if solution.PublicAccess.Enabled ]
+        [#assign bucketPolicyId = resources["bucketpolicy"].Id ]
+        [#assign policyStatements = [] ]
 
-            [#assign bucketPolicyId = resources["bucketpolicy"].Id ]
+        [#list solution.PublicAccess?values as publicAccessConfiguration]
+            [#list asArray(publicAccessConfiguration.Paths) as publicPrefix]
+                [#if publicAccessConfiguration.Enabled ]
+                    [#assign publicIPWhiteList =
+                        getIPCondition(getGroupCIDRs(publicAccessConfiguration.IPAddressGroups, true)) ]
 
-            [#assign policyStatements = [] ]
-
-            [#switch solution.PublicAccess.Permissions ]
-                [#case "ro" ]
-                    [#assign policyStatements = s3ReadPermission(
-                                                    s3Name,
-                                                    publicPrefix,
-                                                    "*",
-                                                    "*",
-                                                    publicIPWhiteList)]
-                    [#break]
-                [#case "wo" ]
-                    [#assign policyStatements = s3WritePermission(
-                                                    s3Name,
-                                                    publicPrefix,
-                                                    "*",
-                                                    "*",
-                                                    publicIPWhiteList)]
-                    [#break]
-                [#case "rw" ]
-                    [#assign policyStatements = s3AllPermission(
-                                                    s3Name,
-                                                    publicPrefix,
-                                                    "*",
-                                                    "*",
-                                                    publicIPWhiteList)]
-                    [#break]
-            [/#switch]
+                    [#switch publicAccessConfiguration.Permissions ]
+                        [#case "ro" ]
+                            [#assign policyStatements += s3ReadPermission(
+                                                            s3Name,
+                                                            publicPrefix,
+                                                            "*",
+                                                            "*",
+                                                            publicIPWhiteList)]
+                            [#break]
+                        [#case "wo" ]
+                            [#assign policyStatements += s3WritePermission(
+                                                            s3Name,
+                                                            publicPrefix,
+                                                            "*",
+                                                            "*",
+                                                            publicIPWhiteList)]
+                            [#break]
+                        [#case "rw" ]
+                            [#assign policyStatements += s3AllPermission(
+                                                            s3Name,
+                                                            publicPrefix,
+                                                            "*",
+                                                            "*",
+                                                            publicIPWhiteList)]
+                            [#break]
+                    [/#switch]
+                [/#if]
+            [/#list]
+        [/#list]
+        
+        [#if policyStatements?has_content ]
 
             [@createBucketPolicy
                 mode=listMode
