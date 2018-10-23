@@ -864,10 +864,17 @@
             "dashboard"
           ]
         },
-        "ssh-ssh": {
-          "DeploymentUnits": [
-            "ssh"
-          ]
+        "ssh" : {
+          "DeploymentUnits" : ["ssh"],
+          "MultiAZ" : true,
+          "bastion" : {
+            "AutoScaling" : {
+              "DetailedMetrics" : false,
+              "ActivityCooldown" : 180,
+              "MinUpdateInstances" : 0,
+              "AlwaysReplaceOnUpdate" : false
+            }
+          }
         },
         "nat-nat": {
           "DeploymentUnits": [
@@ -943,7 +950,8 @@
       },
       "ECS": {},
       "ElasticSearch": {},
-      "ComputeCluster": {}
+      "ComputeCluster": {},
+      "bastion" : {}
     }
   },
   "Processors": {
@@ -951,7 +959,7 @@
       "NAT": {
         "Processor": "t2.micro"
       },
-      "SSH": {
+      "bastion" :{
         "Processor": "t2.micro"
       },
       "EC2": {
@@ -1393,13 +1401,13 @@
       "MultiAZ": false,
       "Hosted": true
     },
-    "SSH": {
+    "Bastion": {
       "Enabled": true,
       "Active": false,
       "PerSegment": true,
-      "Standalone": true,
       "IPAddressGroups": []
     },
+    "ConsoleOnly" : false,
     "S3": {
       "IncludeTenant": false
     },
@@ -1452,6 +1460,14 @@
     },
     "/var/log/cron" : {
       "FilePath" : "/var/log/cron",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/cfn-init.log" : {
+      "FilePath" : "/var/log/cfn-init.log",
+      "TimeFormat" : "%b %d %H:%M:%S"
+    },
+    "/var/log/cfn-init-cmd.log" : {
+      "FilePath" : "/var/log/cfn-init-cmd.log",
       "TimeFormat" : "%b %d %H:%M:%S"
     },
     "/var/log/cloud-init.log" : {
@@ -1520,6 +1536,8 @@
     },
     "aws-system" : {
       "LogFiles" : [
+        "/var/log/cfn-init.log",
+        "/var/log/cfn-init-cmd.log",
         "/var/log/cloud-init.log",
         "/var/log/cloud-init-output.log",
         "/var/log/amazon/ssm/amazon-ssm-agent.log" 
@@ -1536,6 +1554,9 @@
       },
       "ECS" : {
         "LogFileGroups" : ["system", "aws-system", "security", "docker", "aws-ecs"]
+      },
+      "bastion" : {
+        "LogFileGroups" : ["system", "aws-system", "security"]
       }
     }
   },
@@ -1600,6 +1621,9 @@
         "BootStraps" : []
       },
       "ComputeCluster" : {
+        "BootStraps" : []
+      },
+      "bastion" : {
         "BootStraps" : []
       }
     }

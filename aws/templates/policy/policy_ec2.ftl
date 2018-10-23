@@ -63,4 +63,86 @@
     ]
 [/#function]
 
+[#function ec2SSMSessionManagerPermission ]
+    [#return 
+        [
+            getPolicyStatement(
+                [
+                    "ssm:UpdateInstanceInformation",
+                    "ssmmessages:CreateControlChannel",
+                    "ssmmessages:CreateDataChannel",
+                    "ssmmessages:OpenControlChannel",
+                    "ssmmessages:OpenDataChannel",
+                    "s3:GetEncryptionConfiguration"
+                ]
+            )
+        ]
+    ]
+[/#function]
 
+[#function ec2SSMAgentUpdatePermission os="linux" region={ "Ref" : "AWS::Region" } ]
+    [#return 
+        [
+            getPolicyStatement(
+                [
+                    "s3:GetObject"
+                ],
+                [
+                    {
+                        "Fn::Join" : [
+                            "",
+                            [
+                                "arn:aws:s3:::aws-ssm-",
+                                region,
+                                "/*"
+                            ]
+                        ]
+                    },
+                    {
+                        "Fn::Join" : [
+                            "",
+                            [
+                                "arn:aws:s3:::amazon-ssm-",
+                                region,
+                                "/*"
+                            ]
+                        ]
+                    },
+                    {
+                        "Fn::Join" : [
+                            "",
+                            [
+                                "arn:aws:s3:::amazon-ssm-packages-",
+                                region,
+                                "/*"
+                            ]
+                        ]
+                    },
+                    {
+                        "Fn::Join" : [
+                            "",
+                            [
+                                "arn:aws:s3:::",
+                                region,
+                                "-birdwatcher-prod/*"
+                            ]
+                        ]
+                    } + 
+                    ( os == "windows" )?then(
+                        { 
+                            "Fn::Join" : [
+                                "",
+                                [
+                                    "arn:aws:s3:::aws-windows-downloads-",
+                                    region,
+                                    "/*"
+                                ]
+                            ]
+                        },
+                        {}
+                    )
+                ]
+            )
+        ]
+    ]
+[/#function]

@@ -899,6 +899,11 @@ behaviour.
             [#case "userpool"]
                 [#local result = getUserPoolState(occurrence)]
                 [#break]
+
+            [#case BASTION_COMPONENT_TYPE ]
+                [#local result = getBastionState(occurrence)]
+                [#break]
+                
         [/#switch]
     [/#if]
 
@@ -1750,6 +1755,7 @@ behaviour.
     [#if (processors[defaultProfile][type])??]
         [#return processors[defaultProfile][type]]
     [/#if]
+    [#return {}]
 [/#function]
 
 [#function getLogFileProfile tier component type extensions... ]
