@@ -445,7 +445,7 @@
             [#assign bucketWebsiteConfiguration =
                 getS3WebsiteConfiguration("index.html", "", bucketRedirectTo)]
 
-            [#if deploymentSubsetRequired("prologue", false) ]
+            [#if deploymentSubsetRequired("prologue", false) && getExistingReference(bucketId)?has_content ]
                 [#-- Clear out bucket content if deleting api gateway so buckets will delete --]
                 [@cfScript
                     mode=listMode
