@@ -6,45 +6,45 @@ model makes that tricky with the swagger definition associated to the api
 object.
 --]
 
-[#--
-There are multiple modes of deployment offered for the API Gateway, mainly to
-support use of product domains for endpoints. The key
-consideration is the handling of the host header. They reflect the
-changes and improvements AWS have made to the API Gateway over time.
-For whitelisted APIs, mode 4 is the recommended one now.
-
-1) Multi-domain cloudfront + EDGE endpoint
-    . waf based IP whitelisting
-    . multiple cloudfront aliases
-    . host header blocked
-    . EDGE based API Gateway
-    . signing based on AWS API domain name
-    . API-KEY used as shared secret between cloudfront and the API
-2) Single domain cloudfront + EDGE endpoint
-    . waf based IP whitelisting
-    . single cloudfront alias
-    . host header blocked
-    . EDGE based API Gateway
-    . signing based on "sig4-" + alias
-    . API-KEY used as shared secret between cloudfront and the API
-3) Multi-domain cloudfront + REGIONAL endpoint
-    . waf based IP whitelisting
-    . multiple cloudfront aliases
-    . host header passed through to endpoint
-    . REGIONAL based API Gateway
-    . signing based on any of the aliases
-    . API-KEY used as shared secret between cloudfront and the API
-4) API endpoint
-    . policy based IP whitelisting
-    . multiple aliases
-    . EDGE or REGIONAL
-    . signing based on any of the aliases
-    . API-KEY can be used for client metering
-
-If multiple domains are provided, the primary domain is used to provide the
-endpoint for the the API documentation and for the gateway attributes. For
-documentation, the others used to redirect to the primary.
---]
+[#assign apiGatewayDescription = [
+"There are multiple modes of deployment offered for the API Gateway, mainly to",
+"support use of product domains for endpoints. The key",
+"consideration is the handling of the host header. They reflect the",
+"changes and improvements AWS have made to the API Gateway over time.",
+"For whitelisted APIs, mode 4 is the recommended one now.",
+"",
+"1) Multi-domain cloudfront + EDGE endpoint",
+"    - waf based IP whitelisting",
+"    - multiple cloudfront aliases",
+"    - host header blocked",
+"    - EDGE based API Gateway",
+"    - signing based on AWS API domain name",
+"    - API-KEY used as shared secret between cloudfront and the API",
+"2) Single domain cloudfront + EDGE endpoint",
+"    - waf based IP whitelisting",
+"    - single cloudfront alias",
+"    - host header blocked",
+"    - EDGE based API Gateway",
+"    - signing based on \"sig4-\" + alias",
+"    - API-KEY used as shared secret between cloudfront and the API",
+"3) Multi-domain cloudfront + REGIONAL endpoint",
+"    - waf based IP whitelisting",
+"    - multiple cloudfront aliases",
+"    - host header passed through to endpoint",
+"    - REGIONAL based API Gateway",
+"   - signing based on any of the aliases",
+"    - API-KEY used as shared secret between cloudfront and the API",
+"4) API endpoint",
+"    - policy based IP whitelisting",
+"    - multiple aliases",
+"    - EDGE or REGIONAL",
+"   - signing based on any of the aliases",
+"    - API-KEY can be used for client metering",
+"",
+"If multiple domains are provided, the primary domain is used to provide the",
+"endpoint for the the API documentation and for the gateway attributes. For",
+"documentation, the others used to redirect to the primary."
+]
 
 
 [#-- Resources --]
@@ -83,7 +83,11 @@ documentation, the others used to redirect to the primary.
             "Properties" : [
                 {
                     "Type" : "Description",
-                    "Value" : "Application level API proxy"
+                    "Value" :
+                        [
+                            "Application level API proxy",
+                            ""
+                        ] + apiGatewayDescription
                 },
                 {
                     "Type" : "Providers",

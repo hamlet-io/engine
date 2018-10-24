@@ -88,7 +88,7 @@
     ]
 [/#function]
 
-[#function getS3WebsiteConfiguration index error redirectTo="" redirectProtocol="http"]
+[#function getS3WebsiteConfiguration index error redirectTo="" redirectProtocol=""]
     [#return
         {
             "IndexDocument" : index
@@ -98,9 +98,9 @@
             "RedirectAllRequestsTo",
             redirectTo,
             {
-              "HostName" : redirectTo,
-              "Protocol" : redirectProtocol
-            }
+              "HostName" : redirectTo
+            } +
+            attributeIfContent("Protocol", redirectProtocol)
         )
     ]
 [/#function]
