@@ -970,7 +970,7 @@ function deleteBucket() {
   local optional_arguments=("$@")
 
   # Delete the bucket
-  aws --region "${region}" s3 rb --force "${optional_arguments[@]}" "s3://${bucket} --force"
+  aws --region "${region}" s3 rb "${optional_arguments[@]}" "s3://${bucket}" --force
 }
 
 # -- SNS -- 
