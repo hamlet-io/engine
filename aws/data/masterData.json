@@ -22,9 +22,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-fe9d4a81",
-          "EC2": "ami-9c9443e3",
-          "ECS": "ami-7d0c7a90"
+          "NAT": "ami-0cf78ae724f63bac0",
+          "EC2": "ami-06cd52961ce9f0d85",
+          "ECS": "ami-0edf19001c48838c7"
         }
       }
     },
@@ -50,9 +50,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-aed86dc0",
-          "EC2": "ami-ebc47185",
-          "ECS": "ami-8f44f3e1"
+          "NAT": "ami-08cfa02141f9e9bee",
+          "EC2": "ami-0a10b2721688ce9d2",
+          "ECS": "ami-0b52e57bed048ca48"
         }
       }
     },
@@ -78,9 +78,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-a186acce",
-          "EC2": "ami-5a8da735",
-          "ECS": "ami-f4b88a9b"
+          "NAT": "ami-0aba92643213491b9",
+          "EC2": "ami-0912f71e06545ad88",
+          "ECS": "ami-05f009513cd58ac90"
         }
       }
     },
@@ -108,9 +108,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-cd8083b1",
-          "EC2": "ami-ed838091",
-          "ECS": "ami-ae1b5a44"
+          "NAT": "ami-0cf24653bcf894797",
+          "EC2": "ami-08569b978cc4dfa10",
+          "ECS": "ami-08d4fe232c67b81b8"
         }
       }
     },
@@ -142,9 +142,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-37f82155",
-          "EC2": "ami-33f92051",
-          "ECS": "ami-706cca12"
+          "NAT": "ami-00c1445796bc0a29f",
+          "EC2": "ami-09b42976632b27e9b",
+          "ECS": "ami-08c26730c8ee004fa"
         }
       }
     },
@@ -170,9 +170,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-f0e56794",
-          "EC2": "ami-03e86a67",
-          "ECS": "ami-c1b63ba5"
+          "NAT": "ami-b61b96d2",
+          "EC2": "ami-0b18956f",
+          "ECS": "ami-055750f063052ec55"
         }
       }
     },
@@ -225,9 +225,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-da526d31",
-          "EC2": "ami-a058674b",
-          "ECS": "ami-9fe2e074"
+          "NAT": "ami-06465d49ba60cf770",
+          "EC2": "ami-0233214e13e500f77",
+          "ECS": "ami-0b9fee3a2d0596ed1"
         }
       }
     },
@@ -259,9 +259,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-4ab4b8a0",
-          "EC2": "ami-e4515e0e",
-          "ECS": "ami-39d530d4"
+          "NAT": "ami-0ea87e2bfa81ca08a",
+          "EC2": "ami-047bb4163c506cd98",
+          "ECS": "ami-066826c6a40879d75"
         }
       }
     },
@@ -287,9 +287,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-bbb950dc",
-          "EC2": "ami-b2b55cd5",
-          "ECS": "ami-2e9866c5"
+          "NAT": "ami-e6768381",
+          "EC2": "ami-f976839e",
+          "ECS": "ami-0cb31bf24b130a0f9"
         }
       }
     },
@@ -315,9 +315,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-2bf54556",
-          "EC2": "ami-d50bbaa8",
-          "ECS": "ami-e976c694"
+          "NAT": "ami-0050bb60cea70c5b3",
+          "EC2": "ami-0ebc281c20e89ba4b",
+          "ECS": "ami-0a0948de946510ec0"
         }
       }
     },
@@ -349,9 +349,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-34ca9058",
-          "EC2": "ami-83d58fef",
-          "ECS": "ami-a2c6e7ce"
+          "NAT": "ami-09c013530239687aa",
+          "EC2": "ami-07b14488da8ea02a0",
+          "ECS": "ami-0ada25501ac1375b3"
         }
       }
     },
@@ -389,9 +389,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-980554e7",
-          "EC2": "ami-cfe4b2b0",
-          "ECS": "ami-644a431b"
+          "NAT": "ami-0422d936d535c63b1",
+          "EC2": "ami-0ff8a91507f77f867",
+          "ECS": "ami-07eb698ce660402d2"
         }
       }
     },
@@ -423,9 +423,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-f70f3692",
-          "EC2": "ami-40142d25",
-          "ECS": "ami-79d8e21c"
+          "NAT": "ami-0f9c61b5a562a16af",
+          "EC2": "ami-0b59bfac6be064b78",
+          "ECS": "ami-0a0c6574ce16ce87a"
         }
       }
     },
@@ -478,9 +478,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-8c8761ef",
-          "EC2": "ami-0e86606d",
-          "ECS": "ami-4351bc20"
+          "NAT": "ami-0d4027d2cdbca669d",
+          "EC2": "ami-0bdb828fd58c52235",
+          "ECS": "ami-04c22ba97a0c063c4"
         }
       }
     },
@@ -512,9 +512,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-79eca201",
-          "EC2": "ami-0ad99772",
-          "ECS": "ami-f189d189"
+          "NAT": "ami-40d1f038",
+          "EC2": "ami-a0cfeed8",
+          "ECS": "ami-09568291a9d6c804c"
         }
       }
     }
@@ -864,15 +864,17 @@
             "dashboard"
           ]
         },
-        "ssh" : {
-          "DeploymentUnits" : ["ssh"],
-          "MultiAZ" : true,
-          "bastion" : {
-            "AutoScaling" : {
-              "DetailedMetrics" : false,
-              "ActivityCooldown" : 180,
-              "MinUpdateInstances" : 0,
-              "AlwaysReplaceOnUpdate" : false
+        "ssh": {
+          "DeploymentUnits": [
+            "ssh"
+          ],
+          "MultiAZ": true,
+          "bastion": {
+            "AutoScaling": {
+              "DetailedMetrics": false,
+              "ActivityCooldown": 180,
+              "MinUpdateInstances": 0,
+              "AlwaysReplaceOnUpdate": false
             }
           }
         },
@@ -951,7 +953,7 @@
       "ECS": {},
       "ElasticSearch": {},
       "ComputeCluster": {},
-      "bastion" : {}
+      "bastion": {}
     }
   },
   "Processors": {
@@ -959,16 +961,16 @@
       "NAT": {
         "Processor": "t2.micro"
       },
-      "bastion" :{
+      "bastion": {
         "Processor": "t2.micro"
       },
       "EC2": {
         "Processor": "t2.micro"
       },
-      "EMR" : {
-        "Processor" :  "m4.large",
-        "DesiredCorePerZone" : 1,
-        "DesiredTaskPerZone" : 1
+      "EMR": {
+        "Processor": "m4.large",
+        "DesiredCorePerZone": 1,
+        "DesiredTaskPerZone": 1
       },
       "ComputeCluster": {
         "Processor": "t2.micro",
@@ -995,15 +997,15 @@
       }
     }
   },
-  "Product" : {
-    "Builds" : { 
-      "Data" : { 
-        "Environment" : "int"
-      }, 
-      "Code" : {
-        "Environment" : "int"
-      } 
-    } 
+  "Product": {
+    "Builds": {
+      "Data": {
+        "Environment": "int"
+      },
+      "Code": {
+        "Environment": "int"
+      }
+    }
   },
   "Ports": {
     "couchdb": {
@@ -1021,7 +1023,7 @@
     "ednp": {
       "Port": 25672,
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1043,7 +1045,7 @@
     "epmd": {
       "Port": 4369,
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1115,7 +1117,7 @@
     "memcached": {
       "Port": 11211,
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1137,7 +1139,7 @@
     "mongodb": {
       "Port": 27017,
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1147,7 +1149,7 @@
     "mysql": {
       "Port": 3306,
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1194,7 +1196,7 @@
     "postgresql": {
       "Port": 5432,
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1204,7 +1206,7 @@
     "rabbit": {
       "Port": 5672,
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1227,7 +1229,7 @@
       "Port": 6379,
       "Protocol": "TCP",
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1238,7 +1240,7 @@
       "Port": 25,
       "Protocol": "TCP",
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1249,7 +1251,7 @@
       "Port": 2025,
       "Protocol": "TCP",
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1260,7 +1262,7 @@
       "Port": 22,
       "Protocol": "TCP",
       "IPProtocol": "tcp",
-      "HealthCheck" : {
+      "HealthCheck": {
         "HealthyThreshold": "3",
         "UnhealthyThreshold": "5",
         "Interval": "30",
@@ -1407,7 +1409,7 @@
       "PerSegment": true,
       "IPAddressGroups": []
     },
-    "ConsoleOnly" : false,
+    "ConsoleOnly": false,
     "S3": {
       "IncludeTenant": false
     },
@@ -1437,7 +1439,16 @@
       "Segment": false,
       "Tier": false
     },
-    "HostParts" : ["Host", "Tier", "Component", "Instance", "Version", "Segment", "Environment", "Product"],
+    "HostParts": [
+      "Host",
+      "Tier",
+      "Component",
+      "Instance",
+      "Version",
+      "Segment",
+      "Environment",
+      "Product"
+    ],
     "Qualifiers": {
       "prod": {
         "IncludeInHost": {
@@ -1446,239 +1457,280 @@
       }
     }
   },
-  "LogFiles" : {
-    "/var/log/dmesg" : {
-      "FilePath" : "/var/log/dmesg"
+  "LogFiles": {
+    "/var/log/dmesg": {
+      "FilePath": "/var/log/dmesg"
     },
-    "/var/log/messages" : {
-      "FilePath" : "/var/log/messages",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/messages": {
+      "FilePath": "/var/log/messages",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/secure" : {
-      "FilePath" : "/var/log/secure",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/secure": {
+      "FilePath": "/var/log/secure",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/cron" : {
-      "FilePath" : "/var/log/cron",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/cron": {
+      "FilePath": "/var/log/cron",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/cfn-init.log" : {
-      "FilePath" : "/var/log/cfn-init.log",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/cfn-init.log": {
+      "FilePath": "/var/log/cfn-init.log",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/cfn-init-cmd.log" : {
-      "FilePath" : "/var/log/cfn-init-cmd.log",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/cfn-init-cmd.log": {
+      "FilePath": "/var/log/cfn-init-cmd.log",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/cloud-init.log" : {
-      "FilePath" : "/var/log/cloud-init.log",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/cloud-init.log": {
+      "FilePath": "/var/log/cloud-init.log",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/cloud-init-output.log" : {
-      "FilePath" : "/var/log/cloud-init-output.log",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/cloud-init-output.log": {
+      "FilePath": "/var/log/cloud-init-output.log",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/audit/audit.log" : {
-      "FilePath" : "/var/log/audit/audit.log",
-      "MultiLinePattern" : "^type"
+    "/var/log/audit/audit.log": {
+      "FilePath": "/var/log/audit/audit.log",
+      "MultiLinePattern": "^type"
     },
-    "/var/log/amazon/ssm/amazon-ssm-agent.log" : {
-      "FilePath" : "/var/log/amazon/ssm/amazon-ssm-agent.log",
-      "MultiLinePattern" : "^INFO"
+    "/var/log/amazon/ssm/amazon-ssm-agent.log": {
+      "FilePath": "/var/log/amazon/ssm/amazon-ssm-agent.log",
+      "MultiLinePattern": "^INFO"
     },
-    "/var/log/aide/aide.log" : {
-      "FilePath" : "/var/log/aide/aide.log",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/aide/aide.log": {
+      "FilePath": "/var/log/aide/aide.log",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/docker" : {
-      "FilePath" : "/var/log/docker",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/docker": {
+      "FilePath": "/var/log/docker",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/ecs/ecs-init.log" : {
-      "FilePath" : "/var/log/ecs/ecs-init.log",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/ecs/ecs-init.log": {
+      "FilePath": "/var/log/ecs/ecs-init.log",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/ecs/ecs-agent.log" : {
-      "FilePath" : "/var/log/ecs/ecs-agent.log",
-      "TimeFormat" : "%b %d %H:%M:%S"
+    "/var/log/ecs/ecs-agent.log": {
+      "FilePath": "/var/log/ecs/ecs-agent.log",
+      "TimeFormat": "%b %d %H:%M:%S"
     },
-    "/var/log/ecs/audit.log" : {
-      "FilePath" : "/var/log/ecs/audit.log",
-      "TimeFormat"  : "%b %d %H:%M:%S"
+    "/var/log/ecs/audit.log": {
+      "FilePath": "/var/log/ecs/audit.log",
+      "TimeFormat": "%b %d %H:%M:%S"
     }
   },
-  "LogFileGroups" : {
-    "security" : {
-      "LogFiles" : [
+  "LogFileGroups": {
+    "security": {
+      "LogFiles": [
         "/var/log/secure",
         "/var/log/audit/audit.log",
         "/var/log/aide/aide.log"
       ]
     },
-    "system" : {
-      "LogFiles" : [
+    "system": {
+      "LogFiles": [
         "/var/log/dmesg",
         "/var/log/messages",
         "/var/log/cron"
       ]
     },
-    "docker" : {
-      "LogFiles" : [
+    "docker": {
+      "LogFiles": [
         "/var/log/docker"
       ]
     },
-    "aws-ecs" : {
-      "LogFiles" : [
+    "aws-ecs": {
+      "LogFiles": [
         "/var/log/ecs/ecs-init.log",
         "/var/log/ecs/ecs-agent.log",
         "/var/log/ecs/audit.log"
       ]
     },
-    "aws-system" : {
-      "LogFiles" : [
+    "aws-system": {
+      "LogFiles": [
         "/var/log/cfn-init.log",
         "/var/log/cfn-init-cmd.log",
         "/var/log/cloud-init.log",
         "/var/log/cloud-init-output.log",
-        "/var/log/amazon/ssm/amazon-ssm-agent.log" 
+        "/var/log/amazon/ssm/amazon-ssm-agent.log"
       ]
     }
   },
-  "LogFileProfiles" : { 
-    "default" : {
-      "EC2" : {
-        "LogFileGroups" : ["system", "aws-system", "security", "docker"]
+  "LogFileProfiles": {
+    "default": {
+      "EC2": {
+        "LogFileGroups": [
+          "system",
+          "aws-system",
+          "security",
+          "docker"
+        ]
       },
-      "ComputeCluster" : {
-        "LogFileGroups" : ["system", "aws-system", "security", "docker"]
+      "ComputeCluster": {
+        "LogFileGroups": [
+          "system",
+          "aws-system",
+          "security",
+          "docker"
+        ]
       },
-      "ECS" : {
-        "LogFileGroups" : ["system", "aws-system", "security", "docker", "aws-ecs"]
+      "ECS": {
+        "LogFileGroups": [
+          "system",
+          "aws-system",
+          "security",
+          "docker",
+          "aws-ecs"
+        ]
       },
-      "bastion" : {
-        "LogFileGroups" : ["system", "aws-system", "security"]
+      "bastion": {
+        "LogFileGroups": [
+          "system",
+          "aws-system",
+          "security"
+        ]
       }
     }
   },
-  "CORSProfiles" : {
-    "S3Read" : {
-      "AllowedOrigins" : [ "*" ],
-      "AllowedMethods" : [ "GET", "HEAD" ],
-      "AllowedHeaders" : [ "*" ],
-      "ExposedHeaders"  : [ "ETag" ],
-      "MaxAge"         : 1800
+  "CORSProfiles": {
+    "S3Read": {
+      "AllowedOrigins": [
+        "*"
+      ],
+      "AllowedMethods": [
+        "GET",
+        "HEAD"
+      ],
+      "AllowedHeaders": [
+        "*"
+      ],
+      "ExposedHeaders": [
+        "ETag"
+      ],
+      "MaxAge": 1800
     },
-    "S3Write" : {
-      "AllowedOrigins" : [ "*" ],
-      "AllowedMethods" : [ "PUT", "POST" ],
-      "AllowedHeaders" : [ 
-        "Content-Length", 
-        "Content-Type", 
-        "Content-MD5", 
+    "S3Write": {
+      "AllowedOrigins": [
+        "*"
+      ],
+      "AllowedMethods": [
+        "PUT",
+        "POST"
+      ],
+      "AllowedHeaders": [
+        "Content-Length",
+        "Content-Type",
+        "Content-MD5",
         "Authorization",
         "Expect",
         "x-amz-content-sha256",
         "x-amz-security-token"
       ],
-      "ExposedHeaders"  : [ "ETag" ],
-      "MaxAge"         : 1800
+      "ExposedHeaders": [
+        "ETag"
+      ],
+      "MaxAge": 1800
     },
-    "S3Delete" : {
-      "AllowedOrigins" : [ "*" ],
-      "AllowedMethods" : [ "DELETE" ],
-      "AllowedHeaders" : [ 
-        "Content-Length", 
-        "Content-Type", 
-        "Content-MD5", 
+    "S3Delete": {
+      "AllowedOrigins": [
+        "*"
+      ],
+      "AllowedMethods": [
+        "DELETE"
+      ],
+      "AllowedHeaders": [
+        "Content-Length",
+        "Content-Type",
+        "Content-MD5",
         "Authorization",
         "Expect",
         "x-amz-content-sha256",
         "x-amz-security-token"
       ],
-      "ExposedHeaders"  : [ "ETag" ],
-      "MaxAge"         : 1800
+      "ExposedHeaders": [
+        "ETag"
+      ],
+      "MaxAge": 1800
     }
   },
-  "ScriptStores" : {
-    "_startup" : {
-      "Engine" : "local",
-      "Source" : {
-        "Directory" : "$\\{GENERATION_STARTUP_DIR}/bootstrap"
+  "ScriptStores": {
+    "_startup": {
+      "Engine": "local",
+      "Source": {
+        "Directory": "$\\{GENERATION_STARTUP_DIR}/bootstrap"
       },
-      "Destination" : {
-        "Prefix" : "bootstrap"
+      "Destination": {
+        "Prefix": "bootstrap"
       }
     }
   },
-  "Bootstraps" : {
-  },
-  "BootstrapProfiles" : {
-    "default" : {
-      "EC2" : {
-        "BootStraps" : []
+  "Bootstraps": {},
+  "BootstrapProfiles": {
+    "default": {
+      "EC2": {
+        "BootStraps": []
       },
-      "ECS" : {
-        "BootStraps" : []
+      "ECS": {
+        "BootStraps": []
       },
-      "ComputeCluster" : {
-        "BootStraps" : []
+      "ComputeCluster": {
+        "BootStraps": []
       },
-      "bastion" : {
-        "BootStraps" : []
+      "bastion": {
+        "BootStraps": []
       }
     }
   },
-  "SecurityProfiles" : {
-    "default" : {
-      "lb" : {
-        "application" : {
-          "HTTPSProfile" : "ELBSecurityPolicy-TLS-1-2-2017-01"
+  "SecurityProfiles": {
+    "default": {
+      "lb": {
+        "application": {
+          "HTTPSProfile": "ELBSecurityPolicy-TLS-1-2-2017-01"
         },
-        "classic" : {
-          "HTTPSProfile" : "ELBSecurityPolicy-2016-08"
+        "classic": {
+          "HTTPSProfile": "ELBSecurityPolicy-2016-08"
         }
       },
-      "apigateway" : {
-        "HTTPSProfile" : "TLSv1"
+      "apigateway": {
+        "HTTPSProfile": "TLSv1"
       },
-      "spa" : {
-        "HTTPSProfile" : "TLSv1"
+      "spa": {
+        "HTTPSProfile": "TLSv1"
       }
     }
   },
-  "LogFilters" : {
-    "_all" : {
-      "Pattern" : ""
+  "LogFilters": {
+    "_all": {
+      "Pattern": ""
     },
-    "_pylog-critical" : {
-      "Pattern" : "CRITICAL"
+    "_pylog-critical": {
+      "Pattern": "CRITICAL"
     },
-    "_pylog-error" : {
-      "Pattern" : "?CRITICAL ?ERROR"
+    "_pylog-error": {
+      "Pattern": "?CRITICAL ?ERROR"
     },
-    "_pylog-warning" : {
-      "Pattern" : "?CRITICAL ?ERROR ?WARNING"
+    "_pylog-warning": {
+      "Pattern": "?CRITICAL ?ERROR ?WARNING"
     },
-    "_pylog-info" : {
-      "Pattern" : "?CRITICAL ?ERROR ?WARNING ?INFO"
+    "_pylog-info": {
+      "Pattern": "?CRITICAL ?ERROR ?WARNING ?INFO"
     },
-    "_pylog-debug" : {
-      "Pattern" : "?CRITICAL ?ERROR ?WARNING ?INFO ?DEBUG" 
+    "_pylog-debug": {
+      "Pattern": "?CRITICAL ?ERROR ?WARNING ?INFO ?DEBUG"
     },
-    "apache" : {
-      "Pattern" : "[ip, id, user, timestamp, request, status_code=*, size]"
+    "apache": {
+      "Pattern": "[ip, id, user, timestamp, request, status_code=*, size]"
     },
-    "_apache-4xx" : {
-      "Pattern" : "[ip, id, user, timestamp, request, status_code=4*, size]"
+    "_apache-4xx": {
+      "Pattern": "[ip, id, user, timestamp, request, status_code=4*, size]"
     },
-    "_apache-5xx" : {
-      "Pattern" : "[ip, id, user, timestamp, request, status_code=5*, size]"
+    "_apache-5xx": {
+      "Pattern": "[ip, id, user, timestamp, request, status_code=5*, size]"
     },
-    "_sns-success" : {
-      "Pattern" : "{ $.status = \"SUCCESS\" }"
+    "_sns-success": {
+      "Pattern": "{ $.status = \"SUCCESS\" }"
     },
-    "_sns-failure" : {
-      "Pattern" : "{ $.status = \"FAILURE\" }"
+    "_sns-failure": {
+      "Pattern": "{ $.status = \"FAILURE\" }"
     }
   }
 }
