@@ -1160,40 +1160,6 @@ function upgrade_cmdb_repo_to_v1_3_0() {
     account_mappings+=(["${aws_id}"]="${account_id}")
   done
 
-  # Move SSH keys to Account/Region 
-  readarray -t cf_dirs < <(find "${root_dir}" -type d -name "cf" )
-  for cf_dir in "${cf_dirs[@]}"; do
-    readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*-stack.json" )
-    for cmk_stack in "${cmk_stacks[@]}"; do
-      cmk_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${cmk_stack}" )"
-      cmk_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${cmk_stack}" )"
-
-      if [[ -n "${cmk_account}" ]]; then
-        cmk_account_id="${account_mappings[${cmk_account}]}"
-        
-        cmk_path="$(filePath "${cmk_stack}")"
-        operations_path="${cmk_path/"infrastructure/cf"/"infrastructure/operations"}"
-
-        info "checking for SSH Keys in ${operations_path}"
-        readarray -t pem_files < <(find "${operations_path}" -type f -name ".aws-ssh*.pem*" )
-
-        for pem_file in "${pem_files[@]}"; do
-          local pem_file_path="$(filePath "${pem_file}")"
-          local file_name="$(fileName "${pem_file}")"
-          local new_file_name="${file_name/"aws-"/"aws-${cmk_account_id}-${cmk_region}-"}"
-
-          # Move the pem files to make them invisible to the generation process
-          debug "Moving ${pem_file} to ${pem_file_path}/${new_file_name} ..."
-
-          if [[ -n "${dry_run}" ]]; then
-            continue
-          fi
-          mv "${pem_file}" "${pem_file_path}/${new_file_name}"
-        done
-      fi
-    done
-  done
-
   # Rename Stack Outputs to include Account and Region 
   readarray -t stack_files < <(find "${root_dir}" -type f -name "*stack.json")
   for stack_file in "${stack_files[@]}"; do 
@@ -1226,6 +1192,42 @@ function upgrade_cmdb_repo_to_v1_3_0() {
         return_status=128
       fi
     fi
+  done
+
+  # Move SSH keys to Account/Region 
+  readarray -t cf_dirs < <(find "${root_dir}" -type d -name "cf" )
+  for cf_dir in "${cf_dirs[@]}"; do
+    readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*-stack.json" )
+    for cmk_stack in "${cmk_stacks[@]}"; do
+      cmk_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${cmk_stack}" )"
+      cmk_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${cmk_stack}" )"
+
+      info "Stack ${cmk_stack} Belongs to ${cmk_account} - ${cmk_region}"
+
+      if [[ -n "${cmk_account}" ]]; then
+        cmk_account_id="${account_mappings[${cmk_account}]}"
+        
+        cmk_path="$(filePath "${cmk_stack}")"
+        operations_path="${cmk_path/"infrastructure/cf"/"infrastructure/operations"}"
+
+        info "checking for SSH Keys in ${operations_path}"
+        readarray -t pem_files < <(find "${operations_path}" -type f -name ".aws-ssh*.pem*" )
+
+        for pem_file in "${pem_files[@]}"; do
+          local pem_file_path="$(filePath "${pem_file}")"
+          local file_name="$(fileName "${pem_file}")"
+          local new_file_name="${file_name/"aws-"/"aws-${cmk_account_id}-${cmk_region}-"}"
+
+          # Move the pem files to make them invisible to the generation process
+          debug "Moving ${pem_file} to ${pem_file_path}/${new_file_name} ..."
+
+          if [[ -n "${dry_run}" ]]; then
+            continue
+          fi
+          mv "${pem_file}" "${pem_file_path}/${new_file_name}"
+        done
+      fi
+    done
   done
 
   return $return_status
