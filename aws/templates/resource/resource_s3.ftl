@@ -13,12 +13,12 @@
     ]
 [/#function]
 
-[#function getS3LifecycleRule 
-        expirationdays="" 
-        transitiondays="" 
-        prefix="" 
+[#function getS3LifecycleRule
+        expirationdays=""
+        transitiondays=""
+        prefix=""
         enabled=true
-        noncurrentexpirationdays="" 
+        noncurrentexpirationdays=""
         noncurrenttransitiondays="" ]
 
     [#if transitiondays?has_content && !(noncurrenttransitiondays?has_content)]
@@ -29,7 +29,7 @@
         [#local noncurrentexpirationdays = expirationdays ]
     [/#if]
 
-    [#return 
+    [#return
         [
             {
                 "Status" : enabled?then("Enabled","Disabled")
@@ -45,14 +45,14 @@
                     "Transitions" : [
                         {
                             "StorageClass" : "GLACIER"
-                        } + 
+                        } +
                         attributeIfTrue("TransitionInDays", transitiondays?is_number, transitiondays) +
                         attributeIfTrue("TransitionDate", !(transitiondays?is_number), transitiondays)
                     ]
                 },
                 {}
             ) +
-            attributeIfContent("NoncurrentVersionExpirationInDays", noncurrentexpirationdays) + 
+            attributeIfContent("NoncurrentVersionExpirationInDays", noncurrentexpirationdays) +
             (noncurrenttransitiondays?has_content)?then(
                 {
                     "NoncurrentVersionTransitions" : [
@@ -69,11 +69,11 @@
 [/#function]
 
 [#function getS3LoggingConfiguration logBucket prefix ]
-    [#return 
+    [#return
         {
             "DestinationBucketName" : logBucket,
             "LogFilePrefix" : "s3/" + prefix + "/"
-        }   
+        }
     ]
 [/#function]
 
@@ -88,12 +88,20 @@
     ]
 [/#function]
 
-[#function getS3WebsiteConfiguration index error ]
-    [#return 
+[#function getS3WebsiteConfiguration index error redirectTo="" redirectProtocol=""]
+    [#return
         {
             "IndexDocument" : index
         } +
-        attributeIfContent("ErrorDocument", error)
+        attributeIfContent("ErrorDocument", error) +
+        attributeIfContent(
+            "RedirectAllRequestsTo",
+            redirectTo,
+            {
+              "HostName" : redirectTo
+            } +
+            attributeIfContent("Protocol", redirectProtocol)
+        )
     ]
 [/#function]
 
@@ -102,16 +110,16 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        NAME_ATTRIBUTE_TYPE : { 
+        NAME_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "Attribute" : "Arn"
         },
-        DNS_ATTRIBUTE_TYPE : { 
+        DNS_ATTRIBUTE_TYPE : {
             "Attribute" : "DomainName"
         },
-        URL_ATTRIBUTE_TYPE : { 
+        URL_ATTRIBUTE_TYPE : {
             "Attribute" : "WebsiteURL"
         }
     }
@@ -123,20 +131,20 @@
     }
 ]
 
-[#macro createS3Bucket mode id name tier="" component="" 
-                        lifecycleRules=[] 
-                        sqsNotifications=[] 
+[#macro createS3Bucket mode id name tier="" component=""
+                        lifecycleRules=[]
+                        sqsNotifications=[]
                         versioning=false
                         websiteConfiguration={}
                         cannedACL=""
                         CORSBehaviours=[]
-                        dependencies="" 
+                        dependencies=""
                         outputId=""]
 
-    [#assign loggingConfiguration = {} ] 
+    [#assign loggingConfiguration = {} ]
     [#if getExistingReference(formatAccountS3Id("audit"))?has_content ]
         [#assign loggingConfiguration = getS3LoggingConfiguration(
-                                getExistingReference(formatAccountS3Id("audit")), 
+                                getExistingReference(formatAccountS3Id("audit")),
                                 name) ]
     [/#if]
 
@@ -164,7 +172,7 @@
         [/#if]
     [/#list]
 
-    [@cfResource 
+    [@cfResource
         mode=mode
         id=id
         type="AWS::S3::Bucket"
@@ -183,23 +191,23 @@
                 sqsNotifications,
                 {
                     "QueueConfigurations" : sqsNotifications
-                }) + 
+                }) +
             attributeIfContent(
                 "WebsiteConfiguration",
                 websiteConfiguration
-            ) + 
+            ) +
             attributeIfContent(
                 "LoggingConfiguration",
                 loggingConfiguration
-            ) + 
+            ) +
             attributeIfContent(
                 "AccessControl",
                 cannedACL
-            ) + 
+            ) +
             attributeIfContent(
                 "VersioningConfiguration",
                 versionConfiguration
-            ) + 
+            ) +
             attributeIfContent(
                 "CorsConfiguration",
                 CORSRules,

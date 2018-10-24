@@ -48,15 +48,15 @@
     [/#if]
 [/#function]
 
-[#function getArn idOrArn existingOnly=false]
+[#function getArn idOrArn existingOnly=false inRegion=""]
     [#if idOrArn?contains(":")]
         [#return idOrArn]
     [#else]
         [#return
             valueIfTrue(
-                getExistingReference(idOrArn, ARN_ATTRIBUTE_TYPE),
+                getExistingReference(idOrArn, ARN_ATTRIBUTE_TYPE, inRegion),
                 existingOnly,
-                getReference(idOrArn, ARN_ATTRIBUTE_TYPE)
+                getReference(idOrArn, ARN_ATTRIBUTE_TYPE, inRegion)
             ) ]
     [/#if]
 [/#function]

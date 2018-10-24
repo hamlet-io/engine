@@ -12,12 +12,25 @@
         [#assign resources = occurrence.State.Resources]
         [#assign solution = occurrence.Configuration.Solution ]
 
-        [#assign securityProfile    = getSecurityProfile(solution.Profiles.SecurityProfile, SPA_COMPONENT_TYPE)]
+        [#assign securityProfile    = getSecurityProfile(solution.Profiles.Security, SPA_COMPONENT_TYPE)]
 
         [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
         [#assign hostName = getHostName(certificateObject, occurrence) ]
-        [#assign dns = formatDomainName(hostName, certificateObject.Domain.Name) ]
         [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
+
+        [#-- Get alias list --]
+        [#assign aliases = [] ]
+        [#list certificateObject.Domains as domain]
+            [#assign aliases += [ formatDomainName(hostName, domain.Name) ] ]
+        [/#list]
+
+        [#-- Get any event handlers --]
+        [#assign eventHandlers = [] ]
+        [#assign originRequestHandler =
+          getOccurrenceSettingValue(occurrence, ["EventHandlers", "OriginRequest"], true) ]
+        [#if originRequestHandler?has_content]
+            [#assign eventHandlers += getCFEventHandler("origin-request", originRequestHandler) ]
+        [/#if]
 
         [#assign cfId               = resources["cf"].Id]
         [#assign cfName             = resources["cf"].Name]
@@ -31,7 +44,7 @@
 
         [#assign cfAccess = getExistingReference(formatDependentCFAccessId(formatS3OperationsId()))]
 
-        [#assign wafPresent     = isWAFPresent(solution.WAF) ]
+        [#assign wafPresent     = isPresent(solution.WAF) ]
         [#assign wafAclId       = resources["wafacl"].Id]
         [#assign wafAclName     = resources["wafacl"].Name]
 
@@ -57,12 +70,14 @@
                     "Max" : solution.CloudFront.CachingTTL.Maximum,
                     "Min" : solution.CloudFront.CachingTTL.Minimum
                 },
-                solution.CloudFront.Compress)]
+                solution.CloudFront.Compress,
+                eventHandlers)]
             [#assign configCacheBehaviour = getCFSPACacheBehaviour(
                 configOrigin,
                 "/config/*",
                 {"Default" : 60},
-                solution.CloudFront.Compress) ]
+                solution.CloudFront.Compress,
+                eventHandlers) ]
 
             [#assign restrictions = {} ]
             [#if solution.CloudFront.CountryGroups?has_content]
@@ -80,8 +95,8 @@
                 mode=listMode
                 id=cfId
                 aliases=
-                    (solution.Certificate.Configured && solution.Certificate.Enabled)?then(
-                        [dns],
+                    (isPresent(solution.Certificate))?then(
+                        aliases,
                         []
                     )
                 cacheBehaviours=configCacheBehaviour
@@ -90,7 +105,8 @@
                         certificateId,
                         securityProfile.HTTPSProfile,
                         solution.CloudFront.AssumeSNI),
-                        solution.Certificate.Configured && solution.Certificate.Enabled)
+                        isPresent(solution.Certificate)
+                    )
                 comment=cfName
                 customErrorResponses=getErrorResponse(
                                             404,

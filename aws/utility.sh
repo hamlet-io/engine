@@ -961,7 +961,16 @@ function deleteTreeFromBucket() {
   local optional_arguments=("$@")
 
   # Delete everything below the prefix
-  aws --region "${region}" s3 rm "${optional_arguments[@]}" --recursive "s3://${bucket}/${prefix}/"
+  aws --region "${region}" s3 rm "${optional_arguments[@]}" --recursive "s3://${bucket}/${prefix}${prefix:+/}"
+}
+
+function deleteBucket() {
+  local region="$1"; shift
+  local bucket="$1"; shift
+  local optional_arguments=("$@")
+
+  # Delete the bucket
+  aws --region "${region}" s3 rb --force "${optional_arguments[@]}" "s3://${bucket} --force"
 }
 
 # -- SNS -- 

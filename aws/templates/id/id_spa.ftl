@@ -97,17 +97,13 @@
                 },
                 {
                     "Names" : "Certificate",
-                    "Children" : [
-                        {
-                            "Names" : "*"
-                        }
-                    ]
+                    "Children" : certificateChildConfiguration
                 },
                 {
                     "Names" : "Profiles",
                     "Children" : [
                         {
-                            "Names" : "SecurityProfile",
+                            "Names" : "Security",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }
@@ -121,13 +117,13 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#assign cfId  = formatComponentCFDistributionId(core.Tier, core.Component, occurrence)]
-    [#assign cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
+    [#local cfId  = formatComponentCFDistributionId(core.Tier, core.Component, occurrence)]
+    [#local cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
 
-    [#if solution.Certificate.Configured && solution.Certificate.Enabled ]
+    [#if isPresent(solution.Certificate) ]
             [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
             [#local hostName = getHostName(certificateObject, occurrence) ]
-            [#local fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
+            [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
     [#else]
             [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
     [/#if]

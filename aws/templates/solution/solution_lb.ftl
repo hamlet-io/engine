@@ -19,7 +19,7 @@
         [#assign engine = solution.Engine]
         [#assign idleTimeout = solution.IdleTimeout]
 
-        [#assign securityProfile = getSecurityProfile(solution.Profiles.SecurityProfile, LB_COMPONENT_TYPE, engine)]
+        [#assign securityProfile = getSecurityProfile(solution.Profiles.Security, LB_COMPONENT_TYPE, engine)]
 
         [#assign healthCheckPort = "" ]
         [#if engine == "classic" ]
@@ -115,10 +115,10 @@
             [#assign targetGroupRequired = true ]
 
             [#assign listenerRuleId = resources["listenerRule"].Id ]
-            [#assign listenerRulePriority = solution.Priority ]
-
-            [#assign listenerRuleConfig = {}]
+            [#assign listenerRulePriority = resources["listenerRule"].Priority ]
             [#assign listenerRuleCommand = "createListenerRule" ]
+
+            [#assign listenerRulesConfig = {} ]
 
             [#-- Path processing --]
             [#switch engine ]
@@ -139,56 +139,79 @@
             [#-- Certificate details if required --]
             [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id, sourcePort.Name) ]
             [#assign hostName = getHostName(certificateObject, subOccurrence) ]
+            [#assign primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
             [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
             [#-- FQDN processing --]
             [#if solution.HostFilter ]
-                [#assign fqdn = formatDomainName(hostName, certificateObject.Domain.Name)]
+                [#assign fqdn = formatDomainName(hostName, primaryDomainObject)]
+
+                [#list resources["domainRedirectRules"]!{} as key, rule]
+                    [#assign listenerRulesConfig +=
+                        {
+                            rule.Id : {
+                                "Conditions" : asArray(getListenerRuleHostCondition(rule.RedirectFrom)),
+                                "Priority" : rule.Priority,
+                                "Actions" : asArray(
+                                                getListenerRuleRedirectAction(
+                                                    "#\{protocol}",
+                                                    "#\{port}",
+                                                    fqdn,
+                                                    "#\{path}",
+                                                    "#\{query}"))
+                            }
+                        } ]
+                [/#list]
+
                 [#assign listenerRuleConditions += asArray(getListenerRuleHostCondition(fqdn)) ]
             [/#if]
 
             [#-- Redirect rule processing --]
-            [#if solution.Redirect.Configured && solution.Redirect.Enabled]
+            [#if isPresent(solution.Redirect) ]
                 [#assign targetGroupRequired = false ]
-                [#assign listenerRuleConfig =
+                [#assign listenerRulesConfig +=
                     {
-                        "Conditions" : listenerRuleConditions,
-                        "Priority" : listenerRulePriority,
-                        "Actions" : asArray(
-                                        getListenerRuleRedirectAction(
-                                            solution.Redirect.Protocol,
-                                            solution.Redirect.Port,
-                                            solution.Redirect.Host,
-                                            solution.Redirect.Path,
-                                            solution.Redirect.Query,
-                                            solution.Redirect.Permanent))
+                        listenerRuleId : {
+                            "Conditions" : listenerRuleConditions,
+                            "Priority" : listenerRulePriority,
+                            "Actions" : asArray(
+                                            getListenerRuleRedirectAction(
+                                                solution.Redirect.Protocol,
+                                                solution.Redirect.Port,
+                                                solution.Redirect.Host,
+                                                solution.Redirect.Path,
+                                                solution.Redirect.Query,
+                                                solution.Redirect.Permanent))
+                        }
                     } ]
             [/#if]
 
             [#-- Fixed rule processing --]
-            [#if solution.Fixed.Configured && solution.Fixed.Enabled]
+            [#if isPresent(solution.Fixed) ]
                 [#assign targetGroupRequired = false ]
                 [#assign fixedMessage = getOccurrenceSettingValue(subOccurrence, ["Fixed", "Message"], true) ]
                 [#assign fixedContentType = getOccurrenceSettingValue(subOccurrence, ["Fixed", "ContentType"], true) ]
                 [#assign fixedStatusCode = getOccurrenceSettingValue(subOccurrence, ["Fixed", "StatusCode"], true) ]
-                [#assign listenerRuleConfig =
+                [#assign listenerRulesConfig +=
                     {
-                        "Conditions" : listenerRuleConditions,
-                        "Priority" : listenerRulePriority,
-                        "Actions" :
-                            asArray(
-                                getListenerRuleFixedAction(
-                                    contentIfContent(
-                                        fixedMessage,
-                                        solution.Fixed.Message),
-                                    contentIfContent(
-                                        fixedContentType,
-                                        solution.Fixed.ContentType),
-                                    contentIfContent(
-                                        fixedStatusCode,
-                                        solution.Fixed.StatusCode)
+                        listenerRuleId : {
+                            "Conditions" : listenerRuleConditions,
+                            "Priority" : listenerRulePriority,
+                            "Actions" :
+                                asArray(
+                                    getListenerRuleFixedAction(
+                                        contentIfContent(
+                                            fixedMessage,
+                                            solution.Fixed.Message),
+                                        contentIfContent(
+                                            fixedContentType,
+                                            solution.Fixed.ContentType),
+                                        contentIfContent(
+                                            fixedStatusCode,
+                                            solution.Fixed.StatusCode)
+                                    )
                                 )
-                            )
+                        }
                     } ]
             [/#if]
 
@@ -245,43 +268,47 @@
                                 [#assign userPoolOauthScope =  linkTargetConfiguration.Solution.OAuth.Scopes?join(", ") ]
                             [/#if]
 
-                            [#assign listenerRuleConfig =
+                            [#assign listenerRulesConfig +=
                                 {
-                                    "Conditions" : listenerRuleConditions,
-                                    "Priority" : listenerRulePriority,
-                                    "Actions" : [
-                                        {
-                                            "Type" : "authenticate-cognito",
-                                            "AuthenticateCognitoConfig" : {
-                                                "UserPoolArn" : userPoolArn,
-                                                "UserPoolClientId" : userPoolClientId,
-                                                "UserPoolDomain" : userPoolDomain,
-                                                "SessionCookieName" : userPoolSessionCookieName,
-                                                "SessionTimeout" : userPoolSessionTimeout,
-                                                "Scope" : userPoolOauthScope,
-                                                "OnUnauthenticatedRequest" : "authenticate"
+                                    listenerRuleId : {
+                                        "Conditions" : listenerRuleConditions,
+                                        "Priority" : listenerRulePriority,
+                                        "Actions" : [
+                                            {
+                                                "Type" : "authenticate-cognito",
+                                                "AuthenticateCognitoConfig" : {
+                                                    "UserPoolArn" : userPoolArn,
+                                                    "UserPoolClientId" : userPoolClientId,
+                                                    "UserPoolDomain" : userPoolDomain,
+                                                    "SessionCookieName" : userPoolSessionCookieName,
+                                                    "SessionTimeout" : userPoolSessionTimeout,
+                                                    "Scope" : userPoolOauthScope,
+                                                    "OnUnauthenticatedRequest" : "authenticate"
+                                                },
+                                                "Order" : 1
                                             },
-                                            "Order" : 1
-                                        },
-                                        getListenerRuleForwardAction(targetGroupId, 2)
-                                    ]
-                                }]
+                                            getListenerRuleForwardAction(targetGroupId, 2)
+                                        ]
+                                    }
+                                } ]
                             [#break]
 
                         [#case SPA_COMPONENT_TYPE]
                             [#assign targetGroupRequired = false ]
-                            [#assign listenerRuleConfig =
+                            [#assign listenerRulesConfig +=
                                 {
-                                    "Conditions" : listenerRuleConditions,
-                                    "Priority" : listenerRulePriority,
-                                    "Actions" : asArray(
-                                                    getListenerRuleRedirectAction(
-                                                        "https",
-                                                        "443",
-                                                        linkTargetAttributes.FQDN,
-                                                        "",
-                                                        "",
-                                                        false))
+                                    listenerRuleId : {
+                                        "Conditions" : listenerRuleConditions,
+                                        "Priority" : listenerRulePriority,
+                                        "Actions" : asArray(
+                                                        getListenerRuleRedirectAction(
+                                                            "https",
+                                                            "443",
+                                                            linkTargetAttributes.FQDN,
+                                                            "",
+                                                            "",
+                                                            false))
+                                    }
                                 } ]
                             [#break]
                     [/#switch]
@@ -309,7 +336,7 @@
             [#-- Process the mapping --]
             [#switch engine ]
                 [#case "application"]
-                    [#assign tgAttributes += 
+                    [#assign tgAttributes +=
                         (solution.Forward.StickinessTime > 0)?then(
                             {
                                 "stickiness.enabled" : true,
@@ -361,44 +388,57 @@
                     [/#if]
 
                     [#-- Basic Forwarding --]
-                    [#if !listenerRuleConfig?has_content ] 
-                        [#assign listenerRuleConfig =
+                    [#if !listenerRulesConfig?has_content ]
+                        [#assign listenerRulesConfig +=
                             {
-                                "Conditions" : listenerRuleConditions,
-                                "Priority" : listenerRulePriority,
-                                "Actions" : asArray(
-                                        getListenerRuleForwardAction(targetGroupId))
+                                listenerRuleId : {
+                                    "Conditions" : listenerRuleConditions,
+                                    "Priority" : listenerRulePriority,
+                                    "Actions" : asArray(
+                                            getListenerRuleForwardAction(targetGroupId))
+                                }
                             } ]
 
                     [/#if]
 
                     [#if deploymentSubsetRequired("cli", false)]
-                        [@cfCli
-                            mode=listMode
-                            id=listenerRuleId
-                            command=listenerRuleCommand
-                            content=listenerRuleConfig
-                        /]
+                        [#list listenerRulesConfig as id, ruleConfig]
+                            [@cfCli
+                                mode=listMode
+                                id=id
+                                command=listenerRuleCommand
+                                content=ruleConfig
+                            /]
+                        [/#list]
                     [/#if]
 
                     [#if deploymentSubsetRequired("epilogue", false) ]
+                        [#assign rulesScript = [] ]
+                        [#list listenerRulesConfig as id, ruleConfig]
+                            [#assign rulesScript +=
+                                [
+                                    "    info \"Creating Listener rule " + id + "\"",
+                                    "    listener_rule_arn=$( create_elbv2_rule" +
+                                        "\"" + region + "\" " +
+                                        "\"" + getExistingReference(listenerId) + "\" " +
+                                        "\"$\{tmpdir}/cli-" +
+                                        id + "-" + listenerRuleCommand + ".json\" || return $?)"
+                                ] ]
+                        [/#list]
                         [@cfScript
                             mode=listMode
                             content= (getExistingReference(listenerId)?has_content)?then(
                                 [
                                     "case $\{STACK_OPERATION} in",
                                     "  create|update)",
-                                    "       # Get cli config file",
-                                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                                    "       # Apply CLI level updates to ELB listener",
-                                    "       info \"Creating Listener rule " + listenerRuleId + "\"",
-                                    "       listener_rule_arn=$( create_elbv2_rule" +
-                                    "       \"" + region + "\" " +
-                                    "       \"" + getExistingReference(listenerId) + "\" " +
-                                    "       \"$\{tmpdir}/cli-" +
-                                            listenerRuleId + "-" + listenerRuleCommand + ".json\" || return $?)",
-                                    "   ;;",
-                                    "   esac"
+                                    "    # Get cli config file",
+                                    "    split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                                    "    # Apply CLI level updates to ELB listener"
+                                ] +
+                                rulesScript +
+                                [
+                                    "    ;;",
+                                    "esac"
                                 ],
                                 [
                                     "warning \"Please run another update to complete the configuration\""
@@ -408,7 +448,7 @@
                     [/#if]
 
                 [#case "network"]
-                    [#assign tgAttributes += 
+                    [#assign tgAttributes +=
                         {
                             "deregistration_delay.timeout_seconds" : solution.Forward.DeregistrationTimeout
                         }]
@@ -423,11 +463,11 @@
                                 port=sourcePort
                                 albId=lbId
                                 defaultTargetGroupId=defaultTargetGroupId
-                                certificateId=certificateId 
+                                certificateId=certificateId
                                 sslPolicy=securityProfile.HTTPSProfile
                             /]
 
-                            [@createTargetGroup 
+                            [@createTargetGroup
                                 mode=listMode
                                 id=defaultTargetGroupId
                                 name=defaultTargetGroupName
@@ -492,7 +532,7 @@
                                 "SSLCertificateId",
                                 classicSSLRequired,
                                 getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
-                            ) + 
+                            ) +
                             attributeIfContent(
                                 "PolicyNames",
                                 classicListenerPolicyNames

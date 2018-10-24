@@ -1,5 +1,11 @@
 [#-- DNS --]
 
+[#-- Primary is used on component attributes --]
+[#assign DOMAIN_ROLE_PRIMARY="primary" ]
+
+[#-- Secondaries allow a smooth transition from one domain to another --]
+[#assign DOMAIN_ROLE_SECONDARY="secondary" ]
+
 [#-- Names --]
 [#function formatHostDomainName host parts style=""]
     [#local result =
@@ -23,6 +29,14 @@
     [#return formatResourceId(
                 "domain",
                 ids)]
+[/#function]
+
+[#function isPrimaryDomain domainObject]
+    [#return domainObject.Role == DOMAIN_ROLE_PRIMARY ]
+[/#function]
+
+[#function isSecondaryDomain domainObject]
+    [#return domainObject.Role == DOMAIN_ROLE_SECONDARY ]
 [/#function]
 
 [#function formatSegmentDNSZoneId extensions...]

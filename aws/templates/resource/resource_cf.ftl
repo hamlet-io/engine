@@ -75,6 +75,16 @@
     ]
 [/#function]
 
+[#function getCFEventHandler type lambdaId]
+    [#return
+        [
+          {
+              "EventType" : type,
+              "LambdaFunctionARN" : getArn(lambdaId, false, "us-east-1")
+          }
+        ]
+    ]
+[/#function]
 [#function getCFCacheBehaviour origin
     path=""
     methods={}
@@ -84,6 +94,7 @@
             "QueryString" : true
         }
     compress=false
+    eventHandlers=[]
     viewerProtocolPolicy="redirect-to-https"
     smoothStreaming=false
     trustedSigners=[]
@@ -109,7 +120,8 @@
             attributeIfContent("DefaultTTL", (ttl.Default)!"") +
             attributeIfContent("MaxTTL", (ttl.Max)!"") +
             attributeIfContent("MinTTL", (ttl.Min)!"") +
-            attributeIfContent("TrustedSigners", trustedSigners![], asArray(trustedSigners![]))
+            attributeIfContent("TrustedSigners", trustedSigners) +
+            attributeIfContent("LambdaFunctionAssociations", eventHandlers)
         ]
     ]
 [/#function]
@@ -159,7 +171,7 @@
     ]
 [/#function]
 
-[#function getCFSPACacheBehaviour origin path="" ttl={"Default" : 600}  compress=true]
+[#function getCFSPACacheBehaviour origin path="" ttl={"Default" : 600}  compress=true eventHandlers=[] ]
     [#return
         getCFCacheBehaviour(
             origin,
@@ -182,7 +194,8 @@
                 },
                 "QueryString" : true
             },
-            compress
+            compress,
+            eventHandlers
         )
     ]
 [/#function]

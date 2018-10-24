@@ -386,7 +386,8 @@ behaviour.
 
     [#-- Normalise attributes --]
     [#local normalisedAttributes = [] ]
-    [#local enabledSeen = false]
+    [#local inhibitEnabled = false]
+    [#local explicitEnabled = false]
     [#if attributes?has_content]
         [#list asFlattenedArray(attributes) as attribute]
             [#local normalisedAttribute =
@@ -402,6 +403,9 @@ behaviour.
                     "SubObjects" : false,
                     "PopulateMissingChildren" : true
                 } ]
+            [#if normalisedAttribute.Names?seq_contains("InhibitEnabled") ]
+                [#local inhibitEnabled = true ]
+            [/#if]
             [#if attribute?is_hash ]
                 [#local names = attribute.Names!"COT:Missing" ]
                 [#if (names?is_string) && (names == "COT:Missing") ]
@@ -426,9 +430,9 @@ behaviour.
                     } ]
             [/#if]
             [#local normalisedAttributes += [normalisedAttribute] ]
-            [#local enabledSeen = enabledSeen || normalisedAttribute.Names?seq_contains("Enabled") ]
+            [#local explicitEnabled = explicitEnabled || normalisedAttribute.Names?seq_contains("Enabled") ]
         [/#list]
-        [#if !enabledSeen]
+        [#if (!explicitEnabled) && (!inhibitEnabled) ]
             [#-- Put "Enabled" first to ensure it is processed in case a name of "*" is used --]
             [#local normalisedAttributes =
                 [
@@ -654,34 +658,60 @@ behaviour.
     [#return result ]
 [/#function]
 
-[#function getObjectAncestry collection start qualifiers...]
+[#-- Check if a configuration item with children is present --]
+[#function isPresent configuration={} ]
+    [#return configuration.Configured!false && configuration.Enabled!false ]
+[/#function]
+
+[#function getObjectLineage collection end qualifiers...]
     [#local result = [] ]
-    [#local startingObject = "" ]
-    [#list asFlattenedArray(start) as startEntry]
-        [#if startEntry?is_hash]
-            [#local startingObject = start ]
+    [#local endingObject = "" ]
+    [#list asFlattenedArray(end) as endEntry]
+        [#if endEntry?is_hash]
+            [#local endingObject = endEntry ]
             [#break]
         [#else]
-            [#if startEntry?is_string]
-                [#if ((collection[startEntry])!"")?is_hash]
-                    [#local startingObject = collection[startEntry] ]
+            [#if endEntry?is_string]
+                [#if ((collection[endEntry])!"")?is_hash]
+                    [#local endingObject = collection[endEntry] ]
                     [#break]
                 [/#if]
             [/#if]
         [/#if]
     [/#list]
 
-    [#if startingObject?is_hash]
-        [#local base = getObjectAndQualifiers(startingObject, qualifiers) ]
-        [#local result += [base] ]
-        [#local parentObject = getCompositeObject( ["Parent"], base ) ]
-        [#if parentObject.Parent?has_content]
-            [#local result =
-                        getObjectAncestry(
-                            collection,
-                            parentObject.Parent,
-                            qualifiers) +
-                        result ]
+    [#if endingObject?is_hash]
+        [#local base = getObjectAndQualifiers(endingObject, qualifiers) ]
+        [#local parentId =
+                (getCompositeObject(
+                    [
+                        {
+                            "Names" : "Parent",
+                            "Type" : STRING_TYPE
+                        }
+                    ],
+                    base
+                ).Parent)!"" ]
+        [#local parentIds =
+                (getCompositeObject(
+                    [
+                        {
+                            "Names" : "Parents",
+                            "Type" : ARRAY_OF_STRING_TYPE
+                        }
+                    ],
+                    base
+                ).Parents)!arrayIfContent(parentId, parentId) ]
+
+        [#if parentIds?has_content]
+            [#list parentIds as parentId]
+                [#local lines = getObjectLineage(collection, parentId, qualifiers) ]
+                [#list lines as line]
+                    [#local result += [ line + [base] ] ]
+                [/#list]
+            [/#list]
+        [#else]
+            [#local result += [ [base] ] ]
         [/#if]
     [/#if]
     [#return result ]
@@ -1494,8 +1524,8 @@ behaviour.
                     [#list subComponents as subComponent]
                         [#-- Subcomponent instances can either be under a Components --]
                         [#-- attribute or directly under the subcomponent object.    --]
-                        [#-- For the latter case, any default configuration must be  --]
-                        [#-- under a Configuration attribute to avoid the            --]
+                        [#-- To cater for the latter case, any default configuration --]
+                        [#-- must be under a "Configuration" attribute to avoid the  --]
                         [#-- configuration being treated as subcomponent instances.  --]
                         [#local subComponentInstances = {} ]
                         [#if ((typeObject[subComponent.Component])!{})?is_hash ]
@@ -1512,7 +1542,9 @@ behaviour.
 
                         [#list subComponentInstances as key,subComponentInstance ]
                             [#if subComponentInstance?is_hash ]
-                                [#if key == "Configuration" ]
+                                [#if
+                                    (!((typeObject[subComponent.Component].Components)?has_content)) &&
+                                    (key == "Configuration") ]
                                     [#continue]
                                 [/#if]
                                 [#local
@@ -1830,67 +1862,77 @@ behaviour.
     [/#if]
 [/#function]
 
-[#function getDomainObject start qualifiers...]
-    [#local name = "" ]
-    [#local domainObjects = getObjectAncestry(domains, start, qualifiers) ]
-    [#list domainObjects as domainObject]
-        [#local qualifiedDomainObject = getCompositeObject(["Stem", "Name", "Zone"], domainObject) ]
-        [#local name = formatDomainName(
-                          qualifiedDomainObject.Stem?has_content?then(
-                              qualifiedDomainObject.Stem,
-                              qualifiedDomainObject.Name?has_content?then(
-                                  qualifiedDomainObject.Name,
-                                  "")),
-                          name) ]
+[#function getDomainObjects end qualifiers...]
+    [#local result = [] ]
+    [#local primaryNotSeen = true]
+    [#local lines = getObjectLineage(domains, end, qualifiers) ]
+    [#list lines as line]
+        [#local name = "" ]
+        [#local role = DOMAIN_ROLE_PRIMARY ]
+        [#list line as domainObject]
+            [#local qualifiedDomainObject =
+                getCompositeObject(
+                    [
+                        "InhibitEnabled", "Stem", "Name", "Zone",
+                        {
+                            "Names" : "Bare",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
+                            "Names" : "Role",
+                            "Type" : STRING_TYPE,
+                            "Values" : [DOMAIN_ROLE_PRIMARY, DOMAIN_ROLE_SECONDARY]
+                        }
+                    ],
+                    domainObject) ]
+            [#if !(qualifiedDomainObject.Bare) ]
+                [#local name = formatDomainName(
+                                   contentIfContent(
+                                       qualifiedDomainObject.Stem!"",
+                                       contentIfContent(
+                                           qualifiedDomainObject.Name!"",
+                                           ""
+                                       )
+                                   ),
+                                   name
+                               ) ]
+            [/#if]
+            [#if qualifiedDomainObject.Role?has_content]
+                [#local role = qualifiedDomainObject.Role]
+            [/#if]
+        [/#list]
+        [#local result +=
+            [
+                {
+                    "Name" : name,
+                    "Role" : valueIfTrue(role, primaryNotSeen, DOMAIN_ROLE_SECONDARY)
+                } +
+                getCompositeObject( ["InhibitEnabled", "Zone"], line )
+            ] ]
+        [#local primaryNotSeen = primaryNotSeen && (role != DOMAIN_ROLE_PRIMARY) ]
     [/#list]
-    [#return
-        {
-            "Name" : name
-        } +
-        getCompositeObject( ["Zone"], domainObjects ) ]
+    [#return result]
 [/#function]
 
 [#function getCertificateObject start qualifiers...]
 
     [#local certificateObject =
         getCompositeObject(
-            [
-                "External",
-                "Wildcard",
-                "Domain",
-                {
-                    "Names" : "Host",
-                    "Default" : ""
-                },
-                "HostParts",
-                {
-                    "Names" : "IncludeInHost",
-                    "Children" : [
-                      "Product",
-                      "Environment",
-                      "Segment",
-                      "Tier",
-                      "Component",
-                      "Instance",
-                      "Version",
-                      "Host"
-                    ]
-                }
-            ],
+            certificateChildConfiguration,
             asFlattenedArray(
                 getObjectAndQualifiers((blueprintObject.CertificateBehaviours)!{}, qualifiers) +
                 getObjectAndQualifiers((tenantObject.CertificateBehaviours)!{}, qualifiers) +
                 getObjectAndQualifiers((productObject.CertificateBehaviours)!{}, qualifiers) +
-                getObjectAncestry(certificates, [productId, productName], qualifiers) +
-                getObjectAncestry(certificates, start, qualifiers)
+                ((getObjectLineage(certificates, [productId, productName], qualifiers)[0])![]) +
+                ((getObjectLineage(certificates, start, qualifiers)[0])![])
             )
         )
     ]
-
     [#return
         certificateObject +
         {
-            "Domain" : getDomainObject(certificateObject.Domain, qualifiers)
+            "Domains" : getDomainObjects(certificateObject.Domain, qualifiers)
         }
     ]
 [/#function]
@@ -2164,10 +2206,6 @@ behaviour.
 [/#function]
 
 [#-- WAF functions --]
-
-[#function isWAFPresent configuration={} ]
-    [#return configuration.Configured && configuration.Enabled ]
-[/#function]
 
 [#function getWAFDefault configuration={} ]
     [#list configuration.IPAddressGroups as group]

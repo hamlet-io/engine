@@ -319,6 +319,71 @@
     }
 ]]
 
+[#assign certificateChildConfiguration = [
+    {
+        "Names" : "Qualifiers",
+        "Type" : OBJECT_TYPE
+    },
+    {
+        "Names" : "External",
+        "Type" : BOOLEAN_TYPE
+    },
+    {
+        "Names" : "Wildcard",
+        "Type" : BOOLEAN_TYPE
+    },
+    {
+        "Names" : "Domain",
+        "Type" : STRING_TYPE
+    },
+    {
+        "Names" : "Host",
+        "Type" : STRING_TYPE,
+        "Default" : ""
+    },
+    {
+        "Names" : "HostParts",
+        "Type" : ARRAY_OF_STRING_TYPE
+    },
+    {
+        "Names" : "IncludeInHost",
+        "Children" : [
+            {
+                "Names" : "Product",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Environment",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Segment",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Tier",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Component",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Instance",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Version",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Host",
+                "Type" : BOOLEAN_TYPE
+            }
+        ]
+    }
+]]
+
 [#include idList]
 [#include nameList]
 [#include policyList]
@@ -424,6 +489,7 @@
     [#assign shortNamePrefixes += [productId] ]
     [#assign fullNamePrefixes += [productName] ]
     [#assign cmdbProductLookupPrefixes += ["shared"] ]
+    [#assign segmentQualifiers += [productName, productId] ]
 
 [/#if]
 

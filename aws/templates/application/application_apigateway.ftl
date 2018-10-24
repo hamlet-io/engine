@@ -20,18 +20,8 @@
         [#assign deployId   = resources["apideploy"].Id]
         [#assign stageId    = resources["apistage"].Id]
         [#assign stageName  = resources["apistage"].Name]
-        [#assign stageDimensions =
-            [
-                {
-                    "Name" : "ApiName",
-                    "Value" : apiName
-                },
-                {
-                    "Name" : "Stage",
-                    "Value" : stageName
-                }
-            ]
-        ]
+
+        [#-- Determine the stage variables required --]
         [#assign stageVariables = {} ]
 
         [#assign fragment =
@@ -131,68 +121,16 @@
             [/#if]
         [/#list]
 
-        [#assign logGroup =
-            {
-                "Fn::Join" : [
-                    "",
-                    [
-                        "API-Gateway-Execution-Logs_",
-                        getReference(apiId),
-                        "/",
-                        stageName
-                    ]
-                ]
-            }
-        ]
-
         [#assign endpointType           = solution.EndpointType ]
         [#assign isEdgeEndpointType     = endpointType == "EDGE" ]
 
-        [#assign securityProfile        = getSecurityProfile(solution.Profiles.SecurityProfile, "apigateway")]
-
-        [#assign certificatePresent     = solution.Certificate.Configured && solution.Certificate.Enabled ]
-
-        [#assign mappingPresent         = solution.Mapping.Configured && solution.Mapping.Enabled ]
-        [#assign domainId               = resources["apidomain"].Id]
-        [#assign domainFqdn             = resources["apidomain"].Fqdn]
-        [#assign domainCertificateId    = resources["apidomain"].CertificateId]
-        [#assign basePathMappingId      = resources["apibasepathmapping"].Id]
-        [#assign basePathMappingStage   = resources["apibasepathmapping"].Stage]
-
-        [#assign invalidLogMetricId     = resources["invalidlogmetric"].Id]
-        [#assign invalidLogMetricName   = resources["invalidlogmetric"].Name]
-        [#assign invalidAlarmId         = resources["invalidalarm"].Id]
-        [#assign invalidAlarmName       = resources["invalidalarm"].Name]
-
-        [#assign cfPresent              = solution.CloudFront.Configured && solution.CloudFront.Enabled ]
-        [#assign mappingPresent         = mappingPresent && (!cfPresent || solution.CloudFront.Mapping) ]
-        [#assign cfId                   = resources["cf"].Id]
-        [#assign cfName                 = resources["cf"].Name]
-        [#assign cfCertificateId        = resources["cf"].CertificateId]
-        [#assign cfFqdn                 = resources["cf"].Fqdn]
-        [#assign cfOriginId             = resources["cforigin"].Id]
-        [#assign cfOriginFqdn           = resources["cforigin"].Fqdn]
-
-        [#assign wafPresent             = isWAFPresent(solution.WAF) ]
-        [#assign wafAclId               = resources["wafacl"].Id]
-        [#assign wafAclName             = resources["wafacl"].Name]
-
-        [#assign usagePlanId            = resources["apiusageplan"].Id]
-        [#assign usagePlanName          = resources["apiusageplan"].Name]
-
-        [#assign accessLgId             = resources["accesslg"].Id]
-        [#assign accessLgName           = resources["accesslg"].Name]
-
-        [#assign publishPresent         = solution.Publish.Configured && solution.Publish.Enabled ]
-        [#assign docsS3BucketId         = resources["docs"].Id]
-        [#assign docsS3BucketName       = resources["docs"].Name]
-        [#assign docsS3BucketPolicyId   = resources["docspolicy"].Id ]
+        [#assign securityProfile        = getSecurityProfile(solution.Profiles.Security, "apigateway")]
 
         [#assign apiPolicyStatements    = _context.Policy ]
         [#assign apiPolicyAuth          = solution.Authentication?upper_case ]
 
         [#assign apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
-        [#if ((!cfPresent) || (!wafPresent)) && (!(apiPolicyCidr?has_content)) ]
+        [#if (!(resources["cf"]["wafacl"])??) && (!(apiPolicyCidr?has_content)) ]
             [@cfException
                 mode=listMode
                 description="No IP Address Groups provided for API Gateway"
@@ -215,7 +153,7 @@
         [#-- (see case 5398420851)                                                        --]
         [#--                                                                              --]
         [#if apiPolicyCidr?has_content ]
-            [#-- Ensure the "default" stage used for deployments can't be accessed externally --]
+            [#-- Ensure the stage(s) used for deployments can't be accessed externally --]
             [#assign apiPolicyStatements +=
                 [
                     getPolicyStatement(
@@ -276,12 +214,15 @@
             [/#switch]
         [/#if]
 
+        [#assign accessLgId   = resources["accesslg"].Id]
+        [#assign accessLgName = resources["accesslg"].Name]
         [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(accessLgId) ]
             [@createLogGroup
                 mode=listMode
                 id=accessLgId
                 name=accessLgName /]
         [/#if]
+
         [#if deploymentSubsetRequired("apigateway", true)]
             [#-- Assume extended swagger specification is in the ops bucket --]
             [@cfResource
@@ -353,35 +294,16 @@
                 outputs={}
                 dependencies=deployId
             /]
-            [@createSegmentCountLogMetric
-                    listMode,
-                    invalidLogMetricId,
-                    invalidLogMetricName,
-                    logGroup,
-                    "Invalid",
-                    [stageId]
-            /]
-            [@createCountAlarm
-                mode=listMode
-                id=invalidAlarmId
-                name=invalidAlarmName
-                actions=[
-                    getReference(formatSegmentSNSTopicId())
-                ]
-                metric=invalidLogMetricName
-                namespace=formatSegmentNamespace()
-                dimensions=stageDimensions
-                dependencies=[invalidLogMetricId]
-            /]
 
-            [#if cfPresent]
-
+            [#assign cfResources = resources["cf"]!{} ]
+            [#assign customDomainResources = resources["customDomains"]!{} ]
+            [#if cfResources?has_content]
                 [#assign origin =
                     getCFHTTPOrigin(
-                        cfOriginId,
+                        cfResources["origin"].Id,
                         valueIfTrue(
-                            cfOriginFqdn,
-                            certificatePresent && mappingPresent && isEdgeEndpointType,
+                            cfResources["origin"].Fqdn,
+                            customDomainResources?has_content,
                             {
                                 "Fn::Join" : [
                                     ".",
@@ -420,16 +342,16 @@
                 [/#if]
                 [@createCFDistribution
                     mode=listMode
-                    id=cfId
+                    id=cfResources["distribution"].Id
                     dependencies=stageId
-                    aliases=valueIfTrue([cfFqdn], certificatePresent, [])
-                    certificate=valueIfTrue(
+                    aliases=cfResources["distribution"].Fqdns![]
+                    certificate=valueIfContent(
                         getCFCertificate(
-                            cfCertificateId,
+                            cfResources["distribution"].CertificateId,
                             securityProfile.HTTPSProfile,
                             solution.CloudFront.AssumeSNI),
-                        certificatePresent)
-                    comment=cfName
+                        cfResources["distribution"].CertificateId!"")
+                    comment=cfResources["distribution"].Name
                     defaultCacheBehaviour=defaultCacheBehaviour
                     logging=valueIfTrue(
                         getCFLogging(
@@ -442,17 +364,13 @@
                         ),
                         solution.CloudFront.EnableLogging)
                     origins=origin
-                    restrictions=valueIfContent(
-                        restrictions,
-                        restrictions)
-                    wafAclId=valueIfTrue(
-                        wafAclId,
-                        wafPresent)
+                    restrictions=restrictions
+                    wafAclId=(cfResources["wafacl"].Id)!""
                 /]
                 [@createAPIUsagePlan
                     mode=listMode
-                    id=usagePlanId
-                    name=usagePlanName
+                    id=cfResources["usageplan"].Id
+                    name=cfResources["usageplan"].Name
                     stages=[
                         {
                           "ApiId" : getReference(apiId),
@@ -462,43 +380,36 @@
                     dependencies=stageId
                 /]
 
-                [#if wafPresent ]
+                [#if cfResources["wafacl"]?has_content ]
                     [@createWAFAcl
                         mode=listMode
-                        id=wafAclId
-                        name=wafAclName
-                        metric=wafAclName
+                        id=cfResources["wafacl"].Id
+                        name=cfResources["wafacl"].Name
+                        metric=cfResources["wafacl"].Name
                         default=getWAFDefault(solution.WAF)
                         rules=getWAFRules(solution.WAF) /]
                 [/#if]
             [/#if]
 
-            [#if certificatePresent && mappingPresent]
+            [#assign customDomains = resources["customDomains"]!{} ]
+            [#list customDomains as key,value]
                 [@cfResource
                     mode=listMode
-                    id=domainId
+                    id=value["domain"].Id
                     type="AWS::ApiGateway::DomainName"
                     properties=
                         {
-                            "DomainName" : domainFqdn
+                            "DomainName" : value["domain"].Name
                         } +
                         valueIfTrue(
                             {
                                 "CertificateArn":
-                                    getExistingReference(
-                                        domainCertificateId,
-                                        ARN_ATTRIBUTE_TYPE,
-                                        "us-east-1"
-                                    )
+                                    getArn(value["domain"].CertificateId, true, "us-east-1")
                             },
                             isEdgeEndpointType,
                             {
                                 "RegionalCertificateArn":
-                                    getExistingReference(
-                                        domainCertificateId,
-                                        ARN_ATTRIBUTE_TYPE,
-                                        regionId
-                                    ),
+                                    getArn(value["domain"].CertificateId, true, regionId),
                                 "EndpointConfiguration" : {
                                     "Types" : [endpointType]
                                 }
@@ -509,55 +420,77 @@
                 /]
                 [@cfResource
                     mode=listMode
-                    id=basePathMappingId
+                    id=value["basepathmapping"].Id
                     type="AWS::ApiGateway::BasePathMapping"
                     properties=
                         {
-                            "DomainName" : domainFqdn,
+                            "DomainName" : value["domain"].Name,
                             "RestApiId" : getReference(apiId)
                         } +
-                        attributeIfContent("Stage", basePathMappingStage)
+                        attributeIfContent("Stage", value["basepathmapping"].Stage)
                     outputs={}
-                    dependencies=domainId
+                    dependencies=apiId
                 /]
-            [/#if]
+            [/#list]
         [/#if]
 
-        [#if publishPresent ]
-            [#assign docsS3BucketId = resources["docs"].Id]
-            [#assign docsS3BucketPolicyId = resources["docspolicy"].Id ]
+        [#assign docs = resources["docs"]!{} ]
+        [#list docs as key,value]
 
-            [#assign docsS3WebsiteConfiguration = getS3WebsiteConfiguration("index.html", "")]
+            [#assign bucketId = value["bucket"].Id]
+            [#assign bucketName = value["bucket"].Name]
+            [#assign bucketRedirectTo = value["bucket"].RedirectTo]
+            [#assign bucketPolicyId = value["policy"].Id ]
 
-            [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(docsS3BucketId)]
-                [#assign docsS3IPWhitelist =
+            [#assign bucketWebsiteConfiguration =
+                getS3WebsiteConfiguration("index.html", "", bucketRedirectTo)]
+
+            [#if deploymentSubsetRequired("prologue", false) ]
+                [#-- Clear out bucket content if deleting api gateway so buckets will delete --]
+                [@cfScript
+                    mode=listMode
+                    content=
+                        [
+                            "clear_bucket_files=()"
+                        ] +
+                        syncFilesToBucketScript(
+                            "clear_bucket_files",
+                            regionId,
+                            bucketName,
+                            ""
+                        )
+                /]
+            [/#if]
+
+            [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(bucketId)]
+                [#assign bucketWhitelist =
                     getIPCondition(
                         getGroupCIDRs(solution.Publish.IPAddressGroups)) ]
 
                 [@createBucketPolicy
                     mode=listMode
-                    id=docsS3BucketPolicyId
-                    bucket=docsS3BucketName
+                    id=bucketPolicyId
+                    bucket=bucketName
                     statements=
                         s3ReadPermission(
-                            docsS3BucketName,
+                            bucketName,
                             "",
                             "*",
                             "*",
-                            docsS3IPWhitelist
+                            bucketWhitelist
                         )
-                    dependencies=docsS3BucketId
+                    dependencies=bucketId
                 /]
 
                 [@createS3Bucket
                     mode=listMode
-                    id=docsS3BucketId
-                    name=docsS3BucketName
-                    websiteConfiguration=docsS3WebsiteConfiguration
+                    id=bucketId
+                    name=bucketName
+                    websiteConfiguration=bucketWebsiteConfiguration
                 /]
             [/#if]
 
-            [#if deploymentSubsetRequired("epilogue", false)]
+            [#if deploymentSubsetRequired("epilogue", false) && (bucketRedirectTo == "") ]
                 [@cfScript
                     mode=listMode
                     content=
@@ -583,7 +516,7 @@
                         "\"**COT Deployment:** " + core.TypedFullName + "\" " +
                         "\"$\{tmpdir}/apidoc.zip\"  || return $?",
                         "  # Sync to the API Doc bucket",
-                        "  copy_apidoc_file" + " " + docsS3BucketName + " " +
+                        "  copy_apidoc_file" + " " + bucketName + " " +
                         "  \"$\{tmpdir}/apidoc.zip\" || return $?",
                         "}",
                         "#",
@@ -591,6 +524,31 @@
                     ]
                 /]
             [/#if]
+        [/#list]
+
+        [#assign legacyId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION) ]
+        [#if getExistingReference(legacyId)?has_content && deploymentSubsetRequired("prologue", false) ]
+            [#-- Remove legacy docs bucket id - it will likely be recreated with new id format --]
+            [#-- which uses bucket name --]
+            [@cfScript
+                mode=listMode
+                content=
+                    [
+                        "clear_bucket_files=()"
+                    ] +
+                    syncFilesToBucketScript(
+                        "clear_bucket_files",
+                        regionId,
+                        getExistingReference(legacyId, NAME_ATTRIBUTE_TYPE),
+                        ""
+                    ) +
+                    [
+                        "deleteBucket" + " " +
+                            regionId + " " +
+                            getExistingReference(legacyId, NAME_ATTRIBUTE_TYPE) + " " +
+                            "|| return $?"
+                    ]
+            /]
         [/#if]
 
         [#if deploymentSubsetRequired("pregeneration", false)]
@@ -709,63 +667,5 @@
                             "config"))
             /]
         [/#if]
-
-        [#switch listMode]
-            [#case "dashboard"]
-                [#if getExistingReference(apiId)?has_content]
-                    [#assign widgets =
-                        [
-                            {
-                                "Type" : "metric",
-                                "Metrics" : [
-                                    {
-                                        "Namespace" : "AWS/ApiGateway",
-                                        "Metric" : "Latency",
-                                        "Dimensions" : stageDimensions,
-                                        "Statistic" : "Maximum"
-                                    }
-                                ],
-                                "Width" : 6,
-                                "asGraph" : true
-                            },
-                            {
-                                "Type" : "metric",
-                                "Metrics" : [
-                                    {
-                                        "Namespace" : "AWS/ApiGateway",
-                                        "Metric" : "Count",
-                                        "Dimensions" : stageDimensions
-                                    }
-                                ]
-                            }
-                        ]
-                    ]
-                    [#if getExistingReference(invalidLogMetricId)?has_content]
-                        [#assign widgets +=
-                            [
-                                {
-                                    "Type" : "metric",
-                                    "Metrics" : [
-                                        {
-                                            "Namespace" : formatSegmentNamespace(),
-                                            "Metric" : invalidLogMetricName,
-                                            "Dimensions" : stageDimensions
-                                        }
-                                    ]
-                                }
-                            ]
-                        ]
-                    [/#if]
-                    [#assign dashboardRows +=
-                        [
-                            {
-                                "Title" : formatName(occurrence),
-                                "Widgets" : widgets
-                            }
-                        ]
-                    ]
-                [/#if]
-                [#break]
-        [/#switch]
     [/#list]
 [/#if]
