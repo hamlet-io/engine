@@ -1166,10 +1166,10 @@ function upgrade_cmdb_repo_to_v1_3_0() {
     readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*-stack.json" )
     for cmk_stack in "${cmk_stacks[@]}"; do
       cmk_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${cmk_stack}" )"
+      cmk_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${cmk_stack}" )"
 
       if [[ -n "${cmk_account}" ]]; then
         cmk_account_id="${account_mappings[${cmk_account}]}"
-        cmk_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${cmk_stack}" )"
         
         cmk_path="$(filePath "${cmk_stack}")"
         operations_path="${cmk_path/"infrastructure/cf"/"infrastructure/operations"}"
