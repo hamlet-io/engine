@@ -1062,15 +1062,20 @@ function update_sms_account_attributes() {
 }
 
 # -- PKI --
+# -- PKI --
 function create_pki_credentials() {
   local dir="$1"; shift
+  local region="$1"; shift
+  local account="$1"; shift
 
   if [[ (! -f "${dir}/aws-ssh-crt.pem") &&
         (! -f "${dir}/aws-ssh-prv.pem") &&
         (! -f "${dir}/.aws-ssh-crt.pem") &&
-        (! -f "${dir}/.aws-ssh-prv.pem") ]]; then
-      openssl genrsa -out "${dir}/.aws-ssh-prv.pem.plaintext" 2048 || return $?
-      openssl rsa -in "${dir}/.aws-ssh-prv.pem.plaintext" -pubout > "${dir}/.aws-ssh-crt.pem" || return $?
+        (! -f "${dir}/.aws-ssh-prv.pem") && 
+        (! -f "${dir}/.aws-${account}-${region}-ssh-crt.pem") &&
+        (! -f "${dir}/.aws-${account}-${region}-ssh-prv.pem") ]]; then
+      openssl genrsa -out "${dir}/.aws-${account}-${region}-ssh-prv.pem.plaintext" 2048 || return $?
+      openssl rsa -in "${dir}/.aws-${account}-${region}-ssh-prv.pem.plaintext" -pubout > "${dir}/.aws-${account}-${region}-ssh-crt.pem" || return $?
   fi
 
   if [[ ! -f "${dir}/.gitignore" ]]; then
@@ -1086,12 +1091,13 @@ EOF
 
 function delete_pki_credentials() {
   local dir="$1"; shift
+  local region="$1"; shift
+  local account="$1"; shift
 
   local restore_nullglob="$(shopt -p nullglob)"
   shopt -s nullglob
 
-  rm -f "${dir}"/aws-ssh-crt* "${dir}"/aws-ssh-prv*
-  rm -f "${dir}"/.aws-ssh-crt* "${dir}"/.aws-ssh-prv*
+  rm -f "${dir}"/.aws-${account}-${region}-ssh-crt* "${dir}"/.aws-${account}-${region}-ssh-prv*
 
   ${restore_nullglob}
 }

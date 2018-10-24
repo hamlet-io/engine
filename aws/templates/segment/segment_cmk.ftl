@@ -41,23 +41,25 @@
                         "  #",
                         "  # Create SSH credential for the segment",
                         "  mkdir -p \"$\{SEGMENT_OPERATIONS_DIR}\"",
-                        "  create_pki_credentials \"$\{SEGMENT_OPERATIONS_DIR}\" || return $?",
+                        "  create_pki_credentials \"$\{SEGMENT_OPERATIONS_DIR}\" " + 
+                                "\"" + regionId + "\" " +
+                                "\"" + accountObject.Id + "\" || return $?",
                         "  #",
                         "  # Update the credential if required",
                         "  if ! check_ssh_credentials" + " " +
                             "\"" + regionId + "\" " +
                              "\"$\{key_pair_name}\"; then",
-                        "    pem_file=\"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-crt.pem\"",
+                        "    pem_file=\"$\{SEGMENT_OPERATIONS_DIR}/.aws-" + accountObject.Id + "-" + regionId + "-ssh-crt.pem\"",
                         "    update_ssh_credentials" + " " +
                                "\"" + regionId + "\" " +
                                "\"$\{key_pair_name}\" " +
                                "\"$\{pem_file}\" || return $?",
-                        "    [[ -f \"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\" ]] && ",
+                        "    [[ -f \"$\{SEGMENT_OPERATIONS_DIR}/.aws-" + accountObject.Id + "-" + regionId + "-ssh-prv.pem.plaintext\" ]] && ",
                         "      { encrypt_file" + " " +
                                  "\"" + regionId + "\"" + " " +
                                  "segment" + " " +
-                                 "\"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-prv.pem.plaintext\"" + " " +
-                                 "\"$\{SEGMENT_OPERATIONS_DIR}/.aws-ssh-prv.pem\" || return $?; }",
+                                 "\"$\{SEGMENT_OPERATIONS_DIR}/.aws-" + accountObject.Id + "-" + regionId + "-ssh-prv.pem.plaintext\"" + " " +
+                                 "\"$\{SEGMENT_OPERATIONS_DIR}/.aws-" + accountObject.Id + "-" + regionId + "-ssh-prv.pem\" || return $?; }",
                         "  fi",
                         "  #"
                       ] +
