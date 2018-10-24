@@ -89,20 +89,24 @@
 [/#function]
 
 [#function getS3WebsiteConfiguration index error redirectTo="" redirectProtocol=""]
-    [#return
-        {
-            "IndexDocument" : index
-        } +
-        attributeIfContent("ErrorDocument", error) +
-        attributeIfContent(
-            "RedirectAllRequestsTo",
-            redirectTo,
+    [#-- If redirecting, only the redirection info can be provided --]
+    [#if redirectTo?has_content]
+        [#return
             {
-              "HostName" : redirectTo
+                "RedirectAllRequestsTo" : {
+                    "HostName" : redirectTo
+                } +
+                attributeIfContent("Protocol", redirectProtocol)
+            }
+        ]
+    [#else]
+        [#return
+            {
+                "IndexDocument" : index
             } +
-            attributeIfContent("Protocol", redirectProtocol)
-        )
-    ]
+            attributeIfContent("ErrorDocument", error)
+        ]
+    [/#if]
 [/#function]
 
 [#assign S3_OUTPUT_MAPPINGS =
