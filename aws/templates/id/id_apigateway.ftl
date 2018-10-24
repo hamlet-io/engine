@@ -529,6 +529,10 @@ object.
             [#local linkTargetCore = linkTarget.Core ]
             [#local linkTargetRoles = linkTarget.State.Roles ]
 
+            [#if !(linkTarget.Configuration.Solution.Enabled!true) ]
+                [#continue]
+            [/#if]
+
             [#switch linkTargetCore.Type]
                 [#case APIGATEWAY_COMPONENT_TYPE ]
                     [#local outboundPolicy += linkTargetRoles.Outbound["invoke"] ]
