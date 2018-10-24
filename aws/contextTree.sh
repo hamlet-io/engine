@@ -1152,7 +1152,7 @@ function upgrade_cmdb_repo_to_v1_3_0() {
   local return_status=0
 
   # Find accounts
-  declare -A account_mappings
+  local -A account_mappings
   readarray -t account_files < <(find "${GENERATION_DATA_DIR}" -type f -name "account.json" )
   for account_file in "${account_files[@]}"; do
     aws_id="$( jq -r '.Account.AWSId' <"${account_file}" )"
