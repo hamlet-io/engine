@@ -32,11 +32,11 @@
 [/#function]
 
 [#function isPrimaryDomain domainObject]
-    [#return domain.Role == DOMAIN_ROLE_PRIMARY ]
+    [#return domainObject.Role == DOMAIN_ROLE_PRIMARY ]
 [/#function]
 
 [#function isSecondaryDomain domainObject]
-    [#return domain.Role == DOMAIN_ROLE_SECONDARY ]
+    [#return domainObject.Role == DOMAIN_ROLE_SECONDARY ]
 [/#function]
 
 [#function formatSegmentDNSZoneId extensions...]

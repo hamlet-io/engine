@@ -150,7 +150,7 @@
                     [#assign listenerRulesConfig +=
                         {
                             rule.Id : {
-                                "Conditions" : asArray(getListenerRuleHostCondition(rule.RedirectFrom),
+                                "Conditions" : asArray(getListenerRuleHostCondition(rule.RedirectFrom)),
                                 "Priority" : rule.Priority,
                                 "Actions" : asArray(
                                                 getListenerRuleRedirectAction(

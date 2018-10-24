@@ -44,7 +44,7 @@ object.
 "If multiple domains are provided, the primary domain is used to provide the",
 "endpoint for the the API documentation and for the gateway attributes. For",
 "documentation, the others used to redirect to the primary."
-]
+] ]
 
 
 [#-- Resources --]
