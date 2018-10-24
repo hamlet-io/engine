@@ -393,7 +393,7 @@ documentation, the others used to redirect to the primary.
     [#-- API documentation if required --]
     [#local docsResources = {} ]
     [#local docsPrimaryFqdn = "" ]
-    [#if publishPresent ]
+    [#if publishPresent]
         [#local docsPrimaryFqdn =
             formatDomainName(
                 solution.Publish.DnsNamePrefix,
@@ -412,7 +412,7 @@ documentation, the others used to redirect to the primary.
             [#local redirectTo =
                 valueIfTrue(
                     docsPrimaryFqdn,
-                    (docsPrimaryFqdn != "") && (docsPrimaryFqdn != docsFqdn),
+                    isSecondaryDomain(domain),
                     ""
                 ) ]
             [#local docsResources +=
