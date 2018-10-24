@@ -660,7 +660,7 @@ behaviour.
 
 [#-- Check if a configuration item with children is present --]
 [#function isPresent configuration={} ]
-    [#return configuration.Configured!false && configuration.Enabled!false ]
+    [#return (configuration.Configured!false) && (configuration.Enabled!false) ]
 [/#function]
 
 [#function getObjectLineage collection end qualifiers...]
