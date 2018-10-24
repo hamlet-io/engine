@@ -60,7 +60,7 @@
                     ]
                 },
                 {
-                    "Names" : "IdleTimeout", 
+                    "Names" : "IdleTimeout",
                     "Type" : NUMBER_TYPE,
                     "Default" : 60
                 }
@@ -236,7 +236,7 @@
     [#else]
         [#local id = formatResourceId(AWS_LB_RESOURCE_TYPE, core.Id) ]
     [/#if]
-    
+
     [#return
         {
             "Resources" : {
@@ -279,17 +279,30 @@
     [#local defaultTargetGroupId = formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, "default", parentCore.Id, sourcePort ) ]
     [#local defaultTargetGroupName = formatName("default", parentCore.FullName, sourcePort )]
 
-    [#local path = (solution.Path == "default")?then(
-        "",
-        solution.Path
-    )]
+    [#local path = (solution.Path == "default")?then("", solution.Path) ]
 
+    [#local domainRedirectRules = {} ]
     [#if (sourcePort.Certificate)!false ]
-        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
+        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id, sourcePort.Name) ]
         [#local hostName = getHostName(certificateObject, occurrence) ]
+        [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
 
-        [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
+        [#local fqdn = formatDomainName(hostName, primaryDomainObject) ]
         [#local scheme = "https" ]
+
+        [#-- Redirect any secondary domains --]
+        [#list getCertificateSecondaryDomains(certificateObject) as secondaryDomainObject ]
+            [#local id = formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, parentCore.Id, sourcePort, solution.Priority + secondaryDomainObject?counter) ]
+            [#local domainRedirectRules +=
+                {
+                    id : {
+                        "Id" : id,
+                        "Priority" : solution.Priority + secondaryDomainObject?counter,
+                        "RedirectFrom" : formatDomainName(hostName, secondaryDomainObject),
+                        "Type" : AWS_ALB_LISTENER_RULE_RESOURCE_TYPE
+                    }
+                } ]
+        [/#list]
     [#else]
         [#local fqdn = internalFqdn ]
         [#local scheme ="http" ]
@@ -323,6 +336,7 @@
                 },
                 "listenerRule" : {
                     "Id" : formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, parentCore.Id, sourcePort, solution.Priority),
+                    "Priority" : solution.Priority,
                     "Type" : AWS_ALB_LISTENER_RULE_RESOURCE_TYPE
                 },
                 "targetgroup" : {
@@ -335,7 +349,8 @@
                     "Name" : defaultTargetGroupName,
                     "Type" : AWS_ALB_TARGET_GROUP_RESOURCE_TYPE
                 }
-            },
+            } +
+            attributeIfContent("domainRedirectRules", domainRedirectRules),
             "Attributes" : {
                 "LB" : lbId,
                 "ENGINE" : engine,
