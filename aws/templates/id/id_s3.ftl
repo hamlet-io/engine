@@ -126,6 +126,7 @@
                 },
                 {
                     "Names" : "PublicAccess",
+                    "Subobjects" : true,
                     "Children" : [
                         {
                             "Names" : "Enabled",
@@ -144,9 +145,9 @@
                             "Default" : [ "_localnet" ]
                         },
                         {
-                            "Names" : "Prefix",
-                            "Type" : STRING_TYPE,
-                            "Default" : ""
+                            "Names" : "Paths",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : [ ]
                         }
                     ]
                 },
@@ -174,7 +175,13 @@
 
     [#local id = formatOccurrenceS3Id(occurrence)]
     [#local name = formatOccurrenceBucketName(occurrence) ]
-
+    [#local publicAccessEnabled = false ]
+    [#list solution.PublicAccess?values as publicPrefixConfiguration]
+        [#if publicPrefixConfiguration.Enabled]
+            [#local publicAccessEnabled = true ]
+            [#break]
+        [/#if]
+    [/#list]
     [#return
         {
             "Resources" : {
@@ -187,7 +194,7 @@
                     "Type" : AWS_S3_RESOURCE_TYPE
                 }
             } +
-            solution.PublicAccess.Enabled?then(
+            publicAccessEnabled?then(
                 {
                     "bucketpolicy" : {
                         "Id" : formatResourceId(AWS_S3_BUCKET_POLICY_RESOURCE_TYPE, core.Id),
