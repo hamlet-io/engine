@@ -292,7 +292,7 @@
 [#assign ARRAY_OF_STRING_TYPE  = [ARRAY_TYPE, STRING_TYPE] ]
 [#assign ARRAY_OF_NUMBER_TYPE  = [ARRAY_TYPE, NUMBER_TYPE] ]
 [#assign ARRAY_OF_BOOLEAN_TYPE = [ARRAY_TYPE, BOOLEAN_TYPE] ]
-[#-- Array of any if different to array in that value will be forced to an array --]
+[#-- Array of any is different to array in that value will be forced to an array --]
 [#assign ARRAY_OF_ANY_TYPE     = [ARRAY_TYPE, ANY_TYPE] ]
 
 [#function getBaseType arg]
