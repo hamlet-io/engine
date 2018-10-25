@@ -1160,54 +1160,69 @@ function upgrade_cmdb_repo_to_v1_3_0() {
     account_mappings+=(["${aws_id}"]="${account_id}")
   done
 
-  # Rename Stack Outputs to include Account and Region 
-  readarray -t stack_files < <(find "${root_dir}" -type f -name "*stack.json")
-  for stack_file in "${stack_files[@]}"; do 
-
-    parse_stack_filename "${stack_file}" 
-    stack_dir="$(filePath "${stack_file}")"
-
-    if [[ -z "${stack_account}" ]]; then 
-      
-      stack_file_name="$(fileName "${stack_file}" )"
-      stack_output_aws_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${stack_file}" )"
-  
-      if [[ -n "${stack_output_aws_account}" ]]; then
-
-        stack_output_account="${account_mappings[${stack_output_aws_account}]}"
-        new_stack_file_name="${stack_file_name/"-${stack-region}-"/"-${stack_output_account}-${stack_region}-"}"
-
-        if [[ "${stack_file_name}" != "${new_stack_file_name}" ]]; then
-          debug "Moving ${stack_file} to ${stack_dir}/${new_stack_file_name}"
-
-          if [[ -n "${dry_run}" ]]; then
-            continue
-          fi
-          
-          mv "${stack_file}" "${stack_dir}/${new_stack_file_name}"
-        fi
-      else
-        fatal "Could not determine Account for file - please update the file manually with Account & region outputs"
-        fatal "   - ${stack_file}"
-        return_status=128
-      fi
-    fi
-  done
-
-  # Move SSH keys to Account/Region 
   readarray -t cf_dirs < <(find "${root_dir}" -type d -name "cf" )
   for cf_dir in "${cf_dirs[@]}"; do
-    readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*-stack.json" )
+    readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*[0-9]-stack.json" )
     for cmk_stack in "${cmk_stacks[@]}"; do
+
+      info "Looking for CMK account in ${cmk_stack}"
       cmk_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${cmk_stack}" )"
       cmk_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${cmk_stack}" )"
 
-      info "Stack ${cmk_stack} Belongs to ${cmk_account} - ${cmk_region}"
-
       if [[ -n "${cmk_account}" ]]; then
         cmk_account_id="${account_mappings[${cmk_account}]}"
-        
         cmk_path="$(filePath "${cmk_stack}")"
+
+        readarray -t segment_stacks < <(find "${cmk_path}"  -type f -name "*stack.json")
+        for stack_file in "${segment_stacks[@]}"; do 
+
+          parse_stack_filename "${stack_file}" 
+          stack_dir="$(filePath "${stack_file}")"
+
+          # Add Standard Account and Region Stack Outputs 
+          stackoutput_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${stack_file}" )"
+          stackoutput_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${stack_file}" )"
+          stackoutput_level="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Level" ) | .OutputValue' < "${stack_file}" )"
+          stackoutput_deployment_unit="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="DeploymentUnit" ) | .OutputValue' < "${stack_file}" )"
+
+          if [[ -z "${stackoutput_account}" ]]; then 
+              debug "Adding Account Output to ${stack_file}"
+              mkdir --parents "${tmp_dir}/$(filePath "${stack_file}")" 
+              jq -r --arg account "${cmk_account}" '.Stacks[].Outputs += [{ "OutputKey" : "Account", "OutputValue" : $account  }]' < "${stack_file}" > "${tmp_dir}/${stack_file}" 
+              if [[ $? == 0 ]]; then
+                mv "${tmp_dir}/${stack_file}" "${stack_file}"
+              fi
+          fi
+
+          if [[ -z "${stackoutput_region}" ]]; then 
+              debug "Adding Region Output to ${stack_file}"
+              mkdir --parents "${tmp_dir}/$(filePath "${stack_file}")" 
+              jq -r --arg region "${stack_region}" '.Stacks[].Outputs += [{ "OutputKey" : "Region", "OutputValue" : $region  }]' < "${stack_file}" > "${tmp_dir}/${stack_file}"
+              if [[ $? == 0 ]]; then
+                mv "${tmp_dir}/${stack_file}" "${stack_file}"
+              fi
+          fi
+          
+          
+          if [[ -z "${stack_account}" ]]; then
+
+            # Rename file to inclue Region and Account
+            stack_file_name="$(fileName "${stack_file}" )"
+            new_stack_file_name="${stack_file_name/"-${stack_region}-"/"-${cmk_account_id}-${stack_region}-"}"
+
+            if [[ "${stack_file_name}" != "${new_stack_file_name}" && "${stack_file_name}" != *"${cmk_account_id}"* ]]; then
+              debug "Moving ${stack_file} to ${stack_dir}/${new_stack_file_name}"
+
+              if [[ -n "${dry_run}" ]]; then
+                continue
+              fi
+              
+              mv "${stack_file}" "${stack_dir}/${new_stack_file_name}"
+            fi
+          fi
+        done
+
+        # Rename SSH keys to include Account/Region 
         operations_path="${cmk_path/"infrastructure/cf"/"infrastructure/operations"}"
 
         info "checking for SSH Keys in ${operations_path}"
