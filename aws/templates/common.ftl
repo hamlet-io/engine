@@ -587,7 +587,7 @@ behaviour.
                 [#-- Combine any provided and/or default values --]
                 [#if providedName?has_content ]
                     [#-- Perform type conversion and type checking --]
-                    [#assign providedValue = asType(providedValue, attribute.Types) ]
+                    [#local providedValue = asType(providedValue, attribute.Types) ]
                     [#if !isOfType(providedValue, attribute.Types) ]
                         [@cfException
                           mode=listMode
@@ -1912,7 +1912,16 @@ behaviour.
             ] ]
         [#local primaryNotSeen = primaryNotSeen && (role != DOMAIN_ROLE_PRIMARY) ]
     [/#list]
-    [#return result]
+    [#-- Force first entry to primary if no primary seen --]
+    [#if primaryNotSeen && (result?size > 0) ]
+        [#local forcedResult = [ result[0] + { "Role" : DOMAIN_ROLE_PRIMARY } ] ]
+        [#if (result?size > 1) ]
+            [#local forceResult += result[1..] ]
+        [/#if]
+        [#return forcedResult]
+    [#else]
+        [#return result]
+    [/#if]
 [/#function]
 
 [#function getCertificateObject start qualifiers...]
