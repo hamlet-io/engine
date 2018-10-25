@@ -1208,7 +1208,7 @@ function upgrade_cmdb_repo_to_v1_3_0() {
 
             # Rename file to inclue Region and Account
             stack_file_name="$(fileName "${stack_file}" )"
-            new_stack_file_name="${stack_file_name/"-${stack_region}-"/"-${cmk_account_id}-${stack_region}-"}"
+            new_stack_file_name="${stack_file_name/-${stack_region}-/-${cmk_account_id}-${stack_region}-}"
 
             if [[ "${stack_file_name}" != "${new_stack_file_name}" && "${stack_file_name}" != *"${cmk_account_id}"* ]]; then
               debug "Moving ${stack_file} to ${stack_dir}/${new_stack_file_name}"
@@ -1231,7 +1231,7 @@ function upgrade_cmdb_repo_to_v1_3_0() {
         for pem_file in "${pem_files[@]}"; do
           local pem_file_path="$(filePath "${pem_file}")"
           local file_name="$(fileName "${pem_file}")"
-          local new_file_name="${file_name/"aws-"/"aws-${cmk_account_id}-${cmk_region}-"}"
+          local new_file_name="${file_name/aws-/aws-${cmk_account_id}-${cmk_region}-}"
 
           # Move the pem files to make them invisible to the generation process
           debug "Moving ${pem_file} to ${pem_file_path}/${new_file_name} ..."
