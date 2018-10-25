@@ -93,6 +93,7 @@
                     solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
                     "" )]
 
+    [#-- Use short full name for user as there is a length limit of 64 chars --]
     [#local result =
         {
             "Resources" : {
@@ -103,7 +104,7 @@
                 },
                 "apikey" : {
                     "Id" : formatDependentResourceId(AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE, userId),
-                    "Name" : core.ShortFullName,
+                    "Name" : core.FullName,
                     "Type" : AWS_APIGATEWAY_APIKEY_RESOURCE_TYPE
                 }
             },
