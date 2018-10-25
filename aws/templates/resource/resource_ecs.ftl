@@ -174,7 +174,7 @@
                 {
                     "SchedulingStrategy" : "DAEMON"
                 },
-                (placement.Strategy?has_content) && (placement.Strategy == "daemon"),
+                placement.Strategy == "daemon",
                 {
                     "DesiredCount" : desiredCount
                 }

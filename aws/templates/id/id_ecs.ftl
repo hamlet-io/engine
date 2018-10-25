@@ -247,7 +247,7 @@
                         {
                             "Names" : "Strategy",
                             "Type" : STRING_TYPE,
-                            "Values" : ["daemon"],
+                            "Values" : [ "", "daemon"],
                             "Description" : "How to place containers on the cluster",
                             "Default" : ""
                         }
