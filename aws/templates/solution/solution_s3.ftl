@@ -57,7 +57,7 @@
         [#assign policyStatements = [] ]
 
         [#list solution.PublicAccess?values as publicAccessConfiguration]
-            [#list asArray(publicAccessConfiguration.Paths) as publicPrefix]
+            [#list publicAccessConfiguration.Paths as publicPrefix]
                 [#if publicAccessConfiguration.Enabled ]
                     [#assign publicIPWhiteList =
                         getIPCondition(getGroupCIDRs(publicAccessConfiguration.IPAddressGroups, true)) ]
