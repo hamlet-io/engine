@@ -1143,6 +1143,111 @@ function upgrade_cmdb_repo_to_v1_2_0() {
   return ${return_status}
 }
 
+function upgrade_cmdb_repo_to_v1_3_0() { 
+  local root_dir="$1";shift
+  local dry_run="$1";shift
+
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  local tmp_dir="$(getTopTempDir)"
+  local return_status=0
+
+  # Find accounts
+  local -A account_mappings
+  readarray -t account_files < <(find "${GENERATION_DATA_DIR}" -type f -name "account.json" )
+  for account_file in "${account_files[@]}"; do
+    aws_id="$( jq -r '.Account.AWSId' <"${account_file}" )"
+    account_id="$( jq -r '.Account.Id' < "${account_file}" )"
+    account_mappings+=(["${aws_id}"]="${account_id}")
+  done
+
+  readarray -t cf_dirs < <(find "${root_dir}" -type d -name "cf" )
+  for cf_dir in "${cf_dirs[@]}"; do
+    readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*[0-9]-stack.json" )
+    for cmk_stack in "${cmk_stacks[@]}"; do
+
+      info "Looking for CMK account in ${cmk_stack}"
+      cmk_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${cmk_stack}" )"
+      cmk_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${cmk_stack}" )"
+
+      if [[ -n "${cmk_account}" ]]; then
+        cmk_account_id="${account_mappings[${cmk_account}]}"
+        cmk_path="$(filePath "${cmk_stack}")"
+
+        readarray -t segment_stacks < <(find "${cmk_path}"  -type f -name "*stack.json")
+        for stack_file in "${segment_stacks[@]}"; do 
+
+          parse_stack_filename "${stack_file}" 
+          stack_dir="$(filePath "${stack_file}")"
+
+          # Add Standard Account and Region Stack Outputs 
+          stackoutput_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${stack_file}" )"
+          stackoutput_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${stack_file}" )"
+          stackoutput_level="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Level" ) | .OutputValue' < "${stack_file}" )"
+          stackoutput_deployment_unit="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="DeploymentUnit" ) | .OutputValue' < "${stack_file}" )"
+
+          if [[ -z "${stackoutput_account}" ]]; then 
+              debug "Adding Account Output to ${stack_file}"
+              mkdir --parents "${tmp_dir}/$(filePath "${stack_file}")" 
+              jq -r --arg account "${cmk_account}" '.Stacks[].Outputs += [{ "OutputKey" : "Account", "OutputValue" : $account  }]' < "${stack_file}" > "${tmp_dir}/${stack_file}" 
+              if [[ $? == 0 ]]; then
+                mv "${tmp_dir}/${stack_file}" "${stack_file}"
+              fi
+          fi
+
+          if [[ -z "${stackoutput_region}" ]]; then 
+              debug "Adding Region Output to ${stack_file}"
+              mkdir --parents "${tmp_dir}/$(filePath "${stack_file}")" 
+              jq -r --arg region "${stack_region}" '.Stacks[].Outputs += [{ "OutputKey" : "Region", "OutputValue" : $region  }]' < "${stack_file}" > "${tmp_dir}/${stack_file}"
+              if [[ $? == 0 ]]; then
+                mv "${tmp_dir}/${stack_file}" "${stack_file}"
+              fi
+          fi
+          
+          
+          if [[ -z "${stack_account}" ]]; then
+
+            # Rename file to inclue Region and Account
+            stack_file_name="$(fileName "${stack_file}" )"
+            new_stack_file_name="${stack_file_name/"-${stack_region}-"/"-${cmk_account_id}-${stack_region}-"}"
+
+            if [[ "${stack_file_name}" != "${new_stack_file_name}" && "${stack_file_name}" != *"${cmk_account_id}"* ]]; then
+              debug "Moving ${stack_file} to ${stack_dir}/${new_stack_file_name}"
+
+              if [[ -n "${dry_run}" ]]; then
+                continue
+              fi
+              
+              mv "${stack_file}" "${stack_dir}/${new_stack_file_name}"
+            fi
+          fi
+        done
+
+        # Rename SSH keys to include Account/Region 
+        operations_path="${cmk_path/"infrastructure/cf"/"infrastructure/operations"}"
+
+        info "checking for SSH Keys in ${operations_path}"
+        readarray -t pem_files < <(find "${operations_path}" -type f -name ".aws-ssh*.pem*" )
+
+        for pem_file in "${pem_files[@]}"; do
+          local pem_file_path="$(filePath "${pem_file}")"
+          local file_name="$(fileName "${pem_file}")"
+          local new_file_name="${file_name/"aws-"/"aws-${cmk_account_id}-${cmk_region}-"}"
+
+          # Move the pem files to make them invisible to the generation process
+          debug "Moving ${pem_file} to ${pem_file_path}/${new_file_name} ..."
+
+          if [[ -n "${dry_run}" ]]; then
+            continue
+          fi
+          mv "${pem_file}" "${pem_file_path}/${new_file_name}"
+        done
+      fi
+    done
+  done
+
+  return $return_status
+}
+
 function process_cmdb() {
   local root_dir="$1";shift
   local action="$1";shift
@@ -1223,7 +1328,7 @@ function upgrade_cmdb() {
   local versions="$1";shift
 
   local required_versions=(${versions})
-  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0")
+  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0")
 
   process_cmdb "${root_dir}" "upgrade" "${required_versions[*]}" ${dry_run}
 }
