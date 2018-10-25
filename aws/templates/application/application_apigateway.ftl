@@ -429,7 +429,7 @@
                         } +
                         attributeIfContent("Stage", value["basepathmapping"].Stage)
                     outputs={}
-                    dependencies=apiId
+                    dependencies=value["domain"].Id
                 /]
             [/#list]
         [/#if]
