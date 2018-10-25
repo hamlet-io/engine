@@ -226,6 +226,7 @@
                         loadBalancers=loadBalancers
                         roleId=ecsServiceRoleId
                         networkMode=networkMode
+                        placement=solution.Placement
                         subnets=subnets![]
                         securityGroups=getReferences(ecsSecurityGroupId)![]
                         dependencies=dependencies

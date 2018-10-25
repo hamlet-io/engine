@@ -240,6 +240,18 @@
                     "Names" : "ContainerNetworkLinks",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
+                },
+                {
+                    "Names" : "Placement",
+                    "Children" : [
+                        {
+                            "Names" : "Strategy",
+                            "Type" : STRING_TYPE,
+                            "Values" : [ "", "daemon"],
+                            "Description" : "How to place containers on the cluster",
+                            "Default" : ""
+                        }
+                    ]
                 }
             ]
         },

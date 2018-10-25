@@ -422,6 +422,17 @@
 
         [#list container.Ports?values as port]
 
+            [#local containerPortMapping =
+                {
+                    "ContainerPort" :
+                        contentIfContent(
+                            port.Container!"",
+                            port.Name
+                        ),
+                    "HostPort" : port.Name,
+                    "DynamicHostPort" : port.DynamicHostPort
+                } ]
+
             [#if port.LB.Configured]
                 [#local lbLink = getLBLink( task, port )]
 
@@ -438,17 +449,6 @@
                 [#-- if the target is missing                                 --]
                 [#local containerLinks += lbLink]
 
-                [#local containerPortMapping =
-                    {
-                        "ContainerPort" :
-                            contentIfContent(
-                                port.Container!"",
-                                port.Name
-                            ),
-                        "HostPort" : port.Name,
-                        "DynamicHostPort" : port.DynamicHostPort
-                    } ]
-
                 [#-- Ports should only be defined if connecting to a load balancer --]
                 [#list lbLink as key,loadBalancer]
                     [#local containerPortMapping +=
@@ -459,29 +459,32 @@
                                 }
                         }
                     ]
-                    [#local containerPortMappings += [containerPortMapping] ]
+                    
                 [/#list]
-            [#else]
-                [#if port.IPAddressGroups?has_content]
-                    [#if solution.NetworkMode == "awsvpc" ]
-                        [#list getGroupCIDRs(port.IPAddressGroups ) as cidr]
-                            [#local ingressRules += [ {
-                                "port" : port.DynamicHostPort?then(0,contentIfContent(
-                                                                                port.Container!"",
-                                                                                port.Name )),
-                                "cidr" : cidr
-                            }]]
-                        [/#list]
-                    [#else]
-                        [@cfException
-                            mode=listMode
-                            description="Port IP Address Groups not supported for network type"
-                            context=container
-                            detail=port /]
-                        [#continue]
-                    [/#if]
+
+            [/#if]
+
+            [#if port.IPAddressGroups?has_content]
+                [#if solution.NetworkMode == "awsvpc" ]
+                    [#list getGroupCIDRs(port.IPAddressGroups ) as cidr]
+                        [#local ingressRules += [ {
+                            "port" : port.DynamicHostPort?then(0,contentIfContent(
+                                                                            port.Container!"",
+                                                                            port.Name )),
+                            "cidr" : cidr
+                        }]]
+                    [/#list]
+                [#else]
+                    [@cfException
+                        mode=listMode
+                        description="Port IP Address Groups not supported for network type"
+                        context=container
+                        detail=port /]
+                    [#continue]
                 [/#if]
             [/#if]
+
+            [#local containerPortMappings += [containerPortMapping] ]
         [/#list]
 
         [#local logDriver =
