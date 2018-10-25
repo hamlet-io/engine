@@ -122,7 +122,18 @@
     /]
 [/#macro]
 
-[#macro createECSService mode id ecsId desiredCount taskId loadBalancers networkMode="" subnets=[] securityGroups=[] roleId="" dependencies=""]
+[#macro createECSService mode id 
+            ecsId 
+            desiredCount 
+            taskId 
+            loadBalancers 
+            networkMode="" 
+            subnets=[] 
+            securityGroups=[] 
+            roleId="" 
+            placement={}
+            dependencies=""
+    ]
 
     [@cfResource
         mode=mode
@@ -131,7 +142,6 @@
         properties=
             {
                 "Cluster" : getExistingReference(ecsId),
-                "DesiredCount" : desiredCount,
                 "TaskDefinition" : getReference(taskId),
                 "DeploymentConfiguration" :
                     (desiredCount > 1)?then(
@@ -159,7 +169,16 @@
                     }
                 },
                 networkMode == "awsvpc"
-            ) + 
+            ) +
+            valueIfTrue(
+                {
+                    "SchedulingStrategy" : "DAEMON"
+                },
+                (placement.Strategy?has_content) && (placement.Strategy == "daemon"),
+                {
+                    "DesiredCount" : desiredCount
+                }
+            ) +
             valueIfTrue(
                 {
                     "Role" : getReference(roleId)
