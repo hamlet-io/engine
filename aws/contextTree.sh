@@ -1249,6 +1249,66 @@ function upgrade_cmdb_repo_to_v1_3_0() {
   return $return_status
 }
 
+function upgrade_cmdb_repo_to_v1_3_1() { 
+  local root_dir="$1";shift
+  local dry_run="$1";shift
+
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  local tmp_dir="$(getTopTempDir)"
+  local return_status=0
+
+  # Find accounts
+  local -A account_mappings
+  readarray -t account_files < <(find "${GENERATION_DATA_DIR}" -type f -name "account.json" )
+  for account_file in "${account_files[@]}"; do
+    aws_id="$( jq -r '.Account.AWSId' <"${account_file}" )"
+    account_id="$( jq -r '.Account.Id' < "${account_file}" )"
+    account_mappings+=(["${aws_id}"]="${account_id}")
+  done
+
+  readarray -t cf_dirs < <(find "${root_dir}" -type d -name "cf" )
+  for cf_dir in "${cf_dirs[@ s]}"; do
+    readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*[0-9]-stack.json" )
+    for cmk_stack in "${cmk_stacks[@]}"; do
+
+      info "Looking for CMK account in ${cmk_stack} ..."
+      cmk_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${cmk_stack}" )"
+
+      if [[ -n "${cmk_account}" ]]; then
+        cmk_account_id="${account_mappings[${cmk_account}]}"
+        cmk_path="$(filePath "${cmk_stack}")"
+
+        readarray -t segment_cf < <(find "${cmk_path}"  -type f )
+        for cf_file in "${segment_cf[@]}"; do 
+
+          stack_dir="$(filePath "${cf_file}")"
+          
+          if [[ -z "${stack_account}" ]]; then
+
+            # Rename file to inclue Region and Account
+            cf_file_name="$(fileName "${cf_file}" )"
+            new_cf_file_name="${cf_file_name/"-${stack_region}-"/-${cmk_account_id}-${stack_region}-}"
+
+            if [[ "${cf_file_name}" != "${new_cf_file_name}" && "${cf_file_name}" != *"${cmk_account_id}"* ]]; then
+              debug "Moving ${cf_file} to ${stack_dir}/${new_cf_file_name} ..."
+
+              if [[ -n "${dry_run}" ]]; then
+                continue
+              fi
+              
+              git_mv "${cf_file}" "${stack_dir}/${new_cf_file_name}"
+            fi
+          fi
+        done
+      fi
+    done
+  done
+
+  popTempDir
+
+  return $return_status
+}
+
 function process_cmdb() {
   local root_dir="$1";shift
   local action="$1";shift
@@ -1329,7 +1389,7 @@ function upgrade_cmdb() {
   local versions="$1";shift
 
   local required_versions=(${versions})
-  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0")
+  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0" "v1.3.1")
 
   process_cmdb "${root_dir}" "upgrade" "${required_versions[*]}" ${dry_run}
 }
