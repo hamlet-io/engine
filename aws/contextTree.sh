@@ -1165,7 +1165,7 @@ function upgrade_cmdb_repo_to_v1_3_0() {
     readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*[0-9]-stack.json" )
     for cmk_stack in "${cmk_stacks[@]}"; do
 
-      info "Looking for CMK account in ${cmk_stack}"
+      info "Looking for CMK account in ${cmk_stack} ..."
       cmk_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${cmk_stack}" )"
       cmk_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${cmk_stack}" )"
 
@@ -1178,6 +1178,7 @@ function upgrade_cmdb_repo_to_v1_3_0() {
 
           parse_stack_filename "${stack_file}" 
           stack_dir="$(filePath "${stack_file}")"
+          stack_filename="$(fileName "${stack_file}")"
 
           # Add Standard Account and Region Stack Outputs 
           stackoutput_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${stack_file}" )"
@@ -1186,20 +1187,18 @@ function upgrade_cmdb_repo_to_v1_3_0() {
           stackoutput_deployment_unit="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="DeploymentUnit" ) | .OutputValue' < "${stack_file}" )"
 
           if [[ -z "${stackoutput_account}" ]]; then 
-              debug "Adding Account Output to ${stack_file}"
-              mkdir --parents "${tmp_dir}/$(filePath "${stack_file}")" 
-              jq -r --arg account "${cmk_account}" '.Stacks[].Outputs += [{ "OutputKey" : "Account", "OutputValue" : $account  }]' < "${stack_file}" > "${tmp_dir}/${stack_file}" 
+              debug "Adding Account Output to ${stack_file} ..."
+              jq -r --arg account "${cmk_account}" '.Stacks[].Outputs += [{ "OutputKey" : "Account", "OutputValue" : $account  }]' < "${stack_file}" > "${tmp_dir}/${stack_filename}" 
               if [[ $? == 0 ]]; then
-                mv "${tmp_dir}/${stack_file}" "${stack_file}"
+                mv "${tmp_dir}/${stack_filename}" "${stack_file}"
               fi
           fi
 
           if [[ -z "${stackoutput_region}" ]]; then 
-              debug "Adding Region Output to ${stack_file}"
-              mkdir --parents "${tmp_dir}/$(filePath "${stack_file}")" 
-              jq -r --arg region "${stack_region}" '.Stacks[].Outputs += [{ "OutputKey" : "Region", "OutputValue" : $region  }]' < "${stack_file}" > "${tmp_dir}/${stack_file}"
+              debug "Adding Region Output to ${stack_file} ..."
+              jq -r --arg region "${stack_region}" '.Stacks[].Outputs += [{ "OutputKey" : "Region", "OutputValue" : $region  }]' < "${stack_file}" > "${tmp_dir}/${stack_filename}"
               if [[ $? == 0 ]]; then
-                mv "${tmp_dir}/${stack_file}" "${stack_file}"
+                mv "${tmp_dir}/${stack_filename}" "${stack_file}"
               fi
           fi
           
@@ -1208,24 +1207,24 @@ function upgrade_cmdb_repo_to_v1_3_0() {
 
             # Rename file to inclue Region and Account
             stack_file_name="$(fileName "${stack_file}" )"
-            new_stack_file_name="${stack_file_name/-${stack_region}-/-${cmk_account_id}-${stack_region}-}"
+            new_stack_file_name="${stack_file_name/"-${stack_region}-"/-${cmk_account_id}-${stack_region}-}"
 
             if [[ "${stack_file_name}" != "${new_stack_file_name}" && "${stack_file_name}" != *"${cmk_account_id}"* ]]; then
-              debug "Moving ${stack_file} to ${stack_dir}/${new_stack_file_name}"
+              debug "Moving ${stack_file} to ${stack_dir}/${new_stack_file_name} ..."
 
               if [[ -n "${dry_run}" ]]; then
                 continue
               fi
               
-              mv "${stack_file}" "${stack_dir}/${new_stack_file_name}"
+              git_mv "${stack_file}" "${stack_dir}/${new_stack_file_name}"
             fi
           fi
         done
 
         # Rename SSH keys to include Account/Region 
-        operations_path="${cmk_path/"infrastructure/cf"/"infrastructure/operations"}"
+        operations_path="${cmk_path/"infrastructure/cf"/infrastructure/operations}"
 
-        info "checking for SSH Keys in ${operations_path}"
+        info "Checking for SSH Keys in ${operations_path} ..."
         readarray -t pem_files < <(find "${operations_path}" -type f -name ".aws-ssh*.pem*" )
 
         for pem_file in "${pem_files[@]}"; do
@@ -1239,11 +1238,13 @@ function upgrade_cmdb_repo_to_v1_3_0() {
           if [[ -n "${dry_run}" ]]; then
             continue
           fi
-          mv "${pem_file}" "${pem_file_path}/${new_file_name}"
+          git_mv "${pem_file}" "${pem_file_path}/${new_file_name}"
         done
       fi
     done
   done
+
+  popTempDir
 
   return $return_status
 }
