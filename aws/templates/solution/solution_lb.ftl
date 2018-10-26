@@ -418,7 +418,7 @@
                             [#assign rulesScript +=
                                 [
                                     "    info \"Creating Listener rule " + id + "\"",
-                                    "    listener_rule_arn=$( create_elbv2_rule" +
+                                    "    listener_rule_arn=$( create_elbv2_rule " +
                                         "\"" + region + "\" " +
                                         "\"" + getExistingReference(listenerId) + "\" " +
                                         "\"$\{tmpdir}/cli-" +
