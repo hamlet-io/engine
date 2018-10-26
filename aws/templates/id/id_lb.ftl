@@ -359,9 +359,9 @@
                 "INTERNAL_FQDN" : internalFqdn,
                 "INTERNAL_URL" : internalUrl + path,
                 "PATH" : path,
-                "PORT" : sourcePort.Name,
-                "SOURCE_PORT" : sourcePort.Name,
-                "DESTINATION_PORT" : destinationPort.Name,
+                "PORT" : sourcePort.Port,
+                "SOURCE_PORT" : sourcePort.Port,
+                "DESTINATION_PORT" : destinationPort.Port,
                 "AUTH_CALLBACK_URL" : url + "/oauth2/idpresponse",
                 "AUTH_CALLBACK_INTERNAL_URL" : internalUrl + "/oauth2/idpresponse",
                 "TARGET_GROUP_ARN" : targetGroupArn
