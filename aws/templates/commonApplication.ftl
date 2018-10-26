@@ -465,7 +465,7 @@
             [/#if]
 
             [#if port.IPAddressGroups?has_content]
-                [#if solution.NetworkMode == "awsvpc" ]
+                [#if solution.NetworkMode == "awsvpc" || !port.LB.Configured ]
                     [#list getGroupCIDRs(port.IPAddressGroups ) as cidr]
                         [#local ingressRules += [ {
                             "port" : port.DynamicHostPort?then(0,contentIfContent(
@@ -477,7 +477,7 @@
                 [#else]
                     [@cfException
                         mode=listMode
-                        description="Port IP Address Groups not supported for network type"
+                        description="Port IP Address Groups not supported for port configuration"
                         context=container
                         detail=port /]
                     [#continue]
