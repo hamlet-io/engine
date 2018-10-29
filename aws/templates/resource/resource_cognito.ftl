@@ -69,12 +69,14 @@
 
 [#function getUserPoolSchemaObject name, datatype, mutable, required]
     [#return
-        {
-            "Name" : name,
-            "AttributeDataType" : datatype,
-            "Mutable" : mutable,
-            "Required" : required
-        }
+        [
+            {
+                "Name" : name,
+                "AttributeDataType" : datatype,
+                "Mutable" : mutable,
+                "Required" : required
+            }
+        ]
     ]
 [/#function]
 

@@ -134,6 +134,28 @@
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Names" : "Schema",
+                    "Subobjects" : true,
+                    "Children" :    [
+                        {
+                            "Names" : "DataType",
+                            "Values" : [ "String", "Number", "DateTime","Boolean"],
+                            "Type" : STRING_TYPE,
+                            "Default" : "String"
+                        },
+                        {
+                            "Names" : "Mutable",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "Required",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
                 }
             ]
         }
