@@ -57,25 +57,32 @@
 
         [#if ((solution.MFA) || ( solution.VerifyPhone))]
 
-            [#assign phoneSchema = getUserPoolSchemaObject( 
+            [#assign schema += getUserPoolSchemaObject( 
                                         "phone_number",
                                         "String",
                                         true,
-                                        true)]
-            [#assign schema = schema + [ phoneSchema ]]
+                                        true) ]
 
             [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
             [#assign smsVerification = true]
         [/#if]
 
         [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
-                    [#assign emailSchema = getUserPoolSchemaObject( 
+                    [#assign schema += getUserPoolSchemaObject( 
                                                 "email",
                                                 "String",
                                                 true,
-                                                true)]
-                    [#assign schema = schema +  [ emailSchema ]]
+                                                true) ]
         [/#if]
+
+        [#list solution.Schema as key,schemaAttribute ]
+            [#assign schema +=  getUserPoolSchemaObject(
+                                key,
+                                schemaAttribute.DataType,
+                                schemaAttribute.Mutable,
+                                schemaAttribute.Required
+            )]
+        [/#list]
 
         [#list solution.Links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link)]
