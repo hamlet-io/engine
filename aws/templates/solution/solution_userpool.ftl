@@ -260,18 +260,14 @@
                     getUserPoolAutoVerification(solution.VerifyEmail, smsVerification),
                     []
                 )
-                loginAliases=((solution.LoginAliases)?has_content)?then(
-                        [solution.LoginAliases],
-                        [])
+                loginAliases=solution.LoginAliases
                 passwordPolicy=getUserPoolPasswordPolicy( 
                         solution.PasswordPolicy.MinimumLength, 
                         solution.PasswordPolicy.Lowercase,
                         solution.PasswordPolicy.Uppsercase,
                         solution.PasswordPolicy.Numbers,
                         solution.PasswordPolicy.SpecialCharacters)
-                smsConfiguration=((smsConfig)?has_content)?then(
-                    smsConfig,
-                    {})
+                smsConfiguration=smsConfig
             /]
 
             [@createUserPoolClient 
