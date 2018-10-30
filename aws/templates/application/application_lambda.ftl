@@ -67,14 +67,12 @@
                                         [#case USERPOOL_COMPONENT_TYPE ]
                                         [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
                                         [#case APIGATEWAY_COMPONENT_TYPE ]
-                                            [#if linkTargetResources[(linkTargetCore.Type)].Deployed]
-                                                [@createLambdaPermission
-                                                    mode=listMode
-                                                    id=formatLambdaPermissionId(fn, "link", linkName)
-                                                    targetId=fnId
-                                                    source=linkTargetRoles.Inbound["invoke"]
-                                                /]
-                                            [/#if]
+                                            [@createLambdaPermission
+                                                mode=listMode
+                                                id=formatLambdaPermissionId(fn, "link", linkName)
+                                                targetId=fnId
+                                                source=linkTargetRoles.Inbound["invoke"]
+                                            /]
                                             [#break]
 
                                     [/#switch]

@@ -131,7 +131,7 @@
             [#assign apikeyNeeded = false ]
             [#list solution.Links?values as link]
                 [#if link?is_hash]
-                    [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                    [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
 
                     [@cfDebug listMode linkTarget false /]
 
@@ -143,7 +143,7 @@
 
                     [#switch linkTarget.Core.Type]
                         [#case APIGATEWAY_USAGEPLAN_COMPONENT_TYPE ]
-                            [#if linkTargetResources["apiusageplan"].Deployed]
+                            [#if isLinkTargetActive(linkTarget) ]
                                 [@createAPIUsagePlanMember
                                     mode=listMode
                                     id=formatDependentResourceId(AWS_APIGATEWAY_USAGEPLAN_MEMBER_RESOURCE_TYPE, apikeyId, link.Id)

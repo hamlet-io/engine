@@ -933,7 +933,7 @@ behaviour.
             [#case BASTION_COMPONENT_TYPE ]
                 [#local result = getBastionState(occurrence)]
                 [#break]
-                
+
         [/#switch]
     [/#if]
 
@@ -1584,7 +1584,15 @@ behaviour.
     [#return getOccurrencesInternal(component, tier) ]
 [/#function]
 
-[#function getLinkTarget occurrence link]
+[#function isOccurrenceDeployed occurrence]
+    [#return
+        ((occurrence.Configuration.Solution.Enabled)!true) &&
+        isOneResourceDeployed((occurrence.State.Resources)!{})
+    ]
+
+[/#function]
+
+[#function getLinkTarget occurrence link activeOnly=true]
 
     [#local instanceToMatch = link.Instance!occurrence.Core.Instance.Id ]
     [#local versionToMatch = link.Version!occurrence.Core.Version.Id ]
@@ -1702,6 +1710,11 @@ behaviour.
 
             [@cfDebug listMode "Link matched target" false /]
 
+            [#-- Determine if deployed --]
+            [#if activeOnly && !isOccurrenceDeployed(targetSubOccurrence) ]
+                [#return {} ]
+            [/#if]
+
             [#-- Determine the role --]
             [#local direction = link.Direction!"outbound"]
 
@@ -1732,11 +1745,11 @@ behaviour.
     [#return {} ]
 [/#function]
 
-[#function getLinkTargets occurrence links={}]
+[#function getLinkTargets occurrence links={} activeOnly=true]
     [#local result={} ]
     [#list (valueIfContent(links, links, occurrence.Configuration.Solution.Links!{}))?values as link]
         [#if link?is_hash]
-            [#local linkTarget = getLinkTarget(occurrence, link) ]
+            [#local linkTarget = getLinkTarget(occurrence, link, activeOnly) ]
             [#local result +=
                 valueIfContent(
                     {
@@ -1749,12 +1762,19 @@ behaviour.
     [#return result ]
 [/#function]
 
+[#function isLinkTargetActive target]
+    [#return
+        ((target.Configuration.Solution.Enabled)!true) &&
+        (
+            isOccurrenceDeployed(target) ||
+            (target.Core.External!false)
+        ) ]
+[/#function]
+
 [#function getLinkTargetsOutboundRoles LinkTargets ]
     [#local roles = [] ]
     [#list LinkTargets?values as linkTarget]
-        [#if
-            (!isOneResourceDeployed((linkTarget.State.Resources)!{})) &&
-            (!(linkTarget.Core.External!false)) ]
+        [#if !isLinkTargetActive(linkTarget) ]
             [#continue]
         [/#if]
         [#local role = (linkTarget.State.Roles.Outbound[linkTarget.Role])!{} ]

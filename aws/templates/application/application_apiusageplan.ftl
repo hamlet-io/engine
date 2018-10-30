@@ -33,10 +33,6 @@
                 [#assign linkTargetResources = linkTarget.State.Resources ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
-                [#if !(linkTargetConfiguration.Solution.Enabled!true) ]
-                    [#continue]
-                [/#if]
-
                 [#switch linkTargetCore.Type]
                     [#case APIGATEWAY_COMPONENT_TYPE ]
                         [#assign stages +=
