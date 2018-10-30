@@ -118,96 +118,90 @@
                     
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
-                    [#if linkTargetResources[LAMBDA_FUNCTION_COMPONENT_TYPE].Deployed]
-                        [#-- Cognito Userpool Event Triggers --]
-                        [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
-                        [#switch link.Name?lower_case]
-                            [#case "createauthchallenge"]
-                                [#assign userPoolTriggerConfig +=
-                                    attributeIfContent (
-                                        "CreateAuthChallenge",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "custommessage"]
-                                [#assign userPoolTriggerConfig +=
-                                    attributeIfContent (
-                                        "CustomMessage",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "defineauthchallenge"]
-                                [#assign userPoolTriggerConfig +=
-                                    attributeIfContent (
-                                        "DefineAuthChallenge",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "postauthentication"]
-                                [#assign userPoolTriggerConfig +=
-                                    attributeIfContent (
-                                        "PostAuthentication",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "postconfirmation"]
-                                [#assign userPoolTriggerConfig +=
-                                    attributeIfContent (
-                                        "PostConfirmation",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "preauthentication"]
-                                [#assign userPoolTriggerConfig +=
-                                    attributeIfContent (
-                                        "PreAuthentication",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "presignup"]
-                                [#assign userPoolTriggerConfig += 
-                                    attributeIfContent (
-                                        "PreSignUp",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "verifyauthchallengeresponse"]
-                                [#assign userPoolTriggerConfig += 
-                                    attributeIfContent (
-                                        "VerifyAuthChallengeResponse",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "pretokengeneration"]
-                                [#assign userPoolManualTriggerConfig +=
-                                    attributeIfContent (
-                                        "PreTokenGeneration",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                            [#case "usermigration"]
-                                [#assign userPoolManualTriggerConfig +=
-                                    attributeIfContent (
-                                        "UserMigration",
-                                        linkTargetAttributes.ARN
-                                    )
-                                ]
-                                [#break]
-                        [/#switch]
-                    [/#if]
-                [#break]
-                [#case LB_PORT_COMPONENT_TYPE]
-                    [#if linkTargetResources[LB_PORT_COMPONENT_TYPE].Deployed]
-                    [/#if]
+                    [#-- Cognito Userpool Event Triggers --]
+                    [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
+                    [#switch link.Name?lower_case]
+                        [#case "createauthchallenge"]
+                            [#assign userPoolTriggerConfig +=
+                                attributeIfContent (
+                                    "CreateAuthChallenge",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "custommessage"]
+                            [#assign userPoolTriggerConfig +=
+                                attributeIfContent (
+                                    "CustomMessage",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "defineauthchallenge"]
+                            [#assign userPoolTriggerConfig +=
+                                attributeIfContent (
+                                    "DefineAuthChallenge",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "postauthentication"]
+                            [#assign userPoolTriggerConfig +=
+                                attributeIfContent (
+                                    "PostAuthentication",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "postconfirmation"]
+                            [#assign userPoolTriggerConfig +=
+                                attributeIfContent (
+                                    "PostConfirmation",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "preauthentication"]
+                            [#assign userPoolTriggerConfig +=
+                                attributeIfContent (
+                                    "PreAuthentication",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "presignup"]
+                            [#assign userPoolTriggerConfig += 
+                                attributeIfContent (
+                                    "PreSignUp",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "verifyauthchallengeresponse"]
+                            [#assign userPoolTriggerConfig += 
+                                attributeIfContent (
+                                    "VerifyAuthChallengeResponse",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "pretokengeneration"]
+                            [#assign userPoolManualTriggerConfig +=
+                                attributeIfContent (
+                                    "PreTokenGeneration",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                        [#case "usermigration"]
+                            [#assign userPoolManualTriggerConfig +=
+                                attributeIfContent (
+                                    "UserMigration",
+                                    linkTargetAttributes.ARN
+                                )
+                            ]
+                            [#break]
+                    [/#switch]
                 [#break]
             [/#switch]
         [/#list]
