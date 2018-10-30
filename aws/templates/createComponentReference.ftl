@@ -383,7 +383,7 @@
         [#assign subComponents = []]
         
         [#assign attributeJson =
-            getMDHeading("Component Format", 2) +
+            [ "\n", "**Component Format**", "\n" ] + 
             getMDCodeBlock(
                 getNonEmptyArray(
                     getMDCodeJSON(
@@ -396,7 +396,7 @@
                 "json" )]
 
         [#assign attributes =
-            getMDHeading("Attribute Reference", 2)]
+            [ "\n", "**Attribute Reference**", "\n"]]
         
         [#list componentProperties as property ]
             [#switch property.Type!"Description" ]
@@ -439,15 +439,15 @@
         [/#list]
 
         [#if notes?has_content ]
-            [#assign notes = getMDHeading("Notes", 2 ) + notes ]
+            [#assign notes = [ "\n", "**Notes**", "\n" ] + notes ]
         [/#if]
 
         [#if deploymentProperties?has_content ]
-            [#assign deploymentProperties = getMDHeading("Deployment Properties", 2) + getMDList(deploymentProperties) + [ "\n" ]] 
+            [#assign deploymentProperties = [ "\n", "**Deployment Properties**", "\n" ] + getMDList(deploymentProperties) + [ "\n" ]] 
         [/#if]
 
         [#if subComponents?has_content ]
-            [#assign subComponents = getMDHeading("Sub Components", 2 ) + subComponents]
+            [#assign subComponents = [ "\n", "**Sub Components**", "\n" ] + subComponents]
         [/#if]
 
         [@MDSection
