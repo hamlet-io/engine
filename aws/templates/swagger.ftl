@@ -393,6 +393,34 @@
             ]
             [#break]
 
+        [#case "lambda_plain"]
+            [#-- Force the content type so the api returns the response body as JSON --]
+            [#local result +=
+                {
+                    "x-amazon-apigateway-integration" : {
+                        "type": "aws",
+                        "uri" : "arn:aws:apigateway:" + context["Region"] + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + context["Region"] + ":" + context["Account"] + ":function:$\{stageVariables." + apiVariable + "}/invocations",
+                        "passthroughBehavior" : "never",
+                        "httpMethod" : "POST",
+                        "responses" :
+                            {
+                                "default" : {
+                                    "statusCode" : "200"
+                                }
+                            } +
+                            responses
+                    } +
+                    valueIfTrue(
+                        {
+                            "credentials" : "arn:aws:iam::*:user/*"
+                        },
+                        useClientCredsRequired
+                    ) +
+                    requests
+                }
+            ]
+            [#break]
+
         [#case "mock"]
             [#local result +=
                 {
