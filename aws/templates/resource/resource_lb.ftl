@@ -230,7 +230,7 @@
                 "Protocol": protocol,
                 "Port": port,
                 "Host": host,
-                "Path": path,
+                "Path": path?ensure_starts_with("/"),
                 "Query": query,
                 "StatusCode": valueIfTrue("HTTP_301", permanent, "HTTP_302")
             }
