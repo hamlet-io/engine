@@ -388,7 +388,7 @@
                     [/#if]
 
                     [#-- Basic Forwarding --]
-                    [#if !listenerRulesConfig?has_content ]
+                    [#if !(isPresent(solution.Redirect) || isPresent(solution.Fixed)) ]
                         [#assign listenerRulesConfig +=
                             {
                                 listenerRuleId : {
