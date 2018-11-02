@@ -58,7 +58,7 @@
 
         [#list solution.Links?values as link]
             [#if link?is_hash]
-                [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
 
                 [@cfDebug listMode linkTarget false /]
 
@@ -73,14 +73,18 @@
 
                 [#switch linkTargetCore.Type]
                     [#case LB_COMPONENT_TYPE ]
-                        [#assign stageVariables +=
-                            {
-                                formatSettingName(link.Name, "DOCKER") : linkTargetAttributes.FQDN
-                            }
-                        ]
+                        [#if isLinkTargetActive(linkTarget) ]
+                            [#assign stageVariables +=
+                                {
+                                    formatSettingName(link.Name, "DOCKER") : linkTargetAttributes.FQDN
+                                }
+                            ]
+                        [/#if]
                         [#break]
 
                     [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
+                        [#-- Add function even if it isn't active so APi gateway if fully configured --]
+                        [#-- even if lambda have yet to be deployed                                  --]
                         [#assign stageVariables +=
                             {
                                 formatSettingName(
@@ -92,29 +96,31 @@
                         [#break]
 
                     [#case USERPOOL_COMPONENT_TYPE]
-                        [#assign cognitoPools +=
-                            {
-                                link.Name : {
-                                    "Name" : link.Name,
-                                    "Header" : linkTargetAttributes["AUTHORIZATION_HEADER"]!"Authorization",
-                                    "UserPoolArn" : linkTargetAttributes["USER_POOL"],
-                                    "Default" : true
-                                }
-                            } ]
-
-                        [#if deploymentSubsetRequired("apigateway", true)]
-
-                            [#assign policyId = formatDependentPolicyId(
-                                                    apiId,
-                                                    link.Name)]
-
-                            [@createPolicy
-                                mode=listMode
-                                id=policyId
-                                name=apiName
-                                statements=asFlattenedArray(roles.Outbound["invoke"])
-                                roles=linkTargetResources["authrole"].Id
-                            /]
+                        [#if isLinkTargetActive(linkTarget) ]
+                            [#assign cognitoPools +=
+                                {
+                                    link.Name : {
+                                        "Name" : link.Name,
+                                        "Header" : linkTargetAttributes["AUTHORIZATION_HEADER"]!"Authorization",
+                                        "UserPoolArn" : linkTargetAttributes["USER_POOL"],
+                                        "Default" : true
+                                    }
+                                } ]
+    
+                            [#if deploymentSubsetRequired("apigateway", true)]
+    
+                                [#assign policyId = formatDependentPolicyId(
+                                                        apiId,
+                                                        link.Name)]
+    
+                                [@createPolicy
+                                    mode=listMode
+                                    id=policyId
+                                    name=apiName
+                                    statements=asFlattenedArray(roles.Outbound["invoke"])
+                                    roles=linkTargetResources["authrole"].Id
+                                /]
+                            [/#if]
                         [/#if]
                         [#break]
                 [/#switch]
