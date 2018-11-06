@@ -32,68 +32,8 @@
                     "Default" : {}
                 },
                 {
-                    "Names" : "WAF",
-                    "Children" : wafChildConfiguration
-                },
-                {
                     "Names" : "CloudFront",
-                    "Children" : [
-                        {
-                            "Names" : "AssumeSNI",
-                            "Type" : BOOLEAN_TYPE,
-                            "Default" : true
-                        },
-                        {
-                            "Names" : "EnableLogging",
-                            "Type" : BOOLEAN_TYPE,
-                            "Default" : true
-                        },
-                        {
-                            "Names" : "CountryGroups",
-                            "Type" : ARRAY_OF_STRING_TYPE,
-                            "Default" : []
-                        },
-                        {
-                            "Names" : "ErrorPage",
-                            "Type" : STRING_TYPE,
-                            "Default" : "/index.html"
-                        },
-                        {
-                            "Names" : "DeniedPage",
-                            "Type" : STRING_TYPE,
-                            "Default" : ""
-                        },
-                        {
-                            "Names" : "NotFoundPage",
-                            "Type" : STRING_TYPE,
-                            "Default" : ""
-                        },
-                        {
-                            "Names" : "CachingTTL",
-                            "Children" : [
-                                {
-                                    "Names" : "Default",
-                                    "Type" : NUMBER_TYPE,
-                                    "Default" : 600
-                                },
-                                {
-                                    "Names" : "Maximum",
-                                    "Type" : NUMBER_TYPE,
-                                    "Default" : 31536000
-                                },
-                                {
-                                    "Names" : "Minimum",
-                                    "Type" : NUMBER_TYPE,
-                                    "Default" : 0
-                                }
-                            ]
-                        },
-                        {
-                            "Names" : "Compress",
-                            "Type" : BOOLEAN_TYPE,
-                            "Default" : true
-                        }
-                    ]
+                    "Children" : cloudFrontChildConfiguration
                 },
                 {
                     "Names" : "Certificate",
@@ -120,12 +60,30 @@
     [#local cfId  = formatComponentCFDistributionId(core.Tier, core.Component, occurrence)]
     [#local cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
 
+    [#local cfUtilities = {}]
+
     [#if isPresent(solution.Certificate) ]
-            [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
-            [#local hostName = getHostName(certificateObject, occurrence) ]
-            [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
+        [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
+        [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
+        [#local secondaryDomains = getCertificateSecondaryDomains(certificateObject) ]
+        [#local hostName = getHostName(certificateObject, occurrence) ]
+        [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
+
+        [#if secondaryDomains?has_content && solution.CloudFront.RedirectAliases ]
+            [#local utility = "_cfRedirect" ]
+            [#local redirectLambdaId = formatLambdaUtilityId(occurrence, utility)  ]
+            [#local cfUtilities += {
+                    "redirectUtility" : {
+                        "Id" : redirectLambdaId,
+                        "VersionId" : formatLambdaVersionId(redirectLambdaId)
+                        "Name" : formatLambdaUtilityName(occurrence, utility ),
+                        "Type" : AWS_LAMBDA_RESOURCE_TYPE,
+                        "Utility" : utility
+                    }
+            }]
+        [/#if]
     [#else]
-            [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
+        [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
     [/#if]
 
     [#return
@@ -149,7 +107,8 @@
                     "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_WAF_ACL_RESOURCE_TYPE
                 }
-            },
+            } + 
+            attributeIfContent("cfUtilities", cfUtilities),
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn

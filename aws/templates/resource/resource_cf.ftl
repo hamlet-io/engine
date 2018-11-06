@@ -85,6 +85,7 @@
         ]
     ]
 [/#function]
+
 [#function getCFCacheBehaviour origin
     path=""
     methods={}
@@ -310,3 +311,44 @@
         dependencies=dependencies
     /]
 [/#macro]
+
+
+[#function getCFRedirectScript primaryDomain permanent=false ]
+    [#return [
+        "'use strict';",
+
+        "exports.handler = (event, context, callback) => \{",
+        "const request = event.Records[0].cf.request;",
+        "const headers = request.headers;",
+        "const host = headers.host[0].value.toLowerCase();",
+    
+        "const primaryHost = '" + primaryDomain + "';",
+
+        "/* If for primary domain, proceed with request */",
+        "if (host == primaryHost ) \{",
+        "    callback(null, request);",
+        "\}",
+    
+        "var redirectUrl = 'https://' + primaryHost;",
+        "if (request.uri != '/') \{",
+        "    redirectUrl = redirectUrl + request.uri;",
+        "\}",
+        "if (request.querystring != '') \{",
+        "    redirectUrl = redirectUrl + '?' + request.querystring;",
+        "\}",
+
+        "/* Send the redirect */",
+        "const response = \{",
+        "    status: ' + permanent?then(301,302) + "',",
+        "    statusDescription: 'Relocated',",
+        "    headers: \{",
+        "        location: [\{",
+        "            key: 'Location',",
+        "            value: redirectUrl,",
+        "        \}],",
+        "    \},",
+        "\};",
+        "callback(null, response);",
+        "\};"    
+    ]?join("")]
+[/#function]

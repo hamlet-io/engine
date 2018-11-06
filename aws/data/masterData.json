@@ -897,6 +897,10 @@
       "Title": "Docs Tier",
       "Description": "Non-network Tier For documentation generation",
       "Name": "documentation"
+    },
+    "global": {
+      "Title": "Global Tier",
+      "Description" : ""
     }
   },
   "RouteTables": {
@@ -1660,6 +1664,15 @@
       },
       "Destination": {
         "Prefix": "bootstrap"
+      }
+    },
+    "_utilities-lambda" : {
+      "Engine" : "local",
+      "Source" : {
+        "Directory": "$\\{GENERATION_STARTUP_DIR}/utilites/dist/lambda"
+      },
+      "Destination" : {
+        "Prefix" : "utilities/lambda"
       }
     }
   },

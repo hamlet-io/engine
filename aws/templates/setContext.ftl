@@ -223,6 +223,90 @@
     ]
 ]
 
+[#assign cloudFrontChildConfiguration = [
+        {
+            "Names" : "AssumeSNI",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
+            "Names" : "RedirectAliases",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
+            "Names" : "EnableLogging",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
+            "Names" : "CountryGroups",
+            "Type" : ARRAY_OF_STRING_TYPE,
+            "Default" : []
+        },
+        {
+            "Names" : "DefaultErrorPage",
+            "Type" : STRING_TYPE,
+            "Default" : "/index.html"
+        },
+        {
+            "Names" : "CustomHeaders",
+            "Type" : ARRAY_OF_ANY_TYPE,
+            "Default" : []
+        },
+        {
+            "Names" : "CustomErrorPages",
+            "Subobjects" : true,
+            "Children" : [
+                {
+                    "Names" : "ErrorCodes",
+                    "Type" : ARRAY_OF_NUMBER_TYPE,
+                    "Values" : [ 400, 403, 404, 405, 414, 500, 501, 502, 503, 504 ]
+                },
+                {
+                    "Names" : "ResponseCode",
+                    "Type" : NUMBER_TYPE,
+                    "Values" : [ 200, 400, 403, 404, 405, 414, 500, 501, 502, 503, 504 ],
+                    "Default" : 200
+                },
+                {
+                    "Names" : "ResponsePage",
+                    "Type" : STRING_TYPE
+                }
+            ]
+        },
+        {
+            "Names" : "CachingTTL",
+            "Children" : [
+                {
+                    "Names" : "Default",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 600
+                },
+                {
+                    "Names" : "Maximum",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 31536000
+                },
+                {
+                    "Names" : "Minimum",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 0
+                }
+            ]
+        },
+        {
+            "Names" : "Compress",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : true
+        },
+        {
+            "Names" : "WAF",
+            "Children" : wafChildConfiguration
+        }
+    ]
+]
+
 [#assign wafChildConfiguration = [
         {
             "Names" : "IPAddressGroups",
@@ -427,6 +511,7 @@
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 [#assign securityProfiles = blueprintObject.SecurityProfiles ]
 [#assign logFilters = blueprintObject.LogFilters]
+[#assign utilities = blueprintObject.Utilities]
 
 [#-- Regions --]
 [#if region?has_content]

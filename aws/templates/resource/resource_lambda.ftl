@@ -11,6 +11,14 @@
     }
 ]
 
+[#assign LAMBDA_VERSION_OUTPUT_MAPPINGS = 
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        }
+    }
+]
+
 [#assign LAMBDA_PERMISSION_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -67,6 +75,24 @@
                 })
         outputs=LAMBDA_FUNCTION_OUTPUT_MAPPINGS
         dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createLambdaVersion mode id targetId description="" dependencies="" ]
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::Lambda::Version"
+        properties=
+            {
+                "FunctionName" : getReference(targetId)
+            } + 
+            attributeIfContent(
+                "Description",
+                description
+            )
+        outputs=LAMBDA_VERSION_OUTPUT_MAPPINGS
+        dependencies
     /]
 [/#macro]
 
