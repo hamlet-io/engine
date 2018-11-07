@@ -900,7 +900,37 @@
     },
     "global": {
       "Title": "Global Tier",
-      "Description" : ""
+      "Description" : "Components which are used for Global Services",
+      "Name" : "global",
+      "Network" : {
+        "Enabled" : false
+      },
+      "Components": {
+        "cfredirect" : {
+          "DeploymentUnits" : ["cfredirect"],
+          "Lambda" : {
+              "DeploymentType" : "EDGE",
+              "RunTime" : "nodejs6.10",
+              "MemorySize" : 128,
+              "Timeout" : 1,
+              "Versioned" : true,
+              "Functions" : {
+                  "cfredirect" : {
+                      "Handler" : "index.handler",
+                      "Fragment" : "_cfredirect",
+                      "VPCAccess" : false,
+                      "Permissions" : {
+                        "Decrypt" : false,
+                        "AsFile" : false,
+                        "AppData" : false,
+                        "AppPublic" : false
+                      },
+                      "PredefineLogGroup" : false
+                  }
+              }
+          }
+        }
+      }
     }
   },
   "RouteTables": {
@@ -1002,6 +1032,9 @@
     }
   },
   "Product": {
+    "cfredirect" : {
+      "Region" : "us-east-1"
+    },
     "Builds": {
       "Data": {
         "Environment": "int"
@@ -1385,7 +1418,7 @@
           "spare",
           "elb",
           "ilb",
-          "spare",
+          "global",
           "spare",
           "spare",
           "spare",
@@ -1431,7 +1464,8 @@
         "db",
         "ana",
         "mgmt",
-        "docs"
+        "docs",
+        "global"
       ]
     }
   },

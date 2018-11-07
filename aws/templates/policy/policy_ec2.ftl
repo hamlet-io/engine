@@ -109,7 +109,7 @@
                         ]
                     },
                     {
-                        "Fn::Join" : [
+                        "" : [
                             "",
                             [
                                 "arn:aws:s3:::amazon-ssm-packages-",

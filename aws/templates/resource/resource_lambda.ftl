@@ -49,10 +49,16 @@
         type="AWS::Lambda::Function"
         properties=
             {
-                "Code" : {
-                    "S3Bucket" : settings.S3Bucket,
-                    "S3Key" : settings.S3Key
-                },
+                "Code" : 
+                    valueIfContent(
+                        { 
+                            "ZipFile" : settings.ZipFile 
+                        },
+                        settings.ZipFile!"",
+                        {
+                            "S3Bucket" : settings.S3Bucket,
+                            "S3Prefix" : settings.S3Prefix
+                        }),
                 "FunctionName" : settings.Name,
                 "Description" : settings.Description,
                 "Handler" : settings.Handler,
@@ -92,7 +98,7 @@
                 description
             )
         outputs=LAMBDA_VERSION_OUTPUT_MAPPINGS
-        dependencies
+        dependencies=dependencies
     /]
 [/#macro]
 

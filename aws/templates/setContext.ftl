@@ -223,6 +223,27 @@
     ]
 ]
 
+[#assign wafChildConfiguration = [
+        {
+            "Names" : "IPAddressGroups",
+            "Type" : ARRAY_OF_STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "Default",
+            "Type" : STRING_TYPE,
+            "Values" : ["ALLOW", "BLOCK"],
+            "Default" : "BLOCK"
+        },
+        {
+            "Names" : "RuleDefault",
+            "Type" : STRING_TYPE,
+            "Values" : ["ALLOW", "BLOCK"],
+            "Default" : "ALLOW"
+        }
+    ]
+]
+
 [#assign cloudFrontChildConfiguration = [
         {
             "Names" : "AssumeSNI",
@@ -303,27 +324,6 @@
         {
             "Names" : "WAF",
             "Children" : wafChildConfiguration
-        }
-    ]
-]
-
-[#assign wafChildConfiguration = [
-        {
-            "Names" : "IPAddressGroups",
-            "Type" : ARRAY_OF_STRING_TYPE,
-            "Mandatory" : true
-        },
-        {
-            "Names" : "Default",
-            "Type" : STRING_TYPE,
-            "Values" : ["ALLOW", "BLOCK"],
-            "Default" : "BLOCK"
-        },
-        {
-            "Names" : "RuleDefault",
-            "Type" : STRING_TYPE,
-            "Values" : ["ALLOW", "BLOCK"],
-            "Default" : "ALLOW"
         }
     ]
 ]
@@ -511,7 +511,6 @@
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 [#assign securityProfiles = blueprintObject.SecurityProfiles ]
 [#assign logFilters = blueprintObject.LogFilters]
-[#assign utilities = blueprintObject.Utilities]
 
 [#-- Regions --]
 [#if region?has_content]

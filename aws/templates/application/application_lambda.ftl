@@ -8,6 +8,11 @@
 
         [@cfDebug listMode occurrence false  /]
 
+        [#assign lambdaCore = occurrence.Core ]
+        [#assign lambdaSolution = occurrence.Configuration.Solution ]
+
+        [#assign deploymentType = lambdaSolution.DeploymentType ]
+
         [#list occurrence.Occurrences as fn]
             [#assign core = fn.Core ]
             [#assign solution = fn.Configuration.Solution ]
@@ -114,20 +119,31 @@
             [#assign _context += finalEnvironment ]
 
             [#assign roleId = formatDependentRoleId(fnId)]
+            [#assign managedPolicies =
+                (vpc?has_content && solution.VPCAccess)?then(
+                    ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
+                    ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+                ) +
+                _context.ManagedPolicy ]
+
+            [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
+
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
-                [#assign managedPolicies =
-                        (vpc?has_content && solution.VPCAccess)?then(
-                            ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
-                            ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
-                        ) +
-                        _context.ManagedPolicy ]
 
                 [#-- Create a role under which the function will run and attach required policies --]
                 [#-- The role is mandatory though there may be no policies attached to it --]
                 [@createRole
                     mode=listMode
                     id=roleId
-                    trustedServices=["lambda.amazonaws.com"]
+                    trustedServices=[
+                        "lambda.amazonaws.com"
+                    ] + 
+                    (deploymentType == "EDGE")?then(
+                        [
+                            "edgelambda.amazonaws.com"
+                        ],
+                        []
+                    )
                     managedArns=managedPolicies
 
                 /]
@@ -143,8 +159,6 @@
                     /]
                 [/#if]
 
-                [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
-
                 [#if linkPolicies?has_content]
                     [#assign policyId = formatDependentPolicyId(fnId, "links")]
                     [@createPolicy
@@ -157,7 +171,8 @@
                 [/#if]
             [/#if]
 
-            [#if solution.PredefineLogGroup &&
+            [#if deploymentType == "REGIONAL" && 
+                  solution.PredefineLogGroup &&
                   deploymentSubsetRequired("lg", true) &&
                   isPartOfCurrentDeploymentUnit(fnLgId) ]
 
@@ -185,6 +200,17 @@
             [/#if]
 
             [#if deploymentSubsetRequired("lambda", true)]
+
+                [#if solution.Versioned ]
+                    [#assign versionId = resources["version"].Id  ]
+                    [@createLambdaVersion
+                        mode=listMode
+                        id=versionId
+                        targetId=fnId 
+                        dependencies=fnId
+                        /]
+                [/#if]
+
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
                 [#if vpc?has_content && solution.VPCAccess]
                     [@createDependentSecurityGroup

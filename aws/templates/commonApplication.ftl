@@ -53,6 +53,22 @@
     [/#if]
 [/#macro]
 
+[#macro lambdaAttributes imageBucket="" imagePrefix="" zipFile="" ]
+    [#if (fragmentListMode!"") == "model"]
+        [#assign _context += {
+                "S3Bucket" : imageBucket,
+                "S3Prefix" : imagePrefix,
+                "ZipFile" : {
+                    "Fn::Join" : [
+                        "\n",
+                        asArray(zipFile)
+                    ]
+                }
+            }
+        ]
+    [/#if]
+[/#macro]
+
 [#function addVariableToContext context name value]
     [#return
         setDescendent(

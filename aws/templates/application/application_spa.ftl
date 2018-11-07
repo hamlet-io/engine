@@ -133,7 +133,6 @@
         [#assign cfName             = resources["cf"].Name]
         [#assign cfSPAOriginId      = resources["cforiginspa"].Id]
         [#assign cfConfigOriginId   = resources["cforiginconfig"].Id]
-        [#assign cfUtilities        = resources["cfUtilities"]]
 
         [#if ! (getExistingReference(formatDependentCFAccessId(formatS3OperationsId()))?has_content)]
             [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
@@ -226,7 +225,6 @@
                     getCFLogging(
                         operationsBucket,
                         core.FullAbsolutePath
-                        )
                     ),
                     solution.CloudFront.EnableLogging)
                 origins=spaOrigin + configOrigin

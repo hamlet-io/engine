@@ -7,30 +7,6 @@
 [#assign AWS_LAMBDA_EVENT_SOURCE_TYPE = "source"]
 [#assign AWS_LAMBDA_VERSION_RESOURCE_TYPE = "lambdaVersion" ]
 
-[#function formatLambdaUtilityId occurrence utilityId extensions... ]
-    [#return formatResourceId(
-                AWS_LAMBDA_RESOURCE_TYPE,
-                occurrence.Core.Id,
-                "utility",
-                utilityId,
-                extensions)]
-[/#function]
-
-[#function formatLambdaUtilityName occurrence utilityName extensions... ]
-    [#return formatName(
-                occurrence.core.FullName,
-                "utility",
-                utilityName,
-                extensions)]
-[/#function]
-
-[#function formatLambdaVersionId lambdaId extensions... ]
-    [#return formatResourceId(
-                AWS_LAMBDA_VERSION_RESOURCE_TYPE,
-                lambdaId?keep_after(AWS_LAMBDA_RESOURCE_TYPE + "X"),
-                extensions)]
-[/#function]
-
 [#function formatLambdaPermissionId occurrence extensions...]
     [#return formatResourceId(
                 AWS_LAMBDA_PERMISSION_RESOURCE_TYPE,
@@ -73,7 +49,14 @@
                     "Value" : "application"
                 }
             ],
-            "Attributes" : [],
+            "Attributes" : [
+                {
+                    "Names" : "DeploymentType",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["EDGE", "REGIONAL"],
+                    "Default" : "REGIONAL"
+                }
+            ],
             "Components" : [
                 {
                     "Type" : LAMBDA_FUNCTION_COMPONENT_TYPE,
@@ -208,6 +191,11 @@
                 {
                     "Names" : "Environment",
                     "Children" : settingsChildConfiguration
+                },
+                {
+                    "Names" : "Versioned",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
                 }
             ]
         }
@@ -239,8 +227,10 @@
 
 [#function getFunctionState occurrence]
     [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution ]
 
     [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
+    [#local versionId = formatResourceId(AWS_LAMBDA_VERSION_RESOURCE_TYPE, core.Id)]
 
     [#local lgId = formatLogGroupId(core.Id)]
     [#local lgName = formatAbsolutePath("aws", "lambda", core.FullName)]
@@ -258,16 +248,28 @@
                     "Name" : lgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
-            },
+            } + 
+            attributeIfTrue(
+                "version",
+                solution.Versioned,
+                {
+                    "Id" : versionId,
+                    "Type" : AWS_LAMBDA_VERSION_RESOURCE_TYPE
+                }
+            ),
             "Attributes" : {
                 "REGION" : regionId,
-                "ARN" : formatArn(
-                            regionObject.Partition,
-                            "lambda", 
-                            regionId,
-                            accountObject.AWSId,
-                            "function:" + core.FullName,
-                            true),
+                "ARN" : valueIfTrue(
+                            getExistingReference( versionId ),
+                            solution.Versioned
+                            formatArn(
+                                regionObject.Partition,
+                                "lambda", 
+                                regionId,
+                                accountObject.AWSId,
+                                "function:" + core.FullName,
+                                true)
+                ),
                 "NAME" : core.FullName
             },
             "Roles" : {

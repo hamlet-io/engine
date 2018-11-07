@@ -197,8 +197,11 @@ export AWSID=${AWSID:-$(runJQ -r '.Account.AWSId | select(.!=null)' < ${COMPOSIT
 export ACCOUNT_REGION=${ACCOUNT_REGION:-$(runJQ -r '.Account.Region | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
 export PID=${PID:-$(runJQ -r '.Product.Id | select(.!="Product") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
 export PRODUCT_REGION=${PRODUCT_REGION:-$(runJQ -r '.Product.Region | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
+export DEPLOYMENTUNIT_REGION=${DEPLOYMENTUNIT_REGION:-$(runJQ --arg du ${DEPLOYMENT_UNIT} -r '.Product[$du].Region | select(.!=null)' <${COMPOSITE_BLUEPRINT} )}
 export SID=${SID:-$(runJQ -r '.Segment.Id | select(.!="Segment") | select(.!=null)' < ${COMPOSITE_BLUEPRINT})}
-export REGION="${REGION:-$PRODUCT_REGION}"
+
+export COMPONENT_REGION="${DEPLOYMENTUNIT_REGION:-$PRODUCT_REGION}"
+export REGION="${REGION:-$COMPONENT_REGION}"
 
 # Perform a few consistency checks
 [[ -z "${REGION}" ]] && fatalCantProceed "The region must be defined in the Product blueprint section." && exit 1

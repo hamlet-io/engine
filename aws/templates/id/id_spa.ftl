@@ -60,8 +60,6 @@
     [#local cfId  = formatComponentCFDistributionId(core.Tier, core.Component, occurrence)]
     [#local cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
 
-    [#local cfUtilities = {}]
-
     [#if isPresent(solution.Certificate) ]
         [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
         [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
@@ -69,19 +67,6 @@
         [#local hostName = getHostName(certificateObject, occurrence) ]
         [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
 
-        [#if secondaryDomains?has_content && solution.CloudFront.RedirectAliases ]
-            [#local utility = "_cfRedirect" ]
-            [#local redirectLambdaId = formatLambdaUtilityId(occurrence, utility)  ]
-            [#local cfUtilities += {
-                    "redirectUtility" : {
-                        "Id" : redirectLambdaId,
-                        "VersionId" : formatLambdaVersionId(redirectLambdaId)
-                        "Name" : formatLambdaUtilityName(occurrence, utility ),
-                        "Type" : AWS_LAMBDA_RESOURCE_TYPE,
-                        "Utility" : utility
-                    }
-            }]
-        [/#if]
     [#else]
         [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
     [/#if]
@@ -107,8 +92,7 @@
                     "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_WAF_ACL_RESOURCE_TYPE
                 }
-            } + 
-            attributeIfContent("cfUtilities", cfUtilities),
+            },
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn
