@@ -582,7 +582,6 @@
                 "Policy" : standardPolicies(task),
                 "Privileged" : container.Privileged,
                 "LogMetrics" : container.LogMetrics,
-                "LogWatchers" : container.LogWatchers,
                 "Alerts" : container.Alerts
             } +
             attributeIfContent("LogGroup", containerLogGroup) +
