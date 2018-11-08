@@ -580,7 +580,10 @@
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
                 "Policy" : standardPolicies(task),
-                "Privileged" : container.Privileged
+                "Privileged" : container.Privileged,
+                "LogMetrics" : container.LogMetrics,
+                "LogWatchers" : container.LogWatchers,
+                "Alerts" : container.Alerts
             } +
             attributeIfContent("LogGroup", containerLogGroup) +
             attributeIfContent("ImageVersion", container.Version) +

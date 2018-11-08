@@ -34,6 +34,16 @@
             "Default" : "awslogs"
         },
         {
+            "Names" : "LogMetrics",
+            "Subobjects" : true,
+            "Children" : logMetricChildrenConfiguration
+        },
+        {
+            "Names" : "Alerts",
+            "Subobjects" : true,
+            "Children" : alertChildrenConfiguration
+        },
+        {
             "Names" : "ContainerLogGroup",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
@@ -231,6 +241,16 @@
                     "Default" : true
                 },
                 {
+                    "Names" : "LogMetrics",
+                    "Subobjects" : true,
+                    "Children" : logMetricChildrenConfiguration
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
+                },
+                {
                     "Names" : "NetworkMode",
                     "Type" : STRING_TYPE,
                     "Values" : ["none", "bridge", "awsvpc", "host"],
@@ -310,6 +330,16 @@
                     "Names" : "TaskLogGroup",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
+                },
+                {
+                    "Names" : "LogMetrics",
+                    "Subobjects" : true,
+                    "Children" : logMetricChildrenConfiguration
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
                 },
                 {
                     "Names" : "FixedName",
