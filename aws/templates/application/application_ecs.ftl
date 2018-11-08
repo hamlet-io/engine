@@ -364,7 +364,7 @@
                                 [@createCountAlarm
                                     mode=listMode
                                     id=formatDependentAlarmId(container.Name, alert.Id)
-                                    name=alert.Severity?upper_case + "-" + container.Name + "-" + alert.Name
+                                    name=alert.Severity?upper_case + "-" + core.FullName + "-" + container.Name + "-" + alert.Name
                                     actions=[
                                         getReference(formatSegmentSNSTopicId())
                                     ]
@@ -410,7 +410,7 @@
                             [@createCountAlarm
                                 mode=listMode
                                 id=formatDependentAlarmId(core.Name, alert.Id)
-                                name=alert.Severity?upper_case + "-" + core.Name + "-" + alert.Name
+                                name=alert.Severity?upper_case + "-" + core.FullName + "-" + alert.Name
                                 actions=[
                                     getReference(formatSegmentSNSTopicId())
                                 ]
