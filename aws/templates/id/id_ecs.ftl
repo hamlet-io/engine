@@ -39,11 +39,6 @@
             "Children" : logMetricChildrenConfiguration
         },
         {
-            "Names" : "LogWatchers",
-            "Subobjects" : true,
-            "Children" : logWatcherChildrenConfiguration
-        },
-        {
             "Names" : "Alerts",
             "Subobjects" : true,
             "Children" : alertChildrenConfiguration
@@ -251,11 +246,6 @@
                     "Children" : logMetricChildrenConfiguration
                 },
                 {
-                    "Names" : "LogWatchers",
-                    "Subobjects" : true,
-                    "Children" : logWatcherChildrenConfiguration
-                },
-                {
                     "Names" : "Alerts",
                     "Subobjects" : true,
                     "Children" : alertChildrenConfiguration
@@ -345,11 +335,6 @@
                     "Names" : "LogMetrics",
                     "Subobjects" : true,
                     "Children" : logMetricChildrenConfiguration
-                },
-                {
-                    "Names" : "LogWatchers",
-                    "Subobjects" : true,
-                    "Children" : logWatcherChildrenConfiguration
                 },
                 {
                     "Names" : "Alerts",
