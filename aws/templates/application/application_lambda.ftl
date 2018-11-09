@@ -210,7 +210,6 @@
                         dependencies=fnId
                         /]
                 [/#if]
-
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
                 [#if vpc?has_content && solution.VPCAccess]
                     [@createDependentSecurityGroup
@@ -249,6 +248,22 @@
                         [roleId] +
                         valueIfTrue([fnLgId], solution.PredefineLogGroup, [])
                 /]
+
+                [#if deploymentType == "EDGE" ]
+                    [@createLambdaPermission
+                        mode=listMode
+                        id=formatLambdaPermissionId(fn, "replication")
+                        action="lambda:GetFunction"
+                        targetId=fnId
+                        source={
+                            "Principal" : {
+                                "Service" : "replicator.lambda.amazonaws.com"
+                            }
+                        }
+                        sourceId=scheduleRuleId
+                        dependencies=scheduleRuleId
+                    /]
+                [/#if]
 
                 [#list solution.Schedules?values as schedule ]
 

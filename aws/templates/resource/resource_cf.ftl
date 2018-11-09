@@ -85,7 +85,6 @@
         ]
     ]
 [/#function]
-
 [#function getCFCacheBehaviour origin
     path=""
     methods={}

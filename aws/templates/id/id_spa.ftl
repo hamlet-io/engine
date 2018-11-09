@@ -32,8 +32,68 @@
                     "Default" : {}
                 },
                 {
+                    "Names" : "WAF",
+                    "Children" : wafChildConfiguration
+                },
+                {
                     "Names" : "CloudFront",
-                    "Children" : cloudFrontChildConfiguration
+                    "Children" : [
+                        {
+                            "Names" : "AssumeSNI",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "EnableLogging",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "CountryGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        },
+                        {
+                            "Names" : "ErrorPage",
+                            "Type" : STRING_TYPE,
+                            "Default" : "/index.html"
+                        },
+                        {
+                            "Names" : "DeniedPage",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Names" : "NotFoundPage",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Names" : "CachingTTL",
+                            "Children" : [
+                                {
+                                    "Names" : "Default",
+                                    "Type" : NUMBER_TYPE,
+                                    "Default" : 600
+                                },
+                                {
+                                    "Names" : "Maximum",
+                                    "Type" : NUMBER_TYPE,
+                                    "Default" : 31536000
+                                },
+                                {
+                                    "Names" : "Minimum",
+                                    "Type" : NUMBER_TYPE,
+                                    "Default" : 0
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "Compress",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
                 },
                 {
                     "Names" : "Certificate",
@@ -61,14 +121,11 @@
     [#local cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
 
     [#if isPresent(solution.Certificate) ]
-        [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
-        [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
-        [#local secondaryDomains = getCertificateSecondaryDomains(certificateObject) ]
-        [#local hostName = getHostName(certificateObject, occurrence) ]
-        [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
-
+            [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
+            [#local hostName = getHostName(certificateObject, occurrence) ]
+            [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
     [#else]
-        [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
+            [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
     [/#if]
 
     [#return

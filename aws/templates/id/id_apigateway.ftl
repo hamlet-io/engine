@@ -110,6 +110,10 @@ object.
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Names" : "WAF",
+                    "Children" : wafChildConfiguration
+                },
+                {
                     "Names" : "EndpointType",
                     "Type" : STRING_TYPE,
                     "Values" : ["EDGE", "REGIONAL"],
@@ -128,7 +132,38 @@ object.
                 },
                 {
                     "Names" : "CloudFront",
-                    "Children" : cloudFrontChildConfiguration
+                    "Children" : [
+                        {
+                            "Names" : "AssumeSNI",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "EnableLogging",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        },
+                        {
+                            "Names" : "CountryGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
+                        },
+                        {
+                            "Names" : "CustomHeaders",
+                            "Type" : ARRAY_OF_ANY_TYPE,
+                            "Default" : []
+                        },
+                        {
+                            "Names" : "Mapping",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
+                            "Names" : "Compress",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
                 },
                 {
                     "Names" : "Certificate",
@@ -143,8 +178,9 @@ object.
                             "Default" : "docs"
                         },
                         {
-                            "Names" : "CloudFront",
-                            "Children" : cloudFrontChildConfiguration
+                            "Names" : "IPAddressGroups",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : []
                         }
                     ]
                 },

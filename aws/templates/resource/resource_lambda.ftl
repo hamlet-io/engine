@@ -102,7 +102,7 @@
     /]
 [/#macro]
 
-[#macro createLambdaPermission mode id targetId source={} sourcePrincipal="" sourceId="" dependencies=""]
+[#macro createLambdaPermission mode id targetId action="lambda:InvokeFunction" source={} sourcePrincipal="" sourceId="" dependencies=""]
     [@cfResource
         mode=mode
         id=id
@@ -110,7 +110,7 @@
         properties=
             {
                 "FunctionName" : getReference(targetId),
-                "Action" : "lambda:InvokeFunction"
+                "Action" : action
             } +
             valueIfContent(
                 source,
