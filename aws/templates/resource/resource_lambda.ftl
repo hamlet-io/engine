@@ -15,6 +15,9 @@
     {
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : {
+            "UseRef" : true
         }
     }
 ]

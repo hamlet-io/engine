@@ -201,7 +201,7 @@
 
             [#if deploymentSubsetRequired("lambda", true)]
 
-                [#if solution.Versioned ]
+                [#if solution.Versioned || deploymentType == "EDGE" ]
                     [#assign versionId = resources["version"].Id  ]
                     [@createLambdaVersion
                         mode=listMode
@@ -254,11 +254,9 @@
                         mode=listMode
                         id=formatLambdaPermissionId(fn, "replication")
                         action="lambda:GetFunction"
-                        targetId=fnId
+                        targetId=versionId
                         source={
-                            "Principal" : {
-                                "Service" : "replicator.lambda.amazonaws.com"
-                            }
+                            "Principal" : "replicator.lambda.amazonaws.com"
                         }
                         sourceId=scheduleRuleId
                         dependencies=scheduleRuleId

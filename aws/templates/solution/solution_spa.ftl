@@ -17,20 +17,78 @@
         [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
         [#assign hostName = getHostName(certificateObject, occurrence) ]
         [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
+        [#assign primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
+        [#assign primaryFQDN = formatDomainName(hostName, primaryDomainObject)]
 
         [#-- Get alias list --]
-        [#assign aliases = [] ]
+        [#assign aliases = [] ] 
         [#list certificateObject.Domains as domain]
             [#assign aliases += [ formatDomainName(hostName, domain.Name) ] ]
         [/#list]
 
+        [#-- Headers --]
+        [#assign customOriginHeaders = []]
+        [#assign forwardHeaders = []]
+
         [#-- Get any event handlers --]
-        [#assign eventHandlers = [] ]
-        [#assign originRequestHandler =
-          getOccurrenceSettingValue(occurrence, ["EventHandlers", "OriginRequest"], true) ]
-        [#if originRequestHandler?has_content]
-            [#assign eventHandlers += getCFEventHandler("origin-request", originRequestHandler) ]
+        [#assign eventHandlerLinks = {} ]
+        [#assign eventHandlers = []]
+
+        [#if aliases?has_content ]
+            [#assign forwardHeaders += [ "Host" ]]
+            [#assign eventHandlerLinks += {
+                "cfredirect" : {
+                    "Tier" : "global",
+                    "Component" : "cfredirect",
+                    "Version" : "",
+                    "Instance" : "",
+                    "Function" : "cfredirect",
+                    "Action" : "origin-request"
+                }
+            }]
+
+            [#assign customOriginHeaders += 
+                    [ 
+                        getCFHTTPHeader( 
+                            "X-Redirect-Primary-Domain-Name",
+                             primaryFQDN ),
+                        getCFHTTPHeader(
+                            "X-Redirect-Response-Code",
+                            "301"
+                        )
+                    ]]
         [/#if]
+        
+        [#assign eventHandlerLinks += solution.CloudFront.EventHandlers ]
+        [#list eventHandlerLinks?values as eventHandler]
+
+            [#assign eventHandlerTarget = getLinkTarget(occurrence, eventHandler) ]
+            
+            [@cfDebug listMode eventHandlerTarget false /]
+
+            [#if !eventHandlerTarget?has_content]
+                [#continue]
+            [/#if]
+
+            [#assign eventHandlerCore = eventHandlerTarget.Core ]
+            [#assign eventHandlerResources = eventHandlerTarget.State.Resources ] 
+            [#assign eventHandlerAttributes = eventHandlerTarget.State.Attributes ]
+            [#assign eventHandlerConfiguration = eventHandlerTarget.Configuration ]
+
+            [#if (eventHandlerCore.Type) == LAMBDA_FUNCTION_COMPONENT_TYPE &&
+                    eventHandlerAttributes["DEPLOYMENT_TYPE"] == "EDGE" ]
+
+                    [#assign eventHandlers += getCFEventHandler(
+                                                eventHandler.Action,
+                                                eventHandlerResources["version"].Id) ]
+            [#else]
+                [@cfException
+                        mode=listMode
+                        description="Invalid Event Handler Component - Must be Lambda - EDGE"
+                        context=occurrence
+                    /]
+            [/#if]
+        [/#list]
 
         [#assign cfId               = resources["cf"].Id]
         [#assign cfName             = resources["cf"].Name]
@@ -54,13 +112,15 @@
                     cfSPAOriginId,
                     operationsBucket,
                     cfAccess,
-                    formatAbsolutePath(getSettingsFilePrefix(occurrence), "spa"))]
+                    formatAbsolutePath(getSettingsFilePrefix(occurrence), "spa"),
+                    customOriginHeaders)]
             [#assign configOrigin =
                 getCFS3Origin(
                     cfConfigOriginId,
                     operationsBucket,
                     cfAccess,
-                    formatAbsolutePath(getSettingsFilePrefix(occurrence)))]
+                    formatAbsolutePath(getSettingsFilePrefix(occurrence)),
+                    customOriginHeaders)]
 
             [#assign spaCacheBehaviour = getCFSPACacheBehaviour(
                 spaOrigin,
@@ -71,13 +131,15 @@
                     "Min" : solution.CloudFront.CachingTTL.Minimum
                 },
                 solution.CloudFront.Compress,
-                eventHandlers)]
+                eventHandlers,
+                forwardHeaders)]
             [#assign configCacheBehaviour = getCFSPACacheBehaviour(
                 configOrigin,
                 "/config/*",
                 {"Default" : 60},
                 solution.CloudFront.Compress,
-                eventHandlers) ]
+                eventHandlers,
+                forwardHeaders) ]
 
             [#assign restrictions = {} ]
             [#if solution.CloudFront.CountryGroups?has_content]

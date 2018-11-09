@@ -225,9 +225,11 @@
     ]
 [/#function]
 
-[#function getFunctionState occurrence]
+[#function getFunctionState occurrence parent]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
+
+    [#local parentSolution = parent.Configuration.Solution ]
 
     [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
     [#local versionId = formatResourceId(AWS_LAMBDA_VERSION_RESOURCE_TYPE, core.Id)]
@@ -270,7 +272,8 @@
                                 "function:" + core.FullName,
                                 true)
                 ),
-                "NAME" : core.FullName
+                "NAME" : core.FullName,
+                "DEPLOYMENT_TYPE": parentSolution.DeploymentType
             },
             "Roles" : {
                 "Inbound" : {
