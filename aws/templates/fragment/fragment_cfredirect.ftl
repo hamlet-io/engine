@@ -7,7 +7,7 @@
 
     [#assign redirectScript = [
         "'use strict';",
-        "/* This function is used to perform redirects when an application has moved domains", 
+        "/* This function is used to perform redirects when an application has moved domains",
         "    Any request that does not have a host header which matches the Primary Domain",
         "    will be redirected to the same location with the new domain name */",
         "exports.handler = (event, context, callback) => {",
@@ -16,9 +16,11 @@
         "    const host = headers.host[0].value.toLowerCase();",
         "    if ( request.origin.custom ) {",
         "        var customHeaders = request.origin.custom.customHeaders;",
+        "        var originDomain  = request.origin.custom.domainName;",
         "    }",
         "    if ( request.origin.s3 ) { ",
         "        var customHeaders = request.origin.s3.customHeaders;",
+        "        var originDomain  = request.origin.s3.domainName;",
         "    }",
         "    const redirectPrimaryDomainHeaderName = 'X-Redirect-Primary-Domain-Name';",
         "    const redirectResponseCodeHeaderName = 'X-Redirect-Response-Code';",
@@ -34,6 +36,7 @@
         "    }",
         "    /* If for primary domain, proceed with request */",
         "    if ( host === primaryHost  ) {",
+        "        request.headers['host'] = [{key: 'Host', value: originDomain}];",
         "        callback(null, request);",
         "    } else {",
         "        var redirectUrl = 'https://' + primaryHost;",
@@ -59,10 +62,10 @@
         "};"
             ]]
 
-    [@lambdaAttributes 
-        zipFile=redirectScript 
+    [@lambdaAttributes
+        zipFile=redirectScript
     /]
-    
+
     [#-- Ensure Environment Variables are empty for lambda@Edge --]
     [#assign _context += {
         "DefaultEnvironment" : {},

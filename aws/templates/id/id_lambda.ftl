@@ -201,7 +201,7 @@
         }
     }
 ]
-    
+
 [#function getLambdaState occurrence]
     [#local core = occurrence.Core]
 
@@ -232,7 +232,7 @@
     [#local parentSolution = parent.Configuration.Solution ]
 
     [#local id = formatResourceId(AWS_LAMBDA_FUNCTION_RESOURCE_TYPE, core.Id)]
-    [#local versionId = formatResourceId(AWS_LAMBDA_VERSION_RESOURCE_TYPE, core.Id)]
+    [#local versionId = formatResourceId(AWS_LAMBDA_VERSION_RESOURCE_TYPE, core.Id, runId)]
 
     [#local lgId = formatLogGroupId(core.Id)]
     [#local lgName = formatAbsolutePath("aws", "lambda", core.FullName)]
@@ -250,7 +250,7 @@
                     "Name" : lgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
-            } + 
+            } +
             attributeIfTrue(
                 "version",
                 solution.Versioned,
@@ -266,7 +266,7 @@
                             solution.Versioned
                             formatArn(
                                 regionObject.Partition,
-                                "lambda", 
+                                "lambda",
                                 regionId,
                                 accountObject.AWSId,
                                 "function:" + core.FullName,
