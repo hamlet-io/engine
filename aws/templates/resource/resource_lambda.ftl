@@ -11,6 +11,17 @@
     }
 ]
 
+[#assign LAMBDA_VERSION_OUTPUT_MAPPINGS = 
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        }
+    }
+]
+
 [#assign LAMBDA_PERMISSION_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -41,10 +52,16 @@
         type="AWS::Lambda::Function"
         properties=
             {
-                "Code" : {
-                    "S3Bucket" : settings.S3Bucket,
-                    "S3Key" : settings.S3Key
-                },
+                "Code" : 
+                    valueIfContent(
+                        { 
+                            "ZipFile" : settings.ZipFile 
+                        },
+                        settings.ZipFile!"",
+                        {
+                            "S3Bucket" : settings.S3Bucket,
+                            "S3Prefix" : settings.S3Prefix
+                        }),
                 "FunctionName" : settings.Name,
                 "Description" : settings.Description,
                 "Handler" : settings.Handler,
@@ -70,7 +87,25 @@
     /]
 [/#macro]
 
-[#macro createLambdaPermission mode id targetId source={} sourcePrincipal="" sourceId="" dependencies=""]
+[#macro createLambdaVersion mode id targetId description="" dependencies="" ]
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::Lambda::Version"
+        properties=
+            {
+                "FunctionName" : getReference(targetId)
+            } + 
+            attributeIfContent(
+                "Description",
+                description
+            )
+        outputs=LAMBDA_VERSION_OUTPUT_MAPPINGS
+        dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createLambdaPermission mode id targetId action="lambda:InvokeFunction" source={} sourcePrincipal="" sourceId="" dependencies=""]
     [@cfResource
         mode=mode
         id=id
@@ -78,7 +113,7 @@
         properties=
             {
                 "FunctionName" : getReference(targetId),
-                "Action" : "lambda:InvokeFunction"
+                "Action" : action
             } +
             valueIfContent(
                 source,

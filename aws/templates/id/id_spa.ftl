@@ -92,6 +92,42 @@
                             "Names" : "Compress",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
+                        },
+                        {
+                            "Names" : "EventHandlers",
+                            "Description" : "Attach a function to a stage in the Cloudfront Processing",
+                            "Subobjects" : true,
+                            "Children" : [
+                                {
+                                    "Names" : "Tier",
+                                    "Type" : STRING_TYPE,
+                                    "Mandatory" : true
+                                },
+                                {
+                                    "Names" : "Component",
+                                    "Type" : STRING_TYPE,
+                                    "Mandatory" : true
+                                },
+                                {
+                                    "Names" : "Function",
+                                    "Type" : STRING_TYPE,
+                                    "Mandatory" : true
+                                },
+                                {
+                                    "Names" : "Instance",
+                                    "Type" : STRING_TYPE
+                                },
+                                {
+                                    "Names" : "Version",
+                                    "Type" : STRING_TYPE
+                                },
+                                {
+                                    "Names" : "Action",
+                                    "Type" : STRING_TYPE,
+                                    "Values" : [ "viewer-request", "viewer-response", "origin-request", "origin-response" ],
+                                    "Mandatory" : true
+                                }
+                            ]
                         }
                     ]
                 },

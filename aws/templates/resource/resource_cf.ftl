@@ -30,7 +30,19 @@
     }
 ]
 
-[#function getCFS3Origin id bucket accessId path=""]
+[#function getCFHTTPHeader name value]
+    [#return
+        {
+          "HeaderName" : name,
+          "HeaderValue" : value
+        }
+    ]
+[/#function]
+
+[#function getCFS3Origin id bucket 
+            accessId 
+            path="" 
+            headers=[]]
     [#return
         [
             {
@@ -40,17 +52,9 @@
                     "OriginAccessIdentity" : "origin-access-identity/cloudfront/" + accessId
                 }
             } +
+            attributeIfContent("OriginCustomHeaders", asArray(headers)) +
             attributeIfContent("OriginPath", path)
         ]
-    ]
-[/#function]
-
-[#function getCFHTTPHeader name value]
-    [#return
-        {
-          "HeaderName" : name,
-          "HeaderValue" : value
-        }
     ]
 [/#function]
 
@@ -75,12 +79,12 @@
     ]
 [/#function]
 
-[#function getCFEventHandler type lambdaId]
+[#function getCFEventHandler type lambdaVersionId ]
     [#return
         [
           {
               "EventType" : type,
-              "LambdaFunctionARN" : getArn(lambdaId, false, "us-east-1")
+              "LambdaFunctionARN" : getArn(lambdaVersionId, false, "us-east-1") 
           }
         ]
     ]
@@ -171,7 +175,7 @@
     ]
 [/#function]
 
-[#function getCFSPACacheBehaviour origin path="" ttl={"Default" : 600}  compress=true eventHandlers=[] ]
+[#function getCFSPACacheBehaviour origin path="" ttl={"Default" : 600}  compress=true eventHandlers=[] forwardHeaders=[] ]
     [#return
         getCFCacheBehaviour(
             origin,
@@ -191,7 +195,9 @@
             {
                 "Cookies" : {
                     "Forward" : "all"
+                    
                 },
+                "Headers" : forwardHeaders,
                 "QueryString" : true
             },
             compress,

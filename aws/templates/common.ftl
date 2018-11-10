@@ -883,7 +883,7 @@ behaviour.
                 [#break]
 
             [#case "function"]
-                [#local result = getFunctionState(occurrence)]
+                [#local result = getFunctionState(occurrence, parentOccurrence)]
                 [#break]
 
             [#case "lambda"]
