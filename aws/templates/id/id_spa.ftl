@@ -94,6 +94,17 @@
                             "Default" : true
                         },
                         {
+                            "Names" : "RedirectAliases",
+                            "Description" : "Redirect secondary domains to the primary domain name",
+                            "Children" : [
+                                {
+                                    "Names" : "RedirectVersion",
+                                    "Type" : STRING_TYPE,
+                                    "Default" : "v1"
+                                }
+                            ]
+                        },
+                        {
                             "Names" : "EventHandlers",
                             "Description" : "Attach a function to a stage in the Cloudfront Processing",
                             "Subobjects" : true,

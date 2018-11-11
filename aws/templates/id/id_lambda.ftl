@@ -193,9 +193,14 @@
                     "Children" : settingsChildConfiguration
                 },
                 {
-                    "Names" : "Versioned",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : false
+                    "Names" : "FixedCodeVersion",
+                    "Children" : [
+                        {
+                            "Names" : "CodeHash",
+                            "Description" : "A sha256 hash of the code zip file",
+                            "Default" : ""
+                        }
+                    ]
                 }
             ]
         }
@@ -237,6 +242,8 @@
     [#local lgId = formatLogGroupId(core.Id)]
     [#local lgName = formatAbsolutePath("aws", "lambda", core.FullName)]
 
+    [#local fixedCodeVersion = isPresent(solution.FixedCodeVersion) ]
+
     [#return
         {
             "Resources" : {
@@ -253,7 +260,7 @@
             } +
             attributeIfTrue(
                 "version",
-                solution.Versioned,
+                fixedCodeVersion,
                 {
                     "Id" : versionId,
                     "Type" : AWS_LAMBDA_VERSION_RESOURCE_TYPE
@@ -263,7 +270,7 @@
                 "REGION" : regionId,
                 "ARN" : valueIfTrue(
                             getExistingReference( versionId ),
-                            solution.Versioned
+                            fixedCodeVersion
                             formatArn(
                                 regionObject.Partition,
                                 "lambda",

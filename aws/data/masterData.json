@@ -907,17 +907,25 @@
       },
       "Components": {
         "cfredirect" : {
-          "DeploymentUnits" : ["cfredirect"],
           "Lambda" : {
+              "Instances" : {
+                "default" : {
+                  "Versions" : {
+                      "v1" : {
+                        "DeploymentUnits" : ["cfredirect-v1"],
+                        "Fragment" : "_cfredirect-v1"
+                    }
+                  }
+                }
+              },
               "DeploymentType" : "EDGE",
               "RunTime" : "nodejs6.10",
               "MemorySize" : 128,
               "Timeout" : 1,
-              "Versioned" : true,
+              "FixedCodeVersion" : {},
               "Functions" : {
                   "cfredirect" : {
                       "Handler" : "index.handler",
-                      "Fragment" : "_cfredirect",
                       "VPCAccess" : false,
                       "Permissions" : {
                         "Decrypt" : false,
@@ -1032,7 +1040,7 @@
     }
   },
   "Product": {
-    "cfredirect" : {
+    "cfredirect-v1" : {
       "Region" : "us-east-1"
     },
     "Builds": {

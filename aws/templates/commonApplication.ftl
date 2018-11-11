@@ -53,7 +53,12 @@
     [/#if]
 [/#macro]
 
-[#macro lambdaAttributes imageBucket="" imagePrefix="" zipFile="" ]
+[#macro lambdaAttributes 
+        imageBucket="" 
+        imagePrefix="" 
+        zipFile=""
+        codeHash=""  ]
+
     [#if (fragmentListMode!"") == "model"]
         [#assign _context += {
                 "S3Bucket" : imageBucket,
@@ -63,7 +68,8 @@
                         "\n",
                         asArray(zipFile)
                     ]
-                }
+                },
+                "CodeHash" : codeHash
             }
         ]
     [/#if]
