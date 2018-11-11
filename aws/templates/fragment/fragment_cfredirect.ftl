@@ -1,5 +1,4 @@
-[#case "cfredirect"]
-[#case "_cfredirect"]
+[#case "_cfredirect-v1"]
 
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]
@@ -66,9 +65,4 @@
         zipFile=redirectScript
     /]
 
-    [#-- Ensure Environment Variables are empty for lambda@Edge --]
-    [#assign _context += {
-        "DefaultEnvironment" : {},
-        "Environment" : {}
-    }]
     [#break]

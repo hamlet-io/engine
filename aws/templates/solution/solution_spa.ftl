@@ -34,13 +34,13 @@
         [#assign eventHandlerLinks = {} ]
         [#assign eventHandlers = []]
 
-        [#if aliases?has_content ]
+        [#if solution.CloudFront.RedirectAliases.Enabled && aliases?has_content ]
             [#assign forwardHeaders += [ "Host" ]]
             [#assign eventHandlerLinks += {
                 "cfredirect" : {
                     "Tier" : "global",
                     "Component" : "cfredirect",
-                    "Version" : "",
+                    "Version" : solution.CloudFront.RedirectAliases.RedirectVersion,
                     "Instance" : "",
                     "Function" : "cfredirect",
                     "Action" : "origin-request"

@@ -87,7 +87,11 @@
     /]
 [/#macro]
 
-[#macro createLambdaVersion mode id targetId description="" dependencies="" ]
+[#macro createLambdaVersion mode id 
+            targetId 
+            codeHash=""
+            description="" 
+            dependencies="" ]
     [@cfResource
         mode=mode
         id=id
@@ -99,6 +103,10 @@
             attributeIfContent(
                 "Description",
                 description
+            ) +
+            attributeIfContent(
+                "CodeSha256",
+                codeHash
             )
         outputs=LAMBDA_VERSION_OUTPUT_MAPPINGS
         dependencies=dependencies

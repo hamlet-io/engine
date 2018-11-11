@@ -49,7 +49,8 @@
                     "DefaultEnvironmentVariables" : true,
                     "DefaultLinkVariables" : true,
                     "Policy" : standardPolicies(fn),
-                    "ManagedPolicy" : []
+                    "ManagedPolicy" : [],
+                    "CodeHash" : solution.FixedCodeVersion.CodeHash
                 }
             ]
 
@@ -113,6 +114,14 @@
             [#assign fragmentId = formatFragmentId(_context)]
             [#assign containerId = fragmentId]
             [#include fragmentList?ensure_starts_with("/")]
+
+            [#-- clear all environment variables for EDGE deployments --]
+            [#if deploymentType == "EDGE" ]
+                    [#assign _context += {
+                    "DefaultEnvironment" : {},
+                    "Environment" : {}
+                }]
+            [/#if]
 
             [#assign finalEnvironment = getFinalEnvironment(fn, _context, solution.Environment) ]
             [#assign finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
@@ -200,16 +209,27 @@
             [/#if]
 
             [#if deploymentSubsetRequired("lambda", true)]
-
-                [#if solution.Versioned || deploymentType == "EDGE" ]
+                [#if isPresent(solution.FixedCodeVersion) ]
                     [#assign versionId = resources["version"].Id  ]
+                    [#assign codeHash = _context.CodeHash!solution.FixedCodeVersion.CodeHash ]
+
+                    [#if !(core.Version?has_content)]
+                        [@cfException
+                            mode=listMode
+                            description="A version must be defined for Fixed Code Version deployments"
+                            context=core
+                        /]
+                    [/#if]
+
                     [@createLambdaVersion
                         mode=listMode
                         id=versionId
-                        targetId=fnId 
+                        targetId=fnId
+                        codeHash=_context.CodeHash!""
                         dependencies=fnId
                         /]
                 [/#if]
+
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
                 [#if vpc?has_content && solution.VPCAccess]
                     [@createDependentSecurityGroup
@@ -250,6 +270,16 @@
                 /]
 
                 [#if deploymentType == "EDGE" ]
+
+                    [#if !isPresent(solution.FixedCodeVersion) ]
+                        [@cfException
+                            mode=listMode
+                            description="EDGE based deployments must be deployed as Fixed code version deployments"
+                            context=_context
+                            detail="Lambda@Edge deployments are based on a snapshot of lambda code and a specific codeontap version is requried " 
+                        /]
+                    [/#if]
+
                     [@createLambdaPermission
                         mode=listMode
                         id=formatLambdaPermissionId(fn, "replication")
