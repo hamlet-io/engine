@@ -192,7 +192,7 @@
         [#-- Define subnets --]
         [#list segmentObject.Network.Tiers.Order as tierId]
             [#assign networkTier = getTier(tierId) ]
-            [#if ! (networkTier?has_content) ]
+            [#if ! (networkTier?has_content && networkTier.Network.Enabled ) ]
                 [#continue]
             [/#if]
             [#assign routeTable = routeTables[networkTier.Network.RouteTable]]
