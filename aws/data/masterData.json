@@ -898,7 +898,7 @@
       "Description": "Non-network Tier For documentation generation",
       "Name": "documentation"
     },
-    "global": {
+    "gbl": {
       "Title": "Global Tier",
       "Description" : "Components which are used for Global Services",
       "Name" : "global",
@@ -1426,7 +1426,7 @@
           "spare",
           "elb",
           "ilb",
-          "global",
+          "gbl",
           "spare",
           "spare",
           "spare",
@@ -1473,7 +1473,7 @@
         "ana",
         "mgmt",
         "docs",
-        "global"
+        "gbl"
       ]
     }
   },
