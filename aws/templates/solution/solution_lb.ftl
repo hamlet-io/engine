@@ -388,7 +388,7 @@
                     [/#if]
 
                     [#-- Basic Forwarding --]
-                    [#if !(isPresent(solution.Redirect) || isPresent(solution.Fixed)) ]
+                    [#if !listenerRulesConfig[listenerRuleId]?has_content ]
                         [#assign listenerRulesConfig +=
                             {
                                 listenerRuleId : {
@@ -398,7 +398,6 @@
                                             getListenerRuleForwardAction(targetGroupId))
                                 }
                             } ]
-
                     [/#if]
 
                     [#if deploymentSubsetRequired("cli", false)]
