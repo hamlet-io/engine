@@ -37,7 +37,7 @@
                     "DefaultEnvironment" : defaultEnvironment(fn, contextLinks),
                     "Environment" : {},
                     "S3Bucket" : getRegistryEndPoint("lambda", occurrence),
-                    "S3Prefix" :
+                    "S3Key" :
                         formatRelativePath(
                             getRegistryPrefix("lambda", occurrence) + productName,
                             getOccurrenceBuildUnit(occurrence),
