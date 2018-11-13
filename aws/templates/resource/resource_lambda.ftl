@@ -60,7 +60,7 @@
                         settings.ZipFile!"",
                         {
                             "S3Bucket" : settings.S3Bucket,
-                            "S3Prefix" : settings.S3Prefix
+                            "S3Key" : settings.S3Key
                         }),
                 "FunctionName" : settings.Name,
                 "Description" : settings.Description,
