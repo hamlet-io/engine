@@ -37,7 +37,7 @@
                     "DefaultEnvironment" : defaultEnvironment(fn, contextLinks),
                     "Environment" : {},
                     "S3Bucket" : getRegistryEndPoint("lambda", occurrence),
-                    "S3Key" :
+                    "S3Prefix" :
                         formatRelativePath(
                             getRegistryPrefix("lambda", occurrence) + productName,
                             getOccurrenceBuildUnit(occurrence),
@@ -146,7 +146,7 @@
                     id=roleId
                     trustedServices=[
                         "lambda.amazonaws.com"
-                    ] + 
+                    ] +
                     (deploymentType == "EDGE")?then(
                         [
                             "edgelambda.amazonaws.com"
@@ -180,7 +180,7 @@
                 [/#if]
             [/#if]
 
-            [#if deploymentType == "REGIONAL" && 
+            [#if deploymentType == "REGIONAL" &&
                   solution.PredefineLogGroup &&
                   deploymentSubsetRequired("lg", true) &&
                   isPartOfCurrentDeploymentUnit(fnLgId) ]
@@ -276,7 +276,7 @@
                             mode=listMode
                             description="EDGE based deployments must be deployed as Fixed code version deployments"
                             context=_context
-                            detail="Lambda@Edge deployments are based on a snapshot of lambda code and a specific codeontap version is requried " 
+                            detail="Lambda@Edge deployments are based on a snapshot of lambda code and a specific codeontap version is requried "
                         /]
                     [/#if]
 
