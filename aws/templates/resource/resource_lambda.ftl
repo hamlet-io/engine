@@ -11,7 +11,7 @@
     }
 ]
 
-[#assign LAMBDA_VERSION_OUTPUT_MAPPINGS = 
+[#assign LAMBDA_VERSION_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
@@ -52,10 +52,10 @@
         type="AWS::Lambda::Function"
         properties=
             {
-                "Code" : 
+                "Code" :
                     valueIfContent(
-                        { 
-                            "ZipFile" : settings.ZipFile 
+                        {
+                            "ZipFile" : settings.ZipFile!""
                         },
                         settings.ZipFile!"",
                         {
@@ -87,10 +87,10 @@
     /]
 [/#macro]
 
-[#macro createLambdaVersion mode id 
-            targetId 
+[#macro createLambdaVersion mode id
+            targetId
             codeHash=""
-            description="" 
+            description=""
             dependencies="" ]
     [@cfResource
         mode=mode
@@ -99,7 +99,7 @@
         properties=
             {
                 "FunctionName" : getReference(targetId)
-            } + 
+            } +
             attributeIfContent(
                 "Description",
                 description
