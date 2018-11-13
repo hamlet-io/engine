@@ -11,7 +11,7 @@
     } ]
 
 [#-- Determine the Cognito User Pools --]
-[#assign _context += {"CognitoPools" : getLegacyCognitoPools(context, integrationsObject)} ]
+[#assign _context += {"CognitoPools" : getLegacyCognitoPools(_context, integrationsObject)} ]
 
 [@toJSON extendSwaggerDefinition(swaggerObject, integrationsObject, _context) /]
 
