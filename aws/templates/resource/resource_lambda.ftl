@@ -59,8 +59,8 @@
                         },
                         settings.ZipFile!"",
                         {
-                            "S3Bucket" : settings.S3Bucket,
-                            "S3Prefix" : settings.S3Prefix
+                            "S3Bucket" : settings.S3Bucket!"",
+                            "S3Prefix" : settings.S3Prefix!""
                         }),
                 "FunctionName" : settings.Name,
                 "Description" : settings.Description,
