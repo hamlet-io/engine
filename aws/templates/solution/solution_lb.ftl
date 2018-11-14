@@ -411,7 +411,7 @@
                     [#if deploymentSubsetRequired("epilogue", false) ]
                         [#list listenerRulesConfig as id, ruleConfig]
                             [#if getExistingReference(listenerId)?has_content ]
-                                [#assign rulesScript +=
+                                [#assign rulesScript += 
                                     [
                                         "    info \"Creating Listener rule " + id + "\"",
                                         "    listener_rule_arn=$( create_elbv2_rule " +
@@ -419,7 +419,14 @@
                                             "\"" + getExistingReference(listenerId) + "\" " +
                                             "\"$\{tmpdir}/cli-" +
                                             id + "-" + listenerRuleCommand + ".json\" || return $?)"
-                                    ] ]
+                                    ]
+                                ]
+                            [#else]
+                                [#assign rulesScript += 
+                                    [
+                                        "    warning \"Please run another pass to create Listener rules for " + id + "\""
+                                    ]
+                                ]
                             [/#if]
                         [/#list]
                     [/#if]
@@ -521,11 +528,11 @@
             [/#switch]
         [/#list]
 
-        [#if deploymentSubsetRequired("epilogue", false) ]
+        [#if deploymentSubsetRequired("epilogue", false) && rulesScript?has_content ]
 
             [@cfScript
                 mode=listMode
-                content= (rulesScript?has_content)?then(
+                content=
                     [
                         "case $\{STACK_OPERATION} in",
                         "  create|update)",
@@ -539,11 +546,7 @@
                     [
                         "    ;;",
                         "esac"
-                    ],
-                    [
-                        "warning \"Please run another update to complete the configuration\""
                     ]
-                )
             /]
         [/#if]
 
