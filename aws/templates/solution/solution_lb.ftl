@@ -39,6 +39,9 @@
         [#assign classicStickinessPolicies = []]
         [#assign classicConnectionDrainingTimeouts = []]
 
+        [#assign ruleCleanupScript = []]
+        [#assign rulesScript = [] ]
+
         [#assign classicHTTPSPolicyName = "ELBSecurityPolicy"]
         [#if engine == "classic" ]
             [#assign classicPolicies += [
@@ -370,19 +373,13 @@
                                 /]
                             [/#if]
                             [#if deploymentSubsetRequired("epilogue", false) ]
-                                [@cfScript
-                                    mode=listMode
-                                    content=
-                                        [
-                                            "case $\{STACK_OPERATION} in",
-                                            "  create|update)",
+                                [#if getExistingReference(listenerId)?has_content ]
+                                    [#assign ruleCleanupScript += [
                                             "cleanup_elbv2_rules" +
                                             "       \"" + region + "\" " +
                                             "       \"" + getExistingReference(listenerId, ARN_ATTRIBUTE_TYPE) + "\" "
-                                            "   ;;",
-                                            "   esac"
-                                        ]
-                                /]
+                                        ]]
+                                [/#if]
                             [/#if]
                         [/#if]
                     [/#if]
@@ -412,38 +409,19 @@
                     [/#if]
 
                     [#if deploymentSubsetRequired("epilogue", false) ]
-                        [#assign rulesScript = [] ]
                         [#list listenerRulesConfig as id, ruleConfig]
-                            [#assign rulesScript +=
-                                [
-                                    "    info \"Creating Listener rule " + id + "\"",
-                                    "    listener_rule_arn=$( create_elbv2_rule " +
-                                        "\"" + region + "\" " +
-                                        "\"" + getExistingReference(listenerId) + "\" " +
-                                        "\"$\{tmpdir}/cli-" +
-                                        id + "-" + listenerRuleCommand + ".json\" || return $?)"
-                                ] ]
+                            [#if getExistingReference(listenerId)?has_content ]
+                                [#assign rulesScript +=
+                                    [
+                                        "    info \"Creating Listener rule " + id + "\"",
+                                        "    listener_rule_arn=$( create_elbv2_rule " +
+                                            "\"" + region + "\" " +
+                                            "\"" + getExistingReference(listenerId) + "\" " +
+                                            "\"$\{tmpdir}/cli-" +
+                                            id + "-" + listenerRuleCommand + ".json\" || return $?)"
+                                    ] ]
+                            [/#if]
                         [/#list]
-                        [@cfScript
-                            mode=listMode
-                            content= (getExistingReference(listenerId)?has_content)?then(
-                                [
-                                    "case $\{STACK_OPERATION} in",
-                                    "  create|update)",
-                                    "    # Get cli config file",
-                                    "    split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                                    "    # Apply CLI level updates to ELB listener"
-                                ] +
-                                rulesScript +
-                                [
-                                    "    ;;",
-                                    "esac"
-                                ],
-                                [
-                                    "warning \"Please run another update to complete the configuration\""
-                                ]
-                            )
-                        /]
                     [/#if]
 
                 [#case "network"]
@@ -542,6 +520,32 @@
                     [#break]
             [/#switch]
         [/#list]
+
+        [#if deploymentSubsetRequired("epilogue", false) ]
+
+            [@cfScript
+                mode=listMode
+                content= (rulesScript?has_content)?then(
+                    [
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)",
+                        "    # Get cli config file",
+                        "    split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                        "    # Apply CLI level updates to ELB listener",
+                        "    info \"Removing listener rules before applying new rules\""
+                    ] +
+                    ruleCleanupScript + 
+                    rulesScript +
+                    [
+                        "    ;;",
+                        "esac"
+                    ],
+                    [
+                        "warning \"Please run another update to complete the configuration\""
+                    ]
+                )
+            /]
+        [/#if]
 
         [#-- Port Protocol Validation --]
         [#assign InvalidProtocol = false]
