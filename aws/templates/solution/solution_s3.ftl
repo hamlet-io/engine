@@ -53,7 +53,6 @@
             [/#if]
         [/#list]
 
-        [#assign bucketPolicyId = resources["bucketpolicy"].Id ]
         [#assign policyStatements = [] ]
 
         [#list solution.PublicAccess?values as publicAccessConfiguration]
@@ -93,7 +92,7 @@
         [/#list]
         
         [#if policyStatements?has_content ]
-
+            [#assign bucketPolicyId = resources["bucketpolicy"].Id ]
             [@createBucketPolicy
                 mode=listMode
                 id=bucketPolicyId
