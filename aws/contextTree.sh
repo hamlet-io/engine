@@ -354,10 +354,10 @@ function assemble_composite_definitions() {
       addToArray "definitions_array" "${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"/*-definition.json
 
   ${restore_nullglob}
-  
+
   debug "DEFINITIONS=${definitions_array[*]}"
   jqMerge "${definitions_array[@]}" > "${tmp_file}"
-  
+
   # Escape any freemarker markup
   export COMPOSITE_DEFINITIONS="${CACHE_DIR}/composite_definitions.json"
   sed 's/${/$\\{/g' < "${tmp_file}" > "${COMPOSITE_DEFINITIONS}"
@@ -1143,7 +1143,7 @@ function upgrade_cmdb_repo_to_v1_2_0() {
   return ${return_status}
 }
 
-function upgrade_cmdb_repo_to_v1_3_0() { 
+function upgrade_cmdb_repo_to_v1_3_0() {
   local root_dir="$1";shift
   local dry_run="$1";shift
 
@@ -1174,35 +1174,35 @@ function upgrade_cmdb_repo_to_v1_3_0() {
         cmk_path="$(filePath "${cmk_stack}")"
 
         readarray -t segment_stacks < <(find "${cmk_path}"  -type f -name "*stack.json")
-        for stack_file in "${segment_stacks[@]}"; do 
+        for stack_file in "${segment_stacks[@]}"; do
 
-          parse_stack_filename "${stack_file}" 
+          parse_stack_filename "${stack_file}"
           stack_dir="$(filePath "${stack_file}")"
           stack_filename="$(fileName "${stack_file}")"
 
-          # Add Standard Account and Region Stack Outputs 
+          # Add Standard Account and Region Stack Outputs
           stackoutput_account="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Account" ) | .OutputValue' < "${stack_file}" )"
           stackoutput_region="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Region" ) | .OutputValue' < "${stack_file}" )"
           stackoutput_level="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="Level" ) | .OutputValue' < "${stack_file}" )"
           stackoutput_deployment_unit="$( jq -r '.Stacks[0].Outputs[] | select( .OutputKey=="DeploymentUnit" ) | .OutputValue' < "${stack_file}" )"
 
-          if [[ -z "${stackoutput_account}" ]]; then 
+          if [[ -z "${stackoutput_account}" ]]; then
               debug "Adding Account Output to ${stack_file} ..."
-              jq -r --arg account "${cmk_account}" '.Stacks[].Outputs += [{ "OutputKey" : "Account", "OutputValue" : $account  }]' < "${stack_file}" > "${tmp_dir}/${stack_filename}" 
+              jq -r --arg account "${cmk_account}" '.Stacks[].Outputs += [{ "OutputKey" : "Account", "OutputValue" : $account  }]' < "${stack_file}" > "${tmp_dir}/${stack_filename}"
               if [[ $? == 0 ]]; then
                 mv "${tmp_dir}/${stack_filename}" "${stack_file}"
               fi
           fi
 
-          if [[ -z "${stackoutput_region}" ]]; then 
+          if [[ -z "${stackoutput_region}" ]]; then
               debug "Adding Region Output to ${stack_file} ..."
               jq -r --arg region "${stack_region}" '.Stacks[].Outputs += [{ "OutputKey" : "Region", "OutputValue" : $region  }]' < "${stack_file}" > "${tmp_dir}/${stack_filename}"
               if [[ $? == 0 ]]; then
                 mv "${tmp_dir}/${stack_filename}" "${stack_file}"
               fi
           fi
-          
-          
+
+
           if [[ -z "${stack_account}" ]]; then
 
             # Rename file to inclue Region and Account
@@ -1215,13 +1215,13 @@ function upgrade_cmdb_repo_to_v1_3_0() {
               if [[ -n "${dry_run}" ]]; then
                 continue
               fi
-              
+
               git_mv "${stack_file}" "${stack_dir}/${new_stack_file_name}"
             fi
           fi
         done
 
-        # Rename SSH keys to include Account/Region 
+        # Rename SSH keys to include Account/Region
         operations_path="${cmk_path/"infrastructure/cf"/infrastructure/operations}"
 
         info "Checking for SSH Keys in ${operations_path} ..."
@@ -1249,7 +1249,7 @@ function upgrade_cmdb_repo_to_v1_3_0() {
   return $return_status
 }
 
-function upgrade_cmdb_repo_to_v1_3_1() { 
+function upgrade_cmdb_repo_to_v1_3_1() {
   local root_dir="$1";shift
   local dry_run="$1";shift
 
@@ -1267,7 +1267,7 @@ function upgrade_cmdb_repo_to_v1_3_1() {
   done
 
   readarray -t cf_dirs < <(find "${root_dir}" -type d -name "cf" )
-  for cf_dir in "${cf_dirs[@ s]}"; do
+  for cf_dir in "${cf_dirs[@]}"; do
     readarray -t cmk_stacks < <(find "${cf_dir}" -type f -name "seg-cmk-*[0-9]-stack.json" )
     for cmk_stack in "${cmk_stacks[@]}"; do
 
@@ -1279,10 +1279,10 @@ function upgrade_cmdb_repo_to_v1_3_1() {
         cmk_path="$(filePath "${cmk_stack}")"
 
         readarray -t segment_cf < <(find "${cmk_path}"  -type f )
-        for cf_file in "${segment_cf[@]}"; do 
+        for cf_file in "${segment_cf[@]}"; do
 
           stack_dir="$(filePath "${cf_file}")"
-          
+
           if [[ -z "${stack_account}" ]]; then
 
             # Rename file to inclue Region and Account
@@ -1295,7 +1295,7 @@ function upgrade_cmdb_repo_to_v1_3_1() {
               if [[ -n "${dry_run}" ]]; then
                 continue
               fi
-              
+
               git_mv "${cf_file}" "${stack_dir}/${new_cf_file_name}"
             fi
           fi
