@@ -167,7 +167,7 @@
                             {
                                 "Port" : "ssh",
                                 "CIDR" :
-                                    (sshActive && !consoleOnly)?then(
+                                    (sshEnabled && !consoleOnly)?then(
                                         getGroupCIDRs(
                                             (segmentObject.SSH.IPAddressGroups)!
                                                 (segmentObject.IPAddressGroups)!
