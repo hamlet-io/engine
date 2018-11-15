@@ -21,7 +21,7 @@
         [#assign primaryFQDN = formatDomainName(hostName, primaryDomainObject)]
 
         [#-- Get alias list --]
-        [#assign aliases = [] ] 
+        [#assign aliases = [] ]
         [#list certificateObject.Domains as domain]
             [#assign aliases += [ formatDomainName(hostName, domain.Name) ] ]
         [/#list]
@@ -38,7 +38,7 @@
             [#assign forwardHeaders += [ "Host" ]]
             [#assign eventHandlerLinks += {
                 "cfredirect" : {
-                    "Tier" : "global",
+                    "Tier" : "gbl",
                     "Component" : "cfredirect",
                     "Version" : solution.CloudFront.RedirectAliases.RedirectVersion,
                     "Instance" : "",
@@ -47,9 +47,9 @@
                 }
             }]
 
-            [#assign customOriginHeaders += 
-                    [ 
-                        getCFHTTPHeader( 
+            [#assign customOriginHeaders +=
+                    [
+                        getCFHTTPHeader(
                             "X-Redirect-Primary-Domain-Name",
                              primaryFQDN ),
                         getCFHTTPHeader(
@@ -58,12 +58,12 @@
                         )
                     ]]
         [/#if]
-        
+
         [#assign eventHandlerLinks += solution.CloudFront.EventHandlers ]
         [#list eventHandlerLinks?values as eventHandler]
 
             [#assign eventHandlerTarget = getLinkTarget(occurrence, eventHandler) ]
-            
+
             [@cfDebug listMode eventHandlerTarget false /]
 
             [#if !eventHandlerTarget?has_content]
@@ -71,7 +71,7 @@
             [/#if]
 
             [#assign eventHandlerCore = eventHandlerTarget.Core ]
-            [#assign eventHandlerResources = eventHandlerTarget.State.Resources ] 
+            [#assign eventHandlerResources = eventHandlerTarget.State.Resources ]
             [#assign eventHandlerAttributes = eventHandlerTarget.State.Attributes ]
             [#assign eventHandlerConfiguration = eventHandlerTarget.Configuration ]
 
