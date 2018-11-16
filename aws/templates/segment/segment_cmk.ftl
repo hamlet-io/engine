@@ -63,7 +63,7 @@
                         "  fi",
                         "  #"
                       ] +
-                      pseudoStackOutputScript("SSH Key Pair", {"keypairXsegmentXname" : "$\{key_pair_name}"}, "keypair-pseudo") +
+                      pseudoStackOutputScript("SSH Key Pair", {"keypairXsegmentXname" : "$\{key_pair_name}"}, "keypair") +
                       [
                         "  #",
                         "  show_ssh_credentials" + " " +
