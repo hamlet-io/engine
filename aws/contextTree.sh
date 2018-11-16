@@ -1281,6 +1281,7 @@ function upgrade_cmdb_repo_to_v1_3_1() {
         readarray -t segment_cf < <(find "${cmk_path}"  -type f )
         for cf_file in "${segment_cf[@]}"; do
 
+          parse_stack_filename "${cf_file}"
           stack_dir="$(filePath "${cf_file}")"
 
           if [[ -z "${stack_account}" ]]; then
@@ -1290,6 +1291,12 @@ function upgrade_cmdb_repo_to_v1_3_1() {
             new_cf_file_name="${cf_file_name/"-${stack_region}-"/-${cmk_account_id}-${stack_region}-}"
 
             if [[ "${cf_file_name}" != "${new_cf_file_name}" && "${cf_file_name}" != *"${cmk_account_id}"* ]]; then
+              if [[ -e "${stack_dir}/${new_cf_file_name}" ]]; then
+                fatal "Rename failed - ${stack_dir}/${new_cf_file_name} already exists. Manual intervention necessary."
+                return_status=1
+                break
+              fi
+
               debug "Moving ${cf_file} to ${stack_dir}/${new_cf_file_name} ..."
 
               if [[ -n "${dry_run}" ]]; then
@@ -1301,7 +1308,9 @@ function upgrade_cmdb_repo_to_v1_3_1() {
           fi
         done
       fi
+      [[ "${return_status}" -ne 0 ]] && break
     done
+    [[ "${return_status}" -ne 0 ]] && break
   done
 
   popTempDir
