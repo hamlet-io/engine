@@ -1290,20 +1290,34 @@ function upgrade_cmdb_repo_to_v1_3_1() {
             cf_file_name="$(fileName "${cf_file}" )"
             new_cf_file_name="${cf_file_name/"-${stack_region}-"/-${cmk_account_id}-${stack_region}-}"
 
+            move_file=1
             if [[ "${cf_file_name}" != "${new_cf_file_name}" && "${cf_file_name}" != *"${cmk_account_id}"* ]]; then
               if [[ -e "${stack_dir}/${new_cf_file_name}" ]]; then
-                fatal "Rename failed - ${stack_dir}/${new_cf_file_name} already exists. Manual intervention necessary."
-                return_status=1
-                break
+                diff "${cf_file}" "${stack_dir}/${new_cf_file_name}" > /dev/null
+                if [[ $? -eq 0 ]]; then
+                  move_file=0
+                else
+                  fatal "Rename failed - ${stack_dir}/${new_cf_file_name} already exists. Manual intervention necessary."
+                  return_status=1
+                  break
+                fi
               fi
 
-              debug "Moving ${cf_file} to ${stack_dir}/${new_cf_file_name} ..."
+              if [[ "${move_file}" != 0 ]]; then
+                debug "Moving ${cf_file} to ${stack_dir}/${new_cf_file_name} ..."
+              else
+                warning "${cf_file} already upgraded - removing ..."
+              fi
 
               if [[ -n "${dry_run}" ]]; then
                 continue
               fi
-
-              git_mv "${cf_file}" "${stack_dir}/${new_cf_file_name}"
+              
+              if [[ "${move_file}" != 0 ]]; then
+                git_mv "${cf_file}" "${stack_dir}/${new_cf_file_name}"
+              else
+                git_rm "${cf_file}"
+              fi
             fi
           fi
         done
@@ -1316,6 +1330,13 @@ function upgrade_cmdb_repo_to_v1_3_1() {
   popTempDir
 
   return $return_status
+}
+
+function upgrade_cmdb_repo_to_v1_3_2() {
+  # Rerun 1.3.1 to pick up errors in original implementation
+  # Should be a no-op when run immediately after current 1.3.1
+  # implementation
+  upgrade_cmdb_repo_to_v1_3_1 "$@"
 }
 
 function process_cmdb() {
@@ -1398,7 +1419,7 @@ function upgrade_cmdb() {
   local versions="$1";shift
 
   local required_versions=(${versions})
-  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0" "v1.3.1")
+  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0" "v1.2.0" "v1.3.0" "v1.3.1" "v1.3.2")
 
   process_cmdb "${root_dir}" "upgrade" "${required_versions[*]}" ${dry_run}
 }
