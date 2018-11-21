@@ -11,6 +11,11 @@
         }
     /]
 
+    [@AltSettings 
+        {
+            "JENKINS_URL" : "JENKINSLB_URL"
+        }/]
+
     [#-- Validate that the appropriate settings have been provided for the container to work --]
     [#switch settings["JENKINSENV_SECURITYREALM"]!""]
         [#case "local"]
@@ -44,6 +49,10 @@
                 /]
             [/#if]
             [#break]
+
+        [#case "custom"]
+            [#break]
+
         [#default]
             [@cfException
                 mode=listMode
