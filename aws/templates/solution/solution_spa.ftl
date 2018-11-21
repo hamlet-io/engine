@@ -34,9 +34,10 @@
         [#assign eventHandlerLinks = {} ]
         [#assign eventHandlers = []]
 
-        [#if solution.CloudFront.RedirectAliases.Enabled && aliases?has_content ]
-            [#assign forwardHeaders += [ "Host" ]]
-            [#assign eventHandlerLinks += {
+        [#if solution.CloudFront.RedirectAliases.Enabled 
+                    && ( aliases?size > 1) ]
+
+            [#assign cfRedirectLink = { 
                 "cfredirect" : {
                     "Tier" : "gbl",
                     "Component" : "cfredirect",
@@ -47,16 +48,27 @@
                 }
             }]
 
-            [#assign customOriginHeaders +=
-                    [
-                        getCFHTTPHeader(
-                            "X-Redirect-Primary-Domain-Name",
-                             primaryFQDN ),
-                        getCFHTTPHeader(
-                            "X-Redirect-Response-Code",
-                            "301"
-                        )
-                    ]]
+            [#if getLinkTarget(occurrence, cfRedirectLink.cfredirect )?has_content ]
+                [#assign forwardHeaders += [ "Host" ]]            
+                [#assign eventHandlerLinks += cfRedirectLink]
+
+                [#assign customOriginHeaders +=
+                        [
+                            getCFHTTPHeader(
+                                "X-Redirect-Primary-Domain-Name",
+                                primaryFQDN ),
+                            getCFHTTPHeader(
+                                "X-Redirect-Response-Code",
+                                "301"
+                            )
+                        ]]
+            [#else] 
+                [@cfException
+                    mode=listMode
+                    description="Could not find cfredirect component"
+                    context=cfRedirectLink
+                /]
+            [/#if]
         [/#if]
 
         [#assign eventHandlerLinks += solution.CloudFront.EventHandlers ]
