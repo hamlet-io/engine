@@ -808,7 +808,17 @@ behaviour.
             [#if externalAttributes?has_content]
                 [#local result += { "Attributes" : externalAttributes } ]
             [/#if]
-        [/#if]
+
+            [#local result += 
+                    {
+                        "Roles" : {
+                            "Inbound" : {},
+                            "Outbound" : {}
+                        }
+                    }
+                ]]
+
+        [#else]
 
         [#switch core.Type!""]
             [#case LB_COMPONENT_TYPE]
@@ -871,17 +881,6 @@ behaviour.
                 [#local result = getESState(occurrence)]
                 [#break]
 
-            [#case "external"]
-                [#local result +=
-                    {
-                        "Roles" : {
-                            "Inbound" : {},
-                            "Outbound" : {}
-                        }
-                    }
-                ]
-                [#break]
-
             [#case "function"]
                 [#local result = getFunctionState(occurrence, parentOccurrence)]
                 [#break]
@@ -935,6 +934,7 @@ behaviour.
                 [#break]
 
         [/#switch]
+        [/#if]
     [/#if]
 
     [#-- Update resource deployment status --]
