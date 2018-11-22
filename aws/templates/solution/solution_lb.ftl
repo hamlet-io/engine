@@ -305,7 +305,7 @@
                                         "Priority" : listenerRulePriority,
                                         "Actions" : asArray(
                                                         getListenerRuleRedirectAction(
-                                                            "https",
+                                                            "HTTPS",
                                                             "443",
                                                             linkTargetAttributes.FQDN,
                                                             "",
