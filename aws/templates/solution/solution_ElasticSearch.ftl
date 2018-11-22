@@ -161,12 +161,15 @@
                             
                             [#if deploymentSubsetRequired("es", true)]
                                 [#if link.Tier == "external" ]
-                                    [@createPolicy 
+                                    [@cfResource
                                         mode=listMode
                                         id=policyId
-                                        name=esName
-                                        statements=asFlattenedArray(roles.Outbound["consume"])
-                                        roles=linkTargetAttributes.USERPOOL_USERROLE_ARN
+                                        type="AWS::IAM::Policy"
+                                        properties=
+                                            getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
+                                            {
+                                                "Roles" : [ linkTargetAttributes.USERPOOL_USERROLE_ARN ]
+                                            }
                                     /]
                                 [#else] 
                                     [@createPolicy
