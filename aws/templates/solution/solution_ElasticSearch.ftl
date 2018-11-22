@@ -139,7 +139,6 @@
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetResources = linkTarget.State.Resources ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-
                 [#switch linkTargetCore.Type]
 
                     [#case USERPOOL_COMPONENT_TYPE]
@@ -159,15 +158,25 @@
                                                     esId,
                                                     link.Name)]
 
-
+                            
                             [#if deploymentSubsetRequired("es", true)]
-                                [@createPolicy
-                                    mode=listMode
-                                    id=policyId
-                                    name=esName
-                                    statements=asFlattenedArray(roles.Outbound["consume"])
-                                    roles=linkTargetResources["authrole"].Id
-                                /]
+                                [#if link.Tier == "external" ]
+                                    [@createPolicy 
+                                        mode=listMode
+                                        id=policyId
+                                        name=esName
+                                        statements=asFlattenedArray(roles.Outbound["consume"])
+                                        roles=linkTargetAttributes.USERPOOL_USERROLE_ARN
+                                    /]
+                                [#else] 
+                                    [@createPolicy
+                                        mode=listMode
+                                        id=policyId
+                                        name=esName
+                                        statements=asFlattenedArray(roles.Outbound["consume"])
+                                        roles=linkTargetResources["authrole"].Id
+                                    /]
+                                [/#if]
                             [/#if]
                         [#break]
                 [/#switch]
