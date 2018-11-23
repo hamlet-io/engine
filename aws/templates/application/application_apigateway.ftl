@@ -106,13 +106,13 @@
                                         "Default" : true
                                     }
                                 } ]
-    
+
                             [#if deploymentSubsetRequired("apigateway", true)]
-    
+
                                 [#assign policyId = formatDependentPolicyId(
                                                         apiId,
                                                         link.Name)]
-    
+
                                 [@createPolicy
                                     mode=listMode
                                     id=policyId
@@ -526,7 +526,12 @@
                         "  \"$\{tmpdir}/apidoc.zip\" || return $?",
                         "}",
                         "#",
-                        "get_apidoc_file"
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)",
+                        "    get_apidoc_file",
+                        "    ;;",
+                        "esac",
+                        "#"
                     ]
                 /]
             [/#if]
