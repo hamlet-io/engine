@@ -170,14 +170,6 @@
                         /]
                     [/#if]
 
-                    [#if getExistingReference(rule.CliId)?has_content ]
-                        [#assign ruleCleanupScript += [
-                                "cleanup_elbv2_rules" +
-                                "       \"" + region + "\" " +
-                                "       \"" + getExistingReference(rule.CliId, ARN_ATTRIBUTE_TYPE) + "\" "
-                            ]]
-                    [/#if]
-
                 [/#list]
 
                 [#assign listenerRuleConditions += getListenerRuleHostCondition(fqdn) ]
@@ -376,15 +368,11 @@
 
                     [#if firstMappingForPort ]
                         [#if getExistingReference(listenerId)?has_content ]
-                            [#if deploymentSubsetRequired("epilogue", false) ]
-                                [#if getExistingReference(listenerId)?has_content ]
-                                    [#assign ruleCleanupScript += [
-                                            "cleanup_elbv2_rules" +
-                                            "       \"" + region + "\" " +
-                                            "       \"" + getExistingReference(listenerId, ARN_ATTRIBUTE_TYPE) + "\" "
-                                        ]]
-                                [/#if]
-                            [/#if]
+                            [#assign ruleCleanupScript += [
+                                    "cleanup_elbv2_rules" +
+                                    "       \"" + region + "\" " +
+                                    "       \"" + getExistingReference(listenerId, ARN_ATTRIBUTE_TYPE) + "\" "
+                                ]]
                         [/#if]
                     [/#if]
 
@@ -500,7 +488,7 @@
             [/#switch]
         [/#list]
 
-        [#if deploymentSubsetRequired("epilogue", false) && !cliCleanUpRequired ]
+        [#if deploymentSubsetRequired("prologue", false) && !cliCleanUpRequired ]
 
             [@cfScript
                 mode=listMode
@@ -508,8 +496,6 @@
                     [
                         "case $\{STACK_OPERATION} in",
                         "  create|update)",
-                        "    # Get cli config file",
-                        "    split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
                         "    # Apply CLI level updates to ELB listener",
                         "    info \"Removing rules created by cli rules\""
                     ] +
