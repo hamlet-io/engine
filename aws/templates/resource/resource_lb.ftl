@@ -214,60 +214,98 @@
 
 [#function getListenerRuleForwardAction targetGroupId order=""]
     [#return
-        {
-            "Type": "forward",
-            "TargetGroupArn": getReference(targetGroupId, ARN_ATTRIBUTE_TYPE)
-        } +
-        attributeIfContent("Order", order)
+        [
+            {
+                "Type": "forward",
+                "TargetGroupArn": getReference(targetGroupId, ARN_ATTRIBUTE_TYPE)
+            } +
+            attributeIfContent("Order", order)
+        ]
     ]
 [/#function]
 
 [#function getListenerRuleRedirectAction protocol port host path query permanent=true order=""]
     [#return
-        {
-            "Type": "redirect",
-            "RedirectConfig": {
-                "Protocol": protocol,
-                "Port": port,
-                "Host": host,
-                "Path": path?ensure_starts_with("/"),
-                "Query": query,
-                "StatusCode": valueIfTrue("HTTP_301", permanent, "HTTP_302")
-            }
-        } +
-        attributeIfContent("Order", order)
+        [
+            {
+                "Type": "redirect",
+                "RedirectConfig": {
+                    "Protocol": protocol,
+                    "Port": port,
+                    "Host": host,
+                    "Path": path?ensure_starts_with("/"),
+                    "Query": query,
+                    "StatusCode": valueIfTrue("HTTP_301", permanent, "HTTP_302")
+                }
+            } +
+            attributeIfContent("Order", order)
+        ]
     ]
 [/#function]
 
 [#function getListenerRuleFixedAction message contentType statusCode order=""]
     [#return
-        {
-            "Type": "fixed-response",
-            "FixedResponseConfig": {
-                "MessageBody": message,
-                "ContentType": contentType,
-                "StatusCode": statusCode
+        [
+            {
+                "Type": "fixed-response",
+                "FixedResponseConfig": {
+                    "MessageBody": message,
+                    "ContentType": contentType,
+                    "StatusCode": statusCode
+                }
+            } +
+            attributeIfContent("Order", order)
+        ]
+    ]
+[/#function]
+
+[#function getListenerRuleAuthCognitoAction 
+        userPoolArn 
+        userPoolClientId 
+        userPoolDomain 
+        userPoolSessionCookieName 
+        userPoolSessionTimeout
+        userPoolOauthScope
+        order=""]
+        
+    [#return 
+        [
+            {
+                "Type" : "authenticate-cognito",
+                "AuthenticateCognitoConfig" : {
+                    "UserPoolArn" : userPoolArn,
+                    "UserPoolClientId" : userPoolClientId,
+                    "UserPoolDomain" : userPoolDomain,
+                    "SessionCookieName" : userPoolSessionCookieName,
+                    "SessionTimeout" : userPoolSessionTimeout,
+                    "Scope" : userPoolOauthScope,
+                    "OnUnauthenticatedRequest" : "authenticate"
+                } +
+            attributeIfContent("Order", order)
             }
-        } +
-        attributeIfContent("Order", order)
+        ]
     ]
 [/#function]
 
 [#function getListenerRulePathCondition paths]
     [#return
-        {
-            "Field": "path-pattern",
-            "Values": asArray(paths)
-        }
+        [
+            {
+                "Field": "path-pattern",
+                "Values": asArray(paths)
+            }
+        ]
     ]
 [/#function]
 
 [#function getListenerRuleHostCondition hosts ]
     [#return 
-        {
-            "Field" : "host-header",
-            "Values" : asArray(hosts)
-        }
+        [
+            {
+                "Field" : "host-header",
+                "Values" : asArray(hosts)
+            }
+        ]
     ]
 [/#function]
 
