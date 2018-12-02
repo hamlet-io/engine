@@ -704,24 +704,24 @@ function encrypt_kms_string() {
 # -- IAM --
 function create_iam_accesskey() {
   local region="$1"; shift
-  local username="$1"; shift 
+  local username="$1"; shift
 
   accesskey="$(aws --region "${region}" iam create-access-key --user-name "${username}" )" || return $?
 
-  if [[ -n "${accesskey}" ]]; then  
+  if [[ -n "${accesskey}" ]]; then
     access_key_id="$( echo "${accesskey}" | jq -r '.AccessKey.AccessKeyId')"
     secret_access_key="$( echo "${accesskey}" | jq -r '.AccessKey.SecretAccessKey')"
 
     echo "${access_key_id} ${secret_access_key}"
     return 0
-  
+
   else
     fatal "Could not generate accesskey for ${username}"
     return 255
   fi
 }
 
-function get_iam_smtp_password() { 
+function get_iam_smtp_password() {
   local secretkey="$1"; shift
 
   (echo -en "\x02"; echo -n 'SendRawEmail' \
@@ -732,16 +732,16 @@ function get_iam_smtp_password() {
 function manage_iam_userpassword() {
   local region="$1"; shift
   local action="$1"; shift
-  local username="$1"; shift 
+  local username="$1"; shift
   local password="$1"; shift
 
   login_profile="$(aws --region "${region}" iam get-login-profile --user-name "${username}" --query 'LoginProfile.UserName' --output text 2>/dev/null )"
 
-  if [[ "${action}" == "delete" && "${login_profile}" == "${username}" ]]; then 
+  if [[ "${action}" == "delete" && "${login_profile}" == "${username}" ]]; then
     aws --region "${region}" iam delete-login-profile --user-name "${username}" || return $?
-  elif [[ "${login_profile}" != "${username}" ]]; then 
+  elif [[ "${login_profile}" != "${username}" ]]; then
     aws --region "${region}" iam create-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
-  else 
+  else
     aws --region "${region}" iam update-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
   fi
 }
@@ -808,36 +808,36 @@ function manage_congnito_domain() {
   return ${return_status}
 }
 
-# -- Data Pipeline -- 
-function create_data_pipeline() { 
+# -- Data Pipeline --
+function create_data_pipeline() {
   local region="$1"; shift
   local configfile="$1"; shift
 
-  pipeline="$(aws --region "${region}" datapipeline create-pipeline --cli-input-json "file://${configfile}" || return $?)" 
-  if [[ -n "${pipeline}" ]]; then 
+  pipeline="$(aws --region "${region}" datapipeline create-pipeline --cli-input-json "file://${configfile}" || return $?)"
+  if [[ -n "${pipeline}" ]]; then
     echo "${pipeline}" | jq -r '.pipelineId | select (.!=null)'
     return 0
-  
-  else 
+
+  else
     fatal "Could not create pipeline"
     return 255
-  fi 
+  fi
 }
 
-function update_data_pipeline() { 
+function update_data_pipeline() {
   local region="$1"; shift
   local pipelineid="$1"; shift
   local definitionfile="$1"; shift
   local parameterobjectfile="$1"; shift
-  local parametervaluefile="$1"; shift 
+  local parametervaluefile="$1"; shift
 
   pipeline_details="$(aws --region "${region}" datapipeline put-pipeline-definition --pipeline-id "${pipelineid}" --pipeline-definition "file://${definitionfile}" --parameter-objects "file://${parameterobjectfile}" --parameter-values-uri "file://${parametervaluefile}" )"
   pipeline_errored="$(echo "${pipeline_details}" | jq -r '.errored ')"
 
-  if [[ "${pipeline_errored}" == "false" ]]; then 
+  if [[ "${pipeline_errored}" == "false" ]]; then
     info "Pipeline definition update successful"
     info "${pipeline_details}"
-    return 0 
+    return 0
   else
     fatal "Pipeline definition did not work as expected"
     fatal "${pipeline_details}"
@@ -859,7 +859,7 @@ function create_elbv2_rule() {
   local region="$1"; shift
   local listenerid="$1"; shift
   local configfile="$1"; shift
-  
+
   rule_arn="$(aws --region "${region}" elbv2 create-rule --listener-arn "${listenerid}" --cli-input-json "file://${configfile}" --query 'Rules[0].RuleArn' --output text || return $? )"
 
   if [[ "${rule_arn}" == "None" ]]; then
@@ -871,7 +871,7 @@ function create_elbv2_rule() {
   fi
 }
 
-function cleanup_elbv2_rules() { 
+function cleanup_elbv2_rules() {
   local region="$1"; shift
   local listenerarn="$1"; shift
 
@@ -881,9 +881,9 @@ function cleanup_elbv2_rules() {
   all_listener_rules="$(aws --region "${region}" elbv2 describe-rules --listener-arn "${listenerarn}" --query 'Rules[?!IsDefault].RuleArn' --output json )"
 
   info "Removing all listener rules from ${listenerarn}"
-  if [[ -n "${all_listener_rules}" ]]; then 
+  if [[ -n "${all_listener_rules}" ]]; then
     echo "${all_listener_rules}" | jq --arg region "${region}" -r '.[] | "aws --region \($region) elbv2 delete-rule --rule-arn \(.) || { status=$?; popTempDir; return $status; }"' > "${tmp_file}"
-    if [[ -f "${tmp_file}" ]]; then 
+    if [[ -f "${tmp_file}" ]]; then
       chmod u+x "${tmp_file}"
       "${tmp_file}"
     fi
@@ -960,6 +960,9 @@ function deleteTreeFromBucket() {
   local prefix="$1"; shift
   local optional_arguments=("$@")
 
+  # Does the bucket/prefix exist?
+  isBucketAccessible "${region}" "${bucket}" "${prefix}" || return 0
+
   # Delete everything below the prefix
   aws --region "${region}" s3 rm "${optional_arguments[@]}" --recursive "s3://${bucket}/${prefix}${prefix:+/}"
 }
@@ -969,56 +972,59 @@ function deleteBucket() {
   local bucket="$1"; shift
   local optional_arguments=("$@")
 
+  # Does the bucket exist?
+  isBucketAccessible "${region}" "${bucket}" || return 0
+
   # Delete the bucket
   aws --region "${region}" s3 rb "${optional_arguments[@]}" "s3://${bucket}" --force
 }
 
-# -- SNS -- 
+# -- SNS --
 function deploy_sns_platformapp() {
   local region="$1"; shift
   local name="$1"; shift
-  local existing_arn="$1"; shift 
+  local existing_arn="$1"; shift
   local encryption_scheme="$1"; shift
   local engine="$1"; shift
   local configfile="$1"; shift
-  
+
   platform_principal="$(jq -rc '.Attributes.PlatformPrincipal | select (.!=null)' < "${configfile}" )"
   platform_credential="$(jq -rc '.Attributes.PlatformCredential | select (.!=null)' < "${configfile}" )"
 
   #Decrypt the principal and certificate if they are encrypted
   if [[ "${platform_principal}" == "${encryption_scheme}"* ]]; then
       decrypted_platform_principal="$( decrypt_kms_string "${region}" "${platform_principal#${encryption_scheme}}" || return $? )"
-  else 
+  else
       decrypted_platform_principal="${platform_principal}"
   fi
 
   if [[ "${platform_credential}" == "${encryption_scheme}"* ]]; then
     decrypted_platform_credential="$( decrypt_kms_string "${region}" "${platform_credential#${encryption_scheme}}" || return $? )"
-  else 
+  else
     decrypted_platform_credential="${platform_credential}"
   fi
 
   jq -rc '. | del(.Attributes.PlatformPrincipal) | del(.Attributes.PlatformCredential)' < "${configfile}" > "${configfile}_decrypted"
- 
-  if [[ -n "${existing_arn}" ]]; then 
+
+  if [[ -n "${existing_arn}" ]]; then
     platform_app_arn="${existing_arn}"
-    update_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}"  || return $? )" 
+    update_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}"  || return $? )"
   else
     platform_app_arn="$(aws --region "${region}" sns create-platform-application --name "${name}" \
       --attributes PlatformPrincipal="${decrypted_platform_principal}",PlatformCredential="${decrypted_platform_credential}" \
-      --platform="${engine}" --query 'PlatformApplicationArn' --output text )" 
+      --platform="${engine}" --query 'PlatformApplicationArn' --output text )"
   fi
-  
-  update_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_decrypted"  || return $? )" 
 
-  if [[ -z "${platform_app_arn}" ]]; then 
+  update_platform_app="$(aws --region "${region}" sns set-platform-application-attributes --platform-application-arn "${platform_app_arn}" --cli-input-json "file://${configfile}_decrypted"  || return $? )"
+
+  if [[ -z "${platform_app_arn}" ]]; then
     fatal "Platform app was not deployed"
     return 255
   else
     echo "${platform_app_arn}"
     return 0
-  fi  
-      
+  fi
+
 }
 
 function delete_sns_platformapp() {
@@ -1028,7 +1034,7 @@ function delete_sns_platformapp() {
   aws --region "${region}" sns delete-platform-application --platform-application-arn "${arn}" || return $?
 }
 
-function cleanup_sns_platformapps() { 
+function cleanup_sns_platformapps() {
   local region="$1"; shift
   local mobile_notifier_name="$1"; shift
   local expected_platform_arns="$1"; shift
@@ -1039,12 +1045,12 @@ function cleanup_sns_platformapps() {
   all_platform_apps="$(aws --region "${region}" sns list-platform-applications )"
   current_platform_arns="$(echo "${all_platform_apps}" | jq --arg namefilter "${mobile_notifier_name}" -rc '.PlatformApplications[] | select( .PlatformApplicationArn | endswith("/" + $namefilter)) | [ .PlatformApplicationArn ]')"
 
-  if [[ -n "${current_platform_arns}" ]]; then 
+  if [[ -n "${current_platform_arns}" ]]; then
     unexpected_platform_arns="$(echo "${expected_platform_arns}" | jq --argjson currentarns "${current_platform_arns}" '. - $currentarns')"
     info "Found the following unexpected Platforms: ${unexpected_platform_arns}"
     echo "${unexpected_platform_arns}" | jq --arg region "${region}" -r '.[] | "delete_sns_platform \($region) \(.)"' > "${tmp_file}"
-    
-    if [[ -f "${tmp_file}" ]]; then 
+
+    if [[ -f "${tmp_file}" ]]; then
       chmod u+x "${tmp_file}"
       "${tmp_file}"
     fi
@@ -1071,7 +1077,7 @@ function create_pki_credentials() {
   if [[ (! -f "${dir}/aws-ssh-crt.pem") &&
         (! -f "${dir}/aws-ssh-prv.pem") &&
         (! -f "${dir}/.aws-ssh-crt.pem") &&
-        (! -f "${dir}/.aws-ssh-prv.pem") && 
+        (! -f "${dir}/.aws-ssh-prv.pem") &&
         (! -f "${dir}/.aws-${account}-${region}-ssh-crt.pem") &&
         (! -f "${dir}/.aws-${account}-${region}-ssh-prv.pem") ]]; then
       openssl genrsa -out "${dir}/.aws-${account}-${region}-ssh-prv.pem.plaintext" 2048 || return $?
@@ -1142,16 +1148,16 @@ function delete_ssh_credentials() {
 
 function update_ssm_document() {
   local region="$1"; shift
-  local name="$1"; shift 
+  local name="$1"; shift
   local version="$1"; shift
-  local contentfile="$1"; shift 
+  local contentfile="$1"; shift
 
-  local currentHash="$(aws ssm describe-document --region "${region}" --name "${name}" --document-version "${version}" --query 'Document.Hash' --output text || return $?)"  
-  local newHash="$(shasum -a 256 ${contentfile} | cut -d " " -f 1 || return $?)" 
+  local currentHash="$(aws ssm describe-document --region "${region}" --name "${name}" --document-version "${version}" --query 'Document.Hash' --output text || return $?)"
+  local newHash="$(shasum -a 256 ${contentfile} | cut -d " " -f 1 || return $?)"
 
   if [[ "${currentHash}" != "${newHash}" ]]; then
     aws ssm update-document --region "${region}" --name "${name}" --document-version "${version}" --content "file://${contentfile}" || return $?
-  else 
+  else
     info "No changes required"
   fi
 
@@ -1514,9 +1520,9 @@ function release_enis() {
     local region="$1"; shift
     local requester_id="$1"; shift
     local eni_list_file="$( getTempFile eni_list_XXXX.json)"
-    
+
     aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values="*${requester_id}" > "${eni_list_file}" || return $?
-    
+
     for attachment_id in $( jq -r '.NetworkInterfaces[].Attachment.AttachmentId' < "${eni_list_file}" ) ; do
         if [[ -n "${attachment_id}" ]]; then
             info "Detaching ${attachment_id} ..."
