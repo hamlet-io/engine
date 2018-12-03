@@ -277,6 +277,18 @@
     [/#if]
 [/#function]
 
+[#function mergeObjects current new]
+    [#local result = current]
+    [#list new as key,value]
+        [#local newValue = value]
+        [#if current[key]?? && current[key]?is_hash && value?is_hash]
+            [#local newValue = mergeObjects(current[key], value)]
+        [/#if]
+        [#local result += {key : newValue}]
+    [/#list]
+    [#return result]
+[/#function]
+
 [#-----------------
 -- Type handling --
 -------------------]
