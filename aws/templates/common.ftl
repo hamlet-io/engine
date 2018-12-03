@@ -1355,7 +1355,7 @@ behaviour.
              }]
         [/#list]
 
-        [#local component = mergeObjects(component, { type: deploymentProfile[type]!{} } )]
+        [#local typeObject = mergeObjects(typeObject, deploymentProfile[type]!{} )]
     [/#if]
 
     [#if tier?has_content]

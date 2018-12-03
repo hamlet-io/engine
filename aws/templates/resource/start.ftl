@@ -251,7 +251,7 @@
                     ""
                 )
         },
-        "DeploymentMode" : { "Vallue" : deploymentMode }
+        "DeploymentMode" : { "Value" : deploymentMode }
     }]
 [/#function]
 
