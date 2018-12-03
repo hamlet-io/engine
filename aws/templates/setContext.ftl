@@ -437,7 +437,7 @@
 [#assign logFilters = blueprintObject.LogFilters]
 [#assign deploymentProfiles = {} ]
 
-{#-- Deployment Profiles - handle case insensitivity for types --}
+[#-- Deployment Profiles - handle case insensitivity for types --]
 [#list blueprintObject.DeploymentProfiles as name,deploymentProfile ]
     [#if deploymentProfile?is_hash ]
         [#list deploymentProfile.Modes as mode,modeProfile ]
