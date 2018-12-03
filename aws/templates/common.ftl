@@ -1886,7 +1886,7 @@ behaviour.
     [#if (tenantObject.Profiles["Deployment"])??]
         [#return deploymentProfiles[tenantObject.Profiles["Deployment"]]]
     [/#if]
-    [#return deploymentProfiles["_default"]]
+    [#return {}]
 [/#function]
 
 [#-- Get storage settings --]
