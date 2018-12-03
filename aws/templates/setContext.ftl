@@ -435,7 +435,31 @@
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 [#assign securityProfiles = blueprintObject.SecurityProfiles ]
 [#assign logFilters = blueprintObject.LogFilters]
-[#assign deploymentProfiles = blueprintObject.DeploymentProfiles]
+[#assign deploymentProfiles = {} ]
+
+{#-- Deployment Profiles - handle case insensitivity for types --}
+[#list blueprintObject.DeploymentProfiles as name,deploymentProfile ]
+    [#if deploymentProfile?is_hash ]
+        [#list deploymentProfile.Modes as mode,modeProfile ]
+            [#if modeProfile?is_hash ]
+                [#list modeProfile as type,config ]
+                    [#assign deploymentProfiles = 
+                        mergeObjects(
+                            deploymentProfiles, 
+                            {
+                                name : {
+                                    "Modes" : {
+                                        mode : {
+                                            type?lower_case : config
+                                        }
+                                    }
+                                }
+                            })]
+                [/#list]
+            [/#if]
+        [/#list]
+    [/#if]
+[/#list]
 
 [#-- Regions --]
 [#if region?has_content]

@@ -1344,18 +1344,9 @@ behaviour.
     [/#if]
 
     [#--  Deployment Profile Configuration Overrides --] 
-    [#if ((getDeploymentProfile(component, type)).Modes[deploymentMode])?? ]
-        [#local deploymentProfileComponents = (getDeploymentProfile(component,type)).Modes[deploymentMode] ]
-
-        [#local deploymentProfile = {} ]
-
-        [#list deploymentProfileComponents as deploymentProfileType,deploymentProfileComponent ]
-            [#local deploymentProfile += {
-                deploymentProfileType?lower_case : deploymentProfileComponent
-             }]
-        [/#list]
-
-        [#local typeObject = mergeObjects(typeObject, deploymentProfile[type]!{} )]
+    [#if ((getDeploymentProfile(typeObject)).Modes[deploymentMode])?? ]
+        [#local deploymentProfileComponents = getDeploymentProfile(typeObject).Modes[deploymentMode] ]
+        [#local typeObject = mergeObjects(typeObject, deploymentProfileComponents[type]!{} )]
     [/#if]
 
     [#if tier?has_content]
@@ -1873,9 +1864,9 @@ behaviour.
     [/#if]
 [/#function]
 
-[#function getDeploymentProfile component type ]
-    [#if ((component[type]).Profiles.Deployment)?? ]
-        [#return deploymentProfiles[(component[type]).Profiles.Deployment]]
+[#function getDeploymentProfile typeObject ]
+    [#if (typeObject.Profiles.Deployment)?? ]
+        [#return deploymentProfiles[typeObject.Profiles.Deployment]]
     [/#if]
     [#if (environmentObject.Profiles["Deployment"])?? ]
         [#return deploymentProfiles[environmentObject.Profiles["Deployment"]]]
