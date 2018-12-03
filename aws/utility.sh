@@ -737,13 +737,22 @@ function manage_iam_userpassword() {
 
   login_profile="$(aws --region "${region}" iam get-login-profile --user-name "${username}" --query 'LoginProfile.UserName' --output text 2>/dev/null )"
 
-  if [[ "${action}" == "delete" && "${login_profile}" == "${username}" ]]; then
-    aws --region "${region}" iam delete-login-profile --user-name "${username}" || return $?
-  elif [[ "${login_profile}" != "${username}" ]]; then
-    aws --region "${region}" iam create-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
-  else
-    aws --region "${region}" iam update-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
-  fi
+  case "${action}" in
+    delete)
+      if [[ "${login_profile}" == "${username}" ]]; then
+        aws --region "${region}" iam delete-login-profile --user-name "${username}" || return $?
+      fi
+      ;;
+
+    *)
+      if [[ "${login_profile}" != "${username}" ]]; then
+        aws --region "${region}" iam create-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
+      else
+        aws --region "${region}" iam update-login-profile --user-name "${username}" --password "${password}" --no-password-reset-required || return $?
+      fi
+      ;;
+  esac
+  return 0
 }
 
 # -- Cognito --
