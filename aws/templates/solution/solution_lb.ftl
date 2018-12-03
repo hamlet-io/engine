@@ -147,84 +147,86 @@
             [#assign primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
             [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
 
-            [#-- FQDN processing --]
-            [#if solution.HostFilter ]
-                [#assign fqdn = formatDomainName(hostName, primaryDomainObject)]
+            [#if engine == "application" ]
+                [#-- FQDN processing --]
+                [#if solution.HostFilter ]
+                    [#assign fqdn = formatDomainName(hostName, primaryDomainObject)]
 
-                [#list resources["domainRedirectRules"]!{} as key, rule]
+                    [#list resources["domainRedirectRules"]!{} as key, rule]
 
-                    [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
-                        [@createListenerRule
-                            mode=listMode
-                            id=rule.Id 
-                            listenerId=listenerId
-                            actions=getListenerRuleRedirectAction(
-                                    "#\{protocol}",
-                                    "#\{port}",
-                                    fqdn,
-                                    "#\{path}",
-                                    "#\{query}") 
-                            conditions=getListenerRuleHostCondition(rule.RedirectFrom) 
-                            priority=rule.Priority 
-                            dependencies=listenerId
-                        /]
-                    [/#if]
+                        [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
+                            [@createListenerRule
+                                mode=listMode
+                                id=rule.Id 
+                                listenerId=listenerId
+                                actions=getListenerRuleRedirectAction(
+                                        "#\{protocol}",
+                                        "#\{port}",
+                                        fqdn,
+                                        "#\{path}",
+                                        "#\{query}") 
+                                conditions=getListenerRuleHostCondition(rule.RedirectFrom) 
+                                priority=rule.Priority 
+                                dependencies=listenerId
+                            /]
+                        [/#if]
 
-                [/#list]
+                    [/#list]
 
-                [#assign listenerRuleConditions += getListenerRuleHostCondition(fqdn) ]
-            [/#if]
-
-            [#-- Redirect rule processing --]
-            [#if isPresent(solution.Redirect) ]
-                [#assign targetGroupRequired = false ]
-                [#assign listenerForwardRule = false ]
-
-                [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
-                    [@createListenerRule
-                        mode=listMode
-                        id=listenerRuleId 
-                        listenerId=listenerId
-                        actions=getListenerRuleRedirectAction(
-                                        solution.Redirect.Protocol,
-                                        solution.Redirect.Port,
-                                        solution.Redirect.Host,
-                                        solution.Redirect.Path,
-                                        solution.Redirect.Query,
-                                        solution.Redirect.Permanent)
-                        conditions=listenerRuleConditions
-                        priority=listenerRulePriority
-                        dependencies=listenerId
-                    /]
+                    [#assign listenerRuleConditions += getListenerRuleHostCondition(fqdn) ]
                 [/#if]
-            [/#if]
 
-            [#-- Fixed rule processing --]
-            [#if isPresent(solution.Fixed) ]
-                [#assign targetGroupRequired = false ]
-                [#assign listenerForwardRule = false ]
-                [#assign fixedMessage = getOccurrenceSettingValue(subOccurrence, ["Fixed", "Message"], true) ]
-                [#assign fixedContentType = getOccurrenceSettingValue(subOccurrence, ["Fixed", "ContentType"], true) ]
-                [#assign fixedStatusCode = getOccurrenceSettingValue(subOccurrence, ["Fixed", "StatusCode"], true) ]
+                [#-- Redirect rule processing --]
+                [#if isPresent(solution.Redirect) ]
+                    [#assign targetGroupRequired = false ]
+                    [#assign listenerForwardRule = false ]
+
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createListenerRule
                             mode=listMode
                             id=listenerRuleId 
                             listenerId=listenerId
-                            actions=getListenerRuleFixedAction(
-                                    contentIfContent(
-                                        fixedMessage,
-                                        solution.Fixed.Message),
-                                    contentIfContent(
-                                        fixedContentType,
-                                        solution.Fixed.ContentType),
-                                    contentIfContent(
-                                        fixedStatusCode,
-                                        solution.Fixed.StatusCode))
+                            actions=getListenerRuleRedirectAction(
+                                            solution.Redirect.Protocol,
+                                            solution.Redirect.Port,
+                                            solution.Redirect.Host,
+                                            solution.Redirect.Path,
+                                            solution.Redirect.Query,
+                                            solution.Redirect.Permanent)
                             conditions=listenerRuleConditions
                             priority=listenerRulePriority
                             dependencies=listenerId
                         /]
+                    [/#if]
+                [/#if]
+
+                [#-- Fixed rule processing --]
+                [#if isPresent(solution.Fixed) ]
+                    [#assign targetGroupRequired = false ]
+                    [#assign listenerForwardRule = false ]
+                    [#assign fixedMessage = getOccurrenceSettingValue(subOccurrence, ["Fixed", "Message"], true) ]
+                    [#assign fixedContentType = getOccurrenceSettingValue(subOccurrence, ["Fixed", "ContentType"], true) ]
+                    [#assign fixedStatusCode = getOccurrenceSettingValue(subOccurrence, ["Fixed", "StatusCode"], true) ]
+                        [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
+                            [@createListenerRule
+                                mode=listMode
+                                id=listenerRuleId 
+                                listenerId=listenerId
+                                actions=getListenerRuleFixedAction(
+                                        contentIfContent(
+                                            fixedMessage,
+                                            solution.Fixed.Message),
+                                        contentIfContent(
+                                            fixedContentType,
+                                            solution.Fixed.ContentType),
+                                        contentIfContent(
+                                            fixedStatusCode,
+                                            solution.Fixed.StatusCode))
+                                conditions=listenerRuleConditions
+                                priority=listenerRulePriority
+                                dependencies=listenerId
+                            /]
+                    [/#if]
                 [/#if]
             [/#if]
 
@@ -282,7 +284,7 @@
                                 [#assign userPoolOauthScope =  linkTargetConfiguration.Solution.OAuth.Scopes?join(", ") ]
                             [/#if]
 
-                            [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
+                            [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application" ]
                                 [@createListenerRule
                                     mode=listMode
                                     id=listenerRuleId 
@@ -307,7 +309,7 @@
                         [#case SPA_COMPONENT_TYPE]
                             [#assign targetGroupRequired = false ]
                             [#assign listenerForwardRule = false ]
-                            [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
+                            [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application"  ]
                                 [@createListenerRule
                                     mode=listMode
                                     id=listenerRuleId 
@@ -443,47 +445,48 @@
                     [#break]
 
                 [#case "classic"]
-                    [#assign lbSecurityGroupIds += [securityGroupId] ]
-                    [#assign classicListenerPolicyNames = []]
-                    [#assign classicSSLRequired = sourcePort.Certificate!false ]
+                    [#if firstMappingForPort ]
+                        [#assign lbSecurityGroupIds += [securityGroupId] ]
+                        [#assign classicListenerPolicyNames = []]
+                        [#assign classicSSLRequired = sourcePort.Certificate!false ]
 
-                    [#if classicSSLRequired ]
-                        [#assign classicListenerPolicyNames += [
-                            classicHTTPSPolicyName
-                        ]]
-                    [/#if]
+                        [#if classicSSLRequired ]
+                            [#assign classicListenerPolicyNames += [
+                                classicHTTPSPolicyName
+                            ]]
+                        [/#if]
 
-                    [#if solution.Forward.StickinessTime > 0 ]
-                        [#assign stickinessPolicyName = formatName(core.Name, "sticky") ]
-                        [#assign classicListenerPolicyNames += [ stickinessPolicyName ]]
-                        [#assign classicStickinessPolicies += [
-                            {
-                                "PolicyName" : stickinessPolicyName,
-                                "CookieExpirationPeriod" : solution.Forward.StickinessTime
-                            }
-                        ]]
-                    [/#if]
+                        [#if solution.Forward.StickinessTime > 0 ]
+                            [#assign stickinessPolicyName = formatName(core.Name, "sticky") ]
+                            [#assign classicListenerPolicyNames += [ stickinessPolicyName ]]
+                            [#assign classicStickinessPolicies += [
+                                {
+                                    "PolicyName" : stickinessPolicyName,
+                                    "CookieExpirationPeriod" : solution.Forward.StickinessTime
+                                }
+                            ]]
+                        [/#if]
 
-                    [#assign classicListeners +=
-                        [
-                            {
-                                "LoadBalancerPort" : sourcePort.Port,
-                                "Protocol" : sourcePort.Protocol,
-                                "InstancePort" : destinationPort.Port,
-                                "InstanceProtocol" : destinationPort.Protocol
-                            }  +
-                            attributeIfTrue(
-                                "SSLCertificateId",
-                                classicSSLRequired,
-                                getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
-                            ) +
-                            attributeIfContent(
-                                "PolicyNames",
-                                classicListenerPolicyNames
-                            )
+                        [#assign classicListeners +=
+                            [
+                                {
+                                    "LoadBalancerPort" : sourcePort.Port,
+                                    "Protocol" : sourcePort.Protocol,
+                                    "InstancePort" : destinationPort.Port,
+                                    "InstanceProtocol" : destinationPort.Protocol
+                                }  +
+                                attributeIfTrue(
+                                    "SSLCertificateId",
+                                    classicSSLRequired,
+                                    getReference(certificateId, ARN_ATTRIBUTE_TYPE, regionId)
+                                ) +
+                                attributeIfContent(
+                                    "PolicyNames",
+                                    classicListenerPolicyNames
+                                )
+                            ]
                         ]
-                    ]
-
+                    [/#if]
                     [#break]
             [/#switch]
         [/#list]
