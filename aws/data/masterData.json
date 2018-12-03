@@ -1780,7 +1780,7 @@
     }
   },
   "DeploymentProfiles" : {
-    "_default" :{ 
+    "_frontdoor" :{ 
       "Modes" : {
         "maintenance" : {
           "lb" : {
@@ -1795,9 +1795,6 @@
                 }
               }
             }
-          },
-          "bastion" : {
-            "Active" : true
           }
         }
       }
