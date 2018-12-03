@@ -235,7 +235,7 @@
     [#return result]
 [/#function]
 
-[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=deploymentUnit level=componentLevel ]
+[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=deploymentUnit level=componentLevel deploymentMode=deploymentMode ]
     [#return {
         "Account" :{ "Value" : account },
         "Region" : {"Value" : region },
@@ -250,7 +250,8 @@
                     "-" + deploymentUnitSubset?lower_case,
                     ""
                 )
-        }
+        },
+        "DeploymentMode" : { "Value" : deploymentMode }
     }]
 [/#function]
 

@@ -1778,5 +1778,29 @@
     "_sns-failure": {
       "Pattern": "{ $.status = \"FAILURE\" }"
     }
+  },
+  "DeploymentProfiles" : {
+    "_default" :{ 
+      "Modes" : {
+        "maintenance" : {
+          "lb" : {
+            "PortMappings": {
+              "httpsmaintenance": {
+                "Mapping" : "https",
+                "Priority": 50,
+                "Fixed" : {
+                    "Message" : "This application is currently undergoing scheduled maintenance. Please try again later.",
+                    "ContentType" : "text/plain",
+                    "StatusCode" : "503"
+                }
+              }
+            }
+          },
+          "bastion" : {
+            "Active" : true
+          }
+        }
+      }
+    }
   }
 }

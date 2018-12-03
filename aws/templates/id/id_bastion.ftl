@@ -43,6 +43,10 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
+                },
+                {
                     "Names" : "AutoScaling",
                     "Children" : autoScalingChildConfiguration
                 },

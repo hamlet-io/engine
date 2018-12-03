@@ -46,6 +46,10 @@
                     "Names" : "Encrypted",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
+                },
+                {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
                 }
             ],
             "Components" : [

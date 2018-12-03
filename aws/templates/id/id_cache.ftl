@@ -48,6 +48,10 @@
                             "Default" : ""
                         }
                     ]
+                },
+                {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
                 }
             ]
         }

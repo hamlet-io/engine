@@ -7,6 +7,7 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
 # Defaults
 CONFIGURATION_REFERENCE_DEFAULT="unassigned"
 REQUEST_REFERENCE_DEFAULT="unassigned"
+DEPLOYMENT_MODE_DEFAULT="update"
 
 function usage() {
   cat <<EOF
@@ -27,6 +28,7 @@ where
 (d) -t LEVEL                   same as -l
 (o) -u DEPLOYMENT_UNIT         is the deployment unit to be included in the template
 (o) -z DEPLOYMENT_UNIT_SUBSET  is the subset of the deployment unit required
+(o) -d DEPLOYMENT_MODE         is the deployment mode the template will be generated for
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -34,6 +36,7 @@ DEFAULTS:
 
 CONFIGURATION_REFERENCE = "${CONFIGURATION_REFERENCE_DEFAULT}"
 REQUEST_REFERENCE       = "${REQUEST_REFERENCE_DEFAULT}"
+DEPLOYMENT_MODE         = "${DEPLOYMENT_MODE_DEFAULT}"
 
 NOTES:
 
@@ -54,10 +57,11 @@ EOF
 function options() {
 
   # Parse options
-  while getopts ":b:c:hl:q:r:s:t:u:z:" option; do
+  while getopts ":b:c:d:hl:q:r:s:t:u:z:" option; do
       case "${option}" in
           b) BUILD_DEPLOYMENT_UNIT="${OPTARG}" ;;
           c) CONFIGURATION_REFERENCE="${OPTARG}" ;;
+          d) DEPLOYMENT_MODE="${OPTARG}" ;;
           h) usage; return 1 ;;
           l) LEVEL="${OPTARG}" ;;
           q) REQUEST_REFERENCE="${OPTARG}" ;;
@@ -74,6 +78,7 @@ function options() {
   # Defaults
   CONFIGURATION_REFERENCE="${CONFIGURATION_REFERENCE:-${CONFIGURATION_REFERENCE_DEFAULT}}"
   REQUEST_REFERENCE="${REQUEST_REFERENCE:-${REQUEST_REFERENCE_DEFAULT}}"
+  DEPLOYMENT_MODE="${DEPLOYMENT_MODE:-${DEPLOYMENT_MODE_DEFAULT}}"
 
   # Check level and deployment unit
   ! isValidUnit "${LEVEL}" "${DEPLOYMENT_UNIT}" && fatal "Deployment unit/level not valid" && return 1
@@ -165,6 +170,7 @@ function process_template() {
   local build_reference="${1}"; shift
   local request_reference="${1}"; shift
   local configuration_reference="${1}"; shift
+  local deployment_mode="${1}"; shift
 
   # Filename parts
   local level_prefix="${level}-"
@@ -370,6 +376,7 @@ function process_template() {
   args+=("-v" "stackOutputs=${COMPOSITE_STACK_OUTPUTS}")
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")
+  args+=("-v" "deploymentMode=${DEPLOYMENT_MODE}")
 
   # Directory for temporary files
   pushTempDir "create_template_XXXX"
@@ -569,7 +576,8 @@ function main() {
         "" \
         "${BUILD_DEPLOYMENT_UNIT}" "${BUILD_REFERENCE}" \
         "${REQUEST_REFERENCE}" \
-        "${CONFIGURATION_REFERENCE}"
+        "${CONFIGURATION_REFERENCE}" \
+        "${DEPLOYMENT_MODE}"
       ;;
 
     *)
@@ -581,7 +589,8 @@ function main() {
         "${REGION}" \
         "${BUILD_DEPLOYMENT_UNIT}" "${BUILD_REFERENCE}" \
         "${REQUEST_REFERENCE}" \
-        "${CONFIGURATION_REFERENCE}"
+        "${CONFIGURATION_REFERENCE}" \
+        "${DEPLOYMENT_MODE}"
       ;;
   esac
 }

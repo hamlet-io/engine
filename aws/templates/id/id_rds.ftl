@@ -117,6 +117,10 @@
                     "Names" : "DBParameters",
                     "Type" : OBJECT_TYPE,
                     "Default" : {}
+                },
+                {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
                 }
             ]
     }

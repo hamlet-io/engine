@@ -148,7 +148,7 @@
                 },
                 {
                     "Names" : "Profiles",
-                    "Children" : [
+                    "Children" : profileChildConfiguration + [
                         {
                             "Names" : "Security",
                             "Type" : STRING_TYPE,

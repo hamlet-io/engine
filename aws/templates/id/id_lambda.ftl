@@ -97,6 +97,10 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
+                },
+                {
                     "Names" : "LogMetrics",
                     "Subobjects" : true,
                     "Children" : logMetricChildrenConfiguration

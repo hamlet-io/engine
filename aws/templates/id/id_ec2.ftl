@@ -116,6 +116,10 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
+                },
+                {
                     "Names" : "Ports",
                     "Subobjects" : true,
                     "Children" : [
