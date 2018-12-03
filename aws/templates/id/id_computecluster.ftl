@@ -30,6 +30,10 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
+                },
+                {
                     "Names" : "UseInitAsService",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false

@@ -136,6 +136,10 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
+                },
+                {
                     "Names" : "Schema",
                     "Subobjects" : true,
                     "Children" :    [

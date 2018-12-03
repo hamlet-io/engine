@@ -1343,6 +1343,21 @@ behaviour.
         [#local typeObject = component ]
     [/#if]
 
+    [#--  Deployment Profile Configuration Overrides --] 
+    [#if ((getDeploymentProfile(component, type)).Modes[deploymentMode])?? ]
+        [#local deploymentProfileComponents = (getDeploymentProfile(component,type)).Modes[deploymentMode] ]
+
+        [#local deploymentProfile = {} ]
+
+        [#list deploymentProfileComponents as deploymentProfileType,deploymentProfileComponent ]
+            [#local deploymentProfile += {
+                deploymentProfileType?lower_case : deploymentProfileComponent
+             }]
+        [/#list]
+
+        [#local component = mergeObjects(component, { type: deploymentProfile[type]!{} } )]
+    [/#if]
+
     [#if tier?has_content]
         [#local tierId = getTierId(tier) ]
         [#local tierName = getTierName(tier) ]
@@ -1856,6 +1871,22 @@ behaviour.
     [#else]
         [#return profile ]
     [/#if]
+[/#function]
+
+[#function getDeploymentProfile component type ]
+    [#if ((component[type]).Profiles.Deployment)?? ]
+        [#return deploymentProfiles[(component[type]).Profiles.Deployment]]
+    [/#if]
+    [#if (environmentObject.Profiles["Deployment"])?? ]
+        [#return deploymentProfiles[environmentObject.Profiles["Deployment"]]]
+    [/#if]
+    [#if (productObject.Profiles["Deployment"])?? ]
+        [#return deploymentProfiles[solutionObject.Profiles["Deployment"]]]
+    [/#if]
+    [#if (tenantObject.Profiles["Deployment"])??]
+        [#return deploymentProfiles[tenantObject.Profiles["Deployment"]]]
+    [/#if]
+    [#return deploymentProfiles["_default"]]
 [/#function]
 
 [#-- Get storage settings --]

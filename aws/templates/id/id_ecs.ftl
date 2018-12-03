@@ -147,6 +147,10 @@
                     "Children" : linkChildrenConfiguration
                 },
                 {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
+                },
+                {
                     "Names" : "AutoScaling",
                     "Children" : autoScalingChildConfiguration
                 },
@@ -272,6 +276,10 @@
                             "Default" : ""
                         }
                     ]
+                },
+                {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
                 }
             ]
         },
@@ -345,6 +353,10 @@
                     "Names" : "FixedName",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
+                },
+                {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
                 }
             ]
         }

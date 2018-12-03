@@ -73,6 +73,10 @@
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
                 }
             ]
         }

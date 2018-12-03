@@ -53,6 +53,10 @@
                 {
                     "Names" : "VisibilityTimeout",
                     "Type" : NUMBER_TYPE
+                },
+                {
+                    "Names" : "Profiles",
+                    "Children" : profileChildConfiguration
                 }
             ]
         }

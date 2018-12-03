@@ -384,6 +384,14 @@
     }
 ]]
 
+[#assign profileChildConfiguration = [
+    {
+        "Names" : "Deployment",
+        "Type" : STRING_TYPE
+    }
+]]
+
+
 [#include idList]
 [#include nameList]
 [#include policyList]
@@ -427,6 +435,7 @@
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 [#assign securityProfiles = blueprintObject.SecurityProfiles ]
 [#assign logFilters = blueprintObject.LogFilters]
+[#assign deploymentProfiles = blueprintObject.DeploymentProfiles]
 
 [#-- Regions --]
 [#if region?has_content]
