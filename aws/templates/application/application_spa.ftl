@@ -43,7 +43,7 @@
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig
                 mode=listMode
-                content=_context.Environment
+                content={ "RUN_ID" : runId } + _context.Environment
             /]
         [/#if]
         [#if deploymentSubsetRequired("prologue", false)]
