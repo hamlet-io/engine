@@ -912,7 +912,7 @@ function isBucketAccessible() {
 
   local result_file="$(getTopTempDir)/is_bucket_accessible_XXXX.txt"
 
-  aws --region ${region} s3 ls "s3://${bucket}/${prefix}${prefix:+/}" > "${result_file}"
+  aws --region ${region} s3 ls "s3://${bucket}/${prefix}${prefix:+/}" > "${result_file}" 2>&1
 }
 
 function copyFilesFromBucket() {
@@ -936,31 +936,35 @@ function syncFilesToBucket() {
   fi
   local optional_arguments=("$@")
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
-  local tmp_dir="$(getTopTempDir)"
-  local return_status
+  # Does the bucket/prefix exist?
+  if isBucketAccessible "${region}" "${bucket}" "${prefix}"; then
+    pushTempDir "${FUNCNAME[0]}_XXXX"
+    local tmp_dir="$(getTopTempDir)"
+    local return_status
 
-  # Copy files locally so we can synch with S3, potentially including deletes
-  for file in "${syncFiles[@]}" ; do
-    if [[ -f "${file}" ]]; then
-      case "$(fileExtension "${file}")" in
-        zip)
-          # Always use local time to force redeploy of files
-          # in case we are reverting to an earlier version
-          unzip -DD "${file}" -d "${tmp_dir}"
-          ;;
-        *)
-          cp "${file}" "${tmp_dir}"
-          ;;
-      esac
-    fi
-  done
+    # Copy files locally so we can synch with S3, potentially including deletes
+    for file in "${syncFiles[@]}" ; do
+      if [[ -f "${file}" ]]; then
+        case "$(fileExtension "${file}")" in
+          zip)
+            # Always use local time to force redeploy of files
+            # in case we are reverting to an earlier version
+            unzip -DD "${file}" -d "${tmp_dir}"
+            ;;
+          *)
+            cp "${file}" "${tmp_dir}"
+            ;;
+        esac
+      fi
+    done
 
-  # Now synch with s3
-  aws --region ${region} s3 sync "${optional_arguments[@]}" "${tmp_dir}/" "s3://${bucket}/${prefix}${prefix:+/}"; return_status=$?
+    # Now synch with s3
+    aws --region ${region} s3 sync "${optional_arguments[@]}" "${tmp_dir}/" "s3://${bucket}/${prefix}${prefix:+/}"; return_status=$?
 
-  popTempDir
-  return ${return_status}
+    popTempDir
+    return ${return_status}
+  fi
+  return 0
 }
 
 function deleteTreeFromBucket() {
