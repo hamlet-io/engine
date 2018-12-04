@@ -1344,19 +1344,8 @@ behaviour.
     [/#if]
 
     [#--  Deployment Profile Configuration Overrides --] 
-    [#if ((getDeploymentProfile(component, type)).Modes[deploymentMode])?? ]
-        [#local deploymentProfileComponents = (getDeploymentProfile(component,type)).Modes[deploymentMode] ]
-
-        [#local deploymentProfile = {} ]
-
-        [#list deploymentProfileComponents as deploymentProfileType,deploymentProfileComponent ]
-            [#local deploymentProfile += {
-                deploymentProfileType?lower_case : deploymentProfileComponent
-             }]
-        [/#list]
-
-        [#local typeObject = mergeObjects(typeObject, deploymentProfile[type]!{} )]
-    [/#if]
+    [#local deploymentProfileComponents = getDeploymentProfile(typeObject, deploymentMode) ]
+    [#local typeObject = mergeObjects(typeObject, deploymentProfileComponents[type]!{} )]
 
     [#if tier?has_content]
         [#local tierId = getTierId(tier) ]
@@ -1873,20 +1862,56 @@ behaviour.
     [/#if]
 [/#function]
 
-[#function getDeploymentProfile component type ]
-    [#if ((component[type]).Profiles.Deployment)?? ]
-        [#return deploymentProfiles[(component[type]).Profiles.Deployment]]
+[#function getDeploymentProfile typeObject deploymentMode ]
+
+    [#local deploymentProfileNames = []]
+
+    [#if (typeObject.Profiles.Deployment)?? ]
+        [#list asArray(typeObject.Profiles.Deployment) as profileName ]
+            [#if ! deploymentProfileNames?seq_contains(profileName) ]
+                [#local deploymentProfileNames += [ profileName ] ]
+            [/#if]
+        [/#list]
     [/#if]
-    [#if (environmentObject.Profiles["Deployment"])?? ]
-        [#return deploymentProfiles[environmentObject.Profiles["Deployment"]]]
+
+    [#if (environmentObject.Profiles.Deployment)?? ]
+        [#list asArray(environmentObject.Profiles.Deployment) as profileName ]
+            [#if ! deploymentProfileNames?seq_contains(profileName) ]
+                [#local deploymentProfileNames += [ profileName ] ]
+            [/#if]
+        [/#list]
     [/#if]
-    [#if (productObject.Profiles["Deployment"])?? ]
-        [#return deploymentProfiles[solutionObject.Profiles["Deployment"]]]
+
+    [#if (productObject.Profiles.Deployment)?? ]
+        [#list asArray(productObject.Profiles.Deployment) as profileName ]
+            [#if ! deploymentProfileNames?seq_contains(profileName) ]
+                [#local deploymentProfileNames += [ profileName ] ]
+            [/#if]
+        [/#list]
     [/#if]
-    [#if (tenantObject.Profiles["Deployment"])??]
-        [#return deploymentProfiles[tenantObject.Profiles["Deployment"]]]
+
+    [#if (accountObject.Profiles.Deployment)?? ]
+        [#list asArray(accountObject.Profiles.Deployment) as profileName ]
+            [#if ! deploymentProfileNames?seq_contains(profileName) ]
+                [#local deploymentProfileNames += [ profileName ] ]
+            [/#if]
+        [/#list]
     [/#if]
-    [#return {}]
+
+    [#if (tenantObject.Profiles.Deployment)?? ]
+        [#list asArray(tenantObject.Profiles.Deployment) as profileName ]
+            [#if ! deploymentProfileNames?seq_contains(profileName) ]
+                [#local deploymentProfileNames += [ profileName ] ]
+            [/#if]
+        [/#list]
+    [/#if]
+    
+    [#local deploymentProfile = {} ]
+    [#list deploymentProfileNames as deploymentProfileName ]
+        [#local deploymentProfile = mergeObjects( deploymentProfile, (deploymentProfiles[deploymentProfileName])!{} )]
+    [/#list]
+
+    [#return mergeObjects( (deploymentProfile.Modes["*"])!{}, (deploymentProfile.Modes[deploymentMode])!{})  ]
 [/#function]
 
 [#-- Get storage settings --]

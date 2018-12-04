@@ -435,7 +435,6 @@
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 [#assign securityProfiles = blueprintObject.SecurityProfiles ]
 [#assign logFilters = blueprintObject.LogFilters]
-[#assign deploymentProfiles = blueprintObject.DeploymentProfiles]
 
 [#-- Regions --]
 [#if region?has_content]
@@ -484,6 +483,35 @@
     [#assign categoryName = "account"]
 
 [/#if]
+
+[#-- Deployment Profiles --]
+[#--  Tenant DeploymentProfiles override standard DeploymentProfiles and Account DeploymentProfiles override this result --]
+[#assign deploymentProfiles = {} ]
+[#assign tieredDeploymentProfiles = mergeObjects( blueprintObject.DeploymentProfiles, (tenantObject.DeploymentProfiles)!{} ) ]
+[#assign tieredDeploymentProfiles = mergeObjects( tieredDeploymentProfiles, (accountObject.DeploymentProfiles)!{} )]
+
+[#list tieredDeploymentProfiles as name,deploymentProfile ]
+    [#if deploymentProfile?is_hash ]
+        [#list deploymentProfile.Modes as mode,modeProfile ]
+            [#if modeProfile?is_hash ]
+                [#list modeProfile as type,config ]
+                    [#assign deploymentProfiles = 
+                        mergeObjects(
+                            deploymentProfiles, 
+                            {
+                                name : {
+                                    "Modes" : {
+                                        mode : {
+                                            type?lower_case : config
+                                        }
+                                    }
+                                }
+                            })]
+                [/#list]
+            [/#if]
+        [/#list]
+    [/#if]
+[/#list]
 
 [#-- Products --]
 [#assign products = (blueprintObject.Products)!{} ]
