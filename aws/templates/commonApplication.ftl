@@ -349,6 +349,30 @@
     [/#if]
 [/#macro]
 
+[#-- CloudFront Specific Fragment Macros --]
+[#macro cfCustomHeader name value ]
+    [#if (fragmentListMode!"") == "model" ]
+        [#assign _context +=
+            {
+                "CustomOriginHeaders" : (_context.CustomOriginHeaders![]) + [
+                    getCFHTTPHeader(
+                        name,
+                        value )
+                ]
+            }]
+    [/#if]
+[/#macro]
+
+[#macro cfForwardHeaders names... ]
+    [#if (fragmentListMode!"") == "model" ]
+        [#assign _context += 
+            {
+                "ForwardHeaders" : (_context.ForwardHeaders![]) + 
+                                        asArray(names)
+            }]
+    [/#if]
+[/#macro]
+
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
 [#function defaultEnvironment occurrence links]

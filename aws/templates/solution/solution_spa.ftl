@@ -12,6 +12,33 @@
         [#assign resources = occurrence.State.Resources]
         [#assign solution = occurrence.Configuration.Solution ]
 
+        [#assign fragment =
+            contentIfContent(solution.Fragment, getComponentId(component)) ]
+
+        [#assign contextLinks = getLinkTargets(occurrence) ]
+        [#assign _context =
+            {
+                "Id" : fragment,
+                "Name" : fragment,
+                "Instance" : core.Instance.Id,
+                "Version" : core.Version.Id,
+                "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+                "Environment" : {},
+                "Links" : contextLinks,
+                "DefaultCoreVariables" : false,
+                "DefaultEnvironmentVariables" : false,
+                "DefaultLinkVariables" : false,
+                "CustomOriginHeaders" : [],
+                "ForwardHeaders" : []
+            }
+        ]
+
+        [#-- Add in container specifics including override of defaults --]
+        [#assign fragmentListMode = "model"]
+        [#assign fragmentId = formatFragmentId(_context)]
+        [#assign containerId = fragmentId]
+        [#include fragmentList?ensure_starts_with("/")]
+
         [#assign securityProfile    = getSecurityProfile(solution.Profiles.Security, SPA_COMPONENT_TYPE)]
 
         [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
@@ -25,10 +52,6 @@
         [#list certificateObject.Domains as domain]
             [#assign aliases += [ formatDomainName(hostName, domain.Name) ] ]
         [/#list]
-
-        [#-- Headers --]
-        [#assign customOriginHeaders = []]
-        [#assign forwardHeaders = []]
 
         [#-- Get any event handlers --]
         [#assign eventHandlerLinks = {} ]
@@ -48,12 +71,19 @@
                 }
             }]
 
-            [#if getLinkTarget(occurrence, cfRedirectLink.cfredirect )?has_content ]
-                [#assign forwardHeaders += [ "Host" ]]            
+            [#if getLinkTarget(occurrence, cfRedirectLink.cfredirect )?has_content ]          
                 [#assign eventHandlerLinks += cfRedirectLink]
 
-                [#assign customOriginHeaders +=
-                        [
+                [#assign _context += 
+                    {
+                        "ForwardHeaders" : (_context.ForwardHeaders![]) + [
+                            "Host"
+                        ]
+                    }]
+
+                [#assign _context +=
+                    {
+                        "CustomOriginHeaders" : (_context.CustomOriginHeaders![]) + [
                             getCFHTTPHeader(
                                 "X-Redirect-Primary-Domain-Name",
                                 primaryFQDN ),
@@ -61,7 +91,8 @@
                                 "X-Redirect-Response-Code",
                                 "301"
                             )
-                        ]]
+                        ]
+                    }]
             [#else] 
                 [@cfException
                     mode=listMode
@@ -125,14 +156,14 @@
                     operationsBucket,
                     cfAccess,
                     formatAbsolutePath(getSettingsFilePrefix(occurrence), "spa"),
-                    customOriginHeaders)]
+                    _context.CustomOriginHeaders)]
             [#assign configOrigin =
                 getCFS3Origin(
                     cfConfigOriginId,
                     operationsBucket,
                     cfAccess,
                     formatAbsolutePath(getSettingsFilePrefix(occurrence)),
-                    customOriginHeaders)]
+                    _context.CustomOriginHeaders)]
 
             [#assign spaCacheBehaviour = getCFSPACacheBehaviour(
                 spaOrigin,
@@ -144,14 +175,14 @@
                 },
                 solution.CloudFront.Compress,
                 eventHandlers,
-                forwardHeaders)]
+                _context.ForwardHeaders)]
             [#assign configCacheBehaviour = getCFSPACacheBehaviour(
                 configOrigin,
                 "/config/*",
                 {"Default" : 60},
                 solution.CloudFront.Compress,
                 eventHandlers,
-                forwardHeaders) ]
+                _context.ForwardHeaders) ]
 
             [#assign restrictions = {} ]
             [#if solution.CloudFront.CountryGroups?has_content]
