@@ -937,7 +937,7 @@ function syncFilesToBucket() {
   local optional_arguments=("$@")
 
   # Does the bucket/prefix exist?
-  if isBucketAccessible "${region}" "${bucket}" "${prefix}"; then
+  if isBucketAccessible "${region}" "${bucket}"; then
     pushTempDir "${FUNCNAME[0]}_XXXX"
     local tmp_dir="$(getTopTempDir)"
     local return_status
