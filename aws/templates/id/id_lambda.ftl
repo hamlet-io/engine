@@ -248,13 +248,25 @@
 
     [#local fixedCodeVersion = isPresent(solution.FixedCodeVersion) ]
 
+    [#local logMetrics = {} ]
+    [#list solution.LogMetrics as name,logMetric ]
+        [#local logMetrics += {
+            "lgMetric" + name : {
+                "Id" : formatLogMetricId( core.Id, logMetric.Id ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
+            }
+        }]
+    [/#list]
+
     [#return
         {
             "Resources" : {
                 "function" : {
                     "Id" : id,
                     "Name" : core.FullName,
-                    "Type" : AWS_LAMBDA_FUNCTION_RESOURCE_TYPE
+                    "Type" : AWS_LAMBDA_FUNCTION_RESOURCE_TYPE,
+                    "Monitored" : true
                 },
                 "lg" : {
                     "Id" : formatLogGroupId(core.Id),
@@ -269,7 +281,8 @@
                     "Id" : versionId,
                     "Type" : AWS_LAMBDA_VERSION_RESOURCE_TYPE
                 }
-            ),
+            ) + 
+            logMetrics,
             "Attributes" : {
                 "REGION" : regionId,
                 "ARN" : valueIfTrue(

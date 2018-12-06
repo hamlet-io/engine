@@ -124,6 +124,19 @@
             "Mandatory" : true
         },
         {
+            "Names" : "Resource",
+            "Children" : [
+                {
+                    "Names" : "Name",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "Type",
+                    "Type" : STRING_TYPE
+                }
+            ]
+        },
+        {
             "Names" : "Metric",
             "Children" : [
                 {
@@ -134,7 +147,8 @@
                 {
                     "Names" : "Type",
                     "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Values" : [ "StandardMetric", "LogFilter" ],
+                    "Default" : "StandardMetric"
                 }
             ]
         },

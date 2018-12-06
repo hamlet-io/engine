@@ -22,6 +22,19 @@
     }
 ]
 
+[#assign metricAttributes +=
+    {
+        AWS_SQS_RESOURCE_TYPE : {
+            "Namespace" : "AWS/SQS",
+            "Dimensions" : {
+                "QueueName" : {
+                    "Output" : NAME_ATTRIBUTE_TYPE
+                }
+            }
+        }
+    }
+]
+
 [#macro createSQSQueue mode id name delay="" maximumSize="" retention="" receiveWait="" visibilityTimout="" dlq="" dlqReceives=1 dependencies=""]
     [@cfResource 
         mode=mode

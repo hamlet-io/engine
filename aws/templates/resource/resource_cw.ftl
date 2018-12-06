@@ -16,6 +16,20 @@
     }
 ]
 
+[#-- Dummy metricAttributes to allow for log watchers --]
+[#assign metricAttributes +=
+    {
+        AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE : {
+            "Namespace" : "_productPath",
+            "Dimensions" : {
+                "None" : {
+                    "None" : ""
+                }
+            }
+        }
+    }
+]
+
 [#macro createLogGroup mode id name retention=0]
     [@cfResource
         mode=mode

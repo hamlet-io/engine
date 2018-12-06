@@ -192,15 +192,16 @@
 
                 [#list solution.LogMetrics as logMetricName,logMetric ]
 
+                    [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
                     [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
 
                     [@createLogMetric
                         mode=listMode
-                        id=formatDependentLogMetricId(fnId, logMetric.Id)
-                        name=formatName(logMetricName, fnName)
+                        id=logMetricResource.Id
+                        name=logMetricResource.Name
                         logGroup=fnLgName
                         filter=logFilter
-                        namespace=formatProductRelativePath()
+                        namespace=getResourceMetricNamespace(logMetricResource)
                         value=1
                         dependencies=fnLgId
                     /]
@@ -364,48 +365,34 @@
 
                 [#list solution.Alerts?values as alert ]
 
-                    [#assign dimensions=[] ]
-                    [#assign metricName = alert.Metric.Name ]
+                    [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                    [#list monitoredResources as name,monitoredResource ]
 
-                    [#switch alert.Metric.Type]
-                        [#case "LogFilter" ]
-                            [#-- TODO: Ideally We should use dimensions for filtering but they aren't available on Log Metrics --]
-                            [#-- feature requst has been raised... --]
-                            [#-- Instead we name the logMetric with the function name and will use that --]
-                            [#assign metricName = formatName(alert.Metric.Name, fnName) ]
-                        [#break]
-                    [/#switch]
-
-                    [#switch alert.Comparison ]
-                        [#case "Threshold" ]
-                            [@createCountAlarm
-                                mode=listMode
-                                id=formatDependentAlarmId(fnId, alert.Id)
-                                name=alert.Severity?upper_case + "-" + fnName + "-" + alert.Name
-                                actions=[
-                                    getReference(formatSegmentSNSTopicId())
-                                ]
-                                metric=metricName
-                                namespace=alert.Namespace?has_content?then(
-                                                alert.Namespace,
-                                                formatProductRelativePath()
-                                                )
-                                description=alert.Description?has_content?then(
-                                                alert.Description,
-                                                alert.Name
-                                                )
-                                threshold=alert.Threshold
-                                statistic=alert.Statistic
-                                evaluationPeriods=alert.Periods
-                                period=alert.Time
-                                operator=alert.Operator
-                                reportOK=alert.ReportOk
-                                missingData=alert.MissingData
-                                dimensions=dimensions
-                                dependencies=fnId
-                            /]
-                        [#break]
-                    [/#switch]
+                        [#switch alert.Comparison ]
+                            [#case "Threshold" ]
+                                [@createCountAlarm
+                                    mode=listMode
+                                    id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                                    name=alert.Severity?upper_case + "-" + monitoredResource.Name!core.ShortFullName + "-" + alert.Name
+                                    actions=[
+                                        getReference(formatSegmentSNSTopicId())
+                                    ]
+                                    metric=getMetricName(alert.Metric.Name, monitoredResource.Type, fn)
+                                    namespace=getResourceMetricNamespace(monitoredResource)
+                                    description=alert.Description!alert.Name
+                                    threshold=alert.Threshold
+                                    statistic=alert.Statistic
+                                    evaluationPeriods=alert.Periods
+                                    period=alert.Time
+                                    operator=alert.Operator
+                                    reportOK=alert.ReportOk
+                                    missingData=alert.MissingData
+                                    dimensions=getResourceMetricDimensions(monitoredResource)
+                                    dependencies=monitoredResource.Id
+                                /]
+                            [#break]
+                        [/#switch]
+                    [/#list]
                 [/#list]
 
                 [#-- Pick any extra macros in the fragment --]

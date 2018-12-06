@@ -367,6 +367,17 @@
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
+    [#local logMetrics = {} ]
+    [#list solution.LogMetrics as name,logMetric ]
+        [#local logMetrics += {
+            "lgMetric" + name : {
+                "Id" : formatLogMetricId( core.Id, logMetric.Id ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
+            }
+        }]
+    [/#list]
+
     [#-- TODO(mfl): Use formatDependentRoleId() for roles --]
     [#return
         {
@@ -413,7 +424,8 @@
                     "Name" : formatAbsolutePath( core.FullAbsolutePath, "instancelog"),
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
-            },
+            } + 
+            logMetrics,
             "Attributes" : {
             },
             "Roles" : {
@@ -431,6 +443,17 @@
     [#local taskId = formatResourceId(AWS_ECS_TASK_RESOURCE_TYPE, core.Id) ]
     [#local taskName = core.Name]
 
+    [#local logMetrics = {} ]
+    [#list solution.LogMetrics as name,logMetric ]
+        [#local logMetrics += {
+            "lgMetric" + name : {
+                "Id" : formatLogMetricId( core.Id, logMetric.Id ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
+            }
+        }]
+    [/#list]
+
     [#return
         {
             "Resources" : {
@@ -443,7 +466,8 @@
                     "Name" : taskName,
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
-            } +
+            } + 
+            logMetrics +
             attributeIfTrue(
                 "lg",
                 solution.TaskLogGroup,
@@ -491,6 +515,17 @@
     [#local taskName = core.Name]
     [#local taskRoleId = formatDependentRoleId(taskId)]
 
+    [#local logMetrics = {} ]
+    [#list solution.LogMetrics as name,logMetric ]
+        [#local logMetrics += {
+            "lgMetric" + name : {
+                "Id" : formatLogMetricId( core.Id, logMetric.Id ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
+            }
+        }]
+    [/#list]
+
     [#return
         {
             "Resources" : {
@@ -500,6 +535,7 @@
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
             } +
+            logMetrics +
             attributeIfTrue(
                 "lg",
                 solution.TaskLogGroup,

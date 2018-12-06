@@ -296,15 +296,16 @@
                         
                         [#list solution.LogMetrics as logMetricName,logMetric ]
 
+                            [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
                             [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
 
                             [@createLogMetric
                                 mode=listMode
-                                id=formatDependentLogMetricId(lgId, logMetric.Id)
-                                name=formatName(logMetricName, core.Name)
+                                id=logMetricResource.Id
+                                name=logMetricResource.Name
                                 logGroup=lgName
                                 filter=logFilter
-                                namespace=formatProductRelativePath()
+                                namespace=getResourceMetricNamespace(logMetricResource)
                                 value=1
                                 dependencies=lgId
                             /]
@@ -321,17 +322,18 @@
                                 id=lgId
                                 name=container.LogGroup.Name /]
 
-                            [#list container.LogMetrics as logMetricName,logMetric ]
+                            [#list solution.LogMetrics as logMetricName,logMetric ]
 
+                                [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
                                 [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
 
                                 [@createLogMetric
                                     mode=listMode
-                                    id=formatDependentLogMetricId(lgId, logMetric.Id)
-                                    name=formatName(logMetricName, taskName, container.Name)
+                                    id=logMetricResource.Id
+                                    name=logMetricResource.Name
                                     logGroup=container.LogGroup.Name
                                     filter=logFilter
-                                    namespace=formatProductRelativePath()
+                                    namespace=getResourceMetricNamespace(logMetricResource)
                                     value=1
                                     dependencies=lgId
                                 /]
@@ -347,36 +349,54 @@
                 [#list containers as container ]
                     [#list container.Alerts?values as alert ]
 
-                        [#assign dimensions=[] ]
-                        [#assign metricName = alert.Metric.Name ]
+                        [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                        [#list monitoredResources as name,monitoredResource ]
 
-                        [#switch alert.Metric.Type]
-                            [#case "LogFilter" ]
-                                [#-- TODO: Ideally We should use dimensions for filtering but they aren't available on Log Metrics --]
-                                [#-- feature requst has been raised... --]
-                                [#-- Instead we name the logMetric with the function name and will use that --]
-                                [#assign metricName = formatName(alert.Metric.Name, core.Name) ]
-                            [#break]
-                        [/#switch]
+                            [#switch alert.Comparison ]
+                                [#case "Threshold" ]
+                                    [@createCountAlarm
+                                        mode=listMode
+                                        id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                                        name=alert.Severity?upper_case + "-" + monitoredResource.Name!core.ShortFullName + "-" + alert.Name
+                                        actions=[
+                                            getReference(formatSegmentSNSTopicId())
+                                        ]
+                                        metric=getMetricName(alert.Metric.Name, monitoredResource.Type, fn)
+                                        namespace=getResourceMetricNamespace(monitoredResource)
+                                        description=alert.Description!alert.Name
+                                        threshold=alert.Threshold
+                                        statistic=alert.Statistic
+                                        evaluationPeriods=alert.Periods
+                                        period=alert.Time
+                                        operator=alert.Operator
+                                        reportOK=alert.ReportOk
+                                        missingData=alert.MissingData
+                                        dimensions=getResourceMetricDimensions(monitoredResource)
+                                        dependencies=monitoredResource.Id
+                                    /]
+                                [#break]
+                            [/#switch]
+                        [/#list]
+                    [/#list]
+                [/#list]
+
+                [#list solution.Alerts?values as alert ]
+
+                    [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                    [#list monitoredResources as name,monitoredResource ]
 
                         [#switch alert.Comparison ]
                             [#case "Threshold" ]
                                 [@createCountAlarm
                                     mode=listMode
-                                    id=formatDependentAlarmId(container.Name, alert.Id)
-                                    name=alert.Severity?upper_case + "-" + core.FullName + "-" + container.Name + "-" + alert.Name
+                                    id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                                    name=alert.Severity?upper_case + "-" + monitoredResource.Name!core.ShortFullName + "-" + alert.Name
                                     actions=[
                                         getReference(formatSegmentSNSTopicId())
                                     ]
-                                    metric=metricName
-                                    namespace=alert.Namespace?has_content?then(
-                                                    alert.Namespace,
-                                                    formatProductRelativePath()
-                                                    )
-                                    description=alert.Description?has_content?then(
-                                                    alert.Description,
-                                                    alert.Name
-                                                    )
+                                    metric=getMetricName(alert.Metric.Name, monitoredResource.Type, fn)
+                                    namespace=getResourceMetricNamespace(monitoredResource)
+                                    description=alert.Description!alert.Name
                                     threshold=alert.Threshold
                                     statistic=alert.Statistic
                                     evaluationPeriods=alert.Periods
@@ -384,58 +404,14 @@
                                     operator=alert.Operator
                                     reportOK=alert.ReportOk
                                     missingData=alert.MissingData
-                                    dimensions=dimensions
+                                    dimensions=getResourceMetricDimensions(monitoredResource)
+                                    dependencies=monitoredResource.Id
                                 /]
                             [#break]
                         [/#switch]
                     [/#list]
                 [/#list]
-
-                [#list solution.Alerts?values as alert ]
-
-                    [#assign dimensions=[] ]
-                    [#assign metricName = alert.Metric.Name ]
-
-                    [#switch alert.Metric.Type]
-                        [#case "LogFilter" ]
-                            [#-- TODO: Ideally We should use dimensions for filtering but they aren't available on Log Metrics --]
-                            [#-- feature requst has been raised... --]
-                            [#-- Instead we name the logMetric with the function name and will use that --]
-                            [#assign metricName = formatName(alert.Metric.Name, core.Name) ]
-                        [#break]
-                    [/#switch]
-
-                    [#switch alert.Comparison ]
-                        [#case "Threshold" ]
-                            [@createCountAlarm
-                                mode=listMode
-                                id=formatDependentAlarmId(core.Name, alert.Id)
-                                name=alert.Severity?upper_case + "-" + core.FullName + "-" + alert.Name
-                                actions=[
-                                    getReference(formatSegmentSNSTopicId())
-                                ]
-                                metric=metricName
-                                namespace=alert.Namespace?has_content?then(
-                                                alert.Namespace,
-                                                formatProductRelativePath()
-                                                )
-                                description=alert.Description?has_content?then(
-                                                alert.Description,
-                                                alert.Name
-                                                )
-                                threshold=alert.Threshold
-                                statistic=alert.Statistic
-                                evaluationPeriods=alert.Periods
-                                period=alert.Time
-                                operator=alert.Operator
-                                reportOK=alert.ReportOk
-                                missingData=alert.MissingData
-                                dimensions=dimensions
-                            /]
-                        [#break]
-                    [/#switch]
-                [/#list]
-
+                
                 [@createECSTask
                     mode=listMode
                     id=taskId

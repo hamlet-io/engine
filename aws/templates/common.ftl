@@ -2331,3 +2331,106 @@ behaviour.
     [#return result ]
 [/#function]
 
+[#function getResourceMetricDimensions resource ]
+    [#local resourceMetricAttributes = metricAttributes[resource.Type]!{} ]
+
+    [#if resourceMetricAttributes?has_content ]
+        [#local occurrenceDimensions = [] ]
+        [#list resourceMetricAttributes.Dimensions as name,property ]
+            [#list property as key,value ]
+                [#switch key]
+                    [#case "ResouceProperty" ]
+                        [#local occurrenceDimensions += [{
+                            "Name" : name,
+                            "Value" : resource[value]
+                        }]]
+                        [#break]
+                    [#case "Output" ]
+                        [#local occurrenceDimensions += [{
+                            "Name" : name,
+                            "Value" : getReference(resource.Id, value)
+                        }]]
+                        [#break]
+                [/#switch]
+            [/#list]
+        [/#list]
+        
+        [#return occurrenceDimensions]
+    [#else]
+        [@cfException
+            mode=listMode
+            description="Dimensions not mapped for this resource"
+            context=resource.Type
+        /]
+    [/#if]
+
+[/#function]
+
+[#function getResourceMetricNamespace resource ]
+    [#local resourceTypeNameSpace = (metricAttributes[resource.Type]).Namespace ]
+
+    [#switch resourceTypeNameSpace ]
+        [#case "_productPath" ]
+            [#return formatProductRelativePath()]
+            [#break]
+        
+        [#default]
+            [#return resourceTypeNameSpace]
+    [/#switch]
+[/#function]
+
+[#function getMetricName metricName resourceType occurrence ]
+
+    [#-- For some metrics we need to append the resourceName to add a qualifier if they don't support dimensions --]
+    [#switch resourceType]
+        [#case AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE ]
+            [#return formatName(metricName, occurrence.Core.ShortFullName) ]
+    [#break]
+
+    [#default]
+        [#return metricName]
+    [/#switch]
+[/#function]
+
+[#function getMonitoredResources resources, resourceQualifier ]
+    [#local monitoredResources = {} ]
+
+    [#list resources as name,resource ] 
+
+        [#if resourceQualifier.Name?has_content || resourceQualifier.Type?has_content ]
+
+            [#if resourceQualifier.Name?has_content && resourceQualifier.Name == name  ]
+                [#local qualified = true ]
+                [#local monitoredResources += {
+                    name: resource
+                }]
+            [/#if]
+
+            [#if resourceQualifier.Type?has_content && resourceQualifier.Type == resource["Type"]  ]
+                [#local monitoredResources += {
+                    name: resource
+                }]
+            [/#if]
+
+        [#else]
+
+            [#if resource["Type"]?has_content] 
+
+                [#if resource["Monitored"]!false ]
+                    [#local monitoredResources += {
+                        name : resource
+                    }]
+                [/#if]
+
+            [#elseif resource?is_hash ]
+
+                [#list resource as subResource ]
+                    [#local monitoredResources += getMonitoredResources(subResource)]
+                [/#list]
+
+            [/#if]
+
+        [/#if]
+    [/#list]
+    [#return monitoredResources ]
+[/#function]

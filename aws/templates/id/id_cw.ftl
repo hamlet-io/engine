@@ -41,6 +41,12 @@
                 extensions)]
 [/#function]
 
+[#function formatLogMetricId ids...]
+    [#return formatResourceId(
+                AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                ids)]
+[/#function]
+
 [#function formatDependentLogSubscriptionId resourceId extensions... ]
     [#return formatDependentResourceId(
                 AWS_CLOUDWATCH_LOG_SUBSCRIPTION_RESOURCE_TYPE,
