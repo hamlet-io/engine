@@ -322,7 +322,7 @@
                                 id=lgId
                                 name=container.LogGroup.Name /]
 
-                            [#list solution.LogMetrics as logMetricName,logMetric ]
+                            [#list container.LogMetrics as logMetricName,logMetric ]
 
                                 [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
                                 [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
@@ -361,7 +361,7 @@
                                         actions=[
                                             getReference(formatSegmentSNSTopicId())
                                         ]
-                                        metric=getMetricName(alert.Metric.Name, monitoredResource.Type, fn)
+                                        metric=getMetricName(alert.Metric, monitoredResource.Type, fn)
                                         namespace=getResourceMetricNamespace(monitoredResource)
                                         description=alert.Description!alert.Name
                                         threshold=alert.Threshold
@@ -394,7 +394,7 @@
                                     actions=[
                                         getReference(formatSegmentSNSTopicId())
                                     ]
-                                    metric=getMetricName(alert.Metric.Name, monitoredResource.Type, fn)
+                                    metric=getMetricName(alert.Metric, monitoredResource.Type, fn)
                                     namespace=getResourceMetricNamespace(monitoredResource)
                                     description=alert.Description!alert.Name
                                     threshold=alert.Threshold
@@ -411,7 +411,7 @@
                         [/#switch]
                     [/#list]
                 [/#list]
-                
+
                 [@createECSTask
                     mode=listMode
                     id=taskId

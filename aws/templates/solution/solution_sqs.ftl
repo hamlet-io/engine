@@ -59,7 +59,7 @@
                             actions=[
                                 getReference(formatSegmentSNSTopicId())
                             ]
-                            metric=getMetricName(alert.Metric.Name, monitoredResource.Type, fn)
+                            metric=getMetricName(alert.Metric, monitoredResource.Type, fn)
                             namespace=getResourceMetricNamespace(monitoredResource)
                             description=alert.Description!alert.Name
                             threshold=alert.Threshold

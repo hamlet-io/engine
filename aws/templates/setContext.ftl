@@ -138,19 +138,8 @@
         },
         {
             "Names" : "Metric",
-            "Children" : [
-                {
-                    "Names" : "Name",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
-                },
-                {
-                    "Names" : "Type",
-                    "Type" : STRING_TYPE,
-                    "Values" : [ "StandardMetric", "LogFilter" ],
-                    "Default" : "StandardMetric"
-                }
-            ]
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
         },
         {
             "Names" : "Threshold",
