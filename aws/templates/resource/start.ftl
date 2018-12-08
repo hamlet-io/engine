@@ -162,6 +162,9 @@
 [#-- Output mappings object is extended dynamically by each resource type --]
 [#assign outputMappings = {} ]
 
+[#-- Metric Dimensions are extended dynamically by each resouce type --]
+[#assign metricAttributes = {}]
+
 [#-- Include a reference to a resource --]
 [#-- Allows resources to share a template or be separated --]
 [#-- Note that if separate, creation order becomes important --]

@@ -124,19 +124,22 @@
             "Mandatory" : true
         },
         {
-            "Names" : "Metric",
+            "Names" : "Resource",
             "Children" : [
                 {
                     "Names" : "Name",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 },
                 {
                     "Names" : "Type",
-                    "Type" : STRING_TYPE,
-                    "Mandatory" : true
+                    "Type" : STRING_TYPE
                 }
             ]
+        },
+        {
+            "Names" : "Metric",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
         },
         {
             "Names" : "Threshold",

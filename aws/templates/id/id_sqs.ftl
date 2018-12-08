@@ -57,6 +57,11 @@
                 {
                     "Names" : "Profiles",
                     "Children" : profileChildConfiguration
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
                 }
             ]
         }
@@ -64,6 +69,7 @@
     
 [#function getSQSState occurrence baseState]
     [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#if core.External!false]
         [#local id = baseState.Attributes["ARN"]!"" ]
@@ -96,6 +102,10 @@
     
         [#local dlqId = formatDependentResourceId(AWS_SQS_RESOURCE_TYPE, id, "dlq") ]
         [#local dlqName = formatName(name, "dlq")]
+
+        [#assign dlqRequired =
+            isPresent(solution.DeadLetterQueue) ||
+            ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
     
         [#return
             {
@@ -103,14 +113,21 @@
                     "queue" : {
                         "Id" : id,
                         "Name" : name,
-                        "Type" : AWS_SQS_RESOURCE_TYPE
-                    },
-                    "dlq" : {
-                        "Id" : dlqId,
-                        "Name" : dlqName,
-                        "Type" : AWS_SQS_RESOURCE_TYPE
+                        "Type" : AWS_SQS_RESOURCE_TYPE,
+                        "Monitored" : true
                     }
-                },
+                } + 
+                dlqRequired?then(
+                    {
+                        "dlq" : {
+                            "Id" : dlqId,
+                            "Name" : dlqName,
+                            "Type" : AWS_SQS_RESOURCE_TYPE,
+                            "Monitored" : true
+                        }
+                    },
+                    {}
+                ),
                 "Attributes" : {
                     "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
                     "URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),

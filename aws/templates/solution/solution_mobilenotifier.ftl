@@ -133,29 +133,20 @@
 
                 [#list solution.LogMetrics as logMetricName,logMetric ]
 
+                    [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
                     [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
 
                     [@createLogMetric
                         mode=listMode
-                        id=formatDependentLogMetricId(platformAppId, logMetric.Id)
-                        name=formatName(logMetricName, platformAppName)
-                        logGroup=lgName
+                        id=logMetricResource.Id
+                        name=logMetricResource.Name
+                        logGroup=logMetricResource.LogGroupName
                         filter=logFilter
-                        namespace=formatProductRelativePath()
+                        namespace=getResourceMetricNamespace(logMetricResource)
                         value=1
-                        dependencies=lgId
+                        dependencies=logMetricResource.LogGroupId
                     /]
 
-                    [@createLogMetric
-                        mode=listMode
-                        id=formatDependentLogMetricId(platformAppId, logMetric.Id, "failure")
-                        name=formatName(logMetricName, platformAppName, "failure")
-                        logGroup=lgFailureName
-                        filter=logFilter
-                        namespace=formatProductRelativePath()
-                        value=1
-                        dependencies=lgFailureId
-                    /]
                 [/#list]
             [/#if]
 

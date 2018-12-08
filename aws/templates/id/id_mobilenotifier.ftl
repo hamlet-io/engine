@@ -159,7 +159,32 @@
     [#local engine = solution.Engine!core.SubComponent.Name?upper_case  ]
 
     [#local lgId = formatMobileNotifierLogGroupId(engine, name, false) ]
+    [#local lgName = formatMobileNotifierLogGroupName(engine, name, false)]
+
     [#local lgFailureId = formatMobileNotifierLogGroupId(engine, name, true) ]
+    [#local lgFailureName = formatMobileNotifierLogGroupName(engine, name, true)]
+
+
+    [#local logMetrics = {} ]
+    [#list solution.LogMetrics as name,logMetric ]
+        [#local logMetrics += {
+            "lgMetric" + name + "success" : {
+                "Id" : formatLogMetricId( core.Id, logMetric.Id, "success" ),
+                "Name" : formatName(getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),"success"),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                "LogGroupName" : lgName,
+                "LogGroupId" : lgId
+            },
+            "lgMetric" + name + "failure" : {
+                "Id" : formatLogMetricId( core.Id, logMetric.Id, "failure" ),
+                "Name" : formatName(getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),"failure"),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                "LogGroupName" : lgFailureName,
+                "LogGroupId" : lgFailureId
+            }
+        }]
+    [/#list]
+
     [#local result =
         {
             "Resources" : {
@@ -171,15 +196,16 @@
                 },
                 "lg" : {
                     "Id" : lgId,
-                    "Name" : formatMobileNotifierLogGroupName(engine, name, false),
+                    "Name" : lgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 },
                 "lgfailure" : {
                     "Id" : lgFailureId,
-                    "Name" : formatMobileNotifierLogGroupName(engine, name, true),
+                    "Name" : lgFailureName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 }
-            },
+            } +
+            logMetrics,
             "Attributes" : {
                 "ARN" : (engine == MOBILENOTIFIER_SMS_ENGINE)?then(
                             formatArn(

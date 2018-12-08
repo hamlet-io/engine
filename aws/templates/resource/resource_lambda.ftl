@@ -11,6 +11,19 @@
     }
 ]
 
+[#assign metricAttributes +=
+    {
+        AWS_LAMBDA_FUNCTION_RESOURCE_TYPE : {
+            "Namespace" : "AWS/Lambda",
+            "Dimensions" : {
+                "FunctionName" : {
+                    "ResouceProperty" : "Name" 
+                }
+            }
+        }
+    }
+]
+
 [#assign LAMBDA_VERSION_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
