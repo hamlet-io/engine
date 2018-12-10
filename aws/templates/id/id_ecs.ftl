@@ -168,6 +168,11 @@
                             "Mandatory" : true
                         }
                     ]
+                },
+                {
+                    "Names" : "LogMetrics",
+                    "Subobjects" : true,
+                    "Children" : logMetricChildrenConfiguration
                 }
             ],
             "Components" : [
