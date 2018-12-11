@@ -17,7 +17,7 @@
             "Namespace" : "AWS/Lambda",
             "Dimensions" : {
                 "FunctionName" : {
-                    "ResouceProperty" : "Name" 
+                    "ResourceProperty" : "Name" 
                 }
             }
         }

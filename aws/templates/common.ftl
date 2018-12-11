@@ -2332,7 +2332,7 @@ behaviour.
     [#return result ]
 [/#function]
 
-[#function getResourceMetricDimensions resource ]
+[#function getResourceMetricDimensions resource resources]
     [#local resourceMetricAttributes = metricAttributes[resource.Type]!{} ]
 
     [#if resourceMetricAttributes?has_content ]
@@ -2340,10 +2340,17 @@ behaviour.
         [#list resourceMetricAttributes.Dimensions as name,property ]
             [#list property as key,value ]
                 [#switch key]
-                    [#case "ResouceProperty" ]
+                    [#case "ResourceProperty" ]
                         [#local occurrenceDimensions += [{
                             "Name" : name,
                             "Value" : resource[value]
+                        }]]
+                        [#break]
+                    [#case "OtherResourceProperty" ]
+                        [#local otherResource = resources[value.Id]]
+                        [#local occurrenceDimensions += [{
+                            "Name" : name,
+                            "Value" : otherResource[value.Property]
                         }]]
                         [#break]
                     [#case "Output" ]
@@ -2352,6 +2359,13 @@ behaviour.
                             "Value" : getReference(resource.Id, value)
                         }]]
                         [#break]
+                    [#case "OtherOutput" ]
+                        [#local otherResource = resources[value.Id]]
+                        [#local occurrenceDimensions += [{
+                            "Name" : name,
+                            "Value" : getReference(otherResource.Id, value.Property)
+                        }]]   
+                        [#break]                
                 [/#switch]
             [/#list]
         [/#list]
@@ -2396,41 +2410,41 @@ behaviour.
 [#function getMonitoredResources resources, resourceQualifier ]
     [#local monitoredResources = {} ]
 
-    [#list resources as name,resource ] 
+    [#list resources as id,resource ] 
 
-        [#if resourceQualifier.Name?has_content || resourceQualifier.Type?has_content ]
-
-            [#if resourceQualifier.Name?has_content && resourceQualifier.Name == name  ]
-                [#local qualified = true ]
-                [#local monitoredResources += {
-                    name: resource
-                }]
-            [/#if]
-
-            [#if resourceQualifier.Type?has_content && resourceQualifier.Type == resource["Type"]  ]
-                [#local monitoredResources += {
-                    name: resource
-                }]
-            [/#if]
-
+        [#if !resource["Type"]?has_content && resource?is_hash] 
+            [#list resource as id,subResource ]
+                [#local monitoredResources += getMonitoredResources({id : subResource}, resourceQualifier)]
+            [/#list]
+        
         [#else]
 
-            [#if resource["Type"]?has_content] 
+            [#if resourceQualifier.Id?has_content || resourceQualifier.Type?has_content ]
 
-                [#if resource["Monitored"]!false ]
+                [#if resourceQualifier.Id?has_content && resourceQualifier.Id == id  ]
                     [#local monitoredResources += {
-                        name : resource
+                        id: resource
                     }]
                 [/#if]
 
-            [#elseif resource?is_hash ]
+                [#if resourceQualifier.Type?has_content && resourceQualifier.Type == resource["Type"]  ]
+                    [#local monitoredResources += {
+                        id: resource
+                    }]
+                [/#if]
 
-                [#list resource as subResource ]
-                    [#local monitoredResources += getMonitoredResources(subResource)]
-                [/#list]
+            [#else]
+
+                [#if resource["Type"]?has_content] 
+
+                    [#if resource["Monitored"]!false ]
+                        [#local monitoredResources += {
+                            id : resource
+                        }]
+                    [/#if]
+                [/#if]
 
             [/#if]
-
         [/#if]
     [/#list]
     [#return monitoredResources ]

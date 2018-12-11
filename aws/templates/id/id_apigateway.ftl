@@ -203,6 +203,16 @@ object.
                             "Default" : "default"
                         }
                     ]
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
+                },
+                {
+                    "Names" : "LogMetrics",
+                    "Subobjects" : true,
+                    "Children" : logMetricChildrenConfiguration
                 }
             ]
         },
@@ -271,6 +281,44 @@ object.
     [#local internalPath = ""]
     [#local stagePath = "/" + stageName]
     [#local certificateId = "" ]
+
+    [#assign lgId = formatDependentLogGroupId(stageId) ]
+    [#assign lgName = {
+                        "Fn::Join" : [
+                            "",
+                            [
+                                "API-Gateway-Execution-Logs_",
+                                getExistingReference(apiId),
+                                "/",
+                                stageName
+                            ]
+                        ]
+                    }]
+    
+    [#assign accessLgId = formatDependentLogGroupId(stageId, "access") ]
+    [#assign accessLgName = formatAbsolutePath(core.FullAbsolutePath, "access")]
+    
+    [#local logMetrics = {} ]
+    [#list solution.LogMetrics as name,logMetric ]
+        [#local logMetrics += {
+            "lgMetric" + name : {
+                "Id" : formatLogMetricId( core.Id, logMetric.Id ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                "LogGroupName" : lgName,
+                "LogGroupId" : lgId,
+                "LogFilter" : logMetric.LogFilter
+            },
+            "lgMetric" + name + "access" : {
+                "Id" : formatLogMetricId( core.Id, logMetric.Id, "access" ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                "LogGroupName" : accessLgName,
+                "LogGroupId" : accessLgId,
+                "LogFilter" : logMetric.LogFilter
+            }
+        }]
+    [/#list]
 
     [#-- Effective API Gateway end points --]
     [#local hostDomains = [] ]
@@ -443,7 +491,8 @@ object.
                 "apigateway" : {
                     "Id" : apiId,
                     "Name" : apiName,
-                    "Type" : AWS_APIGATEWAY_RESOURCE_TYPE
+                    "Type" : AWS_APIGATEWAY_RESOURCE_TYPE,
+                    "Monitored" : true
                 },
                 "apideploy" : {
                     "Id" : formatResourceId(AWS_APIGATEWAY_DEPLOY_RESOURCE_TYPE, core.Id, runId),
@@ -455,25 +504,16 @@ object.
                     "Type" : AWS_APIGATEWAY_STAGE_RESOURCE_TYPE
                 },
                 "lg" : {
-                    "Id" : formatDependentLogGroupId(stageId),
-                    "Name" : {
-                        "Fn::Join" : [
-                            "",
-                            [
-                                "API-Gateway-Execution-Logs_",
-                                getExistingReference(apiId),
-                                "/",
-                                stageName
-                            ]
-                        ]
-                    },
+                    "Id" : lgId,
+                    "Name" : lgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                 },
                 "accesslg" : {
-                    "Id" : formatDependentLogGroupId(stageId, "access"),
-                    "Name" : formatAbsolutePath(core.FullAbsolutePath, "access"),
+                    "Id" : accessLgId,
+                    "Name" : accessLgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                }
+                },
+                "logMetrics" : logMetrics
             } +
             attributeIfContent("cf", cfResources) +
             attributeIfContent("docs", docsResources) +

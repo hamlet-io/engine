@@ -371,7 +371,7 @@
                                         operator=alert.Operator
                                         reportOK=alert.ReportOk
                                         missingData=alert.MissingData
-                                        dimensions=getResourceMetricDimensions(monitoredResource)
+                                        dimensions=getResourceMetricDimensions(monitoredResource, resources)
                                         dependencies=monitoredResource.Id
                                     /]
                                 [#break]
@@ -404,7 +404,7 @@
                                     operator=alert.Operator
                                     reportOK=alert.ReportOk
                                     missingData=alert.MissingData
-                                    dimensions=getResourceMetricDimensions(monitoredResource)
+                                    dimensions=getResourceMetricDimensions(monitoredResource, resources)
                                     dependencies=monitoredResource.Id
                                 /]
                             [#break]

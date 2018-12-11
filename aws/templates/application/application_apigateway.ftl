@@ -438,6 +438,53 @@
                     dependencies=value["domain"].Id
                 /]
             [/#list]
+
+            [#list solution.Alerts?values as alert ]
+
+                [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#list monitoredResources as name,monitoredResource ]
+
+                    [#switch alert.Comparison ]
+                        [#case "Threshold" ]
+                            [@createCountAlarm
+                                mode=listMode
+                                id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                                name=alert.Severity?upper_case + "-" + monitoredResource.Name!core.ShortFullName + "-" + alert.Name
+                                actions=[
+                                    getReference(formatSegmentSNSTopicId())
+                                ]
+                                metric=getMetricName(alert.Metric, monitoredResource.Type, occurrence)
+                                namespace=getResourceMetricNamespace(monitoredResource)
+                                description=alert.Description!alert.Name
+                                threshold=alert.Threshold
+                                statistic=alert.Statistic
+                                evaluationPeriods=alert.Periods
+                                period=alert.Time
+                                operator=alert.Operator
+                                reportOK=alert.ReportOk
+                                missingData=alert.MissingData
+                                dimensions=getResourceMetricDimensions(monitoredResource, resources)
+                                dependencies=monitoredResource.Id
+                            /]
+                        [#break]
+                    [/#switch]
+                [/#list]
+            [/#list]
+
+            [#list resources.logMetrics as logMetricName,logMetric ]
+
+                [@createLogMetric
+                    mode=listMode
+                    id=logMetric.Id
+                    name=logMetric.Name
+                    logGroup=logMetric.LogGroupName
+                    filter=logFilters[logMetric.LogFilter].Pattern
+                    namespace=getResourceMetricNamespace(logMetric)
+                    value=1
+                    dependencies=logMetric.LogGroupId
+                /]
+
+            [/#list]
         [/#if]
 
         [#assign docs = resources["docs"]!{} ]
