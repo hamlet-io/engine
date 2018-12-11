@@ -69,7 +69,6 @@
     
 [#function getSQSState occurrence baseState]
     [#local core = occurrence.Core]
-    [#local solution = occurrence.Configuration.Solution]
 
     [#if core.External!false]
         [#local id = baseState.Attributes["ARN"]!"" ]
@@ -97,6 +96,8 @@
             )
         ]
     [#else]
+        [#local solution = occurrence.Configuration.Solution]
+        
         [#local id = formatResourceId(AWS_SQS_RESOURCE_TYPE, core.Id) ]
         [#local name = core.FullName ]
     
