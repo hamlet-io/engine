@@ -160,7 +160,7 @@
 
                             
                             [#if deploymentSubsetRequired("es", true)]
-                                [#if link.Tier == "external" ]
+                                [#if linkTargetCore.External!false ]
                                     [@cfResource
                                         mode=listMode
                                         id=policyId

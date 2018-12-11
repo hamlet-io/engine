@@ -809,16 +809,7 @@ behaviour.
                 [#local result += { "Attributes" : externalAttributes } ]
             [/#if]
 
-            [#local result += 
-                    {
-                        "Roles" : {
-                            "Inbound" : {},
-                            "Outbound" : {}
-                        }
-                    }
-                ]]
-
-        [#else]
+        [/#if]
 
         [#switch core.Type!""]
             [#case LB_COMPONENT_TYPE]
@@ -926,15 +917,25 @@ behaviour.
                 [#break]
 
             [#case "userpool"]
-                [#local result = getUserPoolState(occurrence)]
+                [#local result = getUserPoolState(occurrence, result)]
                 [#break]
 
             [#case BASTION_COMPONENT_TYPE ]
                 [#local result = getBastionState(occurrence)]
                 [#break]
 
+            [#case "external"]
+                [#local result +=
+                    {
+                        "Roles" : {
+                            "Inbound" : {},
+                            "Outbound" : {}
+                        }
+                    }
+                ]
+                [#break]
+
         [/#switch]
-        [/#if]
     [/#if]
 
     [#-- Update resource deployment status --]
