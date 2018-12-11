@@ -378,7 +378,10 @@
             "lgMetric" + name : {
                 "Id" : formatLogMetricId( core.Id, logMetric.Id ),
                 "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),
-                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                "LogGroupName" : lgName,
+                "LogGroupId" : lgId,
+                "LogFilter" : logMetric.LogFilter
             }
         }]
     [/#list]
