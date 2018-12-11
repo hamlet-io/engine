@@ -165,85 +165,114 @@
         }
     }]
     
-[#function getUserPoolState occurrence]
+[#function getUserPoolState occurrence baseState]
     [#local core = occurrence.Core]
 
-    [#assign userPoolId = formatResourceId(AWS_COGNITO_USERPOOL_RESOURCE_TYPE, core.Id)]
-    [#assign userPoolName = formatSegmentFullName(core.Name)]
-
-    [#assign userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
-    [#assign userPoolDomainName = formatName("auth", core.ShortFullName, vpc?remove_beginning("vpc-"))]
-
-    [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
-    [#assign userPoolClientName = formatSegmentFullName(core.Name)]
-
-    [#assign identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
-    [#assign identityPoolName = formatSegmentFullName(core.Name)?replace("-","X")]
-
-    [#assign identityPoolRoleMappingId = formatDependentResourceId(AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE, identityPoolId)]
-
-    [#assign userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
-
-    [#assign identityPoolUnAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION )]
-    [#assign identityPoolAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION )]
-
-    [#return
-        {
-            "Resources" : {
-                "userpool" : {
-                    "Id" : userPoolId,
-                    "Name" : userPoolName,
-                    "Type" : AWS_COGNITO_USERPOOL_RESOURCE_TYPE
-                },
-                "domain" : {
-                    "Id" : userPoolDomainId,
-                    "Name" : userPoolDomainName,
-                    "Type" : AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE
-                },
-                "client" : {
-                    "Id" : userPoolClientId,
-                    "Name" : userPoolClientName,
-                    "Type" : AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE
-                },
-                "identitypool" : { 
-                    "Id" : identityPoolId,
-                    "Name" : identityPoolName,
-                    "Type" : AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE
-                },
-                "userpoolrole" : {
-                    "Id" : userPoolRoleId,
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                },
-                "unauthrole" : { 
-                    "Id" : identityPoolUnAuthRoleId,
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                },
-                "authrole" : {
-                    "Id" : identityPoolAuthRoleId,
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                },
-                "rolemapping" : {
-                    "Id" : identityPoolRoleMappingId,
-                    "Type" : AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE
-                }
-            },
-            "Attributes" : {
-                "AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
-                "USER_POOL" : getReference(userPoolId),
-                "IDENTITY_POOL" : getReference(identityPoolId),
-                "CLIENT" : getReference(userPoolClientId),
-                "REGION" : regionId
-            },
-            "Roles" : {
-                "Inbound" : {
-                    "invoke" : {
-                        "Principal" : "cognito-idp.amazonaws.com",
-                        "SourceArn" : getReference(userPoolId,ARN_ATTRIBUTE_TYPE)
+    [#if core.External!false]
+        [#local id = baseState.Attributes["USER_POOL_ARN"]!"" ]
+        [#return
+            baseState +
+            valueIfContent(
+                {
+                    "Roles" : {
+                        "Inbound" : {
+                            "invoke" : {
+                                "Principal" : "cognito-idp.amazonaws.com",
+                                "SourceArn" : id
+                            }
+                        },
+                        "Outbound" : {
+                        }
                     }
                 },
-                "Outbound" : {}
+                id,
+                {
+                    "Roles" : {
+                        "Inbound" : {},
+                        "Outbound" : {}
+                    }
+                }
+            )
+        ]
+    [#else]
+
+        [#assign userPoolId = formatResourceId(AWS_COGNITO_USERPOOL_RESOURCE_TYPE, core.Id)]
+        [#assign userPoolName = formatSegmentFullName(core.Name)]
+
+        [#assign userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
+        [#assign userPoolDomainName = formatName("auth", core.ShortFullName, vpc?remove_beginning("vpc-"))]
+
+        [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
+        [#assign userPoolClientName = formatSegmentFullName(core.Name)]
+
+        [#assign identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
+        [#assign identityPoolName = formatSegmentFullName(core.Name)?replace("-","X")]
+
+        [#assign identityPoolRoleMappingId = formatDependentResourceId(AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE, identityPoolId)]
+
+        [#assign userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
+
+        [#assign identityPoolUnAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION )]
+        [#assign identityPoolAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION )]
+
+        [#return
+            {
+                "Resources" : {
+                    "userpool" : {
+                        "Id" : userPoolId,
+                        "Name" : userPoolName,
+                        "Type" : AWS_COGNITO_USERPOOL_RESOURCE_TYPE
+                    },
+                    "domain" : {
+                        "Id" : userPoolDomainId,
+                        "Name" : userPoolDomainName,
+                        "Type" : AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE
+                    },
+                    "client" : {
+                        "Id" : userPoolClientId,
+                        "Name" : userPoolClientName,
+                        "Type" : AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE
+                    },
+                    "identitypool" : { 
+                        "Id" : identityPoolId,
+                        "Name" : identityPoolName,
+                        "Type" : AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE
+                    },
+                    "userpoolrole" : {
+                        "Id" : userPoolRoleId,
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    },
+                    "unauthrole" : { 
+                        "Id" : identityPoolUnAuthRoleId,
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    },
+                    "authrole" : {
+                        "Id" : identityPoolAuthRoleId,
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    },
+                    "rolemapping" : {
+                        "Id" : identityPoolRoleMappingId,
+                        "Type" : AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE
+                    }
+                },
+                "Attributes" : {
+                    "AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
+                    "USER_POOL" : getReference(userPoolId),
+                    "IDENTITY_POOL" : getReference(identityPoolId),
+                    "CLIENT" : getReference(userPoolClientId),
+                    "REGION" : regionId
+                },
+                "Roles" : {
+                    "Inbound" : {
+                        "invoke" : {
+                            "Principal" : "cognito-idp.amazonaws.com",
+                            "SourceArn" : getReference(userPoolId,ARN_ATTRIBUTE_TYPE)
+                        }
+                    },
+                    "Outbound" : {}
+                }
             }
-        }
-    ]
+        ]
+    [/#if]
 [/#function]
 
