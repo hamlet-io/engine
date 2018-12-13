@@ -111,6 +111,11 @@
                     "Names" : "LogMetrics",
                     "Subobjects" : true,
                     "Children" : logMetricChildrenConfiguration
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
                 }
             ]
         }
@@ -164,23 +169,24 @@
     [#local lgFailureId = formatMobileNotifierLogGroupId(engine, name, true) ]
     [#local lgFailureName = formatMobileNotifierLogGroupName(engine, name, true)]
 
-
     [#local logMetrics = {} ]
     [#list solution.LogMetrics as name,logMetric ]
         [#local logMetrics += {
             "lgMetric" + name + "success" : {
-                "Id" : formatLogMetricId( core.Id, logMetric.Id, "success" ),
-                "Name" : formatName(getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),"success"),
+                "Id" : formatDependentLogMetricId( lgId, logMetric.Id ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, core.ShortFullName ),
                 "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
                 "LogGroupName" : lgName,
-                "LogGroupId" : lgId
+                "LogGroupId" : lgId,
+                "LogFilter" : logMetric.LogFilter
             },
             "lgMetric" + name + "failure" : {
-                "Id" : formatLogMetricId( core.Id, logMetric.Id, "failure" ),
-                "Name" : formatName(getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),"failure"),
+                "Id" : formatDependentLogMetricId( lgFailureId, logMetric.Id ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, core.ShortFullName ),
                 "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
                 "LogGroupName" : lgFailureName,
-                "LogGroupId" : lgFailureId
+                "LogGroupId" : lgFailureId,
+                "LogFilter" : logMetric.LogFilter
             }
         }]
     [/#list]
@@ -192,7 +198,8 @@
                     "Id" : id,
                     "Name" : core.FullName,
                     "Engine" : engine,
-                    "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE
+                    "Type" : AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE,
+                    "Monitored" : true
                 },
                 "lg" : {
                     "Id" : lgId,
@@ -203,9 +210,9 @@
                     "Id" : lgFailureId,
                     "Name" : lgFailureName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                }
-            } +
-            logMetrics,
+                },
+                "logMetrics" : logMetrics
+            },
             "Attributes" : {
                 "ARN" : (engine == MOBILENOTIFIER_SMS_ENGINE)?then(
                             formatArn(

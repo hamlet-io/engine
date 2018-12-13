@@ -252,9 +252,12 @@
     [#list solution.LogMetrics as name,logMetric ]
         [#local logMetrics += {
             "lgMetric" + name : {
-                "Id" : formatLogMetricId( core.Id, logMetric.Id ),
-                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, occurrence ),
-                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE
+                "Id" : formatDependentLogMetricId( lgId, logMetric.Id ),
+                "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, core.ShortFullName ),
+                "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                "LogGroupName" : lgName,
+                "LogGroupId" : lgId,
+                "LogFilter" : logMetric.LogFilter
             }
         }]
     [/#list]
@@ -272,7 +275,8 @@
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : lgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                }
+                },
+                "logMetrics" : logMetrics
             } +
             attributeIfTrue(
                 "version",
@@ -281,8 +285,7 @@
                     "Id" : versionId,
                     "Type" : AWS_LAMBDA_VERSION_RESOURCE_TYPE
                 }
-            ) + 
-            logMetrics,
+            ),
             "Attributes" : {
                 "REGION" : regionId,
                 "ARN" : valueIfTrue(

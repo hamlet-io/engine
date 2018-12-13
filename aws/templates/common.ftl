@@ -2381,25 +2381,33 @@ behaviour.
 
 [/#function]
 
-[#function getResourceMetricNamespace resource ]
-    [#local resourceTypeNameSpace = (metricAttributes[resource.Type]).Namespace ]
+[#function getResourceMetricNamespace resourceType ]
+    [#local resourceTypeNameSpace = (metricAttributes[resourceType]).Namespace!"" ]
 
-    [#switch resourceTypeNameSpace ]
-        [#case "_productPath" ]
-            [#return formatProductRelativePath()]
-            [#break]
-        
-        [#default]
-            [#return resourceTypeNameSpace]
-    [/#switch]
+    [#if resourceTypeNameSpace?has_content ]
+        [#switch resourceTypeNameSpace ]
+            [#case "_productPath" ]
+                [#return formatProductRelativePath()]
+                [#break]
+            
+            [#default]
+                [#return resourceTypeNameSpace]
+        [/#switch]
+    [#else]
+        [@cfException
+            mode=listMode
+            description="Namespace not mapped for this resource"
+            context=resource.Type
+        /]
+    [/#if]
 [/#function]
 
-[#function getMetricName metricName resourceType occurrence ]
+[#function getMetricName metricName resourceType shortFullName ]
 
     [#-- For some metrics we need to append the resourceName to add a qualifier if they don't support dimensions --]
     [#switch resourceType]
         [#case AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE ]
-            [#return formatName(metricName, occurrence.Core.ShortFullName) ]
+            [#return formatName(metricName, shortFullName) ]
     [#break]
 
     [#default]
