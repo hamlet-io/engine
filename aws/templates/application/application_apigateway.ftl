@@ -444,6 +444,8 @@
                 [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
+                    [@cfDebug listMode monitoredResource false /]
+
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
@@ -453,8 +455,8 @@
                                 actions=[
                                     getReference(formatSegmentSNSTopicId())
                                 ]
-                                metric=getMetricName(alert.Metric, monitoredResource.Type, occurrence)
-                                namespace=getResourceMetricNamespace(monitoredResource)
+                                metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                                namespace=getResourceMetricNamespace(monitoredResource.Type)
                                 description=alert.Description!alert.Name
                                 threshold=alert.Threshold
                                 statistic=alert.Statistic
@@ -479,7 +481,7 @@
                     name=logMetric.Name
                     logGroup=logMetric.LogGroupName
                     filter=logFilters[logMetric.LogFilter].Pattern
-                    namespace=getResourceMetricNamespace(logMetric)
+                    namespace=getResourceMetricNamespace(logMetric.Type)
                     value=1
                     dependencies=logMetric.LogGroupId
                 /]

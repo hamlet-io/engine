@@ -293,24 +293,6 @@
                             mode=listMode
                             id=lgId
                             name=lgName /]
-                        
-                        [#list solution.LogMetrics as logMetricName,logMetric ]
-
-                            [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
-                            [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
-
-                            [@createLogMetric
-                                mode=listMode
-                                id=logMetricResource.Id
-                                name=logMetricResource.Name
-                                logGroup=lgName
-                                filter=logFilter
-                                namespace=getResourceMetricNamespace(logMetricResource)
-                                value=1
-                                dependencies=lgId
-                            /]
-
-                        [/#list]
                     [/#if]
                 [/#if]
                 [#list containers as container]
@@ -321,24 +303,6 @@
                                 mode=listMode
                                 id=lgId
                                 name=container.LogGroup.Name /]
-
-                            [#list container.LogMetrics as logMetricName,logMetric ]
-
-                                [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
-                                [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
-
-                                [@createLogMetric
-                                    mode=listMode
-                                    id=logMetricResource.Id
-                                    name=logMetricResource.Name
-                                    logGroup=container.LogGroup.Name
-                                    filter=logFilter
-                                    namespace=getResourceMetricNamespace(logMetricResource)
-                                    value=1
-                                    dependencies=lgId
-                                /]
-
-                            [/#list]
                         [/#if]
                     [/#if]
                 [/#list]
@@ -347,37 +311,51 @@
             [#if deploymentSubsetRequired("ecs", true) ]
 
                 [#list containers as container ]
-                    [#list container.Alerts?values as alert ]
+                    [#if container.LogGroup?has_content && container.LogMetrics?has_content ]
+                        [#list container.LogMetrics as name,logMetric ]
 
-                        [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
-                        [#list monitoredResources as name,monitoredResource ]
+                            [#assign lgId = container.LogGroup.Id ]
+                            [#assign lgName = container.LogGroup.Name ]
 
-                            [#switch alert.Comparison ]
-                                [#case "Threshold" ]
-                                    [@createCountAlarm
-                                        mode=listMode
-                                        id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
-                                        name=alert.Severity?upper_case + "-" + monitoredResource.Name!core.ShortFullName + "-" + alert.Name
-                                        actions=[
-                                            getReference(formatSegmentSNSTopicId())
-                                        ]
-                                        metric=getMetricName(alert.Metric, monitoredResource.Type, fn)
-                                        namespace=getResourceMetricNamespace(monitoredResource)
-                                        description=alert.Description!alert.Name
-                                        threshold=alert.Threshold
-                                        statistic=alert.Statistic
-                                        evaluationPeriods=alert.Periods
-                                        period=alert.Time
-                                        operator=alert.Operator
-                                        reportOK=alert.ReportOk
-                                        missingData=alert.MissingData
-                                        dimensions=getResourceMetricDimensions(monitoredResource, resources)
-                                        dependencies=monitoredResource.Id
-                                    /]
-                                [#break]
-                            [/#switch]
+                            [#assign logMetricId = formatDependentLogMetricId(lgId, logMetric.Id)]
+
+                            [#assign containerLogMetricName = getMetricName( 
+                                    logMetric.Name, 
+                                    AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, 
+                                    formatName(core.ShortFullName, container.Name) )]
+
+                            [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
+
+                            [#assign resources += { 
+                                "logMetrics" : resources.LogMetrics!{} + {
+                                    "lgMetric" + name + container.Name : {
+                                    "Id" : formatDependentLogMetricId( lgId, logMetric.Id ),
+                                    "Name" : getMetricName( logMetric.Name, AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, containerLogMetricName ),
+                                    "Type" : AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
+                                    "LogGroupName" : lgName,
+                                    "LogGroupId" : lgId,
+                                    "LogFilter" : logMetric.LogFilter
+                                    }
+                                }
+                            }]
+
                         [/#list]
-                    [/#list]
+                    [/#if]
+                [/#list]
+
+                [#list resources.logMetrics as logMetricName,logMetric ]
+
+                    [@createLogMetric
+                        mode=listMode
+                        id=logMetric.Id
+                        name=logMetric.Name
+                        logGroup=logMetric.LogGroupName
+                        filter=logFilters[logMetric.LogFilter].Pattern
+                        namespace=getResourceMetricNamespace(logMetric.Type)
+                        value=1
+                        dependencies=logMetric.LogGroupId
+                    /]
+
                 [/#list]
 
                 [#list solution.Alerts?values as alert ]
@@ -394,8 +372,8 @@
                                     actions=[
                                         getReference(formatSegmentSNSTopicId())
                                     ]
-                                    metric=getMetricName(alert.Metric, monitoredResource.Type, fn)
-                                    namespace=getResourceMetricNamespace(monitoredResource)
+                                    metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                                    namespace=getResourceMetricNamespace(monitoredResource.Type)
                                     description=alert.Description!alert.Name
                                     threshold=alert.Threshold
                                     statistic=alert.Statistic

@@ -189,24 +189,6 @@
                     mode=listMode
                     id=fnLgId
                     name=fnLgName /]
-
-                [#list solution.LogMetrics as logMetricName,logMetric ]
-
-                    [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
-                    [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
-
-                    [@createLogMetric
-                        mode=listMode
-                        id=logMetricResource.Id
-                        name=logMetricResource.Name
-                        logGroup=fnLgName
-                        filter=logFilter
-                        namespace=getResourceMetricNamespace(logMetricResource)
-                        value=1
-                        dependencies=fnLgId
-                    /]
-
-                [/#list]
             [/#if]
 
             [#if deploymentSubsetRequired("lambda", true)]
@@ -239,6 +221,23 @@
                         component=component
                         resourceId=fnId
                         resourceName=formatName("lambda", fnName) /]
+                [/#if]
+
+                [#if solution.PredefineLogGroup && deploymentType == "REGIONAL"]
+                    [#list resources.logMetrics as logMetricName,logMetric ]
+
+                        [@createLogMetric
+                            mode=listMode
+                            id=logMetric.Id
+                            name=logMetric.Name
+                            logGroup=logMetric.LogGroupName
+                            filter=logFilters[logMetric.LogFilter].Pattern
+                            namespace=getResourceMetricNamespace(logMetric.Type)
+                            value=1
+                            dependencies=logMetric.LogGroupId
+                        /]
+
+                    [/#list]
                 [/#if]
 
                 [@createLambdaFunction
@@ -377,8 +376,8 @@
                                     actions=[
                                         getReference(formatSegmentSNSTopicId())
                                     ]
-                                    metric=getMetricName(alert.Metric, monitoredResource.Type, fn)
-                                    namespace=getResourceMetricNamespace(monitoredResource)
+                                    metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                                    namespace=getResourceMetricNamespace(monitoredResource.Type)
                                     description=alert.Description!alert.Name
                                     threshold=alert.Threshold
                                     statistic=alert.Statistic

@@ -127,7 +127,7 @@
             "Names" : "Resource",
             "Children" : [
                 {
-                    "Names" : "Name",
+                    "Names" : "Id",
                     "Type" : STRING_TYPE
                 },
                 {

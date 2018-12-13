@@ -1,5 +1,63 @@
 [#-- ECS --]
 
+[#assign ECS_SERVICE_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        NAME_ATTRIBUTE_TYPE : { 
+            "Attribute" : "Name"
+        }
+    }
+]
+
+[#assign ECS_OUTPUT_MAPPINGS = 
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : {
+            "Attribute" : "Arn"
+        }
+    }]
+
+[#assign outputMappings +=
+    {
+        AWS_ECS_RESOURCE_TYPE : ECS_OUTPUT_MAPPINGS,
+        AWS_ECS_SERVICE_RESOURCE_TYPE : ECS_SERVICE_OUTPUT_MAPPINGS
+    }
+]
+
+[#assign metricAttributes +=
+    {
+        AWS_ECS_RESOURCE_TYPE : {
+            "Namespace" : "AWS/ECS",
+            "Dimensions" : {
+                "ClusterName" : {
+                    "Output" : "ref" 
+                }
+            }
+        },
+        AWS_ECS_SERVICE_RESOURCE_TYPE : {
+            "Namespace" : "AWS/ECS",
+            "Dimensions" : {
+                "ServiceName" : {
+                    "Output" : "name"
+                }
+            }
+        }
+    }
+]
+
+[#macro createECSCluster mode id ]
+        [@cfResource
+            mode=mode
+            id=id
+            type="AWS::ECS::Cluster"
+            outputs=ECS_OUTPUT_MAPPINGS
+        /]
+[/#macro]
+
 [#macro createECSTask mode id name containers networkMode="" fixedName=false role="" dependencies=""]
 
     [#local definitions = [] ]
@@ -186,6 +244,7 @@
                 (loadBalancers![])?has_content && networkMode != "awsvpc"
             )
         dependencies=dependencies
+        outputs=ECS_SERVICE_OUTPUT_MAPPINGS
     /]
 [/#macro]
 

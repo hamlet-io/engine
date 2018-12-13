@@ -131,22 +131,57 @@
                         name=lgFailureName /]
                 [/#if]
 
-                [#list solution.LogMetrics as logMetricName,logMetric ]
+            [/#if]
 
-                    [#assign logMetricResource = resources[("lgMetric" + logMetricName)] ]
-                    [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
+            [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
+
+                [#list resources.logMetrics as logMetricName,logMetric ]
 
                     [@createLogMetric
                         mode=listMode
-                        id=logMetricResource.Id
-                        name=logMetricResource.Name
-                        logGroup=logMetricResource.LogGroupName
-                        filter=logFilter
-                        namespace=getResourceMetricNamespace(logMetricResource)
+                        id=logMetric.Id
+                        name=logMetric.Name
+                        logGroup=logMetric.LogGroupName
+                        filter=logFilters[logMetric.LogFilter].Pattern
+                        namespace=getResourceMetricNamespace(logMetric.Type)
                         value=1
-                        dependencies=logMetricResource.LogGroupId
+                        dependencies=logMetric.LogGroupId
                     /]
 
+                [/#list]
+
+                [#list solution.Alerts?values as alert ]
+
+                    [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                    [#list monitoredResources as name,monitoredResource ]
+
+                        [@cfDebug listMode monitoredResource false /]
+
+                        [#switch alert.Comparison ]
+                            [#case "Threshold" ]
+                                [@createCountAlarm
+                                    mode=listMode
+                                    id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                                    name=alert.Severity?upper_case + "-" + monitoredResource.Name!core.ShortFullName + "-" + alert.Name
+                                    actions=[
+                                        getReference(formatSegmentSNSTopicId())
+                                    ]
+                                    metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                                    namespace=getResourceMetricNamespace(monitoredResource.Type)
+                                    description=alert.Description!alert.Name
+                                    threshold=alert.Threshold
+                                    statistic=alert.Statistic
+                                    evaluationPeriods=alert.Periods
+                                    period=alert.Time
+                                    operator=alert.Operator
+                                    reportOK=alert.ReportOk
+                                    missingData=alert.MissingData
+                                    dimensions=getResourceMetricDimensions(monitoredResource, resources)
+                                    dependencies=monitoredResource.Id
+                                /]
+                            [#break]
+                        [/#switch]
+                    [/#list]
                 [/#list]
             [/#if]
 

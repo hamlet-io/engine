@@ -33,6 +33,22 @@
     }
 ]
 
+[#assign metricAttributes +=
+    {
+        AWS_SNS_PLATFORMAPPLICATION_RESOURCE_TYPE : {
+            "Namespace" : "AWS/SNS",
+            "Dimensions" : {
+                "Application" : {
+                    "ResourceProperty" : "Name" 
+                },
+                "Platform" : {
+                    "ResourceProperty" : "Engine"
+                }
+            }
+        }
+    }
+]
+
 [#macro createSNSTopic mode id displayName topicName=""]
     [@cfResource
         mode=mode
