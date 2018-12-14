@@ -41,7 +41,7 @@
                     "ecs:StartTask",
                     "ecs:StopTask"
                 ],
-                taskId?has_content(
+                taskId?has_content?then(
                     getReference(taskId, ARN_ATTRIBUTE_TYPE),
                     "*"
                 ),

@@ -17,7 +17,6 @@
     }
 ]
 [#macro createScheduleEventRule mode id 
-        targetId 
         enabled 
         scheduleExpression 
         targetParameters
