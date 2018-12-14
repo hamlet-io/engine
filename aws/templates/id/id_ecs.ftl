@@ -367,6 +367,23 @@
                 {
                     "Names" : "Profiles",
                     "Children" : profileChildConfiguration
+                },
+                {
+                    "Names" : "Schedules",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Names" : "Expression",
+                            "Type" : STRING_TYPE,
+                            "Default" : "rate(1 hours)"
+                        },
+                        {
+                            "Names" : "TaskCount",
+                            "Description" : "The number of tasks to run on the schedule",
+                            "Type" : NUMBER_TYPE
+                            "Default" : 1
+                        }
+                    ]
                 }
             ]
         }
@@ -599,11 +616,19 @@
             "Attributes" : {
                 "ECSHOST" : getExistingReference(ecsId)
             } +
-                attributeIfTrue(
-                    "DEFINITION",
-                    solution.FixedName,
-                    taskName
-                ),
+            attributeIfTrue(
+                "DEFINITION",
+                solution.FixedName,
+                taskName
+            ) + 
+            attributeIfContent(
+                "scheduleRole",
+                solution.Schedules,
+                {
+                    "Id" : formatDependentRoleId(taskId, "schedule"),
+                    "TYPE" : AWS_IAM_ROLE_RESOURCE_TYPE
+                }
+            ),
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {
