@@ -254,7 +254,7 @@
                             [#assign scheduleRuleId = formatEventRuleId(subOccurrence, "schedule", schedule.Id) ]
 
                             [#assign targetParameters = {
-                                "Arn" : getReference(ecsId, ARN_ATTRIBUTE_TYPE),
+                                "Arn" : formatEcsClusterArn(ecsId),
                                 "Id" : taskId,
                                 "EcsParameters" : {
                                     "TaskCount" : schedule.TaskCount,
