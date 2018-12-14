@@ -234,6 +234,48 @@
                 [/#if]
             [/#if]
 
+            [#if core.Type == ECS_TASK_COMPONENT_TYPE]
+                [#if solution.Schedules?has_content ]
+
+                    [#assign scheduleTaskRoleId = resources["scheduleRole"].Id ]
+
+                    [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(scheduleTaskRoleId)]
+                        [@createRole
+                            mode=listMode
+                            id=scheduleTaskRoleId
+                            trustedServices=["events.amazonaws.com"]
+                            policies=ecsTaskRunPermission(ecsId, taskId)
+                        /]
+                    [/#if]
+
+                    [#if deploymentSubsetRequired("ecs", true) ]
+                        [#list solution.Schedules?values as schedule ]
+
+                            [#assign scheduleRuleId = formatEventRuleId(subOccurrence, "schedule", schedule.Id) ]
+
+                            [#assign targetParameters = {
+                                "Arn" : getReference(ecsId, ARN_ATTRIBUTE_TYPE),
+                                "Id" : taskId,
+                                "EcsParameters" : {
+                                    "TaskCount" : schedule.TaskCount,
+                                    "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
+                                },
+                                "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
+                            }]
+
+                            [@createScheduleEventRule
+                                mode=listMode
+                                id=scheduleRuleId
+                                enabled=schedule.Enabled
+                                scheduleExpression=schedule.Expression
+                                targetParameters=targetParameters
+                                dependencies=fnId
+                            /]
+                        [/#list]
+                    [/#if]
+                [/#if]
+            [/#if]
+
             [#assign dependencies = [] ]
 
             [#if solution.UseTaskRole]

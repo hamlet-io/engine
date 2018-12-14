@@ -20,7 +20,7 @@
     ]
 [/#function]
 
-[#function ecsTaskRunPermission ecsId ]
+[#function ecsTaskRunPermission ecsId taskId="" ]
 
     [#local clusterArn = formatEcsClusterArn(ecsId)]
     [#return
@@ -41,7 +41,10 @@
                     "ecs:StartTask",
                     "ecs:StopTask"
                 ],
-                "*",
+                taskId?has_content(
+                    getReference(taskId, ARN_ATTRIBUTE_TYPE),
+                    "*"
+                ),
                 "",
                 {
                     "ArnEquals" :{

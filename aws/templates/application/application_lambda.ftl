@@ -298,14 +298,18 @@
 
                     [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
 
+                    [#assign targetParameters = {
+                        "Arn" : getReference(fnId, ARN_ATTRIBUTE_TYPE),
+                        "Id" : fnId,
+                        "Input" : getJSON(input?has_content?then(schedule.Input,{ "path" : schedule.InputPath }))
+                    }]
+
                     [@createScheduleEventRule
                         mode=listMode
                         id=scheduleRuleId
-                        targetId=fnId
                         enabled=schedule.Enabled
                         scheduleExpression=schedule.Expression
-                        input=schedule.Input
-                        path=schedule.InputPath
+                        targetParameters=targetParameters
                         dependencies=fnId
                     /]
 
