@@ -5,8 +5,22 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
+        "ARN_ATTRIBUTE_TYPE" : {
+            "UseRef" : true
+        },
         NAME_ATTRIBUTE_TYPE : { 
             "Attribute" : "Name"
+        }
+    }
+]
+
+[#assign ECS_TASK_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        },
+        ARN_ATTRIBUTE_TYPE : { 
+            "UseRef" : true
         }
     }
 ]
@@ -24,7 +38,8 @@
 [#assign outputMappings +=
     {
         AWS_ECS_RESOURCE_TYPE : ECS_OUTPUT_MAPPINGS,
-        AWS_ECS_SERVICE_RESOURCE_TYPE : ECS_SERVICE_OUTPUT_MAPPINGS
+        AWS_ECS_SERVICE_RESOURCE_TYPE : ECS_SERVICE_OUTPUT_MAPPINGS,
+        AWS_ECS_TASK_RESOURCE_TYPE : ECS_TASK_OUTPUT_MAPPINGS
     }
 ]
 
@@ -177,6 +192,7 @@
         type="AWS::ECS::TaskDefinition"
         properties=taskProperties
         dependencies=dependencies
+        outputs=ECS_TASK_OUTPUT_MAPPINGS
     /]
 [/#macro]
 
