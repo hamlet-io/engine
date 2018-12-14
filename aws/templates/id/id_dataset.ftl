@@ -121,7 +121,7 @@
                 [#switch linkTargetCore.Type]
                     [#case S3_COMPONENT_TYPE ]
                         [#local attributes += { 
-                            "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + datasetPrefix
+                            "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + formatAbsolutePath(datasetPrefix )
                         }]
                         [#local producePolicy += s3ProducePermission(
                                                     linkTargetAttributes.NAME,
