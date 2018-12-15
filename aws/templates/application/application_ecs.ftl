@@ -244,7 +244,12 @@
                             mode=listMode
                             id=scheduleTaskRoleId
                             trustedServices=["events.amazonaws.com"]
-                            policies=ecsTaskRunPermission(ecsId, taskId)
+                            policies=[
+                                getPolicyDocument(
+                                    ecsTaskRunPermission(ecsId, taskId)
+                                ,
+                                "schedule")
+                            ]
                         /]
                     [/#if]
 
