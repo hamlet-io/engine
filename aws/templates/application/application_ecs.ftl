@@ -247,7 +247,9 @@
                             policies=[
                                 getPolicyDocument(
                                     ecsTaskRunPermission(ecsId, taskId)
-                                ),"schedule"]
+                                ,
+                                "schedule")
+                            ]
                         /]
                     [/#if]
 
