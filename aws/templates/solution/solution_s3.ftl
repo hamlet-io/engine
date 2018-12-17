@@ -18,6 +18,9 @@
 
         [#assign roleId = resources["role"].Id ]
 
+        [#assign versioningEnabled = solution.Lifecycle.Versioning ]
+
+        [#assign replicationEnabled = false]
         [#assign replicationConfiguration = {} ]
         [#assign replicationBucket = ""]
 
@@ -109,41 +112,76 @@
             /]
         [/#if]
 
-        [#list links?values as linkTarget]
+        [#list solution.Links?values as link]
+            [#if link?is_hash]
 
-            [@cfDebug listMode linkTarget false /]
+                [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
 
-            [#if !linkTarget?has_content]
-                [#continue]
+                [@cfDebug listMode linkTarget false /]
+
+                [#if !linkTarget?has_content]
+                    [#continue]
+                [/#if]
+
+                [#assign linkTargetCore = linkTarget.Core ]
+                [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                [#assign linkTargetResources = linkTarget.State.Resources ]
+                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+
+                [#switch linkTargetCore.Type]
+                    [#case S3_COMPONENT_TYPE ]
+                        [#switch linkTarget.Role ]
+                            [#case  "replicadestination" ]
+                                [#assign replicationEnabled = true]
+                                [#if linkTargetAttributes["REGION"] == regionId ]
+                                    [@cfException 
+                                        mode=listMode
+                                        description="Replication buckets must be in different regions" 
+                                        context=
+                                            { 
+                                                "SourceBucket" : regionId,
+                                                "DestinationBucket" : linkTargetAttributes["REGION"]
+                                            }
+                                    /]
+                                [/#if]
+
+                                [#assign versioningEnabled = true]
+
+                                [#if !replicationBucket?has_content ]
+                                    [#if !linkTargetAttributes["ARN"]?has_content ]
+                                        [@cfException 
+                                            mode=listMode
+                                            description="Replication destination must be deployed before source" 
+                                            context=
+                                                linkTarget
+                                        /]
+                                    [/#if]
+                                    [#assign replicationBucket = linkTargetAttributes["ARN"]]
+                                [#else]
+                                    [@cfException 
+                                        mode=listMode 
+                                        description="Only one replication destination is supported" 
+                                        context=links
+                                    /]
+                                [/#if]
+                                [#break]
+
+                            [#case "replicasource" ]
+                                [#assign versioningEnabled = true]
+                                [#break]
+                        [/#switch]
+                        [#break]
+                [/#switch]
             [/#if]
-
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-
-            [#switch linkTargetCore.Type]
-                [#case S3_COMPONENT_TYPE ]
-                    [#if linkTarget.Role == "replicadestination" ]
-                        [#if !replicationBucket?has_content ]
-                            [#assign replicationBucket = linkTargetAttributes["ARN"] ]
-                        [#else]
-                            [@cfException listMode "Only one replication destination is supported" solution.Replication /]
-                        [/#if]
-
-                    [/#if]
-                    [#break]
-            [/#switch]
         [/#list]
 
-        [#if isPresent(solution.Replication) ]
-            
+        [#-- Add Replication Rules --]
+        [#if replicationEnabled ]
             [#assign replicationRules = [] ]
-
             [#list solution.Replication.Prefixes as prefix ]
                 [#assign replicationRules += 
                     [ getS3ReplicationRule(
-                        replicationBucket!"",
+                        replicationBucket,
                         solution.Replication.Enabled,
                         prefix,
                         false
@@ -200,7 +238,7 @@
                     (isPresent(solution.Website))?then(
                         getS3WebsiteConfiguration(solution.Website.Index, solution.Website.Error),
                         {})
-                versioning=solution.Lifecycle.Versioning
+                versioning=versioningEnabled
                 CORSBehaviours=solution.CORSBehaviours
                 replicationConfiguration=replicationConfiguration
                 dependencies=dependencies

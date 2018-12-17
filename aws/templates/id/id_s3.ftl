@@ -237,7 +237,7 @@
                 "INTERNAL_FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
                 "WEBSITE_URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
                 "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
-                "REGION" : (getExistngReference(id, REGION_ATTRIBUTE_TYPE))!regionId
+                "REGION" : getExistingReference(id, REGION_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Inbound" : {},
@@ -245,7 +245,8 @@
                     "all" : s3AllPermission(id),
                     "produce" : s3ProducePermission(id),
                     "consume" : s3ConsumePermission(id),
-                    "replicadestination" : s3ReplicaDestinationPermission(id)
+                    "replicadestination" : s3ReplicaDestinationPermission(id),
+                    "replicasource" : {}
                }
             }
         }
