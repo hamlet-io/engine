@@ -202,3 +202,46 @@
             principals,
             conditions)]
 [/#function]
+
+[#function s3ReplicaSourcePermission bucket prefix="" object="*"]
+    [#return 
+
+        getS3Statement(
+            [
+                "s3:GetObjectVersion",
+                "s3:GetObjectVersionAcl",
+                "s3:GetObjectVersionTagging"
+            ],
+            bucket,
+            prefix,
+            object
+        )
+    ]
+[/#function]
+
+[#function s3ReplicationConfigurationPermission bucket ]
+    [#return 
+        getS3BucketStatement(
+            [
+                "s3:GetReplicationConfiguration",
+                "s3:ListBucket"
+            ],
+            bucket
+        )
+    ]
+[/#function]
+
+[#function s3ReplicaDestinationPermission bucket prefix="" object="*" ]
+    [#return 
+        getS3Statement(
+            [
+                "s3:ReplicateObject",
+                "s3:ReplicateDelete",
+                "s3:ReplicateTags"
+            ],
+            bucket,
+            prefix,
+            object
+        )
+    ]
+[/#function]

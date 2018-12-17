@@ -109,6 +109,56 @@
     [/#if]
 [/#function]
 
+[#function getS3ReplicationConfiguration 
+    roleId
+    replicationRules
+    ]
+    [#return
+        {
+            "Role" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
+            "Rules" : asArray(replicationRules)
+        }
+    ]
+[/#function]
+
+[#function getS3ReplicationRule 
+    destinationBucket
+    enabled
+    prefix
+    encryptReplica=false
+]
+    [#return 
+        {
+            "Destination" : {
+                "Bucket" : getArn(destinationBucket)
+            } + 
+            encryptReplica?then(
+                    {
+                        "EncryptionConfiguration" : {
+                        "ReplicaKmsKeyID" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                        }
+                    },
+                    {}
+            ),
+            "Prefix" : prefix,    
+            "Status" : enabled?then(
+                "Enabled",
+                "Disabled"
+            )
+        }
+        + encryptReplica?then(
+            {
+                "SourceSelectionCriteria" : {
+                    "SseKmsEncryptedObjects" : {
+                        "Status" : "Enabled"
+                    }
+                }
+            },
+            {}
+        )
+    ]
+[/#function]
+
 [#assign S3_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -125,6 +175,9 @@
         },
         URL_ATTRIBUTE_TYPE : {
             "Attribute" : "WebsiteURL"
+        },
+        REGION_ATTRIBUTE_TYPE: {
+            "Value" : { "Ref" : "AWS::Region" }
         }
     }
 ]
@@ -140,13 +193,14 @@
                         sqsNotifications=[]
                         versioning=false
                         websiteConfiguration={}
+                        replicationConfiguration={}
                         cannedACL=""
                         CORSBehaviours=[]
                         dependencies=""
                         outputId=""]
 
     [#assign loggingConfiguration = {} ]
-    [#if getExistingReference(formatAccountS3Id("audit"))?has_content ]
+    [#if getExistingReference(formatAccountS3Id("audit"), "", regionId )?has_content ]
         [#assign loggingConfiguration = getS3LoggingConfiguration(
                                 getExistingReference(formatAccountS3Id("audit")),
                                 name) ]
@@ -218,6 +272,10 @@
                 {
                     "CorsRules" : CORSRules
                 }
+            ) +
+            attributeIfContent(
+                "ReplicationConfiguration",
+                replicationConfiguration
             )
         tags=getCfTemplateCoreTags("", tier, component)
         outputs=S3_OUTPUT_MAPPINGS
