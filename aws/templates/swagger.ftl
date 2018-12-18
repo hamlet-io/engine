@@ -550,7 +550,7 @@
                     )
                 ]
                 [#local optionsSig4 = optionsSig4 || defaultSig4Required]
-                [#local optionsApiKey = optionsApiKey || defaultApiKeyRequired)]
+                [#local optionsApiKey = optionsApiKey || defaultApiKeyRequired ]
             [/#if]
             [#local verbs +=
                 {
@@ -561,7 +561,7 @@
         [/#list]
 
         [#-- Add default CORS config if not "any" verb and no explicit "options" verb --]
-        [#if (!(path.x-amazon-apigateway-any-method??) && (!pathObject?keys?seq_contains("options"))]
+        [#if !(path.x-amazon-apigateway-any-method??) && (!pathObject?keys?seq_contains("options"))]
             [#local verbs +=
                 {
                     "options" : {
