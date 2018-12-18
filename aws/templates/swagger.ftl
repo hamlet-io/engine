@@ -502,9 +502,66 @@
     [#local paths = {} ]
     [#list (definition.paths!{}) + getSwaggerProxyPaths(proxyRequired) as path, pathObject]
         [#local verbs = {} ]
+        [#-- If we add an OPTIONS verb, it reflects what any of the other verbs require --]
+        [#local optionsSig4 = false]
+        [#local optionsApiKey = false]
 
-        [#-- Add default CORS config if no explicit "options" verb --]
-        [#if !pathObject?keys?seq_contains("options")]
+        [#list pathObject as verb, verbObject]
+            [#local extendedVerb = {} ]
+            [#list integrations.Patterns![] as pattern]
+                [#if path?matches(pattern.Path ! defaultPathPattern) &&
+                    verb?matches(pattern.Verb ! defaultVerbPattern)]
+                    [#local extendedVerb =
+                        getSwaggerMethodEntry(
+                            context,
+                            path,
+                            verb,
+                            pattern.Type ! defaultType,
+                            pattern.Variable ! defaultVariable,
+                            pattern.Validation ! defaultValidationLevel,
+                            pattern.Sig4 ! defaultSig4Required,
+                            pattern.ApiKey ! defaultApiKeyRequired,
+                            pattern.UserPool ! pattern.userPool ! defaultUserPoolRequired,
+                            pattern.CognitoPoolName ! defaultCognitoPoolName,
+                            pattern.UseClientCreds ! pattern.useClientCreds ! defaultUseClientCredsRequired,
+                            pattern.Requests ! {}
+                            pattern.Responses ! {}
+                        )
+                    ]
+                    [#local optionsSig4 = optionsSig4 || (pattern.Sig4 ! defaultSig4Required)]
+                    [#local optionsApiKey = optionsApiKey || (pattern.ApiKey ! defaultApiKeyRequired)]
+                    [#break]
+                [/#if]
+            [/#list]
+            [#if ! extendedVerb?has_content]
+                [#local extendedVerb =
+                    getSwaggerMethodEntry(
+                        context,
+                        path,
+                        verb,
+                        defaultType,
+                        defaultVariable,
+                        defaultValidationLevel,
+                        defaultSig4Required,
+                        defaultApiKeyRequired,
+                        defaultUserPoolRequired,
+                        defaultCognitoPoolName,
+                        defaultUseClientCredsRequired
+                    )
+                ]
+                [#local optionsSig4 = optionsSig4 || defaultSig4Required]
+                [#local optionsApiKey = optionsApiKey || defaultApiKeyRequired)]
+            [/#if]
+            [#local verbs +=
+                {
+                    verb :
+                        valueIfTrue(verbObject, merge) +
+                        extendedVerb
+                } ]
+        [/#list]
+
+        [#-- Add default CORS config if not "any" verb and no explicit "options" verb --]
+        [#if (!(path.x-amazon-apigateway-any-method??) && (!pathObject?keys?seq_contains("options"))]
             [#local verbs +=
                 {
                     "options" : {
@@ -532,8 +589,8 @@
                         "mock-cors",
                         defaultVariable,
                         defaultValidationLevel,
-                        false,
-                        defaultApiKeyRequired,
+                        optionsSig4,
+                        optionsApiKey,
                         false,
                         "",
                         false,
@@ -544,56 +601,6 @@
                 }
             ]
         [/#if]
-
-        [#list pathObject as verb, verbObject]
-            [#local extendedVerb = {} ]
-            [#list integrations.Patterns![] as pattern]
-                [#if path?matches(pattern.Path ! defaultPathPattern) &&
-                    verb?matches(pattern.Verb ! defaultVerbPattern)]
-                    [#local extendedVerb =
-                        getSwaggerMethodEntry(
-                            context,
-                            path,
-                            verb,
-                            pattern.Type ! defaultType,
-                            pattern.Variable ! defaultVariable,
-                            pattern.Validation ! defaultValidationLevel,
-                            pattern.Sig4 ! defaultSig4Required,
-                            pattern.ApiKey ! defaultApiKeyRequired,
-                            pattern.UserPool ! pattern.userPool ! defaultUserPoolRequired,
-                            pattern.CognitoPoolName ! defaultCognitoPoolName,
-                            pattern.UseClientCreds ! pattern.useClientCreds ! defaultUseClientCredsRequired,
-                            pattern.Requests ! {}
-                            pattern.Responses ! {}
-                        )
-                    ]
-                    [#break]
-                [/#if]
-            [/#list]
-            [#if ! extendedVerb?has_content]
-                [#local extendedVerb =
-                    getSwaggerMethodEntry(
-                        context,
-                        path,
-                        verb,
-                        defaultType,
-                        defaultVariable,
-                        defaultValidationLevel,
-                        defaultSig4Required,
-                        defaultApiKeyRequired,
-                        defaultUserPoolRequired,
-                        defaultCognitoPoolName,
-                        defaultUseClientCredsRequired
-                    )
-                ]
-            [/#if]
-            [#local verbs +=
-                {
-                    verb :
-                        valueIfTrue(verbObject, merge) +
-                        extendedVerb
-                } ]
-        [/#list]
 
         [#local paths += { path : verbs } ]
     [/#list]
