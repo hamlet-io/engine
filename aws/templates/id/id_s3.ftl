@@ -168,6 +168,26 @@
                 {
                     "Names" : "Profiles",
                     "Children" : profileChildConfiguration
+                },
+                {
+                    "Names" : "Replication",
+                    "Children" : [
+                        {
+                            "Names" : "Prefixes",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Default" : [ "" ]
+                        },
+                        {
+                            "Names" : "Enabled",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
                 }
             ]
         }
@@ -196,6 +216,10 @@
                             getExistingReference(id, NAME_ATTRIBUTE_TYPE),
                             name),
                     "Type" : AWS_S3_RESOURCE_TYPE
+                },
+                "role" : {
+                    "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id ),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
             } +
             publicAccessEnabled?then(
@@ -213,14 +237,16 @@
                 "INTERNAL_FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),
                 "WEBSITE_URL" : getExistingReference(id, URL_ATTRIBUTE_TYPE),
                 "ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
-                "REGION" : regionId
+                "REGION" : getExistingReference(id, REGION_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {
                     "all" : s3AllPermission(id),
                     "produce" : s3ProducePermission(id),
-                    "consume" : s3ConsumePermission(id)
+                    "consume" : s3ConsumePermission(id),
+                    "replicadestination" : s3ReplicaDestinationPermission(id),
+                    "replicasource" : {}
                }
             }
         }
