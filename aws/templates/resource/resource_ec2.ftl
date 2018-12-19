@@ -669,6 +669,7 @@
     autoScalingConfig
     multiAZ
     tags
+    hibernate=false
     loadBalancers=[]
     targetGroups=[]
     dependencies="" 
@@ -701,6 +702,12 @@
                     processorProfile.DesiredPerZone * zones?size,
                     processorProfile.DesiredPerZone
     )]
+
+    [#if hibernate ]
+        [#assign minSize = 0 ]
+        [#assign desiredCapacity = 0 ]
+        [#assign maxSize = 0]
+    [/#if]
 
     [@cfResource
         mode=mode

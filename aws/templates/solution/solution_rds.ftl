@@ -63,6 +63,11 @@
         [#assign rdsParameterGroupId = resources["parameterGroup"].Id ]
         [#assign rdsOptionGroupId = resources["optionGroup"].Id ]
 
+        [#assign rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(tier, component, rdsId) ]
+        [#assign rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
+                                                rdsSecurityGroupId,
+                                                port)]
+
         [#assign rdsDatabaseName = solution.DatabaseName!productName]
         [#assign passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
                 solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
@@ -84,6 +89,11 @@
             [#assign rdsPassword = attributes.PASSWORD ]
         [/#if]
 
+        [#assign hibernate = solution.Hibernate.Enabled  &&              
+                (getExistingReference(rdsId)?has_content) ]
+
+        [#assign hibernateStartUpMode = solution.Hibernate.StartUpMode ]
+
         [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
         [#assign rdsManualSnapshot = getExistingReference(formatDependentRDSManualSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
         [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE )]
@@ -95,17 +105,16 @@
                                             runId,
                                             "pre-deploy")]
 
-        [#assign rdsSecurityGroupId = formatDependentComponentSecurityGroupId(
-                                        tier,
-                                        component,
-                                        rdsId)]
-        [#assign rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
-                                                rdsSecurityGroupId,
-                                                port)]
         [#assign rdsTags = getCfTemplateCoreTags(
                                         rdsFullName,
                                         tier,
                                         component)]
+
+        [#assign restoreSnapshotName = "" ]
+
+        [#if hibernate && hibernateStartUpMode == "restore" ]
+            [#assign restoreSnapshotName = rdsPreDeploySnapshotId ]
+        [/#if]
 
         [#assign dbParameters = {} ]
         [#list solution.DBParameters as key,value ]
@@ -136,7 +145,9 @@
                         ],
                         []
                     ) +
-                    (solution.Backup.SnapshotOnDeploy || rdsManualSnapshot?has_content)?then(
+                    (solution.Backup.SnapshotOnDeploy || 
+                        ( hibernate && hibernateStartUpMode == "restore" ) || 
+                        rdsManualSnapshot?has_content)?then(
                         [
                             "# Create RDS snapshot",
                             "function create_deploy_snapshot() {",
@@ -158,7 +169,9 @@
                             "create_deploy_snapshot || return $?"
                         ],
                         []) +
-                    (solution.Backup.SnapshotOnDeploy && solution.Encrypted)?then(
+                    (( solution.Backup.SnapshotOnDeploy || 
+                        ( hibernate && hibernateStartUpMode == "restore" ) )  
+                        && solution.Encrypted)?then(
                         [
                             "# Encrypt RDS snapshot",
                             "function convert_plaintext_snapshot() {",
@@ -173,9 +186,9 @@
                         []
                     ),
                     pseudoStackOutputScript(
-                            "RDS Manual Snapshot Restore",
-                            { formatId("manualsnapshot", rdsId, "name") : "" }
-                        )
+                        "RDS Manual Snapshot Restore",
+                        { formatId("manualsnapshot", rdsId, "name") : restoreSnapshotName }
+                    )
                 ) +
                 [
                     " ;;",
@@ -286,137 +299,142 @@
                     [/#if]
             [/#switch]
 
-            [@createRDSInstance
-                    mode=listMode
-                    id=rdsId
-                    name=rdsFullName
-                    engine=engine
-                    engineVersion=engineVersion
-                    processor=processorProfile.Processor
-                    size=solution.Size
-                    port=port
-                    multiAZ=multiAZ
-                    encrypted=solution.Encrypted
-                    masterUsername=rdsUsername
-                    masterPassword=rdsPassword
-                    databaseName=rdsDatabaseName
-                    retentionPeriod=solution.Backup.RetentionPeriod
-                    snapshotId=snapshotId
-                    subnetGroupId=getReference(rdsSubnetGroupId)
-                    parameterGroupId=getReference(rdsParameterGroupId)
-                    optionGroupId=getReference(rdsOptionGroupId)
-                    securityGroupId=getReference(rdsSecurityGroupId)
-                    autoMinorVersionUpgrade = solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
-                /]
+            [#if !hibernate]
+                [@createRDSInstance
+                        mode=listMode
+                        id=rdsId
+                        name=rdsFullName
+                        engine=engine
+                        engineVersion=engineVersion
+                        processor=processorProfile.Processor
+                        size=solution.Size
+                        port=port
+                        multiAZ=multiAZ
+                        encrypted=solution.Encrypted
+                        masterUsername=rdsUsername
+                        masterPassword=rdsPassword
+                        databaseName=rdsDatabaseName
+                        retentionPeriod=solution.Backup.RetentionPeriod
+                        snapshotId=snapshotId
+                        subnetGroupId=getReference(rdsSubnetGroupId)
+                        parameterGroupId=getReference(rdsParameterGroupId)
+                        optionGroupId=getReference(rdsOptionGroupId)
+                        securityGroupId=getReference(rdsSecurityGroupId)
+                        autoMinorVersionUpgrade = solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
+                        deleteAutomatedBackups = solution.Backup.DeleteAutoBackups
+                    /]
+            [/#if]
         [/#if]
 
-        [#if deploymentSubsetRequired("epilogue", false)]
+        [#if !hibernate ]
+            [#if deploymentSubsetRequired("epilogue", false)]
 
-            [#assign rdsFQDN = getExistingReference(rdsId, DNS_ATTRIBUTE_TYPE)]
+                [#assign rdsFQDN = getExistingReference(rdsId, DNS_ATTRIBUTE_TYPE)]
 
-            [#assign passwordPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
-            [#assign urlPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
-            [@cfScript
-                mode=listMode
-                content=
-                [
-                    "case $\{STACK_OPERATION} in",
-                    "  create|update)"
-                ] +
-                ( solution.GenerateCredentials.Enabled && !(rdsEncryptedPassword?has_content))?then(
+                [#assign passwordPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
+                [#assign urlPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
+                [@cfScript
+                    mode=listMode
+                    content=
                     [
-                        "# Generate Master Password",
-                        "function generate_master_password() {",
-                        "info \"Generating Master Password... \"",
-                        "master_password=\"$(generateComplexString" +
-                        " \"" + rdsPasswordLength + "\" )\"",
-                        "encrypted_master_password=\"$(encrypt_kms_string" +
-                        " \"" + region + "\" " +
-                        " \"$\{master_password}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\"",
-                        "info \"Setting Master Password... \"",
-                        "set_rds_master_password" +
-                        " \"" + region + "\" " +
-                        " \"" + rdsFullName + "\" " +
-                        " \"$\{master_password}\" || return $?"
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)"
                     ] +
-                    pseudoStackOutputScript(
-                            "RDS Master Password",
-                            { formatId(rdsId, "generatedpassword") : "$\{encrypted_master_password}" },
-                            "password"
-                    ) +
-                    [
-                        "info \"Generating URL... \"",
-                        "rds_hostname=\"$(get_rds_hostname" + 
-                        " \"" + region + "\" " +
-                        " \"" + rdsFullName + "\" || return $?)\"",
-                        "rds_url=\"$(get_rds_url" +
-                        " \"" + engine + "\" " +
-                        " \"" + rdsUsername + "\" " +
-                        " \"$\{master_password}\" " +
-                        " \"$\{rds_hostname}\" " +
-                        " \"" + port?c + "\" " +
-                        " \"" + rdsDatabaseName + "\" || return $?)\"",
-                        "encrypted_rds_url=\"$(encrypt_kms_string" +
-                        " \"" + region + "\" " +
-                        " \"$\{rds_url}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\""
-                    ] +
-                    pseudoStackOutputScript(
-                            "RDS Connection URL",
-                            { formatId(rdsId, "url") : "$\{encrypted_rds_url}" },
-                            "url"
-                    ) +
-                    [
-                        "}",
-                        "generate_master_password || return $?"
-                    ],
+                    ( solution.GenerateCredentials.Enabled && !(rdsEncryptedPassword?has_content))?then(
+                        [
+                            "# Generate Master Password",
+                            "function generate_master_password() {",
+                            "info \"Generating Master Password... \"",
+                            "master_password=\"$(generateComplexString" +
+                            " \"" + rdsPasswordLength + "\" )\"",
+                            "encrypted_master_password=\"$(encrypt_kms_string" +
+                            " \"" + region + "\" " +
+                            " \"$\{master_password}\" " +
+                            " \"" + segmentKMSKey + "\" || return $?)\"",
+                            "info \"Setting Master Password... \"",
+                            "set_rds_master_password" +
+                            " \"" + region + "\" " +
+                            " \"" + rdsFullName + "\" " +
+                            " \"$\{master_password}\" || return $?"
+                        ] +
+                        pseudoStackOutputScript(
+                                "RDS Master Password",
+                                { formatId(rdsId, "generatedpassword") : "$\{encrypted_master_password}" },
+                                "password"
+                        ) +
+                        [
+                            "info \"Generating URL... \"",
+                            "rds_hostname=\"$(get_rds_hostname" + 
+                            " \"" + region + "\" " +
+                            " \"" + rdsFullName + "\" || return $?)\"",
+                            "rds_url=\"$(get_rds_url" +
+                            " \"" + engine + "\" " +
+                            " \"" + rdsUsername + "\" " +
+                            " \"$\{master_password}\" " +
+                            " \"$\{rds_hostname}\" " +
+                            " \"" + port?c + "\" " +
+                            " \"" + rdsDatabaseName + "\" || return $?)\"",
+                            "encrypted_rds_url=\"$(encrypt_kms_string" +
+                            " \"" + region + "\" " +
+                            " \"$\{rds_url}\" " +
+                            " \"" + segmentKMSKey + "\" || return $?)\""
+                        ] +
+                        pseudoStackOutputScript(
+                                "RDS Connection URL",
+                                { formatId(rdsId, "url") : "$\{encrypted_rds_url}" },
+                                "url"
+                        ) +
+                        [
+                            "}",
+                            "generate_master_password || return $?"
+                        ],
+                        []) +
+                    (rdsEncryptedPassword?has_content)?then(
+                        [
+                            "# Reset Master Password",
+                            "function reset_master_password() {",
+                            "info \"Getting Master Password... \"",
+                            "encrypted_master_password=\"" + rdsEncryptedPassword + "\"",
+                            "master_password=\"$(decrypt_kms_string" +
+                            " \"" + region + "\" " +
+                            " \"$\{encrypted_master_password}\" || return $?)\"",
+                            "info \"Resetting Master Password... \"",
+                            "set_rds_master_password" +
+                            " \"" + region + "\" " +
+                            " \"" + rdsFullName + "\" " +
+                            " \"$\{master_password}\" || return $?",
+                            "info \"Generating URL... \"",
+                            "rds_hostname=\"$(get_rds_hostname" + 
+                            " \"" + region + "\" " +
+                            " \"" + rdsFullName + "\" || return $?)\"",
+                            "rds_url=\"$(get_rds_url" +
+                            " \"" + engine + "\" " +
+                            " \"" + rdsUsername + "\" " +
+                            " \"$\{master_password}\" " +
+                            " \"$\{rds_hostname}\" " +
+                            " \"" + port?c + "\" " +
+                            " \"" + rdsDatabaseName + "\" || return $?)\"",
+                            "encrypted_rds_url=\"$(encrypt_kms_string" +
+                            " \"" + region + "\" " +
+                            " \"$\{rds_url}\" " +
+                            " \"" + segmentKMSKey + "\" || return $?)\""
+                        ] +
+                        pseudoStackOutputScript(
+                                "RDS Connection URL",
+                                { formatId(rdsId, "url") : "$\{encrypted_rds_url}" },
+                                "url"
+                        ) +
+                        [
+                            "}",
+                            "reset_master_password || return $?"
+                        ],
                     []) +
-                (rdsEncryptedPassword?has_content)?then(
-                    [
-                        "# Reset Master Password",
-                        "function reset_master_password() {",
-                        "info \"Getting Master Password... \"",
-                        "encrypted_master_password=\"" + rdsEncryptedPassword + "\"",
-                        "master_password=\"$(decrypt_kms_string" +
-                        " \"" + region + "\" " +
-                        " \"$\{encrypted_master_password}\" || return $?)\"",
-                        "info \"Resetting Master Password... \"",
-                        "set_rds_master_password" +
-                        " \"" + region + "\" " +
-                        " \"" + rdsFullName + "\" " +
-                        " \"$\{master_password}\" || return $?",
-                        "info \"Generating URL... \"",
-                        "rds_hostname=\"$(get_rds_hostname" + 
-                        " \"" + region + "\" " +
-                        " \"" + rdsFullName + "\" || return $?)\"",
-                        "rds_url=\"$(get_rds_url" +
-                        " \"" + engine + "\" " +
-                        " \"" + rdsUsername + "\" " +
-                        " \"$\{master_password}\" " +
-                        " \"$\{rds_hostname}\" " +
-                        " \"" + port?c + "\" " +
-                        " \"" + rdsDatabaseName + "\" || return $?)\"",
-                        "encrypted_rds_url=\"$(encrypt_kms_string" +
-                        " \"" + region + "\" " +
-                        " \"$\{rds_url}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\""
-                    ] +
-                    pseudoStackOutputScript(
-                            "RDS Connection URL",
-                            { formatId(rdsId, "url") : "$\{encrypted_rds_url}" },
-                            "url"
-                    ) +
-                    [
-                        "}",
-                        "reset_master_password || return $?"
-                    ],
-                []) +
-                [            
-                    "       ;;",
-                    "       esac"
-                ]
-            /]
+                    [            
+                        "       ;;",
+                        "       esac"
+                    ]
+                /]
+            [/#if]
         [/#if]
     [/#list]
 [/#if]

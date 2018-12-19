@@ -6,9 +6,14 @@
         [@cfDebug listMode occurrence false /]
 
         [#assign resources = occurrence.State.Resources]
+        [#assign solution = occurrence.Configuration.Solution ]
+
         [#assign ecsId = resources["cluster"].Id!"" ]
         [#assign ecsSecurityGroupId = resources["securityGroup"].Id!"" ]
         [#assign ecsServiceRoleId = resources["serviceRole"].Id!"" ]
+
+        [#assign hibernate = solution.Hibernate.Enabled &&
+                                getExistingReference(ecsId)?has_content ]
 
         [#list requiredOccurrences(
                 occurrence.Occurrences![],
@@ -213,15 +218,20 @@
                         [/#if]
                     [/#list]
 
+                    [#assign desiredCount = (solution.DesiredCount >= 0)?then(
+                                solution.DesiredCount,
+                                multiAZ?then(zones?size,1)
+                            ) ]
+
+                    [#if hibernate ]
+                        [#assign desiredCount = 0 ]
+                    [/#if]
+
                     [@createECSService
                         mode=listMode
                         id=serviceId
                         ecsId=ecsId
-                        desiredCount=
-                            (solution.DesiredCount >= 0)?then(
-                                solution.DesiredCount,
-                                multiAZ?then(zones?size,1)
-                            )
+                        desiredCount=desiredCount
                         taskId=taskId
                         loadBalancers=loadBalancers
                         roleId=ecsServiceRoleId
@@ -268,10 +278,15 @@
                                 "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
                             }]
 
+                            [#assign scheduleEnabled = hibernate?then(
+                                        false,
+                                        schedule.Enabled
+                            )]
+
                             [@createScheduleEventRule
                                 mode=listMode
                                 id=scheduleRuleId
-                                enabled=schedule.Enabled
+                                enabled=scheduleEnabled
                                 scheduleExpression=schedule.Expression
                                 targetParameters=targetParameters
                                 dependencies=fnId
