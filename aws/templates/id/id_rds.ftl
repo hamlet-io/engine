@@ -102,6 +102,12 @@
                             "Names" : "SnapshotOnDeploy",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
+                        },
+                        {
+                            "Names" : "DeleteAutoBackups",
+                            "Type" : BOOLEAN_TYPE,
+                            "Description" : "Delete automated snapshots when the instance is deleted",
+                            "Default" : true
                         }
                     ]
                 },
@@ -121,6 +127,22 @@
                 {
                     "Names" : "Profiles",
                     "Children" : profileChildConfiguration
+                },
+                {
+                    "Names" : "Hibernate",
+                    "Children" : [
+                        {
+                            "Names" : "Enabled",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
+                            "Names" : "StartUpMode",
+                            "Type" : STRING_TYPE,
+                            "Values" : ["restore", "replace"],
+                            "Default" : "restore"
+                        }
+                    ]
                 }
             ]
     }

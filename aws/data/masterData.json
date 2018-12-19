@@ -1798,6 +1798,22 @@
           }
         }
       }
+    },
+    "_hibernate" : {
+      "Modes" : {
+        "maintenance" : {
+          "ecs" : {
+            "Hibernate" : {
+              "Enabled" : true
+            }
+          },
+          "rds" : {
+            "Hibernate" : {
+              "Enabled" : true
+            }
+          }
+        }
+      }
     }
   }
 }

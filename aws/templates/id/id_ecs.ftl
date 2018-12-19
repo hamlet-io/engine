@@ -178,6 +178,22 @@
                     "Names" : "Alerts",
                     "Subobjects" : true,
                     "Children" : alertChildrenConfiguration
+                },
+                {
+                    "Names" : "Hibernate",
+                    "Children" : [
+                        {
+                            "Names" : "Enabled",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : false
+                        },
+                        {
+                            "Names" : "StartUpMode",
+                            "Type" : STRING_TYPE,
+                            "Values" : ["replace"],
+                            "Default" : "replace"
+                        }
+                    ]
                 }
             ],
             "Components" : [

@@ -41,6 +41,7 @@
     dependencies="" 
     outputId=""
     autoMinorVersionUpgrade=true
+    deleteAutomatedBackups=true
 ]
     [@cfResource 
     mode=listMode
@@ -53,6 +54,7 @@
             "DBInstanceClass" : processor,
             "AllocatedStorage": size,
             "AutoMinorVersionUpgrade": autoMinorVersionUpgrade,
+            "DeleteAutomatedBackups" : deleteAutomatedBackups,
             "StorageType" : "gp2",
             "Port" : port,
             "BackupRetentionPeriod" : retentionPeriod,

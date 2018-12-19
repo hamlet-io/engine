@@ -27,6 +27,9 @@
         [#assign defaultLogDriver = solution.LogDriver ]
         [#assign fixedIP = solution.FixedIP ]
 
+        [#assign hibernate = solution.Hibernate.Enabled && 
+                                getExistingReference(ecsId)?has_content ]
+
         [#assign logFileProfile = getLogFileProfile(tier, component, "ECS")]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ECS")]
         [#assign processorProfile = getProcessor(tier, component, "ECS")]
@@ -283,6 +286,7 @@
                 autoScalingConfig=solution.AutoScaling
                 multiAZ=multiAZ
                 tags=ecsTags
+                hibernate=hibernate
             /]
 
             [@createEC2LaunchConfig
