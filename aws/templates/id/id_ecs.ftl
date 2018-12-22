@@ -635,7 +635,7 @@
                     "run" :  ecsTaskRunPermission(ecsId) +
                         solution.UseTaskRole?then(
                             iamPassRolePermission(
-                                getExistingReference(taskRoleId, ARN_ATTRIBUTE_TYPE)
+                                getReference(taskRoleId, ARN_ATTRIBUTE_TYPE)
                             ),
                             []
                         )
