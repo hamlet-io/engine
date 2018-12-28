@@ -4,10 +4,6 @@
 
 [#-- Largely used for cloud formation resource ids which have severe character constraints --]
 
-[#function formatId ids...]
-    [#return concatenate(ids, "X")?replace("[-_/]", "X", "r")?replace(",", "")]
-[/#function]
-
 [#-- Component --]
 
 [#function formatComponentId tier component extensions...]

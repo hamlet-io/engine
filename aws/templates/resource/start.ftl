@@ -606,17 +606,6 @@
                 [#list asArray(compositeLists) as compositeList]
                     [#include compositeList?ensure_starts_with("/")]
                 [/#list]
-                [#if dashboardRows?has_content]
-                    [#assign dashboardComponents += [
-                            {
-                                "Title" : component.Title?has_content?then(
-                                            component.Title,
-                                            formatComponentName(tier, component)),
-                                "Rows" : dashboardRows
-                            }
-                        ]
-                    ]
-                [/#if]
             [/#if]
         [/#list]
     [/#list]
