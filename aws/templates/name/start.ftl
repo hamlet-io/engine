@@ -4,10 +4,6 @@
 
 [#-- Names are largely for human consumption, such as in the AWS console --]
 
-[#function formatName parts...]
-    [#return concatenate(parts, "-")]
-[/#function]
-
 [#function formatDomainName parts...]
     [#return concatenate(parts, ".")]
 [/#function]

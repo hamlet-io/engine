@@ -187,6 +187,17 @@
     [#return result ]
 [/#function]
 
+[#function getArrayIntersection array1 array2]
+    [#local result = []]
+    [#local array2AsArray = asArray(array2)]
+    [#list asArray(array1) as element]
+        [#if array2AsArray?seq_contains(element)]
+            [#local result += [element]]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
 [#function firstContent alternatives=[] otherwise={}]
     [#list asArray(alternatives) as alternative]
         [#if alternative?has_content]
@@ -287,6 +298,28 @@
         [#local result += {key : newValue}]
     [/#list]
     [#return result]
+[/#function]
+
+[#function filterObjectAttributes obj attributes removeAttributes=false]
+    [#local result = {}]
+    [#local atts = asFlattenedArray(attributes)]
+    [#list obj as key,value]
+        [#if atts?seq_contains(key)]
+            [#if removeAttributes][#continue][/#if]
+        [#else]
+            [#if !removeAttributes][#continue][/#if]
+        [/#if]
+        [#local result += {key : value}]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#function getObjectAttributes obj attributes]
+    [#return filterObjectAttributes(obj, attributes, false)]
+[/#function]
+
+[#function removeObjectAttributes obj attributes]
+    [#return filterObjectAttributes(obj, attributes, true)]
 [/#function]
 
 [#-----------------

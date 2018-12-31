@@ -1,5 +1,6 @@
 [#ftl]
 [#include "base.ftl"]
+[#include "engine.ftl"]
 
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
@@ -115,7 +116,7 @@
     ]
 ]
 
-[#assign 
+[#assign
     alertChildrenConfiguration = [
         "Description",
         {
@@ -313,7 +314,7 @@
         "Names" : "AlwaysReplaceOnUpdate",
         "Type" : BOOLEAN_TYPE,
         "Default" : false,
-        "Description" : "Replace instances on every update action" 
+        "Description" : "Replace instances on every update action"
     },
     {
         "Names" : "ActivityCooldown",
@@ -796,7 +797,7 @@
                     "CIDR" : segmentCIDR
                 } ]
             [#break]
-        
+
         [#case "_localnet"]
         [#case "_localnet_"]
         [#case "__localnet__"]
