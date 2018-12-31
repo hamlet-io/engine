@@ -93,12 +93,20 @@ function trace() {
   message "${LOG_LEVEL_TRACE}" "$@"
 }
 
-function info() {
+function information() {
   message "${LOG_LEVEL_INFORMATION}" "$@"
+}
+
+function info() {
+  information "$@"
 }
 
 function warning() {
   message "${LOG_LEVEL_WARNING}" "$@"
+}
+
+function warn() {
+  warning "$@"
 }
 
 function error() {
@@ -761,7 +769,7 @@ function delete_cloudwatch_event() {
     local ruleName="$1"; shift
     local includeRule="$1"; shift
 
-    local return_status=0 
+    local return_status=0
 
     if [[ -n "$(aws --region "${region}" events list-rules --query "Rules[?Name == '$ruleName'].Name" --output text)" ]]; then
 
@@ -780,16 +788,16 @@ function delete_cloudwatch_event() {
 }
 
 function create_cloudwatch_event () {
-  local region="$1"; shift 
+  local region="$1"; shift
   local ruleName="$1"; shift
   local eventRoleId="$1"; shift
-  local ruleConfigFile="$1"; shift 
+  local ruleConfigFile="$1"; shift
   local targetConfigFile="$1"; shift
 
-  local return_status=0 
+  local return_status=0
 
   if [[ "${eventRoleId}" != arn:* ]]; then
-    eventRoleArn="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${eventRoleId}" "arn" || return $?)" 
+    eventRoleArn="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${eventRoleId}" "arn" || return $?)"
   else
     eventRoleArn="${eventRoleId}"
   fi
@@ -804,21 +812,21 @@ function create_cloudwatch_event () {
   return ${return_status}
 }
 
-# -- CloudFormation -- 
+# -- CloudFormation --
 function get_cloudformation_stack_output() {
   local region="$1"; shift
   local stackName="$1"; shift
-  local resourceId="$1"; shift 
-  local attributeType="$1"; shift 
+  local resourceId="$1"; shift
+  local attributeType="$1"; shift
 
-  if [[ -z "${attributeType}" || "${attributeType}" == "ref" ]]; then 
+  if [[ -z "${attributeType}" || "${attributeType}" == "ref" ]]; then
     stackOutputKey="${resourceId}"
   else
     stackOutputKey="${resourceId}X${attributeType}"
   fi
 
   stack_id="$(aws --region "${region}" cloudformation list-stacks --stack-status-filter "CREATE_COMPLETE" "UPDATE_COMPLETE" --query "StackSummaries[?StackName == '$stackName'].StackId" --output text || return $?)"
-  if [[ -n "${stack_id}" ]]; then 
+  if [[ -n "${stack_id}" ]]; then
     aws --region "${region}" cloudformation describe-stacks --stack-name "${stackName}" --query "Stacks[*].Outputs[?OutputKey == '${stackOutputKey}'].OutputValue" --output text || return $?
   fi
 }
@@ -842,26 +850,26 @@ function update_cognito_userpool_client() {
   aws --region "${region}" cognito-idp update-user-pool-client --user-pool-id "${userpoolid}" --client-id "${userpoolclientid}" --cli-input-json "file://${configfile}"
 }
 
-function update_cognito_userpool_authprovider() { 
+function update_cognito_userpool_authprovider() {
   local region="$1"; shift
   local userpoolid="$1"; shift
   local authprovidername="$1"; shift
   local authprovidertype="$1"; shift
   local configfile="$1"; shift
 
-  current_provider_type="$(aws --region "${region}" cognito-idp decribe-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --query "IdentityProvider.ProviderType" --output text 2>/dev/null || true )" 
+  current_provider_type="$(aws --region "${region}" cognito-idp decribe-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --query "IdentityProvider.ProviderType" --output text 2>/dev/null || true )"
 
   if [[ ( "${current_provider_type}" != "${authprovidertype}" ) && -n "${current_provider_type}" ]]; then
     # delete the provider if the type is different
     aws --region "${region}" cognito-idp delete-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" || return $?
-  fi 
+  fi
 
   if [[ -n "${current_provider_type}" || "${current_provider_type}" != "${authprovidertype}" ]]; then
-    # create the provider 
+    # create the provider
     aws --region "${region}" cognito-idp create-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --provider-type "${authprovidertype}" --cli-input-json "file://${configfile}" || return $?
   fi
 
-  if [[ "${current_provider_type}" == "${authprovidertype}" ]]; then 
+  if [[ "${current_provider_type}" == "${authprovidertype}" ]]; then
     # update the provider
     aws --region "${region}" cognito-idp update-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --cli-input-json "file://${configfile}" || return $?
   fi
@@ -885,9 +893,9 @@ function cleanup_cognito_userpool_authproviders() {
         info "Removing auth provider ${provider} from ${userpoolid}"
         aws --region "${region}" cognito-idp delete-identity-provider --user-pool-id "${userpoolid}" --provider-name "${provider}" || return $?
       fi
-    done 
+    done
 
-  else  
+  else
     info "No providers found moving on.."
   fi
 }
@@ -909,21 +917,21 @@ function manage_cognito_userpool_domain() {
     case "${action}" in
         create)
             info "Adding domain to userpool"
-            
-            case "${domaintype}" in 
+
+            case "${domaintype}" in
               internal)
                 userpool_domain="$(aws --region ${region} cognito-idp describe-user-pool --user-pool-id "${userpoolid}" --query "UserPool.Domain" --output text)"
                 ;;
-              custom) 
+              custom)
                 userpool_domain="$(aws --region ${region} cognito-idp describe-user-pool --user-pool-id "${userpoolid}" --query "UserPool.CustomDomain" --output text)"
                 ;;
             esac
-            
+
             if [[ "${userpool_domain}" != "${domain}" && "${userpool_domain}" != "None" && -n "${userpool_domain}" ]]; then
               aws --region "${region}" cognito-idp delete-user-pool-domain --user-pool-id "${userpoolid}" --domain "${userpool_domain}" || return $?
             fi
 
-            if [[ ( "${userpool_domain}" == "None" || "${userpool_domain}" != "${domain}" ) && -n "${userpool_domain}" ]]; then  
+            if [[ ( "${userpool_domain}" == "None" || "${userpool_domain}" != "${domain}" ) && -n "${userpool_domain}" ]]; then
               aws --region "${region}" cognito-idp create-user-pool-domain --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $?
               return_status=$?
             fi
@@ -954,7 +962,7 @@ function manage_cognito_userpool_domain() {
 
 function get_cognito_userpool_custom_distribution() {
   local region="$1"; shift
-  local domain="${1}"; shift 
+  local domain="${1}"; shift
 
   aws --region "${region}" cognito-idp describe-user-pool-domain --domain ${domain} --query "DomainDescription.CloudFrontDistribution" --output text || return $?
 }
@@ -984,7 +992,7 @@ function update_data_pipeline() {
   local cfnStackName="$1"; shift
   local securityGroupId="$1"; shift
 
-  # Add resources created during stack creation 
+  # Add resources created during stack creation
   securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)"
 
   arnLookupValueFile="$(filePath ${parametervaluefile})/ArnLookup-$(fileBase ${parametervaluefile})"
@@ -1004,9 +1012,9 @@ function update_data_pipeline() {
   fi
 }
 
-#-- DynamoDB -- 
+#-- DynamoDB --
 function upsert_dynamodb_item() {
-  local region="$1"; shift 
+  local region="$1"; shift
   local tableName="$1"; shift
   local configfile="$1"; shift
   local cfnStackName="$1"; shift
@@ -1016,15 +1024,15 @@ function upsert_dynamodb_item() {
   return 0
 }
 
-function scan_dynamodb_table() { 
-  local region="$1"; shift 
+function scan_dynamodb_table() {
+  local region="$1"; shift
   local tableName="$1"; shift
   local configfile="$1"; shift
   local cfnStackName="$1"; shift
 
   items="$(aws --region "${region}" dynamodb scan --table-name "${tableName}" --cli-input-json "file://${configfile}" --query "Items[*]" --output json || return $? )"
 
-  # return each item as a new line 
+  # return each item as a new line
   items="$( echo "${items}" | jq -c '.[]' )"
 
   echo "${items}"
@@ -1034,22 +1042,22 @@ function scan_dynamodb_table() {
 
 function delete_dynamodb_items() {
   local region="$1"; shift
-  local tableName="$1"; shift 
-  local itemKeys="$1"; shift 
-  local cfnStackName="$1"; shift 
+  local tableName="$1"; shift
+  local itemKeys="$1"; shift
+  local cfnStackName="$1"; shift
 
   arrayFromList items_to_delete "${itemKeys}"
 
   for item in "${items_to_delete[@]}"; do
-    aws --region "${region}" dynamodb delete-item --table-name "${tableName}" --key "${item}" || return $? 
-  done 
+    aws --region "${region}" dynamodb delete-item --table-name "${tableName}" --key "${item}" || return $?
+  done
 }
 
-#-- ECS -- 
+#-- ECS --
 function create_ecs_scheduled_task() {
-  local region="$1"; shift 
+  local region="$1"; shift
   local ruleName="$1"; shift
-  local ruleConfigFile="$1"; shift 
+  local ruleConfigFile="$1"; shift
   local targetConfigFile="$1"; shift
   local cfnStackName="$1"; shift
   local taskId="$1"; shift
@@ -1057,7 +1065,7 @@ function create_ecs_scheduled_task() {
   local securityGroupId="$1"; shift
 
   ecsTaskArn="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${taskId}" "arn" || return $?)"
-  securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)" 
+  securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)"
 
   arnLookupConfigFile="$(filePath ${targetConfigFile})/ArnLookup-$(fileBase ${targetConfigFile})"
   jq --arg ecsTaskArn "${ecsTaskArn}" --arg securityGroup "$securityGroup" '.Targets[0].EcsParameters.TaskDefinitionArn = $ecsTaskArn | .Targets[0].EcsParameters.NetworkConfiguration.awsvpcConfiguration.SecurityGroups = [ $securityGroup ]' < "${targetConfigFile}" > "${arnLookupConfigFile}"
@@ -1443,6 +1451,17 @@ function delete_oai_credentials() {
 }
 
 # -- RDS --
+
+function add_tag_rds_resource() {
+  local region="$1"; shift
+  local rds_identifier="$1"; shift
+  local key="${1}"; shift
+  local value="${1}"; shift
+
+  aws --region "${region}" rds add-tags-to-resource --resource-name "${rds_identifier}" --tags "Key=${key},Value=${value}" || return $?
+
+}
+
 function create_snapshot() {
   local region="$1"; shift
   local db_identifier="$1"; shift
@@ -1453,11 +1472,11 @@ function create_snapshot() {
 
   if [[ -n "${db_info}" ]]; then
     aws --region "${region}" rds create-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}" --db-instance-identifier "${db_identifier}" 1> /dev/null || return $?
-    
+
   sleep 2s
   while [ "${exit_status}" != "0" ]
   do
-      SNAPSHOT_STATE="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].Status' || return $? )" 
+      SNAPSHOT_STATE="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].Status' || return $? )"
       SNAPSHOT_PROGRESS="$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].PercentProgress' || return $? )"
       info "Snapshot id ${db_snapshot_identifier} creation: state is ${SNAPSHOT_STATE}, ${SNAPSHOT_PROGRESS}%..."
 
@@ -1685,12 +1704,16 @@ function git_rm() {
 }
 
 # -- semver handling --
-# From github.com/fsaintjacques/semver-tool
+# Comparisons/naming roughly aligned to https://github.com/npm/node-semver
+# in case we want to replace these routines with calls to this package via
+# docker
 
-function semver_validate {
-  local version=$1
+function semver_valid {
+  local version="$1"
 
-[[ "$version" =~ ^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-([^+]+))?(\+(.*))?$ ]] || return 1
+  [[ "$version" =~ ^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-([^+]+))?(\+(.*))?$ ]] ||
+    { echo -n "?"; return 1; }
+
   local major=${BASH_REMATCH[1]}
   local minor=${BASH_REMATCH[2]}
   local patch=${BASH_REMATCH[3]}
@@ -1701,17 +1724,56 @@ function semver_validate {
   return 0
 }
 
-function semver_compare {
-  local v1="$(semver_validate "$1")"; shift
-  local v2="$(semver_validate "$1")"; shift
+# Strip any leading "v" (note we handle leading = in semver_satisfies)
+# Convert any range indicators ("x" or "X") to 0
+# * not supported as substitute for x
+function semver_clean {
+  local version="$1"
 
-  if [[ (-z "${v1}") || (-z "${v2}") ]]; then
-    echo -n "?"
-    return 1
+  if [[ "$version" =~ ^v?(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)(\-([^+]+))?(\+(.*))?$ ]]; then
+
+    local major="$(echo ${BASH_REMATCH[1]} | tr "xX" "0")"
+    local minor="$(echo ${BASH_REMATCH[2]} | tr "xX" "0")"
+    local patch="$(echo ${BASH_REMATCH[3]} | tr "xX" "0")"
+    local prere=${BASH_REMATCH[5]}
+    local build=${BASH_REMATCH[7]}
+
+    echo -n "${major}.${minor}.${patch}${prere:+-}${prere}${build:++}${build}"
+    return 0
   fi
 
-  local v1_components=(${v1})
-  local v2_components=(${v2})
+  if [[ "$version" =~ ^v?(0|[1-9][0-9]*|x|X)\.(0|[1-9][0-9]*|x|X)$ ]]; then
+
+    local major="$(echo ${BASH_REMATCH[1]} | tr "xX" "0")"
+    local minor="$(echo ${BASH_REMATCH[2]} | tr "xX" "0")"
+
+    echo -n "${major}.${minor}.0"
+    return 0
+  fi
+
+  if [[ "$version" =~ ^v?(0|[1-9][0-9]*|x|X)$ ]]; then
+
+    local major="$(echo ${BASH_REMATCH[1]} | tr "xX" "0")"
+
+    echo -n "${major}.0.0"
+    return 0
+  fi
+
+  # Not valid
+  echo -n "?"
+  return 1
+}
+
+function semver_compare {
+  local v1="$(semver_clean "$1")"; shift
+  local v2="$(semver_clean "$1")"; shift
+
+  semver_valid "${v1}" > /dev/null &&
+      semver_valid "${v2}" > /dev/null ||
+      { echo -n "?"; return 1; }
+
+  local v1_components=($(semver_valid "${v1}"))
+  local v2_components=($(semver_valid "${v2}"))
 
   # MAJOR, MINOR and PATCH should compare numericaly
   for i in 0 1 2; do
@@ -1737,6 +1799,80 @@ function semver_compare {
   fi
 
   echo -n 0
+}
+
+# a range is a list of comparator sets joined by "||"" or "|", true is one of sets is true
+# a comparator set is a list of comparators, true if all comparators are true
+# a comparator is an operator and a version
+function semver_satisfies {
+  local version="$1"; shift
+  local range=$@
+
+  # First determine the comparator sets
+  # Standardise on single "|" as separator
+  declare -a comparator_sets
+  arrayFromList comparator_sets "${range//||/|}" "|"
+
+  for comparator_set in "${comparator_sets[@]}"; do
+    debug "Checking comparator set \"${comparator_set}\" ..."
+
+    # Now determine the comparators for each set
+    declare -a comparators
+    arrayFromList comparators "${comparator_set}"
+
+    # Assume all comparators will match
+    local match=0
+
+    for comparator in "${comparators[@]}"; do
+      debug "Checking comparator \"${comparator}\" ..."
+
+      # Split into operator and version
+      [[ "$comparator" =~ ^(<|<=|>|>=|=)(.+)$ ]] || return 1
+      local operator="${BASH_REMATCH[1]}"
+      local comparator_version="$(semver_clean "${BASH_REMATCH[2]}")"
+
+      # Do the version comparison
+      comparator_result="$(semver_compare "${version}" "${comparator_version}")"
+      [[ "${comparator_result}" == "?" ]] && return 1
+
+      debug "Comparing \"${version}\" to \"${comparator_version}\", result=${comparator_result}"
+
+      # Process the operator
+      case "${operator}" in
+        \<)
+          [[ "${comparator_result}" -lt 0 ]] && continue
+          ;;
+
+        \<=)
+          [[ "${comparator_result}" -le 0 ]] && continue
+          ;;
+
+        \>)
+          [[ "${comparator_result}" -gt 0 ]] && continue
+          ;;
+
+        \>=)
+          [[ "${comparator_result}" -ge 0 ]] && continue
+          ;;
+
+        =)
+          [[ "${comparator_result}" -eq 0 ]] && continue
+          ;;
+
+        *)
+          match=1
+          ;;
+      esac
+      match=1
+      break
+    done
+
+    # All comparators matched so success (this comparator set is true)
+    [[ ${match} -eq 0 ]] && return 0
+
+  done
+
+  return 1
 }
 
 # -- Cloudfront handling --
