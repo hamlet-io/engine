@@ -158,6 +158,7 @@
     [#local fqdn = getExistingReference(id, DNS_ATTRIBUTE_TYPE)]
     [#local port = getExistingReference(id, PORT_ATTRIBUTE_TYPE)]
     [#local name = getExistingReference(id, DATABASENAME_ATTRIBUTE_TYPE)]
+    [#local region = getExistingReference(id, REGION_ATTRIBUTE_TYPE)]
     [#local encryptionScheme = (solution.GenerateCredentials.EncryptionScheme)?has_content?then(
                         solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
                         "" )]
@@ -201,7 +202,8 @@
                 "NAME" : name,
                 "USERNAME" : masterUsername,
                 "PASSWORD" : masterPassword,
-                "URL" : url
+                "INSTANCEID" : core.FullName,
+                "REGION" : region
             },
             "Roles" : {
                 "Inbound" : {},
