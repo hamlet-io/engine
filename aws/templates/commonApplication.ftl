@@ -53,9 +53,9 @@
     [/#if]
 [/#macro]
 
-[#macro lambdaAttributes 
-        imageBucket="" 
-        imagePrefix="" 
+[#macro lambdaAttributes
+        imageBucket=""
+        imagePrefix=""
         zipFile=""
         codeHash=""  ]
 
@@ -275,10 +275,7 @@
     [#if ((fragmentListMode!"") == "model") ]
         [#assign _context +=
             {
-                "EntryPoint" : entrypoint?is_string?then(
-                    entrypoint?split(" "),
-                    entrypoint
-                )
+                "EntryPoint" : asArray(entrypoint)
             }
         ]
     [/#if]
@@ -288,10 +285,7 @@
     [#if ((fragmentListMode!"") == "model") ]
         [#assign _context +=
             {
-                "Command" : command?is_string?then(
-                    [ command ],
-                    command
-                )
+                "Command" : asArray(command)
             }
         ]
     [/#if]
@@ -365,9 +359,9 @@
 
 [#macro cfForwardHeaders names... ]
     [#if (fragmentListMode!"") == "model" ]
-        [#assign _context += 
+        [#assign _context +=
             {
-                "ForwardHeaders" : (_context.ForwardHeaders![]) + 
+                "ForwardHeaders" : (_context.ForwardHeaders![]) +
                                         asArray(names)
             }]
     [/#if]
@@ -505,7 +499,7 @@
                                 }
                         }
                     ]
-                    
+
                 [/#list]
 
             [/#if]
