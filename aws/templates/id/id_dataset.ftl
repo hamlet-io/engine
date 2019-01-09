@@ -24,7 +24,7 @@
                 {
                     "Names" : "Engine",
                     "Type" : STRING_TYPE,
-                    "Values" : ["s3", "rdsSnapshot"],
+                    "Values" : ["s3", "rds"],
                     "Mandatory" : true
                 },
                 {
@@ -36,6 +36,12 @@
                     "Names" : "Prefix",
                     "Type" : STRING_TYPE,
                     "Default" : ""
+                },
+                {
+                    "Names" : "BuildEnvironment",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Description" : "The environments used to build the dataset",
+                    "Mandatory" : true
                 }
             ]
         }
@@ -47,10 +53,8 @@
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence, true ) ]
 
-    [#local datasetPrefix = formatRelativePath(solution.Prefix)]
     [#local attributes = {
-            "DATASET_ENGINE" : solution.Engine,
-            "DATASET_PREFIX" : datasetPrefix
+            "DATASET_ENGINE" : solution.Engine
     }]
     [#local producePolicy = []]
     [#local consumePolicy = []]
@@ -64,7 +68,10 @@
                                                 getRegistryPrefix("dataset", occurrence),
                                                 productName,
                                                 getOccurrenceBuildUnit(occurrence))]
+            [#local datasetPrefix = formatRelativePath(solution.Prefix)]
+
             [#local attributes += {
+                "DATASET_PREFIX" : datasetPrefix,
                 "DATASET_REGISTRY" : "s3://" + registryBucket + 
                                             formatAbsolutePath(
                                                 registryPrefix),
@@ -81,9 +88,18 @@
 
             [#break]
 
-        [#case "rdsSnapshot" ]
+        [#case "rds" ]
+
+            [#local registryPrefix = getRegistryEndPoint("rdssnapshot", occurrence) ]
+            [#local registryImage = formatName(
+                                        registryPrefix,
+                                        "rdssnapshot",
+                                        productId,
+                                        deploymentUnit, 
+                                        buildReference)]
+
             [#local attributes += {
-                "DATASET_REGISTRY" : formatName( "dataset",  core.FullName ),
+                "SNAPSHOT_NAME" : registryImage,
                 "DATASET_LOCATION" : formatName( "dataset",  core.FullName, buildReference )
             }]
             [#break]
@@ -128,11 +144,8 @@
                                                     datasetPrefix 
                             )]
                         [#break]
+
                     [#case RDS_COMPONENT_TYPE ]
-                        [#local masterDataLocation = formatName( core.FullName, solution.Prefix )]
-                        [#local attributes += { 
-                            "DATASET_MASTER_LOCATION" : formatName( "dataset", core.FullName, solution.Prefix)
-                        }]
                         [#break]
                     
                     [#default]

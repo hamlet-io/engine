@@ -138,7 +138,7 @@
                         "case $\{STACK_OPERATION} in",
                         "  create|update)",
                         "    sync_code_bucket || return $?",
-                        "    initialise_registries \"dataset\" \"contentnode\" \"lambda\" \"pipeline\" \"scripts\" \"spa\" \"swagger\" || return $?",
+                        "    initialise_registries \"dataset\" \"contentnode\" \"lambda\" \"pipeline\" \"scripts\" \"spa\" \"swagger\" \"rdssnapshot\" || return $?",
                         "    ;;",
                         " esac"
                     ]

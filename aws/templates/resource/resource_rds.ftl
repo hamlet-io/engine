@@ -10,6 +10,9 @@
         },
         PORT_ATTRIBUTE_TYPE : { 
             "Attribute" : "Endpoint.Port"
+        },
+        REGION_ATTRIBUTE_TYPE : {
+            "Value" : { "Ref" : "AWS::Region" }
         }
     }
 ]
