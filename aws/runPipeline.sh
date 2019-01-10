@@ -105,8 +105,8 @@ fi
 PIPELINE_ID="$(aws --region ${REGION} datapipeline list-pipelines --query "pipelineIdList[?name==\`${PIPELINE_NAME}\`].id" --output text)"
 
 if [[ -n "${PIPELINE_ID}" ]]; then
-    if [[ "${CHECKONLY}" == "false" ]]; then 
-        aws --region ${REGION} datapipeline activate-pipeline --pipeline-id "${PIPELINE_ID}" || error "Pipeline Couldnot be activated"; exit $?
+    if [[ "${CHECKONLY}" == "false" || "${CHECKONLY}" -eq false ]]; then 
+        aws --region ${REGION} datapipeline activate-pipeline --pipeline-id "${PIPELINE_ID}" || error "Pipeline Could not be activated"; exit $?
     fi
 
     info "Pipeline runs for the last day"
