@@ -6,7 +6,7 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 
 # Defaults
 DELAY_DEFAULT=30
-CHECKONLY_DEFAULT=false
+CHECKONLY_DEFAULT="false"
 
 function usage() {
     cat <<EOF
@@ -41,7 +41,7 @@ EOF
 
 
 # Parse options
-while getopts ":c:hi:t:x:y" opt; do
+while getopts ":c:hi:t:x:y:" opt; do
     case $opt in
         c)
             CHECKONLY="true"
@@ -70,7 +70,7 @@ while getopts ":c:hi:t:x:y" opt; do
 done
 
 #Set Default
-CHECKONLY=${CHECKONLY:-CHECKONLY_DEFAULT}
+CHECKONLY=${CHECKONLY:-${CHECKONLY_DEFAULT}}
 
 RESULT=0 
 
@@ -83,7 +83,7 @@ RESULT=0
 # Ensure we are in the right place
 checkInSegmentDirectory
 
-PIPELINE_NAME="${PRODUCT}-${ENVIRONMENT}-"
+PIPELINE_NAME="${PRODUCT}-${ENVIRONMENT}"
 
 if [[ -n "${SEGMENT}" && "${SEGMENT}" != "default" ]]; then
     PIPELINE_NAME="${PIPELINE_NAME}-${SEGMENT}"
@@ -101,7 +101,7 @@ if [[ -n "${VERSION}" ]]; then
 fi
 
 # Find the pipeline
-PIPELINE_ID="$(aws --region ${REGION} datapipeline list-pipelines --query "pipelineIdList[?name=='${PIPELINE_NAME}'].id" --output text)"
+PIPELINE_ID="$(aws --region ${REGION} datapipeline list-pipelines --query "pipelineIdList[?name==\`${PIPELINE_NAME}\`].id" --output text)"
 
 if [[ -n "${PIPELINE_ID}" ]]; then
     if [[ "${CHECKONLY}" == "false" ]]; then 
@@ -109,7 +109,9 @@ if [[ -n "${PIPELINE_ID}" ]]; then
     fi
 
     info "Pipeline runs for the last day"
-    aws --region ${REGION} datapipeline list-runs --start-interval "$(date --utc +%FT%TZ --date="1 day ago")" --output text
+    aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" \
+    --query  "reverse(sort_by(@, &'@actualStartTime'))" \
+    --output json
 else 
     error "Pipeline could ${PIPELINE_NAME} could not be found"; exit 128
 fi 
