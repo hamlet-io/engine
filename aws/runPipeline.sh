@@ -45,6 +45,7 @@ while getopts ":c:hi:t:x:y:" opt; do
     case $opt in
         c)
             CHECKONLY="true"
+            ;;
         h)
             usage
             ;;
