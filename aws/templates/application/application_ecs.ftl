@@ -256,7 +256,7 @@
                             trustedServices=["events.amazonaws.com"]
                             policies=[
                                 getPolicyDocument(
-                                    ecsTaskRunPermission(ecsId, taskId)
+                                    ecsTaskRunPermission(ecsId)
                                 ,
                                 "schedule")
                             ]
