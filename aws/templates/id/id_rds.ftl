@@ -200,6 +200,7 @@
                 "FQDN" : fqdn,
                 "PORT" : port,
                 "NAME" : name,
+                "URL" : url,
                 "USERNAME" : masterUsername,
                 "PASSWORD" : masterPassword,
                 "INSTANCEID" : core.FullName,
