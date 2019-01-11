@@ -1241,8 +1241,19 @@ function create_snapshot() {
 
   if [[ -n "${db_info}" ]]; then
     aws --region "${region}" rds create-db-snapshot --db-snapshot-identifier "${db_snapshot_identifier}" --db-instance-identifier "${db_identifier}" 1> /dev/null || return $?
-    aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"  || return $?
-    db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
+    
+  sleep 2s
+  while [ "${exit_status}" != "0" ]
+  do
+      SNAPSHOT_STATE="$(aws rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].Status')"
+      SNAPSHOT_PROGRESS="$(aws rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" --query 'DBSnapshots[0].PercentProgress')"
+      info "Snapshot id ${db_snapshot_identifier} creation: state is ${SNAPSHOT_STATE}, ${SNAPSHOT_PROGRESS}%..."
+
+      aws --region "${region}" rds wait db-snapshot-available --db-snapshot-identifier "${db_snapshot_identifier}"
+      exit_status="$?"
+  done
+
+  db_snapshot=$(aws --region "${region}" rds describe-db-snapshots --db-snapshot-identifier "${db_snapshot_identifier}" || return $?)
   fi
   info "Snapshot Created - $(echo "${db_snapshot}" | jq -r '.DBSnapshots[0] | .DBSnapshotIdentifier + " " + .SnapshotCreateTime' )"
 }
