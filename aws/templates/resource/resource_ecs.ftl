@@ -5,7 +5,7 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        "ARN_ATTRIBUTE_TYPE" : {
+        ARN_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
         NAME_ATTRIBUTE_TYPE : { 
