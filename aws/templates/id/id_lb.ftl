@@ -279,8 +279,6 @@
     [#local defaultTargetGroupId = formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, "default", parentCore.Id, sourcePort ) ]
     [#local defaultTargetGroupName = formatName("default", parentCore.FullName, sourcePort )]
 
-    [#local path = (solution.Path == "default")?then("", solution.Path) ]
-
     [#local domainRedirectRules = {} ]
     [#if (sourcePort.Certificate)!false ]
         [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id, sourcePort.Name) ]
@@ -308,6 +306,16 @@
         [#local scheme ="http" ]
     [/#if]
 
+    [#local path = ""]
+
+    [#if solution.Path != "default" ]
+        [#if (solution.Path)?ends_with("*") ]
+            [#local path = solution.Path?remove_ending("*")?ensure_ends_with("/") ]
+        [#else]
+            [#local path = solution.Path ]
+        [/#if]
+    [/#if]
+    
     [#local url = scheme + "://" + fqdn  ]
     [#local internalUrl = scheme + "://" + internalFqdn ]
 
