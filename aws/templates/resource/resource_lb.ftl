@@ -280,9 +280,9 @@
                     "SessionTimeout" : userPoolSessionTimeout,
                     "Scope" : userPoolOauthScope,
                     "OnUnauthenticatedRequest" : "authenticate"
-                } +
+                }
+            } + 
             attributeIfContent("Order", order)
-            }
         ]
     ]
 [/#function]
