@@ -277,7 +277,7 @@
                 "ReplicationConfiguration",
                 replicationConfiguration
             )
-        tags=getCfTemplateCoreTags("", tier, component)
+        tags=getCfTemplateCoreTags("", tier, component, "", false, false, 7)
         outputs=S3_OUTPUT_MAPPINGS
         outputId=outputId
         dependencies=dependencies

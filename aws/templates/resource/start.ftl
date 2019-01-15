@@ -258,7 +258,7 @@
     }]
 [/#function]
 
-[#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false flatten=false]
+[#function getCfTemplateCoreTags name="" tier="" component="" zone="" propagate=false flatten=false maxTagCount=-1]
     [#local result =
         [
             { "Key" : "cot:request", "Value" : requestReference }
@@ -341,6 +341,10 @@
             ]
         [/#list]
         [#local result=returnValue]
+    [/#if]
+
+    [#if maxTagCount gte 0 ]
+        [#local result=result[0..( maxTagCount -1 )]]
     [/#if]
     [#return result]
 [/#function]

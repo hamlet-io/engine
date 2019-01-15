@@ -40,7 +40,7 @@
                         {
                             "QueueConfigurations" : sqsNotifications
                         }) 
-                tags=getCfTemplateCoreTags()
+                tags=getCfTemplateCoreTags("", tier, component, "", false, false, 7)
                 outputs=S3_OUTPUT_MAPPINGS
             /]
         [/#if]

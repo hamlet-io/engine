@@ -193,11 +193,15 @@
             [#assign coreTags = getCfTemplateCoreTags(
                         pipelineName,
                         tier,
-                        component) ]
+                        component,
+                        "",
+                        false,
+                        false,
+                        10) ]
 
             [#assign cliTags = [] ]
             [#-- datapiplines only allow 10 tags --]
-            [#list coreTags[0..*10] as tag ]
+            [#list coreTags as tag ]
                 [#assign cliTags += [
                     {
                     "key" : tag.Key,
