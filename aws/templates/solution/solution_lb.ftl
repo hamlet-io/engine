@@ -131,7 +131,11 @@
                     [#if solution.Path == "default" ]
                         [#assign path = "*"]
                     [#else]
-                        [#assign path = solution.Path ]
+                        [#if solution.Path?ends_with("/")]
+                            [#assign path = solution.Path?ensure_ends_with("*")]
+                        [#else]
+                            [#assign path = solution.Path ]
+                        [/#if]
                     [/#if]
                     [#break]
 
