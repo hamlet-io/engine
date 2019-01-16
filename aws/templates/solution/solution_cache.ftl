@@ -76,6 +76,9 @@
             [/#list]
         [/#list]
 
+        [#assign hibernate = solution.Hibernate.Enabled  &&              
+            (getExistingReference(cacheId)?has_content) ]
+
         [#if deploymentSubsetRequired("cache", true)]
             [@createDependentSecurityGroup
                 mode=listMode
@@ -118,44 +121,46 @@
                     }
                 outputs={}
             /]
-        
-            [@cfResource
-                mode=listMode
-                id=cacheId
-                type="AWS::ElastiCache::CacheCluster"
-                properties=
-                    {
-                        "Engine": engine,
-                        "EngineVersion": engineVersion,
-                        "CacheNodeType" : processorProfile.Processor,
-                        "Port" : port,
-                        "CacheParameterGroupName": getReference(cacheParameterGroupId),
-                        "CacheSubnetGroupName": getReference(cacheSubnetGroupId),
-                        "VpcSecurityGroupIds":[getReference(cacheSecurityGroupId)]
-                    } +
-                    multiAZ?then(
+
+            [#if !hibernate]
+                [@cfResource
+                    mode=listMode
+                    id=cacheId
+                    type="AWS::ElastiCache::CacheCluster"
+                    properties=
                         {
-                            "AZMode": "cross-az",
-                            "PreferredAvailabilityZones" : awsZones,
-                            "NumCacheNodes" : processorProfile.CountPerZone * zones?size
-                        },
-                        {
-                            "AZMode": "single-az",
-                            "PreferredAvailabilityZone" : awsZones[0],
-                            "NumCacheNodes" : processorProfile.CountPerZone
-                        }
-                    ) +
-                    attributeIfContent("SnapshotRetentionLimit", solution.Backup.RetentionPeriod)
-                tags=
-                    getCfTemplateCoreTags(
-                        cacheFullName,
-                        tier,
-                        component)
-                outputs=engine?switch(
-                    "memcached", MEMCACHED_OUTPUT_MAPPINGS,
-                    "redis", REDIS_OUTPUT_MAPPINGS,
-                    {})
-            /]
+                            "Engine": engine,
+                            "EngineVersion": engineVersion,
+                            "CacheNodeType" : processorProfile.Processor,
+                            "Port" : port,
+                            "CacheParameterGroupName": getReference(cacheParameterGroupId),
+                            "CacheSubnetGroupName": getReference(cacheSubnetGroupId),
+                            "VpcSecurityGroupIds":[getReference(cacheSecurityGroupId)]
+                        } +
+                        multiAZ?then(
+                            {
+                                "AZMode": "cross-az",
+                                "PreferredAvailabilityZones" : awsZones,
+                                "NumCacheNodes" : processorProfile.CountPerZone * zones?size
+                            },
+                            {
+                                "AZMode": "single-az",
+                                "PreferredAvailabilityZone" : awsZones[0],
+                                "NumCacheNodes" : processorProfile.CountPerZone
+                            }
+                        ) +
+                        attributeIfContent("SnapshotRetentionLimit", solution.Backup.RetentionPeriod)
+                    tags=
+                        getCfTemplateCoreTags(
+                            cacheFullName,
+                            tier,
+                            component)
+                    outputs=engine?switch(
+                        "memcached", MEMCACHED_OUTPUT_MAPPINGS,
+                        "redis", REDIS_OUTPUT_MAPPINGS,
+                        {})
+                /]
+            [/#if]
         [/#if]
     [/#list]
 [/#if]
