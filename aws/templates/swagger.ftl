@@ -561,7 +561,7 @@
         [/#list]
 
         [#-- Add default CORS config if not "any" verb and no explicit "options" verb --]
-        [#if !(path.x-amazon-apigateway-any-method??) && (!pathObject?keys?seq_contains("options"))]
+        [#if !(pathObject["x-amazon-apigateway-any-method"]?? || pathObject["options"]??)]
             [#local verbs +=
                 {
                     "options" : {
