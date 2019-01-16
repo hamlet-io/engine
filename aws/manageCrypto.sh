@@ -169,8 +169,15 @@ done
 if [[ (-n "${JSON_PATH}") ]]; then
     [[ -z "${TARGET_FILE}" ]] && fatal "Can't locate target file"
 
+    # Handle dash in attribute name
+    PATH_PARTS=(${JSON_PATH//./ })
+    ESCAPED_JSON_PATH="."
+    for PATH_PART in "${PATH_PARTS[@]}"; do
+        ESCAPED_JSON_PATH="${ESCAPED_JSON_PATH}[\"${PATH_PART}\"]"
+    done
+
     # Default cipherdata to that in the element
-    JSON_TEXT=$(jq -r "${JSON_PATH} | select (.!=null)" < "${TARGET_FILE}")
+    JSON_TEXT=$(jq -r "${ESCAPED_JSON_PATH} | select (.!=null)" < "${TARGET_FILE}")
     CRYPTO_TEXT="${CRYPTO_TEXT:-$JSON_TEXT}"
 
     [[ (("${CRYPTO_OPERATION}" == "encrypt") && (-z "${CRYPTO_TEXT}")) ]] &&
