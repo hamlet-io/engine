@@ -5,9 +5,29 @@
    
     [#assign settings = _context.DefaultEnvironment]
 
+    [#assign pingInterval = (settings["AGENT_PING_INTERVAL"])!"300" ]
+    [#assign pingTimeout = (settings["AGENT_PING_TIMEOUT"])!"30"]
+    [#assign timeZone = (settings["TIMEZONE"])!"UTC" ]
+    [#assign maxMemory = (container.MemoryReservation * 0.9)?round?c ]
+    [#assign intialHeapSize = (container.MemoryReservation * 0.5)?round?c ]
+
+    [#assign javaStandardOpts = [ 
+                "-Dhudson.DNSMultiCast.disabled=true",
+                "-Djenkins.install.runSetupWizard=false",
+                "-Dorg.apache.commons.jelly.tags.fmt.timeZone=${timeZone}",
+                "-Duser.timezone=${timeZone}",
+                "-Xmx${maxMemory}M",
+                "-Xms${intialHeapSize}M",
+                "-Dhudson.slaves.ChannelPinger.pingIntervalSeconds=${pingInterval}",
+                "-Dhudson.slaves.ChannelPinger.pingTimeoutSeconds=${pingTimeout}"
+    ]]
+
+    [#assign javaExtraOpts = (settings["JAVA_EXTRA_OPTS"]!"")?split(" ")]
+    [#assign javaOpts = (javaStandardOpts + javaExtraOpts)?join(" ")]
+
     [@Settings {
             "ECS_ARN" :  getExistingReference(ecsId),
-            "MAXMEMORY" : container.MemoryReservation
+            "JAVA_OPTS" : javaOpts
         }
     /]
 
