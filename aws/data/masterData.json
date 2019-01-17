@@ -519,6 +519,31 @@
       }
     },
     "eu-north-1": {
+      "Partition": "aws",
+      "Locality": "Stockholm",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "eu-north-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "eu-north-1b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "eu-north-1c"
+        }
+      },
+      "Accounts": {
+        "ELB": "897822967062"
+      },
       "AMIs": {
         "Centos": {
           "NAT": "ami-28d15f56",
