@@ -101,17 +101,6 @@
             [/#list]
         [/#list]
         
-        [#if policyStatements?has_content ]
-            [#assign bucketPolicyId = resources["bucketpolicy"].Id ]
-            [@createBucketPolicy
-                mode=listMode
-                id=bucketPolicyId
-                bucket=s3Name
-                statements=policyStatements
-                dependencies=s3Id
-            /]
-        [/#if]
-
         [#list solution.Links?values as link]
             [#if link?is_hash]
 
@@ -221,6 +210,18 @@
         [/#if]
 
         [#if deploymentSubsetRequired("s3", true)]
+
+            [#if policyStatements?has_content ]
+                [#assign bucketPolicyId = resources["bucketpolicy"].Id ]
+                [@createBucketPolicy
+                    mode=listMode
+                    id=bucketPolicyId
+                    bucket=s3Name
+                    statements=policyStatements
+                    dependencies=s3Id
+                /]
+            [/#if]
+
             [@createS3Bucket
                 mode=listMode
                 id=s3Id
@@ -244,6 +245,5 @@
                 dependencies=dependencies
             /]
         [/#if]
-
     [/#list]
 [/#if]
