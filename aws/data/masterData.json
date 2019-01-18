@@ -22,9 +22,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0cf78ae724f63bac0",
-          "EC2": "ami-06cd52961ce9f0d85",
-          "ECS": "ami-0edf19001c48838c7"
+          "NAT": "ami-00d29e4cb217ae06b",
+          "EC2": "ami-00a5245b4816c38e6",
+          "ECS": "ami-04b084b13eedc8061"
         }
       }
     },
@@ -50,9 +50,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-08cfa02141f9e9bee",
-          "EC2": "ami-0a10b2721688ce9d2",
-          "ECS": "ami-0b52e57bed048ca48"
+          "NAT": "ami-0d98591cbf9ef1ffd",
+          "EC2": "ami-00dc207f8ba6dc919",
+          "ECS": "ami-08733cca39f256fc0"
         }
       }
     },
@@ -78,9 +78,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0aba92643213491b9",
-          "EC2": "ami-0912f71e06545ad88",
-          "ECS": "ami-05f009513cd58ac90"
+          "NAT": "ami-00b3aa8a93dd09c13",
+          "EC2": "ami-0ad42f4f66f6c1cc9",
+          "ECS": "ami-0c6c683094db433fe"
         }
       }
     },
@@ -108,9 +108,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0cf24653bcf894797",
-          "EC2": "ami-08569b978cc4dfa10",
-          "ECS": "ami-08d4fe232c67b81b8"
+          "NAT": "ami-01514bb1776d5c018",
+          "EC2": "ami-05b3bcf7f311194b3",
+          "ECS": "ami-0b62a2301e9954559"
         }
       }
     },
@@ -142,9 +142,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-00c1445796bc0a29f",
-          "EC2": "ami-09b42976632b27e9b",
-          "ECS": "ami-08c26730c8ee004fa"
+          "NAT": "ami-062c04ec46aecd204",
+          "EC2": "ami-02fd0b06f06d93dfc",
+          "ECS": "ami-00f815702af6b8889"
         }
       }
     },
@@ -170,9 +170,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-b61b96d2",
-          "EC2": "ami-0b18956f",
-          "ECS": "ami-055750f063052ec55"
+          "NAT": "ami-0b32354309da5bba5",
+          "EC2": "ami-07423fb63ea0a0930",
+          "ECS": "ami-03c73af2712f26819"
         }
       }
     },
@@ -225,9 +225,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-06465d49ba60cf770",
-          "EC2": "ami-0233214e13e500f77",
-          "ECS": "ami-0b9fee3a2d0596ed1"
+          "NAT": "ami-06a5303d47fbd8c60",
+          "EC2": "ami-0cfbf4f6db41068ac",
+          "ECS": "ami-08f05e21d1b86879f"
         }
       }
     },
@@ -259,9 +259,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0ea87e2bfa81ca08a",
-          "EC2": "ami-047bb4163c506cd98",
-          "ECS": "ami-066826c6a40879d75"
+          "NAT": "ami-024107e3e3217a248",
+          "EC2": "ami-08935252a36e25f85",
+          "ECS": "ami-0de29b072b458b107"
         }
       }
     },
@@ -287,9 +287,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-e6768381",
-          "EC2": "ami-f976839e",
-          "ECS": "ami-0cb31bf24b130a0f9"
+          "NAT": "ami-0ca65a55561666293",
+          "EC2": "ami-01419b804382064e4",
+          "ECS": "ami-0e4266b1932fa97c8"
         }
       }
     },
@@ -315,9 +315,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0050bb60cea70c5b3",
-          "EC2": "ami-0ebc281c20e89ba4b",
-          "ECS": "ami-0a0948de946510ec0"
+          "NAT": "ami-0641e4dfc1427f114",
+          "EC2": "ami-0dd7e7ed60da8fb83",
+          "ECS": "ami-0ca148151641c602a"
         }
       }
     },
@@ -349,9 +349,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-09c013530239687aa",
-          "EC2": "ami-07b14488da8ea02a0",
-          "ECS": "ami-0ada25501ac1375b3"
+          "NAT": "ami-057f5d52ff7ae75ae",
+          "EC2": "ami-05145e0b28ad8e0b2",
+          "ECS": "ami-0d32ccfc47c154080"
         }
       }
     },
@@ -389,9 +389,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0422d936d535c63b1",
-          "EC2": "ami-0ff8a91507f77f867",
-          "ECS": "ami-07eb698ce660402d2"
+          "NAT": "ami-00a9d4a05375b2763",
+          "EC2": "ami-0080e4c5bc078760e",
+          "ECS": "ami-06bec82fb46167b4f"
         }
       }
     },
@@ -423,9 +423,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0f9c61b5a562a16af",
-          "EC2": "ami-0b59bfac6be064b78",
-          "ECS": "ami-0a0c6574ce16ce87a"
+          "NAT": "ami-00d1f8201864cc10c",
+          "EC2": "ami-0cd3dfa4e37921605",
+          "ECS": "ami-0b31574e5d83d5c42"
         }
       }
     },
@@ -478,9 +478,9 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-0d4027d2cdbca669d",
-          "EC2": "ami-0bdb828fd58c52235",
-          "ECS": "ami-04c22ba97a0c063c4"
+          "NAT": "ami-097ad469381034fa2",
+          "EC2": "ami-0ec6517f6edbf8044",
+          "ECS": "ami-03a86880c9c6880ac"
         }
       }
     },
@@ -512,9 +512,43 @@
       },
       "AMIs": {
         "Centos": {
-          "NAT": "ami-40d1f038",
-          "EC2": "ami-a0cfeed8",
-          "ECS": "ami-09568291a9d6c804c"
+          "NAT": "ami-0b840e8a1ce4cdf15",
+          "EC2": "ami-01e24be29428c15b2",
+          "ECS": "ami-0b2cc421c0d3015b4"
+        }
+      }
+    },
+    "eu-north-1": {
+      "Partition": "aws",
+      "Locality": "Stockholm",
+      "Zones": {
+        "a": {
+          "Title": "Zone A",
+          "Name": "a",
+          "Description": "Zone A",
+          "AWSZone": "eu-north-1a"
+        },
+        "b": {
+          "Title": "Zone B",
+          "Name": "b",
+          "Description": "Zone B",
+          "AWSZone": "eu-north-1b"
+        },
+        "c": {
+          "Title": "Zone C",
+          "Name": "c",
+          "Description": "Zone C",
+          "AWSZone": "eu-north-1c"
+        }
+      },
+      "Accounts": {
+        "ELB": "897822967062"
+      },
+      "AMIs": {
+        "Centos": {
+          "NAT": "ami-28d15f56",
+          "EC2": "ami-86fe70f8",
+          "ECS": "ami-01821d990572e458a"
         }
       }
     }
@@ -900,42 +934,44 @@
     },
     "gbl": {
       "Title": "Global Tier",
-      "Description" : "Components which are used for Global Services",
-      "Name" : "global",
-      "Network" : {
-        "Enabled" : false
+      "Description": "Components which are used for Global Services",
+      "Name": "global",
+      "Network": {
+        "Enabled": false
       },
       "Components": {
-        "cfredirect" : {
-          "Lambda" : {
-              "Instances" : {
-                "default" : {
-                  "Versions" : {
-                      "v1" : {
-                        "DeploymentUnits" : ["cfredirect-v1"],
-                        "Fragment" : "_cfredirect-v1"
-                    }
+        "cfredirect": {
+          "Lambda": {
+            "Instances": {
+              "default": {
+                "Versions": {
+                  "v1": {
+                    "DeploymentUnits": [
+                      "cfredirect-v1"
+                    ],
+                    "Fragment": "_cfredirect-v1"
                   }
                 }
-              },
-              "DeploymentType" : "EDGE",
-              "RunTime" : "nodejs6.10",
-              "MemorySize" : 128,
-              "Timeout" : 1,
-              "FixedCodeVersion" : {},
-              "Functions" : {
-                  "cfredirect" : {
-                      "Handler" : "index.handler",
-                      "VPCAccess" : false,
-                      "Permissions" : {
-                        "Decrypt" : false,
-                        "AsFile" : false,
-                        "AppData" : false,
-                        "AppPublic" : false
-                      },
-                      "PredefineLogGroup" : false
-                  }
               }
+            },
+            "DeploymentType": "EDGE",
+            "RunTime": "nodejs6.10",
+            "MemorySize": 128,
+            "Timeout": 1,
+            "FixedCodeVersion": {},
+            "Functions": {
+              "cfredirect": {
+                "Handler": "index.handler",
+                "VPCAccess": false,
+                "Permissions": {
+                  "Decrypt": false,
+                  "AsFile": false,
+                  "AppData": false,
+                  "AppPublic": false
+                },
+                "PredefineLogGroup": false
+              }
+            }
           }
         }
       }
@@ -1040,8 +1076,8 @@
     }
   },
   "Product": {
-    "cfredirect-v1" : {
-      "Region" : "us-east-1"
+    "cfredirect-v1": {
+      "Region": "us-east-1"
     },
     "Builds": {
       "Data": {
@@ -1779,19 +1815,19 @@
       "Pattern": "{ $.status = \"FAILURE\" }"
     }
   },
-  "DeploymentProfiles" : {
-    "_frontdoor" :{ 
-      "Modes" : {
-        "maintenance" : {
-          "lb" : {
+  "DeploymentProfiles": {
+    "_frontdoor": {
+      "Modes": {
+        "maintenance": {
+          "lb": {
             "PortMappings": {
               "httpsmaintenance": {
-                "Mapping" : "https",
+                "Mapping": "https",
                 "Priority": 50,
-                "Fixed" : {
-                    "Message" : "This application is currently undergoing scheduled maintenance. Please try again later.",
-                    "ContentType" : "text/plain",
-                    "StatusCode" : "503"
+                "Fixed": {
+                  "Message": "This application is currently undergoing scheduled maintenance. Please try again later.",
+                  "ContentType": "text/plain",
+                  "StatusCode": "503"
                 }
               }
             }
@@ -1799,15 +1835,20 @@
         }
       }
     },
-    "_hibernate" : {
-      "Modes" : {
-        "maintenance" : {
-          "ecs" : {
-            "Hibernate" : {
-              "Enabled" : true
+    "_hibernate": {
+      "Modes": {
+        "maintenance": {
+          "ecs": {
+            "Hibernate": {
+              "Enabled": true
             }
           },
-          "rds" : {
+          "rds": {
+            "Hibernate": {
+              "Enabled": true
+            }
+          },
+          "cache" : {
             "Hibernate" : {
               "Enabled" : true
             }
