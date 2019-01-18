@@ -513,7 +513,7 @@
                 fileName : {
                     "content" : { 
                         "Fn::Join" : [
-                            "",
+                            "\n",
                             file.content
                         ]
                     },
