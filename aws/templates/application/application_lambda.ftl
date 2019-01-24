@@ -300,7 +300,7 @@
                     [#assign targetParameters = {
                         "Arn" : getReference(fnId, ARN_ATTRIBUTE_TYPE),
                         "Id" : fnId,
-                        "Input" : getJSON(input?has_content?then(schedule.Input,{ "path" : schedule.InputPath }))
+                        "Input" : getJSON(schedule.Input?has_content?then(schedule.Input,{ "path" : schedule.InputPath }))
                     }]
 
                     [@createScheduleEventRule
