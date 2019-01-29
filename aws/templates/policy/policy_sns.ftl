@@ -46,13 +46,7 @@
     [#return 
         getPolicyStatement(
             "sns:Publish",
-            "*",
-            "",
-            {
-                "StringEquals":{
-                    "sns:Protocol" : "sms" 
-                }
-            }
+            "*"
         )
     ]
 [/#function]
