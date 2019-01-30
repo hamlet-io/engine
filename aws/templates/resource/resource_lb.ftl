@@ -10,6 +10,9 @@
         },
         DNS_ATTRIBUTE_TYPE : {
             "Attribute" : "DNSName"
+        },
+        NAME_ATTRIBUTE_TYPE : {
+            "Attribute" : "LoadBalancerFullName"
         }
     }
 ]
@@ -54,9 +57,41 @@
     {
         AWS_LB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
         AWS_ALB_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
+        AWS_LB_CLASSIC_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
+        AWS_LB_APPLICATION_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
+        AWS_LB_NETWORK_RESOURCE_TYPE : LB_OUTPUT_MAPPINGS,
         AWS_ALB_LISTENER_RESOURCE_TYPE : ALB_LISTENER_OUTPUT_MAPPINGS,
         AWS_ALB_LISTENER_RULE_RESOURCE_TYPE : ALB_LISTENER_RULE_OUTPUT_MAPPINGS,
         AWS_ALB_TARGET_GROUP_RESOURCE_TYPE : ALB_TARGET_GROUP_OUTPUT_MAPPINGS
+    }
+]
+
+[#assign metricAttributes +=
+    {
+        AWS_LB_CLASSIC_RESOURCE_TYPE : {
+            "Namespace" : "AWS/ELB",
+            "Dimensions" : {
+                "LoadBalancerName" : {
+                    "Output" : "" 
+                }
+            }
+        },
+        AWS_LB_APPLICATION_RESOURCE_TYPE : {
+            "Namespace" : "AWS/ApplicationELB",
+            "Dimensions" : {
+                "LoadBalancer" : {
+                    "Output" : NAME_ATTRIBUTE_TYPE
+                }
+            }
+        },
+        AWS_LB_NETWORK_RESOURCE_TYPE : {
+            "Namespace" : "AWS/NetworkELB",
+            "Dimensions" : {
+                "LoadBalancer" : {
+                    "Output" : NAME_ATTRIBUTE_TYPE
+                }
+            }
+        }
     }
 ]
 
@@ -397,7 +432,12 @@
                 name,
                 tier,
                 component)
-        outputs=LB_OUTPUT_MAPPINGS
+        outputs=LB_OUTPUT_MAPPINGS + 
+                    {
+                        NAME_ATTRIBUTE_TYPE : {
+                            "UseRef" : true
+                        }
+                    }
         dependencies=dependencies
     /]
 [/#macro]

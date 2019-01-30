@@ -4,6 +4,10 @@
 [#assign AWS_LB_RESOURCE_TYPE = "lb" ]
 [#assign AWS_ALB_RESOURCE_TYPE = "alb" ]
 
+[#assign AWS_LB_CLASSIC_RESOURCE_TYPE = "lbClassic" ]
+[#assign AWS_LB_APPLICATION_RESOURCE_TYPE = "lbApplication" ]
+[#assign AWS_LB_NETWORK_RESOURCE_TYPE = "lbNetwork" ]
+
 [#assign AWS_ALB_LISTENER_RESOURCE_TYPE = "listener" ]
 [#assign AWS_ALB_LISTENER_RULE_RESOURCE_TYPE = "listenerRule" ]
 [#assign AWS_ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
@@ -68,6 +72,11 @@
                     "Names" : "HealthCheckPort",
                     "Type" : STRING_TYPE,
                     "Default" : ""
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
                 }
             ],
             "Components" : [
@@ -230,12 +239,30 @@
 
 [#function getLBState occurrence]
     [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution ]
 
     [#if getExistingReference(formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) )?has_content ]
         [#local id = formatResourceId(AWS_ALB_RESOURCE_TYPE, core.Id) ]
     [#else]
         [#local id = formatResourceId(AWS_LB_RESOURCE_TYPE, core.Id) ]
     [/#if]
+
+    [#switch solution.Engine ]
+        [#case "application" ]
+            [#assign resourceType = AWS_LB_APPLICATION_RESOURCE_TYPE ]
+            [#break]
+        
+        [#case "network" ]
+            [#assign resourceType = AWS_LB_NETWORK_RESOURCE_TYPE ]
+            [#break]
+        
+        [#case "classic" ]
+            [#assign resourceType = AWS_LB_CLASSIC_RESOURCE_TYPE ]
+            [#break]
+        
+        [#default]
+            [#assign resourceType = "COTException: Unkown LB Engine" ]
+    [/#switch]
 
     [#return
         {
@@ -244,7 +271,8 @@
                     "Id" : id,
                     "Name" : core.FullName,
                     "ShortName" : core.ShortFullName,
-                    "Type" : AWS_LB_RESOURCE_TYPE
+                    "Type" : resourceType,
+                    "Monitored" : true
                 }
             },
             "Attributes" : {
