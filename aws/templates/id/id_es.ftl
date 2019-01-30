@@ -77,6 +77,11 @@
                 {
                     "Names" : "Profiles",
                     "Children" : profileChildConfiguration
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
                 }
             ]
         }
@@ -95,7 +100,8 @@
                 "es" : { 
                     "Id" : esId,
                     "Name" : core.Name,
-                    "Type" : AWS_ES_RESOURCE_TYPE
+                    "Type" : AWS_ES_RESOURCE_TYPE,
+                    "Monitored" : true
                 },
                 "servicerole" : {
                     "Id" : formatDependentRoleId(esId),

@@ -204,6 +204,42 @@
         [#-- "DomainName" : "${productName}-${segmentId}-${tierId}-${componentId}", --]
         [#if deploymentSubsetRequired("es", true)]
 
+            [#list solution.Alerts?values as alert ]
+
+                [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#list monitoredResources as name,monitoredResource ]
+
+                    [@cfDebug listMode monitoredResource false /]
+
+                    [#switch alert.Comparison ]
+                        [#case "Threshold" ]
+                            [@createCountAlarm
+                                mode=listMode
+                                id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                                severity=alert.Severity
+                                resourceName=monitoredResource.Name!core.ShortFullName
+                                alertName=alert.Name
+                                actions=[
+                                    getReference(formatSegmentSNSTopicId())
+                                ]
+                                metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                                namespace=getResourceMetricNamespace(monitoredResource.Type)
+                                description=alert.Description!alert.Name
+                                threshold=alert.Threshold
+                                statistic=alert.Statistic
+                                evaluationPeriods=alert.Periods
+                                period=alert.Time
+                                operator=alert.Operator
+                                reportOK=alert.ReportOk
+                                missingData=alert.MissingData
+                                dimensions=getResourceMetricDimensions(monitoredResource, resources)
+                                dependencies=monitoredResource.Id
+                            /]
+                        [#break]
+                    [/#switch]
+                [/#list]
+            [/#list]
+
             [@cfResource
                 mode=listMode
                 id=esId
