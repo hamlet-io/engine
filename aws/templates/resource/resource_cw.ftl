@@ -250,7 +250,10 @@
     /]
 [/#macro]
 
-[#macro createCountAlarm mode id name
+[#macro createCountAlarm mode id 
+            severity
+            resourceName
+            alertName
             actions
             metric
             namespace
@@ -273,7 +276,7 @@
                 "ActionsEnabled" : true,
                 "AlarmActions" : actions,
                 "AlarmDescription" : description?has_content?then(description,name),
-                "AlarmName" : name,
+                "AlarmName" : severity?upper_case + "-" + resourceName + "-" + alertName,
                 "ComparisonOperator" : operator,
                 "EvaluationPeriods" : evaluationPeriods,
                 "MetricName" : metric,

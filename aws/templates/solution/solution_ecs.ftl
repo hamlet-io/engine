@@ -211,7 +211,9 @@
                             [@createCountAlarm
                                 mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
-                                name=alert.Severity?upper_case + "-" + monitoredResource.Name!core.ShortFullName + "-" + alert.Name
+                                severity=alert.Severity
+                                resourceName=monitoredResource.Name!core.ShortFullName
+                                alertName=alert.Name
                                 actions=[
                                     getReference(formatSegmentSNSTopicId())
                                 ]
@@ -233,9 +235,13 @@
                 [/#list]
             [/#list]
 
-            [#assign maxSize = processorProfile.MaxPerZone]
-            [#if multiAZ]
-                [#assign maxSize = maxSize * zones?size]
+            [#if processorProfile.MaxCount?has_content]
+                [#assign maxSize = processorProfile.MaxCount ]
+            [#else]
+                [#assign maxSize = processorProfile.MaxPerZone]
+                [#if multiAZ]
+                    [#assign maxSize = maxSize * zones?size]
+                [/#if]
             [/#if]
 
             [@createECSCluster
