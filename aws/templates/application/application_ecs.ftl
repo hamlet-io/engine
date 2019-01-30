@@ -5,14 +5,14 @@
 
         [@cfDebug listMode occurrence false /]
 
-        [#assign resources = occurrence.State.Resources]
-        [#assign solution = occurrence.Configuration.Solution ]
+        [#assign parentResources = occurrence.State.Resources]
+        [#assign parentSolution = occurrence.Configuration.Solution ]
 
-        [#assign ecsId = resources["cluster"].Id!"" ]
-        [#assign ecsSecurityGroupId = resources["securityGroup"].Id!"" ]
-        [#assign ecsServiceRoleId = resources["serviceRole"].Id!"" ]
+        [#assign ecsId = parentResources["cluster"].Id!"" ]
+        [#assign ecsSecurityGroupId = parentResources["securityGroup"].Id!"" ]
+        [#assign ecsServiceRoleId = parentResources["serviceRole"].Id!"" ]
 
-        [#assign hibernate = solution.Hibernate.Enabled &&
+        [#assign hibernate = parentSolution.Hibernate.Enabled &&
                                 getExistingReference(ecsId)?has_content ]
 
         [#list requiredOccurrences(
@@ -430,7 +430,9 @@
                                 [@createCountAlarm
                                     mode=listMode
                                     id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
-                                    name=alert.Severity?upper_case + "-" + monitoredResource.Name!core.ShortFullName + "-" + alert.Name
+                                    severity=alert.Severity
+                                    resourceName=monitoredResource.Name!core.ShortFullName
+                                    alertName=alert.Name
                                     actions=[
                                         getReference(formatSegmentSNSTopicId())
                                     ]
@@ -444,7 +446,7 @@
                                     operator=alert.Operator
                                     reportOK=alert.ReportOk
                                     missingData=alert.MissingData
-                                    dimensions=getResourceMetricDimensions(monitoredResource, resources)
+                                    dimensions=getResourceMetricDimensions(monitoredResource, ( resources + { "cluster" : parentResources["cluster"] } ) )
                                     dependencies=monitoredResource.Id
                                 /]
                             [#break]
