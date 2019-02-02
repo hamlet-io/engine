@@ -1,7 +1,10 @@
 [#-- VPC --]
 
 [#-- Resources --]
+[#assign AWS_VPC_RESOURCE_TYPE = "vpc" ]
+[#assign AWS_VPC_FLOWLOG_RESOURCE_TYPE = "vpcflowlogs" ]
 [#assign AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE = "routeTable" ]
+[#assign AWS_VPC_SUBNET_TYPE = "subnet"]
 [#assign AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE = "securityGroup" ]
 [#assign AWS_VPC_SECURITY_GROUP_INGRESS_RESOURCE_TYPE = "securityGroupIngress" ]
 
@@ -78,8 +81,8 @@
 [#function formatVPCId]
     [#return
         migrateToResourceId(
-            formatSegmentResourceId("vpc"),
-            formatSegmentResourceId("vpc", "vpc")
+            formatSegmentResourceId(AWS_VPC_RESOURCE_TYPE),
+            formatSegmentResourceId(AWS_VPC_RESOURCE_TYPE, AWS_VPC_RESOURCE_TYPE)
         )]
 [/#function]
 
@@ -93,8 +96,8 @@
 
 [#function formatVPCFlowLogsId extensions...]
     [#return formatDependentResourceId(
-        "vpcflowlogs",
-        formatSegmentResourceId("vpc"),
+        AWS_VPC_FLOWLOG_RESOURCE_TYPE,
+        formatSegmentResourceId(AWS_VPC_RESOURCE_TYPE),
         extensions)]
 [/#function]
 
@@ -102,9 +105,9 @@
 [#function formatVPCTemplateId]
     [#return
         getExistingReference(
-            formatSegmentResourceId("vpc", "vpc"))?has_content?then(
-                "vpc",
-                formatSegmentResourceId("vpc")
+            formatSegmentResourceId(AWS_VPC_RESOURCE_TYPE, AWS_VPC_RESOURCE_TYPE))?has_content?then(
+                AWS_VPC_RESOURCE_TYPE,
+                formatSegmentResourceId(AWS_VPC_RESOURCE_TYPE)
             )]
 [/#function]
 
@@ -119,7 +122,7 @@
 
 [#function formatSubnetId tier zone]
     [#return formatZoneResourceId(
-            "subnet",
+            AWS_VPC_SUBNET_TYPE,
             tier,
             zone)]
 [/#function]

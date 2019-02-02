@@ -18,7 +18,7 @@
     [#assign flowLogsRoleId = formatDependentRoleId(vpcId) ]
     [#assign flowLogsAllId = formatVPCFlowLogsId("all") ]
     [#assign flowLogsAllLogGroupId = formatDependentLogGroupId(vpcId, "all") ]
-    [#assign flowLogsAllLogGroupName = formatSegmentLogGroupName("vpcflowlogs", "all") ]
+    [#assign flowLogsAllLogGroupName = formatSegmentLogGroupName(AWS_VPC_FLOWLOG_RESOURCE_TYPE, "all") ]
 
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
@@ -30,7 +30,7 @@
                 [
                     getPolicyDocument(
                         cwLogsProducePermission(),
-                        formatName("vpcflowlogs"))
+                        formatName(AWS_VPC_FLOWLOG_RESOURCE_TYPE))
                 ]
         /]
     [/#if]
@@ -233,6 +233,9 @@
     [/#if]
 
 [/#if]
+
+
+
 
 [#-- NAT --]
 
