@@ -5,8 +5,9 @@
 
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp" ]
     [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock" ]
+    [#assign jenkinsAgentImage = settings["DOCKER_AGENT_IMAGE"]!"gen3-jenkins-agent"]
 
-    [@Attributes image="gen3-jenkins-agent" /]
+    [@Attributes image=jenkinsAgentImage /]
     
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]
