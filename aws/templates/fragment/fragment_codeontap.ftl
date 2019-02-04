@@ -6,7 +6,7 @@
     [#assign dockerStageDir = settings["DOCKER_STAGE_DIR"]!"/tmp" ]
     [#assign dockerHostDaemon = settings["DOCKER_HOST_DAEMON"]!"/var/run/docker.sock" ]
 
-    [@Attributes image="gen3-jenkins-slave" /]
+    [@Attributes image="gen3-jenkins-agent" /]
     
     [@DefaultLinkVariables enabled=false /]
     [@DefaultCoreVariables enabled=false /]
