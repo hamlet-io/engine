@@ -19,7 +19,10 @@
                 "-Xmx${maxMemory}M",
                 "-Xms${intialHeapSize}M",
                 "-Dhudson.slaves.ChannelPinger.pingIntervalSeconds=${pingInterval}",
-                "-Dhudson.slaves.ChannelPinger.pingTimeoutSeconds=${pingTimeout}"
+                "-Dhudson.slaves.ChannelPinger.pingTimeoutSeconds=${pingTimeout}",
+                "-Dhudson.slaves.NodeProvisioner.initialDelay=0",
+                "-Dhudson.slaves.NodeProvisioner.MARGIN=50",
+                "-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85"
     ]]
 
     [#assign javaExtraOpts = (settings["JAVA_EXTRA_OPTS"]!"")?split(" ")]
