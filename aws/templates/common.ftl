@@ -928,6 +928,26 @@ behaviour.
                 [#local result = getBastionState(occurrence)]
                 [#break]
 
+            [#case NETWORK_COMPONENT_TYPE ]
+                [#local result = getNetworkState(occurrence)]
+                [#break]
+            
+            [#case NETWORK_ROUTE_TABLE_COMPONENT_TYPE ]
+                [#local result = getNetworkRouteTableState(occurrence )]
+                [#break]
+
+            [#case NETWORK_ACL_COMPONENT_TYPE ]
+                [#local result = getNetworkACLState(occurrence)]
+                [#break]
+
+            [#case NETWORK_GATEWAY_COMPONENT_TYPE ]
+                [#local result = getNetworkGatewayState(occurrence)]
+                [#break]
+
+            [#case NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE ]
+                [#local result = getNetworkGatewayDestinationState(occurrence, parentOccurrence)]
+                [#break]
+
             [#case "external"]
                 [#local result +=
                     {

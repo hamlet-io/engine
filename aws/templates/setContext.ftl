@@ -62,6 +62,14 @@
             "Type" : STRING_TYPE
         },
         {
+            "Names" : [ "RouteTable" ],
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : [ "NetworkACL" ],
+            "Type" : STRING_TYPE
+        }
+        {
             "Names" : "Instance",
             "Type" : STRING_TYPE
         },
@@ -424,8 +432,6 @@
 [#assign regions = blueprintObject.Regions]
 [#assign environments = blueprintObject.Environments]
 [#assign categories = blueprintObject.Categories]
-[#assign routeTables = blueprintObject.RouteTables]
-[#assign networkACLs = blueprintObject.NetworkACLs]
 [#assign storage = blueprintObject.Storage]
 [#assign processors = blueprintObject.Processors]
 [#assign ports = blueprintObject.Ports]
@@ -573,20 +579,13 @@
 
     [#assign vpc = getExistingReference(formatVPCId())]
     [#assign network = segmentObject.Network!segmentObject ]
-    [#assign baseAddress = network.CIDR.Address?split(".")]
-    [#assign addressOffset = baseAddress[2]?number*256 + baseAddress[3]?number]
-    [#assign addressesPerTier = powersOf2[getPowerOf2(powersOf2[32 - network.CIDR.Mask]/(network.Tiers.Order?size))]]
-    [#assign addressesPerZone = powersOf2[getPowerOf2(addressesPerTier / (network.Zones.Order?size))]]
-    [#assign subnetMask = 32 - powersOf2?seq_index_of(addressesPerZone)]
-    [#assign dnsSupport = network.DNSSupport]
-    [#assign dnsHostnames = network.DNSHostnames]
-
-    [#assign rotateKeys = (segmentObject.RotateKeys)!true]
 
     [#assign internetAccess = network.InternetAccess]
 
     [#assign natEnabled = internetAccess && ((segmentObject.NAT.Enabled)!true)]
     [#assign natHosted = (segmentObject.NAT.Hosted)!false]
+
+    [#assign rotateKeys = (segmentObject.RotateKeys)!true]
 
     [#assign sshEnabled = internetAccess &&
                             ((segmentObject.SSH.Enabled)!(segmentObject.Bastion.Enabled)!true)]
@@ -649,10 +648,9 @@
     [/#if]
     [#assign tierNetwork =
         {
-            "Enabled" : false,
-            "RouteTable" : "internal",
-            "NetworkACL" : "open"
+            "Enabled" : false
         } ]
+
     [#if blueprintTier.Components?has_content || ((blueprintTier.Required)!false)]
         [#if (blueprintTier.Network.Enabled)!false ]
             [#list segmentObject.Network.Tiers.Order![] as networkTier]
@@ -660,9 +658,7 @@
                     [#assign tierNetwork =
                         blueprintTier.Network +
                         {
-                            "Index" : networkTier?index,
-                            "RouteTable" : internetAccess?then(blueprintTier.Network.RouteTable!"internal", "internal"),
-                            "NetworkACL" : blueprintTier.Network.NetworkACL!"open"
+                            "Index" : networkTier?index
                         } ]
                     [#break]
                 [/#if]
@@ -761,7 +757,7 @@
 [#assign ipAddressGroups =
     getEffectiveIPAddressGroups(blueprintObject.IPAddressGroups!{} ) ]
 
-[#function getIPAddressGroup group]
+[#function getIPAddressGroup group occurrence={}]
     [#local groupId = group?is_hash?then(group.Id, group) ]
     [#switch groupId]
         [#case "_global"]
@@ -801,13 +797,27 @@
         [#case "_localnet"]
         [#case "_localnet_"]
         [#case "__localnet__"]
-            [#return
-            {
-                "Id" : groupId,
-                "Name" : groupId,
-                "IsOpen" : false,
-                "CIDR" : [ segmentObject.Network.CIDR.Address + "/" + segmentObject.Network.CIDR.Mask ]
-            } ]
+
+            [#if occurrence?has_content ]
+                [#local occurrenceTier = getTier(occurrence.Core.Tier.Id) ]
+                [#local network = getLinkTarget(occurrence, occurrenceTier.Network.Link ) ]
+                [#local networkCIDR = network.State.Resources["vpc"].Address]
+
+                [#return
+                {
+                    "Id" : groupId,
+                    "Name" : groupId,
+                    "IsOpen" : false,
+                    "CIDR" : [ networkCIDR ]
+                } ]
+            [#else]
+                [@cfException 
+                    mode=listMode
+                    description="Local network details required"
+                    context=group
+                    detail="To use the localnet IP Address group please provide the occurrence of the item using it"
+                /]
+            [/#if]
             [#break]
 
         [#default]
@@ -830,10 +840,10 @@
     [/#switch]
 [/#function]
 
-[#function getGroupCIDRs groups checkIsOpen=true]
+[#function getGroupCIDRs groups checkIsOpen=true occurrence={}]
     [#local cidrs = [] ]
     [#list asFlattenedArray(groups) as group]
-        [#local nextGroup = getIPAddressGroup(group) ]
+        [#local nextGroup = getIPAddressGroup(group, occurrence) ]
         [#if checkIsOpen && nextGroup.IsOpen!false]
             [#return ["0.0.0.0/0"] ]
         [/#if]

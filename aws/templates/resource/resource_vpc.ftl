@@ -413,15 +413,32 @@
             id,
             networkACLId,
             outbound,
-            rule]
-    [#switch rule.Protocol]
+            rule,
+            port]
+    
+    [#local protocol = port.IPProtocol]
+
+    [#local fromPort = (port.PortRange.From)?has_content?then(
+                            port.PortRange.From,
+                            (port.Port)?has_content?then(
+                                port.Port,
+                                0
+                            ))]
+
+    [#local toPort = (port.PortRange.To)?has_content?then(
+                            port.PortRange.To,
+                            (port.Port)?has_content?then(
+                                port.Port,
+                                0
+                            ))]
+    [#switch port.IPProtocol]
         [#case "all"]
             [#local properties =
                 {
                     "Protocol" : "-1",
                     "PortRange" : {
-                        "From" : (rule.PortRange.From)!0,
-                        "To" : (rule.PortRange.To)!65535
+                        "From" : fromPort,
+                        "To" : toPort
                     }
                 }
             ]
@@ -431,8 +448,8 @@
                 {
                     "Protocol" : "1",
                     "Icmp" : {
-                        "Code" : (rule.ICMP.Code)!-1,
-                        "Type" : (rule.ICMP.Type)!-1
+                        "Code" : (port.ICMP.Code)!-1,
+                        "Type" : (port.ICMP.Type)!-1
                     }
                 }
             ]
@@ -442,8 +459,8 @@
                 {
                     "Protocol" : "17",
                     "PortRange" : {
-                        "From" : (rule.PortRange.From)!0,
-                        "To" : (rule.PortRange.To)!65535
+                        "From" : fromPort,
+                        "To" : toPort
                     }
                 }
             ]
@@ -453,8 +470,8 @@
                 {
                     "Protocol" : "6",
                     "PortRange" : {
-                        "From" : (rule.PortRange.From)!0,
-                        "To" : (rule.PortRange.To)!65535
+                        "From" : fromPort,
+                        "To" : toPort
                     }
                 }
             ]

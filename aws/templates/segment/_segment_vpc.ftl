@@ -15,64 +15,10 @@
     [#assign topicId = formatSegmentSNSTopicId() ]
     [#assign dashboardId = formatSegmentCWDashboardId() ]
 
-    [#assign flowLogsRoleId = formatDependentRoleId(vpcId) ]
-    [#assign flowLogsAllId = formatVPCFlowLogsId("all") ]
-    [#assign flowLogsAllLogGroupId = formatDependentLogGroupId(vpcId, "all") ]
-    [#assign flowLogsAllLogGroupName = formatSegmentLogGroupName(AWS_VPC_FLOWLOG_RESOURCE_TYPE, "all") ]
-
-    [#if deploymentSubsetRequired("iam", true) &&
-            isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
-        [@createRole
-            mode=listMode
-            id=flowLogsRoleId
-            trustedServices=["vpc-flow-logs.amazonaws.com"]
-            policies=
-                [
-                    getPolicyDocument(
-                        cwLogsProducePermission(),
-                        formatName(AWS_VPC_FLOWLOG_RESOURCE_TYPE))
-                ]
-        /]
-    [/#if]
-
-    [#if deploymentSubsetRequired("lg", true) &&
-            isPartOfCurrentDeploymentUnit(flowLogsAllLogGroupId)]
-        [@createVPCLogGroup
-            mode=listMode
-            id=flowLogsAllLogGroupId
-            name=flowLogsAllLogGroupName
-            retention=((segmentObject.Operations.FlowLogs.Expiration) !
-                        (segmentObject.Operations.Expiration) !
-                        (environmentObject.Operations.FlowLogs.Expiration) !
-                        (environmentObject.Operations.Expiration) ! 7)
-        /]
-    [/#if]
-
-    [#if deploymentSubsetRequired("vpc", true)]
-        [#if (segmentObject.Operations.FlowLogs.Enabled)!
-                (environmentObject.Operations.FlowLogs.Enabled)! false]
-            [@createVPCFlowLog
-                mode=listMode
-                id=flowLogsAllId
-                vpcId=vpcId
-                roleId=flowLogsRoleId
-                logGroupName=flowLogsAllLogGroupName
-                trafficType="ALL"
-            /]
-        [/#if]
 
         [@createSegmentSNSTopic
             mode=listMode
             id=topicId
-        /]
-
-        [@createVPC
-            mode=listMode
-            id=vpcId
-            name=formatVPCName()
-            cidr=segmentObject.Network.CIDR.Address + "/" + segmentObject.Network.CIDR.Mask
-            dnsSupport=dnsSupport
-            dnsHostnames=dnsHostnames
         /]
 
         [#if internetAccess]
@@ -83,7 +29,7 @@
             /]
             [@createIGWAttachment
                 mode=listMode
-                id=formatId("igw","attachment")
+                id=formatId(AWS_VPC_IGW_RESOURCE_TYPE,"attachment")
                 vpcId=vpcId
                 igwId=igwId
             /]
