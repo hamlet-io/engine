@@ -2365,7 +2365,13 @@ behaviour.
                             "Name" : name,
                             "Value" : getReference(otherResource.Id, value.Property)
                         }]]   
-                        [#break]                
+                        [#break]      
+                    [#case "PseudoOutput" ]
+                        [#local occurrenceDimensions += [{
+                            "Name" : name,
+                            "Value" : { "Ref" : value }
+                        }]]
+                        [#break]          
                 [/#switch]
             [/#list]
         [/#list]

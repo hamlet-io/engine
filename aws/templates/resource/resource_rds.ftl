@@ -22,6 +22,19 @@
     }
 ]
 
+[#assign metricAttributes +=
+    {
+        AWS_RDS_RESOURCE_TYPE : {
+            "Namespace" : "AWS/RDS",
+            "Dimensions" : {
+                "DBInstanceIdentifier" : {
+                    "Output" : "" 
+                }
+            }
+        }
+    }
+]
+
 [#macro createRDSInstance mode id name 
     engine
     engineVersion

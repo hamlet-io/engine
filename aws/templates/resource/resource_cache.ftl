@@ -32,3 +32,16 @@
     }
 ]
 
+[#assign metricAttributes +=
+    {
+        AWS_CACHE_RESOURCE_TYPE : {
+            "Namespace" : "AWS/ElastiCache",
+            "Dimensions" : {
+                "CacheClusterId" : {
+                    "Output" : "" 
+                }
+            }
+        }
+    }
+]
+

@@ -68,6 +68,11 @@
                             "Default" : "replace"
                         }
                     ]
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
                 }
             ]
         }
@@ -84,7 +89,8 @@
                 "cache" : {
                     "Id" : id,
                     "Name" : core.FullName,
-                    "Type" : AWS_CACHE_RESOURCE_TYPE
+                    "Type" : AWS_CACHE_RESOURCE_TYPE,
+                    "Monitored" : true
                 },
                 "subnetGroup" : {
                     "Id" : formatResourceId(AWS_CACHE_SUBNET_GROUP_RESOURCE_TYPE, core.Id),

@@ -49,15 +49,21 @@
             "Namespace" : "AWS/ECS",
             "Dimensions" : {
                 "ClusterName" : {
-                    "Output" : "ref" 
+                    "Output" : REFERENCE_ATTRIBUTE_TYPE 
                 }
             }
         },
         AWS_ECS_SERVICE_RESOURCE_TYPE : {
             "Namespace" : "AWS/ECS",
             "Dimensions" : {
+                "ClusterName" : {
+                    "OtherOutput" : {
+                        "Id" : "cluster",
+                        "Property" : ""
+                    } 
+                },
                 "ServiceName" : {
-                    "Output" : "name"
+                    "Output" : NAME_ATTRIBUTE_TYPE
                 }
             }
         }

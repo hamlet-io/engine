@@ -143,6 +143,11 @@
                             "Default" : "restore"
                         }
                     ]
+                },
+                {
+                    "Names" : "Alerts",
+                    "Subobjects" : true,
+                    "Children" : alertChildrenConfiguration
                 }
             ]
     }
@@ -180,7 +185,8 @@
                 "db" : {
                     "Id" : id,
                     "Name" : core.FullName,
-                    "Type" : AWS_RDS_RESOURCE_TYPE
+                    "Type" : AWS_RDS_RESOURCE_TYPE,
+                    "Monitored" : true
                 },
                 "subnetGroup" : {
                     "Id" : formatResourceId(AWS_RDS_SUBNET_GROUP_RESOURCE_TYPE, core.Id),
