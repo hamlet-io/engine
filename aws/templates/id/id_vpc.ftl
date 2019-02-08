@@ -2,6 +2,7 @@
 
 [#-- Resources --]
 [#assign AWS_VPC_RESOURCE_TYPE = "vpc" ]
+[#assign AWS_VPC_SUBNET_RESOURCE_TYPE = "subnet" ]
 [#assign AWS_VPC_FLOWLOG_RESOURCE_TYPE = "vpcflowlogs" ]
 
 [#assign AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE = "routeTable" ]

@@ -159,6 +159,8 @@
             [#assign solution = subOccurrence.Configuration.Solution ]
             [#assign resources = subOccurrence.State.Resources ]
 
+            [@cfDebug listMode subOccurrence false /]
+
             [#if core.Type == NETWORK_ROUTE_TABLE_COMPONENT_TYPE]
 
                 [#assign zoneRouteTables = resources["routeTables"] ]

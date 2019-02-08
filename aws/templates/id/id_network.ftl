@@ -284,19 +284,17 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local legacyVpc = false]
-    [#local legacyVpcId = formatVPCTemplateId() ]
 
-    [#if getExistingReference(legacyVpcId)?has_content ]
+    [#if getExistingReference(formatVPCTemplateId())?has_content ]
         [#local vpcId = formatVPCTemplateId() ]
         [#local legacyVpc = true ]
     [#else]
         [#local vpcId = formatResourceId(AWS_VPC_RESOURCE_TYPE, core.Id)]
     [/#if]
     
-
     [#assign vpcFlowLogEnabled = environmentObject.Operations.FlowLogs.Enabled!
-                                segmentObject.Operations.FlowLogs.Enabled!
-                                solution.Logging.EnableFlowLogs ]
+                                    segmentObject.Operations.FlowLogs.Enabled!
+                                    solution.Logging.EnableFlowLogs ]
 
     [#assign networkCIDR = (network.CIDR)?has_content?then(
                     network.CIDR.Address + "/" + network.CIDR.Mask,
@@ -312,6 +310,13 @@
     [#assign addressesPerZone = powersOf2[getPowerOf2(addressesPerTier / (network.Zones.Order?size))]]
     [#assign subnetMask = 32 - powersOf2?seq_index_of(addressesPerZone)]
 
+    [#assign flowLogLgName = legacyVpc?then(
+                                formatSegmentLogGroupName(AWS_VPC_FLOWLOG_RESOURCE_TYPE, "all")
+                                formatAbsolutePath(core.FullAbsolutePath, "all" ) )]
+    [#assign flowLogId = legacyVpc?then(
+                                formatVPCFlowLogsId("all"),
+                                formatDependentResourceId(AWS_VPC_FLOWLOG_RESOURCE_TYPE, vpcId, "all" ))]
+
     [#local subnets = {} ]
     [#-- Define subnets --]
     [#list segmentObject.Network.Tiers.Order as tierId]
@@ -321,7 +326,14 @@
         [/#if]
 
         [#list zones as zone]
-            [#assign subnetId = formatSubnetId(networkTier, zone)]
+            [#assign subnetId = legacyVpc?then(
+                                    formatSubnetId(networkTier, zone),
+                                    formatResourceId(AWS_VPC_SUBNET_RESOURCE_TYPE, core.Id, networkTiers.Id, zone.Id))]
+            
+            [#assign subnetName = legacyVpc?then(
+                                    formatSubnetName(networkTier, zone),
+                                    formatName(core.FullNane, networkTier.Name, zone.Name ) )]
+
             [#assign subnetAddress = addressOffset + (networkTier.Network.Index * addressesPerTier) + (zone.Index * addressesPerZone) ]
             [#assign subnetCIDR = baseAddress[0] + "." + baseAddress[1] + "." + (subnetAddress/256)?int + "." + subnetAddress%256 + "/" + subnetMask]
 
@@ -330,7 +342,7 @@
                     zone.Id : {
                         "subnet" : {
                             "Id" : subnetId,
-                            "Name" : formatSubnetName(networkTier, zone),
+                            "Name" : subnetName,
                             "Address" : subnetCIDR,
                             "Type" : AWS_VPC_SUBNET_TYPE
                         },
@@ -367,11 +379,11 @@
                     },
                     "flowLogLg" : {
                         "Id" : formatDependentLogGroupId(vpcId, "all"),
-                        "Name" : formatSegmentLogGroupName(AWS_VPC_FLOWLOG_RESOURCE_TYPE, "all"),
+                        "Name" : flowLogLgName,
                         "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
                     },
                     "flowLog" : {
-                        "Id" : formatVPCFlowLogsId("all"),
+                        "Id" : flowLogId,
                         "Type" : AWS_VPC_FLOWLOG_RESOURCE_TYPE
                     }
                 }},
@@ -393,7 +405,16 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#if solution.PerAZ ]
+    [#if getExistingReference(formatVPCTemplateId())?has_content ]
+        [#local legacyVpc = true ]
+        [#local routeTableId = formatRouteTableId(core.SubComponent.Id)]
+        [#local routeTableName = formatRouteTableName(core.SubComponent.Name)]
+    [#else]
+        [#local routeTableId = formatResourceId(AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE, core.Id)]
+        [#local routeTableName = core.FullName ]
+    [/#if]
+
+    [#if solution.PerAZ && solnMultiAZ ]
         [#local routeTableZones = zones ]
     [#else]
         [#local routeTableZones = [
@@ -405,11 +426,18 @@
 
     [#local zoneResources = {}]
     [#list routeTableZones as zone]
+        [#local routeTableId = legacyVpc?then(
+                                    formatId(routeTableId,(solution.PerAZ)?string(zone.Id,"")),
+                                    formatId(routeTableId, zone.Id) )]
+
+        [#local routeTableName = legacyVpc?then(
+                                    formatName(routeTableName,(solution.PerAZ)?string(zone.Id,"")),
+                                    formatName(routeTableName, zone.Id) )]
         [#local zoneResources += {
             zone.Id : {
                 "routeTable" : {
-                    "Id" : formatRouteTableId(core.Id,(solution.PerAZ)?string(zone.Id,"")),
-                    "Name" : formatRouteTableName(core.Id,(solution.PerAZ)?string(zone.Id,"")),
+                    "Id" : routeTableId,
+                    "Name" : routeTableName,
                     "Type" : AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE
                 }
             }
@@ -435,8 +463,17 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local networkACLId = formatNetworkACLId(core.Id) ]
+    [#local legacyVpc = false]
 
+    [#if getExistingReference(formatVPCTemplateId())?has_content ]
+        [#local legacyVpc = true ]
+        [#local networkACLId = formatNetworkACLId(core.SubComponent.Id) ]
+        [#local networkACLName = formatNetworkACLName(core.SubComponent.Name)]
+    [#else]
+        [#local networkACLId = formatNetworkACLId(core.Id) ]
+        [#local networkACLName = formatNetworkACLName(core.Name)]
+    [/#if]
+    
     [#local networkACLRules = {}]
     [#list solution.Rules as id, rule]
         [#local networkACLRules += {
@@ -454,8 +491,8 @@
         {
             "Resources" : { 
                 "networkACL" : {
-                    "Id" : formatNetworkACLId(core.Id),
-                    "Name" : formatNetworkACLName(core.Name),
+                    "Id" : networkACLId,
+                    "Name" : networkACLName,
                     "Type" : AWS_VPC_NETWORK_ACL_RESOURCE_TYPE
                 },
                 "rules" : networkACLRules
