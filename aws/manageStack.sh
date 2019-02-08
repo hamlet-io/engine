@@ -481,7 +481,7 @@ function main() {
 
   options "$@" || return $?
 
-  pushTempDir "manage_stack_XXXX"
+  pushTempDir "manage_stack_XXXXXX"
   tmp_dir="$(getTopTempDir)"
   tmpdir="${tmp_dir}"
   potential_change_file="${tmp_dir}/potential_changes"

@@ -8,7 +8,7 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh' EXIT SIGHUP SIGINT SIGTERM
 REFERENCE_OUTPUT_DIR_DEFAULT="${GENERATION_BASE_DIR}/dist/reference/"
 
 # Create a dir for some temporary files
-dockerstagedir="$(getTempDir "cota_docker_XXXX" "${DOCKER_STAGE_DIR}")"
+dockerstagedir="$(getTempDir "cota_docker_XXXXXX" "${DOCKER_STAGE_DIR}")"
 chmod a+rwx "${dockerstagedir}"
 
 function usage() {
@@ -163,7 +163,7 @@ function process_template() {
   args+=("-v" "region=ap-southeast-2")
 
   # Directory for temporary files
-  pushTempDir "create_template_XXXX"
+  pushTempDir "create_template_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
 
   # Perform each pass
@@ -244,7 +244,7 @@ function main() {
 
   options "$@" || return $?
 
-  pushTempDir "create_template_XXXX"
+  pushTempDir "create_template_XXXXXX"
   tmp_dir="$(getTopTempDir)"
   
   info "Starting work on ${REFERENCE_TYPE} Reference"

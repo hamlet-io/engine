@@ -5,7 +5,7 @@ trap '[[ (-z "${GENERATION_DEBUG}") && (-n "${tmpdir}") ]] && rm -rf "${tmpdir}"
 . "${GENERATION_DIR}/common.sh"
 
 # Create a temporary directory for this run
-pushTempDir "cot_gw_XXXX"
+pushTempDir "cot_gw_XXXXXX"
 export GENERATION_TMPDIR="$(getTopTempDir)"
 debug "TMPDIR=${GENERATION_TMPDIR}"
 
