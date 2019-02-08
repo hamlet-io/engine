@@ -113,7 +113,7 @@ function get_swagger_definition_file() {
   local accountNumber="$1"; shift
   local region="$1"; shift
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local swagger_file_dir="$(getTopTempDir)"
 
   # Name definitions based on the component
@@ -379,7 +379,7 @@ function process_template() {
   args+=("-v" "deploymentMode=${DEPLOYMENT_MODE}")
 
   # Directory for temporary files
-  pushTempDir "create_template_XXXX"
+  pushTempDir "create_template_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
 
   # Directory where we gather the results
@@ -562,7 +562,7 @@ function main() {
 
   options "$@" || return $?
 
-  pushTempDir "create_template_XXXX"
+  pushTempDir "create_template_XXXXXX"
   tmp_dir="$(getTopTempDir)"
   tmpdir="${tmp_dir}"
 

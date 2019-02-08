@@ -44,7 +44,7 @@ function add_standard_pairs_to_stack() {
   local input_file="$1"; shift
   local output_file="$1"; shift
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local result_file="$(getTopTempDir)/add_standard_pairs_to_stack.json"
   local return_status
 
@@ -71,7 +71,7 @@ function create_pseudo_stack() {
   local file="$1"; shift
   local pairs=("$@")
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local tmp_file="$(getTopTempDir)/create_pseudo_stack.json"
   local return_status
 
@@ -120,7 +120,7 @@ function convertFilesToJSONObject() {
   local as_file="$1";shift
   local files=("$@")
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
   local base_file="${tmp_dir}/base.json"
   local processed_files=("${base_file}")
@@ -140,7 +140,7 @@ function convertFilesToJSONObject() {
     local attribute="$( fileBase "${file}" | tr "-" "_" )"
 
     if [[ "${as_file}" == "true" ]]; then
-      source_file="$(getTempFile "asfile_${attribute,,}_XXXX.json" "${tmp_dir}")"
+      source_file="$(getTempFile "asfile_${attribute,,}_XXXXXX.json" "${tmp_dir}")"
       echo -n "{\"${attribute^^}\" : {\"Value\" : \"$(fileName "${file}")\", \"AsFile\" : \"${relative_file}\" }}" > "${source_file}" || return 1
     else
       case "$(fileExtension "${file}")" in
@@ -148,7 +148,7 @@ function convertFilesToJSONObject() {
           ;;
 
         escjson)
-          source_file="$(getTempFile "escjson_${attribute,,}_XXXX.json" "${tmp_dir}")"
+          source_file="$(getTempFile "escjson_${attribute,,}_XXXXXX.json" "${tmp_dir}")"
           runJQ \
             "{\"${attribute^^}\" : {\"Value\" : tojson, \"FromFile\" : \"${relative_file}\" }}" \
             "${file}" > "${source_file}" || return 1
@@ -156,7 +156,7 @@ function convertFilesToJSONObject() {
 
         *)
           # Assume raw input
-          source_file="$(getTempFile "raw_${attribute,,}_XXXX.json" "${tmp_dir}")"
+          source_file="$(getTempFile "raw_${attribute,,}_XXXXXX.json" "${tmp_dir}")"
           runJQ -sR \
             "{\"${attribute^^}\" : {\"Value\" : ., \"FromFile\" : \"${relative_file}\" }}" \
             "${file}" > "${source_file}" || return 1
@@ -166,7 +166,7 @@ function convertFilesToJSONObject() {
     fi
 
     local file_ancestors=("${prefixes[@]}" $(filePath "${file}" | tr "./" " ") )
-    local processed_file="$(getTempFile "processed_XXXX.json" "${tmp_dir}")"
+    local processed_file="$(getTempFile "processed_XXXXXX.json" "${tmp_dir}")"
     addJSONAncestorObjects "${source_file}" "${base_ancestors[@]}" $(join "-" "${file_ancestors[@]}" | tr "[:upper:]" "[:lower:]") > "${processed_file}" || return 1
     processed_files+=("${processed_file}")
   done
@@ -180,7 +180,7 @@ function assemble_settings() {
   local root_dir="${1:-${ROOT_DIR}}"; shift
   local result_file="${1:-${COMPOSITE_SETTINGS}}"; shift
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
   local tmp_file_list=()
 
@@ -208,7 +208,7 @@ function assemble_settings() {
     debug "Processing ${account_dir} ..."
     pushd "${account_dir}" > /dev/null 2>&1 || continue
 
-    tmp_file="$( getTempFile "account_settings_XXXX.json" "${tmp_dir}")"
+    tmp_file="$( getTempFile "account_settings_XXXXXX.json" "${tmp_dir}")"
     readarray -t setting_files < <(find . -type f -name "*.json" )
     convertFilesToJSONObject "Settings Accounts" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
     tmp_file_list+=("${tmp_file}")
@@ -240,7 +240,7 @@ function assemble_settings() {
       -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_settings_XXXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_settings_XXXXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Settings Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -251,7 +251,7 @@ function assemble_settings() {
       -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_sensitive_XXXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_sensitive_XXXXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Sensitive Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -262,7 +262,7 @@ function assemble_settings() {
       -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_builds_XXXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_builds_XXXXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Builds Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -272,7 +272,7 @@ function assemble_settings() {
       \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "product_settings_asfile_XXXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "product_settings_asfile_XXXXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Settings Products" "${name}" "${root_dir}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -299,7 +299,7 @@ function assemble_settings() {
       -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "operations_settings_XXXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "operations_settings_XXXXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Settings Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -310,7 +310,7 @@ function assemble_settings() {
       -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "operations_sensitive_XXXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "operations_sensitive_XXXXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Sensitive Products" "${name}" "${root_dir}" "false" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -320,7 +320,7 @@ function assemble_settings() {
       \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
-      tmp_file="$( getTempFile "operations_settings_asfile_XXXX.json" "${tmp_dir}")"
+      tmp_file="$( getTempFile "operations_settings_asfile_XXXXXX.json" "${tmp_dir}")"
       convertFilesToJSONObject "Settings Products" "${name}" "${root_dir}" "true" "${setting_files[@]}" > "${tmp_file}" || return 1
       tmp_file_list+=("${tmp_file}")
     fi
@@ -339,7 +339,7 @@ function assemble_settings() {
 
 function assemble_composite_definitions() {
 
-  local tmp_file="$( getTempFile "definitions_XXXX" "${tmp_dir}" )"
+  local tmp_file="$( getTempFile "definitions_XXXXXX" "${tmp_dir}" )"
 
   # Gather the relevant definitions
   local restore_nullglob=$(shopt -p nullglob)
@@ -369,7 +369,7 @@ function assemble_composite_stack_outputs() {
   local restore_nullglob=$(shopt -p nullglob)
   shopt -s nullglob
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
 
   local stack_array=()
@@ -436,7 +436,7 @@ function encrypt_file() {
   local input_file="$1"; shift
   local output_file="$1"; shift
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
   local cmk=$(getCmk "${level}")
   local return_status
@@ -781,7 +781,7 @@ function upgrade_cmdb_repo_to_v1_0_0() {
   local root_dir="$1";shift
   local dry_run="$1";shift
 
-  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
   local tmp_file
 
@@ -795,7 +795,7 @@ function upgrade_cmdb_repo_to_v1_0_0() {
     replacement_file="$(filePath "${legacy_file}")/build.json"
     [[ -f "${replacement_file}" ]] && continue
     info "Upgrading ${legacy_file} ..."
-    tmp_file="$(getTempFile "build_XXXX.json" "${tmp_dir}")"
+    tmp_file="$(getTempFile "build_XXXXXX.json" "${tmp_dir}")"
     upgrade_build_ref "${legacy_file}" "${tmp_file}" || { return_status=1; break; }
 
     if [[ -n "${dry_run}" ]]; then
@@ -814,7 +814,7 @@ function upgrade_cmdb_repo_to_v1_0_0() {
       replacement_file="$(filePath "${legacy_file}")/shared_build.json"
       [[ -f "${replacement_file}" ]] && continue
       info "Upgrading ${legacy_file} ..."
-      tmp_file="$(getTempFile "shared_XXXX.json" "${tmp_dir}")"
+      tmp_file="$(getTempFile "shared_XXXXXX.json" "${tmp_dir}")"
       upgrade_shared_build_ref "${legacy_file}" "${tmp_file}" || { return_status=1; break; }
 
       if [[ -n "${dry_run}" ]]; then
@@ -834,7 +834,7 @@ function upgrade_cmdb_repo_to_v1_0_0() {
       if [[ "$(jq ".Credentials | if .==null then [] else [1] end | length" < "${legacy_file}" )" -gt 0 ]]; then
         upgrade_needed="true"
         info "Upgrading ${legacy_file} ..."
-        tmp_file="$(getTempFile "credentials_XXXX.json" "${tmp_dir}")"
+        tmp_file="$(getTempFile "credentials_XXXXXX.json" "${tmp_dir}")"
         upgrade_credentials "${legacy_file}" "${tmp_file}" || { return_status=1; break; }
 
       if [[ -n "${dry_run}" ]]; then
@@ -856,7 +856,7 @@ function upgrade_cmdb_repo_to_v1_0_0() {
       [[ -f "${replacement_file}" ]] && continue
       upgrade_needed="true"
       info "Upgrading ${legacy_file} ..."
-      tmp_file="$(getTempFile "container_XXXX.json" "${tmp_dir}")"
+      tmp_file="$(getTempFile "container_XXXXXX.json" "${tmp_dir}")"
       cp "${legacy_file}" "${tmp_file}" || { return_status=1; break; }
 
       if [[ -n "${dry_run}" ]]; then
@@ -994,7 +994,7 @@ function upgrade_cmdb_repo_to_v1_1_0() {
   local root_dir="$1";shift
   local dry_run="$1";shift
 
-  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
   local return_status=0
 
@@ -1118,7 +1118,7 @@ function upgrade_cmdb_repo_to_v1_2_0() {
   local root_dir="$1";shift
   local dry_run="$1";shift
 
-  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
   local return_status=0
 
@@ -1147,7 +1147,7 @@ function upgrade_cmdb_repo_to_v1_3_0() {
   local root_dir="$1";shift
   local dry_run="$1";shift
 
-  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
   local return_status=0
 
@@ -1253,7 +1253,7 @@ function upgrade_cmdb_repo_to_v1_3_1() {
   local root_dir="$1";shift
   local dry_run="$1";shift
 
-  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
   local return_status=0
 
@@ -1352,7 +1352,7 @@ function process_cmdb() {
   # Find all the repos
   readarray -t cmdb_git_repos < <(find "${root_dir}" -type d -name ".git" | sort )
 
-  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXX"
+  pushTempDir "${FUNCNAME[0]}_$(fileName "${root_dir}")_XXXXXX"
   local tmp_version_file="$(getTopTempDir)/new_version.json"
   local tmp_result_file="$(getTopTempDir)/new_cmdb.json"
 

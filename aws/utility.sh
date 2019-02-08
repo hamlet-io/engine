@@ -533,7 +533,7 @@ function getTempDir() {
   local template="$1"; shift
   local tmp_dir="$1"; shift
 
-  [[ -z "${template}" ]] && template="XXXX"
+  [[ -z "${template}" ]] && template="XXXXXX"
   [[ -z "${tmp_dir}" ]] && tmp_dir="$(getTempRootDir)"
 
   [[ -n "${tmp_dir}" ]] &&
@@ -569,7 +569,7 @@ function getTempFile() {
   local template="$1"; shift
   local tmp_dir="$1"; shift
 
-  [[ -z "${template}" ]] && template="XXXX"
+  [[ -z "${template}" ]] && template="XXXXXX"
   [[ -z "${tmp_dir}" ]] && tmp_dir="$(getTempRootDir)"
 
   [[ -n "${tmp_dir}" ]] &&
@@ -605,11 +605,11 @@ function runJQ() {
   for argument in "${arguments[@]}"; do
     if [[ -f "${argument}" ]]; then
       if [[ "${file_seen}" != "true" ]]; then
-        pushTempDir "${FUNCNAME[0]}_XXXX"
+        pushTempDir "${FUNCNAME[0]}_XXXXXX"
         tmp_dir="$(getTopTempDir)"
         file_seen="true"
       fi
-      file="$( getTempFile "XXXX" "${tmp_dir}" )"
+      file="$( getTempFile "XXXXXX" "${tmp_dir}" )"
       cp "${argument}" "${file}" > /dev/null
       modified_arguments+=("./$(fileName "${file}" )")
     else
@@ -682,7 +682,7 @@ function decrypt_kms_string() {
   local region="$1"; shift
   local value="$1"; shift
 
-  pushTempDir "${FUNCNAME[0]}_XXXX"
+  pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local tmp_file="$(getTopTempDir)/value"
   local return_status
 
@@ -884,7 +884,7 @@ function cleanup_elbv2_rules() {
   local region="$1"; shift
   local listenerarn="$1"; shift
 
-  pushTempDir "elbv2_listener_cleanup_XXXX"
+  pushTempDir "elbv2_listener_cleanup_XXXXXX"
   local tmp_file="$(getTopTempDir)/cleanup.sh"
 
   all_listener_rules="$(aws --region "${region}" elbv2 describe-rules --listener-arn "${listenerarn}" --query 'Rules[?!IsDefault].RuleArn' --output json )"
@@ -910,7 +910,7 @@ function isBucketAccessible() {
   local bucket="$1"; shift
   local prefix="$1"; shift
 
-  local result_file="$(getTopTempDir)/is_bucket_accessible_XXXX.txt"
+  local result_file="$(getTopTempDir)/is_bucket_accessible_XXXXXX.txt"
 
   aws --region ${region} s3 ls "s3://${bucket}/${prefix}${prefix:+/}" > "${result_file}" 2>&1
 }
@@ -938,7 +938,7 @@ function syncFilesToBucket() {
 
   # Does the bucket/prefix exist?
   if isBucketAccessible "${region}" "${bucket}"; then
-    pushTempDir "${FUNCNAME[0]}_XXXX"
+    pushTempDir "${FUNCNAME[0]}_XXXXXX"
     local tmp_dir="$(getTopTempDir)"
     local return_status
 
@@ -1052,7 +1052,7 @@ function cleanup_sns_platformapps() {
   local mobile_notifier_name="$1"; shift
   local expected_platform_arns="$1"; shift
 
-  pushTempDir "${mobile_notifier_name}_cleanup_XXXX"
+  pushTempDir "${mobile_notifier_name}_cleanup_XXXXXX"
   local tmp_file="$(getTopTempDir)/cleanup.sh"
 
   all_platform_apps="$(aws --region "${region}" sns list-platform-applications )"
@@ -1182,9 +1182,9 @@ function update_ssm_document() {
 function update_oai_credentials() {
   local region="$1"; shift
   local name="$1"; shift
-  local result_file="${1:-$( getTempFile update_oai_XXXX.json)}"; shift
+  local result_file="${1:-$( getTempFile update_oai_XXXXXX.json)}"; shift
 
-  local oai_list_file="$( getTempFile oai_list_XXXX.json)"
+  local oai_list_file="$( getTempFile oai_list_XXXXXX.json)"
   local oai_id=
 
   # Check for existing identity
@@ -1210,7 +1210,7 @@ function delete_oai_credentials() {
   local region="$1"; shift
   local name="$1"; shift
 
-  local oai_delete_file="$( getTempFile oai_delete_XXXX.json)"
+  local oai_delete_file="$( getTempFile oai_delete_XXXXXX.json)"
   local oai_id=
   local oai_etag=
 
@@ -1543,7 +1543,7 @@ function invalidate_distribution() {
 function release_enis() {
     local region="$1"; shift
     local requester_id="$1"; shift
-    local eni_list_file="$( getTempFile eni_list_XXXX.json)"
+    local eni_list_file="$( getTempFile eni_list_XXXXXX.json)"
 
     aws --region "${region}" ec2 describe-network-interfaces --filters Name=requester-id,Values="*${requester_id}" > "${eni_list_file}" || return $?
 

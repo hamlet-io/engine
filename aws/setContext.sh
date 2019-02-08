@@ -26,7 +26,7 @@ debug "--- starting setContext.sh ---\n"
 
 # Create a temporary directory for this run
 if [[ -z "${GENERATION_TMPDIR}" ]]; then
-  pushTempDir "cot_XXXX"
+  pushTempDir "cot_XXXXXX"
   export GENERATION_TMPDIR="$( getTopTempDir )"
 fi
 debug "TMPDIR=${GENERATION_TMPDIR}"
@@ -299,19 +299,19 @@ if [[ -n "${CHECK_AWS_SESSION_TOKEN}" ]]; then export AWS_SESSION_TOKEN="${CHECK
 # bug in python
 if [[ ((-z "${AWS_ACCESS_KEY_ID}") || (-z "${AWS_SECRET_ACCESS_KEY}")) ]]; then
     if [[ -n "${ACCOUNT}" ]]; then
-        aws configure list --profile "${ACCOUNT}" > $(getTempFile "account_profile_status_XXXX.txt") 2>&1
+        aws configure list --profile "${ACCOUNT}" > $(getTempFile "account_profile_status_XXXXXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${ACCOUNT}"
         fi
     fi
     if [[ -n "${AID}" ]]; then
-        aws configure list --profile "${AID}" > $(getTempFile "id_profile_status_XXXX.txt") 2>&1
+        aws configure list --profile "${AID}" > $(getTempFile "id_profile_status_XXXXXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${AID}"
         fi
     fi
     if [[ -n "${AWSID}" ]]; then
-        aws configure list --profile "${AWSID}" > $(getTempFile "awsid_profile_status_XXXX.txt") 2>&1
+        aws configure list --profile "${AWSID}" > $(getTempFile "awsid_profile_status_XXXXXX.txt") 2>&1
         if [[ $? -eq 0 ]]; then
             export AWS_DEFAULT_PROFILE="${AWSID}"
         fi
