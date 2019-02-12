@@ -99,7 +99,7 @@
             "Resources" : {
                 "es" : { 
                     "Id" : esId,
-                    "Name" : core.Name,
+                    "Name" : core.ShortFullName,
                     "Type" : AWS_ES_RESOURCE_TYPE,
                     "Monitored" : true
                 },
