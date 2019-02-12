@@ -217,7 +217,7 @@
                                 mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
-                                resourceName=monitoredResource.Name!core.ShortFullName
+                                resourceName=core.FullName
                                 alertName=alert.Name
                                 actions=[
                                     getReference(formatSegmentSNSTopicId())
