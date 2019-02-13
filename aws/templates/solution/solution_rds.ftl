@@ -305,6 +305,7 @@
 
             [#switch alternative ]
                 [#case "replace1" ]
+                    [#assign multiAZ = false]
                     [#assign rdsFullName=formatName(rdsFullName, "backup") ]
                     [#if rdsManualSnapshot?has_content ]
                         [#assign snapshotId = rdsManualSnapshot ]
@@ -317,7 +318,6 @@
                 [#break]
 
                 [#case "replace2"]
-                    [#assign multiAZ = false]
                     [#if rdsManualSnapshot?has_content ]
                         [#assign snapshotId = rdsManualSnapshot ]
                     [#else]
