@@ -301,19 +301,19 @@
                     solution.Address.CIDR
     )]
 
-    [#assign networkAddress = networkCIDR?split("/")[0] ]
-    [#assign networkMask = (networkCIDR?split("/")[1])?number ]
-    [#assign baseAddress = networkAddress?split(".") ]
+    [#local networkAddress = networkCIDR?split("/")[0] ]
+    [#local networkMask = (networkCIDR?split("/")[1])?number ]
+    [#local baseAddress = networkAddress?split(".") ]
 
-    [#assign addressOffset = baseAddress[2]?number*256 + baseAddress[3]?number]
-    [#assign addressesPerTier = powersOf2[getPowerOf2(powersOf2[32 - networkMask]/(network.Tiers.Order?size))]]
-    [#assign addressesPerZone = powersOf2[getPowerOf2(addressesPerTier / (network.Zones.Order?size))]]
-    [#assign subnetMask = 32 - powersOf2?seq_index_of(addressesPerZone)]
+    [#local addressOffset = baseAddress[2]?number*256 + baseAddress[3]?number]
+    [#local addressesPerTier = powersOf2[getPowerOf2(powersOf2[32 - networkMask]/(network.Tiers.Order?size))]]
+    [#local addressesPerZone = powersOf2[getPowerOf2(addressesPerTier / (network.Zones.Order?size))]]
+    [#local subnetMask = 32 - powersOf2?seq_index_of(addressesPerZone)]
 
-    [#assign flowLogLgName = legacyVpc?then(
+    [#local flowLogLgName = legacyVpc?then(
                                 formatSegmentLogGroupName(AWS_VPC_FLOWLOG_RESOURCE_TYPE, "all")
                                 formatAbsolutePath(core.FullAbsolutePath, "all" ) )]
-    [#assign flowLogId = legacyVpc?then(
+    [#local flowLogId = legacyVpc?then(
                                 formatVPCFlowLogsId("all"),
                                 formatDependentResourceId(AWS_VPC_FLOWLOG_RESOURCE_TYPE, vpcId, "all" ))]
 
@@ -326,16 +326,16 @@
         [/#if]
 
         [#list zones as zone]
-            [#assign subnetId = legacyVpc?then(
+            [#local subnetId = legacyVpc?then(
                                     formatSubnetId(networkTier, zone),
                                     formatResourceId(AWS_VPC_SUBNET_RESOURCE_TYPE, core.Id, networkTiers.Id, zone.Id))]
             
-            [#assign subnetName = legacyVpc?then(
+            [#local subnetName = legacyVpc?then(
                                     formatSubnetName(networkTier, zone),
                                     formatName(core.FullNane, networkTier.Name, zone.Name ) )]
 
-            [#assign subnetAddress = addressOffset + (networkTier.Network.Index * addressesPerTier) + (zone.Index * addressesPerZone) ]
-            [#assign subnetCIDR = baseAddress[0] + "." + baseAddress[1] + "." + (subnetAddress/256)?int + "." + subnetAddress%256 + "/" + subnetMask]
+            [#local subnetAddress = addressOffset + (networkTier.Network.Index * addressesPerTier) + (zone.Index * addressesPerZone) ]
+            [#local subnetCIDR = baseAddress[0] + "." + baseAddress[1] + "." + (subnetAddress/256)?int + "." + subnetAddress%256 + "/" + subnetMask]
 
             [#local subnets =  mergeObjects( subnets, {
                 networkTier.Id  : {
@@ -409,6 +409,12 @@
         [#local legacyVpc = true ]
         [#local routeTableId = formatRouteTableId(core.SubComponent.Id)]
         [#local routeTableName = formatRouteTableName(core.SubComponent.Name)]
+
+        [#-- Support for IGW defined as part of VPC tempalte instead of Gateway --]
+        [#local legacyIGWId = formatVPCIGWTemplateId() ]
+        [#local legacyIGWName = formatIGWName() ]
+        [#local legacyIGWAttachementId = formatId(AWS_VPC_IGW_RESOURCE_TYPE,AWS_VPC_IGW_ATTACHMENT_TYPE) ]
+        [#local legacyIGWRouteId = formatRouteId(routeTableId, "gateway") ]
     [#else]
         [#local routeTableId = formatResourceId(AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE, core.Id)]
         [#local routeTableName = core.FullName ]
@@ -427,11 +433,11 @@
     [#local zoneResources = {}]
     [#list routeTableZones as zone]
         [#local routeTableId = legacyVpc?then(
-                                    formatId(routeTableId,(solution.PerAZ)?string(zone.Id,"")),
+                                    formatId(routeTableId, (solution.PerAZ && solnMultiAZ)?then(zone.Id,"") ),
                                     formatId(routeTableId, zone.Id) )]
 
         [#local routeTableName = legacyVpc?then(
-                                    formatName(routeTableName,(solution.PerAZ)?string(zone.Id,"")),
+                                    formatName(routeTableName, (solution.PerAZ && solnMultiAZ)?then(zone.Id,"") ),
                                     formatName(routeTableName, zone.Id) )]
         [#local zoneResources += {
             zone.Id : {
@@ -440,7 +446,25 @@
                     "Name" : routeTableName,
                     "Type" : AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE
                 }
-            }
+            } +
+            ( legacyVpc && solution.Public )?then(
+                {
+                    "legacyIGW" : {
+                        "Id" : legacyIGWId,
+                        "Name" : legacyIGWName,
+                        "Type" : AWS_VPC_IGW_RESOURCE_TYPE
+                    },
+                    "legacyIGWAttachement" : {
+                        "Id" : legacyIGWAttachementId,
+                        "Type" : AWS_VPC_IGW_ATTACHMENT_TYPE
+                    },
+                    "legacyIGWRoute" : {
+                        "Id" : legacyIGWRouteId,
+                        "Type" : AWS_VPC_ROUTE_RESOURCE_TYPE
+                    }
+                },
+                {}
+            ) 
         }]
     [/#list]
 

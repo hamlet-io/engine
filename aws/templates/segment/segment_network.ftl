@@ -178,6 +178,36 @@
                             vpcId=vpcId
                             zone=""
                         /]
+
+                        [#if (zoneRouteTableResources["legacyIGW"]!{})?has_content]
+                            [#assign legacyIGWId = zoneRouteTableResources["legacyIGW"].Id ]
+                            [#assign legacyIGWName = zoneRouteTableResources["legacyIGW"].Name ]
+                            [#assign legacyIGWAttachementId = zoneRouteTableResources["legacyIGWAttachement"].Id ]
+                            [#assign legacyIGWRouteId = zoneRouteTableResources["legacyIGWRoute"].Id ]
+
+                            [@createIGW
+                                mode=listMode
+                                id=legacyIGWId
+                                name=legacyIGWName
+                            /]
+                            [@createIGWAttachment
+                                mode=listMode
+                                id=legacyIGWAttachementId
+                                vpcId=vpcId
+                                igwId=legacyIGWId
+                            /]
+                            [@createRoute
+                                mode=listMode
+                                id=legacyIGWRouteId
+                                routeTableId=routeTableId
+                                route=
+                                    {
+                                        "Type" : "gateway",
+                                        "IgwId" : legacyIGWId,
+                                        "CIDR" : "0.0.0.0/0"
+                                    }
+                            /]
+                        [/#if]
                     [/#if]
                 
                 [#else]
@@ -197,6 +227,36 @@
                                     vpcId=vpcId
                                     zone=zone
                                 /]
+
+                                [#if (zoneRouteTableResources["legacyIGW"]!{})?has_content]
+                                    [#assign legacyIGWId = zoneRouteTableResources["legacyIGW"].Id ]
+                                    [#assign legacyIGWName = zoneRouteTableResources["legacyIGW"].Name ]
+                                    [#assign legacyIGWAttachementId = zoneRouteTableResources["legacyIGWAttachement"].Id ]
+                                    [#assign legacyIGWRouteId = zoneRouteTableResources["legacyIGWRoute"].Id ]
+
+                                    [@createIGW
+                                        mode=listMode
+                                        id=legacyIGWId
+                                        name=legacyIGWName
+                                    /]
+                                    [@createIGWAttachment
+                                        mode=listMode
+                                        id=legacyIGWAttachementId
+                                        vpcId=vpcId
+                                        igwId=legacyIGWId
+                                    /]
+                                    [@createRoute
+                                        mode=listMode
+                                        id=legacyIGWRouteId
+                                        routeTableId=routeTableId
+                                        route=
+                                            {
+                                                "Type" : "gateway",
+                                                "IgwId" : legacyIGWId,
+                                                "CIDR" : "0.0.0.0/0"
+                                            }
+                                    /]
+                                [/#if]
                             [/#if]
                         [/#if]
                     [/#list]

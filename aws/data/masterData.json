@@ -955,14 +955,15 @@
                     "PerAZ" : true
                 },
                 "external" : {
-                    "PerAZ" : false
+                    "PerAZ" : false,
+                    "Public" : true
                 }
             },
             "NetworkACLs" : {
                 "open" : {
                     "Rules" : {
                         "in" : {
-                            "Priority" : 100,
+                            "Priority" : 200,
                             "Action" : "allow",
                             "Source" : {
                                 "IPAddressGroups" : [ "_global"]
@@ -974,7 +975,7 @@
                             "ReturnTraffic" : false
                         },
                         "out" : {
-                            "Priority" : 100,
+                            "Priority" : 200,
                             "Action" : "allow",
                             "Source" : {
                                 "IPAddressGroups" : [ "_localnet"]

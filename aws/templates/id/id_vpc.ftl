@@ -6,6 +6,7 @@
 [#assign AWS_VPC_FLOWLOG_RESOURCE_TYPE = "vpcflowlogs" ]
 
 [#assign AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE = "routeTable" ]
+[#assign AWS_VPC_ROUTE_RESOURCE_TYPE = "route" ]
 [#assign AWS_VPC_NETWORK_ROUTE_TABLE_ASSOCIATION_TYPE = "association" ]
 
 [#assign AWS_VPC_NETWORK_ACL_RESOURCE_TYPE = "networkACL" ]
@@ -167,7 +168,7 @@
 
 [#function formatRouteId routeTableId extensions...]
     [#return formatDependentResourceId(
-            "route",
+            AWS_VPC_ROUTE_RESOURCE_TYPE,
             routeTableId,
             extensions)]
 [/#function]
