@@ -394,7 +394,8 @@
                         "Id" : legacySegmentTopicId,
                         "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE
                     }
-                }
+                },
+                {}
             ),
             "Attributes" : {
             },
