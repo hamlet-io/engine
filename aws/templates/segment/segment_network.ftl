@@ -28,6 +28,14 @@
             /]
         [/#if]
 
+        [#if (resources["legacySnsTopic"]!{})?has_content ]
+            [#assign topicId = resources["legacySnsTopic"].Id ]
+            [@createSegmentSNSTopic
+                mode=listMode
+                id=topicId
+            /]
+        [/#if]
+
         [#if (resources["flowlogs"]!{})?has_content ]
             [#assign flowLogsResources = resources["flowlogs"]]
             [#assign flowLogsRoleId = flowLogsResources["flowLogRole"].Id ]

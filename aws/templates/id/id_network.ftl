@@ -288,6 +288,7 @@
     [#if getExistingReference(formatVPCTemplateId())?has_content ]
         [#local vpcId = formatVPCTemplateId() ]
         [#local legacyVpc = true ]
+        [#assign legacySegmentTopicId = formatSegmentSNSTopicId() ]
     [#else]
         [#local vpcId = formatResourceId(AWS_VPC_RESOURCE_TYPE, core.Id)]
     [/#if]
@@ -298,8 +299,7 @@
 
     [#assign networkCIDR = (network.CIDR)?has_content?then(
                     network.CIDR.Address + "/" + network.CIDR.Mask,
-                    solution.Address.CIDR
-    )]
+                    solution.Address.CIDR )]
 
     [#local networkAddress = networkCIDR?split("/")[0] ]
     [#local networkMask = (networkCIDR?split("/")[1])?number ]
@@ -388,6 +388,13 @@
                     }
                 }},
                 {}
+            ) + legacyVpc?then(
+                {
+                    "legacySnsTopic" : {
+                        "Id" : legacySegmentTopicId,
+                        "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE
+                    }
+                }
             ),
             "Attributes" : {
             },
