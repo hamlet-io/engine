@@ -445,6 +445,7 @@
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 [#assign securityProfiles = blueprintObject.SecurityProfiles ]
 [#assign logFilters = blueprintObject.LogFilters]
+[#assign networkEndpointGroups = blueprintObject.NetworkEndpointGroups ]
 
 [#-- Regions --]
 [#if region?has_content]

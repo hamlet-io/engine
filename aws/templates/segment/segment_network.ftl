@@ -126,10 +126,7 @@
                             [#assign subnetAddress = zoneSubnetResources["subnet"].Address ]
                             [#assign routeTableAssociationId = zoneSubnetResources["routeTableAssoc"].Id]
                             [#assign networkACLAssociationId = zoneSubnetResources["networkACLAssoc"].Id]
-
-                            [#assign routeTableId = (routeTableZones["regional"]?has_content)?then(
-                                                                        routeTableZones["regional"]["routeTable"].Id,
-                                                                        routeTableZones[zone.Id]["routeTable"].Id)]
+                            [#assign routeTableId = routeTableZones[zone.Id]["routeTable"].Id)]
                             
                             [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                                 [@createSubnet
@@ -173,53 +170,6 @@
 
                 [#assign zoneRouteTables = resources["routeTables"] ]
 
-                [#if zoneRouteTables["regional"]?has_content ]
-                    [#assign zoneRouteTableResources = zoneRouteTables["regional"] ]
-                    [#assign routeTableId = zoneRouteTableResources["routeTable"].Id]
-                    [#assign routeTableName = zoneRouteTableResources["routeTable"].Name]
-
-                    [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
-                        [@createRouteTable
-                            mode=listMode
-                            id=routeTableId
-                            name=routeTableName
-                            vpcId=vpcId
-                            zone=""
-                        /]
-
-                        [#if (zoneRouteTableResources["legacyIGW"]!{})?has_content]
-                            [#assign legacyIGWId = zoneRouteTableResources["legacyIGW"].Id ]
-                            [#assign legacyIGWName = zoneRouteTableResources["legacyIGW"].Name ]
-                            [#assign legacyIGWAttachementId = zoneRouteTableResources["legacyIGWAttachement"].Id ]
-                            [#assign legacyIGWRouteId = zoneRouteTableResources["legacyIGWRoute"].Id ]
-
-                            [@createIGW
-                                mode=listMode
-                                id=legacyIGWId
-                                name=legacyIGWName
-                            /]
-                            [@createIGWAttachment
-                                mode=listMode
-                                id=legacyIGWAttachementId
-                                vpcId=vpcId
-                                igwId=legacyIGWId
-                            /]
-                            [@createRoute
-                                mode=listMode
-                                id=legacyIGWRouteId
-                                routeTableId=routeTableId
-                                route=
-                                    {
-                                        "Type" : "gateway",
-                                        "IgwId" : legacyIGWId,
-                                        "CIDR" : "0.0.0.0/0"
-                                    }
-                            /]
-                        [/#if]
-                    [/#if]
-                
-                [#else]
-
                     [#list zones as zone ]
 
                         [#if zoneRouteTables[zone.Id]?has_content ]
@@ -236,35 +186,21 @@
                                     zone=zone
                                 /]
 
-                                [#if (zoneRouteTableResources["legacyIGW"]!{})?has_content]
-                                    [#assign legacyIGWId = zoneRouteTableResources["legacyIGW"].Id ]
-                                    [#assign legacyIGWName = zoneRouteTableResources["legacyIGW"].Name ]
-                                    [#assign legacyIGWAttachementId = zoneRouteTableResources["legacyIGWAttachement"].Id ]
-                                    [#assign legacyIGWRouteId = zoneRouteTableResources["legacyIGWRoute"].Id ]
-
-                                    [@createIGW
-                                        mode=listMode
-                                        id=legacyIGWId
-                                        name=legacyIGWName
-                                    /]
-                                    [@createIGWAttachment
-                                        mode=listMode
-                                        id=legacyIGWAttachementId
-                                        vpcId=vpcId
-                                        igwId=legacyIGWId
-                                    /]
-                                    [@createRoute
-                                        mode=listMode
-                                        id=legacyIGWRouteId
-                                        routeTableId=routeTableId
-                                        route=
-                                            {
-                                                "Type" : "gateway",
-                                                "IgwId" : legacyIGWId,
-                                                "CIDR" : "0.0.0.0/0"
-                                            }
-                                    /]
-                                [/#if]
+                            [#if (zoneRouteTableResources["legacyIGWRoute"].Id!{})?has_content ]
+                                [#assign legacyIGWRouteId =  zoneRouteTableResources["legacyIGWRoute"].Id ]
+                                [@createRoute
+                                    mode=listMode
+                                    id=legacyIGWRouteId
+                                    routeTableId=routeTableId
+                                    route=
+                                        {
+                                            "Type" : "gateway",
+                                            "IgwId" : legacyIGWId,
+                                            "CIDR" : "0.0.0.0/0"
+                                        }
+                                /]   
+                            [/#if] 
+                            
                             [/#if]
                         [/#if]
                     [/#list]

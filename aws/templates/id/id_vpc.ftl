@@ -19,7 +19,7 @@
 [#assign AWS_VPC_SECURITY_GROUP_INGRESS_RESOURCE_TYPE = "securityGroupIngress" ]
 
 [#assign AWS_VPC_IGW_RESOURCE_TYPE = "igw" ]
-[#assign AWS_VPC_IGW_ATTACHMENT_TYPE = "attachment" ]
+[#assign AWS_VPC_IGW_ATTACHMENT_TYPE = formatId( AWS_VPC_IGW_RESOURCE_TYPE, "attachment") ]
 
 [#assign AWS_VPC_NAT_GATEWAY_RESOURCE_TYPE = "natGateway" ]
 

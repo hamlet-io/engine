@@ -2,8 +2,6 @@
 [#assign NETWORK_COMPONENT_TYPE = "network" ]
 [#assign NETWORK_ROUTE_TABLE_COMPONENT_TYPE = "networkroute"]
 [#assign NETWORK_ACL_COMPONENT_TYPE = "networkacl"]
-[#assign NETWORK_GATEWAY_COMPONENT_TYPE = "gateway"]
-[#assign NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE = "gatewaydestination"]
 
 [#assign componentConfiguration +=
     {
@@ -121,7 +119,7 @@
                 {
                     "Names" : "PerAZ",
                     "Type" : BOOLEAN_TYPE,
-                    "Default" : false 
+                    "Default" : true 
                 },
                 {
                     "Names" : "Profiles",
@@ -208,86 +206,21 @@
                     ]
                 }
             ]
-        },
-        NETWORK_GATEWAY_COMPONENT_TYPE : {
-            "Properties"  : [
-                {
-                    "Type"  : "Description",
-                    "Value" : "A service providing a route to another network"
-                },
-                {
-                    "Type" : "Providers",
-                    "Value" : [ "aws" ]
-                },
-                {
-                    "Type" : "ComponentLevel",
-                    "Value" : "segment"
-                }
-            ],
-            "Attributes" : [
-                {
-                    "Names" : "Active",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : false
-                },
-                {
-                    "Names" : "Engine",
-                    "Type" : ARRAY_OF_STRING_TYPE,
-                    "Values" : [ "nat", "igw", "vpcendpoint" ]
-                }
-            ],
-            "Components" : [
-                {
-                    "Type" : NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE,
-                    "Component" : "Destinations",
-                    "Link" : "Destination"
-                }
-            ]
-        },
-        NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE : {
-            "Properties"  : [
-                {
-                    "Type"  : "Description",
-                    "Value" : "A network destination offerred by the Gateway"
-                },
-                {
-                    "Type" : "Providers",
-                    "Value" : [ "aws" ]
-                },
-                {
-                    "Type" : "ComponentLevel",
-                    "Value" : "segment"
-                }
-            ],
-            "Attributes" : [
-                {
-                    "Names" : "Active",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : false
-                },
-                {
-                    "Names" : "IPAddressGroups",
-                    "Type" : ARRAY_OF_STRING_TYPE,
-                    "Default" : []
-                },
-                {
-                    "Names" : "Services",
-                    "Type" : ARRAY_OF_STRING_TYPE,
-                    "Default" : []
-                }
-            ]
         }
     }]
+
+[#function getVpcLgeacyStatus ]
+    [#return getExistingReference(formatVPCTemplateId())?has_content]
+[/#function]
 
 [#function getNetworkState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local legacyVpc = false]
+    [#local legacyVpc = getVpcLgeacyStatus() ]
 
-    [#if getExistingReference(formatVPCTemplateId())?has_content ]
+    [#if legacyVpc ]
         [#local vpcId = formatVPCTemplateId() ]
-        [#local legacyVpc = true ]
         [#assign legacySegmentTopicId = formatSegmentSNSTopicId() ]
     [#else]
         [#local vpcId = formatResourceId(AWS_VPC_RESOURCE_TYPE, core.Id)]
@@ -413,8 +346,9 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#if getExistingReference(formatVPCTemplateId())?has_content ]
-        [#local legacyVpc = true ]
+    [#local legacyVpc = getVpcLgeacyStatus() ]
+
+    [#if legacyVpc ]
         [#local routeTableId = formatRouteTableId(core.SubComponent.Id)]
         [#local routeTableName = formatRouteTableName(core.SubComponent.Name)]
 
@@ -428,32 +362,27 @@
         [#local routeTableName = core.FullName ]
     [/#if]
 
-    [#if solution.PerAZ && solnMultiAZ ]
-        [#local routeTableZones = zones ]
-    [#else]
-        [#local routeTableZones = [
-                { 
-                    "Id" : "regional"
-                } 
-            ]]
-    [/#if]
+    [#list zones as zone]
+        [#local routeTableId = formatId(routeTableId, zone.Id)]
+        [#local routeTableName = formatName(routeTableName, zone.Id)]
 
-    [#local zoneResources = {}]
-    [#list routeTableZones as zone]
-        [#local routeTableId = legacyVpc?then(
-                                    formatId(routeTableId, (solution.PerAZ && solnMultiAZ)?then(zone.Id,"") ),
-                                    formatId(routeTableId, zone.Id) )]
-
-        [#local routeTableName = legacyVpc?then(
-                                    formatName(routeTableName, (solution.PerAZ && solnMultiAZ)?then(zone.Id,"") ),
-                                    formatName(routeTableName, zone.Id) )]
         [#local zoneResources += {
-            zone.Id : {
-                "routeTable" : {
-                    "Id" : routeTableId,
-                    "Name" : routeTableName,
-                    "Type" : AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE
-                }
+            "routeTables" : {
+                zone.Id : {
+                    "routeTable" : {
+                        "Id" : routeTableId,
+                        "Name" : routeTableName,
+                        "Type" : AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE
+                    }
+                } + 
+                (legacyVpc && solution.Public )?then(
+                    {
+                        "legacyIGWRoute" : {
+                            "Id" : formatId(legacyIGWRouteId, zone.Id),
+                            "Type" : AWS_VPC_ROUTE_RESOURCE_TYPE
+                        }
+                    }
+                )
             } +
             ( legacyVpc && solution.Public )?then(
                 {
@@ -465,10 +394,6 @@
                     "legacyIGWAttachement" : {
                         "Id" : legacyIGWAttachementId,
                         "Type" : AWS_VPC_IGW_ATTACHMENT_TYPE
-                    },
-                    "legacyIGWRoute" : {
-                        "Id" : legacyIGWRouteId,
-                        "Type" : AWS_VPC_ROUTE_RESOURCE_TYPE
                     }
                 },
                 {}
@@ -495,10 +420,9 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local legacyVpc = false]
+    [#local legacyVpc = getVpcLgeacyStatus() ]
 
-    [#if getExistingReference(formatVPCTemplateId())?has_content ]
-        [#local legacyVpc = true ]
+    [#if legacyVpc ]
         [#local networkACLId = formatNetworkACLId(core.SubComponent.Id) ]
         [#local networkACLName = formatNetworkACLName(core.SubComponent.Name)]
     [#else]
@@ -529,140 +453,6 @@
                 },
                 "rules" : networkACLRules
             },
-            "Attributes" : {
-            },
-            "Roles" : {
-                "Inbound" : {},
-                "Outbound" : {}
-            }
-        }
-    ]
-[/#function]
-
-[#function getNetworkGatewayState occurrence ]
-    [#local core = occurrence.Core]
-    [#local solution = occurrence.Configuration.Solution]
-    [#local engine = solution.Engine ]
-    [#local resources = {} ]
-    
-    [#switch engine ]
-        [#case "nat"] 
-            [#list zones as zone]
-                [#local resources += {
-                    zone.Id : {
-                        "natGateway" : {
-                            "Id" : formatNATGatewayId(tier, zone),
-                            "Name" : formatComponentFullName(tier, natComponent, zone),
-                            "Type" : AWS_VPC_NAT_GATEWAY_RESOURCE_TYPE
-                        }
-                    }
-                }]
-            [/#list]
-            [#break]
-
-        [#case "igw"]
-                [#local igwId = formatVPCIGWTemplateId()]
-                [#local resources += {
-                    "internetGateway" : {
-                        "Id" : formatVPCIGWTemplateId(),
-                        "Name" : core.FullName,
-                        "Type" : AWS_VPC_IGW_RESOURCE_TYPE
-                    },
-                    "internetGatewayAttachement" : {
-                        "Id" : formatId(AWS_VPC_IGW_RESOURCE_TYPE, AWS_VPC_IGW_ATTACHMENT_TYPE),
-                        "Type" : AWS_VPC_IGW_ATTACHMENT_TYPE
-                    }
-                }]
-            [#break]
-
-        [#case "vpcendpoint"]
-            [#break]
-
-        [#default]  
-            @cfException
-                mode=listMode
-                description="Unkown Engine Type"
-                context=occurrence.Configuration.Solution
-            /]
-    [/#switch] 
-
-    [#return 
-        {
-            "Resources" : resources,
-            "Attributes" : {
-            },
-            "Roles" : {
-                "Inbound" : {},
-                "Outbound" : {}
-            }
-        }
-    ]
-[/#function]
-
-[#function getNetworkGatewayDestinationState occurrence parent ]
-    [#local core = occurrence.Core]
-    [#local solution = occurrence.Configuration.Solution]
-
-    [#local parentCore = parent.Core]
-    [#local parentSolution = parent.Configuration.Solution ]
-    [#local engine = parentSolution.Engine ]
-    
-    [#local resources = {} ]
-    [#local zoneResources = {}]
-
-    [#switch engine ]
-        [#case "nat"] 
-            [#break]
-
-        [#case "igw"]
-            [#break]
-
-        [#case "vpcendpoint"]
-
-            [#list solution.Services as service ]
-                [#switch service ]
-                    [#case "s3"]
-                    [#case "dynamoDb" ]
-                        [#local resources += {
-                            "vpcEndPoint" + service.Id : {
-                                "Id" : formatVPCEndPointId(service.Id),
-                                "EndpointType" : "gateway",
-                                "Type" : AWS_VPC_ENDPOINNT_RESOURCE_TYPE
-                            }
-                        }]
-                        [#break]
-
-                    [#default]
-                        [#list zones as zone ]
-                            [#local zoneResources =  
-                                mergeObjects( 
-                                    zoneResources, 
-                                    {
-                                        zone.Id : { 
-                                            "vpcEndPoint" + service.Id : {
-                                                "Id" : formatVPCEndPointId(service.Id),
-                                                "EndpointType" : "endpoint",
-                                                "Type" : AWS_VPC_ENDPOINNT_RESOURCE_TYPE
-                                            }
-                                        }
-                                    }
-                                )]
-                        [/#list]
-                [/#switch]
-            [/#list]
-            [#break]
-
-        [#default]  
-            @cfException
-                mode=listMode
-                description="Unkown Engine Type"
-                context=occurrence.Configuration.Solution
-            /]
-    [/#switch] 
-
-    [#return 
-        {
-            "Resources" : resources,
             "Attributes" : {
             },
             "Roles" : {

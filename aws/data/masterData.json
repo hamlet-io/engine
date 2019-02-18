@@ -8,7 +8,7 @@
           "Title": "Zone A",
           "Name": "a",
           "Description": "Zone A",
-          "AWSZone": "ap-northeast-1a"
+          "AWSZone": "ap-northeast-1a"          
         },
         "c": {
           "Title": "Zone C",
@@ -122,19 +122,385 @@
           "Title": "Zone A",
           "Name": "a",
           "Description": "Zone A",
-          "AWSZone": "ap-southeast-2a"
+          "AWSZone": "ap-southeast-2a",
+          "NetworkEndpoints" : [
+              {
+                  "Type": "Interface",
+                  "ServiceName": "aws.sagemaker.ap-southeast-2.notebook"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.cloudformation"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.cloudtrail"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.codebuild"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.codepipeline"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.config"
+              },
+              {
+                  "Type": "Gateway",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.dynamodb"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ec2"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ec2messages"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecr.api"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecr.dkr"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecs"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecs-agent"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecs-telemetry"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.elasticloadbalancing"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.events"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.execute-api"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.kinesis-streams"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.kms"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.logs"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.monitoring"
+              },
+              {
+                  "Type": "Gateway",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.s3"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.api"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.runtime"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.secretsmanager"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.servicecatalog"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.sns"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.sqs"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ssm"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ssmmessages"
+              }
+            ]
         },
         "b": {
           "Title": "Zone B",
           "Name": "b",
           "Description": "Zone B",
-          "AWSZone": "ap-southeast-2b"
+          "AWSZone": "ap-southeast-2b",
+          "NetworkEndpoints" : [
+            {
+                "ServiceName": "aws.sagemaker.ap-southeast-2.notebook",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.cloudformation",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.cloudtrail",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.codebuild",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.codepipeline",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.config",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.dynamodb",
+                "Type": "Gateway"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ec2",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ec2messages",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecr.api",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecr.dkr",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs-agent",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs-telemetry",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.elasticloadbalancing",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.events",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.execute-api",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.kinesis-streams",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.kms",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.logs",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.monitoring",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.s3",
+                "Type": "Gateway"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.api",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.runtime",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.secretsmanager",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.servicecatalog",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.sns",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.sqs",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ssm",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ssmmessages",
+                "Type": "Interface"
+            }
+          ]
         },
         "c": {
           "Title": "Zone C",
           "Name": "c",
           "Description": "Zone C",
-          "AWSZone": "ap-southeast-2c"
+          "AWSZone": "ap-southeast-2c",
+          "NetworkEndpoints" : [
+            {
+                "Type": "Interface",
+                "ServiceName": "aws.sagemaker.ap-southeast-2.notebook"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.cloudformation"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.cloudtrail"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.codebuild"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.codepipeline"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.config"
+            },
+            {
+                "Type": "Gateway",
+                "ServiceName": "com.amazonaws.ap-southeast-2.dynamodb"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ec2"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ec2messages"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecr.api"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecr.dkr"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs-agent"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs-telemetry"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.elasticloadbalancing"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.events"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.execute-api"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.kinesis-streams"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.kms"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.logs"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.monitoring"
+            },
+            {
+                "Type": "Gateway",
+                "ServiceName": "com.amazonaws.ap-southeast-2.s3"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.api"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.runtime"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.secretsmanager"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.servicecatalog"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.sns"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.sqs"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ssm"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ssmmessages"
+            }
+          ]
         }
       },
       "Accounts": {
@@ -2044,6 +2410,26 @@
             }
           }
         }
+    }
+  },
+  "NetworkEndpointGroups" : {
+    "compute" : {
+        "Services" : [ "ec2", "ec2messages", "logs", "elasticloadbalancing", "monitoring" ]
+    },
+    "security" : {
+        "Services" : [ "kms" ]
+    },
+    "configurationMgmt" : {
+      "Services" : [ "ssm", "ssmmessages" ]
+    },
+    "ecs" : {
+      "Services" : [ "ecs", "ecs-agent", "ecs-telemetry", "ecr.api", "ecr.dkr" ]
+    },
+    "serverless" : {
+      "Services"  : [ "sns", "sqs", "execute-api" ]
+    },
+    "storage" : {
+      "Services" : [ "s3", "dynamodb" ]
     }
   }
 }

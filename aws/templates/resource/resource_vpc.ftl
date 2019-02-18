@@ -306,9 +306,7 @@
             mode,
             id,
             name,
-            tier,
-            component,
-            zone,
+            tags,
             subnetId,
             eipId]
     [@cfResource
@@ -573,29 +571,38 @@
             id,
             vpcId,
             service,
-            routeTableIds=[]
+            type,
+            privteDNSZone=false,
+            subnetIds=[],
+            routeTableIds=[],
             statements=[]
 ]
 
-    [#local routeTableRefs = [] ]
-    [#list asArray(routeTableIds) as routeTableId]
-        [#local routeTableRefs += [getReference(routeTableId)] ]
-    [/#list]
     [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::VPCEndpoint"
         properties=
             {
-                "RouteTableIds" : routeTableRefs,
-                "ServiceName" :
-                    formatDomainName(
-                        "com.amazonaws",
-                        region,
-                        service),
+                "ServiceName" : service,
                 "VpcId" : getReference(vpcId)
             } +
-            valueIfContent(getPolicyDocument(statements), statements)
+            (type == "gateway")?then(
+                {
+                    "VpcEndpointType" : "Gateway",
+                    "RouteTableIds" : getReferences(routeTableIds)
+                } +
+                valueIfContent(getPolicyDocument(statements), statements),
+                {}
+            ) +
+            (type == "endpoint")?then(
+                {
+                    "VpcEndpointType" : "Interface",
+                    "SubnetIds" : getReferences(subnetIds)
+                },
+                {}
+            )
+            
         outputs={}
     /]
 [/#macro]
