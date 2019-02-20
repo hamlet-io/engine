@@ -117,11 +117,6 @@
                     "Default" : false
                 },
                 {
-                    "Names" : "PerAZ",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : true 
-                },
-                {
                     "Names" : "Profiles",
                     "Children" : profileChildConfiguration
                 }
@@ -221,7 +216,10 @@
 
     [#if legacyVpc ]
         [#local vpcId = formatVPCTemplateId() ]
-        [#assign legacySegmentTopicId = formatSegmentSNSTopicId() ]
+        [#local legacySegmentTopicId = formatSegmentSNSTopicId() ]
+        [#local legacyIGWId = formatVPCIGWTemplateId() ]
+        [#local legacyIGWName = formatIGWName() ]
+        [#local legacyIGWAttachementId = formatId(AWS_VPC_IGW_ATTACHMENT_TYPE) ]
     [#else]
         [#local vpcId = formatResourceId(AWS_VPC_RESOURCE_TYPE, core.Id)]
     [/#if]
@@ -253,19 +251,18 @@
     [#local subnets = {} ]
     [#-- Define subnets --]
     [#list segmentObject.Network.Tiers.Order as tierId]
-        [#assign networkTier = getTier(tierId) ]
+        [#local networkTier = getTier(tierId) ]
         [#if ! (networkTier?has_content && networkTier.Network.Enabled ) ]
             [#continue]
         [/#if]
-
         [#list zones as zone]
             [#local subnetId = legacyVpc?then(
                                     formatSubnetId(networkTier, zone),
-                                    formatResourceId(AWS_VPC_SUBNET_RESOURCE_TYPE, core.Id, networkTiers.Id, zone.Id))]
+                                    formatResourceId(AWS_VPC_SUBNET_RESOURCE_TYPE, core.Id, networkTier.Id, zone.Id))]
             
             [#local subnetName = legacyVpc?then(
                                     formatSubnetName(networkTier, zone),
-                                    formatName(core.FullNane, networkTier.Name, zone.Name ) )]
+                                    formatName(core.FullName, networkTier.Name, zone.Name))]
 
             [#local subnetAddress = addressOffset + (networkTier.Network.Index * addressesPerTier) + (zone.Index * addressesPerZone) ]
             [#local subnetCIDR = baseAddress[0] + "." + baseAddress[1] + "." + (subnetAddress/256)?int + "." + subnetAddress%256 + "/" + subnetMask]
@@ -321,14 +318,24 @@
                     }
                 }},
                 {}
-            ) + legacyVpc?then(
+            ) + 
+            legacyVpc?then(
                 {
                     "legacySnsTopic" : {
                         "Id" : legacySegmentTopicId,
                         "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE
+                    },
+                    "legacyIGW" : {
+                            "Id" : legacyIGWId,
+                            "Name" : legacyIGWName,
+                            "Type" : AWS_VPC_IGW_RESOURCE_TYPE
+                    },
+                    "legacyIGWAttachement" : {
+                        "Id" : legacyIGWAttachementId,
+                        "Type" : AWS_VPC_IGW_ATTACHMENT_TYPE
                     }
                 },
-                {}
+                {} 
             ),
             "Attributes" : {
             },
@@ -347,64 +354,51 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local legacyVpc = getVpcLgeacyStatus() ]
+    [#local routeTables = {}]
+
+    [#local routeTableId = formatResourceId(AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE, core.Id)]
+    [#local routeTableName = core.FullName ]
 
     [#if legacyVpc ]
-        [#local routeTableId = formatRouteTableId(core.SubComponent.Id)]
-        [#local routeTableName = formatRouteTableName(core.SubComponent.Name)]
-
         [#-- Support for IGW defined as part of VPC tempalte instead of Gateway --]
-        [#local legacyIGWId = formatVPCIGWTemplateId() ]
-        [#local legacyIGWName = formatIGWName() ]
-        [#local legacyIGWAttachementId = formatId(AWS_VPC_IGW_RESOURCE_TYPE,AWS_VPC_IGW_ATTACHMENT_TYPE) ]
         [#local legacyIGWRouteId = formatRouteId(routeTableId, "gateway") ]
-    [#else]
-        [#local routeTableId = formatResourceId(AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE, core.Id)]
-        [#local routeTableName = core.FullName ]
     [/#if]
 
-    [#list zones as zone]
-        [#local routeTableId = formatId(routeTableId, zone.Id)]
-        [#local routeTableName = formatName(routeTableName, zone.Id)]
+    [#list segmentObject.Network.Tiers.Order as tierId]
+        [#local networkTier = getTier(tierId) ]
+        [#if ! (networkTier?has_content && networkTier.Network.Enabled ) ]
+            [#continue]
+        [/#if]
 
-        [#local zoneResources += {
-            "routeTables" : {
-                zone.Id : {
-                    "routeTable" : {
-                        "Id" : routeTableId,
-                        "Name" : routeTableName,
-                        "Type" : AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE
-                    }
-                } + 
-                (legacyVpc && solution.Public )?then(
-                    {
-                        "legacyIGWRoute" : {
-                            "Id" : formatId(legacyIGWRouteId, zone.Id),
-                            "Type" : AWS_VPC_ROUTE_RESOURCE_TYPE
+        [#list zones as zone]
+            [#local zoneRouteTableId = formatId(routeTableId, zone.Id)]
+            [#local zoneRouteTableName = formatName(routeTableName, zone.Id)]
+
+            [#local routeTables = mergeObjects(routeTables, {
+                    zone.Id : {
+                        "routeTable" : {
+                            "Id" : zoneRouteTableId,
+                            "Name" : zoneRouteTableName,
+                            "Type" : AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE
                         }
-                    }
-                )
-            } +
-            ( legacyVpc && solution.Public )?then(
-                {
-                    "legacyIGW" : {
-                        "Id" : legacyIGWId,
-                        "Name" : legacyIGWName,
-                        "Type" : AWS_VPC_IGW_RESOURCE_TYPE
-                    },
-                    "legacyIGWAttachement" : {
-                        "Id" : legacyIGWAttachementId,
-                        "Type" : AWS_VPC_IGW_ATTACHMENT_TYPE
-                    }
-                },
-                {}
-            ) 
-        }]
+                    } + 
+                    (legacyVpc && solution.Public )?then(
+                        {
+                            "legacyIGWRoute" : {
+                                "Id" : formatId(legacyIGWRouteId, zone.Id),
+                                "Type" : AWS_VPC_ROUTE_RESOURCE_TYPE
+                            }
+                        },
+                        {}
+                    )
+            })]
+        [/#list]
     [/#list]
 
     [#return 
         {
             "Resources" : { 
-                "routeTables" : zoneResources
+                "routeTables" : routeTables
             },
             "Attributes" : {
             },

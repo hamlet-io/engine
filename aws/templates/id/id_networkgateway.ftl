@@ -17,11 +17,6 @@
                 {
                     "Type" : "ComponentLevel",
                     "Value" : "segment"
-                },
-                {
-                    "Names" : "PerAZ",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : true 
                 }
             ],
             "Attributes" : [
@@ -35,6 +30,12 @@
                     "Type" : STRING_TYPE,
                     "Values" : [ "instance", "natgw", "igw", "vpcendpoint" ],
                     "Required" : true
+                },
+                {
+                    "Names" : "SourceIPAddressGroups",
+                    "Description" : "IP Address Groups which can access this gateway",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : [ "_localnet" ]
                 }
             ],
             "Components" : [
@@ -68,7 +69,7 @@
                 },
                 {
                     "Names" : "IPAddressGroups",
-                    "Description" : "An IP Address Group reference"
+                    "Description" : "An IP Address Group reference",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
@@ -77,6 +78,11 @@
                     "Description" : "A cloud provider service group reference",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
+                },
+                { 
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
                 }
             ]
         }
@@ -92,28 +98,20 @@
 
     [#assign legacyVpc = getVpcLgeacyStatus() ]
 
-    [#if solution.PerAZ ]
-        [#if solnMultiAZ ]
-            [#local resourceZones = zones ]
-        [#else]
-            [#local resourceZones = zones[0]]
-        [/#if]
+    [#if multiAZ ]
+        [#local resourceZones = zones ]
     [#else]
-        [#local resourceZones = [
-                { 
-                    "Id" : "regional"
-                } 
-            ]]
+        [#local resourceZones = [ zones[0] ]]
     [/#if]
 
     [#-- elastic IP address Allocation --]
     [#switch engine ]
-        [#case "nat" ]
+        [#case "natgw" ]
         [#case "instance" ]
             [#list resourceZones as zone ]
                 [#local eipId = legacyVpc?then(
-                                    formatResourceId(AWS_EIP_RESOURCE_TYPE, core.Tier.Id, core.Component.Id, zone),
-                                    formatResourceId(AWS_EIP_RESOURCE_TYPE, core.Id, zone)]    
+                                    formatResourceId(AWS_EIP_RESOURCE_TYPE, core.Tier.Id, core.Component.Id, zone.Id),
+                                    formatResourceId(AWS_EIP_RESOURCE_TYPE, core.Id, zone.Id))]    
                 [#local zoneResources = mergeObjects( zoneResources,
                         {
                             zone.Id : {
@@ -128,11 +126,11 @@
     [/#switch]
 
     [#switch engine ]
-        [#case "nat"] 
+        [#case "natgw"] 
 
             [#list resourceZones as zone]
                 [#local natGatewayId = legacyVpc?then(
-                                            formatNATGatewayId(tier, zone),
+                                            formatNATGatewayId(core.Tier.Id, zone.Id),
                                             formatResourceId(AWS_VPC_NAT_GATEWAY_RESOURCE_TYPE, core.Id, zone.Id)
                 )]
 
@@ -166,6 +164,13 @@
             [#break]
 
         [#case "vpcendpoint"]
+                [#local resources += {
+                    "sg" : {
+                        "Id" : formatDependentSecurityGroupId(core.Id),
+                        "Name" : core.FullName,
+                        "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
+                    }
+                }]
             [#break]
 
         [#default]  
@@ -201,25 +206,16 @@
     [#local parentSolution = parent.Configuration.Solution ]
     [#local engine = parentSolution.Engine ]
     
-    [#if parentSolution.PerAZ ]
-        [#if solnMultiAZ ]
-            [#local resourceZones = zones ]
-        [#else]
-            [#local resourceZones = zones[0]]
-        [/#if]
+    [#if multiAZ || engine == "vpcendpoint" ]
+        [#local resourceZones = zones ]
     [#else]
-        [#local resourceZones = [
-                { 
-                    "Id" : "regional"
-                } 
-            ]]
+        [#local resourceZones = [zones[0]] ]
     [/#if]
 
     [#local resources = {} ]
-    [#local zoneResources = {}]
 
     [#switch engine ]
-        [#case "nat"]
+        [#case "natgw"]
             [#break]
 
         [#case "igw"]
@@ -227,48 +223,34 @@
 
         [#case "vpcendpoint"]
 
+            [#local endpointZones = {} ]
             [#list resourceZones as zone]
-                [#local networkEndpoints = getNetworkEndpoints(solution.NetworkEndpointGroups, region, zone)]
+                [#local networkEndpoints = getNetworkEndpoints(solution.NetworkEndpointGroups, zone.Id, region)]
                 [#list networkEndpoints as id, networkEndpoint  ]
-                    [#switch networkEndpoint.Type ]
-                        [#case "interface" ]
-                            [#local resources = mergeObjects( resources, {
-                                "vpcEndpoints" : {
-                                    zone.Id : {
-                                        "vpcEndpoint" + id : { 
-                                            "Id" : formatResourceId(AWS_VPC_ENDPOINNT_RESOURCE_TYPE, core.Id, id, zone.Id),
-                                            "EndpointType" : networkEndpoint.Type,
-                                            "ServiceName" : networkEndpoint.ServiceName,
-                                            "Type" : AWS_VPC_ENDPOINNT_RESOURCE_TYPE
-                                        }
-                                    }
-                                }
-                            }]
-                            [#break]
-                        [#case "gateway" ]
-                            [#local resources = mergeObjects( resources, {
-                                "vpcEndpoints" : {
-                                    "regional" : {
-                                        "vpcEndpoint" + id : { 
-                                            "Id" : formatResourceId(AWS_VPC_ENDPOINNT_RESOURCE_TYPE, core.Id, id),
-                                            "EndpointType" : networkEndpoint.Type,
-                                            "ServiceName" : networkEndpoint.ServiceName,
-                                            "Type" : AWS_VPC_ENDPOINNT_RESOURCE_TYPE
-                                        }
-                                    }
-                                }
-                            }]
-                            [#break]
+                    [#local endpointTypeZones = endpointZones[id]![] ]
+                    [#local endpointZones += { id : endpointTypeZones + [ zone.Id ] }]
+                    [#local resources = mergeObjects( resources, {
+                        "vpcEndpoints" : {
+                            "vpcEndpoint" + id : { 
+                                "Id" : formatResourceId(AWS_VPC_ENDPOINNT_RESOURCE_TYPE, core.Id, replaceAlphaNumericOnly(id, "X")),
+                                "EndpointType" : networkEndpoint.Type?lower_case,
+                                "EndpointZones" : endpointZones[id],
+                                "ServiceName" : networkEndpoint.ServiceName,
+                                "Type" : AWS_VPC_ENDPOINNT_RESOURCE_TYPE
+                            }
+                        }
+                    })]
                 [/#list]
+            [/#list]
             [#break]
 
         [#default]  
-            @cfException
+            [@cfException
                 mode=listMode
                 description="Unkown Engine Type"
                 context=occurrence.Configuration.Solution
             /]
-    [/#switch] 
+    [/#switch]
 
     [#return 
         {

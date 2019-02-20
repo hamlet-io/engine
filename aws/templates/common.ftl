@@ -1897,19 +1897,19 @@ behaviour.
     [#list endpointGroups as endpointGroup ]
         [#if networkEndpointGroups[endpointGroup]?? ]
             [#list networkEndpointGroups[endpointGroup].Services as service ]
-                [#if !services[service]?? ]
+                [#if !services?seq_contains(service) ]
                     [#local services += [ service ]]
                 [/#if]
             [/#list]
         [/#if]
     [/#list]
 
-    [#list networkEndpoints as networkEndpoint ]
+    [#list services as service ]
         [#list zoneNetworkEndpoints as zoneNetworkEndpoint ]
-            [#if (zoneNetworkEndpoint.ServiceName!"")?ends_with(networkEndpoint) ]
+            [#if (zoneNetworkEndpoint.ServiceName!"")?ends_with(service) ]
                 [#local networkEndpoints += 
                     { 
-                        networkEndpoint : zoneNetworkEndpoint  
+                        service : zoneNetworkEndpoint  
                     }]
             [/#if]
         [/#list]

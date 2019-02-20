@@ -3,7 +3,7 @@
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
-
+            
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
@@ -13,28 +13,11 @@
         [#assign vpcId = resources["vpc"].Id]
         [#assign vpcName = resources["vpc"].Name]
         [#assign vpcCIDR = resources["vpc"].Address]
+        
+        [#assign legacyVpc = getVpcLgeacyStatus() ]
 
         [#assign dnsSupport = (network.DNSSupport)!solution.DNS.UseProvider ]
         [#assign dnsHostnames = (network.DNSHostnames)!solution.DNS.GenerateHostNames ]
-
-        [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
-            [@createVPC
-                mode=listMode
-                id=vpcId
-                name=vpcName
-                cidr=vpcCIDR
-                dnsSupport=dnsSupport
-                dnsHostnames=dnsHostnames
-            /]
-        [/#if]
-
-        [#if (resources["legacySnsTopic"]!{})?has_content ]
-            [#assign topicId = resources["legacySnsTopic"].Id ]
-            [@createSegmentSNSTopic
-                mode=listMode
-                id=topicId
-            /]
-        [/#if]
 
         [#if (resources["flowlogs"]!{})?has_content ]
             [#assign flowLogsResources = resources["flowlogs"]]
@@ -84,6 +67,49 @@
 
         [/#if]
 
+        [#if (resources["legacySnsTopic"]!{})?has_content ]
+            [#assign topicId = resources["legacySnsTopic"].Id ]
+            [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
+                [@createSegmentSNSTopic
+                    mode=listMode
+                    id=topicId
+                /]
+            [/#if]
+        [/#if]
+
+        [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
+            [@createVPC
+                mode=listMode
+                id=vpcId
+                name=vpcName
+                legacyVpc=legacyVpc
+                cidr=vpcCIDR
+                dnsSupport=dnsSupport
+                dnsHostnames=dnsHostnames
+            /]
+        [/#if]
+
+        [#assign legacyIGWId = "" ]
+        [#if (resources["legacyIGW"]!{})?has_content]
+            [#assign legacyIGWId = resources["legacyIGW"].Id ]
+            [#assign legacyIGWName = resources["legacyIGW"].Name]
+            [#assign legacyIGWAttachmentId = resources["legacyIGWAttachement"].Id ]
+
+            [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
+                [@createIGW
+                    mode=listMode
+                    id=legacyIGWId
+                    name=legacyIGWName
+                /]
+                [@createIGWAttachment
+                    mode=listMode
+                    id=legacyIGWAttachmentId
+                    vpcId=vpcId
+                    igwId=legacyIGWId
+                /]
+            [/#if]
+        [/#if]
+        
         [#if (resources["subnets"]!{})?has_content ]
 
             [#assign subnetResources = resources["subnets"]]
@@ -126,7 +152,7 @@
                             [#assign subnetAddress = zoneSubnetResources["subnet"].Address ]
                             [#assign routeTableAssociationId = zoneSubnetResources["routeTableAssoc"].Id]
                             [#assign networkACLAssociationId = zoneSubnetResources["networkACLAssoc"].Id]
-                            [#assign routeTableId = routeTableZones[zone.Id]["routeTable"].Id)]
+                            [#assign routeTableId = (routeTableZones[zone.Id]["routeTable"]).Id]
                             
                             [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                                 [@createSubnet
@@ -170,21 +196,21 @@
 
                 [#assign zoneRouteTables = resources["routeTables"] ]
 
-                    [#list zones as zone ]
+                [#list zones as zone ]
 
-                        [#if zoneRouteTables[zone.Id]?has_content ]
-                            [#assign zoneRouteTableResources = zoneRouteTables[zone.Id] ]
-                            [#assign routeTableId = zoneRouteTableResources["routeTable"].Id]
-                            [#assign routeTableName = zoneRouteTableResources["routeTable"].Name]
+                    [#if zoneRouteTables[zone.Id]?has_content ]
+                        [#assign zoneRouteTableResources = zoneRouteTables[zone.Id] ]
+                        [#assign routeTableId = zoneRouteTableResources["routeTable"].Id]
+                        [#assign routeTableName = zoneRouteTableResources["routeTable"].Name]
 
-                            [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
-                                [@createRouteTable
-                                    mode=listMode
-                                    id=routeTableId
-                                    name=routeTableName
-                                    vpcId=vpcId
-                                    zone=zone
-                                /]
+                        [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
+                            [@createRouteTable
+                                mode=listMode
+                                id=routeTableId
+                                name=routeTableName
+                                vpcId=vpcId
+                                zone=zone
+                            /]
 
                             [#if (zoneRouteTableResources["legacyIGWRoute"].Id!{})?has_content ]
                                 [#assign legacyIGWRouteId =  zoneRouteTableResources["legacyIGWRoute"].Id ]
@@ -201,10 +227,9 @@
                                 /]   
                             [/#if] 
                             
-                            [/#if]
                         [/#if]
-                    [/#list]
-                [/#if]
+                    [/#if]
+                [/#list]
             [/#if]
 
             [#if core.Type == NETWORK_ACL_COMPONENT_TYPE ]

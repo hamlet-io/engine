@@ -1312,6 +1312,23 @@
             "s3"
           ]
         },
+        "seg-dashboard": {
+          "DeploymentUnits": [
+            "dashboard"
+          ]
+        },
+        "ssh": {
+          "DeploymentUnits": [ "ssh" ],
+          "MultiAZ": true,
+          "bastion": {
+            "AutoScaling": {
+              "DetailedMetrics": false,
+              "ActivityCooldown": 180,
+              "MinUpdateInstances": 0,
+              "AlwaysReplaceOnUpdate": false
+            }
+          }
+        },
         "vpc": {
           "DeploymentUnits": [ "vpc" ],
           "MultiAZ": true,
@@ -1357,27 +1374,64 @@
             }
           }
         },
-        "seg-dashboard": {
-          "DeploymentUnits": [
-            "dashboard"
-          ]
-        },
-        "ssh": {
-          "DeploymentUnits": [ "ssh" ],
-          "MultiAZ": true,
-          "bastion": {
-            "AutoScaling": {
-              "DetailedMetrics": false,
-              "ActivityCooldown": 180,
-              "MinUpdateInstances": 0,
-              "AlwaysReplaceOnUpdate": false
-            }
+        "igw" : {
+          "DeploymentUnits": [ "igw" ],
+          "gateway" : {
+              "Engine" : "igw",
+              "Destinations" : {
+                  "default" : {
+                      "IPAddressGroups" : "_global",
+                      "Links" : {
+                          "external" : {
+                              "Tier" : "mgmt",
+                              "Component" : "vpc",
+                              "RouteTable" : "external"
+                          }
+                      }
+                  }
+              }
           }
         },
-        "nat-nat": {
-          "DeploymentUnits": [
-            "nat"
-          ]
+        "nat" : {
+          "DeploymentUnits" : [ "nat"],
+          "gateway" : {
+              "Engine" : "natgw",
+              "Destinations" : {
+                  "default" : {
+                      "IPAddressGroups" : "_global",
+                      "Links" : {
+                          "internal" : {
+                              "Tier" : "mgmt",
+                              "Component" : "vpc",
+                              "RouteTable" : "internal"
+                          }
+                      }
+                  }
+              }
+          }
+        },
+        "vpcendpoint" : {
+            "DeploymentUnits" : ["vpcendpoint"],
+            "gateway" : {
+                "Engine" : "vpcendpoint",
+                "Destinations" : {
+                    "default" : {
+                        "NetworkEndpointGroups" : [ "storage", "security" ],
+                        "Links" : {
+                            "internal" : {
+                                "Tier" : "mgmt",
+                                "Component" : "vpc",
+                                "RouteTable" : "internal"
+                            },
+                            "external" : {
+                                "Tier" : "mgmt",
+                                "Component" : "vpc",
+                                "RouteTable" : "external"
+                            }
+                        }
+                    }
+                }
+            }
         }
       }
     },
@@ -2417,7 +2471,7 @@
         "Services" : [ "ec2", "ec2messages", "logs", "elasticloadbalancing", "monitoring" ]
     },
     "security" : {
-        "Services" : [ "kms" ]
+        "Services" : [ "kms", "logs" ]
     },
     "configurationMgmt" : {
       "Services" : [ "ssm", "ssmmessages" ]

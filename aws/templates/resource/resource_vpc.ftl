@@ -216,6 +216,7 @@
 [#macro createVPC
             mode
             id
+            legacyVpc
             name
             cidr
             dnsSupport
@@ -231,7 +232,9 @@
                 "EnableDnsHostnames" : dnsHostnames
             }
         tags=getCfTemplateCoreTags(name)
-        outputId=formatVPCId()
+        outputId=legacyVpc?then(
+                    formatVPCId(),
+                    id)
     /]
 [/#macro]
 
@@ -305,7 +308,6 @@
 [#macro createNATGateway
             mode,
             id,
-            name,
             tags,
             subnetId,
             eipId]
@@ -318,7 +320,7 @@
                 "AllocationId" : getReference(eipId, ALLOCATION_ATTRIBUTE_TYPE),
                 "SubnetId" : getReference(subnetId)
             }
-        tags=getCfTemplateCoreTags(name, tier, component, zone)
+        tags=tags
 
     /]
 [/#macro]
@@ -572,9 +574,10 @@
             vpcId,
             service,
             type,
-            privteDNSZone=false,
+            privateDNSZone=false,
             subnetIds=[],
             routeTableIds=[],
+            securityGroupIds=[],
             statements=[]
 ]
 
@@ -595,10 +598,12 @@
                 valueIfContent(getPolicyDocument(statements), statements),
                 {}
             ) +
-            (type == "endpoint")?then(
+            (type == "interface")?then(
                 {
                     "VpcEndpointType" : "Interface",
-                    "SubnetIds" : getReferences(subnetIds)
+                    "SubnetIds" : getReferences(subnetIds),
+                    "PrivateDnsEnabled" : privateDNSZone,
+                    "SecurityGroupIds" : getReferences(securityGroupIds)
                 },
                 {}
             )
