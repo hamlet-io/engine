@@ -1416,7 +1416,7 @@
                 "Engine" : "vpcendpoint",
                 "Destinations" : {
                     "default" : {
-                        "NetworkEndpointGroups" : [ "storage", "security" ],
+                        "NetworkEndpointGroups" : [ "storage", "logs" ],
                         "Links" : {
                             "internal" : {
                                 "Tier" : "mgmt",
@@ -2481,6 +2481,9 @@
     },
     "serverless" : {
       "Services"  : [ "sns", "sqs", "execute-api" ]
+    },
+    "logs" : {
+      "Services" : [ "logs"]
     },
     "storage" : {
       "Services" : [ "s3", "dynamodb" ]
