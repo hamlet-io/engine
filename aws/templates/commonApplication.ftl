@@ -243,7 +243,7 @@
     [/#if]
 [/#macro]
 
-[#macro Volume name containerPath hostPath="" readOnly=false]
+[#macro Volume name containerPath hostPath="" readOnly=false persist=false ]
     [#if (fragmentListMode!"") == "model"]
         [#assign _context +=
             {
@@ -253,7 +253,11 @@
                         name : {
                             "ContainerPath" : containerPath,
                             "HostPath" : hostPath,
-                            "ReadOnly" : readOnly
+                            "ReadOnly" : readOnly,
+                            "PersistVolume" : persist?is_string?then(
+                                                persist?boolean,
+                                                persist
+                            )
                         }
                     }
             }

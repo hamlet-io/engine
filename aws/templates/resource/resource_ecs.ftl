@@ -103,7 +103,16 @@
                     attributeIfTrue(
                         "Host",
                         volume.HostPath?has_content,
-                        {"SourcePath" : volume.HostPath!""})
+                        {"SourcePath" : volume.HostPath!""}) + 
+                    attributeIfTrue(
+                        "DockerVolumeConfiguration",
+                        volume.PersistVolume,
+                        {
+                            "Scope" : "shared",
+                            "autoprovision": true,
+                            "driver": "local" 
+                        }
+                    )
                 ]
             ]
         [/#list]
