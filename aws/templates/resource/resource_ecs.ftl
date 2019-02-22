@@ -109,8 +109,8 @@
                         volume.PersistVolume,
                         {
                             "Scope" : "shared",
-                            "autoprovision": true,
-                            "driver": "local" 
+                            "Autoprovision": true,
+                            "Driver": "local" 
                         }
                     )
                 ]
