@@ -130,7 +130,8 @@
                     "Key" : "load_balancing.cross_zone.enabled",
                     "Value" : true
                 }
-            ]
+            ],
+            []
         )
     ]
 
