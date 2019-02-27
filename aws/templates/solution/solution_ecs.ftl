@@ -35,6 +35,17 @@
         [#assign processorProfile = getProcessor(tier, component, "ECS")]
         [#assign storageProfile = getStorage(tier, component, "ECS")]
 
+        [#assign networkTier = getTier(tierId) ]       
+        [#assign networkLink = networkTier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
+
         [#assign ecsTags = getCfTemplateCoreTags(
                         ecsName,
                         tier,
@@ -292,6 +303,7 @@
                 autoScalingConfig=solution.AutoScaling
                 multiAZ=multiAZ
                 tags=ecsTags
+                networkResources=networkResources
                 hibernate=hibernate
             /]
 
@@ -304,7 +316,7 @@
                 securityGroupId=ecsSecurityGroupId
                 resourceId=ecsAutoScaleGroupId
                 imageId=regionObject.AMIs.Centos.ECS
-                routeTable=tier.Network.RouteTable
+                publicIP=publicRouteTable
                 configSet=configSetName
                 environmentId=environmentId
                 enableCfnSignal=solution.AutoScaling.WaitForSignal

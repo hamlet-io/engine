@@ -96,8 +96,6 @@
     [#local resources = {} ]
     [#local zoneResources = {}]
 
-    [#assign legacyVpc = getVpcLgeacyStatus() ]
-
     [#if multiAZ ]
         [#local resourceZones = zones ]
     [#else]

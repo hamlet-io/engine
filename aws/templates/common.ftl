@@ -948,6 +948,10 @@ behaviour.
                 [#local result = getNetworkGatewayDestinationState(occurrence, parentOccurrence)]
                 [#break]
 
+            [#case BASELINE_COMPONENT_TYPE ]
+                [#local result = getBaselineState(occurrence)]
+                [#break]
+
             [#case "external"]
                 [#local result +=
                     {

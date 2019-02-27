@@ -12,7 +12,17 @@
         [#assign ecsSecurityGroupId = parentResources["securityGroup"].Id!"" ]
         [#assign ecsServiceRoleId = parentResources["serviceRole"].Id!"" ]
 
-        [#assign hibernate = parentSolution.Hibernate.Enabled &&
+        [#assign networkTier = getTier(tierId) ]       
+        [#assign networkLink = networkTier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
+        [#assign vpc = getExistingReference(vpcId)]
+
+        [#assign hibernate = solution.Hibernate.Enabled &&
                                 getExistingReference(ecsId)?has_content ]
 
         [#list requiredOccurrences(
@@ -36,8 +46,8 @@
             [#if networkMode == "awsvpc" ]
                         
                 [#assign subnets = multiAZ?then(
-                    getSubnets(tier),
-                    getSubnets(tier)[0..0]
+                    getSubnets(core.Tier, networkResources),
+                    getSubnets(core.Tier, networkResources)[0..0]
                 )]
 
                 [#assign lbTargetType = "ip" ]

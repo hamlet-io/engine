@@ -28,6 +28,17 @@
         [#assign logFileProfile         = getLogFileProfile(tier, component, "EC2")]
         [#assign bootstrapProfile       = getBootstrapProfile(tier, component, "EC2")]
 
+        [#assign networkTier = getTier(tierId) ]       
+        [#assign networkLink = networkTier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
+
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
 
@@ -359,7 +370,7 @@
                         properties=
                             {
                                 "Description" : "eth0",
-                                "SubnetId" : getReference(formatSubnetId(tier, zone)),
+                                "SubnetId" : getSubnets(tier, networkResources, zone.Id),
                                 "SourceDestCheck" : true,
                                 "GroupSet" :
                                     [getReference(ec2SecurityGroupId)] +

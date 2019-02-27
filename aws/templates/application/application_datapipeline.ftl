@@ -28,11 +28,21 @@
 
         [#assign pipelineCreateCommand = "createPipeline"]
 
+        [#assign networkTier = getTier(tierId) ]       
+        [#assign networkLink = networkTier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
+        [#assign vpc = getExistingReference(vpcId)]
+
         [#assign parameterValues = {
                 "_AWS_REGION" : regionId,
                 "_AVAILABILITY_ZONE" : zones[0].AWSZone,
                 "_VPC_ID" : vpc,
-                "_SUBNET_ID" : getSubnets(tier)[0],
+                "_SUBNET_ID" : getSubnets(tier, networkResources)[0],
                 "_SECURITY_GROUP_ID" : getExistingReference(securityGroupId),
                 "_SSH_KEY_PAIR" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                 "_INSTANCE_TYPE_EC2" : ec2ProcessorProfile.Processor,

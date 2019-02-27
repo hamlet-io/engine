@@ -24,6 +24,22 @@
             [#assign fnLgId = resources["lg"].Id ]
             [#assign fnLgName = resources["lg"].Name ]
 
+            [#assign vpcAccess = false ]
+            [#if solution.VPCAccess ]
+                [#assign networkTier = getTier(tierId) ]       
+                [#assign networkLink = networkTier.Network.Link!{} ]
+
+                [#assign networkLinkTarget = getLinkTarget(fn, networkLink ) ]
+                [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+                [#assign networkResources = networkLinkTarget.State.Resources ]
+
+                [#assign vpcId = networkResources["vpc"].Id ]
+                [#assign vpc = getExistingReference(vpcId)]
+
+                [#assign vpcAccess = solution.VPCAccess && vpc?has_content ]
+
+            [/#if]
+
             [#assign fragment =
                 contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
 
@@ -129,7 +145,7 @@
 
             [#assign roleId = formatDependentRoleId(fnId)]
             [#assign managedPolicies =
-                (vpc?has_content && solution.VPCAccess)?then(
+                (vpcAccess)?then(
                     ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
                     ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
                 ) +
@@ -214,7 +230,7 @@
                 [/#if]
 
                 [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
-                [#if vpc?has_content && solution.VPCAccess]
+                [#if vpcAccess ]
                     [@createDependentSecurityGroup
                         mode=listMode
                         tier=tier
@@ -255,13 +271,13 @@
                         }
                     roleId=roleId
                     securityGroupIds=
-                        (vpc?has_content && solution.VPCAccess)?then(
+                        (vpcAccess)?then(
                             formatDependentSecurityGroupId(fnId),
                             []
                         )
                     subnetIds=
-                        (vpc?has_content && solution.VPCAccess)?then(
-                            getSubnets(core.Tier, false),
+                        (vpcAccess)?then(
+                            getSubnets(core.Tier, networkResources, false),
                             []
                         )
                     dependencies=
@@ -447,7 +463,7 @@
                 [/#if]
                 [@cfScript
                     mode=listMode
-                    content=(vpc?has_content && solution.VPCAccess)?then(
+                    content=(vpcAccess)?then(
                         [
                             "case $\{STACK_OPERATION} in",
                             "  delete)"

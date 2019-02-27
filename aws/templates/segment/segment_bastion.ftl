@@ -34,6 +34,18 @@
                 [#break]
         [/#switch]
 
+
+        [#assign networkTier = getTier(tierId) ]       
+        [#assign networkLink = networkTier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
+
         [#assign storageProfile = getStorage(tier, component, BASTION_COMPONENT_TYPE)]
         [#assign logFileProfile = getLogFileProfile(tier, component, BASTION_COMPONENT_TYPE)]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, BASTION_COMPONENT_TYPE)]
@@ -226,6 +238,7 @@
                     autoScalingConfig=solution.AutoScaling
                     multiAZ=multiAZ
                     tags=asgTags
+                    networkResources=networkResources
                 /]
 
                 [@createEC2LaunchConfig
@@ -237,7 +250,7 @@
                     instanceProfileId=bastionInstanceProfileId
                     resourceId=bastionAutoScaleGroupId
                     imageId=imageId
-                    routeTable=tier.Network.RouteTable
+                    publicIP=publicRouteTable
                     configSet=configSetName
                     enableCfnSignal=true
                     environmentId=environmentId

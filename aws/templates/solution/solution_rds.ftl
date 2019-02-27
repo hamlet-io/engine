@@ -13,6 +13,13 @@
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
 
+        [#assign networkTier = getTier(tierId) ]       
+        [#assign networkLink = networkTier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
         [#assign engine = solution.Engine]
         [#switch engine]
             [#case "mysql"]
@@ -258,7 +265,7 @@
                 properties=
                     {
                         "DBSubnetGroupDescription" : rdsFullName,
-                        "SubnetIds" : getSubnets(tier)
+                        "SubnetIds" : getSubnets(tier, networkResources)
                     }
                 tags=rdsTags
                 outputs={}

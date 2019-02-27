@@ -1317,6 +1317,12 @@
             "dashboard"
           ]
         },
+        "baseline" :{
+          "DeploymentUnits" : [ "baseline" ],
+          "baseline" : {
+            
+          }
+        },
         "ssh": {
           "DeploymentUnits": [ "ssh" ],
           "MultiAZ": true,

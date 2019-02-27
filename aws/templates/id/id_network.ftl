@@ -204,15 +204,9 @@
         }
     }]
 
-[#function getVpcLgeacyStatus ]
-    [#return getExistingReference(formatVPCTemplateId())?has_content]
-[/#function]
-
 [#function getNetworkState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
-
-    [#local legacyVpc = getVpcLgeacyStatus() ]
 
     [#if legacyVpc ]
         [#local vpcId = formatVPCTemplateId() ]
@@ -353,7 +347,6 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local legacyVpc = getVpcLgeacyStatus() ]
     [#local routeTables = {}]
 
     [#local routeTableId = formatResourceId(AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE, core.Id)]
@@ -413,8 +406,6 @@
 [#function getNetworkACLState occurrence ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
-
-    [#local legacyVpc = getVpcLgeacyStatus() ]
 
     [#if legacyVpc ]
         [#local networkACLId = formatNetworkACLId(core.SubComponent.Id) ]

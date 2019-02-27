@@ -13,6 +13,13 @@
         [#assign resources = occurrence.State.Resources]
         [#assign zoneResources = occurrence.State.Resources.Zones]
 
+        [#assign networkTier = getTier(tierId) ]       
+        [#assign networkLink = networkTier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
         [#assign efsPort = 2049]
 
         [#assign efsId                  = resources["efs"].Id]
@@ -55,7 +62,7 @@
                 [@createEFSMountTarget
                     mode=listMode
                     id=zoneEfsMountTargetId
-                    subnetId=formatSubnetId(tier, zone)
+                    subnetId=getSubnets(tier, networkResources, zone.Id)
                     efsId=efsId
                     securityGroups=efsSecurityGroupId
                     dependencies=[efsId,efsSecurityGroupId]

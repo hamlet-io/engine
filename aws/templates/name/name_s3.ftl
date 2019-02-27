@@ -10,7 +10,7 @@
                 (segmentObject.S3.IncludeTenant)!false,
                 ""),
             formatSegmentFullName(extensions),
-            vpc?remove_beginning("vpc-"))]
+            segmentSeed)]
 [/#function]
 
 [#function formatOccurrenceBucketName occurrence extensions...]
@@ -25,5 +25,5 @@
                 occurrence.Core.Component,
                 occurrence
                 extensions),
-            vpc?remove_beginning("vpc-"))]
+            segmentSeed)]
 [/#function]

@@ -17,6 +17,17 @@
         [#assign lbLogs = solution.Logs ]
         [#assign lbSecurityGroupIds = [] ]
 
+        [#assign networkTier = getTier(tierId) ]       
+        [#assign networkLink = networkTier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
+
         [#assign engine = solution.Engine]
         [#assign idleTimeout = solution.IdleTimeout]
 
@@ -129,7 +140,7 @@
 
             [#-- Determine the IP whitelisting required --]
             [#assign portIpAddressGroups = solution.IPAddressGroups ]
-            [#if !solution.IPAddressGroups?seq_contains("_localnet") && tier.Network.RouteTable != "external" ]
+            [#if !solution.IPAddressGroups?seq_contains("_localnet") && !publicRouteTable ]
                 [#assign portIpAddressGroups += [ "_localnet"] ]
             [/#if]
             [#assign cidrs = getGroupCIDRs(portIpAddressGroups)]
@@ -601,6 +612,8 @@
                         tier=tier
                         component=component
                         securityGroups=lbSecurityGroupIds
+                        networkResources=networkResources
+                        publicEndpoint=publicRouteTable
                         logs=lbLogs
                         type=engine
                         bucket=operationsBucket
@@ -630,6 +643,8 @@
                         listeners=classicListeners
                         healthCheck=healthCheck
                         securityGroups=lbSecurityGroupIds
+                        networkResources=networkResources
+                        publicEndpoint=publicRouteTable
                         logs=lbLogs
                         bucket=operationsBucket
                         idleTimeout=idleTimeout

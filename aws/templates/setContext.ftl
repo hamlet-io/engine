@@ -578,7 +578,16 @@
 
     [/#if]
 
-    [#assign vpc = getExistingReference(formatVPCId())]
+    [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
+
+    [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
+    [#if legacyVpc ]
+        [#assign vpc = getExistingReference(formatVPCId())]
+
+        [#-- Make sure the baseline component has been added to existing deployments --]
+        [#assign segmentSeed = "COTException: baseline component not deployed - Please run a deployment of the baseline component" ]
+    [/#if]
+
     [#assign network = segmentObject.Network!segmentObject ]
 
     [#assign internetAccess = network.InternetAccess]
@@ -685,26 +694,29 @@
     [/#if]
 [/#list]
 
-[#function getSubnets tier asReferences=true includeZone=false]
+[#function getSubnets tier networkResources zoneFilter="" asReferences=true includeZone=false]
     [#local result = [] ]
-    [#list zones as zone]
-        [#local subnetId = formatSubnetId(tier, zone)]
+    [#list networkResources.subnets[tier.Id] as zone, resources]
+
+        [#local subnetId = resources["subnet"].Id ]
 
         [#local subnetId = asReferences?then(
                                 getReference(subnetId),
                                 subnetId)]
 
-        [#local result +=
-            [
-                includeZone?then(
-                    {
-                        "subnetId" : subnetId,
-                        "zone" : zone
-                    },
-                    subnetId
-                )
+        [#if (zoneFilter?has_content && zoneFilter = zone) || !zoneFilter?has_content ]
+            [#local result +=
+                [
+                    includeZone?then(
+                        {
+                            "subnetId" : subnetId,
+                            "zone" : zone
+                        },
+                        subnetId
+                    )
+                ]
             ]
-        ]
+        [/#if]
     [/#list]
     [#return result]
 [/#function]

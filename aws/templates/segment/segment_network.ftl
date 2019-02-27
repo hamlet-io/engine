@@ -13,8 +13,6 @@
         [#assign vpcId = resources["vpc"].Id]
         [#assign vpcName = resources["vpc"].Name]
         [#assign vpcCIDR = resources["vpc"].Address]
-        
-        [#assign legacyVpc = getVpcLgeacyStatus() ]
 
         [#assign dnsSupport = (network.DNSSupport)!solution.DNS.UseProvider ]
         [#assign dnsHostnames = (network.DNSHostnames)!solution.DNS.GenerateHostNames ]
