@@ -28,15 +28,16 @@
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ComputeCluster")]
         [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
         [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+    
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
@@ -296,7 +297,8 @@
                 tier=tier
                 component=component
                 id=computeClusterSecurityGroupId
-                name=computeClusterSecurityGroupName /]
+                name=computeClusterSecurityGroupName
+                vpcId=vpcId /]
 
             [#list ingressRules as rule ]
                 [@createSecurityGroupIngress

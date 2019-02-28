@@ -704,7 +704,7 @@
                                 getReference(subnetId),
                                 subnetId)]
 
-        [#if (zoneFilter?has_content && zoneFilter = zone) || !zoneFilter?has_content ]
+        [#if (zoneFilter?has_content && zoneFilter == zone) || !zoneFilter?has_content ]
             [#local result +=
                 [
                     includeZone?then(

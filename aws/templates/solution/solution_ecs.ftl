@@ -34,15 +34,16 @@
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ECS")]
         [#assign processorProfile = getProcessor(tier, component, "ECS")]
         [#assign storageProfile = getStorage(tier, component, "ECS")]
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+    
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
@@ -193,7 +194,8 @@
             [@createComponentSecurityGroup
                 mode=listMode
                 tier=tier
-                component=component /]
+                component=component
+                vpcId=vpcId /]
 
             [#list resources.logMetrics as logMetricName,logMetric ]
 

@@ -11,13 +11,14 @@
         [#assign core = occurrence.Core ]
         [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+    
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
 
         [#assign engine = solution.Engine]
         [#switch engine]
@@ -130,6 +131,7 @@
                 component=component
                 resourceId=cacheId
                 resourceName=cacheFullName
+                vpcId=vpcId
             /]
         
             [@createSecurityGroupIngress

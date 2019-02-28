@@ -8,19 +8,17 @@
         [#assign parentResources = occurrence.State.Resources]
         [#assign parentSolution = occurrence.Configuration.Solution ]
 
-        [#assign ecsId = parentResources["cluster"].Id!"" ]
-        [#assign ecsSecurityGroupId = parentResources["securityGroup"].Id!"" ]
-        [#assign ecsServiceRoleId = parentResources["serviceRole"].Id!"" ]
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+        [#assign ecsId = resources["cluster"].Id!"" ]
+        [#assign ecsSecurityGroupId = resources["securityGroup"].Id!"" ]
+        [#assign ecsServiceRoleId = resources["serviceRole"].Id!"" ]
+   
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
         [#assign vpcId = networkResources["vpc"].Id ]
-        [#assign vpc = getExistingReference(vpcId)]
 
         [#assign hibernate = solution.Hibernate.Enabled &&
                                 getExistingReference(ecsId)?has_content ]
@@ -70,7 +68,8 @@
                             tier=tier
                             component=component
                             id=ecsSecurityGroupId
-                            name=ecsSecurityGroupName /]
+                            name=ecsSecurityGroupName
+                            vpcId=vpcId /]
                     [/#if]
 
                     [#assign loadBalancers = [] ]

@@ -207,7 +207,7 @@
     /]
 [/#macro]
 
-[#macro createTargetGroup mode id name tier component destination attributes targetType=""]
+[#macro createTargetGroup mode id name tier component destination attributes vpcId targetType=""]
 
     [#local healthCheckProtocol = (destination.HealthCheck.Protocol)!destination.Protocol]
 
@@ -234,7 +234,7 @@
                 "HealthyThresholdCount" : destination.HealthCheck.HealthyThreshold,
                 "Port" : destination.Port,
                 "Protocol" : destination.Protocol,
-                "VpcId": vpc,
+                "VpcId": getReference(vpcId),
                 "TargetGroupAttributes" : targetGroupAttributes
             } +
             valueIfContent(

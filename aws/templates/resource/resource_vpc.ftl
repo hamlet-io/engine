@@ -88,7 +88,7 @@
     [/#list]
 [/#macro]
 
-[#macro createSecurityGroup mode tier component id name description="" ingressRules=[] vpcId=""]
+[#macro createSecurityGroup mode tier component id name vpcId description="" ingressRules=[] ]
     [#local nonemptyIngressRules = [] ]
     [#list asFlattenedArray(ingressRules) as ingressRule]
         [#if ingressRule.CIDR?has_content]
@@ -128,6 +128,7 @@
             component
             resourceId
             resourceName
+            vpcId
             ingressRules=[]]
     [@createSecurityGroup 
         mode=mode 
@@ -136,7 +137,8 @@
         id=formatDependentSecurityGroupId(resourceId)
         name=resourceName
         description="Security Group for " + resourceName
-        ingressRules=ingressRules /]
+        ingressRules=ingressRules 
+        vpcId=vpcId/]
 [/#macro]
 
 [#macro createComponentSecurityGroup
@@ -144,7 +146,8 @@
             tier
             component
             extensions=""
-            ingressRules=[]]
+            ingressRules=[]
+            vpcId=vpcId]
     [@createSecurityGroup 
         mode=mode 
         tier=tier 
@@ -157,7 +160,8 @@
             tier,
             component,
             extensions)
-        ingressRules=ingressRules /]
+        ingressRules=ingressRules
+        vpcId=vpcId /]
 [/#macro]
 
 [#macro createDependentComponentSecurityGroup
@@ -167,7 +171,8 @@
             resourceId
             resourceName
             extensions=""
-            ingressRules=[]]
+            ingressRules=[]
+            vpcId=vpcId]
     [#local legacyId = formatComponentSecurityGroupId(
                         tier,
                         component,
@@ -178,7 +183,8 @@
             tier=tier 
             component=component
             extensions=extensions
-            ingressRules=ingressRules /]
+            ingressRules=ingressRules
+            vpcId=vpcId /]
     [#else]
         [@createDependentSecurityGroup 
             mode=mode 
@@ -186,7 +192,8 @@
             component=component
             resourceId=resourceId
             resourceName=resourceName
-            ingressRules=ingressRules /]
+            ingressRules=ingressRules 
+            vpcId=vpcId/]
     [/#if]
 [/#macro]
 

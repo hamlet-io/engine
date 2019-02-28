@@ -12,13 +12,14 @@
         [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
         [#assign zoneResources = occurrence.State.Resources.Zones]
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+      
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
 
         [#assign efsPort = 2049]
 
@@ -38,6 +39,7 @@
                 component=component
                 id=efsSecurityGroupId
                 name=efsSecurityGroupName
+                vpcId=vpcId
             /]
 
             [@createSecurityGroupIngress

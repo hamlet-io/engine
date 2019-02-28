@@ -16,15 +16,16 @@
         [#assign lbShortName = resources["lb"].ShortName ]
         [#assign lbLogs = solution.Logs ]
         [#assign lbSecurityGroupIds = [] ]
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+      
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
@@ -398,7 +399,8 @@
                             name=securityGroupName
                             tier=tier
                             component=component
-                            ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidrs} ]/]
+                            ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidrs} ]
+                            vpcId=vpcId/]
 
                     [/#if]
                     [#break]
@@ -477,6 +479,7 @@
                                 destination=destinationPort
                                 attributes=tgAttributes
                                 targetType=solution.Forward.TargetType
+                                vpcId=vpcId
                             /]
                         [/#if]
                     [/#if]
@@ -494,6 +497,7 @@
                             destination=destinationPort
                             attributes=tgAttributes
                             targetType=solution.Forward.TargetType
+                            vpcId=vpcId
                              /]
                     [/#if]
 

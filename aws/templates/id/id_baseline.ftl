@@ -51,7 +51,16 @@
                     "Id" : segmentSeedId,
                     "Type" : SEED_RESOURCE_TYPE
                 }
-            },
+            } + 
+            (!legacyVpc)?then(
+                {
+                    "segmentSNSTopic" : {
+                        "Id" : formatSegmentSNSTopicId(),
+                        "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE
+                    }
+                },
+                {}
+            ),
             "Attributes" : {
                 "SEED_SEGMENT" : getExistingReference(segmentSeedId)
             },

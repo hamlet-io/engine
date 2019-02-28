@@ -27,15 +27,16 @@
         [#assign storageProfile         = getStorage(tier, component, "EC2")]
         [#assign logFileProfile         = getLogFileProfile(tier, component, "EC2")]
         [#assign bootstrapProfile       = getBootstrapProfile(tier, component, "EC2")]
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+   
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
@@ -273,7 +274,8 @@
                 name=ec2SecurityGroupName
                 tier=tier
                 component=component
-                ingressRules=ingressRules /]
+                ingressRules=ingressRules
+                vpcId=vpcId /]
 
             [@cfResource
                 mode=listMode

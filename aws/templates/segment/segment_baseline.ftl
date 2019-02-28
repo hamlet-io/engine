@@ -40,5 +40,17 @@
                 /]
             [/#if]
         [/#if]
+
+        [#if (resources["segmentSNSTopic"]!{})?has_content ]
+            [#assign topicId = resources["segmentSNSTopic"].Id ]
+            [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
+                [@createSegmentSNSTopic
+                    mode=listMode
+                    id=topicId
+                /]
+            [/#if]
+        [/#if]
+
+
     [/#list]
 [/#if]

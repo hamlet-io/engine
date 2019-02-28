@@ -25,9 +25,8 @@
             [#assign fnLgName = resources["lg"].Name ]
 
             [#assign vpcAccess = false ]
-            [#if solution.VPCAccess ]
-                [#assign networkTier = getTier(tierId) ]       
-                [#assign networkLink = networkTier.Network.Link!{} ]
+            [#if solution.VPCAccess ]     
+                [#assign networkLink = tier.Network.Link!{} ]
 
                 [#assign networkLinkTarget = getLinkTarget(fn, networkLink ) ]
                 [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
@@ -236,7 +235,8 @@
                         tier=tier
                         component=component
                         resourceId=fnId
-                        resourceName=formatName("lambda", fnName) /]
+                        resourceName=formatName("lambda", fnName) 
+                        vpcId=vpcId/]
                 [/#if]
 
                 [#if solution.PredefineLogGroup && deploymentType == "REGIONAL"]
@@ -277,7 +277,7 @@
                         )
                     subnetIds=
                         (vpcAccess)?then(
-                            getSubnets(core.Tier, networkResources, false),
+                            getSubnets(core.Tier, networkResources, "", false),
                             []
                         )
                     dependencies=

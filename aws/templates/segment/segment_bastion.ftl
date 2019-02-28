@@ -33,16 +33,16 @@
                 [#assign imageId = regionObject.AMIs.Centos.EC2]
                 [#break]
         [/#switch]
-
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+      
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : networkTier.RouteTable })]
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
@@ -188,7 +188,7 @@
                                     )
                             }
                         ]
-                    vpcId=sshInVpc?then(vpcId,"")
+                    vpcId=vpcId
                 /]
 
                 [@createSecurityGroup
@@ -205,6 +205,7 @@
                                 "CIDR" : [bastionSecurityGroupToId]
                             }
                         ]
+                    vpcId=vpcId
                 /]
 
                 [@cfResource

@@ -17,16 +17,15 @@
                         "",
                         true)]
 
-                       
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+                            
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#if !networkLink?has_content ]
             [@cfException 
                 listMode 
                 "Tier Network configuration incomplete",
                     {
-                        "networkTier" : networkTier,
+                        "networkTier" : tier.Network,
                         "Link" : networkLink
                     }
             /]

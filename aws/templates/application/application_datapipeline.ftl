@@ -27,9 +27,8 @@
         [#assign emrProcessorProfile = getProcessor(tier, component, "EMR")]
 
         [#assign pipelineCreateCommand = "createPipeline"]
-
-        [#assign networkTier = getTier(tierId) ]       
-        [#assign networkLink = networkTier.Network.Link!{} ]
+     
+        [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
@@ -133,7 +132,8 @@
                     id=securityGroupId
                     name=securityGroupName
                     tier=tier
-                    component=component 
+                    component=component
+                    vpcId=vpcId
                 /]
 
                 [@createSecurityGroupIngress
