@@ -1163,7 +1163,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable" : "internal",
         "NetworkACL" : "open"
@@ -1176,7 +1178,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable" : "internal",
         "NetworkACL" : "open"
@@ -1190,7 +1194,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable" : "internal",
         "NetworkACL" : "open"
@@ -1204,7 +1210,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable" : "internal",
         "NetworkACL" : "open"
@@ -1218,7 +1226,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable" : "internal",
         "NetworkACL" : "open"
@@ -1232,7 +1242,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable" : "internal",
         "NetworkACL" : "open"
@@ -1246,7 +1258,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable" : "internal",
         "NetworkACL" : "open"
@@ -1259,7 +1273,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable": "external",
         "NetworkACL" : "open"
@@ -1272,7 +1288,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable" : "internal",
         "NetworkACL" : "open"
@@ -1286,7 +1304,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
         },
         "RouteTable": "external",
         "NetworkACL" : "open"
