@@ -35,12 +35,11 @@
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
         [#assign vpcId = networkResources["vpc"].Id ]
-        [#assign vpc = getExistingReference(vpcId)]
 
         [#assign parameterValues = {
                 "_AWS_REGION" : regionId,
                 "_AVAILABILITY_ZONE" : zones[0].AWSZone,
-                "_VPC_ID" : vpc,
+                "_VPC_ID" : getExistingReference(vpcId),
                 "_SUBNET_ID" : getSubnets(tier, networkResources)[0],
                 "_SECURITY_GROUP_ID" : getExistingReference(securityGroupId),
                 "_SSH_KEY_PAIR" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
