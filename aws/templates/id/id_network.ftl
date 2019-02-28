@@ -27,20 +27,6 @@
                     "Default" : false
                 },
                 {
-                    "Names" : ["Fragment", "Container"],
-                    "Type" : STRING_TYPE,
-                    "Default" : ""
-                },
-                { 
-                    "Names" : "Links",
-                    "Subobjects" : true,
-                    "Children" : linkChildrenConfiguration
-                },
-                {
-                    "Names" : "Profiles",
-                    "Children" : profileChildConfiguration
-                },
-                {
                     "Names" : "Logging",
                     "Children" : [
                         {
