@@ -1361,10 +1361,8 @@
           "network" : {
             "RouteTables" : {
                 "internal" : {
-                    "PerAZ" : true
                 },
                 "external" : {
-                    "PerAZ" : false,
                     "Public" : true
                 }
             },
@@ -1411,6 +1409,8 @@
                           "external" : {
                               "Tier" : "mgmt",
                               "Component" : "vpc",
+                              "Version" : "",
+                              "Instance" : "",
                               "RouteTable" : "external"
                           }
                       }
@@ -1429,6 +1429,8 @@
                           "internal" : {
                               "Tier" : "mgmt",
                               "Component" : "vpc",
+                              "Version" : "",
+                              "Instance" : "",
                               "RouteTable" : "internal"
                           }
                       }
@@ -1447,11 +1449,15 @@
                             "internal" : {
                                 "Tier" : "mgmt",
                                 "Component" : "vpc",
+                                "Version" : "",
+                                "Instance" : "",
                                 "RouteTable" : "internal"
                             },
                             "external" : {
                                 "Tier" : "mgmt",
                                 "Component" : "vpc",
+                                "Version" : "",
+                                "Instance" : "",
                                 "RouteTable" : "external"
                             }
                         }
@@ -1468,7 +1474,9 @@
         "Enabled": true,
         "Link" : {
           "Tier" : "mgmt",
-          "Component" : "vpc"
+          "Component" : "vpc",
+          "Version" : "",
+          "Instance" : "",
         },
         "RouteTable": "external",
         "NetworkACL" : "open"
