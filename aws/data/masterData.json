@@ -1476,7 +1476,7 @@
           "Tier" : "mgmt",
           "Component" : "vpc",
           "Version" : "",
-          "Instance" : "",
+          "Instance" : ""
         },
         "RouteTable": "external",
         "NetworkACL" : "open"
