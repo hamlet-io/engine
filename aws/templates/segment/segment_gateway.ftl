@@ -114,10 +114,6 @@
 
                 [#case "vpcendpoint"]
                 [#break]
-
-                [#case "instance"]
-
-                [#break]
     
             [/#switch]
 

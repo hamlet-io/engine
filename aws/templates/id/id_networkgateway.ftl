@@ -28,7 +28,7 @@
                 {
                     "Names" : "Engine",
                     "Type" : STRING_TYPE,
-                    "Values" : [ "instance", "natgw", "igw", "vpcendpoint" ],
+                    "Values" : [ "natgw", "igw", "vpcendpoint" ],
                     "Required" : true
                 },
                 {
