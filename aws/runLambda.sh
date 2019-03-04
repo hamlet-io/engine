@@ -20,6 +20,7 @@ Usage: $(basename $0) -u DEPLOYMENT_UNIT -i INPUT_PAYLOAD -l INCLUDE_LOG_TAIL
 where
 
     -h                  shows this text
+(m) -f FUNCTION_ID      is the id of the function in the lambda deployment to run
 (m) -u DEPLOYMENT_UNIT  is the lambda deployment unit you want to execute
 (o) -i INPUT_PAYLOAD    is the json based payload you want to run the lambda with
 (o) -l INCLUDE_LOG_TAIL include the last 4kb of the execution log
@@ -40,7 +41,7 @@ EOF
 function options() { 
 
     # Parse options
-    while getopts ":hi:lu:" opt; do
+    while getopts ":f:hi:lu:" opt; do
         case $opt in
             h)
                 usage
@@ -53,6 +54,9 @@ function options() {
                 ;;
             u)
                 DEPLOYMENT_UNIT="${OPTARG}"
+                ;;
+            f) 
+                FUNCTION_ID="${OPTARG}"
                 ;;
             \?)
                 fatalOption
@@ -72,7 +76,7 @@ function main() {
     options "$@" || return $?
 
     # Ensure mandatory arguments have been provided
-    [[ -z "${DEPLOYMENT_UNIT}" ]] && fatalMandatory
+    [[ -z "${DEPLOYMENT_UNIT}" || -z "${FUNCTION_ID}"]] && fatalMandatory
 
     # Set up the context
     . "${GENERATION_DIR}/setContext.sh"
@@ -102,7 +106,7 @@ function main() {
         fi
     fi 
 
-    LAMBDA_ARN="$( jq -r '.Occurrence.Occurrences[0].State.Attributes.ARN' < "${BUILD_BLUEPRINT}" )"
+    LAMBDA_ARN="$( jq --arg functionId ${FUNCTION_ID} -r '(.Occurrence.Occurrences[] | select( .Core.SubComponent.Id==$functionId ).State.Attributes.ARN' < "${BUILD_BLUEPRINT}" )"
 
     if [[ -n "${LAMBDA_ARN}" ]]; then
 
