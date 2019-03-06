@@ -1855,6 +1855,96 @@
           }
         }
       }
+    },
+    "_moncpumem" : {
+        "Modes" : {
+          "*" : {
+            "ecs" : {
+              "Alerts" : {
+                "HighHostMemoryUsage" : {
+                    "Description" : "High Memory usage on ECS Host cluster",
+                    "Name" : "HighHostMemoryUsage",
+                    "Metric" : "MemoryUtilization",
+                    "Threshold" : 95,
+                    "Severity" : "Error",
+                    "Statistic" : "Average",
+                    "Periods" : 2,
+                    "Resource" : {
+                        "Type" : "ecs"
+                    }
+                },
+                "HighHostCPUUsage" : {
+                    "Description" : "High CPU usage on ECS Host cluster",
+                    "Name" : "HighHostCPUUsage",
+                    "Metric" : "CPUUtilization",
+                    "Threshold" : 95,
+                    "Severity" : "Error",
+                    "Statistic" : "Average",
+                    "Periods" : 2,
+                    "Resource" : {
+                        "Type" : "ecs"
+                    }
+                }
+              }
+            },
+            "service" : {
+              "Alerts" : {
+                "HighCPUUsage" : {
+                    "Description" : "Higher than expected CPU usage detected",
+                    "Name" : "HighCPUUsage",
+                    "Metric" : "CPUUtilization",
+                    "Threshold" : 150,
+                    "Severity" : "Warning",
+                    "Statistic" : "Average"
+                },
+                "HighMemoryUsage" : {
+                    "Description" : "Higher than expected memory usage detected",
+                    "Name" : "HighMemoryUsage",
+                    "Metric" : "MemoryUtilization",
+                    "Threshold" : 120,
+                    "Severity" : "Warning",
+                    "Statistic" : "Average"
+                }
+              }
+            },
+            "rds" : {
+              "Alerts" : {
+                "HighCPUUsage" : {
+                    "Description" : "Database under high CPU load",
+                    "Name" : "HighCPUUsage",
+                    "Metric" : "CPUUtilization",
+                    "Threshold" : 90,
+                    "Severity" : "Error",
+                    "Statistic" : "Average",
+                    "Periods" : 2
+                },
+                "LowDiskSpace" : {
+                    "Description" : "Database disk space is getting low only 1Gb free",
+                    "Name" : "LowDiskSpace",
+                    "Metric" : "FreeStorageSpace",
+                    "Threshold" : 1024000000,
+                    "Severity" : "Error",
+                    "Statistic" : "Maximum",
+                    "Periods" : 1,
+                    "Operator" : "LessThanOrEqualToThreshold"
+                }
+              }
+            },
+            "cache" : {
+              "Alerts" : {
+                "HighCPUUsage" : {
+                    "Description" : "Redis cache under high CPU load",
+                    "Name" : "HighCPUUsage",
+                    "Metric" : "EngineCPUUtilization",
+                    "Threshold" : 90,
+                    "Severity" : "Error",
+                    "Statistic" : "Average",
+                    "Periods" : 2
+                }
+              }
+            }
+          }
+        }
     }
   }
 }
