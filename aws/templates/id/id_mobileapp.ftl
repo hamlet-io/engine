@@ -60,6 +60,13 @@
             environmentName 
     )]
 
+    [#local codeSrcBucket = getRegistryEndPoint("scripts", occurrence)]
+    [#local codeSrcPrefix = formatAbsolutePath(
+            getRegistryPrefix("scripts", occurrence),
+                productName,
+                getOccurrenceBuildUnit(occurrence),
+                getOccurrenceBuildReference(occurrence))]
+
     [#list solution.Links?values as link]
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
@@ -100,6 +107,8 @@
                 "ENGINE" : solution.Engine,
                 "APP_BUILD_FORMATS" : solution.BuildFormats?join(","),
                 "RELEASE_CHANNEL" : releaseChannel,
+                "CODE_SRC_BUCKET" : codeSrcBucket,
+                "CODE_SRC_PREFIX" : codeSrcPrefix,
                 "OTA_ARTEFACT_BUCKET" : otaBucket,
                 "OTA_ARTEFACT_PREFIX" : otaPrefix,
                 "OTA_ARTEFACT_URL" : otaURL

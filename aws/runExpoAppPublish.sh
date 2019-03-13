@@ -142,8 +142,8 @@ function main() {
   fi
 
   # The source of the prepared code repository zip
-  EXPO_SRC_BUCKET="$( jq -r '.Occurrence.State.Attributes.EXPO_SRC_BUCKET' < "${BUILD_BLUEPRINT}" )"
-  EXPO_SRC_PREFIX="$( jq -r '.Occurrence.State.Attributes.EXPO_SRC_PREFIX' < "${BUILD_BLUEPRINT}" )"
+  EXPO_SRC_BUCKET="$( jq -r '.Occurrence.State.Attributes.CODE_SRC_BUCKET' < "${BUILD_BLUEPRINT}" )"
+  EXPO_SRC_PREFIX="$( jq -r '.Occurrence.State.Attributes.CODE_SRC_PREFIX' < "${BUILD_BLUEPRINT}" )"
 
   # The staging location of credential data
   EXPO_CREDENTIALS_BUCKET="$( jq -r '.Occurrence.Configuration.Settings.Core.OPSDATA_BUCKET.Value' < "${BUILD_BLUEPRINT}" )"
