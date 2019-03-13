@@ -880,6 +880,10 @@ behaviour.
                 [#local result = getLambdaState(occurrence)]
                 [#break]
 
+            [#case MOBILEAPP_COMPONENT_TYPE]
+                [#local result = getMobileAppState(occurrence)]
+                [#break]
+
             [#case MOBILENOTIFIER_COMPONENT_TYPE ]
                 [#local result = getMobileNotifierState(occurrence)]
                 [#break]
