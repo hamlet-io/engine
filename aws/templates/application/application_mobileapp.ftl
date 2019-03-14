@@ -27,7 +27,7 @@
                             "filesToSync",
                             regionId,
                             operationsBucket,
-                            getOccurrenceSettingValue(subOccurrence, "SETTINGS_PREFIX")
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX")
                         ) /]
             [/#if]
         [/#if]
@@ -43,7 +43,11 @@
                 pseudoStackOutputScript(
                     "Mobile App",
                     { mobileAppId : mobileAppId }
-                )
+                ) +
+                [            
+                    "       ;;",
+                    "       esac"
+                ]
             /]
         [/#if]
     [/#list]

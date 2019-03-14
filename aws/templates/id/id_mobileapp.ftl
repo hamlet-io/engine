@@ -61,17 +61,17 @@
     )]
 
     [#local codeSrcBucket = getRegistryEndPoint("scripts", occurrence)]
-    [#local codeSrcPrefix = formatAbsolutePath(
-            getRegistryPrefix("scripts", occurrence),
-                productName,
-                getOccurrenceBuildUnit(occurrence),
-                getOccurrenceBuildReference(occurrence))]
+    [#local codeSrcPrefix = formatRelativePath(
+                                getRegistryPrefix("scripts", occurrence),
+                                    productName,
+                                    getOccurrenceBuildUnit(occurrence),
+                                    getOccurrenceBuildReference(occurrence))]
 
     [#list solution.Links?values as link]
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-            [@cfDebug listMode linkTarget true /]
+            [@cfDebug listMode linkTarget false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -87,7 +87,7 @@
                 [#case S3_COMPONENT_TYPE ]
                     [#if link.Id?lower_case?starts_with("ota") ]
                         [#local otaBucket = linkTargetAttributes["NAME"]]
-                        [#local otaPrefix = core.AbsolutePath ]
+                        [#local otaPrefix = core.RelativePath ]
                         [#local otaURL = formatRelativePath(linkTargetAttributes["WEBSITE_URL"], otaPrefix )]
                     [/#if]
                     [#break]
