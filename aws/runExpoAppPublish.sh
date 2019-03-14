@@ -12,6 +12,9 @@ DEFAULT_RUN_SETUP="false"
 
 tmpdir="$(getTempDir "cote_inf_XXX")"
 
+# Get the generation context so we can run template generation
+. "${GENERATION_DIR}/setContext.sh"
+
 function decrypt_kms_file() {
     local region="$1"; shift
     local encrypted_file_path="$1"; shift
@@ -39,6 +42,8 @@ function env_setup() {
 
     brew cask install \
         fastlane || return $?
+    
+    export PATH="$HOME/.fastlane/bin:$PATH"
 
     # Make sure we have required software installed 
     pip3 install \
@@ -111,6 +116,7 @@ function options() {
     RUN_SETUP="${RUN_SETUP:-DEFAULT_RUN_SETUP}"
     TURTLE_VERSION="${TURTLE_VERSION:-$DEFAULT_TURTLE_VERSION}"
     EXPO_VERSION="${EXPO_VERSION:-$DEFAULT_EXPO_VERSION}"
+    BINARY_EXPIRATION="${BINARY_EXPIRATION:-$DEFAULT_BINARY_EXPIRATION}"
 }
 
 
@@ -123,19 +129,11 @@ function main() {
   # Ensure mandatory arguments have been provided
   [[ -z "${DEPLOYMENT_UNIT}" ]] && fatalMandatory
 
-  # Set up the context
-  . "${GENERATION_DIR}/setContext.sh"
-
-  # Ensure we are in the right place
-  checkInSegmentDirectory
-
   # Create build blueprint
   . "${GENERATION_DIR}/createBuildblueprint.sh" -u "${DEPLOYMENT_UNIT}" 
 
-  COT_TEMPLATE_DIR="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
-  BUILD_BLUEPRINT="${COT_TEMPLATE_DIR}/build_blueprint-${DEPLOYMENT_UNIT}-.json"
-  DEPLOYMENT_UNIT_TYPE="$(jq -r '.Type' < "${BUILD_BLUEPRINT}" )"
-  
+  BUILD_BLUEPRINT="${AUTOMATION_DATA_DIR}/build_blueprint-${DEPLOYMENT_UNIT}-.json"
+
   if [[ "${DEPLOYMENT_UNIT_TYPE}" -ne "mobileapp" ]]; then 
       fatal "Component type is not a mobile app function"
       return 255
@@ -162,31 +160,36 @@ function main() {
   EXPO_RELEASE_CHANNEL="$( jq -r '.Occurrence.State.Attributes.RELEASE_CHANNEL' <"${BUILD_BLUEPRINT}" )"
 
   # Make sure we are in the build source directory
-  cd ${tmpdir}
 
-  EXPO_BINARY_PATH="${tmpdir}/binary"
-  EXPO_SRC_PATH="${tmpdir}/src"
-  EXPO_CREDS_PATH="${tmpdir}/creds"
+  EXPO_BINARY_PATH="${AUTOMATION_DATA_DIR}/binary"
+  EXPO_SRC_PATH="${AUTOMATION_DATA_DIR}/src"
+  EXPO_CREDS_PATH="${AUTOMATION_DATA_DIR}/creds"
 
-  mkdir "${EXPO_STATIC_PATH}"
-  mkdir "${EXPO_BINARY_PATH}"
-
+  mkdir -p ${EXPO_BINARY_PATH}
+  mkdir -p ${EXPO_SRC_PATH}
+  mkdir -p ${EXPO_CREDS_PATH}
 
   TURTLE_EXTRA_BUILD_ARGS="--release-channel ${EXPO_RELEASE_CHANNEL}"
 
   # get build contents 
-  aws --region "${AWS_REGION}" s3 sync "s3://${EXPO_SRC_BUCKET}/${EXPO_SRC_PREFIX}/scrpits.zip" "${tmpdir}/scripts.zip" || return $?
+  info "Getting source code from from s3://${EXPO_SRC_BUCKET}/${EXPO_SRC_PREFIX}/scripts.zip"
+  aws --region "${AWS_REGION}" s3 cp "s3://${EXPO_SRC_BUCKET}/${EXPO_SRC_PREFIX}/scripts.zip" "${tmpdir}/scripts.zip" || return $?
   
-  unzip "${tmpdir}/scripts.zip" -d "${EXPO_SRC_PATH}" || return $?
+  unzip -q "${tmpdir}/scripts.zip" -d "${EXPO_SRC_PATH}" || return $?
   cd "${EXPO_STATIC_PATH}"
 
   # decrypt secrets from credentials store
-  aws --region "${AWS_REGION}" s3 sync "s3://${EXPO_CREDENITALS_BUCKET}/${EXPO_CREDENTIALS_PREFIX}" "${EXPO_CREDS_PATH}" || return $?
+  info "Getting credentials from s3://${EXPO_CREDENTIALS_BUCKET}/${EXPO_CREDNTIALS_PREFIX}"
+  aws --region "${AWS_REGION}" s3 sync "s3://${EXPO_CREDENTIALS_BUCKET}/${EXPO_CREDNTIALS_PREFIX}" "${EXPO_CREDS_PATH}" || return $?
   find "${EXPO_CREDS_PATH}" -name \*.kms -exec decrypt_kms_file "${AWS_REGION}" "{}" \;
 
   #Export the Static assets 
-  expo export --public-url "https://${EXPO_PUBLIC_URL}${EXPO_PUBLIC_PREFIX}" --output-dir '/app/dist' || return $?
-  aws --region "${AWS_REGION}" s3 sync "/app/dist" "${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}" || return $?
+  cd ${EXPO_SRC_PATH}
+
+  yarn install --production=false
+
+  expo export --public-url "${EXPO_PUBLIC_URL}" --output-dir "${EXPO_SRC_PATH}/app/dist"  || return $?
+  aws --region "${AWS_REGION}" s3 sync "${EXPO_SRC_PATH}/app/dist" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}" || return $?
 
   # get the version of the expo SDK which is required 
   EXPO_SDK_VERSION="$(jq -r '.expo.sdkVersion' < ./app.json)"
@@ -198,31 +201,33 @@ function main() {
       case "${build_format}" in
         "android")
             EXPO_BINARY_FILE_EXTENSION="apk"
-            EXPO_ANDROID_KEYSTORE_ALIAS="$( jq -r '.Occurrence.Configuration.Settings.Core.EXPO_ANDROID_KEYSTORE_ALIAS.Value' < "${BUILD_BLUEPRINT}" )"
+            EXPO_ANDROID_KEYSTORE_ALIAS="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.EXPO_ANDROID_KEYSTORE_ALIAS' < "${BUILD_BLUEPRINT}" )"
 
-            EXPO_ANDROID_KEYSTORE_PASSWORD="$( jq -r '.Occurrence.Configuration.Settings.Core.EXPO_ANDROID_KEYSTORE_PASSWORD.Value' < "${BUILD_BLUEPRINT}" )"
-            EXPO_ANDROID_KEYSTORE_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${EXPO_ANDROID_KEYSTORE_PASSWORD}")"
+            EXPO_ANDROID_KEYSTORE_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.EXPO_ANDROID_KEYSTORE_PASSWORD' < "${BUILD_BLUEPRINT}" )"
+            EXPO_ANDROID_KEYSTORE_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${EXPO_ANDROID_KEYSTORE_PASSWORD#"base64:"}")"
             
-            EXPO_ANDROID_KEY_PASSWORD="$( jq -r '.Occurrence.Configuration.Settings.Core.EXPO_ANDROID_KEY_PASSWORD.Value' < "${BUILD_BLUEPRINT}" )"
-            EXPO_ANDROID_KEY_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${EXPO_ANDROID_KEY_PASSWORD}")"
+            EXPO_ANDROID_KEY_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.EXPO_ANDROID_KEY_PASSWORD' < "${BUILD_BLUEPRINT}" )"
+            EXPO_ANDROID_KEY_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${EXPO_ANDROID_KEY_PASSWORD#"base64:"}")"
 
             EXPO_ANDROID_KEYSTORE_FILE="${EXPO_CREDS_PATH}/expo_android_keystore.jks"
 
             TURTLE_EXTRA_BUILD_ARGS="${TURTLE_EXTRA_BUILD_ARGS} --keystore-path ${EXPO_ANDROID_KEYSTORE_FILE} --keystore-alias ${EXPO_ANDROID_KEYSTORE_ALIAS}"
-
+            ;;
         "ios")
             EXPO_BINARY_FILE_EXTENSION="ipa"
-            EXPO_IOS_DIST_APPLE_ID="$( jq -r '.Occurrence.Configuration.Settings.Core.EXPO_IOS_DIST_APPLE_ID.Value' < "${BUILD_BLUEPRINT}" )"
+            EXPO_IOS_DIST_APPLE_ID="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.EXPO_IOS_DIST_APPLE_ID' < "${BUILD_BLUEPRINT}" )"
 
-            EXPO_IOS_DIST_P12_PASSWORD="$( jq -r '.Occurrence.Configuration.Settings.Core.EXPO_IOS_DIST_P12_PASSWORD.Value' < "${BUILD_BLUEPRINT}" )"
-            EXPO_IOS_DIST_P12_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${EXPO_IOS_DIST_P12_PASSWORD}")"
+            EXPO_IOS_DIST_P12_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.EXPO_IOS_DIST_P12_PASSWORD' < "${BUILD_BLUEPRINT}" )"
+            export EXPO_IOS_DIST_P12_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${EXPO_IOS_DIST_P12_PASSWORD#"base64:"}")"
             
             EXPO_IOS_DIST_PROVISIONING_PROFILE="${EXPO_CREDS_PATH}/expo_ios_profile.mobileprovision"
             EXPO_IOS_DIST_P12_FILE="${EXPO_CREDS_PATH}/expo_ios_distribution.p12"
 
             TURTLE_EXTRA_BUILD_ARGS="${TURTLE_EXTRA_BUILD_ARGS} --team-id ${EXPO_IOS_DIST_APPLE_ID} --dist-p12-path ${EXPO_IOS_DIST_P12_FILE} --provisioning-profile-path ${EXPO_IOS_DIST_PROVISIONING_PROFILE}"
+            ;;
         "*")
             echo "Unkown build format" && return 128
+            ;;
       esac
 
       EXPO_BINARY_FILE_NAME="${EXPO_BINARY_FILE_PREFIX}.${EXPO_BINARY_FILE_EXTENSION}"
@@ -232,7 +237,7 @@ function main() {
       turtle setup:"${build_format}" --sdk-version "${EXPO_SDK_VERSION}" || return $?
 
       # Build using turtle
-      turtle build:"${build_format}" --public-url "${EXPO_PUBLIC_URL}${EXPO_PUBLIC_PREFIX}" --build-dir "${EXPO_STATIC_PATH}" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} || return $?
+      turtle build:"${build_format}" --public-url "${EXPO_PUBLIC_URL}/${build_format}-index.json" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${EXPO_SRC_PATH}" || return $?
 
       if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
         
@@ -241,10 +246,10 @@ function main() {
         qr "${EXPO_PUBLIC_URL/http/exp}/${build_format}-index.json" > "${EXPO_BINARY_QR_FILE_PATH}" || return $?
         EXPO_BINARY_QR_BASE64="$(base64 < ${EXPO_BINARY_QR_FILE_PATH})"
 
-        aws --region "${AWS_REGION}" s3 cp --exclude "*" --include "${EXPO_BINARY_FILE_PREFIX}*" "${EXPO_BINARY_FILE_PATH}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
-        EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${APP_DATA_BUCKET}/${APP_DATA_PREFIX}/binary/${EXPO_BINARY_FILE_NAME}" || return $?)"
+        aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${EXPO_BINARY_FILE_PREFIX}*" "${EXPO_BINARY_PATH}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
+        EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" || return $?)"
 
-        info "Presigned URL=${EXPO_BINARY_PRESIGNED_URL}"
+        info "BINARY AVAILABLE FROM URL=${EXPO_BINARY_PRESIGNED_URL}"
 
       fi
   done
