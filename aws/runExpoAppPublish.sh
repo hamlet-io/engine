@@ -186,14 +186,30 @@ function main() {
   #Export the Static assets 
   cd ${EXPO_SRC_PATH}
 
-  yarn install --production=false
-
-  expo export --public-url "${EXPO_PUBLIC_URL}" --output-dir "${EXPO_SRC_PATH}/app/dist"  || return $?
-  aws --region "${AWS_REGION}" s3 sync "${EXPO_SRC_PATH}/app/dist" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}" || return $?
-
   # get the version of the expo SDK which is required 
   EXPO_SDK_VERSION="$(jq -r '.expo.sdkVersion' < ./app.json)"
-  arrayFromList build_formats "${EXPO_BUILD_FORMAT_LIST}"
+
+  yarn install --production=false
+
+  # Run Export for current SDK Version
+  expo export --public-url "${EXPO_PUBLIC_URL}" --output-dir "${EXPO_SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
+  tar -cvzf "${EXPO_SRC_PATH}/app/dist/packages/${EXPO_SDK_VERION}.tar.gz" "${EXPO_SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" || return $?
+  aws --region "${AWS_REGION}" s3 cp "${EXPO_SRC_PATH}/app/dist/packages/${EXPO_SDK_VERSION}.tar.gz" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}.tar.gz" || return $?
+
+  # Merge all existing SDK packages into single distribution
+  EXPO_SDK_PACKAGES_LIST="$(aws s3api list-objects-v2 --bucket "${EXPO_PUBLIC_BUCKET}" --prefix "${EXPO_PUBLIC_PREFIX}/packages" --query "join(',', Contents[*].Key)" --output text)"
+  arrayFromList sdk_packages "${EXPO_SDK_PACKAGES_LIST}"
+
+  EXPO_EXPORT_MERGE_ARGUMENTS=""
+  for sdk_package in "${sdk_packages[@]}"; do
+        EXPO_EXPORT_MERGE_ARGUMENTS="${EXPO_EXPORT_MERGE_ARGUMENTS} --merge-src-url https://s3-${AWS_REGION}.amazonaws.com/$EXPO_PUBLIC_BUCKET/${sdk_package}"
+  done
+
+  # Create master export 
+  expo export --public-url "${EXPO_PUBLIC_URL}" --output-dir "${EXPO_SRC_PATH}/app/dist/master/" ${EXPO_EXPORT_MERGE_ARGUMENTS}  || return $?
+  aws --region "${AWS_REGION}" s3 sync "${EXPO_SRC_PATH}/app/dist/master/" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/" || return $?
+
+  arrayFromList build_formats "${EXPO_BUILD_FORMAT_LIST}" 
 
   for build_format in "${build_formats[@]}"; do
 
