@@ -5,10 +5,12 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 . "${GENERATION_DIR}/common.sh"
 
 #Defaults
-DEFAULT_EXPO_VERSION="2.11.6"
+DEFAULT_EXPO_VERSION="2.11.9"
 DEFAULT_TURTLE_VERSION="0.5.12"
 DEFAULT_BINARY_EXPIRATION="1210000"
 DEFAULT_RUN_SETUP="false"
+DEFAULT_FORCE_BINARY_BUILD="false"
+DEFAULT_QR_BUILD_FORMATS="ios,android"
 
 tmpdir="$(getTempDir "cote_inf_XXX")"
 
@@ -69,7 +71,8 @@ where
 (m) -u DEPLOYMENT_UNIT        is the mobile app deployment unit
 (o) -s RUN_SETUP              run setup installation to prepare
 (o) -t BINARY_EXPIRATION      how long presigned urls are active for once created ( seconds )
-
+(o) -f FORCE_BINARY_BUILD     force the build of binary images
+(q) -q QR_BUILD_FORMATS       specify the formats you would like to generate QR urls for
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -78,6 +81,7 @@ BINARY_EXPIRATION = ${DEFAULT_BINARY_EXPIRATION}
 BUILD_FORMATS = ${DEFAULT_BUILD_FORMATS}
 BINARY_EXPIRATION = ${DEFAULT_BINARY_EXPIRATION}
 RUN_SETUP = ${DEFAULT_RUN_SETUP}
+QR_BUILD_FORMATS = ${DEFAULT_QR_BUILD_FORMATS}
 
 NOTES:
 RELEASE_CHANNEL default is environment
@@ -89,13 +93,19 @@ EOF
 function options() { 
 
     # Parse options
-    while getopts ":f:hst:u:" opt; do
+    while getopts ":fhsq:t:u:" opt; do
         case $opt in
+            f)
+                FORCE_BINARY_BUILD="true"
+                ;;
             h)
                 usage
                 ;;
             u)
                 DEPLOYMENT_UNIT="${OPTARG}"
+                ;;
+            q)
+                QR_BUILD_FORMATS="${OPTARG}"
                 ;;
             s)
                 RUN_SETUP="true"
@@ -117,6 +127,8 @@ function options() {
     TURTLE_VERSION="${TURTLE_VERSION:-$DEFAULT_TURTLE_VERSION}"
     EXPO_VERSION="${EXPO_VERSION:-$DEFAULT_EXPO_VERSION}"
     BINARY_EXPIRATION="${BINARY_EXPIRATION:-$DEFAULT_BINARY_EXPIRATION}"
+    FORCE_BINARY_BUILD="${FORCE_BINARY_BUILD:-$DEFAULT_FORCE_BINARY_BUILD}"
+    QR_BUILD_FORMATS="${QR_BUILD_FORMATS:-$DEFAULT_QR_BUILD_FORMATS}"
 }
 
 
@@ -156,62 +168,101 @@ function main() {
   EXPO_PUBLIC_URL="$( jq -r '.Occurrence.State.Attributes.OTA_ARTEFACT_URL' <"${BUILD_BLUEPRINT}" )"
 
   EXPO_BUILD_FORMAT_LIST="$( jq -r '.Occurrence.State.Attributes.APP_BUILD_FORMATS' <"${BUILD_BLUEPRINT}" )"
+  arrayFromList EXPO_BUILD_FORMATS "${EXPO_BUILD_FORMAT_LIST}"
 
   EXPO_RELEASE_CHANNEL="$( jq -r '.Occurrence.State.Attributes.RELEASE_CHANNEL' <"${BUILD_BLUEPRINT}" )"
+
+  EXPO_BUILD_REFERENCE="$( jq -r '.Occurrence.Configuration.Settings.Build.BUILD_REFERENCE.Value' <"${BUILD_BLUEPRINT}" )"
+  EXPO_BUILD_NUMBER="$(date +"%Y%m%d.1%H%M%S")"
+ 
+  arrayFromList EXPO_QR_BUILD_FORMATS "${QR_BUILD_FORMATS}"
+
+  BUILD_BINARY="false"
 
   # Make sure we are in the build source directory
 
   EXPO_BINARY_PATH="${AUTOMATION_DATA_DIR}/binary"
   EXPO_SRC_PATH="${AUTOMATION_DATA_DIR}/src"
   EXPO_CREDS_PATH="${AUTOMATION_DATA_DIR}/creds"
+  EXPO_REPORTS_PATH="${AUTOMATION_DATA_DIR}/repoorts"
 
-  mkdir -p ${EXPO_BINARY_PATH}
-  mkdir -p ${EXPO_SRC_PATH}
-  mkdir -p ${EXPO_CREDS_PATH}
+  mkdir -p "${EXPO_BINARY_PATH}"
+  mkdir -p "${EXPO_SRC_PATH}"
+  mkdir -p "${EXPO_CREDS_PATH}"
+  mkdir -p "${EXPO_REPORTS_PATH}"
 
   TURTLE_EXTRA_BUILD_ARGS="--release-channel ${EXPO_RELEASE_CHANNEL}"
 
-  # get build contents 
+  # Prepare the code build environment
   info "Getting source code from from s3://${EXPO_SRC_BUCKET}/${EXPO_SRC_PREFIX}/scripts.zip"
   aws --region "${AWS_REGION}" s3 cp "s3://${EXPO_SRC_BUCKET}/${EXPO_SRC_PREFIX}/scripts.zip" "${tmpdir}/scripts.zip" || return $?
   
   unzip -q "${tmpdir}/scripts.zip" -d "${EXPO_SRC_PATH}" || return $?
-  cd "${EXPO_STATIC_PATH}"
+
+  cd "${EXPO_SRC_PATH}"
+  yarn install --production=false
 
   # decrypt secrets from credentials store
   info "Getting credentials from s3://${EXPO_CREDENTIALS_BUCKET}/${EXPO_CREDNTIALS_PREFIX}"
   aws --region "${AWS_REGION}" s3 sync "s3://${EXPO_CREDENTIALS_BUCKET}/${EXPO_CREDNTIALS_PREFIX}" "${EXPO_CREDS_PATH}" || return $?
   find "${EXPO_CREDS_PATH}" -name \*.kms -exec decrypt_kms_file "${AWS_REGION}" "{}" \;
 
-  #Export the Static assets 
-  cd ${EXPO_SRC_PATH}
-
   # get the version of the expo SDK which is required 
   EXPO_SDK_VERSION="$(jq -r '.expo.sdkVersion' < ./app.json)"
+  EXPO_APP_VERSION="$(jq -r '.expo.version' < ./app.json)"
+  EXPO_CURRENT_APP_VERSION="${EXPO_APP_VERSION}"
 
-  yarn install --production=false
+  # Determine Binary Build status
+  EXPO_CURRENT_SDK_BUILD="$(aws s3api list-objects-v2 --bucket "${EXPO_PUBLIC_BUCKET}" --prefix "${EXPO_PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" --query "join(',', Contents[*].Key)" --output text)"
+  arrayFromList EXPO_CURRENT_SDK_FILES "${EXPO_CURRENT_SDK_BUILD}"
 
-  # Run Export for current SDK Version
+  # Determine if App Version has been incremented 
+  if [[ -n "${EXPO_CURRENT_SDK_BUILD}" ]]; then 
+    for sdk_file in "${EXPO_CURRENT_SDK_FILES[@]}" ; do
+        if [[ "${sdk_file}" == */${EXPO_BUILD_FORMATS[0]}-index.json ]]; then
+            aws --region "${AWS_REGION}" s3 cp "s3://${EXPO_PUBLIC_BUCKET}/${sdk_file}" "${AUTOMATION_DATA_DIR}/current-app-manifest.json"
+        fi
+    done
+
+    if [[ -f "${AUTOMATION_DATA_DIR}/current-app-manifest.json" ]]; then 
+        EXPO_CURRENT_APP_VERSION="$(jq -r '.version' < "${AUTOMATION_DATA_DIR}/current-app-manifest.json" )"
+    fi 
+  fi
+
+  if [[ -z "${EXPO_CURRENT_SDK_BUILD}" || "${FORCE_BINARY_BUILD}" == "true" || "${EXPO_CURRENT_APP_VERSION}" != "${EXPO_APP_VERSION}" ]]; then 
+    BUILD_BINARY="true"
+  fi
+
+  # Update the app.json with build context information - Also ensure we always have a unique IOS build number
+  jq --arg build_reference "${EXPO_BUILD_REFERENCE}" '.expo.extra.build_reference=$build_reference' <  "./app.json" > "${tmpdir}/build_reference-app.json"
+  jq --arg build_number "${EXPO_BUILD_NUMBER}" '.expo.ios.buildNumber=$build_number' < "${tmpdir}/build_reference-app.json" > "${tmpdir}/build_number-app.json"
+  mv "${tmpdir}/build_number-app.json" "./app.json"
+
+  # Create a build for the SDK
+  info "Creating an OTA for this version of the SDK"
   expo export --public-url "${EXPO_PUBLIC_URL}" --output-dir "${EXPO_SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
-  tar -cvzf "${EXPO_SRC_PATH}/app/dist/packages/${EXPO_SDK_VERION}.tar.gz" "${EXPO_SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" || return $?
-  aws --region "${AWS_REGION}" s3 cp "${EXPO_SRC_PATH}/app/dist/packages/${EXPO_SDK_VERSION}.tar.gz" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}.tar.gz" || return $?
+  aws --region "${AWS_REGION}" s3 sync --delete "${EXPO_SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" || return $?
 
-  # Merge all existing SDK packages into single distribution
-  EXPO_SDK_PACKAGES_LIST="$(aws s3api list-objects-v2 --bucket "${EXPO_PUBLIC_BUCKET}" --prefix "${EXPO_PUBLIC_PREFIX}/packages" --query "join(',', Contents[*].Key)" --output text)"
-  arrayFromList sdk_packages "${EXPO_SDK_PACKAGES_LIST}"
-
+  # Merge all existing SDK packages into a master distribution
+  aws --region "${AWS_REGION}" s3 cp --recursive --exclude "${EXPO_SDK_VERSION}/*" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/packages/" "${EXPO_SRC_PATH}/app/dist/packages/"
   EXPO_EXPORT_MERGE_ARGUMENTS=""
-  for sdk_package in "${sdk_packages[@]}"; do
-        EXPO_EXPORT_MERGE_ARGUMENTS="${EXPO_EXPORT_MERGE_ARGUMENTS} --merge-src-url https://s3-${AWS_REGION}.amazonaws.com/$EXPO_PUBLIC_BUCKET/${sdk_package}"
+  for dir in ${EXPO_SRC_PATH}/app/dist/packages/*/ ; do
+    EXPO_EXPORT_MERGE_ARGUMENTS="${EXPO_EXPORT_MERGE_ARGUMENTS} --merge-src-dir "${dir}""
   done
 
   # Create master export 
+  info "Creating master OTA artefact with Extra Dirs: ${EXPO_EXPORT_MERGE_ARGUMENTS}"
   expo export --public-url "${EXPO_PUBLIC_URL}" --output-dir "${EXPO_SRC_PATH}/app/dist/master/" ${EXPO_EXPORT_MERGE_ARGUMENTS}  || return $?
-  aws --region "${AWS_REGION}" s3 sync "${EXPO_SRC_PATH}/app/dist/master/" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/" || return $?
+  aws --region "${AWS_REGION}" s3 sync "${EXPO_SRC_PATH}/app/dist/master/" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}" || return $? 
 
-  arrayFromList build_formats "${EXPO_BUILD_FORMAT_LIST}" 
+  DETAILED_HTML_QR_MESSAGE="<h4>Expo Client App QR Codes</h4> <p>Use these codes to load the app through the Expo Client</p>"
 
-  for build_format in "${build_formats[@]}"; do
+  DETAILED_HTML_BINARY_MESSAGE="<h4>Expo Binary Builds</h4>"
+  if [[ "${BUILD_BINARY}" == "false" ]]; then 
+    DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE} <p> No binary builds were generated for this publish </p>"
+  fi
+
+  for build_format in "${EXPO_BUILD_FORMATS[@]}"; do
 
       EXPO_BINARY_FILE_PREFIX="${build_format}"
       case "${build_format}" in
@@ -246,32 +297,62 @@ function main() {
             ;;
       esac
 
-      EXPO_BINARY_FILE_NAME="${EXPO_BINARY_FILE_PREFIX}.${EXPO_BINARY_FILE_EXTENSION}"
-      EXPO_BINARY_FILE_PATH="${EXPO_BINARY_PATH}/${EXPO_BINARY_FILE_NAME}"
+      if [[ "${BUILD_BINARY}" == "true" ]]; then 
 
-      # Setup Turtle
-      turtle setup:"${build_format}" --sdk-version "${EXPO_SDK_VERSION}" || return $?
+        info "Building App Binary for ${build_format}"
+        EXPO_BINARY_FILE_NAME="${EXPO_BINARY_FILE_PREFIX}-${EXPO_APP_VERSION}-${EXPO_BUILD_NUMBER}.${EXPO_BINARY_FILE_EXTENSION}"
+        EXPO_BINARY_FILE_PATH="${EXPO_BINARY_PATH}/${EXPO_BINARY_FILE_NAME}"
 
-      # Build using turtle
-      turtle build:"${build_format}" --public-url "${EXPO_PUBLIC_URL}/${build_format}-index.json" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${EXPO_SRC_PATH}" || return $?
+        # Setup Turtle
+        turtle setup:"${build_format}" --sdk-version "${EXPO_SDK_VERSION}" || return $?
 
-      if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
-        
-        EXPO_BINARY_QR_FILE_NAME="${EXPO_BINARY_FILE_PREFIX}-qr.png"
-        EXPO_BINARY_QR_FILE_PATH="${EXPO_BINARY_PATH}/${EXPO_BINARY_QR_FILE_NAME}"
-        qr "${EXPO_PUBLIC_URL/http/exp}/${build_format}-index.json" > "${EXPO_BINARY_QR_FILE_PATH}" || return $?
-        EXPO_BINARY_QR_BASE64="$(base64 < ${EXPO_BINARY_QR_FILE_PATH})"
+        # Build using turtle
+        turtle build:"${build_format}" --public-url "${EXPO_PUBLIC_URL}/${build_format}-index.json" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${EXPO_SRC_PATH}" || return $?
 
-        aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${EXPO_BINARY_FILE_PREFIX}*" "${EXPO_BINARY_PATH}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
-        EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" || return $?)"
+        if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
 
-        info "BINARY AVAILABLE FROM URL=${EXPO_BINARY_PRESIGNED_URL}"
+            aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${EXPO_BINARY_FILE_PREFIX}*" "${EXPO_BINARY_PATH}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
+            EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" )"
+            DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<p><strong>${build_format}</strong> <a href="${EXPO_BINARY_PRESIGNED_URL}">${build_format} - ${EXPO_APP_VERSION} - ${EXPO_BUILD_NUMBER}</a>" 
 
+        fi
+      else 
+        info "Skipping build of app binary for ${build_format}"
       fi
+
   done
+
+  for qr_build_format in "${EXPO_QR_BUILD_FORMATS[@]}"; do 
+
+       #Generate EXPO QR Code 
+      EXPO_QR_FILE_PREFIX="${qr_build_format}"
+      EXPO_QR_FILE_NAME="${EXPO_QR_FILE_PREFIX}-qr.png"
+      EXPO_QR_FILE_PATH="${EXPO_BINARY_PATH}/${EXPO_QR_FILE_NAME}"
+
+      qr "${EXPO_PUBLIC_URL/http/exp}/${qr_build_format}-index.json" > "${EXPO_QR_FILE_PATH}" || return $?
+      EXPO_QR_BASE64="$(base64 < ${EXPO_QR_FILE_PATH})"
+      aws --region "${AWS_REGION}" s3 cp  "${EXPO_QR_FILE_PATH}" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/" || return $?
+
+      DETAILED_HTML_QR_MESSAGE="${DETAILED_HTML_QR_MESSAGE}<p><strong>${qr_build_format}</strong> <br> <img src=\"data:image/png;base64, ${EXPO_QR_BASE64}\" alt=\"EXPO QR Code\" width=\"200px\" /></p>"
   
+  done
+
+  DETAILED_HTML="<html><body> <h4>Expo Mobile App Publish</h4> <p> A new Expo mobile app publish has completed </p> <ul> <li><strong>Public URL</strong> ${EXPO_PUBLIC_URL}</li> <li><strong>Release Channel</strong> ${EXPO_RELEASE_CHANNEL}</li><li><strong>SDK Version</strong> ${EXPO_SDK_VERSION}</li><li><strong>App Version</strong> ${EXPO_APP_VERSION}</li><li><strong>Build Number</strong> ${EXPO_BUILD_NUMBER}</li><li><strong>Code Commit</strong> ${EXPO_BUILD_REFERENCE}</li></ul> ${DETAILED_HTML_QR_MESSAGE} ${DETAILED_HTML_BINARY_MESSAGE} </body></html>" 
+  echo "${DETAILED_HTML}" > "${EXPO_REPORTS_PATH}/build-report.html"
+
+  aws --region "${AWS_REGION}" s3 cp "${EXPO_REPORTS_PATH}/build-report.html" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/reports/build-report.html" || return $?
+  EXPO_REPORT_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/reports/build-report.html" )"
+
+  if [[ "${BUILD_BINARY}" == "true" ]]; then 
+    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${EXPO_REPORT_PRESIGNED_URL}|Here>"
+  else
+    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - More details available <${EXPO_REPORT_PRESIGNED_URL}|Here>"
+  fi 
+
+  echo "DETAIL_MESSAGE=${DETAIL_MESSAGE}" >> ${AUTOMATION_DATA_DIR}/context.properties
+
   # All good
   return 0
 }
 
-main "$@"
+main "$@" || exit $?
