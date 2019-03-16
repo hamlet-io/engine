@@ -32,6 +32,12 @@
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+
+        [#if ! networkLinkTarget?has_content ]
+            [@cfException listMode "Network could not be found" networkLink /]
+            [#break]
+        [/#if]
+
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
