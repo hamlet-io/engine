@@ -200,8 +200,10 @@
         [#local legacyIGWId = formatVPCIGWTemplateId() ]
         [#local legacyIGWName = formatIGWName() ]
         [#local legacyIGWAttachementId = formatId(AWS_VPC_IGW_ATTACHMENT_TYPE) ]
+        [#local vpcName = formatVPCName()]
     [#else]
         [#local vpcId = formatResourceId(AWS_VPC_RESOURCE_TYPE, core.Id)]
+        [#local vpcName = core.FullName ]
     [/#if]
     
     [#assign vpcFlowLogEnabled = environmentObject.Operations.FlowLogs.Enabled!
@@ -232,7 +234,9 @@
     [#-- Define subnets --]
     [#list segmentObject.Network.Tiers.Order as tierId]
         [#local networkTier = getTier(tierId) ]
-        [#if ! (networkTier?has_content && networkTier.Network.Enabled ) ]
+        [#if ! (networkTier?has_content && networkTier.Network.Enabled && 
+                    networkTier.Network.Link.Tier == core.Tier.Id && networkTier.Network.Link.Component == core.Component.Id &&
+                    (networkTier.Network.Link.Version!core.Version.Id) == core.Version.Id && (networkTier.Network.Link.Instance!core.Instance.Id) == core.Instance.Id  ) ]
             [#continue]
         [/#if]
         [#list zones as zone]
@@ -275,7 +279,7 @@
             "Resources" : {
                 "vpc" : {
                     "Id" : vpcId,
-                    "Name" : formatVPCName(),
+                    "Name" : vpcName,
                     "Address": networkAddress + "/" + networkMask,
                     "Type" : AWS_VPC_RESOURCE_TYPE
                 },
