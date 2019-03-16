@@ -27,6 +27,24 @@
         [#assign storageProfile         = getStorage(tier, component, "EC2")]
         [#assign logFileProfile         = getLogFileProfile(tier, component, "EC2")]
         [#assign bootstrapProfile       = getBootstrapProfile(tier, component, "EC2")]
+   
+        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+
+        [#if ! networkLinkTarget?has_content ]
+            [@cfException listMode "Network could not be found" networkLink /]
+            [#break]
+        [/#if]
+
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
 
         [#assign targetGroupRegistrations = {}]
         [#assign targetGroupPermission = false ]
@@ -262,7 +280,8 @@
                 name=ec2SecurityGroupName
                 tier=tier
                 component=component
-                ingressRules=ingressRules /]
+                ingressRules=ingressRules
+                vpcId=vpcId /]
 
             [@cfResource
                 mode=listMode
@@ -359,7 +378,7 @@
                         properties=
                             {
                                 "Description" : "eth0",
-                                "SubnetId" : getReference(formatSubnetId(tier, zone)),
+                                "SubnetId" : getSubnets(tier, networkResources, zone.Id),
                                 "SourceDestCheck" : true,
                                 "GroupSet" :
                                     [getReference(ec2SecurityGroupId)] +

@@ -95,7 +95,20 @@
     }
 ]
 
-[#macro createALB mode id name shortName tier component securityGroups type idleTimeout logs=false bucket=""]
+[#macro createALB 
+    mode 
+    id 
+    name 
+    shortName 
+    tier 
+    component 
+    securityGroups 
+    type 
+    idleTimeout
+    publicEndpoint
+    networkResources 
+    logs=false 
+    bucket=""]
 
     [#assign loadBalancerAttributes = 
         ( type == "application" )?then(
@@ -141,8 +154,8 @@
         type="AWS::ElasticLoadBalancingV2::LoadBalancer"
         properties=
             {
-                "Subnets" : getSubnets(tier),
-                "Scheme" : (tier.Network.RouteTable == "external")?then("internet-facing","internal"),
+                "Subnets" : getSubnets(tier, networkResources),
+                "Scheme" : (publicEndpoint)?then("internet-facing","internal"),
                 "Name" : shortName,
                 "LoadBalancerAttributes" : loadBalancerAttributes
             } +
@@ -194,7 +207,7 @@
     /]
 [/#macro]
 
-[#macro createTargetGroup mode id name tier component destination attributes targetType=""]
+[#macro createTargetGroup mode id name tier component destination attributes vpcId targetType=""]
 
     [#local healthCheckProtocol = (destination.HealthCheck.Protocol)!destination.Protocol]
 
@@ -221,7 +234,7 @@
                 "HealthyThresholdCount" : destination.HealthCheck.HealthyThreshold,
                 "Port" : destination.Port,
                 "Protocol" : destination.Protocol,
-                "VpcId": vpc,
+                "VpcId": getReference(vpcId),
                 "TargetGroupAttributes" : targetGroupAttributes
             } +
             valueIfContent(
@@ -376,6 +389,8 @@
             securityGroups 
             idleTimeout 
             deregistrationTimeout
+            networkResources
+            publicEndpoint
             policies=[]
             stickinessPolicies=[] 
             logs=false 
@@ -390,7 +405,7 @@
                 "Listeners" : listeners,
                 "HealthCheck" : healthCheck,
                 "Scheme" :
-                    (tier.Network.RouteTable == "external")?then(
+                    (publicEndpoint)?then(
                         "internet-facing",
                         "internal"
                     ),
@@ -402,11 +417,11 @@
             } +
             multiAZ?then(
                 {
-                    "Subnets" : getSubnets(tier),
+                    "Subnets" : getSubnets(tier, networkResources),
                     "CrossZone" : true
                 },
                 {
-                    "Subnets" : [ getSubnets(tier)[0] ]
+                    "Subnets" : [ getSubnets(tier, networkResources)[0] ]
                 }
             ) +
             (logs)?then(

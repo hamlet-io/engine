@@ -8,11 +8,24 @@
         [#assign parentResources = occurrence.State.Resources]
         [#assign parentSolution = occurrence.Configuration.Solution ]
 
-        [#assign ecsId = parentResources["cluster"].Id!"" ]
-        [#assign ecsSecurityGroupId = parentResources["securityGroup"].Id!"" ]
-        [#assign ecsServiceRoleId = parentResources["serviceRole"].Id!"" ]
+        [#assign ecsId = resources["cluster"].Id!"" ]
+        [#assign ecsSecurityGroupId = resources["securityGroup"].Id!"" ]
+        [#assign ecsServiceRoleId = resources["serviceRole"].Id!"" ]
+   
+        [#assign networkLink = tier.Network.Link!{} ]
 
-        [#assign hibernate = parentSolution.Hibernate.Enabled &&
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#if ! networkLinkTarget?has_content ]
+            [@cfException listMode "Network could not be found" networkLink /]
+            [#break]
+        [/#if]
+
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign hibernate = solution.Hibernate.Enabled &&
                                 getExistingReference(ecsId)?has_content ]
 
         [#list requiredOccurrences(
@@ -36,8 +49,8 @@
             [#if networkMode == "awsvpc" ]
                         
                 [#assign subnets = multiAZ?then(
-                    getSubnets(tier),
-                    getSubnets(tier)[0..0]
+                    getSubnets(core.Tier, networkResources),
+                    getSubnets(core.Tier, networkResources)[0..0]
                 )]
 
                 [#assign lbTargetType = "ip" ]
@@ -60,7 +73,8 @@
                             tier=tier
                             component=component
                             id=ecsSecurityGroupId
-                            name=ecsSecurityGroupName /]
+                            name=ecsSecurityGroupName
+                            vpcId=vpcId /]
                     [/#if]
 
                     [#assign loadBalancers = [] ]

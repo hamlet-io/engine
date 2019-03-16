@@ -928,6 +928,30 @@ behaviour.
                 [#local result = getBastionState(occurrence)]
                 [#break]
 
+            [#case NETWORK_COMPONENT_TYPE ]
+                [#local result = getNetworkState(occurrence)]
+                [#break]
+            
+            [#case NETWORK_ROUTE_TABLE_COMPONENT_TYPE ]
+                [#local result = getNetworkRouteTableState(occurrence )]
+                [#break]
+
+            [#case NETWORK_ACL_COMPONENT_TYPE ]
+                [#local result = getNetworkACLState(occurrence)]
+                [#break]
+
+            [#case NETWORK_GATEWAY_COMPONENT_TYPE ]
+                [#local result = getNetworkGatewayState(occurrence)]
+                [#break]
+
+            [#case NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE ]
+                [#local result = getNetworkGatewayDestinationState(occurrence, parentOccurrence)]
+                [#break]
+
+            [#case BASELINE_COMPONENT_TYPE ]
+                [#local result = getBaselineState(occurrence)]
+                [#break]
+
             [#case "external"]
                 [#local result +=
                     {
@@ -1865,6 +1889,37 @@ behaviour.
     [#else]
         [#return profile ]
     [/#if]
+[/#function]
+
+[#function getNetworkEndpoints endpointGroups zone region ]
+    [#local services = []]
+    [#local networkEndpoints = {}]
+
+    [#local regionObject = regions[region]]
+    [#local zoneNetworkEndpoints = regionObject.Zones[zone].NetworkEndpoints ]
+    
+    [#list endpointGroups as endpointGroup ]
+        [#if networkEndpointGroups[endpointGroup]?? ]
+            [#list networkEndpointGroups[endpointGroup].Services as service ]
+                [#if !services?seq_contains(service) ]
+                    [#local services += [ service ]]
+                [/#if]
+            [/#list]
+        [/#if]
+    [/#list]
+
+    [#list services as service ]
+        [#list zoneNetworkEndpoints as zoneNetworkEndpoint ]
+            [#if (zoneNetworkEndpoint.ServiceName!"")?ends_with(service) ]
+                [#local networkEndpoints += 
+                    { 
+                        service : zoneNetworkEndpoint  
+                    }]
+            [/#if]
+        [/#list]
+    [/#list]
+    
+    [#return networkEndpoints]
 [/#function]
 
 [#function getDeploymentProfile typeObject deploymentMode ]

@@ -200,7 +200,7 @@
         [#assign userPoolName = formatSegmentFullName(core.Name)]
 
         [#assign userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
-        [#assign userPoolDomainName = formatName("auth", core.ShortFullName, vpc?remove_beginning("vpc-"))]
+        [#assign userPoolDomainName = formatName("auth", core.ShortFullName, segmentSeed)]
 
         [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
         [#assign userPoolClientName = formatSegmentFullName(core.Name)]

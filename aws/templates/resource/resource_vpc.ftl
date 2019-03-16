@@ -88,7 +88,7 @@
     [/#list]
 [/#macro]
 
-[#macro createSecurityGroup mode tier component id name description="" ingressRules=[] vpcId=""]
+[#macro createSecurityGroup mode tier component id name vpcId description="" ingressRules=[] ]
     [#local nonemptyIngressRules = [] ]
     [#list asFlattenedArray(ingressRules) as ingressRule]
         [#if ingressRule.CIDR?has_content]
@@ -128,6 +128,7 @@
             component
             resourceId
             resourceName
+            vpcId
             ingressRules=[]]
     [@createSecurityGroup 
         mode=mode 
@@ -136,7 +137,8 @@
         id=formatDependentSecurityGroupId(resourceId)
         name=resourceName
         description="Security Group for " + resourceName
-        ingressRules=ingressRules /]
+        ingressRules=ingressRules 
+        vpcId=vpcId/]
 [/#macro]
 
 [#macro createComponentSecurityGroup
@@ -144,7 +146,8 @@
             tier
             component
             extensions=""
-            ingressRules=[]]
+            ingressRules=[]
+            vpcId=vpcId]
     [@createSecurityGroup 
         mode=mode 
         tier=tier 
@@ -157,7 +160,8 @@
             tier,
             component,
             extensions)
-        ingressRules=ingressRules /]
+        ingressRules=ingressRules
+        vpcId=vpcId /]
 [/#macro]
 
 [#macro createDependentComponentSecurityGroup
@@ -167,7 +171,8 @@
             resourceId
             resourceName
             extensions=""
-            ingressRules=[]]
+            ingressRules=[]
+            vpcId=vpcId]
     [#local legacyId = formatComponentSecurityGroupId(
                         tier,
                         component,
@@ -178,7 +183,8 @@
             tier=tier 
             component=component
             extensions=extensions
-            ingressRules=ingressRules /]
+            ingressRules=ingressRules
+            vpcId=vpcId /]
     [#else]
         [@createDependentSecurityGroup 
             mode=mode 
@@ -186,7 +192,8 @@
             component=component
             resourceId=resourceId
             resourceName=resourceName
-            ingressRules=ingressRules /]
+            ingressRules=ingressRules 
+            vpcId=vpcId/]
     [/#if]
 [/#macro]
 
@@ -216,6 +223,7 @@
 [#macro createVPC
             mode
             id
+            legacyVpc
             name
             cidr
             dnsSupport
@@ -231,7 +239,9 @@
                 "EnableDnsHostnames" : dnsHostnames
             }
         tags=getCfTemplateCoreTags(name)
-        outputId=formatVPCId()
+        outputId=legacyVpc?then(
+                    formatVPCId(),
+                    id)
     /]
 [/#macro]
 
@@ -305,10 +315,7 @@
 [#macro createNATGateway
             mode,
             id,
-            name,
-            tier,
-            component,
-            zone,
+            tags,
             subnetId,
             eipId]
     [@cfResource
@@ -320,7 +327,7 @@
                 "AllocationId" : getReference(eipId, ALLOCATION_ATTRIBUTE_TYPE),
                 "SubnetId" : getReference(subnetId)
             }
-        tags=getCfTemplateCoreTags(name, tier, component, zone)
+        tags=tags
 
     /]
 [/#macro]
@@ -413,15 +420,32 @@
             id,
             networkACLId,
             outbound,
-            rule]
-    [#switch rule.Protocol]
+            rule,
+            port]
+    
+    [#local protocol = port.IPProtocol]
+
+    [#local fromPort = (port.PortRange.From)?has_content?then(
+                            port.PortRange.From,
+                            (port.Port)?has_content?then(
+                                port.Port,
+                                0
+                            ))]
+
+    [#local toPort = (port.PortRange.To)?has_content?then(
+                            port.PortRange.To,
+                            (port.Port)?has_content?then(
+                                port.Port,
+                                0
+                            ))]
+    [#switch port.IPProtocol]
         [#case "all"]
             [#local properties =
                 {
                     "Protocol" : "-1",
                     "PortRange" : {
-                        "From" : (rule.PortRange.From)!0,
-                        "To" : (rule.PortRange.To)!65535
+                        "From" : fromPort,
+                        "To" : toPort
                     }
                 }
             ]
@@ -431,8 +455,8 @@
                 {
                     "Protocol" : "1",
                     "Icmp" : {
-                        "Code" : (rule.ICMP.Code)!-1,
-                        "Type" : (rule.ICMP.Type)!-1
+                        "Code" : (port.ICMP.Code)!-1,
+                        "Type" : (port.ICMP.Type)!-1
                     }
                 }
             ]
@@ -442,8 +466,8 @@
                 {
                     "Protocol" : "17",
                     "PortRange" : {
-                        "From" : (rule.PortRange.From)!0,
-                        "To" : (rule.PortRange.To)!65535
+                        "From" : fromPort,
+                        "To" : toPort
                     }
                 }
             ]
@@ -453,8 +477,8 @@
                 {
                     "Protocol" : "6",
                     "PortRange" : {
-                        "From" : (rule.PortRange.From)!0,
-                        "To" : (rule.PortRange.To)!65535
+                        "From" : fromPort,
+                        "To" : toPort
                     }
                 }
             ]
@@ -556,29 +580,41 @@
             id,
             vpcId,
             service,
-            routeTableIds=[]
+            type,
+            privateDNSZone=false,
+            subnetIds=[],
+            routeTableIds=[],
+            securityGroupIds=[],
             statements=[]
 ]
 
-    [#local routeTableRefs = [] ]
-    [#list asArray(routeTableIds) as routeTableId]
-        [#local routeTableRefs += [getReference(routeTableId)] ]
-    [/#list]
     [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::VPCEndpoint"
         properties=
             {
-                "RouteTableIds" : routeTableRefs,
-                "ServiceName" :
-                    formatDomainName(
-                        "com.amazonaws",
-                        region,
-                        service),
+                "ServiceName" : service,
                 "VpcId" : getReference(vpcId)
             } +
-            valueIfContent(getPolicyDocument(statements), statements)
+            (type == "gateway")?then(
+                {
+                    "VpcEndpointType" : "Gateway",
+                    "RouteTableIds" : getReferences(routeTableIds)
+                } +
+                valueIfContent(getPolicyDocument(statements), statements),
+                {}
+            ) +
+            (type == "interface")?then(
+                {
+                    "VpcEndpointType" : "Interface",
+                    "SubnetIds" : getReferences(subnetIds),
+                    "PrivateDnsEnabled" : privateDNSZone,
+                    "SecurityGroupIds" : getReferences(securityGroupIds)
+                },
+                {}
+            )
+            
         outputs={}
     /]
 [/#macro]

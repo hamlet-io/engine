@@ -16,6 +16,24 @@
         [#assign lbShortName = resources["lb"].ShortName ]
         [#assign lbLogs = solution.Logs ]
         [#assign lbSecurityGroupIds = [] ]
+      
+        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        
+        [#if ! networkLinkTarget?has_content ]
+            [@cfException listMode "Network could not be found" networkLink /]
+            [#break]
+        [/#if]
+
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
 
         [#assign engine = solution.Engine]
         [#assign idleTimeout = solution.IdleTimeout]
@@ -129,7 +147,7 @@
 
             [#-- Determine the IP whitelisting required --]
             [#assign portIpAddressGroups = solution.IPAddressGroups ]
-            [#if !solution.IPAddressGroups?seq_contains("_localnet") && tier.Network.RouteTable != "external" ]
+            [#if !solution.IPAddressGroups?seq_contains("_localnet") && !publicRouteTable ]
                 [#assign portIpAddressGroups += [ "_localnet"] ]
             [/#if]
             [#assign cidrs = getGroupCIDRs(portIpAddressGroups)]
@@ -387,7 +405,8 @@
                             name=securityGroupName
                             tier=tier
                             component=component
-                            ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidrs} ]/]
+                            ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidrs} ]
+                            vpcId=vpcId/]
 
                     [/#if]
                     [#break]
@@ -466,6 +485,7 @@
                                 destination=destinationPort
                                 attributes=tgAttributes
                                 targetType=solution.Forward.TargetType
+                                vpcId=vpcId
                             /]
                         [/#if]
                     [/#if]
@@ -483,6 +503,7 @@
                             destination=destinationPort
                             attributes=tgAttributes
                             targetType=solution.Forward.TargetType
+                            vpcId=vpcId
                              /]
                     [/#if]
 
@@ -601,6 +622,8 @@
                         tier=tier
                         component=component
                         securityGroups=lbSecurityGroupIds
+                        networkResources=networkResources
+                        publicEndpoint=publicRouteTable
                         logs=lbLogs
                         type=engine
                         bucket=operationsBucket
@@ -630,6 +653,8 @@
                         listeners=classicListeners
                         healthCheck=healthCheck
                         securityGroups=lbSecurityGroupIds
+                        networkResources=networkResources
+                        publicEndpoint=publicRouteTable
                         logs=lbLogs
                         bucket=operationsBucket
                         idleTimeout=idleTimeout

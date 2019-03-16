@@ -28,6 +28,24 @@
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ComputeCluster")]
         [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
         [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
+    
+        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+
+        [#if ! networkLinkTarget?has_content ]
+            [@cfException listMode "Network could not be found" networkLink /]
+            [#break]
+        [/#if]
+
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
 
         [#assign computeAutoScaleGroupTags =                     
                 getCfTemplateCoreTags(
@@ -285,7 +303,8 @@
                 tier=tier
                 component=component
                 id=computeClusterSecurityGroupId
-                name=computeClusterSecurityGroupName /]
+                name=computeClusterSecurityGroupName
+                vpcId=vpcId /]
 
             [#list ingressRules as rule ]
                 [@createSecurityGroupIngress
@@ -328,6 +347,7 @@
                 targetGroups=targetGroups
                 loadBalancers=loadBalancers
                 tags=computeAutoScaleGroupTags
+                networkResources=networkResources
             /]
 
             [#assign imageId = dockerHost?then(
@@ -344,7 +364,7 @@
                 instanceProfileId=computeClusterInstanceProfileId
                 resourceId=computeClusterAutoScaleGroupId
                 imageId=imageId
-                routeTable=tier.Network.RouteTable
+                publicIP=publicRouteTable
                 configSet=configSetName
                 enableCfnSignal=(solution.UseInitAsService != true)
                 environmentId=environmentId

@@ -8,7 +8,7 @@
           "Title": "Zone A",
           "Name": "a",
           "Description": "Zone A",
-          "AWSZone": "ap-northeast-1a"
+          "AWSZone": "ap-northeast-1a"          
         },
         "c": {
           "Title": "Zone C",
@@ -122,19 +122,385 @@
           "Title": "Zone A",
           "Name": "a",
           "Description": "Zone A",
-          "AWSZone": "ap-southeast-2a"
+          "AWSZone": "ap-southeast-2a",
+          "NetworkEndpoints" : [
+              {
+                  "Type": "Interface",
+                  "ServiceName": "aws.sagemaker.ap-southeast-2.notebook"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.cloudformation"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.cloudtrail"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.codebuild"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.codepipeline"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.config"
+              },
+              {
+                  "Type": "Gateway",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.dynamodb"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ec2"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ec2messages"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecr.api"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecr.dkr"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecs"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecs-agent"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ecs-telemetry"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.elasticloadbalancing"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.events"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.execute-api"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.kinesis-streams"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.kms"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.logs"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.monitoring"
+              },
+              {
+                  "Type": "Gateway",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.s3"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.api"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.runtime"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.secretsmanager"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.servicecatalog"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.sns"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.sqs"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ssm"
+              },
+              {
+                  "Type": "Interface",
+                  "ServiceName": "com.amazonaws.ap-southeast-2.ssmmessages"
+              }
+            ]
         },
         "b": {
           "Title": "Zone B",
           "Name": "b",
           "Description": "Zone B",
-          "AWSZone": "ap-southeast-2b"
+          "AWSZone": "ap-southeast-2b",
+          "NetworkEndpoints" : [
+            {
+                "ServiceName": "aws.sagemaker.ap-southeast-2.notebook",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.cloudformation",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.cloudtrail",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.codebuild",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.codepipeline",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.config",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.dynamodb",
+                "Type": "Gateway"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ec2",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ec2messages",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecr.api",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecr.dkr",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs-agent",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs-telemetry",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.elasticloadbalancing",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.events",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.execute-api",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.kinesis-streams",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.kms",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.logs",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.monitoring",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.s3",
+                "Type": "Gateway"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.api",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.runtime",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.secretsmanager",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.servicecatalog",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.sns",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.sqs",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ssm",
+                "Type": "Interface"
+            },
+            {
+                "ServiceName": "com.amazonaws.ap-southeast-2.ssmmessages",
+                "Type": "Interface"
+            }
+          ]
         },
         "c": {
           "Title": "Zone C",
           "Name": "c",
           "Description": "Zone C",
-          "AWSZone": "ap-southeast-2c"
+          "AWSZone": "ap-southeast-2c",
+          "NetworkEndpoints" : [
+            {
+                "Type": "Interface",
+                "ServiceName": "aws.sagemaker.ap-southeast-2.notebook"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.cloudformation"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.cloudtrail"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.codebuild"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.codepipeline"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.config"
+            },
+            {
+                "Type": "Gateway",
+                "ServiceName": "com.amazonaws.ap-southeast-2.dynamodb"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ec2"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ec2messages"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecr.api"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecr.dkr"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs-agent"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ecs-telemetry"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.elasticloadbalancing"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.events"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.execute-api"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.kinesis-streams"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.kms"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.logs"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.monitoring"
+            },
+            {
+                "Type": "Gateway",
+                "ServiceName": "com.amazonaws.ap-southeast-2.s3"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.api"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.sagemaker.runtime"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.secretsmanager"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.servicecatalog"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.sns"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.sqs"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ssm"
+            },
+            {
+                "Type": "Interface",
+                "ServiceName": "com.amazonaws.ap-southeast-2.ssmmessages"
+            }
+          ]
         }
       },
       "Accounts": {
@@ -794,14 +1160,30 @@
       "Title": "Web Tier",
       "Description": "Supports HMI",
       "Network": {
-        "Enabled": true
+        "Enabled": true,
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable" : "internal",
+        "NetworkACL" : "open"
       }
     },
     "api": {
       "Title": "API Tier",
       "Description": "Supports externally exposed APIs",
       "Network": {
-        "Enabled": true
+        "Enabled": true,
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable" : "internal",
+        "NetworkACL" : "open"
       }
     },
     "msg": {
@@ -809,7 +1191,15 @@
       "Name": "messaging",
       "Description": "Supports system-to-system based interactions/services",
       "Network": {
-        "Enabled": true
+        "Enabled": true,
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable" : "internal",
+        "NetworkACL" : "open"
       }
     },
     "app": {
@@ -817,7 +1207,15 @@
       "Name": "application",
       "Description": "Supports application logic execution",
       "Network": {
-        "Enabled": true
+        "Enabled": true,
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable" : "internal",
+        "NetworkACL" : "open"
       }
     },
     "db": {
@@ -825,7 +1223,15 @@
       "Name": "database",
       "Description": "Supports long term storage of content and customer data",
       "Network": {
-        "Enabled": true
+        "Enabled": true,
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable" : "internal",
+        "NetworkACL" : "open"
       }
     },
     "dir": {
@@ -833,7 +1239,15 @@
       "Name": "directories",
       "Description": "Supports directories or domain controllers",
       "Network": {
-        "Enabled": true
+        "Enabled": true,
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable" : "internal",
+        "NetworkACL" : "open"
       }
     },
     "ana": {
@@ -841,7 +1255,15 @@
       "Name": "analytics",
       "Description": "Suports things like search engines",
       "Network": {
-        "Enabled": true
+        "Enabled": true,
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable" : "internal",
+        "NetworkACL" : "open"
       }
     },
     "elb": {
@@ -849,14 +1271,29 @@
       "Description": "Publically accessible application load balancers",
       "Network": {
         "Enabled": true,
-        "RouteTable": "external"
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable": "external",
+        "NetworkACL" : "open"
       }
     },
     "ilb": {
       "Title": "Internal Load Balancer Tier",
       "Description": "Internally accessible application load balancers",
       "Network": {
-        "Enabled": true
+        "Enabled": true,
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable" : "internal",
+        "NetworkACL" : "open"
       }
     },
     "mgmt": {
@@ -865,7 +1302,14 @@
       "Description": "Supports ssh based host access and internet access for internal hosts",
       "Network": {
         "Enabled": true,
-        "RouteTable": "external"
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Instance" : "",
+          "Version" : ""
+        },
+        "RouteTable": "external",
+        "NetworkACL" : "open"
       },
       "Components": {
         "seg-cert": {
@@ -888,20 +1332,19 @@
             "s3"
           ]
         },
-        "seg-vpc": {
-          "DeploymentUnits": [
-            "vpc"
-          ]
-        },
         "seg-dashboard": {
           "DeploymentUnits": [
             "dashboard"
           ]
         },
+        "baseline" :{
+          "DeploymentUnits" : [ "baseline" ],
+          "baseline" : {
+            
+          }
+        },
         "ssh": {
-          "DeploymentUnits": [
-            "ssh"
-          ],
+          "DeploymentUnits": [ "ssh" ],
           "MultiAZ": true,
           "bastion": {
             "AutoScaling": {
@@ -912,10 +1355,115 @@
             }
           }
         },
-        "nat-nat": {
-          "DeploymentUnits": [
-            "nat"
-          ]
+        "vpc": {
+          "DeploymentUnits": [ "vpc" ],
+          "MultiAZ": true,
+          "network" : {
+            "RouteTables" : {
+                "internal" : {
+                },
+                "external" : {
+                    "Public" : true
+                }
+            },
+            "NetworkACLs" : {
+                "open" : {
+                    "Rules" : {
+                        "in" : {
+                            "Priority" : 200,
+                            "Action" : "allow",
+                            "Source" : {
+                                "IPAddressGroups" : [ "_global"]
+                            },
+                            "Destination" : {
+                                "IPAddressGroups" : ["_localnet"],
+                                "Port" : "any"
+                            },
+                            "ReturnTraffic" : false
+                        },
+                        "out" : {
+                            "Priority" : 200,
+                            "Action" : "allow",
+                            "Source" : {
+                                "IPAddressGroups" : [ "_localnet"]
+                            },
+                            "Destination" : {
+                                "IPAddressGroups" : ["_global"],
+                                "Port" : "any"
+                            },
+                            "ReturnTraffic" : false
+                        }
+                    }
+                }
+            }
+          }
+        },
+        "igw" : {
+          "DeploymentUnits": [ "igw" ],
+          "gateway" : {
+              "Engine" : "igw",
+              "Destinations" : {
+                  "default" : {
+                      "IPAddressGroups" : "_global",
+                      "Links" : {
+                          "external" : {
+                              "Tier" : "mgmt",
+                              "Component" : "vpc",
+                              "Version" : "",
+                              "Instance" : "",
+                              "RouteTable" : "external"
+                          }
+                      }
+                  }
+              }
+          }
+        },
+        "nat" : {
+          "DeploymentUnits" : [ "nat"],
+          "gateway" : {
+              "Engine" : "natgw",
+              "Destinations" : {
+                  "default" : {
+                      "IPAddressGroups" : "_global",
+                      "Links" : {
+                          "internal" : {
+                              "Tier" : "mgmt",
+                              "Component" : "vpc",
+                              "Version" : "",
+                              "Instance" : "",
+                              "RouteTable" : "internal"
+                          }
+                      }
+                  }
+              }
+          }
+        },
+        "vpcendpoint" : {
+            "DeploymentUnits" : ["vpcendpoint"],
+            "gateway" : {
+                "Engine" : "vpcendpoint",
+                "Destinations" : {
+                    "default" : {
+                        "NetworkEndpointGroups" : [ "storage", "logs" ],
+                        "Links" : {
+                            "internal" : {
+                                "Tier" : "mgmt",
+                                "Component" : "vpc",
+                                "Version" : "",
+                                "Instance" : "",
+                                "RouteTable" : "internal"
+                            },
+                            "external" : {
+                                "Tier" : "mgmt",
+                                "Component" : "vpc",
+                                "Version" : "",
+                                "Instance" : "",
+                                "RouteTable" : "external"
+                            }
+                        }
+                    }
+                }
+            }
         }
       }
     },
@@ -924,13 +1472,23 @@
       "Description": "Shared Tier",
       "Network": {
         "Enabled": true,
-        "RouteTable": "external"
+        "Link" : {
+          "Tier" : "mgmt",
+          "Component" : "vpc",
+          "Version" : "",
+          "Instance" : ""
+        },
+        "RouteTable": "external",
+        "NetworkACL" : "open"
       }
     },
     "docs": {
       "Title": "Docs Tier",
       "Description": "Non-network Tier For documentation generation",
-      "Name": "documentation"
+      "Name": "documentation",
+      "Network" : {
+        "Enabled" : false
+      }
     },
     "gbl": {
       "Title": "Global Tier",
@@ -972,47 +1530,6 @@
                 "PredefineLogGroup": false
               }
             }
-          }
-        }
-      }
-    }
-  },
-  "RouteTables": {
-    "internal": {
-      "Title": "Internal Subnet Route Table",
-      "Description": "Route table supporting routing only to local subnets - default route always present. No internet access provided.",
-      "Routes": {},
-      "Private": true
-    },
-    "external": {
-      "Title": "External Subnet Route Table",
-      "Description": "Route table supporting direct internet access",
-      "Routes": {
-        "gateway": {
-          "Type": "gateway"
-        }
-      }
-    }
-  },
-  "NetworkACLs": {
-    "open": {
-      "Title": "Completely open subnet",
-      "Rules": {
-        "Inbound": {
-          "all": {
-            "RuleNumber": 100,
-            "Protocol": "all",
-            "CIDRBlock": "0.0.0.0/0",
-            "Allow": true
-          }
-        },
-        "Outbound": {
-          "all": {
-            "Id": "all",
-            "RuleNumber": 100,
-            "Protocol": "all",
-            "CIDRBlock": "0.0.0.0/0",
-            "Allow": true
           }
         }
       }
@@ -1373,6 +1890,48 @@
         "Interval": "30",
         "Timeout": "5"
       }
+    },
+    "ephemeraltcp" : {
+      "PortRange" : {
+        "From" : 1024,
+        "To" : 65535
+      },
+      "IPProtocol" : "tcp"
+    },
+    "ephemeraludp" : {
+      "PortRange" : {
+        "From" : 1024,
+        "To" : 65535
+      },
+      "IPProtocol" : "udp"
+    },
+    "any" : {
+      "PortRange" : {
+        "From" : 0,
+        "To" : 65535
+      },
+      "IPProtocol" : "all"
+    },
+    "anyudp" : {
+      "PortRange" : {
+        "From" : 0,
+        "To" : 65535
+      },
+      "IPProtocol" : "udp"
+    },
+    "anytcp" : {
+      "PortRange" : {
+        "From" : 0,
+        "To" : 65535
+      },
+      "IPProtocol" : "tcp"
+    },
+    "anyicmp" : {
+      "IPProtocol" : "icmp",
+      "ICMP" : {
+        "Code" : -1,
+        "Type" : -1
+      }
     }
   },
   "PortMappings": {
@@ -1443,13 +2002,7 @@
   },
   "Segment": {
     "Network": {
-      "CIDR": {
-        "Address": "10.0.0.0",
-        "Mask": 16
-      },
       "InternetAccess": true,
-      "DNSSupport": true,
-      "DNSHostnames": true,
       "Tiers": {
         "Order": [
           "web",
@@ -1945,6 +2498,29 @@
             }
           }
         }
+    }
+  },
+  "NetworkEndpointGroups" : {
+    "compute" : {
+        "Services" : [ "ec2", "ec2messages", "logs", "elasticloadbalancing", "monitoring" ]
+    },
+    "security" : {
+        "Services" : [ "kms", "logs" ]
+    },
+    "configurationMgmt" : {
+      "Services" : [ "ssm", "ssmmessages" ]
+    },
+    "ecs" : {
+      "Services" : [ "ecs", "ecs-agent", "ecs-telemetry", "ecr.api", "ecr.dkr" ]
+    },
+    "serverless" : {
+      "Services"  : [ "sns", "sqs", "execute-api" ]
+    },
+    "logs" : {
+      "Services" : [ "logs"]
+    },
+    "storage" : {
+      "Services" : [ "s3", "dynamodb" ]
     }
   }
 }

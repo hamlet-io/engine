@@ -34,6 +34,24 @@
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ECS")]
         [#assign processorProfile = getProcessor(tier, component, "ECS")]
         [#assign storageProfile = getStorage(tier, component, "ECS")]
+    
+        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+
+        [#if ! networkLinkTarget?has_content ]
+            [@cfException listMode "Network could not be found" networkLink /]
+            [#break]
+        [/#if]
+
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
+
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
 
         [#assign ecsTags = getCfTemplateCoreTags(
                         ecsName,
@@ -182,7 +200,8 @@
             [@createComponentSecurityGroup
                 mode=listMode
                 tier=tier
-                component=component /]
+                component=component
+                vpcId=vpcId /]
 
             [#list resources.logMetrics as logMetricName,logMetric ]
 
@@ -292,6 +311,7 @@
                 autoScalingConfig=solution.AutoScaling
                 multiAZ=multiAZ
                 tags=ecsTags
+                networkResources=networkResources
                 hibernate=hibernate
             /]
 
@@ -304,7 +324,7 @@
                 securityGroupId=ecsSecurityGroupId
                 resourceId=ecsAutoScaleGroupId
                 imageId=regionObject.AMIs.Centos.ECS
-                routeTable=tier.Network.RouteTable
+                publicIP=publicRouteTable
                 configSet=configSetName
                 environmentId=environmentId
                 enableCfnSignal=solution.AutoScaling.WaitForSignal

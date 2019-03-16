@@ -12,6 +12,20 @@
         [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
+    
+        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+
+        [#if ! networkLinkTarget?has_content ]
+            [@cfException listMode "Network could not be found" networkLink /]
+            [#break]
+        [/#if]
+
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
 
         [#assign engine = solution.Engine]
         [#switch engine]
@@ -241,6 +255,7 @@
                 component=component
                 resourceId=rdsId
                 resourceName=rdsFullName
+                vpcId=vpcId
             /]
 
             [@createSecurityGroupIngress
@@ -258,7 +273,7 @@
                 properties=
                     {
                         "DBSubnetGroupDescription" : rdsFullName,
-                        "SubnetIds" : getSubnets(tier)
+                        "SubnetIds" : getSubnets(tier, networkResources)
                     }
                 tags=rdsTags
                 outputs={}

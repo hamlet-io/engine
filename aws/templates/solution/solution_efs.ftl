@@ -12,6 +12,20 @@
         [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
         [#assign zoneResources = occurrence.State.Resources.Zones]
+      
+        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+
+        [#if ! networkLinkTarget?has_content ]
+            [@cfException listMode "Network could not be found" networkLink /]
+            [#break]
+        [/#if]
+
+        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#assign networkResources = networkLinkTarget.State.Resources ]
+
+        [#assign vpcId = networkResources["vpc"].Id ]
 
         [#assign efsPort = 2049]
 
@@ -31,6 +45,7 @@
                 component=component
                 id=efsSecurityGroupId
                 name=efsSecurityGroupName
+                vpcId=vpcId
             /]
 
             [@createSecurityGroupIngress
@@ -55,7 +70,7 @@
                 [@createEFSMountTarget
                     mode=listMode
                     id=zoneEfsMountTargetId
-                    subnetId=formatSubnetId(tier, zone)
+                    subnetId=getSubnets(tier, networkResources, zone.Id)
                     efsId=efsId
                     securityGroups=efsSecurityGroupId
                     dependencies=[efsId,efsSecurityGroupId]

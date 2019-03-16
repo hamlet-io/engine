@@ -584,7 +584,7 @@
     instanceProfileId
     resourceId
     imageId
-    routeTable
+    publicIP
     configSet
     environmentId
     sshFromProxy=sshFromProxySecurityGroup
@@ -622,7 +622,7 @@
                         []
                     ),
                 "IamInstanceProfile" : getReference(instanceProfileId),
-                "AssociatePublicIpAddress" : (routeTable == "external"),
+                "AssociatePublicIpAddress" : publicIP,
                 "UserData" : {
                     "Fn::Base64" : {
                         "Fn::Join" : [
@@ -669,6 +669,7 @@
     autoScalingConfig
     multiAZ
     tags
+    networkResources
     hibernate=false
     loadBalancers=[]
     targetGroups=[]
@@ -734,13 +735,13 @@
                     "MinSize": minSize,
                     "MaxSize": maxSize,
                     "DesiredCapacity": desiredCapacity,
-                    "VPCZoneIdentifier": getSubnets(tier)
+                    "VPCZoneIdentifier": getSubnets(tier, networkResources)
                 },
                 {
                     "MinSize": minSize,
                     "MaxSize": maxSize,
                     "DesiredCapacity": desiredCapacity,
-                    "VPCZoneIdentifier" : getSubnets(tier)[0..0]
+                    "VPCZoneIdentifier" : getSubnets(tier, networkResources)[0..0]
                 }
             ) +
             attributeIfContent(

@@ -716,7 +716,7 @@ function isValidUnit() {
     declare -ga BUILDBLUEPRINT_UNITS_ARRAY=(${unit})
     declare -ga APPLICATION_UNITS_ARRAY=(${unit})
     declare -ga SOLUTION_UNITS_ARRAY=(${unit})
-    declare -ga SEGMENT_UNITS_ARRAY=("iam" "lg" "eip" "s3" "cmk" "cert" "vpc" "nat" "ssh" "dns" "eipvpc" "eips3vpc")
+    declare -ga SEGMENT_UNITS_ARRAY=(${unit})
     declare -ga MULTIPLE_UNITS_ARRAY=("iam" "dashboard")
 
     # Apply explicit unit lists and check for presence of unit
