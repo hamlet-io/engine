@@ -8,9 +8,9 @@
         [#assign parentResources = occurrence.State.Resources]
         [#assign parentSolution = occurrence.Configuration.Solution ]
 
-        [#assign ecsId = resources["cluster"].Id!"" ]
-        [#assign ecsSecurityGroupId = resources["securityGroup"].Id!"" ]
-        [#assign ecsServiceRoleId = resources["serviceRole"].Id!"" ]
+        [#assign ecsId = parentResources["cluster"].Id ]
+        [#assign ecsSecurityGroupId = parentResources["securityGroup"].Id ]
+        [#assign ecsServiceRoleId = parentResources["serviceRole"].Id ]
    
         [#assign networkLink = tier.Network.Link!{} ]
 
@@ -25,7 +25,7 @@
 
         [#assign vpcId = networkResources["vpc"].Id ]
 
-        [#assign hibernate = solution.Hibernate.Enabled &&
+        [#assign hibernate = parentSolution.Hibernate.Enabled &&
                                 getExistingReference(ecsId)?has_content ]
 
         [#list requiredOccurrences(
