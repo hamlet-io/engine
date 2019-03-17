@@ -70,7 +70,7 @@
                 [@createEFSMountTarget
                     mode=listMode
                     id=zoneEfsMountTargetId
-                    subnetId=getSubnets(tier, networkResources, zone.Id)
+                    subnet=getSubnets(tier, networkResources, zone.Id, true, false)
                     efsId=efsId
                     securityGroups=efsSecurityGroupId
                     dependencies=[efsId,efsSecurityGroupId]

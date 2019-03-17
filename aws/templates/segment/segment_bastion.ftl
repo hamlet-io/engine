@@ -48,7 +48,7 @@
 
         [#assign vpcId = networkResources["vpc"].Id ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable }, false)]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
