@@ -50,14 +50,17 @@
     /]
 [/#macro]
 
-[#macro createEFSMountTarget mode id efsId subnetId securityGroups dependencies="" ]
+[#macro createEFSMountTarget mode id efsId subnet securityGroups dependencies="" ]
     [@cfResource
         mode=mode
         id=id
         type="AWS::EFS::MountTarget"
         properties=
             {
-                "SubnetId" : getReference(subnetId),
+                "SubnetId" : subnet?is_enumerable?then(
+                                subnet[0],
+                                subnet
+                ),
                 "FileSystemId" : getReference(efsId),
                 "SecurityGroups": getReferences(securityGroups)
             }

@@ -201,8 +201,6 @@
                                     [#assign zoneRouteTableId = zoneRouteTableResources["routeTable"].Id]
                                     [#assign routeTableIds += [ zoneRouteTableId ]]
 
-                                    
-
                                         [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
 
                                         [#switch gwSolution.Engine ]
