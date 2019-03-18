@@ -345,9 +345,9 @@ function main() {
   aws --region "${AWS_REGION}" s3 sync "${EXPO_REPORTS_PATH}/" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/reports/" || return $?
 
   if [[ "${BUILD_BINARY}" == "true" ]]; then 
-    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${EXPO_PUBLC}|Here>"
+    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${EXPO_PUBLIC_URL}/reports/build-report.html|Here>"
   else
-    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - More details available <${EXPO_PUBLIC_URL}/reports/build-report.html>|Here>"
+    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - More details available <${EXPO_PUBLIC_URL}/reports/build-report.html|Here>"
   fi 
 
   echo "DETAIL_MESSAGE=${DETAIL_MESSAGE}" >> ${AUTOMATION_DATA_DIR}/context.properties
