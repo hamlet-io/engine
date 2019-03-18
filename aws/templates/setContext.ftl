@@ -583,9 +583,8 @@
     [#assign legacyVpc = getExistingReference(formatVPCId())?has_content ]
     [#if legacyVpc ]
         [#assign vpc = getExistingReference(formatVPCId())]
-
         [#-- Make sure the baseline component has been added to existing deployments --]
-        [#assign segmentSeed = "COTException: baseline component not deployed - Please run a deployment of the baseline component" ]
+        [#assign segmentSeed = segmentSeed!"COTException: baseline component not deployed - Please run a deployment of the baseline component" ]
     [/#if]
 
     [#assign network = segmentObject.Network!segmentObject ]
