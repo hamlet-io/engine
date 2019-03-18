@@ -36,12 +36,14 @@ function decrypt_kms_file() {
 
 function env_setup() {
 
-    # hombrew install 
+    # hombrew install
+    brew upgrade || return $?
     brew install \
         jq \
         yarn \
         python || return $?
 
+    brew cask upgrade || return $?
     brew cask install \
         fastlane || return $?
     
@@ -136,7 +138,9 @@ function main() {
 
   options "$@" || return $?
 
-  [[ "${RUN_SETUP}" == "true" ]] && env_setup || return $?
+  if [[ "${RUN_SETUP}" == "true" ]]; then 
+    env_setup || return $?
+  fi
 
   # Ensure mandatory arguments have been provided
   [[ -z "${DEPLOYMENT_UNIT}" ]] && fatalMandatory
@@ -184,7 +188,7 @@ function main() {
   EXPO_BINARY_PATH="${AUTOMATION_DATA_DIR}/binary"
   EXPO_SRC_PATH="${AUTOMATION_DATA_DIR}/src"
   EXPO_CREDS_PATH="${AUTOMATION_DATA_DIR}/creds"
-  EXPO_REPORTS_PATH="${AUTOMATION_DATA_DIR}/repoorts"
+  EXPO_REPORTS_PATH="${AUTOMATION_DATA_DIR}/reports"
 
   mkdir -p "${EXPO_BINARY_PATH}"
   mkdir -p "${EXPO_SRC_PATH}"
@@ -327,26 +331,23 @@ function main() {
        #Generate EXPO QR Code 
       EXPO_QR_FILE_PREFIX="${qr_build_format}"
       EXPO_QR_FILE_NAME="${EXPO_QR_FILE_PREFIX}-qr.png"
-      EXPO_QR_FILE_PATH="${EXPO_BINARY_PATH}/${EXPO_QR_FILE_NAME}"
+      EXPO_QR_FILE_PATH="${EXPO_REPORTS_PATH}/${EXPO_QR_FILE_NAME}"
 
       qr "${EXPO_PUBLIC_URL/http/exp}/${qr_build_format}-index.json" > "${EXPO_QR_FILE_PATH}" || return $?
-      EXPO_QR_BASE64="$(base64 < ${EXPO_QR_FILE_PATH})"
-      aws --region "${AWS_REGION}" s3 cp  "${EXPO_QR_FILE_PATH}" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/" || return $?
 
-      DETAILED_HTML_QR_MESSAGE="${DETAILED_HTML_QR_MESSAGE}<p><strong>${qr_build_format}</strong> <br> <img src=\"data:image/png;base64, ${EXPO_QR_BASE64}\" alt=\"EXPO QR Code\" width=\"200px\" /></p>"
+      DETAILED_HTML_QR_MESSAGE="${DETAILED_HTML_QR_MESSAGE}<p><strong>${qr_build_format}</strong> <br> <img src=\"./${EXPO_QR_FILE_NAME}\" alt=\"EXPO QR Code\" width=\"200px\" /></p>"
   
   done
 
   DETAILED_HTML="<html><body> <h4>Expo Mobile App Publish</h4> <p> A new Expo mobile app publish has completed </p> <ul> <li><strong>Public URL</strong> ${EXPO_PUBLIC_URL}</li> <li><strong>Release Channel</strong> ${EXPO_RELEASE_CHANNEL}</li><li><strong>SDK Version</strong> ${EXPO_SDK_VERSION}</li><li><strong>App Version</strong> ${EXPO_APP_VERSION}</li><li><strong>Build Number</strong> ${EXPO_BUILD_NUMBER}</li><li><strong>Code Commit</strong> ${EXPO_BUILD_REFERENCE}</li></ul> ${DETAILED_HTML_QR_MESSAGE} ${DETAILED_HTML_BINARY_MESSAGE} </body></html>" 
   echo "${DETAILED_HTML}" > "${EXPO_REPORTS_PATH}/build-report.html"
 
-  aws --region "${AWS_REGION}" s3 cp "${EXPO_REPORTS_PATH}/build-report.html" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/reports/build-report.html" || return $?
-  EXPO_REPORT_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${EXPO_APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/reports/build-report.html" )"
+  aws --region "${AWS_REGION}" s3 sync "${EXPO_REPORTS_PATH}/" "s3://${EXPO_PUBLIC_BUCKET}/${EXPO_PUBLIC_PREFIX}/reports/" || return $?
 
   if [[ "${BUILD_BINARY}" == "true" ]]; then 
-    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${EXPO_REPORT_PRESIGNED_URL}|Here>"
+    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${EXPO_PUBLC}|Here>"
   else
-    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - More details available <${EXPO_REPORT_PRESIGNED_URL}|Here>"
+    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - More details available <${EXPO_PUBLIC_URL}/reports/build-report.html>|Here>"
   fi 
 
   echo "DETAIL_MESSAGE=${DETAIL_MESSAGE}" >> ${AUTOMATION_DATA_DIR}/context.properties
