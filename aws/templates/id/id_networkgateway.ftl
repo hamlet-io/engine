@@ -96,7 +96,7 @@
     [#local resources = {} ]
     [#local zoneResources = {}]
 
-    [#if multiAZ ]
+    [#if multiAZ!false ]
         [#local resourceZones = zones ]
     [#else]
         [#local resourceZones = [ zones[0] ]]
@@ -204,7 +204,7 @@
     [#local parentSolution = parent.Configuration.Solution ]
     [#local engine = parentSolution.Engine ]
     
-    [#if multiAZ || engine == "vpcendpoint" ]
+    [#if multiAZ!false || engine == "vpcendpoint" ]
         [#local resourceZones = zones ]
     [#else]
         [#local resourceZones = [zones[0]] ]
