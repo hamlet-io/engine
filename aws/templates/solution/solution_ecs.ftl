@@ -66,7 +66,7 @@
         [#assign configSets =
                 getInitConfigDirectories() +
                 getInitConfigBootstrap(component.Role!"") +
-                getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers) ]
+                getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers, solution.VolumeDrivers ) ]
 
         [#assign efsMountPoints = {}]
 
@@ -124,7 +124,7 @@
                 policies=
                     [
                         getPolicyDocument(
-                            s3ListPermission(codeBucket) +
+                                s3ListPermission(codeBucket) +
                                 s3ReadPermission(credentialsBucket, accountId + "/alm/docker") +
                                 fixedIP?then(
                                     ec2IPAddressUpdatePermission(),
@@ -134,7 +134,11 @@
                                 s3ListPermission(operationsBucket) +
                                 s3WritePermission(operationsBucket, getSegmentBackupsFilePrefix()) +
                                 s3WritePermission(operationsBucket, "DOCKERLogs") +
-                                cwLogsProducePermission(ecsLogGroupName),
+                                cwLogsProducePermission(ecsLogGroupName) +
+                                (solution.VolumeDrivers?seq_contains("ebs"))?then(
+                                    ec2EBSVolumeUpdatePermission(),
+                                    []
+                                ) ,
                             "docker")
                     ] +
                     arrayIfContent(

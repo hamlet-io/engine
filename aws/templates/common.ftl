@@ -847,6 +847,10 @@ behaviour.
             [#case DATAPIPELINE_COMPONENT_TYPE ]
                 [#local result = getDataPipelineState(occurrence)]
                 [#break]
+            
+            [#case DATAVOLUME_COMPONENT_TYPE ]
+                [#local result = getDataVolumeState(occurrence)]
+                [#break]
 
             [#case EC2_COMPONENT_TYPE]
                 [#local result = getEC2State(occurrence)]

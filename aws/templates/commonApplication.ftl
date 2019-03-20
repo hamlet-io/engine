@@ -243,21 +243,40 @@
     [/#if]
 [/#macro]
 
-[#macro Volume name containerPath hostPath="" readOnly=false persist=false ]
+[#macro Volume name="" containerPath="" hostPath="" readOnly=false persist=false volumeLinkId="" driverOpts={} autoProvision=false ]
+    
+    [#if volumeLinkId?has_content ]
+        [#local volumeName = _context.DataVolumes[volumeLinkId].Name ]
+        [#local volumeEngine = _context.DataVolumes[volumeLinkId].Engine ]
+    [#else]
+        [#local volumeName = name!"COTException: Volume Name or VolumeLinkId not provided" ]
+        [#local volumeEngine = "local"]
+    [/#if]
+
+    [#switch volumeEngine ]
+        [#case "ebs" ]
+            [#local volumeDriver = "rexray/ebs" ]
+            [#break]
+        [#default]
+            [#local volumeDriver = "local" ]
+    [/#switch]
+
     [#if (fragmentListMode!"") == "model"]
         [#assign _context +=
             {
                 "Volumes" :
                     (_context.Volumes!{}) +
                     {
-                        name : {
-                            "ContainerPath" : containerPath,
+                        volumeName : {
+                            "ContainerPath" : containerPath!"COTException : Container Path Not provided",
                             "HostPath" : hostPath,
                             "ReadOnly" : readOnly,
                             "PersistVolume" : persist?is_string?then(
                                                 persist?boolean,
-                                                persist
-                            )
+                                                persist),
+                            "Driver" : volumeDriver,
+                            "DriverOptions" : driverOpts,
+                            "AutoProvision" : autoProvision
                         }
                     }
             }
@@ -648,6 +667,40 @@
             attributeIfContent("RunCapabilities", container.RunCapabilities) +
             attributeIfContent("ContainerNetworkLinks", container.ContainerNetworkLinks)
         ]
+
+        [#list _context.Links as linkId,linkTarget]
+            [#assign linkTargetCore = linkTarget.Core ]
+            [#assign linkTargetConfiguration = linkTarget.Configuration ]
+            [#assign linkTargetResources = linkTarget.State.Resources ]
+            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            
+            [#switch linkTargetCore.Type]
+                [#case DATAVOLUME_COMPONENT_TYPE]
+
+                    [#assign dataVolumeEngine = linkTargetAttributes["ENGINE"] ]
+                    
+                    [#if ! ( ecs.Configuration.Solution.VolumeDrivers?seq_contains(dataVolumeEngine)) ]
+                            [@cfException
+                                mode=listMode
+                                description="Volume driver for this data volume not configured for ECS Cluster"
+                                context=ecs.Configuration.Solution.VolumeDrivers
+                                detail=ecs /]
+                    [/#if]
+
+                    [#assign _context +=
+                        {
+                            "DataVolumes" :
+                                (_context.DataVolumes!{}) +
+                                {
+                                    linkId : {
+                                        "Name" : linkTargetAttributes["VOLUME_NAME"],
+                                        "Engine" : linkTargetAttributes["ENGINE"]
+                                    }
+                                }
+                        }]
+                    [#break]
+            [/#switch]
+        [/#list]
 
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentListMode = "model"]

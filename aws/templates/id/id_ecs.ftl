@@ -137,6 +137,12 @@
                     "Default" : "awslogs"
                 },
                 {
+                    "Names" : "VolumeDrivers",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Values" : [ "ebs" ],
+                    "Default" : []
+                },
+                {
                     "Names" : "ClusterLogGroup",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
