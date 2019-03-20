@@ -8,6 +8,10 @@
 [#assign AWS_EC2_NETWORK_INTERFACE_RESOURCE_TYPE = "eni" ]
 [#assign AWS_EC2_KEYPAIR_RESOURCE_TYPE = "keypair" ]
 
+[#assign AWS_EC2_EBS_RESOURCE_TYPE = "ebs" ]
+[#assign AWS_EC2_EBS_ATTACHMENT_RESOURCE_TYPE = "ebsAttachment" ]
+[#assign AWS_EC2_EBS_MANUAL_SNAPSHOT_RESOURCE_TYPE = "manualsnapshot" ]
+
 [#function formatEC2InstanceId tier component extensions...]
     [#return formatComponentResourceId(
                 AWS_EC2_INSTANCE_RESOURCE_TYPE,

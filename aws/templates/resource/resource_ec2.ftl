@@ -6,6 +6,21 @@
     }
 ]
 
+[#assign AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS = 
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
+            "UseRef" : true
+        }
+    }
+]
+
+[#assign outputMappings +=
+    {
+        AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE : AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS,
+        AWS_EC2_EBS_RESOURCE_TYPE : AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS
+    }
+]
+
 [#function getInitConfig configSetName configKeys=[] ]
     [#local configSet = [] ] 
     [#list configKeys as key,value ]
@@ -346,7 +361,7 @@
     ]
 [/#function]
 
-[#function getInitConfigECSAgent ecsId defaultLogDriver dockerUsers=[] ignoreErrors=false ]
+[#function getInitConfigECSAgent ecsId defaultLogDriver dockerUsers=[] dockerVolumeDrivers=[] ignoreErrors=false ]
     [#local dockerUsersEnv = "" ]
 
     [#if dockerUsers?has_content ] 
@@ -355,6 +370,13 @@
         [/#list] 
     [/#if]
     [#local dockerUsersEnv = dockerUsersEnv?remove_ending(",")]
+
+    [#local dockerVolumeDriverEnvs = {} ]
+    [#if dockerVolumeDrivers?has_content ]
+        [#list dockerVolumeDrivers as dockerVolumeDriver ]
+            [#local dockerVolumeDriverEnvs += { "DOCKER_VOLUME_DRIVER_" + dockerVolumeDriver?upper_case : "true" }]
+        [/#list]
+    [/#if]
 
     [#return 
         {
@@ -377,6 +399,10 @@
                         attributeIfContent(
                             "DOCKER_USERS",
                             dockerUsersEnv
+                        ) + 
+                        (dockerVolumeDriverEnvs?has_content)?then(
+                            dockerVolumeDriverEnvs,
+                            {}
                         ),
                         "ignoreErrors" : ignoreErrors
                     }
@@ -782,5 +808,71 @@
                 },
                 {}
             )
+    /]
+[/#macro]
+
+[#macro createEBSVolume mode id 
+    tags
+    size
+    zone
+    volumeType
+    provisionedIops=0
+    snapshotId=""
+    encrypted=false
+    dependencies="" 
+    outputId=""
+]
+
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::EC2::Volume"
+        properties={
+            "AvailabilityZone" : zone.AWSZone,
+            "VolumeType" : volumeType,
+            "Size" : size
+        } + 
+        (!(snapshotId?has_content) && encrypted)?then(
+            {   
+                "Encrypted" : encrypted,
+                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+            },
+            {}
+        ) +
+        (volumeType == "io1")?then(
+            {
+                "Iops" : provisionedIops
+            },
+            {}
+        ) +
+        (snapshotId?has_content)?then(
+            {
+                "SnapshotId" : snapshotId
+            },
+            {}
+        )
+        tags=tags
+        outputs=AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS
+        outputId=outputId
+        dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createEBSVolumeAttachment mode id
+    device
+    instanceId
+    volumeId 
+]
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::EC2::VolumeAttachment"
+        properties={
+            "Device" : "/dev/" + device,
+            "InstanceId" : getReference(instanceId),
+            "VolumeId" : getReference(volumeId)
+        }
+        outputId=outputId
+        dependencies=dependencies
     /]
 [/#macro]

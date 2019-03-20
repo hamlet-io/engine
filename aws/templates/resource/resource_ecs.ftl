@@ -95,6 +95,29 @@
                     }
                 ]
             ]
+
+            [#local dockerVolumeConfiguration = {} +
+                volume.PersistVolume?then(
+                    { 
+                        "Scope" : "shared",
+                        "Autoprovision", volume.AutoProvision
+                    },
+                    {}
+                ) + 
+                (volume.Driver != "local")?then(
+                    {
+                        "Driver" : volume.Driver
+                    },
+                    {}
+                ) + 
+                (volume.DriverOpts?has_content)?then(
+                    {
+                        "DriverOpts" : volume.DriverOpts
+                    },
+                    {}
+                )
+            ]
+
             [#local volumes +=
                 [
                     {
@@ -106,12 +129,8 @@
                         {"SourcePath" : volume.HostPath!""}) + 
                     attributeIfTrue(
                         "DockerVolumeConfiguration",
-                        volume.PersistVolume,
-                        {
-                            "Scope" : "shared",
-                            "Autoprovision": true,
-                            "Driver": "local" 
-                        }
+                        dockerVolumeConfiguration?has_content,
+                        dockerVolumeConfiguration
                     )
                 ]
             ]
