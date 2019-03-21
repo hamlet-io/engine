@@ -105,7 +105,8 @@
                 "Policy" : [],
                 "ManagedPolicy" : [],
                 "Files" : {},
-                "Directories" : {}
+                "Directories" : {},
+                "DataVolumes" : {}
             }
         ]
 
@@ -126,7 +127,7 @@
                 getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
         [/#list]
 
-        [#list links?values as link]
+        [#list links as linkId,link]
             [#assign linkTarget = getLinkTarget(occurrence, link) ]
 
             [@cfDebug listMode linkTarget false /]
@@ -181,6 +182,25 @@
                             linkTargetAttributes.DIRECTORY,
                             link.Id
                         )]
+                    [#break]
+                    
+                [#case DATAVOLUME_COMPONENT_TYPE]
+                    [#assign linkVolumeResources = {}]
+                    [#list linkTargetResources["Zones"] as zoneId, linkZoneResources ]
+                        [#assign linkVolumeResources += {
+                            zoneId : {
+                                "VolumeId" : linkZoneResources["ebsVolume"].Id
+                            }
+                        }]
+                    [/#list]
+                    [#assign _context +=
+                        {
+                            "DataVolumes" :
+                                (_context.DataVolumes!{}) +
+                                {
+                                    linkId : linkVolumeResources
+                                }
+                        }]
                     [#break]
             [/#switch]
 
@@ -240,7 +260,8 @@
                             s3ListPermission(operationsBucket) +
                             s3WritePermission(operationsBucket, "DOCKERLogs") +
                             s3WritePermission(operationsBucket, "Backups") + 
-                            cwLogsProducePermission(ec2LogGroupName),
+                            cwLogsProducePermission(ec2LogGroupName) + 
+                            ec2EBSVolumeReadPermission(),
                             "basic")
                     ] + targetGroupPermission?then(
                         [
@@ -311,6 +332,28 @@
                         [#assign dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
                     [/#if]
 
+                    [#-- Data Volume Mounts --]
+                    [#list _context.VolumeMounts as mountId,volumeMount ]
+                        [#assign dataVolume = _context.DataVolumes[mountId]!{} ]
+                        [#if dataVolume?has_content ]
+                            [#assign zoneVolume = (dataVolume[zone.Id].VolumeId)!"" ]
+                            [#if zoneVolume?has_content ]
+                                [@createEBSVolumeAttachment
+                                    mode=listMode
+                                    id=formatDependentResourceId(AWS_EC2_EBS_ATTACHMENT_RESOURCE_TYPE,zoneEc2InstanceId,mountId)
+                                    device=volumeMount.DeviceId
+                                    instanceId=zoneEc2InstanceId
+                                    volumeId=zoneVolume
+                                /]
+                                [#assign configSets += 
+                                    getInitConfigDataVolumeMount(
+                                        volumeMount.DeviceId
+                                        volumeMount.MountPath
+                                    )
+                                ]
+                            [/#if]
+                        [/#if]
+                    [/#list]
 
                     [@cfResource
                         mode=listMode
@@ -378,7 +421,7 @@
                         properties=
                             {
                                 "Description" : "eth0",
-                                "SubnetId" : getSubnets(tier, networkResources, zone.Id),
+                                "SubnetId" : getSubnets(tier, networkResources, zone.Id)[0],
                                 "SourceDestCheck" : true,
                                 "GroupSet" :
                                     [getReference(ec2SecurityGroupId)] +

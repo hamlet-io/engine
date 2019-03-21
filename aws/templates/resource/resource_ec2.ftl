@@ -22,15 +22,15 @@
 ]
 
 [#function getInitConfig configSetName configKeys=[] ]
-    [#local configSet = [] ] 
+    [#local configSet = [] ]
     [#list configKeys as key,value ]
-        [#local configSet += [ key ] ]            
+        [#local configSet += [ key ]]
     [/#list]
 
     [#return {
         "AWS::CloudFormation::Init" : {
             "configSets" : {
-                configSetName : configSet
+                configSetName : configSet?sort
             }
         } + configKeys 
     } ]
@@ -242,6 +242,25 @@
                             "EFS_FILE_SYSTEM_ID" : efsId,
                             "EFS_MOUNT_PATH" : directory,
                             "EFS_OS_MOUNT_PATH" : "/mnt/clusterstorage/" + osMount
+                        },
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigDataVolumeMount deviceId osMount ignoreErrors=false ]
+    [#return 
+        {
+            "1_DataVolumeMount_" + deviceId : {
+                "commands" :  {
+                    "MountDataVolume" : {
+                        "command" : "/opt/codeontap/bootstrap/init.sh",
+                        "env" : {
+                            "DATA_VOLUME_MOUNT_DEVICE" : deviceId?ensure_starts_with("/dev/"),
+                            "DATA_VOLUME_MOUNT_DIR" : osMount
                         },
                         "ignoreErrors" : ignoreErrors
                     }
