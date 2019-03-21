@@ -147,6 +147,22 @@
     ]
 [/#function]
 
+
+[#function ec2EBSVolumeReadPermission ]
+    [#return 
+        [
+            getPolicyStatement(
+                [
+                    "ec2:DescribeVolumes",
+                    "ec2:DescribeVolumeAttribute",
+                    "ec2:DescribeVolumeStatus"
+                ]
+            )
+        ]
+    
+    ]
+[/#function]
+
 [#function ec2EBSVolumeUpdatePermission ]
     [#return 
         [

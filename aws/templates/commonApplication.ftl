@@ -366,6 +366,22 @@
     [/#if]
 [/#macro]
 
+[#macro DataVolumeMount volumeLinkId deviceId mountPath ]
+    [#if (fragmentListMode!"") == "model"]
+        [#assign _context +=
+            {
+                "VolumeMounts" :
+                    (_context.VolumeMounts!{}) +
+                    {
+                        volumeLinkId : {
+                            "DeviceId" : deviceId,
+                            "MountPath" : mountPath
+                        }
+                    }
+            }]
+    [/#if]
+[/#macro]
+
 [#-- CloudFront Specific Fragment Macros --]
 [#macro cfCustomHeader name value ]
     [#if (fragmentListMode!"") == "model" ]
