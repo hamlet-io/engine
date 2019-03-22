@@ -125,14 +125,14 @@
 [#macro createSSMMaintenanceWindowTask mode id 
     name
     targets
-    maxErrors
-    maxConcurrency
     serviceRoleId
     windowId
     taskId
     taskType
     taskParameters
     priority=10
+    maxErrors=0
+    maxConcurrency=1
     dependencies=""
 ]
 

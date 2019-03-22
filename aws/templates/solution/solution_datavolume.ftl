@@ -69,8 +69,7 @@
                         id=snapshotCreateTaskId
                         name=snapshotCreateTaskName
                         targets=ssmWindowTargets
-                        maxErrors=0
-                        maxConcurrency=1
+                        priority=10
                         serviceRoleId=maintenanceServiceRoleId
                         windowId=maintenanceWindowId
                         taskId="AWS-CreateSnapshot"
@@ -92,8 +91,7 @@
                         id=snapshotDeleteTaskId
                         name=snapshotDeleteTaskName
                         targets=ssmWindowTargets
-                        maxErrors=0
-                        maxConcurrency=1
+                        priority=20
                         serviceRoleId=maintenanceServiceRoleId
                         windowId=maintenanceWindowId
                         taskId="AWS-DeleteEbsVolumeSnapshots"
