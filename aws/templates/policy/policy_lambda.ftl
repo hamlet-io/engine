@@ -7,3 +7,19 @@
         ]
     ]
 [/#function]
+
+[#function lambdaSSMAutomationPermission ]
+    [#return
+        [
+            getPolicyStatement(
+                [
+                    "lambda:InvokeFunction",
+                    "lambda:GetFunction",
+                    "lambda:CreateFunction",
+                    "lambda:ListFunctions",
+                    "lambda:DeleteFunction"
+                ]
+            )
+        ]
+    ]
+[/#function]

@@ -148,6 +148,28 @@
 [/#function]
 
 
+[#function ec2EBSVolumeSnapshotAllPermission ]
+    [#return 
+        [
+            getPolicyStatement(
+                [
+                    "ec2:CopySnapshot",
+                    "ec2:CreateSnapshot",
+                    "ec2:DescribeSnapshots",
+                    "ec2:DeleteSnapshot",
+                    "ec2:DescribeSnapshotAttribute",
+                    "ec2:ModifySnapshotAttribute",
+                    "ec2:ResetSnapshotAttribute",
+                    "ec2:DescribeVolumes",
+                    "ec2:DescribeVolumeStatus",
+                    "ec2:DescribeVolumeAttribute",
+                    "ec2:DescribeVolumesModifications"
+                ]
+            )
+        ]
+    ]
+[/#function]
+
 [#function ec2EBSVolumeReadPermission ]
     [#return 
         [
