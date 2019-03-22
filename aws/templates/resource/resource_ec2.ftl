@@ -36,25 +36,10 @@
     } ]
 [/#function]
 
-[#function getInitConfigDirectories ignoreErrors=false ]
+[#function getInitConfigBootstrap role ignoreErrors=false priority=1 ]
     [#return 
         {
-            "Directories" : {
-                "commands": {
-                    "01Directories" : {
-                        "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /opt/codeontap/scripts && mkdir --parents --mode=0755 /var/log/codeontap",
-                        "ignoreErrors" : ignoreErrors
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
-
-[#function getInitConfigBootstrap role ignoreErrors=false]
-    [#return 
-        {
-            "Bootstrap": {
+            "${priority}_Bootstrap": {
                 "packages" : {
                     "yum" : {
                         "aws-cli" : [],
@@ -120,7 +105,335 @@
     ]
 [/#function]
 
-[#function getInitConfigUserBootstrap bootstrap environment={} ignoreErrors=false ]
+[#function getInitConfigDirectories ignoreErrors=false priority=2 ]
+    [#return 
+        {
+            "${priority}_Directories" : {
+                "commands": {
+                    "01Directories" : {
+                        "command" : "mkdir --parents --mode=0755 /etc/codeontap && mkdir --parents --mode=0755 /opt/codeontap/bootstrap && mkdir --parents --mode=0755 /opt/codeontap/scripts && mkdir --parents --mode=0755 /var/log/codeontap",
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigEnvFacts envVariables={} ignoreErrors=false priority=2 ]
+
+    [#local envContent = [
+        "#!/bin/bash\n"
+    ]]
+
+    [#list envVariables as key,value]
+        [#local envContent += 
+            [
+                "echo \"" + key + "=" + value + "\"\n"
+            ]
+        ]
+    [/#list]
+
+    [#return 
+        {
+            "${priority}_EnvFacts" : {
+                "files" : {
+                    "/etc/codeontap/env.sh" : {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                envContent
+                            ]
+                        },
+                        "mode" : "000755"
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigLogAgent logProfile logGroupName ignoreErrors=false priority=2 ]
+    [#local logContent = [
+        "[general]\n",
+        "state_file = /var/lib/awslogs/agent-state\n",
+        "\n"
+    ]]
+
+    [#list logProfile.LogFileGroups as logFileGroup ]
+        [#local logGroup = logFileGroups[logFileGroup] ]
+        [#list logGroup.LogFiles as logFile ]
+            [#local logFileDetails = logFiles[logFile] ]
+            [#local logContent +=
+                [
+                    "[" + logFileDetails.FilePath + "]\n",
+                    "file = " + logFileDetails.FilePath + "\n",
+                    "log_group_name = " + logGroupName + "\n",
+                    "log_stream_name = {instance_id}" + logFileDetails.FilePath + "\n"
+                ] + 
+                (logFileDetails.TimeFormat!"")?has_content?then(
+                    [ "datetime_format = " + logFileDetails.TimeFormat + "\n" ],
+                    []
+                ) + 
+                (logFileDetails.MultiLinePattern!"")?has_content?then(
+                    [ "awslogs-multiline-pattern = " + logFileDetails.MultiLinePattern + "\n" ],
+                    []
+                ) + 
+                [ "\n" ]
+            ]
+        [/#list]
+    [/#list]
+
+    [#return 
+        {
+            "${priority}_LogConfig" : {
+                "packages" : {
+                    "yum" : {
+                        "awslogs" : [],
+                        "jq" : []
+                    }
+                },
+                "files" : {
+                    "/etc/awslogs/awscli.conf" : {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                [
+                                    "[plugins]\n",
+                                    "cwlogs = cwlogs\n",
+                                    "[default]\n",
+                                    "region = " + regionId + "\n"
+                                ]
+                            ]
+                        }   
+                    },
+                    "/etc/awslogs/awslogs.conf" : {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                logContent
+                            ]
+                        },
+                        "mode" : "000755"
+                    }
+                },
+                "commands": {
+                    "ConfigureLogsAgent" : {
+                        "command" : "/opt/codeontap/bootstrap/awslogs.sh",
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigDirsFiles files={} directories={} ignoreErrors=false priority=3]
+    
+    [#local initFiles = {} ]
+    [#list files as fileName,file ]
+
+        [#local fileMode = (file.mode?length == 3)?then(
+                                    file.mode?left_pad(6, "0"),
+                                    file.mode )]
+
+        [#local initFiles += 
+            {
+                fileName : {
+                    "content" : { 
+                        "Fn::Join" : [
+                            "\n",
+                            file.content
+                        ]
+                    },
+                    "group" : file.group,
+                    "owner" : file.owner,
+                    "mode"  : fileMode
+                }
+            }]
+    [/#list]
+
+    [#local initDirFile = [
+        "#!/bin/bash\n"
+        "exec > >(tee /var/log/codeontap/dirsfiles.log|logger -t codeontap-dirsfiles -s 2>/dev/console) 2>&1\n"
+    ]]
+    [#list directories as directoryName,directory ]
+        [#local initDirFile += [
+            "if [[ ! -d \"" + directoryName + "\" ]]; then\n",
+            "   mkdir --parents --mode=" + directory.mode + " \"" + directoryName + "\"\n",
+            "   chown " + directory.owner + ":" + directory.group + " \"" + directoryName + "\"\n",
+            "else\n",
+            "   chown -R " + directory.owner + ":" + directory.group + " \"" + directoryName + "\"\n",
+            "   chmod " + directory.mode + " \"" + directoryName + "\"\n",
+            "fi\n" 
+        ]]
+    [/#list]
+
+    [#return 
+        { } +
+        attributeIfContent(
+            "${priority}_CreateDirs",
+            directories,
+            {
+                "files" : {
+                    "/opt/codeontap/create_dirs.sh" : {
+                        "content" : {
+                            "Fn::Join" : [
+                                "",
+                                initDirFile
+                            ]
+                        },
+                        "mode" : "000755"
+                    }
+                },
+                "commands" : {
+                    "CreateDirScript" : {
+                        "command" : "/opt/codeontap/create_dirs.sh",
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        ) +
+        attributeIfContent(
+            "${priority}_CreateFiles",
+            files,
+            {
+                "files" : initFiles
+            }
+
+        )
+    ]
+[/#function]
+
+[#function getInitConfigEIPAllocation allocationIds ignoreErrors=false priority=3 ]
+    [#return 
+        {
+            "${priority}_AssignEIP" :  {
+                "commands" : {
+                    "01AssignEIP" : {
+                        "command" : "/opt/codeontap/bootstrap/eip.sh",
+                        "env" : {
+                            "EIP_ALLOCID" : {
+                                "Fn::Join" : [
+                                    " ",
+                                    asArray(allocationIds)
+                                ]
+                            }
+                        },
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigPuppet ignoreErrors=false priority=3 ]
+    [#return 
+        {
+            "${priority}_puppet": {
+                "commands": {
+                    "01SetupPuppet" : {
+                        "command" : "/opt/codeontap/bootstrap/puppet.sh",
+                        "ignoreErrors" : "false"
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigEFSMount mountId efsId directory osMount ignoreErrors=false priority=4 ]
+    [#return 
+        {
+            "${priority}_EFSMount_" + mountId : {
+                "commands" :  {
+                    "MountEFS" : {
+                        "command" : "/opt/codeontap/bootstrap/efs.sh",
+                        "env" : {
+                            "EFS_FILE_SYSTEM_ID" : efsId,
+                            "EFS_MOUNT_PATH" : directory,
+                            "EFS_OS_MOUNT_PATH" : "/mnt/clusterstorage/" + osMount
+                        },
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigDataVolumeMount deviceId osMount ignoreErrors=false priority=4 ]
+    [#return 
+        {
+            "${priority}_DataVolumeMount_" + deviceId : {
+                "commands" :  {
+                    "MountDataVolume" : {
+                        "command" : "/opt/codeontap/bootstrap/init.sh",
+                        "env" : {
+                            "DATA_VOLUME_MOUNT_DEVICE" : deviceId?ensure_starts_with("/dev/"),
+                            "DATA_VOLUME_MOUNT_DIR" : osMount
+                        },
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigECSAgent ecsId defaultLogDriver dockerUsers=[] dockerVolumeDrivers=[] ignoreErrors=false priority=5 ]
+    [#local dockerUsersEnv = "" ]
+
+    [#if dockerUsers?has_content ] 
+        [#list dockerUsers as userName,details ]
+            [#local dockerUsersEnv += details.UserName?has_content?then(details.UserName,userName) + ":" + details.UID?c + "," ]
+        [/#list] 
+    [/#if]
+    [#local dockerUsersEnv = dockerUsersEnv?remove_ending(",")]
+
+    [#local dockerVolumeDriverEnvs = {} ]
+    [#if dockerVolumeDrivers?has_content ]
+        [#list dockerVolumeDrivers as dockerVolumeDriver ]
+            [#local dockerVolumeDriverEnvs += { "DOCKER_VOLUME_DRIVER_" + dockerVolumeDriver?upper_case : "true" }]
+        [/#list]
+    [/#if]
+
+    [#return 
+        {
+        "${priority}_ecs": {
+            "commands":
+                attributeIfTrue(
+                    "01Fluentd",
+                    defaultLogDriver == "fluentd",
+                    {
+                        "command" : "/opt/codeontap/bootstrap/fluentd.sh",
+                        "ignoreErrors" : ignoreErrors
+                    }) +
+                {
+                    "03ConfigureCluster" : {
+                        "command" : "/opt/codeontap/bootstrap/ecs.sh",
+                        "env" : {
+                            "ECS_CLUSTER" : getReference(ecsId),
+                            "ECS_LOG_DRIVER" : defaultLogDriver
+                        } +
+                        attributeIfContent(
+                            "DOCKER_USERS",
+                            dockerUsersEnv
+                        ) + 
+                        (dockerVolumeDriverEnvs?has_content)?then(
+                            dockerVolumeDriverEnvs,
+                            {}
+                        ),
+                        "ignoreErrors" : ignoreErrors
+                    }
+                }
+            }
+        }
+    ]
+[/#function]
+
+[#function getInitConfigUserBootstrap bootstrap environment={} ignoreErrors=false priority=7 ]
     [#local scriptStore = scriptStores[bootstrap.ScriptStore ]]
     [#local scriptStorePrefix = scriptStore.Destination.Prefix ]
 
@@ -155,7 +468,7 @@
 
     [#return 
         {
-            "UserBoot_" + bootstrap.Id : {
+            "${priority}_UserBoot_" + bootstrap.Id : {
                 "files" : {
                     bootstrapFetchFile: {
                         "content" : {
@@ -198,118 +511,10 @@
     ]
 [/#function]
 
-[#function getInitConfigEnvFacts envVariables={} ignoreErrors=false ]
-
-    [#local envContent = [
-        "#!/bin/bash\n"
-    ]]
-
-    [#list envVariables as key,value]
-        [#local envContent += 
-            [
-                "echo \"" + key + "=" + value + "\"\n"
-            ]
-        ]
-    [/#list]
-
+[#function getInitConfigScriptsDeployment scriptsFile envVariables={} shutDownOnCompletion=false ignoreErrors=false priority=7 ]
     [#return 
         {
-            "EnvFacts" : {
-                "files" : {
-                    "/etc/codeontap/env.sh" : {
-                        "content" : {
-                            "Fn::Join" : [
-                                "",
-                                envContent
-                            ]
-                        },
-                        "mode" : "000755"
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
-
-[#function getInitConfigEFSMount mountId efsId directory osMount ignoreErrors=false ]
-    [#return 
-        {
-            "EFSMount_" + mountId : {
-                "commands" :  {
-                    "MountEFS" : {
-                        "command" : "/opt/codeontap/bootstrap/efs.sh",
-                        "env" : {
-                            "EFS_FILE_SYSTEM_ID" : efsId,
-                            "EFS_MOUNT_PATH" : directory,
-                            "EFS_OS_MOUNT_PATH" : "/mnt/clusterstorage/" + osMount
-                        },
-                        "ignoreErrors" : ignoreErrors
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
-
-[#function getInitConfigDataVolumeMount deviceId osMount ignoreErrors=false ]
-    [#return 
-        {
-            "1_DataVolumeMount_" + deviceId : {
-                "commands" :  {
-                    "MountDataVolume" : {
-                        "command" : "/opt/codeontap/bootstrap/init.sh",
-                        "env" : {
-                            "DATA_VOLUME_MOUNT_DEVICE" : deviceId?ensure_starts_with("/dev/"),
-                            "DATA_VOLUME_MOUNT_DIR" : osMount
-                        },
-                        "ignoreErrors" : ignoreErrors
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
-
-[#function getInitConfigLBTargetRegistration portId targetGroupArn ignoreErrors=false]
-    [#return
-        {
-            "RegisterWithTG_" + portId  : {
-                "commands" : {
-                        "RegsiterWithTG" : {
-                        "command" : "/opt/codeontap/bootstrap/register_targetgroup.sh",
-                        "env" : {
-                            "TARGET_GROUP_ARN" : targetGroupArn
-                        },
-                        "ignoreErrors" : ignoreErrors
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
-
-[#function getInitConfigLBClassicRegistration lbId ignoreErrors=false]
-    [#return 
-        {
-            "RegisterWithLB_" + lbId : {
-                "commands" : { 
-                    "RegisterWithLB" : {
-                        "command" : "/opt/codeontap/bootstrap/register.sh",
-                        "env" : {
-                            "LOAD_BALANCER" : getReference(lbId)
-                        },
-                        "ignoreErrors" : ignoreErrors
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
-
-[#function getInitConfigScriptsDeployment scriptsFile envVariables={} shutDownOnCompletion=false ignoreErrors=false ]
-    [#return 
-        {
-            "scripts" : {
+            "${priority}_scripts" : {
                 "packages" : {
                     "yum" : {
                         "aws-cli" : [],
@@ -380,71 +585,15 @@
     ]
 [/#function]
 
-[#function getInitConfigECSAgent ecsId defaultLogDriver dockerUsers=[] dockerVolumeDrivers=[] ignoreErrors=false ]
-    [#local dockerUsersEnv = "" ]
-
-    [#if dockerUsers?has_content ] 
-        [#list dockerUsers as userName,details ]
-            [#local dockerUsersEnv += details.UserName?has_content?then(details.UserName,userName) + ":" + details.UID?c + "," ]
-        [/#list] 
-    [/#if]
-    [#local dockerUsersEnv = dockerUsersEnv?remove_ending(",")]
-
-    [#local dockerVolumeDriverEnvs = {} ]
-    [#if dockerVolumeDrivers?has_content ]
-        [#list dockerVolumeDrivers as dockerVolumeDriver ]
-            [#local dockerVolumeDriverEnvs += { "DOCKER_VOLUME_DRIVER_" + dockerVolumeDriver?upper_case : "true" }]
-        [/#list]
-    [/#if]
-
-    [#return 
+[#function getInitConfigLBTargetRegistration portId targetGroupArn ignoreErrors=false priority=8]
+    [#return
         {
-        "ecs": {
-            "commands":
-                attributeIfTrue(
-                    "01Fluentd",
-                    defaultLogDriver == "fluentd",
-                    {
-                        "command" : "/opt/codeontap/bootstrap/fluentd.sh",
-                        "ignoreErrors" : ignoreErrors
-                    }) +
-                {
-                    "03ConfigureCluster" : {
-                        "command" : "/opt/codeontap/bootstrap/ecs.sh",
-                        "env" : {
-                            "ECS_CLUSTER" : getReference(ecsId),
-                            "ECS_LOG_DRIVER" : defaultLogDriver
-                        } +
-                        attributeIfContent(
-                            "DOCKER_USERS",
-                            dockerUsersEnv
-                        ) + 
-                        (dockerVolumeDriverEnvs?has_content)?then(
-                            dockerVolumeDriverEnvs,
-                            {}
-                        ),
-                        "ignoreErrors" : ignoreErrors
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
-
-[#function getInitConfigEIPAllocation allocationIds ignoreErrors=false ]
-    [#return 
-        {
-            "AssignEIP" :  {
+            "${priority}_RegisterWithTG_" + portId  : {
                 "commands" : {
-                    "01AssignEIP" : {
-                        "command" : "/opt/codeontap/bootstrap/eip.sh",
+                        "RegsiterWithTG" : {
+                        "command" : "/opt/codeontap/bootstrap/register_targetgroup.sh",
                         "env" : {
-                            "EIP_ALLOCID" : {
-                                "Fn::Join" : [
-                                    " ",
-                                    asArray(allocationIds)
-                                ]
-                            }
+                            "TARGET_GROUP_ARN" : targetGroupArn
                         },
                         "ignoreErrors" : ignoreErrors
                     }
@@ -454,88 +603,16 @@
     ]
 [/#function]
 
-[#function getInitConfigPuppet ignoreErrors=false]
+[#function getInitConfigLBClassicRegistration lbId ignoreErrors=false priority=8]
     [#return 
         {
-            "puppet": {
-                "commands": {
-                    "01SetupPuppet" : {
-                        "command" : "/opt/codeontap/bootstrap/puppet.sh",
-                        "ignoreErrors" : "false"
-                    }
-                }
-            }
-        }
-    ]
-[/#function]
-
-[#function getInitConfigLogAgent logProfile logGroupName ignoreErrors=false ]
-    [#local logContent = [
-        "[general]\n",
-        "state_file = /var/lib/awslogs/agent-state\n",
-        "\n"
-    ]]
-
-    [#list logProfile.LogFileGroups as logFileGroup ]
-        [#local logGroup = logFileGroups[logFileGroup] ]
-        [#list logGroup.LogFiles as logFile ]
-            [#local logFileDetails = logFiles[logFile] ]
-            [#local logContent +=
-                [
-                    "[" + logFileDetails.FilePath + "]\n",
-                    "file = " + logFileDetails.FilePath + "\n",
-                    "log_group_name = " + logGroupName + "\n",
-                    "log_stream_name = {instance_id}" + logFileDetails.FilePath + "\n"
-                ] + 
-                (logFileDetails.TimeFormat!"")?has_content?then(
-                    [ "datetime_format = " + logFileDetails.TimeFormat + "\n" ],
-                    []
-                ) + 
-                (logFileDetails.MultiLinePattern!"")?has_content?then(
-                    [ "awslogs-multiline-pattern = " + logFileDetails.MultiLinePattern + "\n" ],
-                    []
-                ) + 
-                [ "\n" ]
-            ]
-        [/#list]
-    [/#list]
-
-    [#return 
-        {
-            "LogConfig" : {
-                "packages" : {
-                    "yum" : {
-                        "awslogs" : [],
-                        "jq" : []
-                    }
-                },
-                "files" : {
-                    "/etc/awslogs/awscli.conf" : {
-                        "content" : {
-                            "Fn::Join" : [
-                                "",
-                                [
-                                    "[plugins]\n",
-                                    "cwlogs = cwlogs\n",
-                                    "[default]\n",
-                                    "region = " + regionId + "\n"
-                                ]
-                            ]
-                        }   
-                    },
-                    "/etc/awslogs/awslogs.conf" : {
-                        "content" : {
-                            "Fn::Join" : [
-                                "",
-                                logContent
-                            ]
+            "${priority}_RegisterWithLB_" + lbId : {
+                "commands" : { 
+                    "RegisterWithLB" : {
+                        "command" : "/opt/codeontap/bootstrap/register.sh",
+                        "env" : {
+                            "LOAD_BALANCER" : getReference(lbId)
                         },
-                        "mode" : "000755"
-                    }
-                },
-                "commands": {
-                    "ConfigureLogsAgent" : {
-                        "command" : "/opt/codeontap/bootstrap/awslogs.sh",
                         "ignoreErrors" : ignoreErrors
                     }
                 }
@@ -543,84 +620,6 @@
         }
     ]
 [/#function]
-
-[#function getInitConfigDirsFiles files={} directories={} ignoreErrors=false ]
-    
-    [#local initFiles = {} ]
-    [#list files as fileName,file ]
-
-        [#local fileMode = (file.mode?length == 3)?then(
-                                    file.mode?left_pad(6, "0"),
-                                    file.mode )]
-
-        [#local initFiles += 
-            {
-                fileName : {
-                    "content" : { 
-                        "Fn::Join" : [
-                            "\n",
-                            file.content
-                        ]
-                    },
-                    "group" : file.group,
-                    "owner" : file.owner,
-                    "mode"  : fileMode
-                }
-            }]
-    [/#list]
-
-    [#local initDirFile = [
-        "#!/bin/bash\n"
-        "exec > >(tee /var/log/codeontap/dirsfiles.log|logger -t codeontap-dirsfiles -s 2>/dev/console) 2>&1\n"
-    ]]
-    [#list directories as directoryName,directory ]
-        [#local initDirFile += [
-            "if [[ ! -d \"" + directoryName + "\" ]]; then\n",
-            "   mkdir --parents --mode=" + directory.mode + " \"" + directoryName + "\"\n",
-            "   chown " + directory.owner + ":" + directory.group + " \"" + directoryName + "\"\n",
-            "else\n",
-            "   chown -R " + directory.owner + ":" + directory.group + " \"" + directoryName + "\"\n",
-            "   chmod " + directory.mode + " \"" + directoryName + "\"\n",
-            "fi\n" 
-        ]]
-    [/#list]
-
-    [#return 
-        { } +
-        attributeIfContent(
-            "CreateDirs",
-            directories,
-            {
-                "files" : {
-                    "/opt/codeontap/create_dirs.sh" : {
-                        "content" : {
-                            "Fn::Join" : [
-                                "",
-                                initDirFile
-                            ]
-                        },
-                        "mode" : "000755"
-                    }
-                },
-                "commands" : {
-                    "CreateDirScript" : {
-                        "command" : "/opt/codeontap/create_dirs.sh",
-                        "ignoreErrors" : ignoreErrors
-                    }
-                }
-            }
-        ) +
-        attributeIfContent(
-            "CreateFiles",
-            files,
-            {
-                "files" : initFiles
-            }
-
-        )
-    ]
-[/#function]
-
 
 [#macro createEC2LaunchConfig mode id 
     processorProfile
