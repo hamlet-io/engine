@@ -816,8 +816,8 @@
                     [#local networkCIDR = occurrence.Configuration.Solution.Address.CIDR ]
                 [#else] 
                     [#local occurrenceTier = getTier(occurrence.Core.Tier.Id) ]
-                    [#local network = getLinkTarget(occurrence, occurrenceTier.Network.Link ) ]
-                    [#local networkCIDR = network.State.Resources["vpc"].Address]
+                    [#local network = getLinkTarget(occurrence, occurrenceTier.Network.Link, false ) ]
+                    [#local networkCIDR = (network.Configuration.Solution.Address.CIDR)!"" ]
                 [/#if]
 
                 [#return
