@@ -232,6 +232,12 @@
             ],
             "Attributes" : [
                 {
+                    "Names" : "Engine",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "ec2", "fargate" ],
+                    "Default" : "ec2"
+                },
+                {
                     "Names" : "Containers",
                     "Subobjects" : true,
                     "Children" : containerChildrenConfiguration
@@ -331,6 +337,12 @@
                 }
             ],
             "Attributes" : [
+                {
+                    "Names" : "Engine",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "ec2", "fargate" ],
+                    "Default" : "ec2"
+                },
                 {
                     "Names" : "Containers",
                     "Subobjects" : true,
@@ -567,7 +579,15 @@
                     "Id" : formatResourceId( AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE, core.Id ),
                     "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
-                }),
+                }) +
+            attributeIfContent(
+                "executionRole",
+                solution.Engine == "fargate",
+                {
+                    "Id" : formatDependentRoleId(taskId, "execution"),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                }
+            ),
             "Attributes" : {
                 "Name" : core.Name
             },
@@ -640,6 +660,14 @@
                 solution.Schedules,
                 {
                     "Id" : formatDependentRoleId(taskId, "schedule"),
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                }
+            ) + 
+            attributeIfContent(
+                "executionRole",
+                solution.Engine == "fargate",
+                {
+                    "Id" : formatDependentRoleId(taskId, "execution"),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
             ),

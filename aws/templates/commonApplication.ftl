@@ -573,6 +573,15 @@
                 container.LogDriver
             ) ]
 
+        [#if logDriver != "awslogs" && solution.Engine == "fargate" ]
+            [@cfException
+                mode=listMode
+                description="The fargate engine only supports the awslogs logging driver"
+                context=solution
+                /]
+            [#break]
+        [/#if]
+
         [#local containerLgId =
             formatDependentLogGroupId(core.Id,  container.Id?split("-")) ]
         [#local containerLgName =
@@ -725,6 +734,59 @@
         [#include fragmentList]
 
         [#assign _context += getFinalEnvironment(task, _context) ]
+
+        [#-- validate fargate requirements from container context --]
+        [#if solution.Engine == "fargate" ]
+            [#assign fargateInvalidConfig = false ]
+            [#assign fargateInvalidConfigMessage = [] ]
+            
+            [#if !( [ 256, 512, 1024, 2048, 4096 ]?seq_contains(_context.Cpu) )  ]
+                [#assign fargateInvalidConfig = true ]
+                [#assign fargateInvalidConfigMessage += [ "CPU quota is not valid ( must be divisible by 256 )" ] ] 
+            [/#if]
+
+            [#-- && ((( _context.MaximumMemory!1 % 256 )?string["0.#"])?split(".")[1]) != "0" --]
+            [#if !( _context.MaximumMemory?has_content )  ] 
+                [#local  memoryRemainder = ( _context.MaximumMemory!1 % 256 )?string["0.#"]]
+                [#assign fargateInvalidConfig = true ]
+                [#assign fargateInvalidConfigMessage += [ "Maximum memory must assigned and divisible by 256 it was ${memoryRemainder}" ]]  
+            [/#if]
+                
+            [#if (_context.Privileged )]
+                [#assign fargateInvalidConfig = true ]
+                [#assign fargateInvalidConfigMessage += [ "Cannot run in priviledged mode" ] ] 
+            [/#if]
+
+            [#if _context.ContainerNetworkLinks!{}?has_content ]
+                [#assign fargateInvalidConfig = true ]
+                [#assign fargateInvalidConfigMessage += [ "Cannot use Network Links" ] ] 
+            [/#if]
+
+            [#if (_context.Hosts!{})?has_content ]
+                [#assign fargateInvalidConfig = true ]
+                [#assign fargateInvalidConfigMessage += [ "Cannot add host entries" ] ] 
+            [/#if]
+
+            [#list _context.Volumes!{} as name,volume ]
+                [#if volume.hostPath?has_content || volume.PersistVolume || volume.Driver != "local" ]
+                    [#assign fargateInvalidConfig = true ]
+                    [#assign fargateInvalidConfigMessage += [ "Can only use the local driver and cannot reference host - volume ${name}" ] ]
+                [/#if]
+            [/#list] 
+
+            [#if fargateInvalidConfig ]
+                [@cfException
+                    mode=listMode
+                    description="Invalid Fargate configuration"
+                    context=
+                        {
+                            "Description" : "Fargate containers only support the awsvpc network mode",
+                            "ValidationErrors" : fargateInvalidConfigMessage
+                        }
+                    detail=solution
+                /]
+            [/#if]
+        [/#if]
 
         [#local containers += [_context] ]
     [/#list]
