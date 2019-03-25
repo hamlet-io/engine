@@ -34,23 +34,24 @@
                 [#break]
         [/#switch]
       
-        [#assign networkLink = tier.Network.Link!{} ]
+        [#if deploymentSubsetRequired("bastion", true) ]
+            [#assign networkLink = tier.Network.Link!{} ]
+            [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+            
+            [#if ! networkLinkTarget?has_content ]
+                [@cfException listMode "Network could not be found" networkLink /]
+                [#break]
+            [/#if]
 
-        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
-        
-        [#if ! networkLinkTarget?has_content ]
-            [@cfException listMode "Network could not be found" networkLink /]
-            [#break]
+            [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+            [#assign networkResources = networkLinkTarget.State.Resources ]
+
+            [#assign vpcId = networkResources["vpc"].Id ]
+
+            [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable }, false)]
+            [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+            [#assign publicRouteTable = routeTableConfiguration.Public ]
         [/#if]
-
-        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-        [#assign networkResources = networkLinkTarget.State.Resources ]
-
-        [#assign vpcId = networkResources["vpc"].Id ]
-
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable }, false)]
-        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-        [#assign publicRouteTable = routeTableConfiguration.Public ]
 
         [#assign storageProfile = getStorage(tier, component, BASTION_COMPONENT_TYPE)]
         [#assign logFileProfile = getLogFileProfile(tier, component, BASTION_COMPONENT_TYPE)]
