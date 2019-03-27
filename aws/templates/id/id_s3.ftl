@@ -158,7 +158,8 @@
                 },
                 {
                     "Names" : "Notifications",
-                    "Type" : OBJECT_TYPE
+                    "Subobjects" : true,
+                    "Children" : s3NotificationChildConfiguration
                 },
                 {
                     "Names" : "CORSBehaviours",

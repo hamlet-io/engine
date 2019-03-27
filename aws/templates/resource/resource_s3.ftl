@@ -21,51 +21,80 @@
         noncurrentexpirationdays=""
         noncurrenttransitiondays="" ]
 
-    [#if transitiondays?has_content && !(noncurrenttransitiondays?has_content)]
-        [#local noncurrenttransitiondays = transitiondays ]
+    [#-- Alias overrides - Expiration --]
+    [#switch expirationdays ]
+        [#case "_operations" ]
+            [#local expirationTime = operationsExpiration]
+            [#break ]
+        [#case "_data" ]
+            [#local expirationTime = dataExpiration ]
+            [#break]
+        [#default]
+            [#local expirationTime = expirationdays]
+    [/#switch]
+
+    [#-- Alias overrides - Transition --]
+    [#switch transitiondays ]
+        [#case "_operations" ]
+            [#local transitionTime = operationsOffline]
+            [#break ]
+        [#case "_data" ]
+            [#local transitionTime = dataOffline ]
+            [#break]
+        [#default]
+            [#local transitionTime = transitiondays]
+    [/#switch]
+
+    [#if expirationTime?has_content && !(noncurrentexpirationdays?has_content)]
+        [#local noncurrentexpirationdays = expirationTime ]
     [/#if]
 
-    [#if expirationdays?has_content && !(noncurrentexpirationdays?has_content)]
-        [#local noncurrentexpirationdays = expirationdays ]
+    [#if transitionTime?has_content && !(noncurrenttransitiondays?has_content)]
+        [#local noncurrenttransitiondays = transitionTime ]
     [/#if]
 
-    [#return
-        [
-            {
-                "Status" : enabled?then("Enabled","Disabled")
-            } +
-            attributeIfContent("Prefix", prefix) +
-            (expirationdays?has_content)?then(
-                attributeIfTrue("ExpirationInDays", expirationdays?is_number, expirationdays) +
-                attributeIfTrue("ExpirationDate", !(expirationdays?is_number), expirationdays),
-                {}
-            ) +
-            (transitiondays?has_content)?then(
+    [#if transitionTime?has_content || expirationTime?has_content ||
+            noncurrentexpirationdays?has_content || noncurrenttransitiondays?has_content ]
+        [#return
+            [
                 {
-                    "Transitions" : [
-                        {
-                            "StorageClass" : "GLACIER"
-                        } +
-                        attributeIfTrue("TransitionInDays", transitiondays?is_number, transitiondays) +
-                        attributeIfTrue("TransitionDate", !(transitiondays?is_number), transitiondays)
-                    ]
-                },
-                {}
-            ) +
-            attributeIfContent("NoncurrentVersionExpirationInDays", noncurrentexpirationdays) +
-            (noncurrenttransitiondays?has_content)?then(
-                {
-                    "NoncurrentVersionTransitions" : [
-                        {
-                            "StorageClass" : "GLACIER",
-                            "TransitionInDays" : noncurrenttransitiondays
-                        }
-                    ]
-                },
-                {}
-            )
+                    "Status" : enabled?then("Enabled","Disabled")
+                } +
+                attributeIfContent("Prefix", prefix) +
+                (expirationTime?has_content)?then(
+                    attributeIfTrue("ExpirationInDays", expirationTime?is_number, expirationTime) +
+                    attributeIfTrue("ExpirationDate", !(expirationTime?is_number), expirationTime),
+                    {}
+                ) +
+                (transitionTime?has_content)?then(
+                    {
+                        "Transitions" : [
+                            {
+                                "StorageClass" : "GLACIER"
+                            } +
+                            attributeIfTrue("TransitionInDays", transitionTime?is_number, transitionTime) +
+                            attributeIfTrue("TransitionDate", !(transitionTime?is_number), transitionTime)
+                        ]
+                    },
+                    {}
+                ) +
+                attributeIfContent("NoncurrentVersionExpirationInDays", noncurrentexpirationdays) +
+                (noncurrenttransitiondays?has_content)?then(
+                    {
+                        "NoncurrentVersionTransitions" : [
+                            {
+                                "StorageClass" : "GLACIER",
+                                "TransitionInDays" : noncurrenttransitiondays
+                            }
+                        ]
+                    },
+                    {}
+                )
+            ]
         ]
-    ]
+    [#else]
+        [#return []]
+    [/#if]
 [/#function]
 
 [#function getS3LoggingConfiguration logBucket prefix ]
@@ -77,13 +106,47 @@
     ]
 [/#function]
 
-[#function getS3SQSNotification queue event]
+[#function getS3SQSNotification queue event prefix="" ]
+    [#local filterRules = [] ]
+    [#if prefix?has_content ]   
+        [#local filterRules += 
+            [ {
+                "Name" : "prefix",
+                "Value" : prefix
+            }] ]
+    [/#if]
+
+    [#-- Aliases for notification events --]
+    [#switch event ]
+        [#case "create" ]
+            [#local event = "s3:ObjectCreated:*" ]
+            [#break]
+        [#case "delete" ]
+            [#local event = "s3:ObjectRemoved:*" ]
+            [#break]
+        [#case "restore" ]
+            [#local event ="s3:ObjectRestore:*"]
+            [#break]
+        [#case "reducedredundancy" ]    
+            [#local event = "s3:ReducedRedundancyLostObject" ]
+            [#break]
+    [/#switch]
+
     [#return
         [
             {
                 "Event" : event,
-                "Queue" : getReference(queue, ARN_ATTRIBUTE)
-            }
+                "Queue" : getReference(queue, ARN_ATTRIBUTE_TYPE )
+            } + 
+            attributeIfContent(
+                "Filter",
+                filterRules,
+                {
+                    "S3Key" :{
+                        "Rules" : filterRules
+                    }
+                }
+            )
         ]
     ]
 [/#function]

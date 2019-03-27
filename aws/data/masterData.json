@@ -1327,11 +1327,6 @@
             "dns"
           ]
         },
-        "seg-s3": {
-          "DeploymentUnits": [
-            "s3"
-          ]
-        },
         "seg-dashboard": {
           "DeploymentUnits": [
             "dashboard"
@@ -1340,7 +1335,37 @@
         "baseline" :{
           "DeploymentUnits" : [ "baseline" ],
           "baseline" : {
-            
+            "DataBuckets" : {
+              "ops" : {
+                "Role" : "operations",
+                "Lifecycles" : {
+                  "awslogs" : {
+                    "Prefix" : "AWSLogs",
+                    "Expiration" : "_operations",
+                    "Offline" : "_operations"
+                  },
+                  "cloudfront" : {
+                    "Prefix" : "CLOUDFRONTLogs",
+                    "Expiration" : "_operations",
+                    "Offline" : "_operations"
+                  },
+                  "docker" : {
+                    "Prefix" : "DOCKERLogs",
+                    "Expiration" : "_operations",
+                    "Offline" : "_operations"
+                  }
+                }
+              },
+              "appdata" : {
+                "Role" : "application",
+                "Lifecycles" : {
+                  "global" : {
+                    "Expiration" : "_data",
+                    "Offline" : "_data"
+                  }
+                }
+              }
+            }
           }
         },
         "ssh": {

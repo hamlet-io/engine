@@ -68,7 +68,11 @@
         {
             "Names" : [ "NetworkACL" ],
             "Type" : STRING_TYPE
-        }
+        },
+        {
+            "Names" : [ "DataBucket" ],
+            "Type" : STRING_TYPE
+        },
         {
             "Names" : "Instance",
             "Type" : STRING_TYPE
@@ -403,6 +407,24 @@
     }
 ]]
 
+
+[#assign s3NotificationChildConfiguration = [
+    {
+        "Names" : "Links",
+        "Subobjects" : true,
+        "Children" : linkChildrenConfiguration
+    },
+    {
+        "Names" : "Prefix",
+        "Type" : STRING_TYPE
+    },
+    {
+        "Names" : "Events",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : [ "create" ],
+        "Values" : [ "create", "remove", "restore", "reducedredundancy" ]
+    }
+]]
 
 [#include idList]
 [#include nameList]
