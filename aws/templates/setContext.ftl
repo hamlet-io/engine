@@ -630,12 +630,12 @@
     [#assign operationsBucket =
         firstContent(
             getExistingReference(formatS3OperationsId()),
-            formatSegmentBucketName("ops"))]
+            formatSegmentBucketName(segmentSeed, "ops"))]
 
     [#assign dataBucket =
         firstContent(
             getExistingReference(formatS3DataId()),
-            formatSegmentBucketName("data"))]
+            formatSegmentBucketName(segmentSeed, "data"))]
 
     [#assign operationsExpiration =
         (segmentObject.Operations.Expiration)!

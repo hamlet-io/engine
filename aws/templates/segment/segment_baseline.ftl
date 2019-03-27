@@ -15,11 +15,7 @@
         [#assign segmentSeedId = resources["segmentSeed"].Id ]
         [#if !(getExistingReference(segmentSeedId)?has_content) ]
             
-            [#if legacyVpc ]
-                [#assign segmentSeedValue = vpc?remove_beginning("vpc-")]
-            [#else]
-                [#assign segmentSeedValue = ( runId + accountObject.Seed)[0..(solution.Seed.Length - 1)]  ]
-            [/#if]
+            [#assign segmentSeedValue = resources["segmentSeed"].Value]
 
             [#if deploymentSubsetRequired("prologue", false)]
                 [@cfScript
@@ -197,7 +193,7 @@
                         [@createBucketPolicy
                             mode=listMode
                             id=bucketPolicyId
-                            bucket=bucketId
+                            bucket=bucketName
                             statements=bucketPolicy
                             dependencies=bucketId
                         /]

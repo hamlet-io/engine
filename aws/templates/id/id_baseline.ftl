@@ -114,11 +114,22 @@
     [#local solution = occurrence.Configuration.Solution]
 
     [#local segmentSeedId = formatSegmentSeedId() ]
+    [#if !(getExistingReference(segmentSeedId)?has_content) ]
+        [#if legacyVpc ]
+            [#assign segmentSeedValue = vpc?remove_beginning("vpc-")]
+        [#else]
+            [#assign segmentSeedValue = ( runId + accountObject.Seed)[0..(solution.Seed.Length - 1)]  ]
+        [/#if]
+    [#else]
+        [#assign segmentSeedValue = getExistingReference(segmentSeedId) ]
+    [/#if]
+
     [#local result =
         {
             "Resources" : {
                 "segmentSeed": {
                     "Id" : segmentSeedId,
+                    "Value" : segmentSeedValue,
                     "Type" : SEED_RESOURCE_TYPE
                 }
             } + 
@@ -132,7 +143,7 @@
                 {}
             ),
             "Attributes" : {
-                "SEED_SEGMENT" : getExistingReference(segmentSeedId)
+                "SEED_SEGMENT" : segmentSeedValue
             },
             "Roles" : {
                 "Inbound" : {},
@@ -144,15 +155,20 @@
 [/#function]
 
 
-[#function getBaselineStorageState occurrence ]
+[#function getBaselineStorageState occurrence parent ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
+    [#local parentCore = occurrence.Core ]
+    [#local parentState = parent.State ]
+    [#local segmentSeed = parentState.Attributes["SEED_SEGMENT"] ]
+
     [#local role = solution.Role]
     [#local baselineDeployment = true]
+    
     [#switch role ]
         [#case "application" ]
-            [#local bucketName = dataBucket ]
+            [#local bucketName = formatSegmentBucketName(segmentSeed, "data") ]
             [#if getExistingReference(formatS3DataId())?has_content ]
                 [#local bucketId = formatS3DataId() ]
                 [#local baselineDeployment = false ]
@@ -161,8 +177,8 @@
             [/#if]
             [#break]
 
-        [#case "operations"]
-            [#local bucketName = operationsBucket ]
+        [#case "operations" ]
+            [#local bucketName = formatSegmentBucketName(segmentSeed, "ops") ]
             [#if getExistingReference(formatS3OperationsId())?has_content ]
                 [#local bucketId = formatS3OperationsId() ]
                 [#local baselineDeployment = false ]
@@ -173,7 +189,7 @@
 
         [#default]
             [#local bucketId = formatS3BaselineId( role )]
-            [#local bucketName = formatS3BaselineName( role )]
+            [#local bucketName = formatSegmentBucketName( segmentSeed, role )]
     [/#switch]
     
     [#local bucketPolicyId = formatDependentBucketPolicyId(bucketId)]
@@ -212,8 +228,4 @@
 
 [#function formatS3BaselineId role ]
     [#return formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, role)]
-[/#function]
-
-[#function formatS3BaselineName role ]
-    [#return formatSegmentBucketName(role)]
 [/#function]

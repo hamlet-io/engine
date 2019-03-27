@@ -214,6 +214,7 @@
 [#function formatS3DataId]
     [#return
         migrateToResourceId(
+            formatSegmentS3Id("application"),
             formatSegmentS3Id("data"),
             formatSegmentS3Id("backups"),
             formatContainerS3Id("backups")
