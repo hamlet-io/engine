@@ -63,7 +63,7 @@
                 {
                     "Names" : "Role",
                     "Type" : STRING_TYPE,
-                    "Values" : [ "application", "operations" ],
+                    "Values" : [ "appdata", "operations" ],
                     "Mandatory" : true
                 },
                 {
@@ -164,32 +164,27 @@
     [#local segmentSeed = parentState.Attributes["SEED_SEGMENT"] ]
 
     [#local role = solution.Role]
-    [#local baselineDeployment = true]
+    [#local legacyS3 = false]
+
+    [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, core.SubComponent.Id ) ]
+    [#local bucketName = formatSegmentBucketName( segmentSeed, core.SubComponent.Id )]]
     
-    [#switch role ]
-        [#case "application" ]
+    [#switch core.SubComponent.Id ]
+        [#case "appdata" ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "data") ]
             [#if getExistingReference(formatS3DataId())?has_content ]
                 [#local bucketId = formatS3DataId() ]
-                [#local baselineDeployment = false ]
-            [#else]
-                [#local bucketId = formatS3BaselineId( role ) ]
+                [#local legacyS3 = true ]
             [/#if]
             [#break]
 
-        [#case "operations" ]
+        [#case "ops" ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "ops") ]
             [#if getExistingReference(formatS3OperationsId())?has_content ]
                 [#local bucketId = formatS3OperationsId() ]
-                [#local baselineDeployment = false ]
-            [#else]
-                [#local bucketId = formatS3BaselineId( role ) ]
+                [#local legacyS3 = true]
             [/#if]
             [#break]
-
-        [#default]
-            [#local bucketId = formatS3BaselineId( role )]
-            [#local bucketName = formatSegmentBucketName( segmentSeed, role )]
     [/#switch]
     
     [#local bucketPolicyId = formatDependentBucketPolicyId(bucketId)]
@@ -201,7 +196,7 @@
                     "Id" : bucketId,
                     "Name" : bucketName,
                     "Type" : AWS_S3_RESOURCE_TYPE,
-                    "BaselineDeployment" : baselineDeployment
+                    "LegacyS3" : legacyS3
                 },
                 "bucketpolicy" : {
                     "Id" : bucketPolicyId,
@@ -228,4 +223,24 @@
 
 [#function formatS3BaselineId role ]
     [#return formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, role)]
+[/#function]
+
+[#function formatS3OperationsId]
+    [#return
+        migrateToResourceId(
+            formatSegmentS3Id("ops"),
+            formatSegmentS3Id("operations"),
+            formatSegmentS3Id("logs"),
+            formatContainerS3Id("logs")
+        )]
+[/#function]
+
+[#function formatS3DataId]
+    [#return
+        migrateToResourceId(
+            formatSegmentS3Id("data"),
+            formatSegmentS3Id("application"),
+            formatSegmentS3Id("backups"),
+            formatContainerS3Id("backups")
+        )]
 [/#function]

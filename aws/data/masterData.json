@@ -1357,7 +1357,7 @@
                 }
               },
               "appdata" : {
-                "Role" : "application",
+                "Role" : "appdata",
                 "Lifecycles" : {
                   "global" : {
                     "Expiration" : "_data",
