@@ -745,11 +745,9 @@
                 [#assign fargateInvalidConfigMessage += [ "CPU quota is not valid ( must be divisible by 256 )" ] ] 
             [/#if]
 
-            [#-- && ((( _context.MaximumMemory!1 % 256 )?string["0.#"])?split(".")[1]) != "0" --]
             [#if !( _context.MaximumMemory?has_content )  ] 
-                [#local  memoryRemainder = ( _context.MaximumMemory!1 % 256 )?string["0.#"]]
                 [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Maximum memory must assigned and divisible by 256 it was ${memoryRemainder}" ]]  
+                [#assign fargateInvalidConfigMessage += [ "Maximum memory must be assigned" ]]  
             [/#if]
                 
             [#if (_context.Privileged )]
