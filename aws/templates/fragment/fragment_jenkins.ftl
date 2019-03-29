@@ -8,21 +8,21 @@
     [#assign pingInterval = (settings["AGENT_PING_INTERVAL"])!"300" ]
     [#assign pingTimeout = (settings["AGENT_PING_TIMEOUT"])!"30"]
     [#assign timeZone = (settings["TIMEZONE"])!"UTC" ]
-    [#assign maxMemory = (container.MemoryReservation * 0.9)?round?c ]
-    [#assign intialHeapSize = (container.MemoryReservation * 0.5)?round?c ]
-
+    
     [#assign javaStandardOpts = [ 
-                "-Dhudson.DNSMultiCast.disabled=true",
-                "-Djenkins.install.runSetupWizard=false",
                 "-Dorg.apache.commons.jelly.tags.fmt.timeZone=${timeZone}",
                 "-Duser.timezone=${timeZone}",
-                "-Xmx${maxMemory}M",
-                "-Xms${intialHeapSize}M",
+                "-XX:+UnlockExperimentalVMOptions",
+                "-XX:+UseCGroupMemoryLimitForHeap",
+                "-XX:MaxRAMFraction=2",
+                "-XshowSettings:vm",
                 "-Dhudson.slaves.ChannelPinger.pingIntervalSeconds=${pingInterval}",
                 "-Dhudson.slaves.ChannelPinger.pingTimeoutSeconds=${pingTimeout}",
                 "-Dhudson.slaves.NodeProvisioner.initialDelay=0",
                 "-Dhudson.slaves.NodeProvisioner.MARGIN=50",
-                "-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85"
+                "-Dhudson.slaves.NodeProvisioner.MARGIN0=0.85",
+                "-Dhudson.DNSMultiCast.disabled=true",
+                "-Djenkins.install.runSetupWizard=false"
     ]]
 
     [#assign javaExtraOpts = (settings["JAVA_EXTRA_OPTS"]!"")?split(" ")]
