@@ -79,10 +79,21 @@
         /]
 [/#macro]
 
-[#macro createECSTask mode id name containers networkMode="" fixedName=false role="" dependencies=""]
+[#macro createECSTask mode id 
+    name 
+    containers 
+    engine
+    executionRole
+    networkMode="" 
+    fixedName=false 
+    role="" 
+    dependencies=""]
 
     [#local definitions = [] ]
     [#local volumes = [] ]
+
+    [#local memoryTotal = 0]
+    [#local cpuTotal = 0]
     [#list containers as container]
         [#local mountPoints = [] ]
         [#list (container.Volumes!{}) as name,volume]
@@ -168,6 +179,10 @@
                 ]
             ]
         [/#list]
+        [#if engine == "fargate" ]
+            [#local memoryTotal += container.MaximumMemory]
+            [#local cpuTotal += container.Cpu]
+        [/#if]
         [#local definitions +=
             [
                 {
@@ -217,7 +232,16 @@
         attributeIfContent("Volumes", volumes)  + 
         attributeIfContent("TaskRoleArn", role, getReference(role, ARN_ATTRIBUTE_TYPE)) + 
         attributeIfContent("NetworkMode", networkMode) + 
-        attributeIfTrue("Family", fixedName, name )
+        attributeIfTrue("Family", fixedName, name ) + 
+        attributeIfContent("ExecutionRoleArn", executionRole, getReference(executionRole, ARN_ATTRIBUTE_TYPE)) + 
+        valueIfTrue(
+            {
+                "RequiresCompatibilities" : [ engine?upper_case ],
+                "Cpu" : cpuTotal,
+                "Memory" : memoryTotal
+            },
+            (engine == "fargate")
+        )
     ]
 
     [@cfResource
@@ -234,7 +258,8 @@
             ecsId 
             desiredCount 
             taskId 
-            loadBalancers 
+            loadBalancers
+            engine 
             networkMode="" 
             subnets=[] 
             securityGroups=[] 
@@ -282,7 +307,7 @@
                 {
                     "SchedulingStrategy" : "DAEMON"
                 },
-                placement.Strategy == "daemon",
+                (placement.Strategy == "daemon" && engine == "ec2" ),
                 {
                     "DesiredCount" : desiredCount
                 }
@@ -292,6 +317,11 @@
                     "Role" : getReference(roleId)
                 },
                 (loadBalancers![])?has_content && networkMode != "awsvpc"
+            ) +
+            attributeIfTrue(
+                "LaunchType",
+                engine == "fargate",
+                engine?upper_case
             )
         dependencies=dependencies
         outputs=ECS_SERVICE_OUTPUT_MAPPINGS

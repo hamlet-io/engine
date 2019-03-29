@@ -45,7 +45,22 @@
             [#assign networkMode = (solution.NetworkMode)!"" ]
             [#assign lbTargetType = "instance"]
             [#assign networkLinks = [] ]
+            [#assign engine = solution.Engine?lower_case ]
+            [#assign executionRoleId = ""]
 
+            [#if engine == "fargate" && networkMode != "awsvpc" ]
+                [@cfException
+                    mode=listMode
+                    description="Fargate containers only support the awsvpc network mode"
+                    context=
+                        {
+                            "Description" : "Fargate containers only support the awsvpc network mode",
+                            "NetworkMode" : solution
+                        }
+                /]
+                [#break]
+            [/#if]
+            
             [#if networkMode == "awsvpc" ]
                         
                 [#assign subnets = multiAZ?then(
@@ -83,15 +98,15 @@
 
                         [#-- allow local network comms between containers in the same service --]
                         [#if solution.ContainerNetworkLinks ]
-                            [#if solution.NetworkMode == "bridge" ]
+                            [#if solution.NetworkMode == "bridge" || engine != "fargate" ]
                                 [#assign networkLinks += [ container.Name ] ]
                             [#else]
                                 [@cfException
                                     mode=listMode
-                                    description="Network links only avaialble on bridge mode"
+                                    description="Network links only avaialble on bridge mode and ec2 engine"
                                     context=
                                         {
-                                            "Description" : "Container links are only available in bridge mode",
+                                            "Description" : "Container links are only available in bridge mode and ec2 engine",
                                             "NetworkMode" : solution.NetworkMode
                                         }
                                 /]
@@ -245,6 +260,7 @@
                         mode=listMode
                         id=serviceId
                         ecsId=ecsId
+                        engine=engine
                         desiredCount=desiredCount
                         taskId=taskId
                         loadBalancers=loadBalancers
@@ -360,6 +376,20 @@
                 [#assign roleId = "" ]
             [/#if]
 
+            [#if resources["executionRole"]?has_content ]
+                [#assign executionRoleId = resources["executionRole"].Id]
+                [#if deploymentSubsetRequired("iam", true ) && isPartOfCurrentDeploymentUnit(executionRoleId) ]
+                    [@createRole
+                        mode=listMode
+                        id=executionRoleId
+                        trustedServices=[
+                            "ecs-tasks.amazonaws.com"
+                        ]
+                        managedArns=["arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"]
+                    /]
+                [/#if]
+            [/#if]
+
             [#if deploymentSubsetRequired("lg", true) ]
                 [#if solution.TaskLogGroup ]
                     [#assign lgId = resources["lg"].Id ]
@@ -472,8 +502,10 @@
                     mode=listMode
                     id=taskId
                     name=taskName
+                    engine=engine
                     containers=containers
                     role=roleId
+                    executionRole=executionRoleId
                     networkMode=networkMode
                     dependencies=dependencies
                     fixedName=solution.FixedName
