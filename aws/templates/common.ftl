@@ -955,6 +955,10 @@ behaviour.
             [#case BASELINE_COMPONENT_TYPE ]
                 [#local result = getBaselineState(occurrence)]
                 [#break]
+            
+            [#case BASELINE_DATA_COMPONENT_TYPE ]
+                [#local result = getBaselineStorageState(occurrence, parentOccurrence)]
+                [#break]
 
             [#case "external"]
                 [#local result +=

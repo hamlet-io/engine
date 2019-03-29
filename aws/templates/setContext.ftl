@@ -68,7 +68,11 @@
         {
             "Names" : [ "NetworkACL" ],
             "Type" : STRING_TYPE
-        }
+        },
+        {
+            "Names" : [ "DataBucket" ],
+            "Type" : STRING_TYPE
+        },
         {
             "Names" : "Instance",
             "Type" : STRING_TYPE
@@ -404,6 +408,24 @@
 ]]
 
 
+[#assign s3NotificationChildConfiguration = [
+    {
+        "Names" : "Links",
+        "Subobjects" : true,
+        "Children" : linkChildrenConfiguration
+    },
+    {
+        "Names" : "Prefix",
+        "Type" : STRING_TYPE
+    },
+    {
+        "Names" : "Events",
+        "Type" : ARRAY_OF_STRING_TYPE,
+        "Default" : [ "create" ],
+        "Values" : [ "create", "remove", "restore", "reducedredundancy" ]
+    }
+]]
+
 [#include idList]
 [#include nameList]
 [#include policyList]
@@ -608,12 +630,12 @@
     [#assign operationsBucket =
         firstContent(
             getExistingReference(formatS3OperationsId()),
-            formatSegmentBucketName("ops"))]
+            formatSegmentBucketName(segmentSeed, "ops"))]
 
     [#assign dataBucket =
         firstContent(
             getExistingReference(formatS3DataId()),
-            formatSegmentBucketName("data"))]
+            formatSegmentBucketName(segmentSeed, "data"))]
 
     [#assign operationsExpiration =
         (segmentObject.Operations.Expiration)!

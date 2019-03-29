@@ -6,6 +6,7 @@
     [#case "eip"]
     [#case "iam"]
     [#case "lg"]
+    [#case "s3"]
         [#if !(deploymentUnitSubset?has_content)]
             [#assign allDeploymentUnits = true]
             [#assign deploymentUnitSubset = deploymentUnit]

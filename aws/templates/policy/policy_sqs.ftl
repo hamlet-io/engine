@@ -75,15 +75,15 @@
             id)]
 [/#function]
 
-[#function sqsS3WritePermission id]
+[#function sqsS3WritePermission id bucketName="" ]
     [#return
         getSqsStatement(
-            "sqs:SendMessage*",
+            "sqs:SendMessage",
             id,
             "*",
             {
                 "ArnLike" : {
-                    "aws:sourceArn" : "arn:aws:s3:::*"
+                    "aws:sourceArn" : "arn:aws:s3:*:*:${bucketName}"
                 }
             })]
 [/#function]

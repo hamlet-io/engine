@@ -24,44 +24,55 @@
         [#assign replicationConfiguration = {} ]
         [#assign replicationBucket = ""]
 
-        [#assign sqsIds = [] ]
         [#assign sqsNotifications = [] ]
+        [#assign sqsNotificationIds = [] ]
         [#assign dependencies = [] ]
 
-        [#list ((solution.Notifications.SQS)!{})?values as queue]
-            [#if queue?is_hash]
-                [#assign linkTarget =
-                    getLinkTarget(
-                        occurrence,
-                        {
-                            "Tier" : queue.Tier!tier,
-                            "Component" : queue.Component!queue.Id
-                        }) ]
-                [#if !linkTarget?has_content]
-                    [#continue]
-                [/#if]
+        [#list solution.Notifications as id,notification ]
+            [#if notification?is_hash]
+                [#list notification.Links?values as link]
+                    [#if link?is_hash]
+                        [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
+                        [@cfDebug listMode linkTarget false /]
+                        [#if !linkTarget?has_content]
+                            [#continue]
+                        [/#if]
 
-                [#assign sqsId = (linkTarget.State.Resources["queue"].Id)!"" ]
-                [#if sqsId?has_content]
-                    [#assign sqsIds += [sqsId] ]
-                    [#assign sqsNotifications +=
-                        getS3SQSNotification(sqsId, "s3:ObjectCreated:*") +
-                        getS3SQSNotification(sqsId, "s3:ObjectRemoved:*") +
-                        getS3SQSNotification(sqsId, "s3:ReducedRedundancyLostObject") ]
-                    [#assign sqsPolicyId =
-                        formatS3NotificationsQueuePolicyId(
-                            s3Id,
-                            queue) ]
-                    [#assign dependencies += [sqsPolicyId] ]
-                    [@createSQSPolicy
+                        [#assign linkTargetResources = linkTarget.State.Resources ]
+
+                        [#switch linkTarget.Core.Type]
+                            [#case AWS_SQS_RESOURCE_TYPE ]
+                                [#if isLinkTargetActive(linkTarget) ]
+                                    [#assign sqsId = linkTargetResources["queue"].Id ]
+                                    [#assign sqsNotificationIds = [ sqsId ]]
+                                    [#list notification.Events as event ]
+                                        [#assign sqsNotifications +=
+                                                getS3SQSNotification(sqsId, event, notification.Prefix) ]
+                                    [/#list]
+                                    
+                                [/#if]
+                                [#break]
+                        [/#switch]
+                    [/#if]
+                [/#list]
+            [/#if]
+        [/#list]
+
+        [#if deploymentSubsetRequired("s3", true)]
+            [#list sqsNotificationIds as sqsId ]
+                [#assign sqsPolicyId =
+                    formatS3NotificationsQueuePolicyId(
+                        s3Id,
+                        sqsId) ]
+                [@createSQSPolicy
                         mode=listMode
                         id=sqsPolicyId
                         queues=sqsId
-                        statements=sqsWritePermission(sqsId)
+                        statements=sqsS3WritePermission(sqsId, s3Name)
                     /]
-                [/#if]
-            [/#if]
-        [/#list]
+                [#assign dependencies += [sqsPolicyId] ]
+            [/#list]
+        [/#if]
 
         [#assign policyStatements = [] ]
 
@@ -229,7 +240,6 @@
                 tier=tier
                 component=component
                 lifecycleRules=
-
                     (solution.Lifecycle.Configured && ((solution.Lifecycle.Expiration!operationsExpiration)?has_content || (solution.Lifecycle.Offline!operationsOffline)?has_content))?then(
                             getS3LifecycleRule(solution.Lifecycle.Expiration!operationsExpiration, solution.Lifecycle.Offline!operationsOffline),
                             []

@@ -2,7 +2,7 @@
 
 [#-- Resources --]
 
-[#function formatSegmentBucketName extensions...]
+[#function formatSegmentBucketName segmentSeed extensions...]
     [#return
         formatName(
             valueIfTrue(
