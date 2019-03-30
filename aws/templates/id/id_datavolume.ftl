@@ -71,8 +71,8 @@
                             "Names" : "ScheduleTimeZone",
                             "Type" : STRING_TYPE,
                             "Description" : "When using a cron expression in Schedule sets the time zone to base it from",
-                            "Default" : "Etc/UTC
-                        }
+                            "Default" : "Etc/UTC"
+                        },
                         {
                             "Names" : "RetentionPeriod",
                             "Type" : NUMBER_TYPE,

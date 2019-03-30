@@ -580,7 +580,7 @@
                     "Name" : core.FullName,
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 }) +
-            attributeIfContent(
+            attributeIfTrue(
                 "executionRole",
                 solution.Engine == "fargate",
                 {
@@ -663,7 +663,7 @@
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
             ) + 
-            attributeIfContent(
+            attributeIfTrue(
                 "executionRole",
                 solution.Engine == "fargate",
                 {
