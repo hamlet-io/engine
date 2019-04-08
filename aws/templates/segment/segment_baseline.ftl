@@ -82,11 +82,11 @@
                         [#assign sqsNotificationIds = [] ]
                         [#assign bucketDependencies = [] ]
 
-                        [#list solution.Notifications!{} as id,notification ]
+                        [#list subSolution.Notifications!{} as id,notification ]
                             [#if notification?is_hash]
                                 [#list notification.Links?values as link]
                                     [#if link?is_hash]
-                                        [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
+                                        [#assign linkTarget = getLinkTarget(subOccurrence, link, false) ]
                                         [@cfDebug listMode linkTarget false /]
                                         [#if !linkTarget?has_content]
                                             [#continue]
@@ -112,21 +112,19 @@
                             [/#if]
                         [/#list]
 
-                        [#if deploymentSubsetRequired("s3", true)]
-                            [#list sqsNotificationIds as sqsId ]
-                                [#assign sqsPolicyId =
-                                    formatS3NotificationsQueuePolicyId(
-                                        bucketId,
-                                        sqsId) ]
-                                [@createSQSPolicy
-                                        mode=listMode
-                                        id=sqsPolicyId
-                                        queues=sqsId
-                                        statements=sqsS3WritePermission(sqsId, bucketName)
-                                    /]
-                                [#assign bucketDependencies += [sqsPolicyId] ]
-                            [/#list]
-                        [/#if]
+                        [#list sqsNotificationIds as sqsId ]
+                            [#assign sqsPolicyId =
+                                formatS3NotificationsQueuePolicyId(
+                                    bucketId,
+                                    sqsId) ]
+                            [@createSQSPolicy
+                                    mode=listMode
+                                    id=sqsPolicyId
+                                    queues=sqsId
+                                    statements=sqsS3WritePermission(sqsId, bucketName)
+                                /]
+                            [#assign bucketDependencies += [sqsPolicyId] ]
+                        [/#list]
 
                         [@createS3Bucket
                             mode=listMode
