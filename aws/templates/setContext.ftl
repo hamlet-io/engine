@@ -419,6 +419,10 @@
         "Type" : STRING_TYPE
     },
     {
+        "Names" : "Suffix",
+        "Type" : STRING_TYPE
+    },
+    {
         "Names" : "Events",
         "Type" : ARRAY_OF_STRING_TYPE,
         "Default" : [ "create" ],

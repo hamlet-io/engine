@@ -47,7 +47,7 @@
                                     [#assign sqsNotificationIds = [ sqsId ]]
                                     [#list notification.Events as event ]
                                         [#assign sqsNotifications +=
-                                                getS3SQSNotification(sqsId, event, notification.Prefix) ]
+                                                getS3SQSNotification(sqsId, event, notification.Prefix, notification.Suffix) ]
                                     [/#list]
                                     
                                 [/#if]
