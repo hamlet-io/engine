@@ -106,7 +106,7 @@
     ]
 [/#function]
 
-[#function getS3SQSNotification queue event prefix="" ]
+[#function getS3SQSNotification queue event prefix="" suffix="" ]
     [#local filterRules = [] ]
     [#if prefix?has_content ]   
         [#local filterRules += 
@@ -114,6 +114,17 @@
                 "Name" : "prefix",
                 "Value" : prefix
             }] ]
+    [/#if]
+
+    [#if suffix?has_content ]
+        [#local filterRules += 
+            [ 
+                {
+                    "Name" : "suffix",
+                    "Value" : suffix
+                }
+            ]
+        ]
     [/#if]
 
     [#-- Aliases for notification events --]
