@@ -42,43 +42,43 @@
             [#assign taskName = resources["task"].Name ]
             [#assign containers = getTaskContainers(occurrence, subOccurrence) ]
 
-            [#assign networkMode = (solution.NetworkMode)!"" ]
+            [#assign networkMode = solution.NetworkMode ]
             [#assign lbTargetType = "instance"]
             [#assign networkLinks = [] ]
             [#assign engine = solution.Engine?lower_case ]
             [#assign executionRoleId = ""]
 
-            [#if engine == "fargate" && networkMode != "awsvpc" ]
-                [@cfException
-                    mode=listMode
-                    description="Fargate containers only support the awsvpc network mode"
-                    context=
-                        {
-                            "Description" : "Fargate containers only support the awsvpc network mode",
-                            "NetworkMode" : solution
-                        }
-                /]
-                [#break]
-            [/#if]
-            
-            [#if networkMode == "awsvpc" ]
-                        
-                [#assign subnets = multiAZ?then(
-                    getSubnets(core.Tier, networkResources),
-                    getSubnets(core.Tier, networkResources)[0..0]
-                )]
-
-                [#assign lbTargetType = "ip" ]
-
-                [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
-                [#assign ecsSecurityGroupName = resources["securityGroup"].Name ]
-
-            [/#if] 
-
             [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
 
                 [#assign serviceId = resources["service"].Id  ]
                 [#assign serviceDependencies = []]
+
+                [#if engine == "fargate" && networkMode != "awsvpc" ]
+                    [@cfException
+                        mode=listMode
+                        description="Fargate containers only support the awsvpc network mode"
+                        context=
+                            {
+                                "Description" : "Fargate containers only support the awsvpc network mode",
+                                "NetworkMode" : networkMode
+                            }
+                    /]
+                    [#break]
+                [/#if]
+                
+                [#if networkMode == "awsvpc" ]
+                            
+                    [#assign subnets = multiAZ?then(
+                        getSubnets(core.Tier, networkResources),
+                        getSubnets(core.Tier, networkResources)[0..0]
+                    )]
+
+                    [#assign lbTargetType = "ip" ]
+
+                    [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
+                    [#assign ecsSecurityGroupName = resources["securityGroup"].Name ]
+
+                [/#if] 
 
                 [#if deploymentSubsetRequired("ecs", true)]
 
@@ -98,7 +98,7 @@
 
                         [#-- allow local network comms between containers in the same service --]
                         [#if solution.ContainerNetworkLinks ]
-                            [#if solution.NetworkMode == "bridge" || engine != "fargate" ]
+                            [#if networkMode == "bridge" || engine != "fargate" ]
                                 [#assign networkLinks += [ container.Name ] ]
                             [#else]
                                 [@cfException
@@ -107,7 +107,7 @@
                                     context=
                                         {
                                             "Description" : "Container links are only available in bridge mode and ec2 engine",
-                                            "NetworkMode" : solution.NetworkMode
+                                            "NetworkMode" : networkMode
                                         }
                                 /]
                             [/#if]

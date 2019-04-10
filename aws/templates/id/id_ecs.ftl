@@ -394,6 +394,12 @@
                     "Children" : alertChildrenConfiguration
                 },
                 {
+                    "Names" : "NetworkMode",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["none", "bridge", "awsvpc", "host"],
+                    "Default" : ""
+                },
+                {
                     "Names" : "FixedName",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
