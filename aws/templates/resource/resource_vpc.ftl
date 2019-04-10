@@ -354,7 +354,8 @@
             mode,
             id,
             routeTableId,
-            route]
+            route
+            dependencies=""]
             
     [#local properties =
         {
@@ -394,6 +395,7 @@
         type="AWS::EC2::Route"
         properties=properties
         outputs={}
+        dependencies=dependencies
     /]
 [/#macro]
 
