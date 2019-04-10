@@ -241,6 +241,7 @@
                                                                         "IgwId" : IGWId,
                                                                         "CIDR" : cidr
                                                                     }
+                                                                dependencies=IGWAttachementId
                                                             /]
                                                         [/#list]
                                                     [#else]
