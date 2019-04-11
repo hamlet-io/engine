@@ -48,49 +48,58 @@
             [#assign engine = solution.Engine?lower_case ]
             [#assign executionRoleId = ""]
 
+            [#if engine == "fargate" && networkMode != "awsvpc" ]
+                [@cfException
+                    mode=listMode
+                    description="Fargate containers only support the awsvpc network mode"
+                    context=
+                        {
+                            "Description" : "Fargate containers only support the awsvpc network mode",
+                            "NetworkMode" : networkMode
+                        }
+                /]
+                [#break]
+            [/#if]
+            
+            [#if networkMode == "awsvpc" ]
+                        
+                [#assign lbTargetType = "ip" ]
+
+                [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
+                [#assign ecsSecurityGroupName = resources["securityGroup"].Name ]
+
+                [#assign subnets = multiAZ?then(
+                    getSubnets(core.Tier, networkResources),
+                    getSubnets(core.Tier, networkResources)[0..0]
+                )]
+
+                [#assign networkConfiguration = 
+                    {
+                        "NetworkConfiguration" : {
+                            "AwsvpcConfiguration" : {
+                                "SecurityGroups" : getReferences(ecsSecurityGroupId),
+                                "Subnets" : subnets
+                            }
+                        }
+                    }]
+
+                [#if deploymentSubsetRequired("ecs", true)]
+                    [@createSecurityGroup
+                        mode=listMode
+                        tier=tier
+                        component=component
+                        id=ecsSecurityGroupId
+                        name=ecsSecurityGroupName
+                        vpcId=vpcId /]
+                [/#if]
+            [/#if] 
+
             [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
 
                 [#assign serviceId = resources["service"].Id  ]
                 [#assign serviceDependencies = []]
 
-                [#if engine == "fargate" && networkMode != "awsvpc" ]
-                    [@cfException
-                        mode=listMode
-                        description="Fargate containers only support the awsvpc network mode"
-                        context=
-                            {
-                                "Description" : "Fargate containers only support the awsvpc network mode",
-                                "NetworkMode" : networkMode
-                            }
-                    /]
-                    [#break]
-                [/#if]
-                
-                [#if networkMode == "awsvpc" ]
-                            
-                    [#assign subnets = multiAZ?then(
-                        getSubnets(core.Tier, networkResources),
-                        getSubnets(core.Tier, networkResources)[0..0]
-                    )]
-
-                    [#assign lbTargetType = "ip" ]
-
-                    [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
-                    [#assign ecsSecurityGroupName = resources["securityGroup"].Name ]
-
-                [/#if] 
-
                 [#if deploymentSubsetRequired("ecs", true)]
-
-                    [#if networkMode == "awsvpc" ]
-                        [@createSecurityGroup
-                            mode=listMode
-                            tier=tier
-                            component=component
-                            id=ecsSecurityGroupId
-                            name=ecsSecurityGroupName
-                            vpcId=vpcId /]
-                    [/#if]
 
                     [#assign loadBalancers = [] ]
                     [#assign dependencies = [] ]
@@ -266,9 +275,8 @@
                         loadBalancers=loadBalancers
                         roleId=ecsServiceRoleId
                         networkMode=networkMode
+                        networkConfiguration=networkConfiguration!{}
                         placement=solution.Placement
-                        subnets=subnets![]
-                        securityGroups=getReferences(ecsSecurityGroupId)![]
                         dependencies=dependencies
                     /]
                 [/#if]
@@ -304,7 +312,17 @@
                                 "EcsParameters" : {
                                     "TaskCount" : schedule.TaskCount,
                                     "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
-                                },
+                                } + 
+                                attributeIfTrue(
+                                    "NetworkConfiguration",
+                                    networkMode == "awsvpc",
+                                    networkConfiguration
+                                ) + 
+                                attributeIfTrue(
+                                    "LaunchType",
+                                    engine == "fargate",
+                                    "FARGATE"
+                                ),
                                 "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
                             }]
 

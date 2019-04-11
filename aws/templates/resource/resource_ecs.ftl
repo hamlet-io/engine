@@ -261,8 +261,7 @@
             loadBalancers
             engine 
             networkMode=""
-            subnets=[]
-            securityGroups=[]
+            networkConfiguration={}
             roleId="" 
             placement={}
             dependencies=""
@@ -294,17 +293,6 @@
                 loadBalancers![]) +
             valueIfTrue(
                 {
-                    "NetworkConfiguration" : {
-                        "AwsvpcConfiguration" : {
-                            "SecurityGroups" : securityGroups,
-                            "Subnets" : subnets
-                        }
-                    }
-                },
-                networkMode == "awsvpc"
-            ) +
-            valueIfTrue(
-                {
                     "SchedulingStrategy" : "DAEMON"
                 },
                 (placement.Strategy == "daemon" && engine == "ec2" ),
@@ -322,6 +310,10 @@
                 "LaunchType",
                 engine == "fargate",
                 engine?upper_case
+            ) + 
+            attributeIfContent(
+                "NetworkConfiguration",
+                networkConfiguration
             )
         dependencies=dependencies
         outputs=ECS_SERVICE_OUTPUT_MAPPINGS

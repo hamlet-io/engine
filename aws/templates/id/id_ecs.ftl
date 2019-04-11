@@ -670,6 +670,14 @@
                 }
             ) + 
             attributeIfTrue(
+                "securityGroup",
+                solution.NetworkMode == "awsvpc",
+                {
+                    "Id" : formatResourceId( AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE, core.Id ),
+                    "Name" : core.FullName,
+                    "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
+                }) +
+            attributeIfTrue(
                 "executionRole",
                 solution.Engine == "fargate",
                 {
