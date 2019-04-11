@@ -75,7 +75,7 @@
                 [/#if]
                 [#assign links += lbLink]
             [#else]
-                [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups) ]
+                [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups, true, occurrence) ]
                 [#if portCIDRs?has_content]
                     [#assign ingressRules +=
                         [{
@@ -206,7 +206,7 @@
 
             [#if deploymentSubsetRequired(EC2_COMPONENT_TYPE, true)] 
 
-                [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups)]
+                [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, occurrence)]
                 [#list securityGroupCIDRs as cidr ]
                     
                     [@createSecurityGroupIngress

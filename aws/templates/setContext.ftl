@@ -842,8 +842,8 @@
                     [#local networkCIDR = occurrence.Configuration.Solution.Address.CIDR ]
                 [#else] 
                     [#local occurrenceTier = getTier(occurrence.Core.Tier.Id) ]
-                    [#local network = getLinkTarget(occurrence, occurrenceTier.Network.Link, false ) ]
-                    [#local networkCIDR = (network.Configuration.Solution.Address.CIDR)!"" ]
+                    [#local network = getLinkTarget(occurrence, occurrenceTier.Network.Link, false )]
+                    [#local networkCIDR = (network.Configuration.Solution.Address.CIDR)!"COTException: local network configuration not found" ]
                 [/#if]
 
                 [#return
@@ -854,6 +854,13 @@
                     "CIDR" : [ networkCIDR ]
                 } ]
             [#else]
+                [#return
+                    {
+                        "Id" : groupId,
+                        "IsOpen" : true,
+                        "CIDR" : []
+                    }]
+
                 [@cfException 
                     mode=listMode
                     description="Local network details required"

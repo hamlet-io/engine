@@ -170,7 +170,7 @@
 
                 [#-- Determine the IP whitelisting required --]
                 [#assign destinationIPAddressGroups = solution.IPAddressGroups ]
-                [#assign cidrs = getGroupCIDRs(destinationIPAddressGroups)]
+                [#assign cidrs = getGroupCIDRs(destinationIPAddressGroups, true, subOccurrence)]
 
                 [#assign routeTableIds = []]
                 
