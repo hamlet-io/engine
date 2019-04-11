@@ -545,7 +545,7 @@
 
             [#if port.IPAddressGroups?has_content]
                 [#if solution.NetworkMode == "awsvpc" || !port.LB.Configured ]
-                    [#list getGroupCIDRs(port.IPAddressGroups ) as cidr]
+                    [#list getGroupCIDRs(port.IPAddressGroups, true, task ) as cidr]
                         [#local ingressRules += [ {
                             "port" : port.DynamicHostPort?then(0,contentIfContent(
                                                                             port.Container!"",

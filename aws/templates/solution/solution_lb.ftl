@@ -150,7 +150,7 @@
             [#if !solution.IPAddressGroups?seq_contains("_localnet") && !publicRouteTable ]
                 [#assign portIpAddressGroups += [ "_localnet"] ]
             [/#if]
-            [#assign cidrs = getGroupCIDRs(portIpAddressGroups)]
+            [#assign cidrs = getGroupCIDRs(portIpAddressGroups, true, subOccurrence)]
             [#assign securityGroupId = resources["sg"].Id]
             [#assign securityGroupName = resources["sg"].Name]
 

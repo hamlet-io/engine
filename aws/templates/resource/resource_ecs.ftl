@@ -260,9 +260,9 @@
             taskId 
             loadBalancers
             engine 
-            networkMode="" 
-            subnets=[] 
-            securityGroups=[] 
+            networkMode=""
+            subnets=[]
+            securityGroups=[]
             roleId="" 
             placement={}
             dependencies=""

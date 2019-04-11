@@ -189,7 +189,7 @@
 
                                 [#assign dependencies += [targetId] ]
 
-                                [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups)]
+                                [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, subOccurrence)]
                                 [#list securityGroupCIDRs as cidr ]
                                     
                                     [@createSecurityGroupIngress
