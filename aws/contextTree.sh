@@ -1101,7 +1101,7 @@ function cleanup_cmdb_repo_to_v1_1_0() {
   local dry_run="$1";shift
 
   for source in "${!upgrade_v1_1_0_sources[@]}"; do
-    readarray -t source_dirs < <(find "${root_dir}" -mindepth 1 -maxdepth 1 -type d \
+    readarray -t source_dirs < <(find "${root_dir}" -mindepth 1 -maxdepth 2 -type d \
       -name "${source}" )
     for source_dir in "${source_dirs[@]}"; do
       info "Deleting ${source_dir} ..."
@@ -1312,7 +1312,7 @@ function upgrade_cmdb_repo_to_v1_3_1() {
               if [[ -n "${dry_run}" ]]; then
                 continue
               fi
-              
+
               if [[ "${move_file}" != 0 ]]; then
                 git_mv "${cf_file}" "${stack_dir}/${new_cf_file_name}"
               else
@@ -1429,7 +1429,7 @@ function cleanup_cmdb() {
   local dry_run="$1";shift
 
   local required_versions=(${versions})
-  [[ -z "${versions}" ]] && required_versions=("v1.0.0")
+  [[ -z "${versions}" ]] && required_versions=("v1.0.0" "v1.1.0")
 
   process_cmdb "${root_dir}" "cleanup" "${required_versions[*]}" ${dry_run}
 }

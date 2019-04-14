@@ -44,6 +44,8 @@ if [[ "${GENERATION_NO_CMDB_CHECK}" != "true" ]]; then
     debug "Checking if cmdb upgrade needed ..."
     upgrade_cmdb "${GENERATION_DATA_DIR}" ||
         { fatal "CMDB upgrade failed."; exit 1; }
+    cleanup_cmdb "${GENERATION_DATA_DIR}" ||
+        { fatal "CMDB cleanup failed."; exit 1; }
 fi
 
 # Ensure the cache directory exists
