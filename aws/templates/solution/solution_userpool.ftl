@@ -15,18 +15,18 @@
         [#assign userPoolName               = resources["userpool"].Name]
         [#assign userPoolDomainId           = resources["domain"].Id]
         [#assign userPoolHostName           = resources["domain"].Name]
-        [#assign userPoolClientId           = resources["client"].Id]
-        [#assign userPoolClientName         = resources["client"].Name]
         [#assign userPoolRoleId             = resources["userpoolrole"].Id]
+
         [#assign identityPoolId             = resources["identitypool"].Id]
         [#assign identityPoolName           = resources["identitypool"].Name]
         [#assign identityPoolUnAuthRoleId   = resources["unauthrole"].Id]
         [#assign identityPoolAuthRoleId     = resources["authrole"].Id]
         [#assign identityPoolRoleMappingId  = resources["rolemapping"].Id]
 
-        [#assign dependencies = []]
+        [#assign userPoolClientId           = resources["client"].Id]
+        [#assign userPoolClientName         = resources["client"].Name]
+
         [#assign smsVerification = false]
-        [#assign schema = []]
         [#assign userPoolTriggerConfig = {}]
         [#assign userPoolManualTriggerConfig = {}]
         [#assign smsConfig = {}]
@@ -54,27 +54,11 @@
 
         [#assign smsInviteMessage =
             getOccurrenceSettingValue(occurrence, ["UserPool", "SMSInviteMessage"], true) ]
+        
+        [#assign smsAuthenticationMessage =
+            getOccurrenceSettingValue(occurrence, ["UserPool", "SMSAuthenticationMessage"], true) ]
 
-        [#if ((solution.MFA) || ( solution.VerifyPhone))]
-
-            [#assign schema += getUserPoolSchemaObject( 
-                                        "phone_number",
-                                        "String",
-                                        true,
-                                        true) ]
-
-            [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
-            [#assign smsVerification = true]
-        [/#if]
-
-        [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
-                    [#assign schema += getUserPoolSchemaObject( 
-                                                "email",
-                                                "String",
-                                                true,
-                                                true) ]
-        [/#if]
-
+        [#assign schema = []]
         [#list solution.Schema as key,schemaAttribute ]
             [#assign schema +=  getUserPoolSchemaObject(
                                 key,
@@ -83,6 +67,41 @@
                                 schemaAttribute.Required
             )]
         [/#list]
+
+        [#if ((solution.MFA) || ( solution.VerifyPhone))]
+            [#if ! schema["phone_number"]!{}?has_content ]
+                [@cfException
+                    mode=listMode
+                    description="Schema Attribute required: phone_number - Add Schema listed in detail"
+                    context=schema
+                    detail={
+                        "phone_number" : {
+                            "DataType" : "String",
+                            "Mutable" : true,
+                            "Required" : true
+                        }
+                    }]
+            [/#if]
+
+            [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
+            [#assign smsVerification = true]
+        [/#if]
+
+        [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
+            [#if ! schema["email"]!{}?has_content ]
+                [@cfException
+                    mode=listMode
+                    description="Schema Attribute required: email - Add Schema listed in detail"
+                    context=schema
+                    detail={
+                        "email" : {
+                            "DataType" : "String",
+                            "Mutable" : true,
+                            "Required" : true
+                        }
+                    }]
+            [/#if]
+        [/#if]
 
         [#list solution.Links?values as link]
             [#assign linkTarget = getLinkTarget(occurrence, link)]
@@ -243,7 +262,6 @@
                         userPoolName,
                         tier,
                         component)
-                dependencies=dependencies
                 mfa=solution.MFA
                 adminCreatesUser=solution.AdminCreatesUser
                 unusedTimeout=solution.UnusedAccountTimeout
@@ -251,9 +269,9 @@
                 emailVerificationMessage=emailVerificationMessage
                 emailVerificationSubject=emailVerificationSubject
                 smsVerificationMessage=smsVerificationMessage
+                smsInviteMessage=smsInviteMessage
                 emailInviteMessage=emailInviteMessage
                 emailInviteSubject=emailInviteSubject
-                smsInviteMessage=smsInviteMessage
                 lambdaTriggers=userPoolTriggerConfig
                 autoVerify=(solution.VerifyEmail || smsVerification)?then(
                     getUserPoolAutoVerification(solution.VerifyEmail, smsVerification),
@@ -273,7 +291,6 @@
                 mode=listMode
                 component=component
                 tier=tier
-                dependencies=dependencies
                 id=userPoolClientId
                 name=userPoolClientName
                 userPoolId=userPoolId
@@ -287,7 +304,6 @@
                 mode=listMode
                 component=component
                 tier=tier
-                dependencies=dependencies
                 id=identityPoolId
                 name=identityPoolName
                 cognitoIdProviders=cognitoIdentityPoolProvider
