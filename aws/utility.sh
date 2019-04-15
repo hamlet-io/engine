@@ -755,6 +755,74 @@ function manage_iam_userpassword() {
   return 0
 }
 
+# -- CloudWatch Events --
+function delete_cloudwatch_event() {
+    local region="$1"; shift
+    local ruleName="$1"; shift
+    local includeRule="$1"; shift
+
+    local return_status=0 
+
+    if [[ -n "$(aws --region "${region}" events list-rules --query "Rules[?Name == '$ruleName'].Name" --output text)" ]]; then
+
+      rule_targets="$( aws --region "${region}" events list-targets-by-rule --rule "${ruleName}" --query "Targets[*].Id | join(' ',@)" --output text)"
+      if [[ -n "${rule_targets}" ]]; then
+        aws --region "${region}" events remove-targets --rule "${ruleName}" --ids ${rule_targets} || return $?
+      fi
+
+      if [[ "${includeRule}" == "true" ]]; then
+        aws --region "${region}" events delete-rule --name "${ruleName}" || return $?
+      fi
+
+    fi
+
+    return ${return_status}
+}
+
+function create_cloudwatch_event () {
+  local region="$1"; shift 
+  local ruleName="$1"; shift
+  local eventRoleId="$1"; shift
+  local ruleConfigFile="$1"; shift 
+  local targetConfigFile="$1"; shift
+
+  local return_status=0 
+
+  if [[ "${eventRoleId}" != arn:* ]]; then
+    eventRoleArn="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${eventRoleId}" "arn" || return $?)" 
+  else
+    eventRoleArn="${eventRoleId}"
+  fi
+
+  arnLookupTargetConfigFile="$(filePath ${targetConfigFile})/ArnLookup-$(fileBase ${targetConfigFile})"
+  jq --arg eventRoleArn "${eventRoleArn}" '.Targets[0].RoleArn= $eventRoleArn' < "${targetConfigFile}" > "${arnLookupTargetConfigFile}"
+
+  delete_cloudwatch_event "${region}" "${ruleName}" "false" || return $?
+  aws --region "${region}" events put-rule --name "${ruleName}" --cli-input-json "file://${ruleConfigFile}" || return $?
+  aws --region "${region}" events put-targets --rule "${ruleName}" --cli-input-json "file://${arnLookupTargetConfigFile}" || return $?
+
+  return ${return_status}
+}
+
+# -- CloudFormation -- 
+function get_cloudformation_stack_output() {
+  local region="$1"; shift
+  local stackName="$1"; shift
+  local resourceId="$1"; shift 
+  local attributeType="$1"; shift 
+
+  if [[ -z "${attributeType}" || "${attributeType}" == "ref" ]]; then 
+    stackOutputKey="${resourceId}"
+  else
+    stackOutputKey="${resourceId}X${attributeType}"
+  fi
+
+  stack_id="$(aws --region "${region}" cloudformation list-stacks --stack-status-filter "CREATE_COMPLETE" "UPDATE_COMPLETE" --query "StackSummaries[?StackName == '$stackName'].StackId" --output text || return $?)"
+  if [[ -n "${stack_id}" ]]; then 
+    aws --region "${region}" cloudformation describe-stacks --stack-name "${stackName}" --query "Stacks[*].Outputs[?OutputKey == '${stackOutputKey}'].OutputValue" --output text || return $?
+  fi
+}
+
 # -- Cognito --
 
 function update_cognito_userpool() {
@@ -852,6 +920,28 @@ function update_data_pipeline() {
     fatal "${pipeline_details}"
     return 255
   fi
+}
+
+#-- ECS -- 
+function create_ecs_scheduled_task() {
+  local region="$1"; shift 
+  local ruleName="$1"; shift
+  local ruleConfigFile="$1"; shift 
+  local targetConfigFile="$1"; shift
+  local cfnStackName="$1"; shift
+  local taskId="$1"; shift
+  local eventRoleId="$1"; shift
+  local securityGroupId="$1"; shift
+
+  ecsTaskArn="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${taskId}" "arn" || return $?)"
+  securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)" 
+
+  arnLookupConfigFile="$(filePath ${targetConfigFile})/ArnLookup-$(fileBase ${targetConfigFile})"
+  jq --arg ecsTaskArn "${ecsTaskArn}" --arg securityGroup "$securityGroup" '.Targets[0].EcsParameters.TaskDefinitionArn = $ecsTaskArn | .Targets[0].EcsParameters.NetworkConfiguration.awsvpcConfiguration.SecurityGroups = [ $securityGroup ]' < "${targetConfigFile}" > "${arnLookupConfigFile}"
+
+  create_cloudwatch_event "${region}" "${ruleName}" "${eventRoleId}" "${ruleConfigFile}" "${arnLookupConfigFile}"  || return $?
+
+  return 0
 }
 
 # -- ElasticSearch --
@@ -1080,7 +1170,6 @@ function update_sms_account_attributes() {
   aws --region "${region}" sns set-sms-attributes --cli-input-json "file://${configfile}" || return $?
 }
 
-# -- PKI --
 # -- PKI --
 function create_pki_credentials() {
   local dir="$1"; shift

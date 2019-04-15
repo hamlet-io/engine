@@ -23,6 +23,10 @@
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#assign publicRouteTable = routeTableConfiguration.Public ]
+
         [#assign vpcId = networkResources["vpc"].Id ]
 
         [#assign hibernate = parentSolution.Hibernate.Enabled &&
@@ -73,15 +77,17 @@
                     getSubnets(core.Tier, networkResources)[0..0]
                 )]
 
-                [#assign networkConfiguration = 
+                [#assign aswVpcNetworkConfiguration = 
                     {
                         "NetworkConfiguration" : {
                             "AwsvpcConfiguration" : {
                                 "SecurityGroups" : getReferences(ecsSecurityGroupId),
-                                "Subnets" : subnets
+                                "Subnets" : subnets,
+                                "AssignPublicIp" : publicRouteTable?then("ENABLED", "DISABLED" )
                             }
                         }
-                    }]
+                    }
+                ]
 
                 [#if deploymentSubsetRequired("ecs", true)]
                     [@createSecurityGroup
@@ -275,77 +281,15 @@
                         loadBalancers=loadBalancers
                         roleId=ecsServiceRoleId
                         networkMode=networkMode
-                        networkConfiguration=networkConfiguration!{}
+                        networkConfiguration=aswVpcNetworkConfiguration!{}
                         placement=solution.Placement
                         dependencies=dependencies
                     /]
                 [/#if]
             [/#if]
 
-            [#if core.Type == ECS_TASK_COMPONENT_TYPE]
-                [#if solution.Schedules?has_content ]
-
-                    [#assign scheduleTaskRoleId = resources["scheduleRole"].Id ]
-
-                    [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(scheduleTaskRoleId)]
-                        [@createRole
-                            mode=listMode
-                            id=scheduleTaskRoleId
-                            trustedServices=["events.amazonaws.com"]
-                            policies=[
-                                getPolicyDocument(
-                                    ecsTaskRunPermission(ecsId)
-                                ,
-                                "schedule")
-                            ]
-                        /]
-                    [/#if]
-
-                    [#if deploymentSubsetRequired("ecs", true) ]
-                        [#list solution.Schedules?values as schedule ]
-
-                            [#assign scheduleRuleId = formatEventRuleId(subOccurrence, "schedule", schedule.Id) ]
-
-                            [#assign targetParameters = {
-                                "Arn" : formatEcsClusterArn(ecsId),
-                                "Id" : taskId,
-                                "EcsParameters" : {
-                                    "TaskCount" : schedule.TaskCount,
-                                    "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
-                                } + 
-                                attributeIfTrue(
-                                    "NetworkConfiguration",
-                                    networkMode == "awsvpc",
-                                    networkConfiguration
-                                ) + 
-                                attributeIfTrue(
-                                    "LaunchType",
-                                    engine == "fargate",
-                                    "FARGATE"
-                                ),
-                                "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
-                            }]
-
-                            [#assign scheduleEnabled = hibernate?then(
-                                        false,
-                                        schedule.Enabled
-                            )]
-
-                            [@createScheduleEventRule
-                                mode=listMode
-                                id=scheduleRuleId
-                                enabled=scheduleEnabled
-                                scheduleExpression=schedule.Expression
-                                targetParameters=targetParameters
-                                dependencies=fnId
-                            /]
-                        [/#list]
-                    [/#if]
-                [/#if]
-            [/#if]
-
             [#assign dependencies = [] ]
-
+            [#assign roleId = "" ]
             [#if solution.UseTaskRole]
                 [#assign roleId = resources["taskrole"].Id ]
                 [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
@@ -390,10 +334,9 @@
                         managedArns=managedPolicy
                     /]
                 [/#if]
-            [#else]
-                [#assign roleId = "" ]
             [/#if]
 
+            [#assign executionRoleId = ""]
             [#if resources["executionRole"]?has_content ]
                 [#assign executionRoleId = resources["executionRole"].Id]
                 [#if deploymentSubsetRequired("iam", true ) && isPartOfCurrentDeploymentUnit(executionRoleId) ]
@@ -405,6 +348,178 @@
                         ]
                         managedArns=["arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"]
                     /]
+                [/#if]
+            [/#if]
+
+            [#if core.Type == ECS_TASK_COMPONENT_TYPE]
+                [#if solution.Schedules?has_content ]
+
+                    [#assign scheduleTaskRoleId = resources["scheduleRole"].Id ]
+
+                    [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(scheduleTaskRoleId)]
+                        [@createRole
+                            mode=listMode
+                            id=scheduleTaskRoleId
+                            trustedServices=["events.amazonaws.com"]
+                            policies=[
+                                getPolicyDocument(
+                                    ecsTaskRunPermission(ecsId) + 
+                                    roleId?has_content?then(
+                                        iamPassRolePermission(
+                                            getReference(roleId, ARN_ATTRIBUTE_TYPE)
+                                        ),
+                                        []
+                                    ) + 
+                                    executionRoleId?has_content?then(
+                                        iamPassRolePermission(
+                                            getReference(executionRoleId, ARN_ATTRIBUTE_TYPE)
+                                        ),
+                                        []
+                                    ),
+                                    "schedule"
+                                )
+                            ]
+                        /]
+                    [/#if]
+
+                    [#list solution.Schedules?values as schedule ]
+
+                        [#assign scheduleRuleId = formatEventRuleId(subOccurrence, "schedule", schedule.Id) ]
+                        [#assign scheduleEnabled = hibernate?then(
+                                    false,
+                                    schedule.Enabled
+                        )]
+
+                        [#if networkMode == "awsvpc" ]
+
+                            [#-- Cloudfomation support not available for awsvpc network config which means that fargate isn't supported --]
+                            [#assign eventRuleCliConfig = 
+                                {
+                                    "ScheduleExpression" : schedule.Expression,
+                                    "State" : scheduleEnabled?then("ENABLED", "DISABLED")
+                                }]
+
+                            [#assign eventTargetCliConfig = 
+                                {
+                                    "Targets" : [  
+                                        {
+                                            "Id" : formatId(scheduleRuleId, "target"),
+                                            "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
+                                            "EcsParameters" : {
+                                                "TaskCount" : schedule.TaskCount
+                                            } +
+                                            attributeIfTrue(
+                                                "NetworkConfiguration",
+                                                networkMode = "awsvpc",
+                                                {
+                                                    "awsvpcConfiguration" : {
+                                                        "Subnets" : subnets,
+                                                        "AssignPublicIp" : publicRouteTable?then("ENABLE", "DISABLED")
+                                                    }
+                                                }
+                                            ) +
+                                            attributeIfTrue(
+                                                "LaunchType",
+                                                engine == "fargate",
+                                                "FARGATE"
+                                            )
+                                        }
+                                    ]
+                                }]
+
+                            [#assign ruleCliId = formatId(taskId, "rule")]
+                            [#assign ruleCommand = "updateEventRule" ]
+                            [#assign targetCliId = formatId(taskId, "target")]
+                            [#assign targetCommand = "updateTargetRule" ]
+
+                            [#if deploymentSubsetRequired("cli", false) ]
+                                [@cfCli
+                                    mode=listMode
+                                    id=ruleCliId
+                                    command=ruleCommand
+                                    content=eventRuleCliConfig
+                                /]
+
+                                [@cfCli
+                                    mode=listMode
+                                    id=targetCliId
+                                    command=targetCommand
+                                    content=eventTargetCliConfig
+                                /]
+                            [/#if]
+
+                            [#if deploymentSubsetRequired("epilogue", false)]
+
+                                [#assign targetParameters = {
+                                    "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
+                                    "Id" : taskId,
+                                    "EcsParameters" : {
+                                        "TaskCount" : schedule.TaskCount,
+                                        "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
+                                    },
+                                    "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
+                                }]
+
+                                [@cfScript 
+                                    mode=listMode
+                                    content=
+                                        [
+                                            " case $\{STACK_OPERATION} in",
+                                            "   create|update)",
+                                            "       # Get cli config file",
+                                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                                            "       # Manage Scheduled Event",
+                                            "       info \"Creating Scheduled Task...\"",
+                                            "       create_ecs_scheduled_task" +
+                                            "       \"" + region + "\" " + 
+                                            "       \"" + scheduleRuleId + "\" " +
+                                            "       \"$\{tmpdir}/cli-" + ruleCliId + "-" + ruleCommand + ".json\" " +
+                                            "       \"$\{tmpdir}/cli-" + targetCliId + "-" + targetCommand + ".json\" " +
+                                            "       \"$\{STACK_NAME}\" " +
+                                            "       \"" + taskId + "\" " +
+                                            "       \"" + (getExistingReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)?has_content?then(
+                                                                getExistingReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE),
+                                                                scheduleTaskRoleId)) + "\" " + 
+                                            "       \"" + ecsSecurityGroupId + "\" " + 
+                                            "       || return $?",
+                                            "       ;;",
+                                            " esac"
+                                        ]
+                                /]
+                            [/#if]
+
+                            [#if deploymentSubsetRequired("prologue", false)]
+                                [@cfScript 
+                                    mode=listMode
+                                    content=
+                                        [
+                                            " case $\{STACK_OPERATION} in",
+                                            "   delete)",
+                                            "       # Manage Scheduled Event",
+                                            "       info \"Deleting Scheduled Task...\"",
+                                            "       delete_cloudwatch_event" +
+                                            "       \"" + region + "\" " + 
+                                            "       \"" + scheduleRuleId + "\" " +
+                                            "       \"true\" || return $?",
+                                            "       ;;",
+                                            " esac"
+                                        ]
+                                /]
+                            [/#if]
+                            
+                        [#else]
+                            [#if deploymentSubsetRequired("ecs", true) ]
+                                [@createScheduleEventRule
+                                    mode=listMode
+                                    id=scheduleRuleId
+                                    enabled=scheduleEnabled
+                                    scheduleExpression=schedule.Expression
+                                    targetParameters=targetParameters
+                                    dependencies=fnId
+                                /]
+                            [/#if]
+                        [/#if]
+                    [/#list]
                 [/#if]
             [/#if]
 
