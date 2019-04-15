@@ -47,15 +47,6 @@
             extensions) ]
 [/#function]
 
-[#-- TODO: Remove when use of "container" is removed --]
-[#function formatContainerResourceId type extensions...]
-    [#return
-        formatResourceId(
-            type,
-            "container",
-            extensions) ]
-[/#function]
-
 [#function formatSegmentResourceId type extensions...]
     [#return
         formatResourceId(

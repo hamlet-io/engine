@@ -94,7 +94,7 @@
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
-                { 
+                {
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
@@ -132,7 +132,7 @@
                     "Value" : segmentSeedValue,
                     "Type" : SEED_RESOURCE_TYPE
                 }
-            } + 
+            } +
             (!legacyVpc)?then(
                 {
                     "segmentSNSTopic" : {
@@ -168,7 +168,7 @@
 
     [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, core.SubComponent.Id ) ]
     [#local bucketName = formatSegmentBucketName( segmentSeed, core.SubComponent.Id )]]
-    
+
     [#switch core.SubComponent.Id ]
         [#case "appdata" ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "data") ]
@@ -186,7 +186,7 @@
             [/#if]
             [#break]
     [/#switch]
-    
+
     [#local bucketPolicyId = formatDependentBucketPolicyId(bucketId)]
 
     [#local result =
@@ -230,8 +230,7 @@
         migrateToResourceId(
             formatSegmentS3Id("ops"),
             formatSegmentS3Id("operations"),
-            formatSegmentS3Id("logs"),
-            formatContainerS3Id("logs")
+            formatSegmentS3Id("logs")
         )]
 [/#function]
 
@@ -240,7 +239,6 @@
         migrateToResourceId(
             formatSegmentS3Id("data"),
             formatSegmentS3Id("application"),
-            formatSegmentS3Id("backups"),
-            formatContainerS3Id("backups")
+            formatSegmentS3Id("backups")
         )]
 [/#function]

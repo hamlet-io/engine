@@ -10,14 +10,6 @@
             ids)]
 [/#function]
 
-[#-- TODO: Remove when use of "container" is removed --]
-[#function formatContainerS3Id type extensions...]
-    [#return formatContainerResourceId(
-                AWS_S3_RESOURCE_TYPE,
-                type,
-                extensions)]
-[/#function]
-
 [#function formatSegmentS3Id type extensions...]
     [#return formatSegmentResourceId(
                 AWS_S3_RESOURCE_TYPE,
@@ -109,7 +101,7 @@
                         }
                     ]
                 },
-                { 
+                {
                     "Names" : "Website",
                     "Children" : [
                         {
@@ -193,7 +185,7 @@
             ]
         }
     }]
-    
+
 [#function getS3State occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
