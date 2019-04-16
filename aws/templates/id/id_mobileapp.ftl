@@ -93,7 +93,7 @@
                     [#if link.Id?lower_case?starts_with("ota") ]
                         [#local otaBucket = linkTargetAttributes["NAME"]]
                         [#local otaPrefix = core.RelativePath ]
-                        [#local otaURL = formatRelativePath(linkTargetAttributes["WEBSITE_URL"], otaPrefix )]
+                        [#local otaURL = formatRelativePath("https://", linkTargetAttributes["INTERNAL_FQDN"], otaPrefix )]
                     [/#if]
                     [#break]
             [/#switch]
