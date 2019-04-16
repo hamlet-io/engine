@@ -394,6 +394,12 @@
                     "Children" : alertChildrenConfiguration
                 },
                 {
+                    "Names" : "NetworkMode",
+                    "Type" : STRING_TYPE,
+                    "Values" : ["none", "bridge", "awsvpc", "host"],
+                    "Default" : ""
+                },
+                {
                     "Names" : "FixedName",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
@@ -663,6 +669,14 @@
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
             ) + 
+            attributeIfTrue(
+                "securityGroup",
+                solution.NetworkMode == "awsvpc",
+                {
+                    "Id" : formatResourceId( AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE, core.Id ),
+                    "Name" : core.FullName,
+                    "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
+                }) +
             attributeIfTrue(
                 "executionRole",
                 solution.Engine == "fargate",
