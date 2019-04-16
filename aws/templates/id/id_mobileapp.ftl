@@ -117,7 +117,7 @@
                 "OTA_ARTEFACT_BUCKET" : otaBucket,
                 "OTA_ARTEFACT_PREFIX" : otaPrefix,
                 "OTA_ARTEFACT_URL" : otaURL,
-                "CONFIG_FILE" : getExistingReference(formatId(id, configFile))!""
+                "CONFIG_FILE" : getExistingReference(formatId(id, "configFile"))
             }
         }
     ]
