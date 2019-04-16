@@ -40,6 +40,11 @@
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : [ "ios", "android" ],
                     "Values" : [ "ios", "android" ]
+                },
+                {
+                    "Names" : ["Fragment", "Container"],
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
                 }
             ]
         }
@@ -111,7 +116,8 @@
                 "CODE_SRC_PREFIX" : codeSrcPrefix,
                 "OTA_ARTEFACT_BUCKET" : otaBucket,
                 "OTA_ARTEFACT_PREFIX" : otaPrefix,
-                "OTA_ARTEFACT_URL" : otaURL
+                "OTA_ARTEFACT_URL" : otaURL,
+                "CONFIG_FILE" : getExistingReference(formatId(id, configFile))!""
             }
         }
     ]
