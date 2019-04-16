@@ -79,12 +79,10 @@
 
                 [#assign aswVpcNetworkConfiguration = 
                     {
-                        "NetworkConfiguration" : {
-                            "AwsvpcConfiguration" : {
-                                "SecurityGroups" : getReferences(ecsSecurityGroupId),
-                                "Subnets" : subnets,
-                                "AssignPublicIp" : publicRouteTable?then("ENABLED", "DISABLED" )
-                            }
+                        "AwsvpcConfiguration" : {
+                            "SecurityGroups" : getReferences(ecsSecurityGroupId),
+                            "Subnets" : subnets,
+                            "AssignPublicIp" : publicRouteTable?then("ENABLED", "DISABLED" )
                         }
                     }
                 ]
