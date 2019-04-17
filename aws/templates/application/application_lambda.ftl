@@ -24,8 +24,8 @@
             [#assign fnLgId = resources["lg"].Id ]
             [#assign fnLgName = resources["lg"].Name ]
 
-            [#assign vpcAccess = false ]
-            [#if solution.VPCAccess ]     
+            [#assign vpcAccess = solution.VPCAccess ]
+            [#if vpcAccess ]     
                 [#assign networkLink = tier.Network.Link!{} ]
 
                 [#assign networkLinkTarget = getLinkTarget(fn, networkLink ) ]
@@ -39,9 +39,6 @@
 
                 [#assign vpcId = networkResources["vpc"].Id ]
                 [#assign vpc = getExistingReference(vpcId)]
-
-                [#assign vpcAccess = solution.VPCAccess && vpc?has_content ]
-
             [/#if]
 
             [#assign fragment =

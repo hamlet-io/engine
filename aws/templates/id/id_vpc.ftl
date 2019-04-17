@@ -111,14 +111,6 @@
         )]
 [/#function]
 
-[#function formatVPCFlowLogsId extensions...]
-    [#return formatDependentResourceId(
-        AWS_VPC_FLOWLOG_RESOURCE_TYPE,
-        formatSegmentResourceId(AWS_VPC_RESOURCE_TYPE),
-        extensions)]
-[/#function]
-
-[#-- Legacy functions reflecting inconsistencies in template id naming --]
 [#function formatVPCTemplateId]
     [#return
         getExistingReference(
@@ -135,6 +127,13 @@
                 AWS_VPC_IGW_RESOURCE_TYPE,
                 formatSegmentResourceId(AWS_VPC_IGW_RESOURCE_TYPE)
             )]
+[/#function]
+
+[#function formatVPCFlowLogsId extensions...]
+    [#return formatDependentResourceId(
+        AWS_VPC_FLOWLOG_RESOURCE_TYPE,
+        formatSegmentResourceId(AWS_VPC_RESOURCE_TYPE),
+        extensions)]
 [/#function]
 
 [#function formatSubnetId tier zone]

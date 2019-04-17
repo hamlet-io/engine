@@ -223,14 +223,14 @@
 [#macro createVPC
             mode
             id
-            legacyVpc
             name
             cidr
             dnsSupport
-            dnsHostnames]
+            dnsHostnames
+            resourceId=""]
     [@cfResource
         mode=mode
-        id=id
+        id=resourceId!id
         type="AWS::EC2::VPC"
         properties=
             {
@@ -239,22 +239,21 @@
                 "EnableDnsHostnames" : dnsHostnames
             }
         tags=getCfTemplateCoreTags(name)
-        outputId=legacyVpc?then(
-                    formatVPCId(),
-                    id)
+        outputId=id
     /]
 [/#macro]
 
 [#macro createIGW
             mode
             id
-            name]
+            name
+            resourceId=""]
     [@cfResource
         mode=mode
-        id=id
+        id=resourceId!id
         type="AWS::EC2::InternetGateway"
         tags=getCfTemplateCoreTags(name)
-        outputId=formatVPCIGWId()
+        outputId=id
     /]
 [/#macro]
 
