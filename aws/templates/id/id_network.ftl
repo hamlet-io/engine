@@ -196,11 +196,11 @@
 
     [#if legacyVpc ]
         [#local vpcId = formatVPCTemplateId() ]
-        [#local legacySegmentTopicId = formatSegmentSNSTopicId() ]
+        [#local vpcName = formatVPCName()]
         [#local legacyIGWId = formatVPCIGWTemplateId() ]
         [#local legacyIGWName = formatIGWName() ]
         [#local legacyIGWAttachementId = formatId(AWS_VPC_IGW_ATTACHMENT_TYPE) ]
-        [#local vpcName = formatVPCName()]
+        [#local legacySegmentTopicId = formatSegmentSNSTopicId() ]
     [#else]
         [#local vpcId = formatResourceId(AWS_VPC_RESOURCE_TYPE, core.Id)]
         [#local vpcName = core.FullName ]
@@ -278,7 +278,8 @@
         {
             "Resources" : {
                 "vpc" : {
-                    "Id" : vpcId,
+                    "Id" : legacyVpc?then(formatVPCId(), vpcId),
+                    "ResourceId" : vpcId,
                     "Name" : vpcName,
                     "Address": networkAddress + "/" + networkMask,
                     "Type" : AWS_VPC_RESOURCE_TYPE
@@ -310,9 +311,10 @@
                         "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE
                     },
                     "legacyIGW" : {
-                            "Id" : legacyIGWId,
-                            "Name" : legacyIGWName,
-                            "Type" : AWS_VPC_IGW_RESOURCE_TYPE
+                        "Id" : legacyVpc?then(formatVPCIGWId(), legacyIGWId),
+                        "ResourceId" : legacyIGWId,
+                        "Name" : legacyIGWName,
+                        "Type" : AWS_VPC_IGW_RESOURCE_TYPE
                     },
                     "legacyIGWAttachement" : {
                         "Id" : legacyIGWAttachementId,

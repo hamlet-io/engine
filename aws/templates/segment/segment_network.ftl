@@ -11,6 +11,7 @@
         [#assign resources = occurrence.State.Resources ]
 
         [#assign vpcId = resources["vpc"].Id]
+        [#assign vpcResourceId = resources["vpc"].ResourceId]
         [#assign vpcName = resources["vpc"].Name]
         [#assign vpcCIDR = resources["vpc"].Address]
 
@@ -56,7 +57,7 @@
                 [@createVPCFlowLog
                     mode=listMode
                     id=flowLogsAllId
-                    vpcId=vpcId
+                    vpcId=vpcResourceId
                     roleId=flowLogsRoleId
                     logGroupName=flowLogsAllLogGroupName
                     trafficType="ALL"
@@ -79,8 +80,8 @@
             [@createVPC
                 mode=listMode
                 id=vpcId
+                resourceId=vpcResourceId
                 name=vpcName
-                legacyVpc=legacyVpc
                 cidr=vpcCIDR
                 dnsSupport=dnsSupport
                 dnsHostnames=dnsHostnames
@@ -90,6 +91,7 @@
         [#assign legacyIGWId = "" ]
         [#if (resources["legacyIGW"]!{})?has_content]
             [#assign legacyIGWId = resources["legacyIGW"].Id ]
+            [#assign legacyIGWResourceId = resources["leagcyIGW"].ResourceId]
             [#assign legacyIGWName = resources["legacyIGW"].Name]
             [#assign legacyIGWAttachmentId = resources["legacyIGWAttachement"].Id ]
 
@@ -97,12 +99,13 @@
                 [@createIGW
                     mode=listMode
                     id=legacyIGWId
+                    resourceid=igwResourceId
                     name=legacyIGWName
                 /]
                 [@createIGWAttachment
                     mode=listMode
                     id=legacyIGWAttachmentId
-                    vpcId=vpcId
+                    vpcId=vpcResourceId
                     igwId=legacyIGWId
                 /]
             [/#if]
@@ -157,7 +160,7 @@
                                     mode=listMode
                                     id=subnetId
                                     name=subnetName
-                                    vpcId=vpcId
+                                    vpcId=vpcResourceId
                                     tier=networkTier
                                     zone=zone
                                     cidr=subnetAddress
@@ -206,7 +209,7 @@
                                 mode=listMode
                                 id=routeTableId
                                 name=routeTableName
-                                vpcId=vpcId
+                                vpcId=vpcResourceId
                                 zone=zone
                             /]
 
@@ -242,7 +245,7 @@
                         mode=listMode
                         id=networkACLId
                         name=networkACLName
-                        vpcId=vpcId
+                        vpcId=vpcResourceId
                     /]
                     
                     [#list networkACLRules as id, rule ]
