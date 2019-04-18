@@ -180,3 +180,32 @@
             "")]
     ]
 [/#function]
+
+[#function dynamoDbViewerPermission tables="*" indexes="" ]
+    [#return 
+        dynamodbReadPermission(tables) + 
+        dynamodbQueryPermission(tables, indexes) +
+        dynamodbScanPermission(tables, indexes)
+    ]
+[/#function]
+
+[#function dynamoDbAttributeWritePermission tables attributes principals=""  ]
+    [#return 
+         getDynamodbStatement(
+            [
+                "dynamodb:BatchGetItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem"
+            ],
+            tables,
+            [],
+            [],
+            principals,
+            {
+            "ForAllValues:StringEquals": {
+                    "dynamodb:Attributes": [attributes]
+                }
+            }
+        )
+    ]
+[/#function]

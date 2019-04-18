@@ -916,6 +916,14 @@ behaviour.
                 [#local result = getSQSState(occurrence, result)]
                 [#break]
 
+            [#case SWITCH_COMPONENT_TYPE]
+                [#local result = getSwitchState(occurrence)]
+                [#break]
+
+            [#case SWITCH_TOGGLE_COMPONENT_TYPE]
+                [#local result = getSwitchToggleState(occurrence)]
+                [#break]
+
             [#case "task"]
                 [#local result = getTaskState(occurrence, parentOccurrence)]
                 [#break]

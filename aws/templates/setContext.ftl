@@ -430,6 +430,61 @@
     }
 ]]
 
+[#assign dynamoDbTableChildConfiguration = [
+    {
+        "Names" : "Billing",
+        "Description" : "The billing mode for the table",
+        "Type"  : "STRING_TYPE",
+        "Values" : [ "provisioned", "per-request" ],
+        "Default" : "provisioned"
+    },
+    {
+        "Names" : "Capacity",
+        "Children" : [
+            {
+                "Names" : "Read",
+                "Description" : When using provisioned billing the maximum RCU of the table",
+                "Type" : NUMBER_TYPE,
+                "Default" : 1
+            },
+            {
+                "Names" : "Write",
+                "Description" : When using provisioned billing the maximum WCU of the table",
+                "Type" : NUMBER_TYPE,
+                "Default" : 1
+            }
+        ]
+    },
+    {
+        "Names" : "Backup",
+        "Children" : [
+            {
+                "Names" : "Enabled",
+                "Description" : "Enables point in time recovery on the table",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            }
+        ]
+    },
+    {
+        "Names" : "Stream",
+        "Children" : [
+            {
+                "Names" : "Enabled",
+                "Description" : "Enables dynamodb event stream",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "ViewType",
+                "Type" : STRING_TYPE,
+                "Values" : [ "KEYS_ONLY", "NEW_IMAGE", "OLD_IMAGE", "NEW_AND_OLD_IMAGES" ],
+                "Default" : "NEW_IMAGE"
+            }
+        ]
+    }
+]]
+
 [#include idList]
 [#include nameList]
 [#include policyList]

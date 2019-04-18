@@ -922,6 +922,47 @@ function update_data_pipeline() {
   fi
 }
 
+#-- DynamoDB -- 
+function upsert_dynamodb_item() {
+  local region="$1"; shift 
+  local tableName="$1"; shift
+  local configfile="$1"; shift
+  local cfnStackName="$1"; shift
+
+  aws --region "${region}" dynamodb update-item --table-name "${tableName}" --return-values "UPDATED_NEW" --cli-input-json "file://${configfile}" || return $?
+
+  return 0
+}
+
+function scan_dynamodb_table() { 
+  local region="$1"; shift 
+  local tableName="$1"; shift
+  local configfile="$1"; shift
+  local cfnStackName="$1"; shift
+
+  items="$(aws --region "${region}" dynamodb scan --table-name "${tableName}" --cli-input-json "file://${configfile}" --query "Items[*]" --output json || return $? )"
+
+  # return each item as a new line 
+  items="$( echo "${items}" | jq -c '.[]' )"
+
+  echo "${items}"
+
+  return 0
+}
+
+function delete_dynamodb_items() {
+  local region="$1"; shift
+  local tableName="$1"; shift 
+  local itemKeys="$1"; shift 
+  local cfnStackName="$1"; shift 
+
+  arrayFromList items_to_delete "${itemKeys}"
+
+  for item in "${items_to_delete[@]}"; do
+    aws --region "${region}" dynamodb delete-item --table-name "${tableName}" --key "${item}" || return $? 
+  done 
+}
+
 #-- ECS -- 
 function create_ecs_scheduled_task() {
   local region="$1"; shift 

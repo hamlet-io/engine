@@ -121,6 +121,7 @@
 [#assign PREFIX_ATTRIBUTE_TYPE = "prefix" ]
 [#assign LASTRESTORE_ATTRIBUTE_TYPE = "lastrestore" ]
 [#assign REGION_ATTRIBUTE_TYPE = "region"]
+[#assign EVENTSTREAM_ATTRIBUTE_TYPE = "stream"]
 
 [#-- special attribute type to handle references --]
 [#assign REFERENCE_ATTRIBUTE_TYPE = "ref" ]
