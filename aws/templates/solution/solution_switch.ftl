@@ -18,14 +18,14 @@
         [#assign itemUpdateCommand = "updateItem" ]
         [#assign tableCleanupCommand = "cleanupTable" ]
 
-        [#assign dynamoTableKeys = getDynamoDbTableKey("toggle" , "hash")]
-        [#assign dynamoTableAttributes = getDynamoDbTableAttribute( "toggle", STRING_TYPE)]
+        [#assign dynamoTableKeys = getDynamoDbTableKey("position" , "hash")]
+        [#assign dynamoTableAttributes = getDynamoDbTableAttribute( "position", STRING_TYPE)]
 
         [#assign runIdAttributeName = "runId" ]
         [#assign runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
         
-        [#assign toggleStateAttributeName = parentSolution.StateAttribute ]
-        [#assign toggleStateAttribute = getDynamoDbTableItem( ":toggle_state", "-")]
+        [#assign positionStateAttributeName = parentSolution.StateAttribute ]
+        [#assign positionStateAttribute = getDynamoDbTableItem( ":position_state", "-")]
         
         [#assign fragment =
                 contentIfContent(parentSolution.Fragment, getComponentId(parentCore.Component)) ]
@@ -86,7 +86,7 @@
                     "DefaultCoreVariables" : false,
                     "DefaultEnvironmentVariables" : false,
                     "DefaultLinkVariables" : true,
-                    "Toggle" : itemName
+                    "Position" : itemName
                 }
             ]
 
@@ -110,12 +110,12 @@
 
             [#if deploymentSubsetRequired("cli", false) ]
 
-                [#assign toggleItemKey = getDynamoDbTableItem( "toggle", itemName )]
+                [#assign positionItemKey = getDynamoDbTableItem( "position", itemName )]
 
-                [#assign toggleUpdateAttribtueValues = runIdAttribute + toggleStateAttribute ]
-                [#assign toggleUpdateExpression = 
+                [#assign positionUpdateAttribtueValues = runIdAttribute + positionStateAttribute ]
+                [#assign positionUpdateExpression = 
                     [ 
-                        toggleStateAttributeName + " = if_not_exists(" + toggleStateAttributeName + ", :toggle_state)",
+                        positionStateAttributeName + " = if_not_exists(" + positionStateAttributeName + ", :position_state)",
                         runIdAttributeName + " = :run_id" 
                     ]
                 ]
@@ -123,8 +123,8 @@
                 [#list _context.Environment as envKey, envValue ]
                     [#assign envKey = envKey]
                     [#if envValue?has_content ]
-                        [#assign toggleUpdateAttribtueValues += getDynamoDbTableItem( ":" + envKey, envValue )]
-                        [#assign toggleUpdateExpression += [ envKey + " = :" + envKey ]]
+                        [#assign positionUpdateAttribtueValues += getDynamoDbTableItem( ":" + envKey, envValue )]
+                        [#assign positionUpdateExpression += [ envKey + " = :" + envKey ]]
                     [/#if]
                 [/#list]
 
@@ -133,16 +133,16 @@
                     mode=listMode
                     command=itemUpdateCommand
                     content={
-                        "Key" : toggleItemKey
+                        "Key" : positionItemKey
                     } + 
                     attributeIfContent(
                         "UpdateExpression",
-                        toggleUpdateExpression,
-                        "SET " + toggleUpdateExpression?join(", ")
+                        positionUpdateExpression,
+                        "SET " + positionUpdateExpression?join(", ")
                     ) +
                     attributeIfContent(
                         "ExpressionAttributeValues",
-                        toggleUpdateAttribtueValues
+                        positionUpdateAttribtueValues
                     )
                 /]   
             [/#if]   
@@ -154,7 +154,7 @@
                     content=[
                         " case $\{STACK_OPERATION} in",
                         "   create|update)",
-                        "       # Manage Toggle Attributes",
+                        "       # Manage Position Attributes",
                         "       info \"Creating DynamoDB Item - Table: " + tableId + " - Item: " + itemName + "\"",
                         "       upsert_dynamodb_item" +
                         "       \"" + region + "\" " + 
@@ -181,9 +181,9 @@
                 content={
                     "FilterExpression" : cleanupFilterExpression,
                     "ExpressionAttributeValues" : cleanupExpressionAttributeValues,
-                    "ProjectionExpression" : "#toggle",
+                    "ProjectionExpression" : "#position",
                     "ExpressionAttributeNames" : {
-                        "#toggle" : "toggle"
+                        "#position" : "position"
                     }
                 }
             /]
@@ -196,7 +196,7 @@
                 content=[
                     " case $\{STACK_OPERATION} in",
                     "   create|update)",
-                    "       # Clean up old toggle items",
+                    "       # Clean up old position items",
                     "       info \"Cleaning up old items DynamoDB - Table: " + tableId + "\"",
                     "       old_items=$(scan_dynamodb_table" +
                     "       \"" + region + "\" " + 

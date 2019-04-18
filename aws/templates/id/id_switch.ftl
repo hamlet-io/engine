@@ -2,7 +2,7 @@
 
 [#-- Components --]
 [#assign SWITCH_COMPONENT_TYPE = "switch" ]
-[#assign SWITCH_TOGGLE_COMPONENT_TYPE = "switchtoggle"]
+[#assign SWITCH_POSITION_COMPONENT_TYPE = "switchposition"]
 
 [#assign componentConfiguration +=
     {
@@ -29,9 +29,9 @@
                 },
                 {
                     "Names" : "StateAttribute",
-                    "Description" : "The name of attribute in the table which holds the state of the toggle",
+                    "Description" : "The name of attribute in the table which holds the state of the position",
                     "Type" : STRING_TYPE,
-                    "Default" : "toggleState"
+                    "Default" : "positionState"
                 },
                 {
                     "Names" : "Table",
@@ -40,13 +40,13 @@
             ],
             "Components" : [
                 {
-                    "Type" : SWITCH_TOGGLE_COMPONENT_TYPE,
-                    "Component" : "Toggles",
-                    "Link" : [ "Toggle" ]
+                    "Type" : SWITCH_POSITION_COMPONENT_TYPE,
+                    "Component" : "Positions",
+                    "Link" : [ "Position" ]
                 }
             ]
         },
-        SWITCH_TOGGLE_COMPONENT_TYPE : {
+        SWITCH_POSITION_COMPONENT_TYPE : {
             "Properties" : [
                 {
                     "Type" : "Description",
@@ -140,7 +140,7 @@
     ]
 [/#function]
 
-[#function getSwitchToggleState occurrence ]
+[#function getSwitchPositionState occurrence ]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 

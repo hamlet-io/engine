@@ -920,8 +920,8 @@ behaviour.
                 [#local result = getSwitchState(occurrence)]
                 [#break]
 
-            [#case SWITCH_TOGGLE_COMPONENT_TYPE]
-                [#local result = getSwitchToggleState(occurrence)]
+            [#case SWITCH_POSITION_COMPONENT_TYPE]
+                [#local result = getSwitchPositionState(occurrence)]
                 [#break]
 
             [#case "task"]
