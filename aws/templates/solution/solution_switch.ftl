@@ -85,7 +85,7 @@
                     "DefaultEnvironment" : defaultEnvironment(subOccurrence, contextLinks),
                     "DefaultCoreVariables" : false,
                     "DefaultEnvironmentVariables" : false,
-                    "DefaultLinkVariables" : false,
+                    "DefaultLinkVariables" : true,
                     "Toggle" : itemName
                 }
             ]
