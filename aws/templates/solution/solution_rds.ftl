@@ -112,6 +112,9 @@
         [#assign rdsManualSnapshot = getExistingReference(formatDependentRDSManualSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
         [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE )]
 
+        [#assign deletionPolicy = solution.Backup.DeletionPolicy]
+        [#assign updateReplacePolicy = solution.Backup.UpdateReplacePolicy]
+
         [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
 
         [#assign rdsPreDeploySnapshotId = formatName(
@@ -321,6 +324,8 @@
             [#switch alternative ]
                 [#case "replace1" ]
                     [#assign multiAZ = false]
+                    [#assign deletionPolicy = "Delete" ]
+                    [#assign updateReplacePolicy = "Delete" ]
                     [#assign rdsFullName=formatName(rdsFullName, "backup") ]
                     [#if rdsManualSnapshot?has_content ]
                         [#assign snapshotId = rdsManualSnapshot ]
@@ -374,6 +379,8 @@
                         securityGroupId=getReference(rdsSecurityGroupId)
                         autoMinorVersionUpgrade = solution.AutoMinorVersionUpgrade!RDSAutoMinorVersionUpgrade
                         deleteAutomatedBackups = solution.Backup.DeleteAutoBackups
+                        deletionPolicy=deletionPolicy
+                        updateReplacePolicy=updateReplacePolicy
                     /]
             [/#if]
         [/#if]
