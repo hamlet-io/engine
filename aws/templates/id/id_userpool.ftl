@@ -31,7 +31,7 @@
                 },
                 {
                     "Type" : "Note",
-                    "Value" : "Requires second deployment to complete configuration",
+                    "Value" : "Make sure to plan your schema before initial deployment. Updating shema attributes causes a replaccement of the userpool",
                     "Severity" : "warning"
                 }
             ],
