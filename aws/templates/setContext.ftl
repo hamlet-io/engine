@@ -74,6 +74,10 @@
             "Type" : STRING_TYPE
         },
         {
+            "Names" : [ "Branch" ],
+            "Type" : STRING_TYPE
+        }
+        {
             "Names" : "Instance",
             "Type" : STRING_TYPE
         },
@@ -443,13 +447,13 @@
         "Children" : [
             {
                 "Names" : "Read",
-                "Description" : When using provisioned billing the maximum RCU of the table",
+                "Description" : "When using provisioned billing the maximum RCU of the table",
                 "Type" : NUMBER_TYPE,
                 "Default" : 1
             },
             {
                 "Names" : "Write",
-                "Description" : When using provisioned billing the maximum WCU of the table",
+                "Description" : "When using provisioned billing the maximum WCU of the table",
                 "Type" : NUMBER_TYPE,
                 "Default" : 1
             }

@@ -1,6 +1,6 @@
-[#-- State Switch --]
+[#-- Config Store --]
 
-[#if componentType == SWITCH_COMPONENT_TYPE ]
+[#if componentType == CONFIGSTORE_COMPONENT_TYPE ]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -13,19 +13,17 @@
         [#assign parentResources = occurrence.State.Resources]
 
         [#assign tableId = parentResources["table"].Id ]
+        [#assign tableKey = parentResources["table"].Key ]
 
         [#assign itemInitCommand = "initItem"]
         [#assign itemUpdateCommand = "updateItem" ]
         [#assign tableCleanupCommand = "cleanupTable" ]
 
-        [#assign dynamoTableKeys = getDynamoDbTableKey("position" , "hash")]
-        [#assign dynamoTableAttributes = getDynamoDbTableAttribute( "position", STRING_TYPE)]
+        [#assign dynamoTableKeys = getDynamoDbTableKey(tableKey , "hash")]
+        [#assign dynamoTableKeyAttributes = getDynamoDbTableAttribute( tableKey, STRING_TYPE)]
 
         [#assign runIdAttributeName = "runId" ]
         [#assign runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
-        
-        [#assign positionStateAttributeName = parentSolution.StateAttribute ]
-        [#assign positionStateAttribute = getDynamoDbTableItem( ":position_state", "-")]
         
         [#assign fragment =
                 contentIfContent(parentSolution.Fragment, getComponentId(parentCore.Component)) ]
@@ -44,7 +42,7 @@
         [#assign fragmentId = formatFragmentId(_context)]
         [#assign containerId = fragmentId]
 
-
+        [#-- Lookup table name once it has been deployed --]
         [#if deploymentSubsetRequired("epilogue", false)]
             [@cfScript 
                 mode=listMode
@@ -65,6 +63,7 @@
             /]
         [/#if]
 
+        [#-- Branch setup --]
         [#list occurrence.Occurrences![] as subOccurrence]
 
             [#assign core = subOccurrence.Core ]
@@ -86,7 +85,7 @@
                     "DefaultCoreVariables" : false,
                     "DefaultEnvironmentVariables" : false,
                     "DefaultLinkVariables" : true,
-                    "Position" : itemName
+                    "Branch" : itemName
                 }
             ]
 
@@ -100,7 +99,7 @@
             [#assign _context +=
                 {
                     "Environment" : { 
-                                        "switch" : parentCore.Id
+                                        "configStore" : parentCore.Id
                                     } + 
                                     (_context.Environment!{}) 
 
@@ -110,21 +109,24 @@
 
             [#if deploymentSubsetRequired("cli", false) ]
 
-                [#assign positionItemKey = getDynamoDbTableItem( "position", itemName )]
+                [#assign branchItemKey = getDynamoDbTableItem( tableKey, itemName )]
 
-                [#assign positionUpdateAttribtueValues = runIdAttribute + positionStateAttribute ]
-                [#assign positionUpdateExpression = 
+                [#assign branchUpdateAttribtueValues = runIdAttribute ]
+                [#assign branchUpdateExpression = 
                     [ 
-                        positionStateAttributeName + " = if_not_exists(" + positionStateAttributeName + ", :position_state)",
                         runIdAttributeName + " = :run_id" 
                     ]
                 ]
 
+                [#list solution.States as id,state ]
+                    [#assign branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + state.Name, state.InitialValue )]
+                    [#assign branchUpdateExpression += [ state.Name + " = if_not_exists(" + state.Name + ", :" + state.Name + ")" ]]
+                [/#list]
+
                 [#list _context.Environment as envKey, envValue ]
-                    [#assign envKey = envKey]
                     [#if envValue?has_content ]
-                        [#assign positionUpdateAttribtueValues += getDynamoDbTableItem( ":" + envKey, envValue )]
-                        [#assign positionUpdateExpression += [ envKey + " = :" + envKey ]]
+                        [#assign branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + envKey, envValue )]
+                        [#assign branchUpdateExpression += [ envKey + " = :" + envKey ]]
                     [/#if]
                 [/#list]
 
@@ -133,16 +135,16 @@
                     mode=listMode
                     command=itemUpdateCommand
                     content={
-                        "Key" : positionItemKey
+                        "Key" : branchItemKey
                     } + 
                     attributeIfContent(
                         "UpdateExpression",
-                        positionUpdateExpression,
-                        "SET " + positionUpdateExpression?join(", ")
+                        branchUpdateExpression,
+                        "SET " + branchUpdateExpression?join(", ")
                     ) +
                     attributeIfContent(
                         "ExpressionAttributeValues",
-                        positionUpdateAttribtueValues
+                        branchUpdateAttribtueValues
                     )
                 /]   
             [/#if]   
@@ -154,7 +156,7 @@
                     content=[
                         " case $\{STACK_OPERATION} in",
                         "   create|update)",
-                        "       # Manage Position Attributes",
+                        "       # Manage Branch Attributes",
                         "       info \"Creating DynamoDB Item - Table: " + tableId + " - Item: " + itemName + "\"",
                         "       upsert_dynamodb_item" +
                         "       \"" + region + "\" " + 
@@ -181,14 +183,13 @@
                 content={
                     "FilterExpression" : cleanupFilterExpression,
                     "ExpressionAttributeValues" : cleanupExpressionAttributeValues,
-                    "ProjectionExpression" : "#position",
+                    "ProjectionExpression" : "#" + tableKey,
                     "ExpressionAttributeNames" : {
-                        "#position" : "position"
+                        "#" + tableKey : tableKey
                     }
                 }
             /]
         [/#if]
-
 
         [#if deploymentSubsetRequired("epilogue", false)]
             [@cfScript 
@@ -196,7 +197,7 @@
                 content=[
                     " case $\{STACK_OPERATION} in",
                     "   create|update)",
-                    "       # Clean up old position items",
+                    "       # Clean up old branch items",
                     "       info \"Cleaning up old items DynamoDB - Table: " + tableId + "\"",
                     "       old_items=$(scan_dynamodb_table" +
                     "       \"" + region + "\" " + 
@@ -216,7 +217,7 @@
             /]
         [/#if]
 
-        [#if deploymentSubsetRequired(SWITCH_COMPONENT_TYPE, true) ]
+        [#if deploymentSubsetRequired(CONFIGSTORE_COMPONENT_TYPE, true) ]
             [@createDynamoDbTable 
                 id=tableId
                 mode=listMode
@@ -224,7 +225,7 @@
                 billingMode=parentSolution.Table.Billing
                 writeCapacity=parentSolution.Table.Capacity.Write
                 readCapacity=parentSolution.Table.Capacity.Read 
-                attributes=dynamoTableAttributes
+                attributes=dynamoTableKeyAttributes
                 keys=dynamoTableKeys
             /]
         [/#if]

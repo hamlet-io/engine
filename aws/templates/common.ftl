@@ -916,12 +916,12 @@ behaviour.
                 [#local result = getSQSState(occurrence, result)]
                 [#break]
 
-            [#case SWITCH_COMPONENT_TYPE]
-                [#local result = getSwitchState(occurrence)]
+            [#case CONFIGSTORE_COMPONENT_TYPE]
+                [#local result = getConfigStoreState(occurrence)]
                 [#break]
 
-            [#case SWITCH_POSITION_COMPONENT_TYPE]
-                [#local result = getSwitchPositionState(occurrence)]
+            [#case CONFIGSTORE_BRANCH_COMPONENT_TYPE]
+                [#local result = getConfigBranchState(occurrence, parentOccurrence)]
                 [#break]
 
             [#case "task"]
