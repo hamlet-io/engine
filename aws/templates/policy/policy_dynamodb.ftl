@@ -1,21 +1,25 @@
 [#-- dynamodb --]
 
-[#function getDynamodbStatement actions tables=[] streams=[] indexes=[] principals="" conditions=""]
+[#function getDynamodbStatement actions tables=[] streams=[] indexes=[] principals="" conditions={} ]
     [#local result = [] ]
-    [#-- TODO(mfl): for now aws doesn't support partitioning on the basis of prefix --]
-    [#-- local tablePrefix = fullNamePrefixes?join("_") + "_" --]
-    [#local tablePrefix = "" ]
     [#if tables?has_content]
         [#list asArray(tables) as table]
-            [#local tableResource=["table", tablePrefix + table] ]
+            [#if table?is_hash || table?starts_with("arn:") ]
+                [#local tableArn = table ]
+            [#else]
+                [#local tableArn = formatRegionalArn(
+                                        "dynamodb",
+                                        ["table", table ]
+                                    )]
+            [/#if]
+
+            [#local tableResource=["table", table] ]
             [#if !(streams?has_content || indexes?has_content)]
                 [#local result +=
                     [
                         getPolicyStatement(
                             actions,
-                            formatRegionalArn(
-                                "dynamodb",
-                                concatenate(tableResource, "/")),
+                            tableArn,
                             principals,
                             conditions)
                     ]
@@ -26,9 +30,7 @@
                         [
                             getPolicyStatement(
                                 actions,
-                                formatRegionalArn(
-                                    "dynamodb",
-                                    concatenate(tableResource + ["stream", stream], "/")),
+                                formatRelativePath(tableArn, "stream", stream)
                                 principals,
                                 conditions)
                         ]
@@ -39,9 +41,7 @@
                         [
                             getPolicyStatement(
                                 actions,
-                                formatRegionalArn(
-                                    "dynamodb",
-                                    concatenate(tableResource + ["index", index], "/")),
+                                formatRelativePath(tableArn, "index", index),
                                 principals,
                                 conditions)
                         ]
@@ -63,91 +63,150 @@
     [#return result]
 [/#function]
 
-[#function dynamodbReadPermission tables="*"]
+[#function getDynamoDbItemCondition keys=[] attributes=[] ]
+    [#return 
+        {
+            "ForAllValues:StringEquals" : {
+            } + 
+            attributeIfContent(
+                "dynamodb:LeadingKeys",
+                keys,
+                asArray(keys)
+            ) +
+            attributeIfContent(
+                "dynamodb:Attributes",
+                attributes,
+                asArray(attributes)
+            )
+        }
+    ]
+[/#function]
+
+[#function dynamodbReadPermission tables="*"  principals="" conditions={} ]
     [#return
         getDynamodbStatement(
             [
                 "dynamodb:BatchGetItem",
                 "dynamodb:DescribeTable",
-                "dynamodb:GetItem"
-            ],
-            tables) +
-        getDynamodbStatement(
-            [
+                "dynamodb:GetItem",
                 "dynamodb:DescribeTimeToLive",
                 "dynamodb:ListTagsOfResource"
             ],
-            "") +
+            tables, 
+            [],
+            [],
+            principals,
+            conditions) +
         valueIfTrue(
             getDynamodbStatement(
                 [
                     "dynamodb:ListTables"
                 ],
-                ""),
+                "",
+                [],
+                [],
+                principals,
+                conditions),
             (tables == "*"),
             []
         )]
 [/#function]
 
-[#function dynamodbWritePermission tables="*"]
+[#function dynamodbWritePermission tables="*"  principals="" conditions={} ]
     [#return
         getDynamodbStatement(
             [
                 "dynamodb:BatchWriteItem",
                 "dynamodb:PutItem",
-                "dynamodb:UpdateItem"
-            ],
-            tables) +
-        getDynamodbStatement(
-            [
+                "dynamodb:UpdateItem",
                 "dynamodb:TagResource",
                 "dynamodb:UntagResource"
             ],
-            "") ]
+            tables,
+            [],
+            [],
+            principals,
+            conditions)]
 [/#function]
 
-[#function dynamodbDeletePermission tables="*"]
+[#function dynamodbDeletePermission tables="*" principals="" conditions={} ]
     [#return
         getDynamodbStatement(
             [
                 "dynamodb:DeleteItem"
             ],
-            tables)]
+            tables,
+            [],
+            [],
+            principals,
+            conditions)]
 [/#function]
 
-[#function dynamodbProducePermission tables="*"]
+[#function dynamoDbUpdatePermission tables="*" principals="" conditions={}]
     [#return
-        dynamodbReadPermission(tables) +
-        dynamodbWritePermission(tables)]
+        getDynamodbStatement(
+            [
+                "dynamodb:UpdateItem"
+            ],
+            tables,
+            [],
+            [],
+            principals,
+            conditions)]
 [/#function]
 
-[#function dynamodbConsumePermission tables="*"]
-    [#return
-        dynamodbReadPermission(tables) +
-        dynamodbDeletePermission(tables)]
-[/#function]
-
-[#function dynamodbQueryPermission tables="*" indexes=""]
+[#function dynamodbQueryPermission tables="*" indexes=[] principals="" conditions={} ]
     [#return
         getDynamodbStatement(
             [
                 "dynamodb:Query"
             ],
             tables,
-            indexes)]
+            [],
+            indexes,
+            principals,
+            conditions)]
 [/#function]
 
-[#function dynamodbScanPermission tables="*" indexes=""]
+[#function dynamodbScanPermission tables="*" indexes=[] principals="" conditions={} ]
     [#return
         getDynamodbStatement(
             [
                 "dynamodb:Scan"
             ],
             tables,
-            indexes)]
+            [],
+            indexes,
+            principals,
+            conditions)]
 [/#function]
 
-[#function dynamodbManageTablesPermission tables="*"]
+[#function dynamodbProducePermission tables="*" principals="" conditions={} ]
+    [#return
+        dynamodbReadPermission(
+            tables,
+            principals,
+            conditions
+            ) +
+        dynamodbWritePermission(
+            tables,
+            principals,
+            conditions)]
+[/#function]
+
+[#function dynamodbConsumePermission tables="*" principals="" conditions={} ]
+    [#return
+        dynamodbReadPermission(
+            tables,
+            principals,
+            conditions) +
+        dynamodbDeletePermission(
+            tables,
+            principals,
+            conditions)]
+[/#function]
+
+[#function dynamodbManageTablesPermission tables="*" principals="" conditions={} ]
     [#return
         getDynamodbStatement(
             [
@@ -155,16 +214,37 @@
                 "dynamodb:UpdateTable",
                 "dynamodb:DeleteTable"
             ],
-            tables)]
+            tables,
+            [],
+            [],
+            principals,
+            conditions)]
 [/#function]
 
-[#function dynamodbAllPermission tables="*" indexes=""]
+[#function dynamodbAllPermission tables="*" indexes=[] principals="" conditions={} ]
     [#return
-        dynamodbReadPermission(tables) +
-        dynamodbWritePermission(tables) +
-        dynamodbDeletePermission(tables) +
-        dynamodbQueryPermission(tables, indexes) +
-        dynamodbScanPermission(tables, indexes) ]
+        dynamodbReadPermission(
+            tables,
+            principals,
+            conditions) +
+        dynamodbWritePermission(
+            tables,
+            principals,
+            conditions) +
+        dynamodbDeletePermission(
+            tables,
+            principals,
+            conditions) +
+        dynamodbQueryPermission(
+            tables, 
+            indexes,
+            principals,
+            conditions) +
+        dynamodbScanPermission(
+            tables, 
+            indexes,
+            principals,
+            conditions) ]
 [/#function]
 
 [#function dynamodbAdminPermission]
@@ -178,5 +258,24 @@
                 "dynamodb:DescribeReservedCapacityOfferings"
             ],
             "")]
+    ]
+[/#function]
+
+[#function dynamoDbViewerPermission tables="*" indexes="" principals="" conditions={} ]
+    [#return 
+        dynamodbReadPermission(
+            tables,
+            principals,
+            conditions) + 
+        dynamodbQueryPermission(
+            tables, 
+            indexes,
+            principals,
+            conditions) +
+        dynamodbScanPermission(
+            tables, 
+            indexes,
+            principals,
+            conditions)
     ]
 [/#function]

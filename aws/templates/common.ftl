@@ -916,6 +916,14 @@ behaviour.
                 [#local result = getSQSState(occurrence, result)]
                 [#break]
 
+            [#case CONFIGSTORE_COMPONENT_TYPE]
+                [#local result = getConfigStoreState(occurrence)]
+                [#break]
+
+            [#case CONFIGSTORE_BRANCH_COMPONENT_TYPE]
+                [#local result = getConfigBranchState(occurrence, parentOccurrence)]
+                [#break]
+
             [#case "task"]
                 [#local result = getTaskState(occurrence, parentOccurrence)]
                 [#break]
