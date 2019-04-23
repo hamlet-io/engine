@@ -833,7 +833,7 @@ function update_cognito_userpool() {
   aws --region "${region}" cognito-idp update-user-pool --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}"
 }
 
-function update_userpool_client() {
+function update_cognito_userpool_client() {
   local region="$1"; shift
   local userpoolid="$1"; shift
   local userpoolclientid="$1"; shift
@@ -842,7 +842,7 @@ function update_userpool_client() {
   aws --region "${region}" cognito-idp update-user-pool-client --user-pool-id "${userpoolid}" --client-id "${userpoolclientid}" --cli-input-json "file://${configfile}"
 }
 
-function manage_congnito_domain() {
+function manage_cognito_userpool_domain() {
   local region="$1"; shift
   local userpoolid="$1"; shift
   local configfile="$1"; shift
