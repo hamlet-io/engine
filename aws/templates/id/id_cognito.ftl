@@ -9,6 +9,7 @@
 
 [#-- Components --]
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
+[#assign USERPOOL_CLIENT_COMPONENT_TYPE = "userpoolclient" ]
 [#assign USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION = "unauth" ]
 [#assign USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION = "auth" ]
 
@@ -66,16 +67,6 @@
                     "Default" : ["email"]
                 },
                 {
-                    "Names" : "ClientGenerateSecret",
-                    "Type" : BOOLEAN_TYPE,
-                    "Default" : false
-                },
-                {
-                    "Names" : "ClientTokenValidity",
-                    "Type" : NUMBER_TYPE,
-                    "Default" : 30
-                },
-                {
                     "Names" : "AllowUnauthenticatedIds",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
@@ -84,21 +75,6 @@
                     "Names" : "AuthorizationHeader",
                     "Type" : STRING_TYPE,
                     "Default" : "Authorization"
-                },
-                {
-                    "Names" : "OAuth",
-                    "Children" : [
-                        {
-                            "Names" : "Scopes",
-                            "Type" : ARRAY_OF_STRING_TYPE,
-                            "Default" : [ "openid" ]
-                        },
-                        {
-                            "Names" : "Flows",
-                            "Type" : ARRAY_OF_STRING_TYPE,
-                            "Default" : [ "code" ]
-                        }
-                    ]
                 },
                 {
                     "Names" : "PasswordPolicy",
@@ -140,6 +116,12 @@
                     "Children" : profileChildConfiguration
                 },
                 {
+                    "Names" : "DefaultClient",
+                    "Type" : BOOLEAN_TYPE,
+                    "Description" : "Enable default client mode which creates app client for the user pool and aligns with legacy config",
+                    "Default" : true
+                },
+                {
                     "Names" : "Schema",
                     "Subobjects" : true,
                     "Children" :    [
@@ -161,12 +143,76 @@
                         }
                     ]
                 }
+            ],
+            "Components" : [
+                {
+                    "Type" : USERPOOL_CLIENT_COMPONENT_TYPE,
+                    "Component" : "Clients",
+                    "Link" : [ "Client" ]
+                }
+            ]
+        },
+        USERPOOL_CLIENT_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "A oauth app client which belongs to the userpool"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "OAuth",
+                    "Children" : [
+                        {
+                            "Names" : "Scopes",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Values" : [ "phone", "email", "openid", "Cognito" ],
+                            "Default" : [ "email", "openid" ]
+                        },
+                        {
+                            "Names" : "Flows",
+                            "Type" : ARRAY_OF_STRING_TYPE,
+                            "Values" : [ "code", "implicit", "client_credentials" ],
+                            "Default" : [ "code" ]
+                        }
+                    ]
+                },
+                {
+                    "Names" : "ClientGenerateSecret",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
+                },
+                {
+                    "Names" : "ClientTokenValidity",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 30
+                },
+                {
+                    "Names" : "IdentityPoolAccess",
+                    "Description" : "Enable the use of the identity pool for this client",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                }
             ]
         }
     }]
     
 [#function getUserPoolState occurrence baseState]
     [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#if core.External!false]
         [#local id = baseState.Attributes["USER_POOL_ARN"]!"" ]
@@ -202,9 +248,10 @@
         [#assign userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
         [#assign userPoolDomainName = formatName("auth", core.ShortFullName, segmentSeed)]
 
-        [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
-        [#assign userPoolClientName = formatSegmentFullName(core.Name)]
-
+        [#assign defaultUserPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id) ]
+        [#assign defaultUserPoolClientName = formatSegmentFullName(core.Name)]
+        [#assign defaultUserPoolClientRequired = solution.DefaultClient ]
+        
         [#assign identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
         [#assign identityPoolName = formatSegmentFullName(core.Name)?replace("-","X")]
 
@@ -228,11 +275,6 @@
                         "Name" : userPoolDomainName,
                         "Type" : AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE
                     },
-                    "client" : {
-                        "Id" : userPoolClientId,
-                        "Name" : userPoolClientName,
-                        "Type" : AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE
-                    },
                     "identitypool" : { 
                         "Id" : identityPoolId,
                         "Name" : identityPoolName,
@@ -254,14 +296,29 @@
                         "Id" : identityPoolRoleMappingId,
                         "Type" : AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE
                     }
-                },
+                } + 
+                defaultUserPoolClientRequired?then(
+                    {
+                        "client" : {
+                            "Id" : defaultUserPoolClientId,
+                            "Name" : defaultUserPoolClientName,
+                            "Type" : AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE
+                        }
+                    },
+                    {}
+                ),
                 "Attributes" : {
                     "AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
-                    "USER_POOL" : getReference(userPoolId),
-                    "IDENTITY_POOL" : getReference(identityPoolId),
-                    "CLIENT" : getReference(userPoolClientId),
-                    "REGION" : regionId
-                },
+                    "USER_POOL" : getExistingReference(userPoolId),
+                    "IDENTITY_POOL" : getExistingReference(identityPoolId),
+                    "REGION" : getExistingReference(userPoolId, REGION_ATTRIBUTE_TYPE)!regionId
+                } + 
+                defaultUserPoolClientRequired?then(
+                    {
+                        "CLIENT" : getExistingReference(defaultUserPoolClientId)
+                    },
+                    {}
+                ),
                 "Roles" : {
                     "Inbound" : {
                         "invoke" : {
@@ -276,3 +333,36 @@
     [/#if]
 [/#function]
 
+[#function getUserPoolClientState occurrence parent ]
+    [#local core = occurrence.Core]
+
+    [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
+    [#assign userPoolClientName = formatSegmentFullName(core.Name)]
+
+    [#local parentAttributes = parent.State.Attributes ]
+    [#local parentResources = parent.State.Resources ]
+
+    [#if core.SubComponent.Id = "default" && (parentResources["client"]!{})?has_content ]
+        [#local userPoolClientId    = parentResources["client"].Id ]
+        [#local userPoolClientName  = parentResources["client"].Name ]
+    [/#if]    
+
+    [#return
+        {
+            "Resources" : {
+                "client" : {
+                    "Id" : userPoolClientId,
+                    "Name" : userPoolClientName,
+                    "Type" : AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE
+                }
+            },
+            "Attributes" : {
+                "CLIENT" : getReference(userPoolClientId)
+            } + 
+            parentAttributes,
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        }]
+[/#function]

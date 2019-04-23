@@ -13,6 +13,9 @@
         },
         URL_ATTRIBUTE_TYPE : { 
             "Attribute" : "ProviderURL"
+        },
+        REGION_ATTRIBUTE_TYPE: {
+            "Value" : { "Ref" : "AWS::Region" }
         }
     }
 ]
@@ -152,6 +155,7 @@
     smsInviteMessage=""
     emailInviteMessage=""
     emailInviteSubject=""
+    smsAuthenticationMessage=""
     tier="" 
     component="" 
     loginAliases=[] 
@@ -221,6 +225,10 @@
                 "SmsVerificationMessage",
                 smsVerificationMessage
              ) + 
+             attributeIfContent(
+                 "SmsAuthenticationMessage",
+                 smsAuthenticationMessage
+             ) +
              attributeIfContent (
                 "LambdaConfig",
                 lambdaTriggers
@@ -275,9 +283,7 @@
             {
                 "IdentityPoolName" : name,
                 "AllowUnauthenticatedIdentities" : allowUnauthenticatedIdentities,
-                "CognitoIdentityProviders" : [ 
-                    cognitoIdProviders
-                ]
+                "CognitoIdentityProviders" : asArray(cognitoIdProviders)
             }
         outputs=USERPOOL_IDENTITY_POOL_OUTPUT_MAPPINGS
         outputId=outputId

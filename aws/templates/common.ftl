@@ -924,8 +924,12 @@ behaviour.
                 [#local result = getUserState(occurrence) ]
                 [#break]
 
-            [#case "userpool"]
+            [#case USERPOOL_COMPONENT_TYPE]
                 [#local result = getUserPoolState(occurrence, result)]
+                [#break]
+            
+            [#case USERPOOL_CLIENT_COMPONENT_TYPE]
+                [#local result = getUserPoolClientState(occurrence, parentOccurrence)]
                 [#break]
 
             [#case BASTION_COMPONENT_TYPE ]
