@@ -108,6 +108,18 @@
                             "Type" : BOOLEAN_TYPE,
                             "Description" : "Delete automated snapshots when the instance is deleted",
                             "Default" : true
+                        },
+                        {
+                            "Names" : "DeletionPolicy",
+                            "Type" : STRING_TYPE,
+                            "Values" : [ "Snapshot", "Delete", "Retain" ],
+                            "Default" : "Snapshot"
+                        },
+                        {
+                            "Names" : "UpdateReplacePolicy",
+                            "Type" : STRING_TYPE,
+                            "Values" : [ "Snapshot", "Delete", "Retain" ],
+                            "Default" : "Snapshot"
                         }
                     ]
                 },

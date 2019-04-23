@@ -58,11 +58,15 @@
     outputId=""
     autoMinorVersionUpgrade=true
     deleteAutomatedBackups=true
+    deletionPolicy="Snapshot"
+    updateReplacePolicy="Snapshot"
 ]
     [@cfResource 
     mode=listMode
     id=rdsId
     type="AWS::RDS::DBInstance"
+    deletionPolicy=deletionPolicy
+    updateReplacePolicy=updateReplacePolicy
     properties=
         {
             "Engine": engine,

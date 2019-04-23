@@ -395,6 +395,7 @@
             dependencies=[]
             metadata={}
             deletionPolicy=""
+            updateReplacePolicy=""
             updatePolicy={}
             creationPolicy={}]
 
@@ -420,6 +421,7 @@
                             properties + attributeIfContent("Tags", tags)) +
                         attributeIfContent("DependsOn", localDependencies) +
                         attributeIfContent("DeletionPolicy", deletionPolicy) +
+                        attributeIfContent("UpdateReplacePolicy", updateReplacePolicy) +
                         attributeIfContent("UpdatePolicy", updatePolicy) +
                         attributeIfContent("CreationPolicy", creationPolicy)
                 }
