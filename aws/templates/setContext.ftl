@@ -76,7 +76,11 @@
         {
             "Names" : [ "Branch" ],
             "Type" : STRING_TYPE
-        }
+        },
+        {
+            "Names" : [ "Client" ],
+            "Type" : STRING_TYPE
+        },
         {
             "Names" : "Instance",
             "Type" : STRING_TYPE

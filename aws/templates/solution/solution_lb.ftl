@@ -323,6 +323,7 @@
                     [#switch linkTargetCore.Type]
 
                         [#case USERPOOL_COMPONENT_TYPE]
+                        [#case USERPOOL_CLIENT_COMPONENT_TYPE]
                         [#case "external" ]
                             [#assign cognitoIntegration = true ]
                             [#assign listenerForwardRule = false ]
