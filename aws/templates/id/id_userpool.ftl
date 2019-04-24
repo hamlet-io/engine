@@ -33,6 +33,11 @@
                     "Type" : "Note",
                     "Value" : "Make sure to plan your schema before initial deployment. Updating shema attributes causes a replaccement of the userpool",
                     "Severity" : "warning"
+                },
+                {
+                    "Type" : "Note",
+                    "Value" : "Please read https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-add-custom-domain.html before enabling custom domains on userpool hosted UI. An A Record is required in your base domain",
+                    "Severity" : "warning"
                 }
             ],
             "Attributes" : [
