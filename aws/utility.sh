@@ -847,19 +847,36 @@ function manage_cognito_userpool_domain() {
   local userpoolid="$1"; shift
   local configfile="$1"; shift
   local action="$1"; shift
+  local domaintype="$1"; shift
 
   local return_status=0
 
   domain="$( jq -r '.Domain' < $configfile )"
-  domain_userpool="$( aws --region ${region} cognito-idp describe-user-pool-domain --domain ${domain} | jq -r '.DomainDescription.UserPoolId | select (.!=null)' )"
+  domain_userpool="$( aws --region ${region} cognito-idp describe-user-pool-domain --domain ${domain} --query "DomainDescription.UserPoolId" --output text )"
 
-  if [[ -z "${domain_userpool}" ]]; then
+  if [[ "${domain_userpool}" == "None" ]]; then
 
     case "${action}" in
         create)
             info "Adding domain to userpool"
-            aws --region "${region}" cognito-idp create-user-pool-domain --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $?
-            return_status=$?
+            
+            case "${domaintype}" in 
+              internal)
+                userpool_domain="$(aws --region ${region} cognito-idp describe-user-pool --user-pool-id "${userpoolid}" --query "UserPool.Domain" --output text)"
+                ;;
+              custom) 
+                userpool_domain="$(aws --region ${region} cognito-idp describe-user-pool --user-pool-id "${userpoolid}" --query "UserPool.CustomDomain" --output text)"
+                ;;
+            esac
+            
+            if [[ "${userpool_domain}" != "${domain}" && "${userpool_domain}" != "None" && -n "${userpool_domain}" ]]; then
+              aws --region "${region}" cognito-idp delete-user-pool-domain --user-pool-id "${userpoolid}" --domain "${userpool_domain}" || return $?
+            fi
+
+            if [[ ( "${userpool_domain}" == "None" || "${userpool_domain}" != "${domain}" ) && -n "${userpool_domain}" ]]; then  
+              aws --region "${region}" cognito-idp create-user-pool-domain --user-pool-id "${userpoolid}" --cli-input-json "file://${configfile}" || return $?
+              return_status=$?
+            fi
             ;;
         delete)
             info "Domain not assigned to a userpool. Nothing to do"
@@ -883,6 +900,13 @@ function manage_cognito_userpool_domain() {
   fi
 
   return ${return_status}
+}
+
+function get_cognito_userpool_custom_distribution() {
+  local region="$1"; shift
+  local domain="${1}"; shift 
+
+  aws --region "${region}" cognito-idp describe-user-pool-domain --domain ${domain} --query "DomainDescription.CloudFrontDistribution" --output text || return $?
 }
 
 # -- Data Pipeline --

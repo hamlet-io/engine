@@ -16,7 +16,7 @@
         [#assign configFilePath = formatRelativePath(
                                     getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
                                     "config" )]
-        [#assign configFileName = "config_" + runId + ".json" ]
+        [#assign configFileName = "config.json" ]
 
         [#assign fragment =
                 contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
@@ -43,7 +43,7 @@
         [#assign containerId = fragmentId]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#assign finalAsFileEnvironment = getFinalEnvironment(occurrence, _context, { "AsFile" : true }) ]
+        [#assign finalAsFileEnvironment = getFinalEnvironment(occurrence, _context) ]
 
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig

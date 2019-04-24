@@ -33,6 +33,11 @@
                     "Type" : "Note",
                     "Value" : "Make sure to plan your schema before initial deployment. Updating shema attributes causes a replaccement of the userpool",
                     "Severity" : "warning"
+                },
+                {
+                    "Type" : "Note",
+                    "Value" : "Please read https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-add-custom-domain.html before enabling custom domains on userpool hosted UI. An A Record is required in your base domain",
+                    "Severity" : "warning"
                 }
             ],
             "Attributes" : [
@@ -142,6 +147,16 @@
                             "Default" : true
                         }
                     ]
+                },
+                {
+                    "Names" : "HostedUI",
+                    "Description" : "Provsion a managed endpoint for login and oauth endpoints",
+                    "Children" : [
+                        {
+                            "Names" : "Certificate",
+                            "Children" : certificateChildConfiguration
+                        }
+                    ]
                 }
             ],
             "Components" : [
@@ -242,25 +257,45 @@
         ]
     [#else]
 
-        [#assign userPoolId = formatResourceId(AWS_COGNITO_USERPOOL_RESOURCE_TYPE, core.Id)]
-        [#assign userPoolName = formatSegmentFullName(core.Name)]
-
-        [#assign userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
-        [#assign userPoolDomainName = formatName("auth", core.ShortFullName, segmentSeed)]
-
-        [#assign defaultUserPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id) ]
-        [#assign defaultUserPoolClientName = formatSegmentFullName(core.Name)]
-        [#assign defaultUserPoolClientRequired = solution.DefaultClient ]
+        [#local userPoolId = formatResourceId(AWS_COGNITO_USERPOOL_RESOURCE_TYPE, core.Id)]
+        [#local userPoolName = formatSegmentFullName(core.Name)]
         
-        [#assign identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
-        [#assign identityPoolName = formatSegmentFullName(core.Name)?replace("-","X")]
+        [#local defaultUserPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id) ]
+        [#local defaultUserPoolClientName = formatSegmentFullName(core.Name)]
+        [#local defaultUserPoolClientRequired = solution.DefaultClient ]
+        
+        [#local identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
+        [#local identityPoolName = formatSegmentFullName(core.Name)?replace("-","X")]
 
-        [#assign identityPoolRoleMappingId = formatDependentResourceId(AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE, identityPoolId)]
+        [#local identityPoolRoleMappingId = formatDependentResourceId(AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE, identityPoolId)]
 
-        [#assign userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
+        [#local userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
 
-        [#assign identityPoolUnAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION )]
-        [#assign identityPoolAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION )]
+        [#local identityPoolUnAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION )]
+        [#local identityPoolAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION )]
+
+        [#local userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
+        [#local certificatePresent = isPresent(solution.HostedUI.Certificate) ]
+        [#local userPoolDomainName = formatName("auth", core.ShortFullName, segmentSeed)]
+        [#local userPoolBaseUrl = "https://" + formatDomainName(userPoolDomainName, "auth", region, "amazoncognito.com") + "/" ]
+
+        [#local region = getExistingReference(userPoolId, REGION_ATTRIBUTE_TYPE)!regionId ]
+
+        [#local certificateArn = ""]
+        [#if certificatePresent ]
+            [#local certificateObject = getCertificateObject(solution.HostedUI.Certificate!"", segmentQualifiers)]
+            [#local certificateDomains = getCertificateDomains(certificateObject) ]
+            [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
+            [#local hostName = getHostName(certificateObject, occurrence) ]
+            [#local userPoolCustomDomainName = formatDomainName(hostName, primaryDomainObject)]
+            [#local userPoolCustomBaseUrl = "https://" + userPoolDomainName + "/" ] 
+
+            [#local certificateId = formatDomainCertificateId(certificateObject, userPoolDomainName)]
+            [#local certificateArn = (getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1" )?has_content)?then(
+                                            getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1" ),
+                                            "COTException: ACM Certificate required in us-east-1"
+                                    )]
+        [/#if]
 
         [#return
             {
@@ -306,12 +341,25 @@
                         }
                     },
                     {}
+                ) +
+                certificatePresent?then(
+                    {
+                        "customdomain" : {
+                            "Id" : formatId(userPoolDomainId, "custom"),
+                            "Name" : userPoolCustomDomainName,
+                            "CertificateArn" : certificateArn,
+                            "Type" : AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE
+                        }
+                    },
+                    {}
                 ),
                 "Attributes" : {
                     "AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
                     "USER_POOL" : getExistingReference(userPoolId),
                     "IDENTITY_POOL" : getExistingReference(identityPoolId),
-                    "REGION" : getExistingReference(userPoolId, REGION_ATTRIBUTE_TYPE)!regionId
+                    "REGION" : region,
+                    "UI_INTERNAL_BASE_URL" : userPoolBaseUrl,
+                    "UI_BASE_URL" : userPoolCustomBaseUrl!userPoolBaseUrl
                 } + 
                 defaultUserPoolClientRequired?then(
                     {
