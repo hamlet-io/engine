@@ -438,7 +438,7 @@
     {
         "Names" : "Billing",
         "Description" : "The billing mode for the table",
-        "Type"  : "STRING_TYPE",
+        "Type"  : STRING_TYPE,
         "Values" : [ "provisioned", "per-request" ],
         "Default" : "provisioned"
     },
