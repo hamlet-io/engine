@@ -107,7 +107,7 @@
                 [],
                 principals,
                 conditions),
-            (tables == "*"),
+            (tables?is_string && tables == "*"),
             []
         )]
 [/#function]

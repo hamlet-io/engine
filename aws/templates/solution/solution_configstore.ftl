@@ -28,18 +28,15 @@
         [#assign fragment =
                 contentIfContent(parentSolution.Fragment, getComponentId(parentCore.Component)) ]
 
-        [#assign contextLinks = getLinkTargets(occurrence)]
-        [#assign _context =
+        [#assign _parentContext = 
             {
                 "Id" : fragment,
                 "Name" : fragment,
                 "Instance" : parentCore.Instance.Id,
-                "Version" : parentCore.Version.Id,
-                "Environment" : {}
+                "Version" : parentCore.Version.Id
             }
         ]
-        
-        [#assign fragmentId = formatFragmentId(_context)]
+        [#assign fragmentId = formatFragmentId(_parentContext)]
         [#assign containerId = fragmentId]
 
         [#-- Lookup table name once it has been deployed --]
@@ -78,8 +75,13 @@
 
             [#assign contextLinks = getLinkTargets(subOccurrence)]
 
-            [#assign _context += 
+            [#assign _context = 
                 {
+                    "Id" : fragment,
+                    "Name" : fragment,
+                    "Instance" : parentCore.Instance.Id,
+                    "Version" : parentCore.Version.Id,
+                    "Environment" : {},
                     "Links" : contextLinks,
                     "DefaultEnvironment" : defaultEnvironment(subOccurrence, contextLinks),
                     "DefaultCoreVariables" : false,
@@ -105,7 +107,6 @@
 
                 }
             ]
-
 
             [#if deploymentSubsetRequired("cli", false) ]
 
