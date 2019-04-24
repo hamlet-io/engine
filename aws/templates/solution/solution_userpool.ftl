@@ -13,8 +13,16 @@
 
         [#assign userPoolId                 = resources["userpool"].Id]
         [#assign userPoolName               = resources["userpool"].Name]
+        
         [#assign userPoolDomainId           = resources["domain"].Id]
         [#assign userPoolHostName           = resources["domain"].Name]
+        [#assign customDomainRequired       = ((resources["customdomain"].Id)!"")?has_content ]
+        [#if customDomainRequired ]
+            [#assign userPoolCustomDomainId = resources["customdomain"].Id ]
+            [#assign userPoolCustomDomainName = resources["customdomain"].Name ]
+            [#assign userPoolCustomDomainCertArn = resources["customdomain"].CertificateArn]
+        [/#if]
+
         [#assign userPoolRoleId             = resources["userpoolrole"].Id]
 
         [#assign identityPoolId             = resources["identitypool"].Id]
@@ -514,6 +522,24 @@
                 content=userPoolDomain
             /]
 
+            [#if customDomainRequired]
+
+                [#assign userPoolCustomDomain = {
+                    "Domain" : userPoolCustomDomainName,
+                    "CustomDomainConfig" : {
+                        "CertificateArn" : userPoolCustomDomainCertArn
+                    }
+                }]
+
+                [@cfCli 
+                    mode=listMode
+                    id=userPoolCustomDomainId
+                    command=userPoolDomainCommand
+                    content=userPoolCustomDomain
+                /]
+            
+            [/#if]
+
             [#assign userpoolConfig = {
                 "UserPoolId": getExistingReference(userPoolId),
                 "Policies": getUserPoolPasswordPolicy( 
@@ -585,12 +611,23 @@
                         " case $\{STACK_OPERATION} in",
                         "    delete)",
                         "       # Delete Userpool Domain",
-                        "       info \"Removing Userpool hosted UI Domain\"",
+                        "       info \"Removing internal userpool hosted UI Domain\"",
                         "       manage_cognito_userpool_domain" +
                         "       \"" + region + "\" " + 
                         "       \"" + getExistingReference(userPoolId) + "\" " + 
                         "       \"$\{tmpdir}/cli-" + 
-                                    userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" || return $?"
+                                    userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"internal\" || return $?"
+                    ] +
+                    (customDomainRequired)?then(
+                        "       # Delete Userpool Domain",
+                        "       info \"Removing custom userpool hosted UI Domain\"",
+                        "       manage_cognito_userpool_domain" +
+                        "       \"" + region + "\" " + 
+                        "       \"" + getExistingReference(userPoolId) + "\" " + 
+                        "       \"$\{tmpdir}/cli-" + 
+                                    userPoolCustomDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"custom\" || return $?"
+                    ) +
+                    ]
                         "       ;;",
                         " esac"
                     ],
@@ -607,15 +644,44 @@
                         "case $\{STACK_OPERATION} in",
                         "  create|update)"
                         "       # Adding Userpool Domain",
-                        "       info \"Adding Userpool hosted UI Domain\"",
+                        "       info \"Adding internal domain for Userpool hosted UI\"",
                         "       manage_cognito_userpool_domain" +
                         "       \"" + region + "\" " + 
                         "       \"$\{userPoolId}\" " + 
                         "       \"$\{tmpdir}/cli-" + 
-                                    userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"create\" || return $?",
+                                    userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"create\" \"internal\" || return $?",
                         "       ;;",
                         " esac"
                     ] +
+                    (customDomainRequired)?then(
+                        [
+                            "case $\{STACK_OPERATION} in",
+                            "  create|update)"
+                            "       # Adding Userpool Domain",
+                            "       info \"Adding custom domain for Userpool hosted UI\"",
+                            "       manage_cognito_userpool_domain" +
+                            "       \"" + region + "\" " + 
+                            "       \"$\{userPoolId}\" " + 
+                            "       \"$\{tmpdir}/cli-" + 
+                                        userPoolCustomDomainId + "-" + userPoolDomainCommand + ".json\" \"create\" \"custom\" || return $?",
+                            "       customDomainDistribution=$(get_cognito_userpool_custom_distribution" +
+                            "       \"" + region + "\" " + 
+                            "       \"" + userPoolCustomDomainName + "\" " +
+                            "       || return $?)"
+                        ] +
+                        pseudoStackOutputScript(
+                            "UserPool Hosted UI Custom Domain CloudFront distribution",
+                            { 
+                                formatId(userPoolCustomDomainId, DNS_ATTRIBUTE_TYPE) : "$\{customDomainDistribution}"
+                            },
+                            "hosted-ui"
+                        ) + 
+                        [
+                            "       ;;",
+                            " esac"
+                        ],
+                        []
+                    )+ 
                     [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
                     (userPoolManualTriggerConfig?has_content)?then(
                         [
