@@ -253,41 +253,6 @@
 [#macro toJSON obj escaped=false]
     ${getJSON(obj, escaped)}[/#macro]
 
-[#function getDescendent object default path...]
-    [#local descendent=object]
-    [#list asFlattenedArray(path) as part]
-        [#if descendent[part]??]
-            [#local descendent=descendent[part] ]
-        [#else]
-            [#return default]
-        [/#if]
-    [/#list]
-
-    [#return descendent]
-[/#function]
-
-[#function setDescendent object descendent id path...]
-  [#local effectivePath = asFlattenedArray(path) ]
-    [#if effectivePath?has_content]
-      [#return
-        object +
-        {
-          effectivePath?first :
-            setDescendent(
-              object[effectivePath?first]!{},
-              descendent,
-              id,
-              (effectivePath?size == 1)?then([],effectivePath[1..]))
-        }
-      ]
-    [#else]
-      [#if object[id]?? && object[id]?is_hash]
-          [#return object + { id : object[id] + descendent } ]
-      [/#if]
-      [#return object + { id : descendent } ]
-    [/#if]
-[/#function]
-
 [#function mergeObjects current new]
     [#local result = current]
     [#list new as key,value]
