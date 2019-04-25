@@ -244,7 +244,7 @@
 [/#macro]
 
 [#macro Volume name="" containerPath="" hostPath="" readOnly=false persist=false volumeLinkId="" driverOpts={} autoProvision=false ]
-    
+
     [#if volumeLinkId?has_content ]
         [#local volumeName = _context.DataVolumes[volumeLinkId].Name ]
         [#local volumeEngine = _context.DataVolumes[volumeLinkId].Engine ]
@@ -698,12 +698,12 @@
             [#assign linkTargetConfiguration = linkTarget.Configuration ]
             [#assign linkTargetResources = linkTarget.State.Resources ]
             [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-            
+
             [#switch linkTargetCore.Type]
                 [#case DATAVOLUME_COMPONENT_TYPE]
 
                     [#assign dataVolumeEngine = linkTargetAttributes["ENGINE"] ]
-                    
+
                     [#if ! ( ecs.Configuration.Solution.VolumeDrivers?seq_contains(dataVolumeEngine)) ]
                             [@cfException
                                 mode=listMode
@@ -730,7 +730,6 @@
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
         [#assign fragmentId = formatFragmentId(_context)]
-        [#assign containerId = fragmentId]
         [#include fragmentList]
 
         [#assign _context += getFinalEnvironment(task, _context) ]
@@ -739,30 +738,30 @@
         [#if solution.Engine == "fargate" ]
             [#assign fargateInvalidConfig = false ]
             [#assign fargateInvalidConfigMessage = [] ]
-            
+
             [#if !( [ 256, 512, 1024, 2048, 4096 ]?seq_contains(_context.Cpu) )  ]
                 [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "CPU quota is not valid ( must be divisible by 256 )" ] ] 
+                [#assign fargateInvalidConfigMessage += [ "CPU quota is not valid ( must be divisible by 256 )" ] ]
             [/#if]
 
-            [#if !( _context.MaximumMemory?has_content )  ] 
+            [#if !( _context.MaximumMemory?has_content )  ]
                 [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Maximum memory must be assigned" ]]  
+                [#assign fargateInvalidConfigMessage += [ "Maximum memory must be assigned" ]]
             [/#if]
-                
+
             [#if (_context.Privileged )]
                 [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Cannot run in priviledged mode" ] ] 
+                [#assign fargateInvalidConfigMessage += [ "Cannot run in priviledged mode" ] ]
             [/#if]
 
             [#if _context.ContainerNetworkLinks!{}?has_content ]
                 [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Cannot use Network Links" ] ] 
+                [#assign fargateInvalidConfigMessage += [ "Cannot use Network Links" ] ]
             [/#if]
 
             [#if (_context.Hosts!{})?has_content ]
                 [#assign fargateInvalidConfig = true ]
-                [#assign fargateInvalidConfigMessage += [ "Cannot add host entries" ] ] 
+                [#assign fargateInvalidConfigMessage += [ "Cannot add host entries" ] ]
             [/#if]
 
             [#list _context.Volumes!{} as name,volume ]
@@ -770,7 +769,7 @@
                     [#assign fargateInvalidConfig = true ]
                     [#assign fargateInvalidConfigMessage += [ "Can only use the local driver and cannot reference host - volume ${name}" ] ]
                 [/#if]
-            [/#list] 
+            [/#list]
 
             [#if fargateInvalidConfig ]
                 [@cfException

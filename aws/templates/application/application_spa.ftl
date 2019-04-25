@@ -35,7 +35,6 @@
         [#-- Add in container specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
         [#assign fragmentId = formatFragmentId(_context)]
-        [#assign containerId = fragmentId]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#assign _context += getFinalEnvironment(occurrence, _context) ]

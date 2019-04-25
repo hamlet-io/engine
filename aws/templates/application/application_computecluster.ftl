@@ -28,7 +28,7 @@
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ComputeCluster")]
         [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
         [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
-    
+
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
@@ -47,7 +47,7 @@
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
-        [#assign computeAutoScaleGroupTags =                     
+        [#assign computeAutoScaleGroupTags =
                 getCfTemplateCoreTags(
                         computeClusterAutoScaleGroupName,
                         tier,
@@ -134,7 +134,6 @@
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
         [#assign fragmentId = formatFragmentId(_context)]
-        [#assign containerId = fragmentId]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
@@ -334,7 +333,7 @@
                                                 "WaitForSignal" : (solution.UseInitAsService != true)
                                         }]
 
-            [@createEc2AutoScaleGroup 
+            [@createEc2AutoScaleGroup
                 mode=listMode
                 id=computeClusterAutoScaleGroupId
                 tier=tier

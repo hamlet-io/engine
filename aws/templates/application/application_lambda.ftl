@@ -25,7 +25,7 @@
             [#assign fnLgName = resources["lg"].Name ]
 
             [#assign vpcAccess = solution.VPCAccess ]
-            [#if vpcAccess ]     
+            [#if vpcAccess ]
                 [#assign networkLink = tier.Network.Link!{} ]
 
                 [#assign networkLinkTarget = getLinkTarget(fn, networkLink ) ]
@@ -129,7 +129,6 @@
             [#-- Add in fragment specifics including override of defaults --]
             [#assign fragmentListMode = "model"]
             [#assign fragmentId = formatFragmentId(_context)]
-            [#assign containerId = fragmentId]
             [#include fragmentList?ensure_starts_with("/")]
 
             [#-- clear all environment variables for EDGE deployments --]
@@ -237,7 +236,7 @@
                         tier=tier
                         component=component
                         resourceId=fnId
-                        resourceName=formatName("lambda", fnName) 
+                        resourceName=formatName("lambda", fnName)
                         vpcId=vpcId/]
                 [/#if]
 

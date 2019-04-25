@@ -36,7 +36,6 @@
         [#-- Add in container specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
         [#assign fragmentId = formatFragmentId(_context)]
-        [#assign containerId = fragmentId]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#assign securityProfile    = getSecurityProfile(solution.Profiles.Security, SPA_COMPONENT_TYPE)]
@@ -57,10 +56,10 @@
         [#assign eventHandlerLinks = {} ]
         [#assign eventHandlers = []]
 
-        [#if solution.CloudFront.RedirectAliases.Enabled 
+        [#if solution.CloudFront.RedirectAliases.Enabled
                     && ( aliases?size > 1) ]
 
-            [#assign cfRedirectLink = { 
+            [#assign cfRedirectLink = {
                 "cfredirect" : {
                     "Tier" : "gbl",
                     "Component" : "cfredirect",
@@ -71,10 +70,10 @@
                 }
             }]
 
-            [#if getLinkTarget(occurrence, cfRedirectLink.cfredirect )?has_content ]          
+            [#if getLinkTarget(occurrence, cfRedirectLink.cfredirect )?has_content ]
                 [#assign eventHandlerLinks += cfRedirectLink]
 
-                [#assign _context += 
+                [#assign _context +=
                     {
                         "ForwardHeaders" : (_context.ForwardHeaders![]) + [
                             "Host"
@@ -93,7 +92,7 @@
                             )
                         ]
                     }]
-            [#else] 
+            [#else]
                 [@cfException
                     mode=listMode
                     description="Could not find cfredirect component"

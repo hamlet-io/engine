@@ -11,7 +11,7 @@
         [#assign ecsId = parentResources["cluster"].Id ]
         [#assign ecsSecurityGroupId = parentResources["securityGroup"].Id ]
         [#assign ecsServiceRoleId = parentResources["serviceRole"].Id ]
-   
+
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
@@ -64,9 +64,9 @@
                 /]
                 [#break]
             [/#if]
-            
+
             [#if networkMode == "awsvpc" ]
-                        
+
                 [#assign lbTargetType = "ip" ]
 
                 [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
@@ -77,7 +77,7 @@
                     getSubnets(core.Tier, networkResources)[0..0]
                 )]
 
-                [#assign aswVpcNetworkConfiguration = 
+                [#assign aswVpcNetworkConfiguration =
                     {
                         "AwsvpcConfiguration" : {
                             "SecurityGroups" : getReferences(ecsSecurityGroupId),
@@ -96,7 +96,7 @@
                         name=ecsSecurityGroupName
                         vpcId=vpcId /]
                 [/#if]
-            [/#if] 
+            [/#if]
 
             [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
 
@@ -136,15 +136,15 @@
                                 [#assign linkConfiguration = link.Configuration.Solution ]
                                 [#assign linkAttributes = link.State.Attributes ]
                                 [#assign targetId = "" ]
-                                
+
                                 [#assign sourceSecurityGroupIds = []]
                                 [#assign sourceIPAddressGroups = [] ]
-                                
+
                                 [#switch linkCore.Type]
 
                                     [#case LB_PORT_COMPONENT_TYPE]
 
-                                        [#switch linkAttributes["ENGINE"] ] 
+                                        [#switch linkAttributes["ENGINE"] ]
                                             [#case "application" ]
                                             [#case "classic"]
                                                 [#assign sourceSecurityGroupIds += [ linkResources["sg"].Id ] ]
@@ -154,7 +154,7 @@
                                                 [#break]
                                         [/#switch]
 
-                                        [#switch linkAttributes["ENGINE"] ] 
+                                        [#switch linkAttributes["ENGINE"] ]
                                             [#case "network" ]
                                             [#case "application" ]
                                                 [#assign loadBalancers +=
@@ -167,7 +167,7 @@
                                                     ]
                                                 ]
                                                 [#break]
-                                                
+
                                             [#case "classic"]
                                                 [#if networkMode == "awsvpc" ]
                                                     [@cfException
@@ -194,7 +194,7 @@
                                                         }
                                                     ]
                                                 ]
-                                            
+
                                                 [#break]
                                         [/#switch]
                                     [#break]
@@ -204,7 +204,7 @@
 
                                 [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, subOccurrence)]
                                 [#list securityGroupCIDRs as cidr ]
-                                    
+
                                     [@createSecurityGroupIngress
                                         mode=listMode
                                         id=
@@ -240,7 +240,7 @@
                                         groupId=ecsSecurityGroupId
                                     /]
                                 [/#list]
-                            [/#if]  
+                            [/#if]
                         [/#list]
                         [#if container.IngressRules?has_content ]
                             [#list container.IngressRules as ingressRule ]
@@ -361,13 +361,13 @@
                             trustedServices=["events.amazonaws.com"]
                             policies=[
                                 getPolicyDocument(
-                                    ecsTaskRunPermission(ecsId) + 
+                                    ecsTaskRunPermission(ecsId) +
                                     roleId?has_content?then(
                                         iamPassRolePermission(
                                             getReference(roleId, ARN_ATTRIBUTE_TYPE)
                                         ),
                                         []
-                                    ) + 
+                                    ) +
                                     executionRoleId?has_content?then(
                                         iamPassRolePermission(
                                             getReference(executionRoleId, ARN_ATTRIBUTE_TYPE)
@@ -391,15 +391,15 @@
                         [#if networkMode == "awsvpc" ]
 
                             [#-- Cloudfomation support not available for awsvpc network config which means that fargate isn't supported --]
-                            [#assign eventRuleCliConfig = 
+                            [#assign eventRuleCliConfig =
                                 {
                                     "ScheduleExpression" : schedule.Expression,
                                     "State" : scheduleEnabled?then("ENABLED", "DISABLED")
                                 }]
 
-                            [#assign eventTargetCliConfig = 
+                            [#assign eventTargetCliConfig =
                                 {
-                                    "Targets" : [  
+                                    "Targets" : [
                                         {
                                             "Id" : formatId(scheduleRuleId, "target"),
                                             "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
@@ -458,18 +458,18 @@
                                     "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
                                 }]
 
-                                [@cfScript 
+                                [@cfScript
                                     mode=listMode
                                     content=
                                         [
                                             " case $\{STACK_OPERATION} in",
                                             "   create|update)",
                                             "       # Get cli config file",
-                                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
                                             "       # Manage Scheduled Event",
                                             "       info \"Creating Scheduled Task...\"",
                                             "       create_ecs_scheduled_task" +
-                                            "       \"" + region + "\" " + 
+                                            "       \"" + region + "\" " +
                                             "       \"" + scheduleRuleId + "\" " +
                                             "       \"$\{tmpdir}/cli-" + ruleCliId + "-" + ruleCommand + ".json\" " +
                                             "       \"$\{tmpdir}/cli-" + targetCliId + "-" + targetCommand + ".json\" " +
@@ -477,8 +477,8 @@
                                             "       \"" + taskId + "\" " +
                                             "       \"" + (getExistingReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)?has_content?then(
                                                                 getExistingReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE),
-                                                                scheduleTaskRoleId)) + "\" " + 
-                                            "       \"" + ecsSecurityGroupId + "\" " + 
+                                                                scheduleTaskRoleId)) + "\" " +
+                                            "       \"" + ecsSecurityGroupId + "\" " +
                                             "       || return $?",
                                             "       ;;",
                                             " esac"
@@ -487,7 +487,7 @@
                             [/#if]
 
                             [#if deploymentSubsetRequired("prologue", false)]
-                                [@cfScript 
+                                [@cfScript
                                     mode=listMode
                                     content=
                                         [
@@ -496,7 +496,7 @@
                                             "       # Manage Scheduled Event",
                                             "       info \"Deleting Scheduled Task...\"",
                                             "       delete_cloudwatch_event" +
-                                            "       \"" + region + "\" " + 
+                                            "       \"" + region + "\" " +
                                             "       \"" + scheduleRuleId + "\" " +
                                             "       \"true\" || return $?",
                                             "       ;;",
@@ -504,7 +504,7 @@
                                         ]
                                 /]
                             [/#if]
-                            
+
                         [#else]
                             [#if deploymentSubsetRequired("ecs", true) ]
                                 [@createScheduleEventRule
@@ -556,14 +556,14 @@
 
                             [#assign logMetricId = formatDependentLogMetricId(lgId, logMetric.Id)]
 
-                            [#assign containerLogMetricName = getMetricName( 
-                                    logMetric.Name, 
-                                    AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE, 
+                            [#assign containerLogMetricName = getMetricName(
+                                    logMetric.Name,
+                                    AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
                                     formatName(core.ShortFullName, container.Name) )]
 
                             [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
 
-                            [#assign resources += { 
+                            [#assign resources += {
                                 "logMetrics" : resources.LogMetrics!{} + {
                                     "lgMetric" + name + container.Name : {
                                     "Id" : formatDependentLogMetricId( lgId, logMetric.Id ),
@@ -643,14 +643,13 @@
                 /]
 
             [/#if]
-            
+
             [#if deploymentSubsetRequired("ecs", true)]
 
                 [#-- Pick any extra macros in the container fragments --]
                 [#list (solution.Containers!{})?values as container]
                     [#assign fragmentListMode = listMode]
                     [#assign fragmentId = formatFragmentId(container, occurrence)]
-                    [#assign containerId = fragmentId]
                     [#include fragmentList?ensure_starts_with("/")]
                 [/#list]
 
