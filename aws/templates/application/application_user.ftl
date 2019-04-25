@@ -65,7 +65,6 @@
         [#if solution.Fragment?has_content ]
             [#assign fragmentListMode = "model"]
             [#assign fragmentId = formatFragmentId(_context)]
-            [#assign containerId = fragmentId]
             [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
@@ -82,7 +81,7 @@
                     "   \"" + userName + "\" || return $?",
                     "   ;;",
                     "esac"
-                ] 
+                ]
             /]
         [/#if]
 
@@ -196,13 +195,13 @@
                     ] +
                     pseudoStackOutputScript(
                         "IAM User AccessKey",
-                        { 
+                        {
                             formatId(userId, "username") : "$\{access_key_array[0]}",
                             formatId(userId, "password") : "$\{encrypted_secret_key}",
                             formatId(userId, "key") : "$\{encrypted_smtp_password}"
                         },
                         "creds-system"
-                    ) + 
+                    ) +
                     [
                         "}",
                         "generate_iam_accesskey || return $?"
@@ -228,11 +227,11 @@
                     ] +
                     pseudoStackOutputScript(
                         "IAM User Password",
-                        { 
+                        {
                             formatId(userId, "generatedpassword") : "$\{encrypted_user_password}"
                         },
                         "creds-console"
-                    ) + 
+                    ) +
                     [
                         "}",
                         "generate_user_password || return $?"

@@ -48,8 +48,7 @@
         [#if solution.Fragment?has_content ]
             [#assign fragmentListMode = "model"]
             [#assign fragmentId = formatFragmentId(_context)]
-            [#assign containerId = fragmentId]
-            [#include fragmentList?ensure_starts_with("/")]
+             [#include fragmentList?ensure_starts_with("/")]
         [/#if]
 
         [#assign stageVariables += getFinalEnvironment(occurrence, _context).Environment ]

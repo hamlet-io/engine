@@ -24,11 +24,11 @@
 
         [#assign runIdAttributeName = "runId" ]
         [#assign runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
-        
+
         [#assign fragment =
                 contentIfContent(parentSolution.Fragment, getComponentId(parentCore.Component)) ]
 
-        [#assign _parentContext = 
+        [#assign _parentContext =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -37,20 +37,19 @@
             }
         ]
         [#assign fragmentId = formatFragmentId(_parentContext)]
-        [#assign containerId = fragmentId]
 
         [#-- Lookup table name once it has been deployed --]
         [#if deploymentSubsetRequired("epilogue", false)]
-            [@cfScript 
+            [@cfScript
                 mode=listMode
                 content=[
                     " case $\{STACK_OPERATION} in",
                     "   create|update)",
                     "       # Get cli config file",
-                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
                     "       # Get DynamoDb TableName",
                     "       export tableName=$(get_cloudformation_stack_output" +
-                    "       \"" + region + "\" " + 
+                    "       \"" + region + "\" " +
                     "       \"$\{STACK_NAME}\" " +
                     "       \"" + tableId + "\" " +
                     "       || return $?)",
@@ -75,7 +74,7 @@
 
             [#assign contextLinks = getLinkTargets(subOccurrence)]
 
-            [#assign _context = 
+            [#assign _context =
                 {
                     "Id" : fragment,
                     "Name" : fragment,
@@ -100,10 +99,10 @@
 
             [#assign _context +=
                 {
-                    "Environment" : { 
+                    "Environment" : {
                                         "configStore" : parentCore.Id
-                                    } + 
-                                    (_context.Environment!{}) 
+                                    } +
+                                    (_context.Environment!{})
 
                 }
             ]
@@ -113,9 +112,9 @@
                 [#assign branchItemKey = getDynamoDbTableItem( tableKey, itemName )]
 
                 [#assign branchUpdateAttribtueValues = runIdAttribute ]
-                [#assign branchUpdateExpression = 
-                    [ 
-                        runIdAttributeName + " = :run_id" 
+                [#assign branchUpdateExpression =
+                    [
+                        runIdAttributeName + " = :run_id"
                     ]
                 ]
 
@@ -131,13 +130,13 @@
                     [/#if]
                 [/#list]
 
-                [@cfCli 
+                [@cfCli
                     id=updateCliId
                     mode=listMode
                     command=itemUpdateCommand
                     content={
                         "Key" : branchItemKey
-                    } + 
+                    } +
                     attributeIfContent(
                         "UpdateExpression",
                         branchUpdateExpression,
@@ -147,12 +146,12 @@
                         "ExpressionAttributeValues",
                         branchUpdateAttribtueValues
                     )
-                /]   
-            [/#if]   
+                /]
+            [/#if]
 
 
             [#if deploymentSubsetRequired("epilogue", false)]
-                [@cfScript 
+                [@cfScript
                     mode=listMode
                     content=[
                         " case $\{STACK_OPERATION} in",
@@ -160,7 +159,7 @@
                         "       # Manage Branch Attributes",
                         "       info \"Creating DynamoDB Item - Table: " + tableId + " - Item: " + itemName + "\"",
                         "       upsert_dynamodb_item" +
-                        "       \"" + region + "\" " + 
+                        "       \"" + region + "\" " +
                         "       \"$\{tableName}\" " +
                         "       \"$\{tmpdir}/cli-" + updateCliId + "-" + itemUpdateCommand + ".json\" " +
                         "       \"$\{STACK_NAME}\" " +
@@ -168,8 +167,8 @@
                         "       ;;",
                         " esac"
                     ]
-                /]   
-            [/#if] 
+                /]
+            [/#if]
         [/#list]
 
         [#-- cleanup old items --]
@@ -177,9 +176,9 @@
             [#assign cleanupFilterExpression = "NOT " + runIdAttributeName + " = :run_id"  ]
             [#assign cleanupExpressionAttributeValues = runIdAttribute ]
 
-            [@cfCli 
+            [@cfCli
                 mode=listMode
-                id=tableId 
+                id=tableId
                 command=tableCleanupCommand
                 content={
                     "FilterExpression" : cleanupFilterExpression,
@@ -193,7 +192,7 @@
         [/#if]
 
         [#if deploymentSubsetRequired("epilogue", false)]
-            [@cfScript 
+            [@cfScript
                 mode=listMode
                 content=[
                     " case $\{STACK_OPERATION} in",
@@ -201,13 +200,13 @@
                     "       # Clean up old branch items",
                     "       info \"Cleaning up old items DynamoDB - Table: " + tableId + "\"",
                     "       old_items=$(scan_dynamodb_table" +
-                    "       \"" + region + "\" " + 
+                    "       \"" + region + "\" " +
                     "       \"$\{tableName}\" " +
                     "       \"$\{tmpdir}/cli-" + tableId + "-" + tableCleanupCommand + ".json\" " +
                     "       \"$\{STACK_NAME}\" " +
                     "       || return $?)",
                     "       delete_dynamodb_items" +
-                    "       \"" + region + "\" " + 
+                    "       \"" + region + "\" " +
                     "       \"$\{tableName}\" " +
                     "       \"$\{old_items}\" " +
                     "       \"$\{STACK_NAME}\" " +
@@ -219,13 +218,13 @@
         [/#if]
 
         [#if deploymentSubsetRequired(CONFIGSTORE_COMPONENT_TYPE, true) ]
-            [@createDynamoDbTable 
+            [@createDynamoDbTable
                 id=tableId
                 mode=listMode
                 backupEnabled=parentSolution.Table.Backup.Enabled
                 billingMode=parentSolution.Table.Billing
                 writeCapacity=parentSolution.Table.Capacity.Write
-                readCapacity=parentSolution.Table.Capacity.Read 
+                readCapacity=parentSolution.Table.Capacity.Read
                 attributes=dynamoTableKeyAttributes
                 keys=dynamoTableKeys
             /]

@@ -33,11 +33,11 @@
                 [#assign imageId = regionObject.AMIs.Centos.EC2]
                 [#break]
         [/#switch]
-      
+
         [#if deploymentSubsetRequired("bastion", true) ]
             [#assign networkLink = tier.Network.Link!{} ]
             [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
-            
+
             [#if ! networkLinkTarget?has_content ]
                 [@cfException listMode "Network could not be found" networkLink /]
                 [#break]
@@ -71,7 +71,7 @@
         [#assign configSets =
                 getInitConfigDirectories() +
                 getInitConfigBootstrap(component.Role!"")]
-                
+
         [#assign fragment =
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
@@ -98,7 +98,6 @@
         [#-- Add in fragment specifics including override of defaults --]
         [#assign fragmentListMode = "model"]
         [#assign fragmentId = formatFragmentId(_context)]
-        [#assign containerId = fragmentId]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#assign environmentVariables = getFinalEnvironment(occurrence, _context).Environment ]
@@ -124,7 +123,7 @@
                             getPolicyDocument(
                                 ec2IPAddressUpdatePermission() +
                                     s3ListPermission(codeBucket) +
-                                    s3ReadPermission(codeBucket) + 
+                                    s3ReadPermission(codeBucket) +
                                     cwLogsProducePermission(computeClusterLogGroupName),
                                 "basic")
                         ] +
@@ -151,15 +150,15 @@
                     /]
                 [/#if]
 
-                [#assign configSets += 
+                [#assign configSets +=
                     getInitConfigEIPAllocation(
                         getReference(
-                            bastionEIPId, 
+                            bastionEIPId,
                             ALLOCATION_ATTRIBUTE_TYPE
                         ))]
             [/#if]
 
-            [#if deploymentSubsetRequired("lg", true) && 
+            [#if deploymentSubsetRequired("lg", true) &&
                     isPartOfCurrentDeploymentUnit(bastionLgId) ]
                 [@createLogGroup
                     mode=listMode
@@ -227,7 +226,7 @@
                     outputs={}
                 /]
 
-                [#assign asgTags =                     
+                [#assign asgTags =
                     getCfTemplateCoreTags(
                         bastionAutoScaleGroupName
                         tier,
@@ -235,7 +234,7 @@
                         "",
                         true)]
 
-                [@createEc2AutoScaleGroup 
+                [@createEc2AutoScaleGroup
                     mode=listMode
                     id=bastionAutoScaleGroupId
                     tier=tier
