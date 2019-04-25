@@ -77,11 +77,14 @@
 
 [#function addVariableToContext context name value]
     [#return
-        setDescendent(
+        mergeObjects(
             context,
-            asSerialisableString(value),
-            formatSettingName(name)
-            "Environment") ]
+            {
+                "Environment" : {
+                    formatSettingName(name) : asSerialisableString(value)
+                }
+            }
+        ) ]
 [/#function]
 
 [#macro Variable name value]
