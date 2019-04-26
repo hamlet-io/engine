@@ -619,15 +619,18 @@
                                     userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"internal\" || return $?"
                     ] +
                     (customDomainRequired)?then(
-                        "       # Delete Userpool Domain",
-                        "       info \"Removing custom userpool hosted UI Domain\"",
-                        "       manage_cognito_userpool_domain" +
-                        "       \"" + region + "\" " + 
-                        "       \"" + getExistingReference(userPoolId) + "\" " + 
-                        "       \"$\{tmpdir}/cli-" + 
-                                    userPoolCustomDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"custom\" || return $?"
+                        [
+                            "       # Delete Userpool Domain",
+                            "       info \"Removing custom userpool hosted UI Domain\"",
+                            "       manage_cognito_userpool_domain" +
+                            "       \"" + region + "\" " + 
+                            "       \"" + getExistingReference(userPoolId) + "\" " + 
+                            "       \"$\{tmpdir}/cli-" + 
+                                        userPoolCustomDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"custom\" || return $?"
+                        ],
+                        []
                     ) +
-                    ]
+                    [
                         "       ;;",
                         " esac"
                     ],
