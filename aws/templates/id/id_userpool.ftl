@@ -210,11 +210,13 @@
                 },
                 {
                     "Names" : "ClientGenerateSecret",
+                    "Description" : "Generate a client secret which musht be provided in auth calls",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
                     "Names" : "ClientTokenValidity",
+                    "Description" : "Time in days that the refresh token is valid for",
                     "Type" : NUMBER_TYPE,
                     "Default" : 30
                 },
@@ -226,7 +228,7 @@
                 },
                 {
                     "Names" : "AuthProviders",
-                    "Description" : "A list of user pool auth providers which can use this cient",
+                    "Description" : "A list of user pool auth providers which can use this client",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : [ "COGNITO" ]
                 },
@@ -255,6 +257,7 @@
             "Attributes" : [
                 {
                     "Names" : "Engine",
+                    "Description" : "The authentication provider type",
                     "Type" : STRING_TYPE,
                     "Values" : [ "SAML", "OIDC" ],
                     "Mandatory" : true
@@ -265,11 +268,13 @@
                     "Children" : [
                         {
                             "Names" : "UserPoolAttribute",
+                            "Description" : "The name of the attribute in the user pool schema - the id of the mapping will be used if not provided",
                             "Type" : STRING_TYPE,
                             "Default" : ""
                         },
                         {
                             "Names" : "ProviderAttribute",
+                            "Description" : "The provider attribute which will be mapped",
                             "Type" : STRING_TYPE,
                             "Mandatory" : true
                         }
@@ -278,18 +283,20 @@
                 {
                     "Names" : "IDPIdentifiers",
                     "Type" : ARRAY_OF_STRING_TYPE,
-                    "Description" : "A list of identifiers that can be used to pick the IDP - E.g. email domain"
+                    "Description" : "A list of identifiers that can be used to automatically pick the IDP - E.g. email domain"
                 },
                 {
                     "Names" : "SAML",
                     "Children" : [
                         {
                             "Names" : "MetadataUrl",
+                            "Description" : "The SAML metadataUrl endpoint",
                             "Type" : STRING_TYPE,
                             "Default" : ""
                         },
                         {
                             "Names" : "EnableIDPSignOut",
+                            "Description" : "Enable the IDP Signout Flow",
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
