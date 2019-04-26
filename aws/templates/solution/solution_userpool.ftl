@@ -48,6 +48,7 @@
         [#assign userPoolUpdateCommand = "updateUserPool" ]
         [#assign userPoolClientUpdateCommand = "updateUserPoolClient" ]     
         [#assign userPoolDomainCommand = "setDomainUserPool" ]
+        [#assign userPoolAuthProviderUpdateCommand = "updateUserPoolAuthProvider" ]
     
         [#assign emailVerificationMessage =
             getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationMessage"], true) ]
@@ -268,11 +269,87 @@
             [/#if]
         [/#if]
 
+        [#assign authProviderEpilogue = []]
+        [#assign userPoolClientEpilogue = []]
+
         [#list occurrence.Occurrences![] as subOccurrence]
 
             [#assign subCore = subOccurrence.Core ]
             [#assign subSolution = subOccurrence.Configuration.Solution ]
             [#assign subResources = subOccurrence.State.Resources ]
+
+            [#if subCore.Type == USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
+        
+                [#assign authProviderId = subResources["authprovider"].Id ]
+                [#assign authProviderName = subResources["authprovider"].Name ]
+                [#assign authProviderEngine = subSolution.Engine]
+
+                [#if deploymentSubsetRequired("cli", false)]
+
+                    [#assign attributeMappings = {} ]
+                    [#list subSolution.AttributeMappings as id, attributeMapping ]
+                        [#assign localAttribute = attributeMapping.UserPoolAttribute?has_content?then(
+                                                    attributeMapping.UserPoolAttribute,
+                                                    id
+                        )]
+
+                        [#assign attributeMappings += {
+                            localAttribute : attributeMapping.ProviderAttribute
+                        }]
+                    [/#list]
+
+                    [#switch authProviderEngine ]
+                        [#case "SAML" ]
+                            [#assign providerDetails = {
+                                "MetadataURL" : subSolution.SAML.MetadataUrl,
+                                "IDPSignout" : subSolution.SAML.EnableIDPSignOut?c
+                            }]
+                            [#break]
+                    [/#switch]
+
+                    [#assign updateUserPoolAuthProvider =  {
+                            "ProviderType" : authProviderEngine,
+                            "AttributeMapping" : attributeMappings,
+                            "ProviderDetails" : providerDetails
+                        } + 
+                        attributeIfContent(
+                            "AttributeMapping",
+                            attributeMappings
+                        ) + 
+                        attributeIfContent(
+                            "IdpIdentifiers",
+                            subSolution.IDPIdentifiers
+                        )
+                    ]
+
+                    [@cfCli
+                        mode=listMode
+                        id=authProviderId
+                        command=userPoolAuthProviderUpdateCommand
+                        content=updateUserPoolAuthProvider
+                    /]
+                [/#if]
+
+                [#if deploymentSubsetRequired("epilogue", false)]
+                    [#assign authProviderEpilogue +=
+                        [
+                            " case $\{STACK_OPERATION} in",
+                            "   create|update)",
+                            "       # Manage Userpool auth provider",
+                            "       info \"Applying Cli level configuration to UserPool Auth Provider - Id: " + authProviderId +  "\"",
+                            "       update_cognito_userpool_authprovider" +
+                            "       \"" + region + "\" " + 
+                            "       \"$\{userPoolId}\" " + 
+                            "       \"" + authProviderName + "\" " +
+                            "       \"" + authProviderEngine + "\" " +
+                            "       \"$\{tmpdir}/cli-" + 
+                                authProviderId + "-" + userPoolAuthProviderUpdateCommand + ".json\" || return $?",
+                            "       ;;",
+                            " esac"
+                        ]
+                    ]
+                [/#if]
+            [/#if]
 
             [#if subCore.Type == USERPOOL_CLIENT_COMPONENT_TYPE]
 
@@ -289,6 +366,23 @@
                 
                 [#assign callbackUrls = []]
                 [#assign logoutUrls = []]
+                [#assign identityProviders = [ ]] 
+
+                [#list subSolution.AuthProviders as authProvider ]
+                    [#if authProvider?upper_case == "COGNITO" ]
+                        [#assign identityProviders += [ "COGNITO" ] ]
+                    [#else]
+                        [#assign linkTarget = getLinkTarget(occurrence, 
+                                                {
+                                                    "Tier" : core.Tier.Id,
+                                                    "Component" : component.Id,
+                                                    "AuthProvider" : authProvider
+                                                }, false)]
+                        [#if linkTarget?has_content ]
+                            [#assign identityProviders += [ linkTarget.State.Attributes["PROVIDER_NAME"] ]]
+                        [/#if] 
+                    [/#if]
+                [/#list]
 
                 [#list subSolution.Links?values as link]
                     [#assign linkTarget = getLinkTarget(subOccurrence, link)]
@@ -322,6 +416,9 @@
                             [/#if]
                             [#break]
 
+                        [#case USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
+                            [#assign identityProviders += [ linkTargetAttributes["PROVIDER_NAME"] ] ]
+                            [#break]
                     [/#switch]
                 [/#list]
 
@@ -338,7 +435,6 @@
                     /]
                 [/#if]
 
-
                 [#if deploymentSubsetRequired("cli", false)]
                     [#assign updateUserPoolClient =  {
                             "CallbackURLs": callbackUrls,
@@ -346,7 +442,7 @@
                             "AllowedOAuthFlows": asArray(subSolution.OAuth.Flows),
                             "AllowedOAuthScopes": asArray(subSolution.OAuth.Scopes),
                             "AllowedOAuthFlowsUserPoolClient": true,
-                            "SupportedIdentityProviders" : [ "COGNITO" ]
+                            "SupportedIdentityProviders" : identityProviders
                         }
                     ]
 
@@ -359,9 +455,7 @@
                 [/#if]
 
                 [#if deploymentSubsetRequired("epilogue", false)]
-                    [@cfScript 
-                    mode=listMode
-                    content=
+                    [#assign userPoolClientEpilogue +=
                         [
                             " case $\{STACK_OPERATION} in",
                             "   create|update)",
@@ -381,9 +475,10 @@
                             "       ;;",
                             " esac"
                         ]
-                    /]
+                    ]
                 [/#if]
             [/#if]
+
         [/#list]
 
         [#if defaultUserPoolClientRequried && ! defaultUserPoolClientConfigured ]
@@ -684,7 +779,16 @@
                             " esac"
                         ],
                         []
-                    )+ 
+                    )+
+                    [#-- auth providers need to be created before userpool clients are updated --]
+                    (authProviderEpilogue?has_content)?then(
+                        authProviderEpilogue,
+                        []
+                    ) +
+                    (userPoolClientEpilogue?has_content)?then(
+                        userPoolClientEpilogue,
+                        []
+                    ) +
                     [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
                     (userPoolManualTriggerConfig?has_content)?then(
                         [

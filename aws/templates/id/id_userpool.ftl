@@ -6,12 +6,15 @@
 [#assign AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
 [#assign AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE = "rolemapping"]
 [#assign AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE = "userpooldomain" ]
+[#assign AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE = "userpoolauthprovider" ]
+
+[#assign USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION = "unauth" ]
+[#assign USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION = "auth" ]
 
 [#-- Components --]
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
 [#assign USERPOOL_CLIENT_COMPONENT_TYPE = "userpoolclient" ]
-[#assign USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION = "unauth" ]
-[#assign USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION = "auth" ]
+[#assign USERPOOL_AUTHPROVIDER_COMPONENT_TYPE = "userpoolauthprovider" ]
 
 [#assign componentConfiguration +=
     {
@@ -157,81 +160,6 @@
                             "Children" : certificateChildConfiguration
                         }
                     ]
-                },
-                {
-                    "Names" : "AuthProviders",
-                    "Subobjects" : true,
-                    "Children" : [
-                        {
-                            "Names" : "Engine",
-                            "Type" : STRING_TYPE,
-                            "Values" : [ "SAML", "OIDC" ],
-                            "Mandatory" : true
-                        },
-                        {
-                            "Names" : "AttributeMappings",
-                            "Subobjects" : true,
-                            "Children" : [
-                                {
-                                    "Names" : "UserPoolAttribute",
-                                    "Type" : STRING_TYPE,
-                                    "Default" : ""
-                                },
-                                {
-                                    "Names" : "ProviderAttribute",
-                                    "Type" : STRING_TYPE,
-                                    "Mandatory" : true
-                                }
-                            ] 
-                        },
-                        {
-                            "Names" : "SAML",
-                            "Children" : [
-                                {
-                                    "Names" : "MetadataUrl",
-                                    "Type" : STRING_TYPE,
-                                    "Default" : ""
-                                }
-                            ]
-                        },
-                        {
-                            "Names" : "OIDC",
-                            "Children" : [
-                                {
-                                    "Names" : "ClientId",
-                                    "Type" : STRING_TYPE,
-                                    "Default" : ""
-                                },
-                                {
-                                    "Names" : "AttributesRequestMethod",
-                                    "Type" : STRING_TYPE,
-                                    "Values" : [ "GET", "POST" ],
-                                    "Default" : "GET"
-                                },
-                                {
-                                    "Names" : "Endpoints",
-                                    "Children" : [
-                                        {
-                                            "Names" : "Authorisation",
-                                            "Type" : STRING_TYPE
-                                        },
-                                        {
-                                            "Names" : "Token",
-                                            "Type" : STRING_TYPE
-                                        },
-                                        {
-                                            "Names" : "Userinfo",
-                                            "Type" : STRING_TYPE
-                                        },
-                                        {
-                                            "Names" : "JSONWebKey",
-                                            "Type" : STRING_TYPE
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
                 }
             ],
             "Components" : [
@@ -239,6 +167,11 @@
                     "Type" : USERPOOL_CLIENT_COMPONENT_TYPE,
                     "Component" : "Clients",
                     "Link" : [ "Client" ]
+                },
+                {
+                    "Type" : USERPOOL_AUTHPROVIDER_COMPONENT_TYPE,
+                    "Component" : "AuthProviders",
+                    "Link" : [ "AuthProvider" ]
                 }
             ]
         },
@@ -264,7 +197,7 @@
                         {
                             "Names" : "Scopes",
                             "Type" : ARRAY_OF_STRING_TYPE,
-                            "Values" : [ "phone", "email", "openid", "Cognito" ],
+                            "Values" : [ "phone", "email", "openid", "aws.cognito.signin.user.admin", "profile" ],
                             "Default" : [ "email", "openid" ]
                         },
                         {
@@ -293,7 +226,7 @@
                 },
                 {
                     "Names" : "AuthProviders",
-                    "Description" : "The Ids of any authproviders that can use this client",
+                    "Description" : "A list of user pool auth providers which can use this cient",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : [ "COGNITO" ]
                 },
@@ -301,6 +234,66 @@
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
+                }
+            ]
+        },
+        USERPOOL_AUTHPROVIDER_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "An external auth provider which will federate with the user pool"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Engine",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "SAML", "OIDC" ],
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "AttributeMappings",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Names" : "UserPoolAttribute",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Names" : "ProviderAttribute",
+                            "Type" : STRING_TYPE,
+                            "Mandatory" : true
+                        }
+                    ] 
+                },
+                {
+                    "Names" : "IDPIdentifiers",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Description" : "A list of identifiers that can be used to pick the IDP - E.g. email domain"
+                },
+                {
+                    "Names" : "SAML",
+                    "Children" : [
+                        {
+                            "Names" : "MetadataUrl",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Names" : "EnableIDPSignOut",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
                 }
             ]
         }
@@ -465,8 +458,8 @@
 [#function getUserPoolClientState occurrence parent ]
     [#local core = occurrence.Core]
 
-    [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
-    [#assign userPoolClientName = formatSegmentFullName(core.Name)]
+    [#local userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
+    [#local userPoolClientName = formatSegmentFullName(core.Name)]
 
     [#local parentAttributes = parent.State.Attributes ]
     [#local parentResources = parent.State.Resources ]
@@ -489,6 +482,31 @@
                 "CLIENT" : getReference(userPoolClientId)
             } + 
             parentAttributes,
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        }]
+[/#function]
+
+[#function getUserPoolAuthProviderState occurrence ]
+    [#local core = occurrence.Core]
+
+    [#assign authProviderId = formatResourceId(AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE, core.Id)]
+    [#assign authProviderName = core.SubComponent.Name]
+
+    [#return
+        {
+            "Resources" : {
+                "authprovider" : {
+                    "Id" : authProviderId,
+                    "Name" : authProviderName,
+                    "Type" : AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE
+                }
+            },
+            "Attributes" : {
+                "PROVIDER_NAME" : authProviderName
+            },
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}

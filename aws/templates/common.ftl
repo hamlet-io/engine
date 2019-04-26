@@ -940,6 +940,10 @@ behaviour.
                 [#local result = getUserPoolClientState(occurrence, parentOccurrence)]
                 [#break]
 
+            [#case USERPOOL_AUTHPROVIDER_COMPONENT_TYPE]
+                [#local result = getUserPoolAuthProviderState(occurrence)]
+                [#break]
+
             [#case BASTION_COMPONENT_TYPE ]
                 [#local result = getBastionState(occurrence)]
                 [#break]

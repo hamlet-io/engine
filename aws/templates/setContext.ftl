@@ -82,6 +82,10 @@
             "Type" : STRING_TYPE
         },
         {
+            "Names" : [ "AuthProvider" ],
+            "Type" : STRING_TYPE
+        },
+        {
             "Names" : "Instance",
             "Type" : STRING_TYPE
         },
