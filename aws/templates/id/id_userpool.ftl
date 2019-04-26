@@ -157,6 +157,81 @@
                             "Children" : certificateChildConfiguration
                         }
                     ]
+                },
+                {
+                    "Names" : "AuthProviders",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Names" : "Engine",
+                            "Type" : STRING_TYPE,
+                            "Values" : [ "SAML", "OIDC" ],
+                            "Mandatory" : true
+                        },
+                        {
+                            "Names" : "AttributeMappings",
+                            "Subobjects" : true,
+                            "Children" : [
+                                {
+                                    "Names" : "UserPoolAttribute",
+                                    "Type" : STRING_TYPE,
+                                    "Default" : ""
+                                },
+                                {
+                                    "Names" : "ProviderAttribute",
+                                    "Type" : STRING_TYPE,
+                                    "Mandatory" : true
+                                }
+                            ] 
+                        },
+                        {
+                            "Names" : "SAML",
+                            "Children" : [
+                                {
+                                    "Names" : "MetadataUrl",
+                                    "Type" : STRING_TYPE,
+                                    "Default" : ""
+                                }
+                            ]
+                        },
+                        {
+                            "Names" : "OIDC",
+                            "Children" : [
+                                {
+                                    "Names" : "ClientId",
+                                    "Type" : STRING_TYPE,
+                                    "Default" : ""
+                                },
+                                {
+                                    "Names" : "AttributesRequestMethod",
+                                    "Type" : STRING_TYPE,
+                                    "Values" : [ "GET", "POST" ],
+                                    "Default" : "GET"
+                                },
+                                {
+                                    "Names" : "Endpoints",
+                                    "Children" : [
+                                        {
+                                            "Names" : "Authorisation",
+                                            "Type" : STRING_TYPE
+                                        },
+                                        {
+                                            "Names" : "Token",
+                                            "Type" : STRING_TYPE
+                                        },
+                                        {
+                                            "Names" : "Userinfo",
+                                            "Type" : STRING_TYPE
+                                        },
+                                        {
+                                            "Names" : "JSONWebKey",
+                                            "Type" : STRING_TYPE
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ],
             "Components" : [
@@ -215,6 +290,12 @@
                     "Description" : "Enable the use of the identity pool for this client",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : true
+                },
+                {
+                    "Names" : "AuthProviders",
+                    "Description" : "The Ids of any authproviders that can use this client",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : [ "COGNITO" ]
                 },
                 {
                     "Names" : "Links",
