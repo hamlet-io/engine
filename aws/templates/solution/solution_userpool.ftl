@@ -36,6 +36,7 @@
         [#assign userPoolManualTriggerConfig = {}]
         [#assign smsConfig = {}]
         [#assign identityPoolProviders = []]
+        [#assign authProviders = []]
 
         [#assign defaultUserPoolClientRequried = false ]
         [#assign defaultUserPoolClientConfigured = false ]
@@ -283,6 +284,8 @@
                 [#assign authProviderId = subResources["authprovider"].Id ]
                 [#assign authProviderName = subResources["authprovider"].Name ]
                 [#assign authProviderEngine = subSolution.Engine]
+
+                [#assign authProviders += [ authProviderName ]]
 
                 [#if deploymentSubsetRequired("cli", false)]
 
@@ -705,6 +708,13 @@
                         " split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
                         " case $\{STACK_OPERATION} in",
                         "    delete)",
+                        "       # Remove All Auth providers",
+                        "       info \"Removing any Auth providers\"",
+                        "       cleanup_cognito_userpool_authproviders" +
+                        "       \"" + region + "\" " + 
+                        "       \"" + getExistingReference(userPoolId) + "\" " + 
+                        "       \"" + authProviders?join(",") + "\" " + 
+                        "       \"true\" || return $?",
                         "       # Delete Userpool Domain",
                         "       info \"Removing internal userpool hosted UI Domain\"",
                         "       manage_cognito_userpool_domain" +
@@ -782,7 +792,20 @@
                     )+
                     [#-- auth providers need to be created before userpool clients are updated --]
                     (authProviderEpilogue?has_content)?then(
-                        authProviderEpilogue,
+                        authProviderEpilogue +
+                        [
+                            "case $\{STACK_OPERATION} in",
+                            "  create|update)"
+                            "       # Remove Old Auth providers",
+                            "       info \"Removing old Auth providers\"",
+                            "       cleanup_cognito_userpool_authproviders" +
+                            "       \"" + region + "\" " + 
+                            "       \"" + getExistingReference(userPoolId) + "\" " + 
+                            "       \"" + authProviders?join(",") + "\" " + 
+                            "       \"false\" || return $?",
+                            "       ;;",
+                            "esac"
+                        ],
                         []
                     ) +
                     (userPoolClientEpilogue?has_content)?then(
