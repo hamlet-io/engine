@@ -9,7 +9,7 @@ object.
 [#assign apiGatewayDescription = [
 "There are multiple modes of deployment offered for the API Gateway, mainly to",
 "support use of product domains for endpoints. The key",
-"consideration is the handling of the host header. They reflect the",
+"consideration is the handling of the host header. The modes reflect the",
 "changes and improvements AWS have made to the API Gateway over time.",
 "For whitelisted APIs, mode 4 is the recommended one now.",
 "\n",
@@ -18,7 +18,7 @@ object.
 "    - multiple cloudfront aliases",
 "    - host header blocked",
 "    - EDGE based API Gateway",
-"    - signing based on AWS API domain name",
+"    - signing based on AWS assigned API domain name",
 "    - API-KEY used as shared secret between cloudfront and the API",
 "2. Single domain cloudfront + EDGE endpoint",
 "    - waf based IP whitelisting",
@@ -35,15 +35,15 @@ object.
 "    - signing based on any of the aliases",
 "    - API-KEY used as shared secret between cloudfront and the API",
 "4. API endpoint",
-"    - policy based IP whitelisting",
-"    - multiple aliases",
+"    - waf or policy based IP whitelisting",
+"    - multiple aliases or AWS assigned domain",
 "    - EDGE or REGIONAL",
 "    - signing based on any of the aliases",
 "    - API-KEY can be used for client metering",
 "\n",
 "If multiple domains are provided, the primary domain is used to provide the",
 "endpoint for the the API documentation and for the gateway attributes. For",
-"documentation, the others used to redirect to the primary."
+"documentation, the others redirect to the primary."
 ] ]
 
 
@@ -241,6 +241,63 @@ object.
         }
     }]
 
+[#--
+The config can get confusing as there are a lot of knobs to fiddle with. A few
+notes:-
+
+A certificate attribute needs to be defined to have any custom domains used on
+either CloudFront or the API Gateway. If it isn't present, then only the Amazon
+provided domains will be available.
+
+IPAddressGroups on the gateway itself control IP checks in the resource policy.
+The Authentication configuration also affects the resource policy.
+
+IPAddressGroups on WAF control what IPs are checked by WAF.
+
+At least one of the IPAddressGroups above must be defined, even if it is just
+to include the _global group. Basically acess must be explicitly stated even if
+access to everyone is desired.
+
+IPAddressGroups on Publish control what IPs can access the online documentation
+
+Mapping on gateway itself controls whether API domain mappings are created and
+whether the stage is included in the mappings.
+
+Mapping on CloudFront overrides the mapping on the gateway itself in terms of
+whether mappings are created, but it still relies on the gateway setting for
+whether the stage should be included in the mapping. Thus using mappings with
+CloudFront requires a Mapping attribute to be defined on the API Gateway AND
+on CloudFront.
+
+WAF will be attached to CloudFront if present and to the API Gateway otherwise.
+
+The inclusion of the stage at the start of the API URL path and in the path as
+seen by backing lambda code varies depending on the use of domain mappings.
+
+If no domain mappings are employed, the stage should be in the API URL
+but will not appear in the path seen by lambda - it is effectively "consumed"
+working out which stage to call. If a domain mapping is employed, then the stage
+will not appear in the API URL or the lambda path if it is included in the mapping.
+Equally, the stage will appear in the API URL and the lambda path if it not
+included in the mapping. (Confusing isn't it :-) )
+
+The INTERNAL_PATH is provided to inform the lambda code what it will see of the
+stage in the path it receives. This environment variable can thus be used to
+adjust routes within http frameworks. The "basePath" attribute in any swagger
+spec should reflect what is expected in the API URL as described above.
+
+To obtain the modes described above, the following key configuration setting
+combinations should be used;
+
+Mode 1: CloudFront(Mapping=false)
+Mode 2: CloudFront(Mapping=true)  Mapping EndpointType=EDGE
+Mode 3: CloudFront(Mapping=true)  Mapping EndpointType=REGIONAL
+Mode 4: Mapping
+
+If Certificate is not configured, then Mode 1 is used if CloudFront is
+configured and Mode 4 is used if CloudFront is not configured. No mappings are
+created in either case.
+--]
 [#function getAPIGatewayState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -268,6 +325,7 @@ object.
     [#local endpointType       = solution.EndpointType ]
     [#local isEdgeEndpointType = solution.EndpointType == "EDGE" ]
 
+    [#-- The AWS assigned domain for the API --]
     [#local internalFqdn =
         formatDomainName(
             getExistingReference(apiId),
@@ -275,11 +333,23 @@ object.
             regionId,
             "amazonaws.com") ]
 
+    [#-- Preferred domain to use when accessing the API --]
+    [#-- Uses the preferred domain where more than one are defined --]
     [#local fqdn = internalFqdn]
+
+    [#-- Domain to be used in SIG4 calculations --]
+    [#-- Also used for origin endpoint for CloudFront --]
     [#local signingFqdn = internalFqdn]
+
+    [#-- Stage to be used in domain mappings --]
     [#local mappingStage = ""]
+
+    [#-- What the lambda code sees as far as the stage in the path is concerned --]
     [#local internalPath = ""]
+
+    [#-- How the stage should be included in the API URL --]
     [#local stagePath = "/" + stageName]
+
     [#local certificateId = "" ]
 
     [#assign lgId = formatDependentLogGroupId(stageId) ]
@@ -294,10 +364,10 @@ object.
                             ]
                         ]
                     }]
-    
+
     [#assign accessLgId = formatDependentLogGroupId(stageId, "access") ]
     [#assign accessLgName = formatAbsolutePath(core.FullAbsolutePath, "access")]
-    
+
     [#local logMetrics = {} ]
     [#list solution.LogMetrics as name,logMetric ]
         [#local logMetrics += {
@@ -378,7 +448,7 @@ object.
         [#local fqdns += [ formatDomainName(hostName, domain.Name) ] ]
     [/#list]
 
-    [#-- Cloudfront resources if required --]
+    [#-- CloudFront resources if required --]
     [#local cfResources = {} ]
     [#if cfPresent]
         [#local cfId = formatDependentCFDistributionId(apiId)]
@@ -406,16 +476,16 @@ object.
                     "Name" : formatComponentFullName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_APIGATEWAY_USAGEPLAN_RESOURCE_TYPE
                 }
-            } +
-            attributeIfTrue(
-                "wafacl",
-                wafPresent,
-                {
+            } ]
+    [/#if]
+    [#local wafResources = {} ]
+    [#if wafPresent]
+        [#local wafResources =
+            {
                     "Id" : formatDependentWAFAclId(apiId),
                     "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_WAF_ACL_RESOURCE_TYPE
-                }
-            ) ]
+            } ]
     [/#if]
 
     [#-- Custom domain resources if required --]
@@ -516,6 +586,7 @@ object.
                 "logMetrics" : logMetrics
             } +
             attributeIfContent("cf", cfResources) +
+            attributeIfContent("wafacl", cfResources) +
             attributeIfContent("docs", docsResources) +
             attributeIfContent("customDomains", customDomainResources),
             "Attributes" : {
