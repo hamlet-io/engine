@@ -236,51 +236,64 @@
     /]
 [/#macro]
 
-[#-- Rules should be ordered in decreasing order of importance or all carry --]
-[#-- a Priority attribute                                                   --]
-[#macro createWAFAcl mode id name metric default rules=[] regional=false]
-    [#local aclRules = [] ]
-
-    [#-- Determine if priorities on all rules --]
-    [#local prioritiesProvided = true]
+[#-- Rules are grouped into bands. Bands are sorted into ascending alphabetic  --]
+[#-- order, with rules withing a band ordered based on occurrence in the rules --]
+[#-- array. Rules without a band are put into the first band to be considered  --]
+[#-- which the rules are provided to derive the priority.                      --]
+[#-- Rules without a band fall into the highest band                           --]
+[#macro createWAFAcl mode id name metric actionDefault rules=[] regional=false bandDefault="default" ]
+    [#-- Determine the bands --]
+    [#local bands = [] ]
     [#list asArray(rules) as rule]
-        [#local prioritiesProvided = prioritiesProvided && rule.Priority?has_content]
+        [#local bands += [rule.Band!bandDefault] ]
     [/#list]
-    [#list asArray(rules) as rule]
-        [#local ruleId = rule.Id!""]
-        [#local ruleName = rule.Name!ruleId]
-        [#local ruleMetric = rule.Metric!ruleName]
-        [#-- Rule to be created with the acl --]
-        [#-- Generate id/name/metric from acl equivalents if not provided --]
-        [#if !ruleId?has_content]
-            [#local ruleId = formatDependentWAFRuleId(id,"rule",rule?counter)]
-        [/#if]
-        [#if !ruleName?has_content]
-            [#local ruleName = formatName(name,"rule",rule?counter)]
-        [/#if]
-        [#if !ruleMetric?has_content]
-            [#local ruleName = formatName(metric,"rule",rule?counter)]
-        [/#if]
-        [#if rule.Conditions?has_content]
-            [@createWAFRule
-                mode=mode
-                id=ruleId
-                name=ruleName
-                metric=ruleMetric
-                conditions=rule.Conditions
-                regional=regional /]
-        [/#if]
-        [#local aclRules +=
-            [
-                {
-                    "RuleId" : getReference(ruleId),
-                    "Priority" : valueIfTrue(rule.Priority!0, prioritiesProvided, rule?counter),
-                    "Action" : {
-                      "Type" : rule.Action
+    [#local bands = getUniqueArrayElements(bands)?sort]
+
+    [#-- Priorities based on band order --]
+    [#local aclRules = [] ]
+    [#local nextRulePriority = 1]
+    [#list bands as band]
+        [#list asArray(rules) as rule]
+            [#local ruleBand = rule.Band!bandDefault]
+            [#if ruleBand != band]
+                [#continue]
+            [/#if]
+            [#local ruleId = rule.Id!""]
+            [#local ruleName = rule.Name!ruleId]
+            [#local ruleMetric = rule.Metric!ruleName]
+            [#-- Rule to be created with the acl --]
+            [#-- Generate id/name/metric from acl equivalents if not provided --]
+            [#if !ruleId?has_content]
+                [#local ruleId = formatDependentWAFRuleId(id,"rule",rule?counter)]
+            [/#if]
+            [#if !ruleName?has_content]
+                [#local ruleName = formatName(name,"rule",rule?counter)]
+            [/#if]
+            [#if !ruleMetric?has_content]
+                [#local ruleName = formatName(metric,"rule",rule?counter)]
+            [/#if]
+            [#if rule.Conditions?has_content]
+                [@createWAFRule
+                    mode=mode
+                    id=ruleId
+                    name=ruleName
+                    metric=ruleMetric
+                    conditions=rule.Conditions
+                    regional=regional /]
+            [/#if]
+            [#local aclRules +=
+                [
+                    {
+                        "RuleId" : getReference(ruleId),
+                        "Priority" : nextRulePriority,
+                        "Action" : {
+                        "Type" : rule.Action
+                        }
                     }
-                }
+                ]
             ]
-        ]
+            [#local nextRulePriority += 1]
+        [/#list]
     [/#list]
 
     [@cfResource
@@ -290,7 +303,7 @@
         properties=
             {
                 "DefaultAction" : {
-                    "Type" : default
+                    "Type" : actionDefault
                 },
                 "MetricName" : metric?replace("-","X"),
                 "Name": name,

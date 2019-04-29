@@ -313,7 +313,7 @@
                     id=wafAclResources.Id
                     name=wafAclResources.Name
                     metric=wafAclResources.Name
-                    default=getWAFDefault(solution.WAF)
+                    actionDefault=getWAFDefault(solution.WAF)
                     rules=getWAFRules(solution.WAF) /]
             [/#if]
 
