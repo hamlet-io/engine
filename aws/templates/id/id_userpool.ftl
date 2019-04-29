@@ -6,12 +6,15 @@
 [#assign AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
 [#assign AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE = "rolemapping"]
 [#assign AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE = "userpooldomain" ]
+[#assign AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE = "userpoolauthprovider" ]
+
+[#assign USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION = "unauth" ]
+[#assign USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION = "auth" ]
 
 [#-- Components --]
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
 [#assign USERPOOL_CLIENT_COMPONENT_TYPE = "userpoolclient" ]
-[#assign USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION = "unauth" ]
-[#assign USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION = "auth" ]
+[#assign USERPOOL_AUTHPROVIDER_COMPONENT_TYPE = "userpoolauthprovider" ]
 
 [#assign componentConfiguration +=
     {
@@ -164,6 +167,11 @@
                     "Type" : USERPOOL_CLIENT_COMPONENT_TYPE,
                     "Component" : "Clients",
                     "Link" : [ "Client" ]
+                },
+                {
+                    "Type" : USERPOOL_AUTHPROVIDER_COMPONENT_TYPE,
+                    "Component" : "AuthProviders",
+                    "Link" : [ "AuthProvider" ]
                 }
             ]
         },
@@ -189,7 +197,7 @@
                         {
                             "Names" : "Scopes",
                             "Type" : ARRAY_OF_STRING_TYPE,
-                            "Values" : [ "phone", "email", "openid", "Cognito" ],
+                            "Values" : [ "phone", "email", "openid", "aws.cognito.signin.user.admin", "profile" ],
                             "Default" : [ "email", "openid" ]
                         },
                         {
@@ -202,11 +210,13 @@
                 },
                 {
                     "Names" : "ClientGenerateSecret",
+                    "Description" : "Generate a client secret which musht be provided in auth calls",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
                 },
                 {
                     "Names" : "ClientTokenValidity",
+                    "Description" : "Time in days that the refresh token is valid for",
                     "Type" : NUMBER_TYPE,
                     "Default" : 30
                 },
@@ -217,9 +227,80 @@
                     "Default" : true
                 },
                 {
+                    "Names" : "AuthProviders",
+                    "Description" : "A list of user pool auth providers which can use this client",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : [ "COGNITO" ]
+                },
+                {
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
+                }
+            ]
+        },
+        USERPOOL_AUTHPROVIDER_COMPONENT_TYPE : {
+            "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "An external auth provider which will federate with the user pool"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "solution"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Engine",
+                    "Description" : "The authentication provider type",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "SAML", "OIDC" ],
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "AttributeMappings",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Names" : "UserPoolAttribute",
+                            "Description" : "The name of the attribute in the user pool schema - the id of the mapping will be used if not provided",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Names" : "ProviderAttribute",
+                            "Description" : "The provider attribute which will be mapped",
+                            "Type" : STRING_TYPE,
+                            "Mandatory" : true
+                        }
+                    ] 
+                },
+                {
+                    "Names" : "IDPIdentifiers",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Description" : "A list of identifiers that can be used to automatically pick the IDP - E.g. email domain"
+                },
+                {
+                    "Names" : "SAML",
+                    "Children" : [
+                        {
+                            "Names" : "MetadataUrl",
+                            "Description" : "The SAML metadataUrl endpoint",
+                            "Type" : STRING_TYPE,
+                            "Default" : ""
+                        },
+                        {
+                            "Names" : "EnableIDPSignOut",
+                            "Description" : "Enable the IDP Signout Flow",
+                            "Type" : BOOLEAN_TYPE,
+                            "Default" : true
+                        }
+                    ]
                 }
             ]
         }
@@ -384,8 +465,8 @@
 [#function getUserPoolClientState occurrence parent ]
     [#local core = occurrence.Core]
 
-    [#assign userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
-    [#assign userPoolClientName = formatSegmentFullName(core.Name)]
+    [#local userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
+    [#local userPoolClientName = formatSegmentFullName(core.Name)]
 
     [#local parentAttributes = parent.State.Attributes ]
     [#local parentResources = parent.State.Resources ]
@@ -408,6 +489,31 @@
                 "CLIENT" : getReference(userPoolClientId)
             } + 
             parentAttributes,
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        }]
+[/#function]
+
+[#function getUserPoolAuthProviderState occurrence ]
+    [#local core = occurrence.Core]
+
+    [#assign authProviderId = formatResourceId(AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE, core.Id)]
+    [#assign authProviderName = core.SubComponent.Name]
+
+    [#return
+        {
+            "Resources" : {
+                "authprovider" : {
+                    "Id" : authProviderId,
+                    "Name" : authProviderName,
+                    "Type" : AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE
+                }
+            },
+            "Attributes" : {
+                "PROVIDER_NAME" : authProviderName
+            },
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}

@@ -842,6 +842,56 @@ function update_cognito_userpool_client() {
   aws --region "${region}" cognito-idp update-user-pool-client --user-pool-id "${userpoolid}" --client-id "${userpoolclientid}" --cli-input-json "file://${configfile}"
 }
 
+function update_cognito_userpool_authprovider() { 
+  local region="$1"; shift
+  local userpoolid="$1"; shift
+  local authprovidername="$1"; shift
+  local authprovidertype="$1"; shift
+  local configfile="$1"; shift
+
+  current_provider_type="$(aws --region "${region}" cognito-idp decribe-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --query "IdentityProvider.ProviderType" --output text 2>/dev/null || true )" 
+
+  if [[ ( "${current_provider_type}" != "${authprovidertype}" ) && -n "${current_provider_type}" ]]; then
+    # delete the provider if the type is different
+    aws --region "${region}" cognito-idp delete-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" || return $?
+  fi 
+
+  if [[ -n "${current_provider_type}" || "${current_provider_type}" != "${authprovidertype}" ]]; then
+    # create the provider 
+    aws --region "${region}" cognito-idp create-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --provider-type "${authprovidertype}" --cli-input-json "file://${configfile}" || return $?
+  fi
+
+  if [[ "${current_provider_type}" == "${authprovidertype}" ]]; then 
+    # update the provider
+    aws --region "${region}" cognito-idp update-identity-provider --user-pool-id "${userpoolid}" --provider-name "${authprovidername}" --cli-input-json "file://${configfile}" || return $?
+  fi
+
+}
+
+function cleanup_cognito_userpool_authproviders() {
+  local region="$1"; shift
+  local userpoolid="$1"; shift
+  local expectedproviders="$1"; shift
+  local removeall="$1"; shift
+
+  current_providers="$(aws --region "${region}" cognito_idp list-identity-providers --user-pool-id "${userpoolid}" --query "Providers[*].ProviderName" --output text || true)"
+
+  if [[ "${current_providers}" != "None" && -n "${current_providers}" ]]; then
+    arrayFromList expected_provider_list "${expectedproviders}"
+    arrayFromCommand current_provider_list "${current_providers}"
+
+    for provider in "${current_provider_list[@]}"; do
+      if [[ ! $(inArray "expected_provider_list" "${provider}") || "${removeall}" == "true" ]]; then
+        info "Removing auth provider ${provider} from ${userpoolid}"
+        aws --region "${region}" cognito-idp delete-identity-provider --user-pool-id "${userpoolid}" --provider-name "${provider}" || return $?
+      fi
+    done 
+
+  else  
+    info "No providers found moving on.."
+  fi
+}
+
 function manage_cognito_userpool_domain() {
   local region="$1"; shift
   local userpoolid="$1"; shift
