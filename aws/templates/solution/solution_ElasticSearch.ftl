@@ -349,5 +349,117 @@
             /]
         [/#if]
 
+        [#list occurrence.Occurrences![] as subOccurrence]
+
+            [#assign subCore = subOccurrence.Core ]
+            [#assign subSolution = subOccurrence.Configuration.Solution ]
+            [#assign subResources = subOccurrence.State.Resources ]
+
+            [#switch subCore.Type ]
+                [#case ES_DATAFEED_COMPONENT_TYPE ]
+
+                    [#assign streamId = subResources["stream"].Id ]
+                    [#assign streamName = subResources["stream"].Name ]
+                    
+                    [#assign streamRoleId = subResources["role"].Id ]
+                    
+                    [#assign streamLgId = (subResources["lg"].Id)!"" ]
+                    [#assign streamLgName = (subResources["lg"].Name)!"" ]
+
+                    [#assign logging = subSolution.Logging ]
+                    [#assign encrypted = subSolution.Encrypted]
+
+                    [#assign dataBucketPrefix = getAppDataFilePrefix(subOccurrence) ]
+
+                    [#if logging ]
+                        [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(streamLgId) ]
+                            [@createLogGroup
+                                mode=listMode
+                                id=streamLgId
+                                name=streamLgName /]
+                        [/#if]
+                    [/#if]
+
+                    [#assign links = getLinkTargets(subOccurrence) ]
+
+                    [#if deploymentSubsetRequired("iam", true) &&
+                            isPartOfCurrentDeploymentUnit(streamRoleId)]
+
+                            [#assign linkPolicies = getLinkTargetsOutboundRoles(links) ]
+                            
+                            [@createRole
+                                mode=listMode
+                                id=streamRoleId
+                                trustedServices=[ "firehose.amazonaws.com" ]
+                                policies=
+                                    [
+                                        getPolicyDocument(
+                                            encrypted?then(
+                                                s3EncryptionPermission(
+                                                        formatSegmentCMKId(),
+                                                        dataBucket,
+                                                        dataBucketPrefix,
+                                                        region
+                                                ),
+                                                []
+                                            ) + 
+                                            logging?then(
+                                                cwLogsProducePermission(streamLgName),
+                                                []
+                                            ) + 
+                                            s3AllPermission(dataBucket, dataBucketPrefix) +
+                                            esKinesesStreamPermission(esId),
+                                            "standard"
+                                        )
+                                    ] +
+                                    arrayIfContent(
+                                        [getPolicyDocument(linkPolicies, "links")],
+                                        linkPolicies)
+                            /]
+                    [/#if]
+
+                    [#if deploymentSubsetRequired(ES_COMPONENT_TYPE, true)]
+
+                        [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration( 
+                                                                logging
+                                                                streamLgName
+                                                                "Stream" )]
+                        [#assign streamBackupLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
+                                                                logging,
+                                                                streamLgName,
+                                                                "Backup" )]
+
+                        [#assign streamS3BackupDestination = getFirehoseStreamS3Destination(
+                                                                formatS3DataId(),
+                                                                dataBucketPrefix,
+                                                                subSolution.Buffering.Interval,
+                                                                subSolution.Buffering.Size,
+                                                                streamRoleId,
+                                                                encrypted,
+                                                                streamBackupLoggingConfiguration )]
+                        
+                        [#assign streamESDestination = getFirehoseStreamESDestination(
+                                                                subSolution.Buffering.Interval,
+                                                                subSolution.Buffering.Size,
+                                                                esId,
+                                                                streamRoleId,
+                                                                subSolution.IndexPrefix,
+                                                                subSolution.IndexRotation,
+                                                                subSolution.DocumentType,
+                                                                subSolution.Backup.FailureDuration,
+                                                                subSolution.Backup.Policy,
+                                                                streamS3BackupDestination,
+                                                                streamLoggingConfiguration)]
+
+                        [@createFirehoseStream 
+                            mode=listMode 
+                            id=streamId 
+                            name=streamName 
+                            destination=streamESDestination 
+                        /]
+                    [/#if]
+                [#break]
+            [/#switch]
+        [/#list]
     [/#list]
 [/#if]

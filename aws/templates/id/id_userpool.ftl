@@ -308,8 +308,7 @@
     
 [#function getUserPoolState occurrence baseState]
     [#local core = occurrence.Core]
-    [#local solution = occurrence.Configuration.Solution]
-
+    
     [#if core.External!false]
         [#local id = baseState.Attributes["USER_POOL_ARN"]!"" ]
         [#return
@@ -337,6 +336,7 @@
             )
         ]
     [#else]
+        [#local solution = occurrence.Configuration.Solution]
 
         [#local userPoolId = formatResourceId(AWS_COGNITO_USERPOOL_RESOURCE_TYPE, core.Id)]
         [#local userPoolName = formatSegmentFullName(core.Name)]

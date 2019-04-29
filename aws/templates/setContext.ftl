@@ -86,6 +86,10 @@
             "Type" : STRING_TYPE
         },
         {
+            "Names" : [ "DataFeed" ],
+            "Type" : STRING_TYPE
+        }
+        {
             "Names" : "Instance",
             "Type" : STRING_TYPE
         },
