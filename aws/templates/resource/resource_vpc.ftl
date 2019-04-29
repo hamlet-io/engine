@@ -19,13 +19,24 @@
                 ),                    
                 {
                     "IpProtocol": ports[port]?has_content?then(
-                                        ports[port].IPProtocol,
+                                        (ports[port].IPProtocol == "all")?then(
+                                            "-1",
+                                            ports[port].IPProtocol
+                                        ),
                                         -1),
+
                     "FromPort": ports[port]?has_content?then(
-                                        ports[port].Port,
+                                        ports[port].PortRange?has_content?then(
+                                                ports[port].PortRange.From,
+                                                ports[port].Port
+                                        ),
                                         1),
+                    
                     "ToPort": ports[port]?has_content?then(
-                                        ports[port].Port,
+                                        ports[port].PortRange?has_content?then(
+                                            ports[port].PortRange.To,
+                                            ports[port].Port
+                                        ),
                                         65535)
                 }
             )

@@ -83,6 +83,7 @@
                 "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
                 "Environment" : {},
                 "Links" : contextLinks,
+                "Policy" : standardPolicies(occurrence),
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true
