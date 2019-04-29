@@ -11,6 +11,12 @@
     }
 ]
 
+[#assign outputMappings +=
+    {
+        AWS_KINESIS_FIREHOSE_STREAM_RESOURCE_TYPE : KINESIS_FIREHOSE_STREAM_OUTPUT_MAPPINGS
+    }
+]
+
 [#assign metricAttributes +=
     {
         AWS_KINESIS_FIREHOSE_STREAM_RESOURCE_TYPE : {

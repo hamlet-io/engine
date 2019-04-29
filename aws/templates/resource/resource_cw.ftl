@@ -45,6 +45,20 @@
     /]
 [/#macro]
 
+[#macro createLogStream mode id name logGroup dependencies="" ]
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::Logs::LogStream"
+        properties=
+            {
+                "LogGroupName" : logGroup,
+                "LogStreamName" : name
+            }
+        dependencies=dependencies
+    /]
+[/#macro]
+
 [#macro createLogMetric mode id name logGroup filter namespace value dependencies=""]
     [@cfResource
         mode=mode

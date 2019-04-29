@@ -598,7 +598,12 @@
                 "Name" : core.Name
             },
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "logwatch" : {
+                        "Principal" : "logs." + regionId + ".amazonaws.com",
+                        "LogGroupIds" : [ lgId ]
+                    }
+                },
                 "Outbound" : {}
             }
         }
@@ -694,7 +699,12 @@
                 taskName
             ),
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "logwatch" : {
+                        "Principal" : "logs." + regionId + ".amazonaws.com",
+                        "LogGroupIds" : [ lgId ]
+                    }
+                },
                 "Outbound" : {
                     "run" :  ecsTaskRunPermission(ecsId) +
                         solution.UseTaskRole?then(

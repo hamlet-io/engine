@@ -169,8 +169,8 @@
                             "Names" : "Policy",
                             "Type" : STRING_TYPE,
                             "Description" : "The backup policy to apply to records",
-                            "Values" : [ "All", "FailedOnly" ],
-                            "Default" : "FailedOnly"
+                            "Values" : [ "AllDocuments", "FailedDocumentsOnly" ],
+                            "Default" : "FailedDocumentsOnly"
                         }
                     ]   
                 },
@@ -183,6 +183,11 @@
                     "Names" : "Alerts",
                     "Subobjects" : true,
                     "Children" : alertChildrenConfiguration
+                },
+                {
+                    "Names" : "LogWatchers",
+                    "Subobjects" : true,
+                    "Children" : logWatcherChildrenConfiguration
                 }
             ]
         }
@@ -237,6 +242,7 @@
     [#local streamId = formatResourceId(AWS_KINESIS_FIREHOSE_STREAM_RESOURCE_TYPE, core.Id)]
     [#local streamName = core.FullName]
 
+    [#local lgId = formatLogGroupId(core.Id)]
     [#return
         {
             "Resources" : {
@@ -254,9 +260,28 @@
             solution.Logging?then(
                 {
                     "lg" : {
-                        "Id" : formatLogGroupId(core.Id),
+                        "Id" : lgId,
                         "Name" : core.FullAbsolutePath,
                         "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                    },
+                    "backuplgstream" : {
+                        "Id" : formatDependentResourceId(AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE, lgId, "backup"),
+                        "Name" : "Backup",
+                        "Type" : AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE
+                    },
+                    "streamlgstream" : {
+                        "Id" : formatDependentResourceId(AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE, lgId, "stream"),
+                        "Name" : "Stream",
+                        "Type" : AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE
+                    }
+                },
+                {}
+            ) + 
+            (solution.LogWatchers?has_content)?then(
+                {
+                    "subscriptionRole" : {
+                        "Id" : formatResourceId(AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "subscription"),
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                     }
                 },
                 {}

@@ -2,6 +2,7 @@
 
 [#-- Resources --]
 [#assign AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE = "lg" ]
+[#assign AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE = "lgstream" ]
 [#assign AWS_CLOUDWATCH_DASHBOARD_RESOURCE_TYPE = "dashboard" ]
 [#assign AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE = "lmetric" ]
 [#assign AWS_CLOUDWATCH_LOG_SUBSCRIPTION_RESOURCE_TYPE = "lsubscription" ]

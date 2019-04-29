@@ -362,9 +362,15 @@
                     [#assign streamName = subResources["stream"].Name ]
                     
                     [#assign streamRoleId = subResources["role"].Id ]
+
+                    [#assign streamSubscriptionRoleId = subResources["subscriptionRole"].Id!"" ]
                     
                     [#assign streamLgId = (subResources["lg"].Id)!"" ]
                     [#assign streamLgName = (subResources["lg"].Name)!"" ]
+                    [#assign streamLgStreamId = (subResources["streamlgstream"].Id)!""]
+                    [#assign streamLgStreamName = (subResources["streamlgstream"].Name)!""]
+                    [#assign streamLgBackupId = (subResources["backuplgstream"].Id)!""]
+                    [#assign streamLgBackupName = (subResources["backuplgstream"].Name)!""]
 
                     [#assign logging = subSolution.Logging ]
                     [#assign encrypted = subSolution.Encrypted]
@@ -377,16 +383,71 @@
                                 mode=listMode
                                 id=streamLgId
                                 name=streamLgName /]
+                            
+                            [@createLogStream
+                                mode=listMode
+                                id=streamLgStreamId
+                                name=streamLgStreamName
+                                logGroup=streamLgName
+                                dependencies=streamLgId
+                            /]
+
+                            [@createLogStream
+                                mode=listMode
+                                id=streamLgBackupId
+                                name=streamLgBackupName
+                                logGroup=streamLgName
+                                dependencies=streamLgId
+                            /]
+
                         [/#if]
                     [/#if]
 
+                    [#list subSolution.LogWatchers as logWatcherName,logwatcher ]
+
+                        [#assign logFilter = (logFilters[logwatcher.LogFilter].Pattern)!"" ]
+
+                        [#assign logSubscriptionRoleRequired = true ]
+
+                        [#list logwatcher.Links as logWatcherLinkName,logWatcherLink ]
+                            [#assign logWatcherLinkTarget = getLinkTarget(subOccurrence, logWatcherLink) ]
+
+                            [#if !logWatcherLinkTarget?has_content]
+                                [#continue]
+                            [/#if]
+
+                            [#assign roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]]
+
+                            [#list asArray(roleSource.LogGroupIds) as logGroupId ]
+
+                                [#assign logGroupArn = getExistingReference(logGroupId, ARN_ATTRIBUTE_TYPE)]
+
+                                [#if logGroupArn?has_content ]
+
+                                    [#if deploymentSubsetRequired(ES_COMPONENT_TYPE, true)]
+                                        [@createLogSubscription
+                                            mode=listMode
+                                            id=formatDependentLogSubscriptionId(streamId, logWatcherLink.Id, logGroupId?index)
+                                            logGroupName=getExistingReference(logGroupId)
+                                            filter=logFilter
+                                            destination=streamId
+                                            role=streamSubscriptionRoleId
+                                            dependencies=streamId
+                                        /]
+                                    [/#if]
+                                [/#if]
+                            [/#list]
+                        [/#list]
+                    [/#list]
+
                     [#assign links = getLinkTargets(subOccurrence) ]
 
-                    [#if deploymentSubsetRequired("iam", true) &&
-                            isPartOfCurrentDeploymentUnit(streamRoleId)]
+                    [#if deploymentSubsetRequired("iam", true)]
+                            
+                        [#if isPartOfCurrentDeploymentUnit(streamRoleId)]
 
                             [#assign linkPolicies = getLinkTargetsOutboundRoles(links) ]
-                            
+                        
                             [@createRole
                                 mode=listMode
                                 id=streamRoleId
@@ -416,6 +477,29 @@
                                         [getPolicyDocument(linkPolicies, "links")],
                                         linkPolicies)
                             /]
+                        [/#if]
+
+                        [#if subSolution.LogWatchers?has_content &&
+                              isPartOfCurrentDeploymentUnit(streamSubscriptionRoleId)]
+
+                            [@createRole
+                                mode=listMode
+                                id=streamSubscriptionRoleId
+                                trustedServices=[ formatDomainName("logs", regionId, "amazonaws.com") ]
+                            /]
+
+                            [#assign policyId = formatDependentPolicyId(streamSubscriptionRoleId, "logSubscription")]
+                            [@createPolicy
+                                mode=listMode
+                                id=policyId
+                                name="logSubscription"
+                                statements=firehoseStreamProducePermission(streamId)  +
+                                            iamPassRolePermission(
+                                                getReference(streamSubscriptionRoleId, ARN_ATTRIBUTE_TYPE)
+                                            )
+                                roles=streamSubscriptionRoleId
+                            /]
+                        [/#if]
                     [/#if]
 
                     [#if deploymentSubsetRequired(ES_COMPONENT_TYPE, true)]
@@ -423,11 +507,11 @@
                         [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration( 
                                                                 logging
                                                                 streamLgName
-                                                                "Stream" )]
+                                                                streamLgStreamName )]
                         [#assign streamBackupLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
                                                                 logging,
                                                                 streamLgName,
-                                                                "Backup" )]
+                                                                streamLgBackupName )]
 
                         [#assign streamS3BackupDestination = getFirehoseStreamS3Destination(
                                                                 formatS3DataId(),
