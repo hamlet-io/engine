@@ -236,9 +236,16 @@
     /]
 [/#macro]
 
-[#-- Rules should be ordered in decreasing order of importance --]
+[#-- Rules should be ordered in decreasing order of importance or all carry --]
+[#-- a Priority attribute                                                   --]
 [#macro createWAFAcl mode id name metric default rules=[] regional=false]
     [#local aclRules = [] ]
+
+    [#-- Determine if priorities on all rules --]
+    [#local prioritiesProvided = true]
+    [#list asArray(rules) as rule]
+        [#local prioritiesProvided = prioritiesProvided && rule.Priority?has_content]
+    [/#list]
     [#list asArray(rules) as rule]
         [#local ruleId = rule.Id!""]
         [#local ruleName = rule.Name!ruleId]
@@ -267,7 +274,7 @@
             [
                 {
                     "RuleId" : getReference(ruleId),
-                    "Priority" : rule?counter,
+                    "Priority" : valueIfTrue(rule.Priority!0, prioritiesProvided, rule?counter),
                     "Action" : {
                       "Type" : rule.Action
                     }
