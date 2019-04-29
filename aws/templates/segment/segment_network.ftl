@@ -91,7 +91,7 @@
         [#assign legacyIGWId = "" ]
         [#if (resources["legacyIGW"]!{})?has_content]
             [#assign legacyIGWId = resources["legacyIGW"].Id ]
-            [#assign legacyIGWResourceId = resources["leagcyIGW"].ResourceId]
+            [#assign legacyIGWResourceId = resources["legacyIGW"].ResourceId]
             [#assign legacyIGWName = resources["legacyIGW"].Name]
             [#assign legacyIGWAttachmentId = resources["legacyIGWAttachement"].Id ]
 
@@ -99,7 +99,7 @@
                 [@createIGW
                     mode=listMode
                     id=legacyIGWId
-                    resourceid=igwResourceId
+                    resourceId=legacyIGWResourceId
                     name=legacyIGWName
                 /]
                 [@createIGWAttachment
