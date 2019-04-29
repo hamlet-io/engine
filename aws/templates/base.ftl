@@ -355,10 +355,11 @@
     [#return true]
 [/#function]
 
-[#-----------------
--- CIDR handling --
--------------------]
+[#----------------------
+-- IPv4 CIDR handling --
+------------------------]
 
+[#-- Format IPv4 - CIDR --]
 [#function asCIDR value mask]
     [#local remainder = value]
     [#local result = []]
@@ -369,15 +370,20 @@
     [#return [result?join("."), mask]?join("/")]
 [/#function]
 
+[#-- Determine mask bits per 8 bit part --]
 [#function analyzeCIDR cidr ]
+    [#-- Separate address and mask --]
     [#local re = cidr?matches(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/(\d{1,2})") ]
     [#if !re ]
         [#return {}]
     [/#if]
-
     [#local ip = re?groups[1] ]
     [#local mask = re?groups[2]?number ]
+
+    [#-- Note that most significant part is at index 0 --]
     [#local parts = re?groups[1]?split(".") ]
+
+    [#-- Determine how many of the mask bits affects each part --]
     [#local partMasks = [] ]
     [#list 0..3 as index]
         [#local partMask = mask - 8*index ]
@@ -390,11 +396,13 @@
         [#local partMasks += [partMask] ]
     [/#list]
 
+    [#-- Determine the offset value corresponding to the mask --]
     [#local base = [] ]
     [#list 0..3 as index]
         [#local partBits = partMasks[index] ]
         [#local partValue = parts[index]?number ]
         [#local baseValue = 0]
+        [#-- reverse order as partMasks is a count of significant bits --]
         [#list 7..0 as bit]
             [#if partBits lte 0]
                 [#break]
@@ -411,6 +419,7 @@
 
     [#return
         {
+            "Type" : "IPV4",
             "IP" : ip,
             "Mask" : mask,
             "Parts" : parts,
@@ -421,9 +430,9 @@
     ]
 [/#function]
 
-[#function expandCIDR cidrs... ]
-    [#local boundaries=[8,16,24,32] ]
-    [#local boundaryOffsets=[24,16,8,0] ]
+[#-- Break CIDRs into collections of smaller CIDRs if they don't align to acceptable masks --]
+[#-- Acceptable masks must be in increasing numeric order --]
+[#function expandCIDR acceptableMasks cidrs... ]
     [#local result = [] ]
     [#list asFlattenedArray(cidrs) as cidr]
 
@@ -432,17 +441,20 @@
         [#if !analyzedCIDR?has_content]
             [#continue]
         [/#if]
-        [#list 0..boundaries?size-1 as index]
-            [#local boundary = boundaries[index] ]
-            [#if boundary == analyzedCIDR.Mask]
+        [#list asFlattenedArray(acceptableMasks) as mask]
+            [#if mask == analyzedCIDR.Mask]
+                [#-- CIDR has an acceptable mask - use it as is --]
                 [#local result += [cidr] ]
                 [#break]
             [/#if]
-            [#if boundary > analyzedCIDR.Mask]
-                [#local nextCIDR = analyzedCIDR.Offset ]
-                [#list 0..powersOf2[boundary - analyzedCIDR.Mask]-1 as increment]
-                    [#local result += [asCIDR(nextCIDR, boundary)] ]
-                    [#local nextCIDR += powersOf2[boundaryOffsets[index]] ]
+            [#if mask > analyzedCIDR.Mask]
+                [#local nextCIDROffset = analyzedCIDR.Offset ]
+                [#local offsetIncrement = powersOf2[32 - mask] ]
+                [#-- Generate individual entries for the nearest acceptable mask --]
+                [#-- There could be quite a few depending on the increments in the acceptable masks --]
+                [#list 0..powersOf2[mask - analyzedCIDR.Mask]-1 as entryIndex ]
+                    [#local result += [asCIDR(nextCIDROffset, mask)] ]
+                    [#local nextCIDROffset += offsetIncrement ]
                 [/#list]
                 [#break]
             [/#if]

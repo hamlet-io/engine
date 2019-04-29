@@ -1,4 +1,5 @@
 [#-- WAF IP setup --]
+[#-- TODO(mfl): deprecate account level WAF in favour of environemnt specific WAF --]
 [#if deploymentUnit?contains("waf")  || (allDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("waf", true)]
         [#list ipAddressGroups?values as group]
@@ -7,11 +8,11 @@
             [#assign ipRuleId = formatWAFIPSetRuleId(group)]
             [#assign cidrs = getGroupCIDRs(group.Id, false) ]
             [#if cidrs?has_content]
-                [@createWAFIPSet
+                [@createWAFIPSetCondition
                     listMode,
                     ipSetId,
                     ipSetName,
-                    expandCIDR(cidrs)
+                    expandCIDR([8, 16..32], cidrs )
                 /]
                 [@createWAFRule
                     listMode,

@@ -131,11 +131,15 @@
 
         [#assign securityProfile        = getSecurityProfile(solution.Profiles.Security, "apigateway")]
 
+        [#assign wafAclResources        = resources["wafacl"]!{} ]
+        [#assign cfResources            = resources["cf"]!{} ]
+        [#assign customDomainResources  = resources["customDomains"]!{} ]
+
         [#assign apiPolicyStatements    = _context.Policy ]
         [#assign apiPolicyAuth          = solution.Authentication?upper_case ]
 
         [#assign apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
-        [#if (!(resources["cf"]["wafacl"])??) && (!(apiPolicyCidr?has_content)) ]
+        [#if (!(wafAclResources?has_content)) && (!(apiPolicyCidr?has_content)) ]
             [@cfException
                 mode=listMode
                 description="No IP Address Groups provided for API Gateway"
@@ -144,7 +148,8 @@
             [#continue]
         [/#if]
 
-
+        [#-- Determine the resource policy                                                --]
+        [#--                                                                              --]
         [#-- For SIG4 variants, AWS_IAM must be enabled in the swagger specification      --]
         [#-- If AWS_IAM is enabled, it's IAM policy is evaluated in the usual fashion     --]
         [#-- with the resource policy. However if NOT defined, there is no explicit ALLOW --]
@@ -157,6 +162,7 @@
         [#-- reports a circular reference if the policy references the apiId via the arn. --]
         [#-- (see case 5398420851)                                                        --]
         [#--                                                                              --]
+
         [#if apiPolicyCidr?has_content ]
             [#-- Ensure the stage(s) used for deployments can't be accessed externally --]
             [#assign apiPolicyStatements +=
@@ -300,8 +306,18 @@
                 dependencies=deployId
             /]
 
-            [#assign cfResources = resources["cf"]!{} ]
-            [#assign customDomainResources = resources["customDomains"]!{} ]
+            [#-- Create a WAF ACL if required --]
+            [#if wafAclResources?has_content ]
+                [@createWAFAcl
+                    mode=listMode
+                    id=wafAclResources.Id
+                    name=wafAclResources.Name
+                    metric=wafAclResources.Name
+                    actionDefault=getWAFDefault(solution.WAF)
+                    rules=getWAFRules(solution.WAF) /]
+            [/#if]
+
+            [#-- Create a CloudFront distribution if required --]
             [#if cfResources?has_content]
                 [#assign origin =
                     getCFHTTPOrigin(
@@ -370,7 +386,7 @@
                         solution.CloudFront.EnableLogging)
                     origins=origin
                     restrictions=restrictions
-                    wafAclId=(cfResources["wafacl"].Id)!""
+                    wafAclId=(wafAclResources.Id)!""
                 /]
                 [@createAPIUsagePlan
                     mode=listMode
@@ -384,20 +400,9 @@
                     ]
                     dependencies=stageId
                 /]
-
-                [#if cfResources["wafacl"]?has_content ]
-                    [@createWAFAcl
-                        mode=listMode
-                        id=cfResources["wafacl"].Id
-                        name=cfResources["wafacl"].Name
-                        metric=cfResources["wafacl"].Name
-                        default=getWAFDefault(solution.WAF)
-                        rules=getWAFRules(solution.WAF) /]
-                [/#if]
             [/#if]
 
-            [#assign customDomains = resources["customDomains"]!{} ]
-            [#list customDomains as key,value]
+            [#list customDomainResources as key,value]
                 [@cfResource
                     mode=listMode
                     id=value["domain"].Id

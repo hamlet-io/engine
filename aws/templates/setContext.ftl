@@ -258,6 +258,11 @@
             "Mandatory" : true
         },
         {
+            "Names" : "OWASP",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : false
+        },
+        {
             "Names" : "Default",
             "Type" : STRING_TYPE,
             "Values" : ["ALLOW", "BLOCK"],
@@ -599,9 +604,9 @@
         [#list deploymentProfile.Modes as mode,modeProfile ]
             [#if modeProfile?is_hash ]
                 [#list modeProfile as type,config ]
-                    [#assign deploymentProfiles = 
+                    [#assign deploymentProfiles =
                         mergeObjects(
-                            deploymentProfiles, 
+                            deploymentProfiles,
                             {
                                 name : {
                                     "Modes" : {
@@ -907,7 +912,7 @@
 
                 [#if occurrence.Core.Type == "network" ]
                     [#local networkCIDR = occurrence.Configuration.Solution.Address.CIDR ]
-                [#else] 
+                [#else]
                     [#local occurrenceTier = getTier(occurrence.Core.Tier.Id) ]
                     [#local network = getLinkTarget(occurrence, occurrenceTier.Network.Link, false )]
                     [#local networkCIDR = (network.Configuration.Solution.Address.CIDR)!"COTException: local network configuration not found" ]
@@ -928,7 +933,7 @@
                         "CIDR" : []
                     }]
 
-                [@cfException 
+                [@cfException
                     mode=listMode
                     description="Local network details required"
                     context=group
