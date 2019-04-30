@@ -9,7 +9,7 @@
             [#else]
                 [#local tableArn = formatRegionalArn(
                                         "dynamodb",
-                                        ["table", table ]
+                                        formatRelativePath("table", table)
                                     )]
             [/#if]
 
