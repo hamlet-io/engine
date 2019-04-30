@@ -241,7 +241,9 @@
             resourceId=""]
     [@cfResource
         mode=mode
-        id=resourceId!id
+        id=(resourceId?has_content)?then(
+                            resourceId,
+                            id)
         type="AWS::EC2::VPC"
         properties=
             {
@@ -261,7 +263,9 @@
             resourceId=""]
     [@cfResource
         mode=mode
-        id=resourceId!id
+        id=(resourceId?has_content)?then(
+                            resourceId,
+                            id)
         type="AWS::EC2::InternetGateway"
         tags=getCfTemplateCoreTags(name)
         outputId=id
