@@ -112,6 +112,23 @@
         [#assign rdsManualSnapshot = getExistingReference(formatDependentRDSManualSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
         [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE )]
 
+        [#assign links = getLinkTargets(occurrence) ]
+        [#list links as linkId,linkTarget]
+
+            [#assign linkTargetCore = linkTarget.Core ]
+            [#assign linkTargetConfiguration = linkTarget.Configuration ]
+            [#assign linkTargetResources = linkTarget.State.Resources ]
+            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+
+            [#switch linkTargetCore.Type]
+                [#case DATASET_COMPONENT_TYPE]
+                    [#if linkTargetConfiguration.Solution.Engine == "rds" ]
+                        [#assign rdsManualSnapshot = linkTargetAttributes["SNAPSHOT_NAME"] ]
+                    [/#if]
+                    [#break]
+            [/#switch]
+        [/#list]
+
         [#assign deletionPolicy = solution.Backup.DeletionPolicy]
         [#assign updateReplacePolicy = solution.Backup.UpdateReplacePolicy]
 
@@ -133,6 +150,25 @@
             [#assign restoreSnapshotName = rdsPreDeploySnapshotId ]
         [/#if]
 
+        [#assign preDeploySnapshot = solution.Backup.SnapshotOnDeploy || 
+                                ( hibernate && hibernateStartUpMode == "restore" ) || 
+                                rdsManualSnapshot?has_content ]
+
+        [#if solution.AlwaysCreateFromSnapshot ]
+            [#if !rdsManualSnapshot?has_content ]
+                [@cfException 
+                    mode=listMode
+                    description="Snapshot must be provided to create this database"
+                    context=occurrence
+                    detail="Please provie a manual snapshot or a link to an RDS data set"
+                /]
+            [/#if]
+
+            [#assign restoreSnapshotName = rdsManualSnapshot ]
+            [#assign preDeploySnapshot = false ]
+        
+        [/#if]
+        
         [#assign dbParameters = {} ]
         [#list solution.DBParameters as key,value ]
             [#if key != "Name" && key != "Id" ]
@@ -162,9 +198,7 @@
                         ],
                         []
                     ) +
-                    (solution.Backup.SnapshotOnDeploy || 
-                        ( hibernate && hibernateStartUpMode == "restore" ) || 
-                        rdsManualSnapshot?has_content)?then(
+                    preDeploySnapshot?then(
                         [
                             "# Create RDS snapshot",
                             "function create_deploy_snapshot() {",

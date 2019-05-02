@@ -90,7 +90,7 @@
 
         [#case "rds" ]
 
-            [#local registryPrefix = getRegistryEndPoint("rdssnapshot", occurrence) ]
+            [#local registryPrefix = getRegistryPrefix("rdssnapshot", occurrence) ]
             [#local registryImage = formatName(
                                         registryPrefix,
                                         "rdssnapshot",
