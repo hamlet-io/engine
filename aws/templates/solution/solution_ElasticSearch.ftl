@@ -579,7 +579,7 @@
                                 name="local"
                                 statements=
                                             (subSolution.LogWatchers?has_content)?then(
-                                                firehoseStreamProducePermission(streamId)  +
+                                                firehoseStreamCloudwatchPermission(streamId)  +
                                                     iamPassRolePermission(
                                                         getReference(streamSubscriptionRoleId, ARN_ATTRIBUTE_TYPE)
                                                 ),
