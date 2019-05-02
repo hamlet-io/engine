@@ -160,6 +160,17 @@
                     "Names" : "Alerts",
                     "Subobjects" : true,
                     "Children" : alertChildrenConfiguration
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                },
+                {
+                    "Names" : "AlwaysCreateFromSnapshot",
+                    "Description" : "Always create the database from a snapshot",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
                 }
             ]
     }
