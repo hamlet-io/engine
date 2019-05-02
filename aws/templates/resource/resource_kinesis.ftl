@@ -31,7 +31,7 @@
 ]
 
 
-[#macro createFirehoseStream mode id name destination ]
+[#macro createFirehoseStream mode id name destination dependencies="" ]
     [@cfResource
         mode=mode
         id=id
@@ -42,6 +42,7 @@
             } +
             destination
         outputs=KINESIS_FIREHOSE_STREAM_OUTPUT_MAPPINGS
+        dependencies=dependencies
     /]
 [/#macro]
 
@@ -56,7 +57,8 @@
         retryDuration
         backupPolicy
         backupS3Destination
-        loggingConfiguration ]
+        loggingConfiguration
+        lambdaProcessor ]
     
     [#local roleArn = getReference(roleId, ARN_ATTRIBUTE_TYPE)]
     [#local backupLogStreamName = "S3Backup" ]
@@ -78,7 +80,11 @@
                 "RoleARN" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
                 "S3BackupMode" : backupPolicy,
                 "S3Configuration" : backupS3Destination,
-                "CloudWatchLoggingOptions" : loggingConfiguration
+                "CloudWatchLoggingOptions" : loggingConfiguration,
+                "ProcessingConfiguration" : {
+                    "Enabled" : true,
+                    "Processors" : asArray(lambdaProcessor)
+                }
             } 
         }
     ]
@@ -102,7 +108,7 @@
                 "SizeInMBs" : bufferSize
             },
             "CompressionFormat" : "GZIP",
-            "Prefix" : bucketPrefix,
+            "Prefix" : bucketPrefix?ensure_ends_with("/"),
             "RoleARN" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
             "CloudWatchLoggingOptions" : loggingConfiguration
         } + 
@@ -136,4 +142,36 @@
             {}
         )
     ]
+[/#function]
+
+[#function getFirehoseStreamLambdaProcessor
+    lambdaId
+    roleId
+    bufferInterval 
+    bufferSize ]
+    
+    [#return 
+        {
+            "Type" : "Lambda",
+            "Parameters" : [
+                {
+                    "ParameterName" : "BufferIntervalInSeconds",
+                    "ParameterValue" : bufferInterval?c
+                },
+                {
+                    "ParameterName" : "BufferSizeInMBs",
+                    "ParameterValue" : bufferSize?c
+                },
+                {
+                    "ParameterName" : "LambdaArn",
+                    "ParameterValue" : getArn(lambdaId)
+                },
+                {
+                    "ParameterName" : "RoleArn",
+                    "ParameterValue" : getArn(roleId)
+                }
+            ]
+        }
+    ]
+
 [/#function]

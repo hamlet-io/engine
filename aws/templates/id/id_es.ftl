@@ -266,12 +266,12 @@
                     },
                     "backuplgstream" : {
                         "Id" : formatDependentResourceId(AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE, lgId, "backup"),
-                        "Name" : "Backup",
+                        "Name" : "S3Delivery",
                         "Type" : AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE
                     },
                     "streamlgstream" : {
                         "Id" : formatDependentResourceId(AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE, lgId, "stream"),
-                        "Name" : "Stream",
+                        "Name" : "ElasticsearchDelivery",
                         "Type" : AWS_CLOUDWATCH_LOG_GROUP_STREAM_RESOURCE_TYPE
                     }
                 },

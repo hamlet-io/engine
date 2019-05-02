@@ -362,8 +362,10 @@
                     [#assign streamName = subResources["stream"].Name ]
                     
                     [#assign streamRoleId = subResources["role"].Id ]
+                    [#assign streamRolePolicyId = formatDependentPolicyId(streamRoleId, "local")]
 
                     [#assign streamSubscriptionRoleId = subResources["subscriptionRole"].Id!"" ]
+                    [#assign streamSubscriptionPolicyId = formatDependentPolicyId(streamSubscriptionRoleId, "local")]
                     
                     [#assign streamLgId = (subResources["lg"].Id)!"" ]
                     [#assign streamLgName = (subResources["lg"].Name)!"" ]
@@ -374,6 +376,8 @@
 
                     [#assign logging = subSolution.Logging ]
                     [#assign encrypted = subSolution.Encrypted]
+
+                    [#assign streamProcessors = []]
 
                     [#assign dataBucketPrefix = getAppDataFilePrefix(subOccurrence) ]
 
@@ -441,13 +445,38 @@
                     [/#list]
 
                     [#assign links = getLinkTargets(subOccurrence) ]
+                    [#assign linkPolicies = []]
+
+                    [#list links as linkId,linkTarget]
+
+                        [#assign linkTargetCore = linkTarget.Core ]
+                        [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                        [#assign linkTargetResources = linkTarget.State.Resources ]
+                        [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+
+                        [#switch linkTargetCore.Type]
+                            [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
+
+                                [#assign linkPolicies += lambdaKinesisPermission( linkTargetAttributes["ARN"])]
+                                
+                                [#assign streamProcessors += 
+                                        [ getFirehoseStreamLambdaProcessor(
+                                            linkTargetAttributes["ARN"],
+                                            streamRoleId,
+                                            subSolution.Buffering.Interval,
+                                            subSolution.Buffering.Size
+                                        )]]
+                                [#break]
+
+                            [#default]
+                                [#assign linkPolicies += getLinkTargetsOutboundRoles( { linkId, linkTarget} ) ]
+                        [/#switch]
+                    [/#list]
 
                     [#if deploymentSubsetRequired("iam", true)]
                             
                         [#if isPartOfCurrentDeploymentUnit(streamRoleId)]
 
-                            [#assign linkPolicies = getLinkTargetsOutboundRoles(links) ]
-                        
                             [@createRole
                                 mode=listMode
                                 id=streamRoleId
@@ -468,9 +497,8 @@
                                                 cwLogsProducePermission(streamLgName),
                                                 []
                                             ) + 
-                                            s3AllPermission(dataBucket, dataBucketPrefix) +
-                                            esKinesesStreamPermission(esId),
-                                            "standard"
+                                            s3AllPermission(dataBucket, dataBucketPrefix),
+                                            "base"
                                         )
                                     ] +
                                     arrayIfContent(
@@ -478,7 +506,7 @@
                                         linkPolicies)
                             /]
                         [/#if]
-
+               
                         [#if subSolution.LogWatchers?has_content &&
                               isPartOfCurrentDeploymentUnit(streamSubscriptionRoleId)]
 
@@ -487,27 +515,25 @@
                                 id=streamSubscriptionRoleId
                                 trustedServices=[ formatDomainName("logs", regionId, "amazonaws.com") ]
                             /]
-
-                            [#assign policyId = formatDependentPolicyId(streamSubscriptionRoleId, "logSubscription")]
-                            [@createPolicy
-                                mode=listMode
-                                id=policyId
-                                name="logSubscription"
-                                statements=firehoseStreamProducePermission(streamId)  +
-                                            iamPassRolePermission(
-                                                getReference(streamSubscriptionRoleId, ARN_ATTRIBUTE_TYPE)
-                                            )
-                                roles=streamSubscriptionRoleId
-                            /]
                         [/#if]
                     [/#if]
 
                     [#if deploymentSubsetRequired(ES_COMPONENT_TYPE, true)]
 
+                        [#if !streamProcessors?has_content && subSolution.LogWatchers?has_content ]
+                            [@cfException
+                                mode=listMode
+                                description="Lambda stream processor required for CloudwatchLogs"
+                                detail="Add the lambda as a link to this feed"
+                                context=subOccurrence
+                            /]
+                        [/#if]
+
                         [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration( 
                                                                 logging
                                                                 streamLgName
                                                                 streamLgStreamName )]
+
                         [#assign streamBackupLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
                                                                 logging,
                                                                 streamLgName,
@@ -521,7 +547,7 @@
                                                                 streamRoleId,
                                                                 encrypted,
                                                                 streamBackupLoggingConfiguration )]
-                        
+
                         [#assign streamESDestination = getFirehoseStreamESDestination(
                                                                 subSolution.Buffering.Interval,
                                                                 subSolution.Buffering.Size,
@@ -533,13 +559,42 @@
                                                                 subSolution.Backup.FailureDuration,
                                                                 subSolution.Backup.Policy,
                                                                 streamS3BackupDestination,
-                                                                streamLoggingConfiguration)]
+                                                                streamLoggingConfiguration,
+                                                                streamProcessors)]
+                        [#assign streamDependencies = []]
+
+                        [#assign streamDependencies += [ streamRolePolicyId ]] 
+                        [@createPolicy
+                            mode=listMode
+                            id=streamRolePolicyId
+                            name="local"
+                            statements=esKinesesStreamPermission(esId)
+                            roles=streamRoleId
+                        /]
+
+                        [#if subSolution.LogWatchers?has_content ]
+                            [@createPolicy
+                                mode=listMode
+                                id=streamSubscriptionPolicyId
+                                name="local"
+                                statements=
+                                            (subSolution.LogWatchers?has_content)?then(
+                                                firehoseStreamProducePermission(streamId)  +
+                                                    iamPassRolePermission(
+                                                        getReference(streamSubscriptionRoleId, ARN_ATTRIBUTE_TYPE)
+                                                ),
+                                                []
+                                            )
+                                roles=streamSubscriptionRoleId
+                            /]
+                        [/#if]
 
                         [@createFirehoseStream 
                             mode=listMode 
                             id=streamId 
                             name=streamName 
                             destination=streamESDestination 
+                            dependencies=streamDependencies
                         /]
                     [/#if]
                 [#break]
