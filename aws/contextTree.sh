@@ -247,7 +247,7 @@ function assemble_settings() {
 
     # Sensitive
     readarray -t setting_files < <(find . -type f \( \
-      -name "*credentials.json" -or -name "*sensitive.json" \
+      \( -name "*credentials.json" -or -name "*sensitive.json" \) \
       -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
@@ -306,7 +306,7 @@ function assemble_settings() {
 
     # Sensitive
     readarray -t setting_files < <(find . -type f \( \
-      -name "*credentials.json" -or -name "*sensitive.json" \
+      \( -name "*credentials.json" -or -name "*sensitive.json" \) \
       -and -not \( -path "*/asfile/*" -or -path "*/asFile/*" \) \
       -and -not \( -name ".*" -or -path "*/.*/*" \) \) )
     if ! arrayIsEmpty "setting_files" ; then
