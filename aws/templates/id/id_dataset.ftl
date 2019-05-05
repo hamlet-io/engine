@@ -53,6 +53,8 @@
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence, true ) ]
 
+    [#local dataSetDeploymentUnit = solution.DeploymentUnits[0] ]
+
     [#local attributes = {
             "DATASET_ENGINE" : solution.Engine
     }]
@@ -95,7 +97,7 @@
                                         registryPrefix,
                                         "rdssnapshot",
                                         productId,
-                                        deploymentUnit, 
+                                        dataSetDeploymentUnit, 
                                         buildReference)]
 
             [#local attributes += {
