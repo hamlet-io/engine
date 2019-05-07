@@ -72,6 +72,11 @@
                                     getOccurrenceBuildUnit(occurrence),
                                     getOccurrenceBuildReference(occurrence))]
 
+    [#assign configFilePath = formatRelativePath(
+                                getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                                "config" )]
+    [#assign configFileName = "config.json" ]
+
     [#list solution.Links?values as link]
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
@@ -105,7 +110,10 @@
             "Resources" : {
                 "mobileapp" : {
                     "Id" : id,
-                    "Type" : COT_MOBILEAPP_RESOURCE_TYPE
+                    "Type" : COT_MOBILEAPP_RESOURCE_TYPE,
+                    "ConfigFilePath" : configFilePath,
+                    "ConfigFileName" : configFileName,
+                    "Deployed" : true
                 }
             },
             "Attributes" : {
@@ -117,7 +125,9 @@
                 "OTA_ARTEFACT_BUCKET" : otaBucket,
                 "OTA_ARTEFACT_PREFIX" : otaPrefix,
                 "OTA_ARTEFACT_URL" : otaURL,
-                "CONFIG_FILE" : getExistingReference(formatId(id, "configFile"))
+                "CONFIG_FILE" : formatRelativePath(
+                                    configFilePath,
+                                    configFileName)
             }
         }
     ]

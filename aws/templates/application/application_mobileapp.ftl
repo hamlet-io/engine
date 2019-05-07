@@ -12,11 +12,8 @@
         [#assign resources = occurrence.State.Resources ]
 
         [#assign mobileAppId = resources["mobileapp"].Id]
-
-        [#assign configFilePath = formatRelativePath(
-                                    getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
-                                    "config" )]
-        [#assign configFileName = "config.json" ]
+        [#assign configFilePath = resources["mobileapp"].ConfigFilePath ]
+        [#assign configFileName = resources["mobileapp"].ConfigFileName ]
 
         [#assign fragment =
                 contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
@@ -82,28 +79,6 @@
                         operationsBucket,
                         configFilePath
                     ) /]
-        [/#if]
-
-        [#if deploymentSubsetRequired("epilogue", false)]
-            [@cfScript
-                mode=listMode
-                content=
-                [
-                    "case $\{STACK_OPERATION} in",
-                    "  create|update)"
-                ] +
-                pseudoStackOutputScript(
-                    "Mobile App",
-                    {
-                        mobileAppId : mobileAppId,
-                        formatId(mobileAppId, "configFile") : formatRelativePath(configFilePath, configFileName)
-                    }
-                ) +
-                [
-                    "       ;;",
-                    "       esac"
-                ]
-            /]
         [/#if]
     [/#list]
 [/#if]
