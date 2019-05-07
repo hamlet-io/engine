@@ -847,7 +847,7 @@ behaviour.
             [#case DATAPIPELINE_COMPONENT_TYPE ]
                 [#local result = getDataPipelineState(occurrence)]
                 [#break]
-            
+
             [#case DATAVOLUME_COMPONENT_TYPE ]
                 [#local result = getDataVolumeState(occurrence)]
                 [#break]
@@ -935,7 +935,7 @@ behaviour.
             [#case USERPOOL_COMPONENT_TYPE]
                 [#local result = getUserPoolState(occurrence, result)]
                 [#break]
-            
+
             [#case USERPOOL_CLIENT_COMPONENT_TYPE]
                 [#local result = getUserPoolClientState(occurrence, parentOccurrence)]
                 [#break]
@@ -951,7 +951,7 @@ behaviour.
             [#case NETWORK_COMPONENT_TYPE ]
                 [#local result = getNetworkState(occurrence)]
                 [#break]
-            
+
             [#case NETWORK_ROUTE_TABLE_COMPONENT_TYPE ]
                 [#local result = getNetworkRouteTableState(occurrence )]
                 [#break]
@@ -971,7 +971,7 @@ behaviour.
             [#case BASELINE_COMPONENT_TYPE ]
                 [#local result = getBaselineState(occurrence)]
                 [#break]
-            
+
             [#case BASELINE_DATA_COMPONENT_TYPE ]
                 [#local result = getBaselineStorageState(occurrence, parentOccurrence)]
                 [#break]
@@ -1396,7 +1396,7 @@ behaviour.
         [#local typeObject = component ]
     [/#if]
 
-    [#--  Deployment Profile Configuration Overrides --] 
+    [#--  Deployment Profile Configuration Overrides --]
     [#local deploymentProfileComponents = getDeploymentProfile(typeObject, deploymentMode) ]
     [#local typeObject = mergeObjects(typeObject, deploymentProfileComponents[type]!{} )]
 
@@ -1902,17 +1902,10 @@ behaviour.
 [/#function]
 
 [#function getSecurityProfile profileName type engine="" ]
-    [#local profile = {} ]
 
-    [#if (securityProfiles[profileName][type])??]
-        [#local profile = securityProfiles[profileName][type]]
-    [/#if]
+    [#local profile = (securityProfiles[profileName][type])!{} ]
+    [#return profile[engine]!profile ]
 
-    [#if engine?has_content && profile[engine]?has_content ]
-        [#return profile[engine] ]
-    [#else]
-        [#return profile ]
-    [/#if]
 [/#function]
 
 [#function getNetworkEndpoints endpointGroups zone region ]
@@ -1921,7 +1914,7 @@ behaviour.
 
     [#local regionObject = regions[region]]
     [#local zoneNetworkEndpoints = regionObject.Zones[zone].NetworkEndpoints ]
-    
+
     [#list endpointGroups as endpointGroup ]
         [#if networkEndpointGroups[endpointGroup]?? ]
             [#list networkEndpointGroups[endpointGroup].Services as service ]
@@ -1935,14 +1928,14 @@ behaviour.
     [#list services as service ]
         [#list zoneNetworkEndpoints as zoneNetworkEndpoint ]
             [#if (zoneNetworkEndpoint.ServiceName!"")?ends_with(service) ]
-                [#local networkEndpoints += 
-                    { 
-                        service : zoneNetworkEndpoint  
+                [#local networkEndpoints +=
+                    {
+                        service : zoneNetworkEndpoint
                     }]
             [/#if]
         [/#list]
     [/#list]
-    
+
     [#return networkEndpoints]
 [/#function]
 
@@ -1989,7 +1982,7 @@ behaviour.
             [/#if]
         [/#list]
     [/#if]
-    
+
     [#local deploymentProfile = {} ]
     [#list deploymentProfileNames as deploymentProfileName ]
         [#local deploymentProfile = mergeObjects( deploymentProfile, (deploymentProfiles[deploymentProfileName])!{} )]
@@ -2374,47 +2367,6 @@ behaviour.
 
 [/#function]
 
-[#-- WAF functions --]
-
-[#function getWAFDefault configuration={} ]
-    [#list configuration.IPAddressGroups as group]
-        [#if (getIPAddressGroup(group).IsOpen)!false ]
-            [#return "ALLOW" ]
-        [/#if]
-    [/#list]
-    [#return configuration.Default ]
-[/#function]
-
-[#function getWAFRules configuration={} ]
-    [#local result = [] ]
-
-    [#local wafDefault = getWAFDefault(configuration) ]
-    [#local wafRuleDefault = configuration.RuleDefault ]
-
-    [#list configuration.IPAddressGroups as group]
-        [#local addressGroup = getIPAddressGroup(group) ]
-        [#if ! addressGroup.IsOpen]
-            [#if group?is_hash]
-                [#local action = (group.Action?upper_case)!wafRuleDefault ]
-            [#else]
-                [#local action = wafRuleDefault ]
-            [/#if]
-            [#if (wafDefault == "ALLOW") && (action == "ALLOW") ]
-                [#-- more useful to count if default is allow --]
-                [#local action = "COUNT" ]
-            [/#if]
-            [#local result += [
-                    {
-                        "Id" : "${formatWAFIPSetRuleId(addressGroup)}",
-                        "Action" : "${action}"
-                    }
-                ]
-            ]
-        [/#if]
-    [/#list]
-    [#return result ]
-[/#function]
-
 [#function getResourceMetricDimensions resource resources]
     [#local resourceMetricAttributes = metricAttributes[resource.Type]!{} ]
 
@@ -2447,18 +2399,18 @@ behaviour.
                         [#local occurrenceDimensions += [{
                             "Name" : name,
                             "Value" : getReference(otherResource.Id, value.Property)
-                        }]]   
-                        [#break]      
+                        }]]
+                        [#break]
                     [#case "PseudoOutput" ]
                         [#local occurrenceDimensions += [{
                             "Name" : name,
                             "Value" : { "Ref" : value }
                         }]]
-                        [#break]          
+                        [#break]
                 [/#switch]
             [/#list]
         [/#list]
-        
+
         [#return occurrenceDimensions]
     [#else]
         [@cfException
@@ -2478,7 +2430,7 @@ behaviour.
             [#case "_productPath" ]
                 [#return formatProductRelativePath()]
                 [#break]
-            
+
             [#default]
                 [#return resourceTypeNameSpace]
         [/#switch]
@@ -2507,13 +2459,13 @@ behaviour.
 [#function getMonitoredResources resources, resourceQualifier ]
     [#local monitoredResources = {} ]
 
-    [#list resources as id,resource ] 
+    [#list resources as id,resource ]
 
-        [#if !resource["Type"]?has_content && resource?is_hash] 
+        [#if !resource["Type"]?has_content && resource?is_hash]
             [#list resource as id,subResource ]
                 [#local monitoredResources += getMonitoredResources({id : subResource}, resourceQualifier)]
             [/#list]
-        
+
         [#else]
 
             [#if resourceQualifier.Id?has_content || resourceQualifier.Type?has_content ]
@@ -2532,7 +2484,7 @@ behaviour.
 
             [#else]
 
-                [#if resource["Type"]?has_content] 
+                [#if resource["Type"]?has_content]
 
                     [#if resource["Monitored"]!false ]
                         [#local monitoredResources += {

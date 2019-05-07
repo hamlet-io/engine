@@ -8,6 +8,7 @@
 [#-- AWs hasn't defined any of interest                        --]
 [#assign AWS_WAF_RULE_RESOURCE_TYPE = "wafRule" ]
 [#assign AWS_WAF_ACL_RESOURCE_TYPE = "wafAcl" ]
+[#assign AWS_WAF_ACL_ASSOCIATION_RESOURCE_TYPE = "wafAssoc" ]
 
 [#-- TODO(mfl): Deprecate direct creation of IPSet rule --]
 [#assign AWS_WAF_IPSET_RESOURCE_TYPE = "wafIpSet" ]
@@ -61,6 +62,19 @@
 [#function formatDependentWAFAclId resourceId extensions...]
     [#return formatDependentResourceId(
                 AWS_WAF_ACL_RESOURCE_TYPE,
+                resourceId,
+                extensions)]
+[/#function]
+
+[#function formatWAFAclAssociationId ids...]
+    [#return formatResourceId(
+                AWS_WAF_ACL_ASSOCIATION_RESOURCE_TYPE,
+                ids)]
+[/#function]
+
+[#function formatDependentWAFAclAssociationId resourceId extensions...]
+    [#return formatDependentResourceId(
+                AWS_WAF_ACL_ASSOCIATION_RESOURCE_TYPE,
                 resourceId,
                 extensions)]
 [/#function]

@@ -49,7 +49,7 @@
 [/#function]
 
 [#function getArn idOrArn existingOnly=false inRegion=""]
-    [#if idOrArn?contains(":")]
+    [#if idOrArn?is_hash || idOrArn?contains(":")]
         [#return idOrArn]
     [#else]
         [#return
