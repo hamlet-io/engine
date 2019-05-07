@@ -296,16 +296,6 @@ function main() {
             
             IOS_DIST_PROVISIONING_PROFILE="${OPS_PATH}/ios_profile.mobileprovision"
             IOS_DIST_P12_FILE="${OPS_PATH}/ios_distribution.p12"
-            IOS_PUSH_P12_FILE="${OPS_PATH}/ios_notification_apns.p12"
-
-            #Apple notification certificate support
-            if [[ -f "${IOS_PUSH_P12_FILE}" ]]; then
-
-                IOS_PUSH_P12_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.IOS_PUSH_P12_PASSWORD' < "${BUILD_BLUEPRINT}" )"
-                export EXPO_IOS_PUSH_P12_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${IOS_PUSH_P12_PASSWORD#"base64:"}")"
-                
-                TURTLE_EXTRA_BUILD_ARGS="${TURTLE_EXTRA_BUILD_ARGS} --push-p12-path ${IOS_PUSH_P12_FILE}"
-            fi
 
             TURTLE_EXTRA_BUILD_ARGS="${TURTLE_EXTRA_BUILD_ARGS} --team-id ${IOS_DIST_APPLE_ID} --dist-p12-path ${IOS_DIST_P12_FILE} --provisioning-profile-path ${IOS_DIST_PROVISIONING_PROFILE}"
             ;;
