@@ -402,6 +402,23 @@
                 "Type" : BOOLEAN_TYPE
             }
         ]
+    },
+    {
+        "Names" : "IncludeInDomain",
+        "Children" : [
+            {
+                "Names" : "Product",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Environment",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Segment",
+                "Type" : BOOLEAN_TYPE
+            }
+        ]
     }
 ]]
 
