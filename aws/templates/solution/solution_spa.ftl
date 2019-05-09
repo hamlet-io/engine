@@ -149,6 +149,9 @@
         [#assign wafAclName     = resources["wafacl"].Name]
 
         [#if deploymentSubsetRequired("spa", true)]
+            [#assign origins = []]
+            [#assign cacheBehaviours = []]
+
             [#assign spaOrigin =
                 getCFS3Origin(
                     cfSPAOriginId,
@@ -156,6 +159,8 @@
                     cfAccess,
                     formatAbsolutePath(getSettingsFilePrefix(occurrence), "spa"),
                     _context.CustomOriginHeaders)]
+            [#assign origins += spaOrigin ]
+
             [#assign configOrigin =
                 getCFS3Origin(
                     cfConfigOriginId,
@@ -163,6 +168,7 @@
                     cfAccess,
                     formatAbsolutePath(getSettingsFilePrefix(occurrence)),
                     _context.CustomOriginHeaders)]
+            [#assign origins += configOrigin ]
 
             [#assign spaCacheBehaviour = getCFSPACacheBehaviour(
                 spaOrigin,
@@ -175,6 +181,7 @@
                 solution.CloudFront.Compress,
                 eventHandlers,
                 _context.ForwardHeaders)]
+                
             [#assign configCacheBehaviour = getCFSPACacheBehaviour(
                 configOrigin,
                 "/config/*",
@@ -182,6 +189,46 @@
                 solution.CloudFront.Compress,
                 eventHandlers,
                 _context.ForwardHeaders) ]
+            [#assign cacheBehaviours += configCacheBehaviour ]
+
+            [#list resources["paths"] as id, path ]
+                [#assign pathOriginIdId = path["cforigin"]["Id"] ]
+                [#assign pathSolution = solution.CloudFront.Paths[id] ]
+
+                [#assign pathLink = getLinkTarget(occurrence, pathSolution.Link) ]
+                
+                [#if !pathLink?has_content]
+                    [#continue]
+                [/#if]
+
+                [#assign pathLinkTargetCore = pathLink.Core ]
+                [#assign pathLinkTargetConfiguration = pathLink.Configuration ]
+                [#assign pathLinkTargetResources = pathLink.State.Resources ]
+                [#assign pathLinkTargetAttributes = pathLink.State.Attributes ]
+
+                [#switch pathLinkTargetCore.Type]
+                    [#case LB_PORT_COMPONENT_TYPE ]
+                        [#assign pathOrigin = getCFHTTPOrigin(
+                                                    pathOriginIdId,
+                                                    pathLinkTargetAttributes["FQDN"],
+                                                    _context.CustomOriginHeaders,
+                                                    pathLinkTargetAttributes["PATH"]
+                        )]
+                        [#assign origins += pathOrigin ]
+                        [#break]
+                [/#switch]
+                
+                [#assign pathBehaviour = getCFLBCacheBehaviour(
+                                            pathOrigin,
+                                            pathSolution.PathPattern,
+                                            pathSolution.CachingTTL,
+                                            pathSolution.Compress,
+                                            _context.ForwardHeaders,
+                                            eventHandlers
+                                            
+                )]
+                [#assign cacheBehaviours += pathBehaviour ]
+            [/#list]
 
             [#assign restrictions = {} ]
             [#if solution.CloudFront.CountryGroups?has_content]
@@ -203,7 +250,7 @@
                         aliases,
                         []
                     )
-                cacheBehaviours=configCacheBehaviour
+                cacheBehaviours=cacheBehaviours
                 certificate=valueIfTrue(
                     getCFCertificate(
                         certificateId,
@@ -238,7 +285,7 @@
                         )
                     ),
                     solution.CloudFront.EnableLogging)
-                origins=spaOrigin + configOrigin
+                origins=origins
                 restrictions=valueIfContent(
                     restrictions,
                     restrictions)

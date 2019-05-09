@@ -139,6 +139,48 @@
                                     "Mandatory" : true
                                 }
                             ]
+                        },
+                        {
+                            "Names" : "Paths",
+                            "Subobjects" : true,
+                            "Description" : "Additional path based routes to other components",
+                            "Children" : [
+                                {
+                                    "Names" : "PathPattern",
+                                    "Type" : STRING_TYPE,
+                                    "Mandatory" : true
+                                },
+                                {
+                                    "Names" : "Link",
+                                    "Children" : linkChildrenConfiguration,
+                                    "Mandatory" : true
+                                },
+                                {
+                                    "Names" : "CachingTTL",
+                                    "Children" : [
+                                        {
+                                            "Names" : "Default",
+                                            "Type" : NUMBER_TYPE,
+                                            "Default" : 600
+                                        },
+                                        {
+                                            "Names" : "Maximum",
+                                            "Type" : NUMBER_TYPE,
+                                            "Default" : 31536000
+                                        },
+                                        {
+                                            "Names" : "Minimum",
+                                            "Type" : NUMBER_TYPE,
+                                            "Default" : 0
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Names" : "Compress",
+                                    "Type" : BOOLEAN_TYPE,
+                                    "Default" : false
+                                }
+                            ]
                         }
                     ]
                 },
@@ -175,6 +217,18 @@
             [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
     [/#if]
 
+    [#assign pathResources = {}]
+    [#list solution.CloudFront.Paths as id,path ]
+        [#assign pathResources += {
+            id : {
+                "cforigin" : {
+                    "Id" : id,
+                    "Type" : AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE
+                }
+            }
+        }]
+    [/#list]
+
     [#return
         {
             "Resources" : {
@@ -195,7 +249,8 @@
                     "Id" : formatDependentWAFAclId(cfId),
                     "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_WAF_ACL_RESOURCE_TYPE
-                }
+                },
+                "paths" : pathResources
             },
             "Attributes" : {
                 "FQDN" : fqdn,

@@ -130,6 +130,40 @@
     ]
 [/#function]
 
+[#function getCFLBCacheBehaviour origin path="" ttl={"Default" : 600} compress=true forwardHeaders=[] eventHandlers=[] ]
+        [#return
+        getCFCacheBehaviour(
+            origin,
+            path,
+            {
+                "Allowed" : [
+                    "DELETE",
+                    "GET",
+                    "HEAD",
+                    "OPTIONS",
+                    "PATCH",
+                    "POST",
+                    "PUT"
+                ],
+                "Cached" : [
+                    "GET",
+                    "HEAD"
+                ]
+            },
+            ttl,
+            {
+                "Cookies" : {
+                    "Forward" : "all"
+                },
+                "Headers" : forwardHeaders,
+                "QueryString" : true
+            },
+            compress,
+            eventHandlers
+        )
+    ]
+[/#function]
+
 [#function getCFAPIGatewayCacheBehaviour origin customHeaders=[] compress=true]
     [#return
         getCFCacheBehaviour(
