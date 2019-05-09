@@ -450,6 +450,7 @@
 [#function getFinalEnvironment occurrence context environmentSettings={}]
     [#local asFile = environmentSettings.AsFile!false]
     [#local serialisationConfig = environmentSettings.Json!{}]
+
     [#return
         {
             "Environment" :

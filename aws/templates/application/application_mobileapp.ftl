@@ -29,7 +29,7 @@
                 "Environment" : {},
                 "Links" : contextLinks,
                 "DefaultCoreVariables" : false,
-                "DefaultEnvironmentVariables" : false,
+                "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : false
             }
         ]
@@ -39,7 +39,7 @@
         [#assign fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#assign finalAsFileEnvironment = getFinalEnvironment(occurrence, _context) ]
+        [#assign finalAsFileEnvironment = getFinalEnvironment(occurrence, _context, { "Json" : { "Include" : { "Sensitive" : false }}}) ]
 
         [#if deploymentSubsetRequired("config", false)]
             [@cfConfig
