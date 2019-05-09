@@ -2767,7 +2767,9 @@
         "WAFValueSet" : "default"
       },
       "spa": {
-        "HTTPSProfile": "TLSv1"
+        "HTTPSProfile": "TLSv1",
+        "WAFProfile" : "OWASP2017",
+        "WAFValueSet" : "default"
       }
     }
   },
