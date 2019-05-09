@@ -249,9 +249,9 @@
                     "Id" : formatDependentWAFAclId(cfId),
                     "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_WAF_ACL_RESOURCE_TYPE
-                },
-                "paths" : pathResources
-            },
+                }
+            } + 
+            attributeIfContent( "paths", pathResources ),
             "Attributes" : {
                 "FQDN" : fqdn,
                 "URL" : "https://" + fqdn

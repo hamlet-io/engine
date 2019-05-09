@@ -191,7 +191,7 @@
                 _context.ForwardHeaders) ]
             [#assign cacheBehaviours += configCacheBehaviour ]
 
-            [#list resources["paths"] as id, path ]
+            [#list resources["paths"]!{} as id, path ]
                 [#assign pathOriginIdId = path["cforigin"]["Id"] ]
                 [#assign pathSolution = solution.CloudFront.Paths[id] ]
 
