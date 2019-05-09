@@ -242,6 +242,7 @@ function main() {
   fi
 
   # Update the app.json with build context information - Also ensure we always have a unique IOS build number
+  # filter out the credentials used for the build process
   jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.extra.build_reference=env.BUILD_REFERENCE | .expo.ios.buildNumber=env.BUILD_NUMBER | .expo.extra= .expo.extra + $envConfig[]' <  "./app.json" > "${tmpdir}/environment-app.json"  
   mv "${tmpdir}/environment-app.json" "./app.json"
 
