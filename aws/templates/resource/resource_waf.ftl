@@ -332,7 +332,7 @@
                 [#local ruleName = formatName(name,"rule",rule?counter)]
             [/#if]
             [#if !ruleMetric?has_content]
-                [#local ruleName = formatName(metric,"rule",rule?counter)]
+                [#local ruleMetric = formatId(metric,"rule",rule?counter)]
             [/#if]
             [#if rule.Conditions?has_content]
                 [@createWAFRule
