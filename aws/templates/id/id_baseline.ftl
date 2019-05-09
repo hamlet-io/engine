@@ -178,7 +178,7 @@
             [/#if]
             [#break]
 
-        [#case "ops" ]
+        [#case "opsdata" ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "ops") ]
             [#if getExistingReference(formatS3OperationsId())?has_content ]
                 [#local bucketId = formatS3OperationsId() ]

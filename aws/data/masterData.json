@@ -1336,7 +1336,7 @@
           "DeploymentUnits" : [ "baseline" ],
           "baseline" : {
             "DataBuckets" : {
-              "ops" : {
+              "opsdata" : {
                 "Role" : "operations",
                 "Lifecycles" : {
                   "awslogs" : {
