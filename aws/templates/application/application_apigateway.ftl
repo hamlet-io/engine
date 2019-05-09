@@ -127,7 +127,7 @@
         [/#list]
 
         [#assign endpointType           = solution.EndpointType ]
-        [#assign isEdgeEndpointType     = endpointType == "EDGE" ]
+        [#assign isRegionalEndpointType = endpointType == "REGIONAL" ]
 
         [#assign securityProfile        = getSecurityProfile(solution.Profiles.Security, "apigateway")]
 
@@ -163,18 +163,19 @@
         [#-- (see case 5398420851)                                                        --]
         [#--                                                                              --]
 
+        [#-- Ensure the stage(s) used for deployments can't be accessed externally --]
+        [#assign apiPolicyStatements +=
+            [
+                getPolicyStatement(
+                    "execute-api:Invoke",
+                    "execute-api:/default/*",
+                    "*",
+                    {},
+                    false
+                )
+            ] ]
         [#if apiPolicyCidr?has_content ]
             [#-- Ensure the stage(s) used for deployments can't be accessed externally --]
-            [#assign apiPolicyStatements +=
-                [
-                    getPolicyStatement(
-                        "execute-api:Invoke",
-                        "execute-api:/default/*",
-                        "*",
-                        {},
-                        false
-                    )
-                ] ]
             [#switch apiPolicyAuth ]
                 [#case "IP" ]
                     [#-- No explicit ALLOW so provide one in the resource policy --]
@@ -223,6 +224,16 @@
                         ] ]
                     [#break]
             [/#switch]
+        [#else]
+            [#-- No IP filtering required so add explicit ALLOW in the resource policy --]
+            [#assign apiPolicyStatements +=
+                [
+                    getPolicyStatement(
+                        "execute-api:Invoke",
+                        "execute-api:/*",
+                        "*"
+                    )
+                ] ]
         [/#if]
 
         [#assign accessLgId   = resources["accesslg"].Id]
@@ -254,7 +265,7 @@
                     } +
                     attributeIfTrue(
                         "EndpointConfiguration",
-                        !isEdgeEndpointType,
+                        isRegionalEndpointType,
                         {
                             "Types" : [endpointType]
                         }
@@ -308,13 +319,38 @@
 
             [#-- Create a WAF ACL if required --]
             [#if wafAclResources?has_content ]
-                [@createWAFAcl
+                [@createWAFAclFromSecurityProfile
                     mode=listMode
-                    id=wafAclResources.Id
-                    name=wafAclResources.Name
-                    metric=wafAclResources.Name
-                    actionDefault=getWAFDefault(solution.WAF)
-                    rules=getWAFRules(solution.WAF) /]
+                    id=wafAclResources.acl.Id
+                    name=wafAclResources.acl.Name
+                    metric=wafAclResources.acl.Name
+                    wafSolution=solution.WAF
+                    securityProfile=securityProfile
+                    occurrence=occurrence
+                    regional=isRegionalEndpointType && (!cfResources?has_content) /]
+
+                [#if !cfResources?has_content]
+                    [#-- Attach to API Gateway if no CloudFront distribution --]
+                    [@createWAFAclAssociation
+                        mode=listMode
+                        id=wafAclResources.association.Id
+                        wafaclId=wafAclResources.acl.Id
+                        endpointId=
+                            formatRegionalArn(
+                                "apigateway",
+                                {
+                                    "Fn::Join": [
+                                        "/",
+                                        [
+                                            "/restapis",
+                                            getReference(apiId),
+                                            "stages",
+                                            stageName
+                                        ]
+                                    ]
+                                }
+                            ) /]
+                [/#if]
             [/#if]
 
             [#-- Create a CloudFront distribution if required --]
@@ -386,7 +422,7 @@
                         solution.CloudFront.EnableLogging)
                     origins=origin
                     restrictions=restrictions
-                    wafAclId=(wafAclResources.Id)!""
+                    wafAclId=(wafAclResources.acl.Id)!""
                 /]
                 [@createAPIUsagePlan
                     mode=listMode
@@ -413,16 +449,16 @@
                         } +
                         valueIfTrue(
                             {
-                                "CertificateArn":
-                                    getArn(value["domain"].CertificateId, true, "us-east-1")
-                            },
-                            isEdgeEndpointType,
-                            {
                                 "RegionalCertificateArn":
                                     getArn(value["domain"].CertificateId, true, regionId),
                                 "EndpointConfiguration" : {
                                     "Types" : [endpointType]
                                 }
+                            },
+                            isRegionalEndpointType,
+                            {
+                                "CertificateArn":
+                                    getArn(value["domain"].CertificateId, true, "us-east-1")
                             }
                         )
                     outputs={}

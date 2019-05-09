@@ -40,89 +40,145 @@
     }
 }]
 
-[#-- Format used by multiple condition types --]
-[#function formatWAFFieldToMatch filter]
+[#-- Generate effective list from value sets --]
+[#function getWAFValueList valueSetEntries=[] valueSet={} ]
+    [#local result = [] ]
+    [#list asArray(valueSetEntries) as valueSetEntry]
+        [#if valueSetEntry?is_string && valueSet[valueSetEntry]??]
+            [#local result += asArray(valueSet[valueSetEntry]) ]
+        [#else]
+            [#local result += [valueSetEntry] ]
+        [/#if]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#-- Generic processing for fields to match --]
+[#function formatWAFFieldToMatch field ]
+    [#local result = [] ]
     [#return
         {
             "FieldToMatch" : {
-                "Type" : filter.FieldType?upper_case
+                "Type" : field.Type?upper_case
             } +
             attributeIfTrue(
                 "Data",
-                ["HEADER", "SINGLE_QUERY_ARG"]?seq_contains(filter.FieldType?upper_case),
-                filter.FieldData!""
+                ["HEADER", "SINGLE_QUERY_ARG"]?seq_contains(field.Type?upper_case),
+                field.Data!""
             )
         } ]
+    [#return result]
 [/#function]
 
-[#function formatWAFByteMatchTuple filter={} ]
-    [#return
-        formatWAFFieldToMatch(filter) +
-        {
-            "TargetString" : filter.Target,
-            "TextTransformation" : filter.Transformation?upper_case,
-            "PositionalConstraint" : filter.Constraint?upper_case
-        } ]
+[#function formatWAFByteMatchTuples filter={} valueSet={} ]
+    [#local result = [] ]
+    [#list getWAFValueList(filter.FieldsToMatch, valueSet) as field]
+        [#list getWAFValueList(filter.Targets, valueSet) as target]
+            [#list getWAFValueList(filter.Constraints, valueSet) as constraint]
+                [#list getWAFValueList(filter.Transformations, valueSet) as transformation]
+                    [#local result += [
+                            formatWAFFieldToMatch(field) +
+                            {
+                                "TargetString" : target,
+                                "PositionalConstraint" : constraint?upper_case,
+                                "TextTransformation" : transformation?upper_case
+                            }
+                        ] ]
+                [/#list]
+            [/#list]
+        [/#list]
+    [/#list]
+    [#return result]
 [/#function]
 
-[#function formatWAFIPMatchTuple filter="" ]
-    [#local analyzedCIDR = analyzeCIDR(filter) ]
-    [#return
-        valueIfContent(
-        {
-            "Type" : analyzedCIDR.Type,
-            "Value" : filter
-        },
-        analyzedCIDR) ]
+[#function formatWAFIPMatchTuples filter={} valueSet={} ]
+    [#local result= [] ]
+    [#list getWAFValueList(filter.Targets, valueSet) as target]
+        [#local analyzedCIDR = analyzeCIDR(target) ]
+        [#if analyzedCIDR?has_content]
+            [#local result += [
+                    {
+                        "Type" : analyzedCIDR.Type,
+                        "Value" : target
+                    }
+                ] ]
+        [/#if]
+    [/#list]
+    [#return result]
 [/#function]
 
-[#function formatWAFSizeConstraintTuple filter={} ]
-    [#return
-        formatWAFFieldToMatch(filter) +
-        {
-            "ComparisonOperator" : filter.Operator?upper_case,
-            "Size" : filter.Size?c,
-            "TextTransformation" : filter.Transformation?upper_case
-        } ]
+[#function formatWAFSizeConstraintTuples filter={} valueSet={} ]
+    [#local result = [] ]
+    [#list getWAFValueList(filter.FieldsToMatch, valueSet) as field]
+        [#list getWAFValueList(filter.Operators, valueSet) as operator]
+            [#list getWAFValueList(filter.Sizes, valueSet) as size]
+                [#list getWAFValueList(filter.Transformations, valueSet) as transformation]
+                    [#local result += [
+                            formatWAFFieldToMatch(field) +
+                            {
+                                "ComparisonOperator" : operator?upper_case,
+                                "Size" : size?c,
+                                "TextTransformation" : transformation?upper_case
+                            }
+                        ] ]
+                [/#list]
+            [/#list]
+        [/#list]
+    [/#list]
+    [#return result]
 [/#function]
 
-[#function formatWAFSqlInjectionMatchTuple filter={} ]
-    [#return
-        formatWAFFieldToMatch(filter) +
-        {
-            "TextTransformation" : filter.Transformation?upper_case
-        } ]
+[#function formatWAFSqlInjectionMatchTuples filter={} valueSet={} ]
+    [#local result = [] ]
+    [#list getWAFValueList(filter.FieldsToMatch, valueSet) as field]
+        [#list getWAFValueList(filter.Transformations, valueSet) as transformation]
+            [#local result += [
+                    formatWAFFieldToMatch(field) +
+                    {
+                        "TextTransformation" : transformation?upper_case
+                    }
+                ] ]
+        [/#list]
+    [/#list]
+    [#return result]
 [/#function]
 
-[#function formatWAFXssMatchTuple filter={} ]
-    [#return
-        formatWAFFieldToMatch(filter) +
-        {
-            "TextTransformation" : filter.Transformation?upper_case
-        } ]
+[#function formatWAFXssMatchTuples filter={} valueSet={} ]
+    [#local result = [] ]
+    [#list getWAFValueList(filter.FieldsToMatch, valueSet) as field]
+        [#list getWAFValueList(filter.Transformations, valueSet) as transformation]
+            [#local result += [
+                    formatWAFFieldToMatch(field) +
+                    {
+                        "TextTransformation" : transformation?upper_case
+                    }
+                ] ]
+        [/#list]
+    [/#list]
+    [#return result]
 [/#function]
 
 
 [#-- Capture similarity between conditions --]
-[#macro createWAFCondition mode id name type filters=[] regional=false]
+[#macro createWAFCondition mode id name type filters=[] valueSet={} regional=false]
     [#if (WAFConditions[type].ResourceType)?has_content]
         [#local result = [] ]
         [#list asArray(filters) as filter]
             [#switch type]
                 [#case AWS_WAF_BYTE_MATCH_CONDITION_TYPE]
-                    [#local result += [formatWAFByteMatchTuple(filter)] ]
+                    [#local result += formatWAFByteMatchTuples(filter, valueSet) ]
                     [#break]
                 [#case AWS_WAF_IP_MATCH_CONDITION_TYPE]
-                    [#local result += [formatWAFIPMatchTuple(filter)] ]
+                    [#local result += formatWAFIPMatchTuples(filter, valueSet) ]
                     [#break]
                 [#case AWS_WAF_SIZE_CONSTRAINT_CONDITION_TYPE]
-                    [#local result += [formatWAFSizeConstraintTuple(filter)] ]
+                    [#local result += formatWAFSizeConstraintTuples(filter, valueSet) ]
                     [#break]
                 [#case AWS_WAF_SQL_INJECTION_MATCH_CONDITION_TYPE]
-                    [#local result += [formatWAFSqlInjectionMatchTuple(filter)] ]
+                    [#local result += formatWAFSqlInjectionMatchTuples(filter, valueSet) ]
                     [#break]
                 [#case AWS_WAF_XSS_MATCH_CONDITION_TYPE]
-                    [#local result += [formatWAFXssMatchTuple(filter)] ]
+                    [#local result += formatWAFXssMatchTuples(filter, valueSet) ]
                     [#break]
             [/#switch]
         [/#list]
@@ -140,57 +196,64 @@
     [/#if]
 [/#macro]
 
-[#macro createWAFByteMatchSetCondition mode id name matches=[] regional=false]
+[#macro createWAFByteMatchSetCondition mode id name matches=[] valueSet={} regional=false]
     [@createWAFCondition
         mode=mode
         id=id
         name=name
         type=AWS_WAF_BYTE_MATCH_CONDITION_TYPE
         filters=matches
+        valueSet=valueSet
         regional=regional /]
 [/#macro]
 
 [#macro createWAFIPSetCondition mode id name cidr=[] regional=false]
+    [#local filters = [{"Targets" : "ips"}] ]
+    [#local valueSet = {"ips" : asFlattenedArray(cidr) } ]
     [@createWAFCondition
         mode=mode
         id=id
         name=name
         type=AWS_WAF_IP_MATCH_CONDITION_TYPE
-        filters=cidr
+        filters=filters
+        valueSet=valueSet
         regional=regional /]
 [/#macro]
 
-[#macro createWAFSizeConstraintCondition mode id name constraints=[] regional=false]
+[#macro createWAFSizeConstraintCondition mode id name constraints=[] valueSet={} regional=false]
     [@createWAFCondition
         mode=mode
         id=id
         name=name
         type=AWS_WAF_SIZE_CONSTRAINT_CONDITION_TYPE
         filters=constraints
+        valueSet=valueSet
         regional=regional /]
 [/#macro]
 
-[#macro createWAFSqlInjectionMatchSetCondition mode id name matches=[] regional=false]
+[#macro createWAFSqlInjectionMatchSetCondition mode id name matches=[] valueSet={} regional=false]
     [@createWAFCondition
         mode=mode
         id=id
         name=name
         type=AWS_WAF_SQL_INJECTION_MATCH_CONDITION_TYPE
         filters=matches
+        valueSet=valueSet
         regional=regional /]
 [/#macro]
 
-[#macro createWAFXssMatchSetCondition mode id name matches=[] regional=false]
+[#macro createWAFXssMatchSetCondition mode id name matches=[] valueSet={} regional=false]
     [@createWAFCondition
         mode=mode
         id=id
         name=name
         type=AWS_WAF_XSS_MATCH_CONDITION_TYPE
         filters=matches
+        valueSet=valueSet
         regional=regional /]
 [/#macro]
 
-[#macro createWAFRule mode id name metric conditions=[] regional=false]
+[#macro createWAFRule mode id name metric conditions=[] valueSet={} regional=false]
     [#local predicates = [] ]
     [#list asArray(conditions) as condition]
         [#local conditionId = condition.Id!""]
@@ -210,13 +273,14 @@
                 name=conditionName
                 type=condition.Type
                 filters=condition.Filters
+                valueSet=valueSet
                 regional=regional /]
         [/#if]
         [#local predicates +=
             [
                 {
                     "DataId" : getReference(conditionId),
-                    "Negated" : (condition.Negate)!false,
+                    "Negated" : (condition.Negated)!false,
                     "Type" : condition.Type
                 }
             ]
@@ -236,12 +300,10 @@
     /]
 [/#macro]
 
-[#-- Rules are grouped into bands. Bands are sorted into ascending alphabetic  --]
-[#-- order, with rules withing a band ordered based on occurrence in the rules --]
-[#-- array. Rules without a band are put into the first band to be considered  --]
-[#-- which the rules are provided to derive the priority.                      --]
-[#-- Rules without a band fall into the highest band                           --]
-[#macro createWAFAcl mode id name metric actionDefault rules=[] regional=false bandDefault="default" ]
+[#-- Rules are grouped into bands. Bands are sorted into ascending alphabetic --]
+[#-- order, with rules within a band ordered based on occurrence in the rules --]
+[#-- array. Rules without a band are put into the default band.               --]
+[#macro createWAFAcl mode id name metric defaultAction rules=[] valueSet={} regional=false bandDefault="default" ]
     [#-- Determine the bands --]
     [#local bands = [] ]
     [#list asArray(rules) as rule]
@@ -279,6 +341,7 @@
                     name=ruleName
                     metric=ruleMetric
                     conditions=rule.Conditions
+                    valueSet=valueSet
                     regional=regional /]
             [/#if]
             [#local aclRules +=
@@ -303,7 +366,7 @@
         properties=
             {
                 "DefaultAction" : {
-                    "Type" : actionDefault
+                    "Type" : defaultAction
                 },
                 "MetricName" : metric?replace("-","X"),
                 "Name": name,
@@ -312,3 +375,83 @@
     /]
 [/#macro]
 
+[#function getWAFProfileRules profile={} ruleGroups={} rules={} conditions={} ]
+    [#local result = [] ]
+    [#list profile.Rules![] as ruleEntry]
+        [#if ruleEntry.RuleGroup?has_content]
+            [#local ruleList = asArray((ruleGroups[ruleEntry.RuleGroup]["WAFRules"])![]) ]
+        [#else]
+            [#local ruleList = asArray(ruleEntry.Rule)]
+        [/#if]
+        [#list ruleList as ruleListEntry]
+            [#local conditionList = [] ]
+            [#list asArray((rules[ruleListEntry].Conditions))![] as condition]
+                [#local conditionDetail = conditions[condition.Condition]!{} ]
+                [#if conditionDetail?has_content]
+                    [#local conditionList += [
+                        {
+                            "Type" : conditionDetail.Type,
+                            "Filters" : conditionDetail.Filters,
+                            "Negated" : (condition.Negated!false)
+                        }
+                    ] ]
+                [/#if]
+            [/#list]
+            [#local result += [{"Conditions" : conditionList, "Action" : ruleEntry.Action}] ]
+        [/#list]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#macro createWAFAclFromSecurityProfile mode id name metric wafSolution securityProfile occurrence={} regional=false]
+    [#local isWhitelisted = getGroupCIDRs(wafSolution.IPAddressGroups, true, occurrence, true) ]
+    [#if (!isWhitelisted) || wafSolution.OWASP]
+        [#local wafProfile = blueprintObject.WAFProfiles[securityProfile.WAFProfile!""]!{} ]
+    [#else]
+        [#local wafProfile = {"Rules" : [], "DefaultAction" : "ALLOW"} ]
+    [/#if]
+    [#local wafValueSet = blueprintObject.WAFValueSets[securityProfile.WAFValueSet!""]!{} ]
+
+    [#if isWhitelisted]
+        [#local wafValueSet += {
+                "whitelistedips" : getGroupCIDRs(wafSolution.IPAddressGroups, true, occurrence)
+            } ]
+        [#local wafProfile += {
+                "Rules" :
+                    wafProfile.Rules +
+                    [
+                        {
+                        "Rule" : "whitelist",
+                        "Action" : "ALLOW"
+                        }
+                    ],
+                "DefaultAction" : "BLOCK"
+            } ]
+    [/#if]
+
+    [#local rules=getWAFProfileRules(wafProfile, blueprintObject.WAFRuleGroups, blueprintObject.WAFRules, blueprintObject.WAFConditions) ]
+    [@createWAFAcl
+        mode=mode
+        id=id
+        name=name
+        metric=metric
+        defaultAction=wafProfile.DefaultAction
+        rules=rules
+        valueSet=wafValueSet
+        regional=regional
+        bandDefault=wafProfile.BandDefault!"default" /]
+[/#macro]
+
+[#-- Associations are only relevant for regional endpoints --]
+[#macro createWAFAclAssociation mode id wafaclId endpointId ]
+    [@cfResource
+        mode=mode
+        id=id
+        type=formatWAFResourceType("WebACLAssociation", true)
+        properties=
+            {
+                "ResourceArn" : getArn(endpointId),
+                "WebACLId" : getReference(wafaclId)
+            }
+    /]
+[/#macro]

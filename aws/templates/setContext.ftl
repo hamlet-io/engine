@@ -261,18 +261,6 @@
             "Names" : "OWASP",
             "Type" : BOOLEAN_TYPE,
             "Default" : false
-        },
-        {
-            "Names" : "Default",
-            "Type" : STRING_TYPE,
-            "Values" : ["ALLOW", "BLOCK"],
-            "Default" : "BLOCK"
-        },
-        {
-            "Names" : "RuleDefault",
-            "Type" : STRING_TYPE,
-            "Values" : ["ALLOW", "BLOCK"],
-            "Default" : "ALLOW"
         }
     ]
 ]
@@ -962,16 +950,16 @@
     [/#switch]
 [/#function]
 
-[#function getGroupCIDRs groups checkIsOpen=true occurrence={}]
+[#function getGroupCIDRs groups checkIsOpen=true occurrence={} asBoolean=false]
     [#local cidrs = [] ]
     [#list asFlattenedArray(groups) as group]
         [#local nextGroup = getIPAddressGroup(group, occurrence) ]
         [#if checkIsOpen && nextGroup.IsOpen!false]
-            [#return ["0.0.0.0/0"] ]
+            [#return valueIfTrue(false, asBoolean, ["0.0.0.0/0"]) ]
         [/#if]
         [#local cidrs += nextGroup.CIDR ]
     [/#list]
-    [#return cidrs]
+    [#return valueIfTrue(true, asBoolean, cidrs) ]
 [/#function]
 
 

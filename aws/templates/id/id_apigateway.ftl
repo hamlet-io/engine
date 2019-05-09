@@ -482,9 +482,15 @@ created in either case.
     [#if wafPresent]
         [#local wafResources =
             {
+                "acl" : {
                     "Id" : formatDependentWAFAclId(apiId),
                     "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_WAF_ACL_RESOURCE_TYPE
+                },
+                "association" : {
+                    "Id" : formatDependentWAFAclAssociationId(apiId),
+                    "Type" : AWS_WAF_ACL_ASSOCIATION_RESOURCE_TYPE
+                }
             } ]
     [/#if]
 
@@ -586,7 +592,7 @@ created in either case.
                 "logMetrics" : logMetrics
             } +
             attributeIfContent("cf", cfResources) +
-            attributeIfContent("wafacl", cfResources) +
+            attributeIfContent("wafacl", wafResources) +
             attributeIfContent("docs", docsResources) +
             attributeIfContent("customDomains", customDomainResources),
             "Attributes" : {
