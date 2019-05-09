@@ -2015,10 +2015,10 @@ behaviour.
     [/#if]
 [/#function]
 
-[#function getDomainObjects end qualifiers...]
+[#function getDomainObjects certificateObject qualifiers...]
     [#local result = [] ]
     [#local primaryNotSeen = true]
-    [#local lines = getObjectLineage(domains, end, qualifiers) ]
+    [#local lines = getObjectLineage(domains, certificateObject.Domain, qualifiers) ]
     [#list lines as line]
         [#local name = "" ]
         [#local role = DOMAIN_ROLE_PRIMARY ]
@@ -2065,16 +2065,51 @@ behaviour.
             ] ]
         [#local primaryNotSeen = primaryNotSeen && (role != DOMAIN_ROLE_PRIMARY) ]
     [/#list]
+
     [#-- Force first entry to primary if no primary seen --]
     [#if primaryNotSeen && (result?size > 0) ]
         [#local forcedResult = [ result[0] + { "Role" : DOMAIN_ROLE_PRIMARY } ] ]
         [#if (result?size > 1) ]
             [#local forceResult += result[1..] ]
         [/#if]
-        [#return forcedResult]
-    [#else]
-        [#return result]
+        [#local result = forcedResult]
     [/#if]
+
+    [#-- Add any domain inclusions --]
+    [#local includes = certificateObject.IncludeInDomain!{} ]
+    [#if includes?has_content]
+        [#local hostParts = certificateObject.HostParts ]
+        [#local parts = [] ]
+
+        [#list hostParts as part]
+            [#if includes[part]!false]
+                [#switch part]
+                    [#case "Segment"]
+                        [#local parts += [segmentName!""] ]
+                        [#break]
+                    [#case "Environment"]
+                        [#local parts += [environmentName!""] ]
+                        [#break]
+                    [#case "Product"]
+                        [#local parts += [productName!""] ]
+                        [#break]
+                [/#switch]
+            [/#if]
+        [/#list]
+
+        [#local extendedResult = [] ]
+        [#list result as entry]
+            [#local extendedResult += [
+                    entry +
+                    {
+                        "Name" : formatDomainName(parts, entry.Name)
+                    }
+                ] ]
+        [/#list]
+        [#local result = extendedResult]
+    [/#if]
+
+    [#return result]
 [/#function]
 
 [#function getCertificateObject start qualifiers...]
@@ -2094,7 +2129,7 @@ behaviour.
     [#return
         certificateObject +
         {
-            "Domains" : getDomainObjects(certificateObject.Domain, qualifiers)
+            "Domains" : getDomainObjects(certificateObject, qualifiers)
         }
     ]
 [/#function]
