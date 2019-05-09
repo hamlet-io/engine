@@ -246,13 +246,14 @@
             /]
 
             [#if wafPresent ]
-                [@createWAFAcl
+               [@createWAFAclFromSecurityProfile
                     mode=listMode
                     id=wafAclId
                     name=wafAclName
                     metric=wafAclName
-                    default=getWAFDefault(solution.WAF)
-                    rules=getWAFRules(solution.WAF) /]
+                    wafSolution=solution.WAF
+                    securityProfile=securityProfile
+                    occurrence=occurrence /]
             [/#if]
         [/#if]
         [#if deploymentSubsetRequired("epilogue", false)]
