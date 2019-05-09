@@ -98,7 +98,7 @@
                         }
                     ]
                 },
-                { 
+                {
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
@@ -210,9 +210,9 @@
                     "Id" : lgFailureId,
                     "Name" : lgFailureName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                },
-                "logMetrics" : logMetrics
-            },
+                }
+            } +
+            attributeIfContent("logMetrics", logMetrics),
             "Attributes" : {
                 "ARN" : (engine == MOBILENOTIFIER_SMS_ENGINE)?then(
                             formatArn(

@@ -27,14 +27,14 @@
         [#assign defaultLogDriver = solution.LogDriver ]
         [#assign fixedIP = solution.FixedIP ]
 
-        [#assign hibernate = solution.Hibernate.Enabled && 
+        [#assign hibernate = solution.Hibernate.Enabled &&
                                 getExistingReference(ecsId)?has_content ]
 
         [#assign logFileProfile = getLogFileProfile(tier, component, "ECS")]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ECS")]
         [#assign processorProfile = getProcessor(tier, component, "ECS")]
         [#assign storageProfile = getStorage(tier, component, "ECS")]
-    
+
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
@@ -59,7 +59,7 @@
                         component,
                         "",
                         true)]
-        
+
         [#assign environmentVariables = {}]
 
         [#assign configSetName = componentType ]
@@ -100,16 +100,16 @@
 
         [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
-        [#assign configSets += 
+        [#assign configSets +=
             getInitConfigEnvFacts(environmentVariables, false) +
             getInitConfigDirsFiles(_context.Files, _context.Directories) ]
-        
+
         [#list bootstrapProfile.BootStraps as bootstrapName ]
             [#assign bootstrap = bootstraps[bootstrapName]]
             [#assign configSets +=
                 getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
         [/#list]
-            
+
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(ecsRoleId)]
             [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
@@ -187,7 +187,7 @@
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetResources = linkTarget.State.Resources ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-                
+
                 [#switch linkTargetCore.Type]
                     [#case EFS_MOUNT_COMPONENT_TYPE]
                         [#assign configSets +=
@@ -207,7 +207,7 @@
                 component=component
                 vpcId=vpcId /]
 
-            [#list resources.logMetrics as logMetricName,logMetric ]
+            [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                 [@createLogMetric
                     mode=listMode
@@ -304,7 +304,7 @@
                     getInitConfigEIPAllocation(allocationIds)]
             [/#if]
 
-            [@createEc2AutoScaleGroup 
+            [@createEc2AutoScaleGroup
                 mode=listMode
                 id=ecsAutoScaleGroupId
                 tier=tier

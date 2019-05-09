@@ -588,9 +588,9 @@ created in either case.
                     "Id" : accessLgId,
                     "Name" : accessLgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                },
-                "logMetrics" : logMetrics
+                }
             } +
+            attributeIfContent("logMetrics", logMetrics) +
             attributeIfContent("cf", cfResources) +
             attributeIfContent("wafacl", wafResources) +
             attributeIfContent("docs", docsResources) +

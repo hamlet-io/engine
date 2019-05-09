@@ -508,9 +508,9 @@
                     "Id" : lgInstanceLogId,
                     "Name" : lgInstanceLogName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                },
-                "logMetrics" : logMetrics
-            },
+                }
+            } +
+            attributeIfContent("logMetrics", logMetrics),
             "Attributes" : {
             },
             "Roles" : {
@@ -558,16 +558,16 @@
                     "Name" : taskName,
                     "Type" : AWS_ECS_TASK_RESOURCE_TYPE
                 }
-            } + 
+            } +
             solution.TaskLogGroup?then(
                 {
                     "lg" : {
                         "Id" : lgId,
                         "Name" : lgName,
                         "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                    },
-                    "logMetrics" : logMetrics
-                },
+                    }
+                } +
+                attributeIfContent("logMetrics", logMetrics),
                 {}
             ) +
             attributeIfTrue(
@@ -648,9 +648,9 @@
                         "Id" : lgId,
                         "Name" : lgName,
                         "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                    },
-                    "logMetrics" : logMetrics
-                },
+                    }
+                } +
+                attributeIfContent("logMetrics", logMetrics),
                 {}
             ) +
             attributeIfTrue(
@@ -660,7 +660,7 @@
                     "Id" : taskRoleId,
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
-            ) + 
+            ) +
             attributeIfContent(
                 "scheduleRole",
                 solution.Schedules,
@@ -668,7 +668,7 @@
                     "Id" : formatDependentRoleId(taskId, "schedule"),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
-            ) + 
+            ) +
             attributeIfTrue(
                 "securityGroup",
                 solution.NetworkMode == "awsvpc",

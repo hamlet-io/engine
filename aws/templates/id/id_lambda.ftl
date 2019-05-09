@@ -275,9 +275,9 @@
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : lgName,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
-                },
-                "logMetrics" : logMetrics
+                }
             } +
+            attributeIfContent("logMetrics", logMetrics) +
             attributeIfTrue(
                 "version",
                 fixedCodeVersion,

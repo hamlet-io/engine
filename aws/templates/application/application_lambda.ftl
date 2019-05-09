@@ -241,7 +241,7 @@
                 [/#if]
 
                 [#if solution.PredefineLogGroup && deploymentType == "REGIONAL"]
-                    [#list resources.logMetrics as logMetricName,logMetric ]
+                    [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                         [@createLogMetric
                             mode=listMode

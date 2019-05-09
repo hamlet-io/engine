@@ -135,7 +135,7 @@
 
             [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
 
-                [#list resources.logMetrics as logMetricName,logMetric ]
+                [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                     [@createLogMetric
                         mode=listMode
@@ -226,10 +226,10 @@
                                 "       \"" + engine + "\" " +
                                 "       \"$\{tmpdir}/cli-" +
                                         platformAppAttributesCliId + "-" + platformAppAttributesCommand + ".json\")\""
-                            ] + 
+                            ] +
                             pseudoStackOutputScript(
                                 "SNS Platform App",
-                                { 
+                                {
                                     formatId(platformAppId, "arn") : "$\{platform_app_arn}",
                                     platformAppId : core.Name
                                 },
