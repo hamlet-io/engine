@@ -1325,12 +1325,14 @@
         "seg-dns": {
           "DeploymentUnits": [
             "dns"
-          ]
+          ],
+          "Enabled" : false
         },
         "seg-dashboard": {
           "DeploymentUnits": [
             "dashboard"
-          ]
+          ],
+          "Enabled" : false
         },
         "baseline" :{
           "DeploymentUnits" : [ "baseline" ],
@@ -1529,9 +1531,8 @@
               "default": {
                 "Versions": {
                   "v1": {
-                    "DeploymentUnits": [
-                      "cfredirect-v1"
-                    ],
+                    "DeploymentUnits": [ "cfredirect-v1" ],
+                    "Enabled" : false,
                     "Fragment": "_cfredirect-v1"
                   }
                 }
