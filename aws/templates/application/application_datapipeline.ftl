@@ -16,7 +16,11 @@
         [#assign pipelineId = resources["dataPipeline"].Id]
         [#assign pipelineName = resources["dataPipeline"].Name]
         [#assign pipelineRoleId = resources["pipelineRole"].Id]
+        [#assign pipelineRoleName = resources["pipelineRole"].Name]
         [#assign resourceRoleId = resources["resourceRole"].Id]
+        [#assign resourceRoleName = resources["resourceRole"].Name]
+        [#assign resourceInstanceProfileId = resources["resourceInstanceProfile"].Id]
+        [#assign resourceInstanceProfileName = resources["resourceInstanceProfile"].Name]
 
         [#assign securityGroupId = resources["securityGroup"].Id]
         [#assign securityGroupName = resources["securityGroup"].Name]
@@ -60,7 +64,9 @@
                                                 formatAbsolutePath(
                                                     getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
                                                     "pipeline"
-                                                )
+                                                ),
+                "_ROLE_PIPELINE_NAME" : pipelineRoleName,
+                "_ROLE_RESOURCE_NAME" : resourceRoleName
         }]
 
         [#assign fragment =
@@ -119,6 +125,7 @@
                 [@createRole
                     mode=listMode
                     id=pipelineRoleId
+                    name=pipelineRoleName
                     trustedServices=[
                         "elasticmapreduce.amazonaws.com",
                         "datapipeline.amazonaws.com"
@@ -131,6 +138,7 @@
                 [@createRole
                     mode=listMode
                     id=resourceRoleId
+                    name=resourceRoleName
                     trustedServices=[
                         "ec2.amazonaws.com"
                     ]
@@ -166,6 +174,20 @@
         [/#if]
 
         [#if deploymentSubsetRequired(DATAPIPELINE_COMPONENT_TYPE, true)]
+
+
+            [@cfResource
+                    mode=listMode
+                    id=resourceInstanceProfileId
+                    type="AWS::IAM::InstanceProfile"
+                    properties=
+                        {
+                            "Path" : "/",
+                            "Roles" : [ getReference(resourceRoleId) ],
+                            "InstanceProfileName" : resourceInstanceProfileName
+                        }
+                    outputs={}
+                /]
 
             [@createSecurityGroup
                 mode=listMode
@@ -288,14 +310,7 @@
                         "       \"$\{tmpdir}/pipeline/pipeline-parameters.json\" " + 
                         "       \"$\{tmpdir}/config.json\" " +
                         "       \"$\{STACK_NAME}\" " +
-                        "       \"" + securityGroupId + "\" " +
-                        "       \"" + (getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE)?has_content?then(
-                                            getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE),
-                                            pipelineRoleId)) + "\" " +
-                        "       \"" + (getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE)?has_content?then(
-                                            getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE),
-                                            resourceRoleId)) + "\" " +
-                        "       || return $?"
+                        "       \"" + securityGroupId + "\" || return $?"
                     ] +
                     pseudoStackOutputScript(
                         "Data Pipeline",
