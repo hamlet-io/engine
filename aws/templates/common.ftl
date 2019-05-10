@@ -872,8 +872,12 @@ behaviour.
                 [#local result = getEFSMountState(occurrence, parentOccurrence)]
                 [#break]
 
-            [#case "es"]
+            [#case ES_COMPONENT_TYPE]
                 [#local result = getESState(occurrence)]
+                [#break]
+            
+            [#case ES_DATAFEED_COMPONENT_TYPE]
+                [#local result = getESFeedState(occurrence)]
                 [#break]
 
             [#case "function"]

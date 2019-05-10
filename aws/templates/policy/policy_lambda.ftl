@@ -23,3 +23,17 @@
         ]
     ]
 [/#function]
+
+[#function lambdaKinesisPermission id]
+    [#return 
+        [
+            getPolicyStatement(
+                [
+                    "lambda:InvokeFunction",
+                    "lambda:GetFunctionConfiguration"
+                ],
+                getArn(id)
+            )
+        ]
+    ]
+[/#function]
