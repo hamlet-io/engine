@@ -75,6 +75,9 @@
 
     [#local pipelineId = formatResourceId( AWS_DATA_PIPELINE_RESOURCE_TYPE, core.Id )]
 
+    [#-- The ec2 Role and Instance profile must have the same name --]
+    [#local resourceRoleName = formatName(core.FullName, "resource")]
+
     [#return
         {
             "Resources" : {
@@ -85,11 +88,18 @@
                 },
                 "pipelineRole" : {
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "pipeline" ),
+                    "Name" : formatName(core.FullName, "pipeline"),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
                 "resourceRole" : {
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "resource" ),
+                    "Name" : resourceRoleName,
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                },
+                "resourceInstanceProfile" : {
+                    "Id" : formatResourceId( AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE, core.Id ),
+                    "Name" : resourceRoleName,
+                    "Type" : AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE
                 },
                 "securityGroup" : {
                     "Id" : formatResourceId( AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE, core.Id ),
