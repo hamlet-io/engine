@@ -990,13 +990,13 @@ function update_data_pipeline() {
   securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)"
 
   if [[ "${pipelineRoleId}" != arn:* ]]; then
-    pipelineRole="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${pipelineRoleId}" "ref" || return $?)" 
+    pipelineRole="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${pipelineRoleId}" "arn" || return $?)" 
   else
     pipelineRole="${pipelieRoleId}"
   fi
   
   if [[ "${resourceRoleId}" != arn:* ]]; then
-    resourceRole="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${resourceRoleId}" "ref" || return $?)" 
+    resourceRole="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${resourceRoleId}" "arn" || return $?)" 
   else
     resourceRole="${resourceRoleId}"
   fi 
