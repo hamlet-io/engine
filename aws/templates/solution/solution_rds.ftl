@@ -333,6 +333,10 @@
                                 solution.Backup.SnapshotOnDeploy,
                                 rdsRestoreSnapshot)]
                     [/#if]
+
+                    [#if solution.Backup.UpdateReplacePolicy == "Delete" ]
+                        [#assign hibernate = true ]
+                    [/#if]
                 [#break]
 
                 [#case "replace2"]
