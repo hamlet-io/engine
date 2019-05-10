@@ -384,7 +384,7 @@
                                                     "Tier" : core.Tier.Id,
                                                     "Component" : component.Id,
                                                     "AuthProvider" : authProvider
-                                                }, false)]
+                                                })]
                         [#if linkTarget?has_content ]
                             [#assign identityProviders += [ linkTarget.State.Attributes["PROVIDER_NAME"] ]]
                         [/#if]
