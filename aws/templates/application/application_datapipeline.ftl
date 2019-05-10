@@ -17,7 +17,6 @@
         [#assign pipelineName = resources["dataPipeline"].Name]
         [#assign pipelineRoleId = resources["pipelineRole"].Id]
         [#assign resourceRoleId = resources["resourceRole"].Id]
-        [#assign resourceInstanceProfileId = resources["resourceInstanceProfile"].Id]
 
         [#assign securityGroupId = resources["securityGroup"].Id]
         [#assign securityGroupName = resources["securityGroup"].Name]
