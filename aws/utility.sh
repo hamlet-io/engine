@@ -981,8 +981,30 @@ function update_data_pipeline() {
   local definitionfile="$1"; shift
   local parameterobjectfile="$1"; shift
   local parametervaluefile="$1"; shift
+  local cfnStackName="$1"; shift
+  local securityGroupId="$1"; shift
+  local pipelineRoleId="$1"; shift 
+  local resourceRoleId="$1"; shift
 
-  pipeline_details="$(aws --region "${region}" datapipeline put-pipeline-definition --pipeline-id "${pipelineid}" --pipeline-definition "file://${definitionfile}" --parameter-objects "file://${parameterobjectfile}" --parameter-values-uri "file://${parametervaluefile}" )"
+  # Add resources created during stack creation 
+  securityGroup="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${securityGroupId}" "ref" || return $?)"
+
+  if [[ "${pipelineRoleId}" != arn:* ]]; then
+    pipelineRole="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${pipelineRoleId}" "arn" || return $?)" 
+  else
+    pipelineRole="${pipelieRoleId}"
+  fi
+  
+  if [[ "${resourceRoleId}" != arn:* ]]; then
+    resourceRole="$(get_cloudformation_stack_output "${region}" "${cfnStackName}" "${resourceRoleId}" "arn" || return $?)" 
+  else
+    resourceRole="${resourceRoleId}"
+  fi 
+
+  arnLookupValueFile="$(filePath ${parametervaluefile})/ArnLookup-$(fileBase ${parametervaluefile})"
+  jq --arg pipelineRole "${pipelineRole}" --arg resourceRole "${resourceRole}" --arg securityGroup "${securityGroup}" '.my_SECURITY_GROUP_ID = $securityGroup | .my_ROLE_PIPELINE_NAME = $pipelineRole | .my_ROLE_RESOURCE_NAME = $resourceRole' < "${parametervaluefile}" > "${arnLookupValueFile}"
+
+  pipeline_details="$(aws --region "${region}" datapipeline put-pipeline-definition --pipeline-id "${pipelineid}" --pipeline-definition "file://${definitionfile}" --parameter-objects "file://${parameterobjectfile}" --parameter-values-uri "file://${arnLookupValueFile}" )"
   pipeline_errored="$(echo "${pipeline_details}" | jq -r '.errored ')"
 
   if [[ "${pipeline_errored}" == "false" ]]; then

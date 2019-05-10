@@ -47,15 +47,12 @@
                 "_AVAILABILITY_ZONE" : zones[0].AWSZone,
                 "_VPC_ID" : getExistingReference(vpcId),
                 "_SUBNET_ID" : getSubnets(tier, networkResources)[0],
-                "_SECURITY_GROUP_ID" : getExistingReference(securityGroupId),
                 "_SSH_KEY_PAIR" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                 "_INSTANCE_TYPE_EC2" : ec2ProcessorProfile.Processor,
                 "_INSTANCE_IMAGE_EC2" : regionObject.AMIs.Centos.EC2,
                 "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
                 "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone?c,
                 "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone?c,
-                "_ROLE_PIPELINE_NAME" : getExistingReference(pipelineRoleId ),
-                "_ROLE_RESOURCE_NAME" : getExistingReference(resourceRoleId ),
                 "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + 
                                                 formatAbsolutePath(
                                                     "datapipeline",
@@ -67,7 +64,7 @@
                                                     "pipeline"
                                                 )
         }]
-    
+
         [#assign fragment =
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
@@ -116,7 +113,7 @@
             /]
         [/#if]
 
-        [#if deploymentSubsetRequired("iam", true) ]
+        [#if deploymentSubsetRequired("iam", true)  ]
 
             [#-- Create a role under which the function will run and attach required policies --]
             [#-- The role is mandatory though there may be no policies attached to it --]
@@ -132,48 +129,14 @@
                 /]
             [/#if]
 
-            [#if isPartOfCurrentDeploymentUnit(securityGroupId) ]
-                [@createSecurityGroup
-                    mode=listMode
-                    id=securityGroupId
-                    name=securityGroupName
-                    tier=tier
-                    component=component
-                    vpcId=vpcId
-                /]
-
-                [@createSecurityGroupIngress
-                    mode=listMode
-                    id=formatDependentSecurityGroupIngressId(
-                        securityGroupId,
-                        "local")
-                    port="any"
-                    cidr=securityGroupId
-                    groupId=securityGroupId /]
-            [/#if]
-
             [#if isPartOfCurrentDeploymentUnit(resourceRoleId) ]
                 [@createRole
                     mode=listMode
                     id=resourceRoleId
-                    name=resourceRoleName
                     trustedServices=[
                         "ec2.amazonaws.com"
                     ]
                     managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforDataPipelineRole"]
-                /]
-
-                [@cfResource
-                    mode=listMode
-                    id=resourceInstanceProfileId
-                    type="AWS::IAM::InstanceProfile"
-                    properties=
-                        {
-                            "Path" : "/",
-                            "Roles" : [ getReference(resourceRoleId) ],
-                            "InstanceProfileName" : resourceRoleName
-                        }
-                    outputs={}
                 /]
 
                 [#if _context.Policy?has_content]
@@ -201,6 +164,28 @@
                 [/#if]
                 
             [/#if]
+
+        [/#if]
+
+        [#if deploymentSubsetRequired(DATAPIPELINE_COMPONENT_TYPE, true)]
+
+            [@createSecurityGroup
+                mode=listMode
+                id=securityGroupId
+                name=securityGroupName
+                tier=tier
+                component=component
+                vpcId=vpcId
+            /]
+
+            [@createSecurityGroupIngress
+                mode=listMode
+                id=formatDependentSecurityGroupIngressId(
+                    securityGroupId,
+                    "local")
+                port="any"
+                cidr=securityGroupId
+                groupId=securityGroupId /]
 
         [/#if]
 
@@ -240,85 +225,93 @@
         [/#if]
 
         [#if deploymentSubsetRequired("prologue", false)]
-                [#-- Copy any asFiles needed by the task --]
-                [#assign asFiles = getAsFileSettings(settings.Product) ]
-                [#if asFiles?has_content]
-                    [@cfDebug listMode asFiles false /]
-                    [@cfScript
-                        mode=listMode
-                        content=
-                            findAsFilesScript("filesToSync", asFiles) +
-                            syncFilesToBucketScript(
-                                "filesToSync",
-                                regionId,
-                                operationsBucket,
-                                getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX")
-                            ) /]
-                [/#if]
-            
-            [/#if]
-
-            [#if deploymentSubsetRequired("epilogue", false) ]
+            [#-- Copy any asFiles needed by the task --]
+            [#assign asFiles = getAsFileSettings(settings.Product) ]
+            [#if asFiles?has_content]
+                [@cfDebug listMode asFiles false /]
                 [@cfScript
                     mode=listMode
-                    content=                     
-                        getBuildScript(
-                            "pipelineFiles",
-                            regionId,
-                            "pipeline",
-                            productName,
-                            occurrence,
-                            "pipeline.zip"
-                        ) +
+                    content=
+                        findAsFilesScript("filesToSync", asFiles) +
                         syncFilesToBucketScript(
-                            "pipelineFiles",
+                            "filesToSync",
                             regionId,
                             operationsBucket,
-                            formatRelativePath(
-                                getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
-                                "pipeline"
-                            )
-                        ) +
-                        getLocalFileScript(
-                            "configFiles",
-                            "$\{CONFIG}",
-                            "config.json"
-                        ) +
-                        [ 
-                            "case $\{STACK_OPERATION} in",
-                            "  create|update)",
-                            "       mkdir \"$\{tmpdir}/pipeline\" ",
-                            "       unzip \"$\{tmpdir}/pipeline.zip\" -d \"$\{tmpdir}/pipeline\" ",
-                            "       # Get cli config file",
-                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
-                            "       # Create Data pipeline",
-                            "       info \"Applying cli level configurtion\""
-                            "       pipelineId=\"$(create_data_pipeline" +
-                            "       \"" + region + "\" " + 
-                            "       \"$\{tmpdir}/cli-" + 
-                                        pipelineId + "-" + pipelineCreateCommand + ".json\")\"",
-                            "       # Add Pipeline Definition" ,
-                            "       info \"Updating pipeline definition\"",
-                            "       update_data_pipeline" +
-                            "       \"" + region + "\" " +
-                            "       \"$\{pipelineId}\" " +
-                            "       \"$\{tmpdir}/pipeline/pipeline-definition.json\" " + 
-                            "       \"$\{tmpdir}/pipeline/pipeline-parameters.json\" " + 
-                            "       \"$\{tmpdir}/config.json\" || return $?"
-                        ] +
-                        pseudoStackOutputScript(
-                            "Data Pipeline",
-                            { 
-                                pipelineId : "$\{pipelineId}"
-                            },
-                            "creds-system"
-                        ) + 
-                        [
-                            "   ;;",
-                            "   esac"
-                        ]
-                /]
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX")
+                        ) /]
             [/#if]
+        [/#if]
+
+        [#if deploymentSubsetRequired("epilogue", false) ]
+            [@cfScript
+                mode=listMode
+                content=                     
+                    getBuildScript(
+                        "pipelineFiles",
+                        regionId,
+                        "pipeline",
+                        productName,
+                        occurrence,
+                        "pipeline.zip"
+                    ) +
+                    syncFilesToBucketScript(
+                        "pipelineFiles",
+                        regionId,
+                        operationsBucket,
+                        formatRelativePath(
+                            getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
+                            "pipeline"
+                        )
+                    ) +
+                    getLocalFileScript(
+                        "configFiles",
+                        "$\{CONFIG}",
+                        "config.json"
+                    ) +
+                    [ 
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)",
+                        "       mkdir \"$\{tmpdir}/pipeline\" ",
+                        "       unzip \"$\{tmpdir}/pipeline.zip\" -d \"$\{tmpdir}/pipeline\" ",
+                        "       # Get cli config file",
+                        "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                        "       # Create Data pipeline",
+                        "       info \"Applying cli level configurtion\""
+                        "       pipelineId=\"$(create_data_pipeline" +
+                        "       \"" + region + "\" " + 
+                        "       \"$\{tmpdir}/cli-" + 
+                                    pipelineId + "-" + pipelineCreateCommand + ".json\")\"",
+                        "       # Add Pipeline Definition" ,
+                        "       info \"Updating pipeline definition\"",
+                        "       update_data_pipeline" +
+                        "       \"" + region + "\" " +
+                        "       \"$\{pipelineId}\" " +
+                        "       \"$\{tmpdir}/pipeline/pipeline-definition.json\" " + 
+                        "       \"$\{tmpdir}/pipeline/pipeline-parameters.json\" " + 
+                        "       \"$\{tmpdir}/config.json\" " +
+                        "       \"$\{STACK_NAME}\" " +
+                        "       \"" + securityGroupId + "\" " +
+                        "       \"" + (getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE)?has_content?then(
+                                            getExistingReference(pipelineRoleId, ARN_ATTRIBUTE_TYPE),
+                                            pipelineRoleId)) + "\" " +
+                        "       \"" + (getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE)?has_content?then(
+                                            getExistingReference(resourceRoleId, ARN_ATTRIBUTE_TYPE),
+                                            resourceRoleId)) + "\" " +
+                        "       || return $?"
+                    ] +
+                    pseudoStackOutputScript(
+                        "Data Pipeline",
+                        { 
+                            pipelineId : "$\{pipelineId}"
+                        },
+                        "creds-system"
+                    ) + 
+                    [
+                        "   ;;",
+                        "   esac"
+                    ]
+            /]
+        [/#if]
     
     [/#list]
 [/#if]
