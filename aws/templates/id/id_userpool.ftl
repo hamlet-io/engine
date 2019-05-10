@@ -44,7 +44,7 @@
                 }
             ],
             "Attributes" : [
-                { 
+                {
                     "Names" : "MFA",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
@@ -112,7 +112,7 @@
                             "Type" : BOOLEAN_TYPE,
                             "Default" : true
                         }
-                    ] 
+                    ]
                 },
                 {
                     "Names" : "Links",
@@ -153,7 +153,7 @@
                 },
                 {
                     "Names" : "HostedUI",
-                    "Description" : "Provsion a managed endpoint for login and oauth endpoints",
+                    "Description" : "Provision a managed endpoint for login and oauth endpoints",
                     "Children" : [
                         {
                             "Names" : "Certificate",
@@ -278,7 +278,7 @@
                             "Type" : STRING_TYPE,
                             "Mandatory" : true
                         }
-                    ] 
+                    ]
                 },
                 {
                     "Names" : "IDPIdentifiers",
@@ -305,10 +305,10 @@
             ]
         }
     }]
-    
+
 [#function getUserPoolState occurrence baseState]
     [#local core = occurrence.Core]
-    
+
     [#if core.External!false]
         [#local id = baseState.Attributes["USER_POOL_ARN"]!"" ]
         [#return
@@ -340,11 +340,11 @@
 
         [#local userPoolId = formatResourceId(AWS_COGNITO_USERPOOL_RESOURCE_TYPE, core.Id)]
         [#local userPoolName = formatSegmentFullName(core.Name)]
-        
+
         [#local defaultUserPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id) ]
         [#local defaultUserPoolClientName = formatSegmentFullName(core.Name)]
         [#local defaultUserPoolClientRequired = solution.DefaultClient ]
-        
+
         [#local identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
         [#local identityPoolName = formatSegmentFullName(core.Name)?replace("-","X")]
 
@@ -369,7 +369,7 @@
             [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
             [#local hostName = getHostName(certificateObject, occurrence) ]
             [#local userPoolCustomDomainName = formatDomainName(hostName, primaryDomainObject)]
-            [#local userPoolCustomBaseUrl = "https://" + userPoolDomainName + "/" ] 
+            [#local userPoolCustomBaseUrl = "https://" + userPoolDomainName + "/" ]
 
             [#local certificateId = formatDomainCertificateId(certificateObject, userPoolDomainName)]
             [#local certificateArn = (getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1" )?has_content)?then(
@@ -391,7 +391,7 @@
                         "Name" : userPoolDomainName,
                         "Type" : AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE
                     },
-                    "identitypool" : { 
+                    "identitypool" : {
                         "Id" : identityPoolId,
                         "Name" : identityPoolName,
                         "Type" : AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE
@@ -400,7 +400,7 @@
                         "Id" : userPoolRoleId,
                         "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                     },
-                    "unauthrole" : { 
+                    "unauthrole" : {
                         "Id" : identityPoolUnAuthRoleId,
                         "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                     },
@@ -412,7 +412,7 @@
                         "Id" : identityPoolRoleMappingId,
                         "Type" : AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE
                     }
-                } + 
+                } +
                 defaultUserPoolClientRequired?then(
                     {
                         "client" : {
@@ -441,7 +441,7 @@
                     "REGION" : region,
                     "UI_INTERNAL_BASE_URL" : userPoolBaseUrl,
                     "UI_BASE_URL" : userPoolCustomBaseUrl!userPoolBaseUrl
-                } + 
+                } +
                 defaultUserPoolClientRequired?then(
                     {
                         "CLIENT" : getExistingReference(defaultUserPoolClientId)
@@ -474,7 +474,7 @@
     [#if core.SubComponent.Id = "default" && (parentResources["client"]!{})?has_content ]
         [#local userPoolClientId    = parentResources["client"].Id ]
         [#local userPoolClientName  = parentResources["client"].Name ]
-    [/#if]    
+    [/#if]
 
     [#return
         {
@@ -487,7 +487,7 @@
             },
             "Attributes" : {
                 "CLIENT" : getReference(userPoolClientId)
-            } + 
+            } +
             parentAttributes,
             "Roles" : {
                 "Inbound" : {},
