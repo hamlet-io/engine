@@ -508,7 +508,8 @@
                 "authprovider" : {
                     "Id" : authProviderId,
                     "Name" : authProviderName,
-                    "Type" : AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE
+                    "Type" : AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE,
+                    "Deployed" : true
                 }
             },
             "Attributes" : {
