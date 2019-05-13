@@ -81,19 +81,19 @@ function findGen3AccountOperationsDir() {
   local root_dir="$1"; shift
   local account="$1"; shift
 
-  local infrastructure_dir="$(findGen3AccountInfrastructureDir "${root_dir}" "${account}")"
-  if [[ -n "${infrastructure_dir}" ]]; then
-    echo -n "${infrastructure_dir}/operations"
-    return 0
-  fi
-  return 1
+  # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
+  findDir "${root_dir}" \
+    "operations/**/${account}/settings" \
+    "${account}/operations/settings" \
+    "infrastructure/**/${account}/operations" \
+    "${account}/infrastructure/operations"
 }
 
-# TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
 function findGen3AccountStateDir() {
   local root_dir="$1"; shift
   local account="$1"; shift
 
+  # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
     "state/**/${account}" \
     "${account}/state" \
@@ -135,19 +135,19 @@ function findGen3ProductOperationsDir() {
   local root_dir="$1"; shift
   local product="$1"; shift
 
-  local infrastructure_dir="$(findGen3ProductInfrastructureDir "${root_dir}" "${product}")"
-  if [[ -n "${infrastructure_dir}" ]]; then
-    echo -n "${infrastructure_dir}/operations"
-    return 0
-  fi
-  return 1
+  # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
+  findDir "${root_dir}" \
+    "operations/**/${product}/settings" \
+    "${product}/operations/settings"
+    "infrastructure/**/${product}/operations" \
+    "${product}/infrastructure/operations"
 }
 
-# TODO(mfl): Remove config checks when all repos converted to >=v2.0.0
 function findGen3ProductSolutionsDir() {
   local root_dir="$1"; shift
   local product="$1"; shift
 
+  # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
     "infrastructure/**/${product}/solutions" \
     "${product}/infrastructure/solutions" \
@@ -155,11 +155,11 @@ function findGen3ProductSolutionsDir() {
     "${product}/config/solutionsv2"
 }
 
-# TODO(mfl): Remove config checks when all repos converted to >=v2.0.0
 function findGen3ProductBuildsDir() {
   local root_dir="$1"; shift
   local product="$1"; shift
 
+  # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
     "infrastructure/**/${product}/builds" \
     "${product}/infrastructure/builds" \
@@ -167,11 +167,11 @@ function findGen3ProductBuildsDir() {
     "${product}/config/settings"
 }
 
-# TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
 function findGen3ProductStateDir() {
   local root_dir="$1"; shift
   local product="$1"; shift
 
+  # TODO(mfl): Remove infrastructure checks when all repos converted to >=v2.0.0
   findDir "${root_dir}" \
     "state/**/${product}" \
     "${product}/state" \
@@ -1496,11 +1496,15 @@ function upgrade_cmdb_repo_to_v2_0_0() {
   # State is now in its own directory at the same level as config and infrastructure
   # Solutions is now under infrastructure
   # Builds are separated from settings and are now under infrastructure
+  # Operations are now in their own directory at same level as config and
+  # infrastructure. For consistency with config, a settings subdirectory has been
+  # added.
+  #
   #
   # /config/settings
+  # /operations/settings
   # /infrastructure/solutions
   # /infrastructure/builds
-  # /infrastructure/operations
   # /state/cf
   # /state/cot
   #
@@ -1520,6 +1524,7 @@ function upgrade_cmdb_repo_to_v2_0_0() {
     local config_dir="${base_dir}/config"
     local infrastructure_dir="${base_dir}/infrastructure"
     local state_dir="${base_dir}/state"
+    local operations_dir="${base_dir}/operations"
 
     local state_subdirs=("${infrastructure_dir}/cf" "${infrastructure_dir}/cot")
 
@@ -1535,6 +1540,18 @@ function upgrade_cmdb_repo_to_v2_0_0() {
           git_mv "${state_subdir}" "${state_dir}" || { return_status=1; break; }
         fi
       done
+
+      # Move operations settings into their own top level tree
+      orig_operations_settings_dir="${infrastructure_dir}/operations"
+      new_operations_settings_dir="${operations_dir}/settings"
+      if [[ -d "${orig_operations_settings_dir}" ]]; then
+        info "${dry_run}Moving ${orig_operations_settings_dir} to ${new_operations_settings_dir} ..."
+        [[ -n "${dry_run}" ]] && continue
+        if [[ ! -d "${new_operations_settings_dir}" ]]; then
+          mkdir -p "${operations_dir}"
+          git_mv "${orig_operations_settings_dir}" "${new_operations_settings_dir}" || { return_status=1; break; }
+        fi
+      fi
 
       # Copy the solutions tree from config to infrastructure and rename
       local solutions_dir="${config_dir}/solutionsv2"
@@ -1803,7 +1820,8 @@ function process_cmdb() {
       esac
 
       pushd "${cmdb_repo}" > /dev/null 2>&1
-      ${action,,}_cmdb_repo_to_${version//./_} "${cmdb_repo}" "${dry_run}"; return_status=$?
+      # Use pwd to ensure path to root_dir is absolute
+      ${action,,}_cmdb_repo_to_${version//./_} "$(pwd)" "${dry_run}"; return_status=$?
       popd > /dev/null 2>&1
 
       if [[ "${return_status}" -eq 0 ]]; then
