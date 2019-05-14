@@ -44,12 +44,8 @@ NOTES:
 2. REGION is only relevant for the "product" level
 3. DEPLOYMENT_UNIT must be one of "s3", "cert", "roles", "apigateway" or "waf" for the "account" level
 4. DEPLOYMENT_UNIT must be one of "cmk", "cert", "sns" or "shared" for the "product" level
-5. DEPLOYMENT_UNIT must be one of "eip", "s3", "cmk", "cert", "vpc" or "dns" for the "segment" level
-6. Stack for DEPLOYMENT_UNIT of "eip" or "s3" must be created before stack for "vpc" for the "segment" level
-7. Stack for DEPLOYMENT_UNIT of "vpc" must be created before stack for "dns" for the "segment" level
-8. To support legacy configurations, the DEPLOYMENT_UNIT combinations "eipvpc" and "eips3vpc"
-   are also supported but for new products, individual templates for each deployment unit
-   should be created
+5. For the "segment" level the "baseline" unit must be deployed before any other unit
+6. When deploying network level components in the "segment" level you must deploy vpc before igw, nat, or vpcendpoint
 
 EOF
 }
