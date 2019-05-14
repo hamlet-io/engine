@@ -49,28 +49,57 @@
         }
     }]
 
-[#function getContentHubState occurrence]
+[#function getContentHubState occurrence baseState]
     [#local core = occurrence.Core]
-    [#local solution = occurrence.Configuration.Solution]
 
-    [#local id = formatResourceId(COT_CONTENTHUB_HUB_RESOURCE_TYPE, core.Id)]
+    [#if core.External!false ]
+        [#local engine = (baseState.Attributes["ENGINE"])!"COTException: Engine not found" ]
+        [#local repoistory = (baseState.Attributes["REPOSITORY"])!"COTException: Repository not found" ]
+        [#local branch = (baseState.Attributes["BRANCH"])!"COTException: Bracnch not found" ]
+        [#local prefix = (baseState.Attributes["PREFIX"])!"COTException: Prefix not found" ]
 
-    [#return
-        {
-            "Resources" : {
-                "contenthub" : {
-                    "Id" : id,
-                    "Type" : COT_CONTENTHUB_HUB_RESOURCE_TYPE
+        [#return
+            baseState + 
+            {
+                "Attributes" : {
+                    "ENGINE" : engine,
+                    "REPOSITORY" : repoistory,
+                    "BRANCH" : branch,
+                    "PREFIX" : prefix
                 }
-            },
-            "Attributes" : {
-                "ENGINE" : solution.Engine,
-                "REPOSITORY" : solution.Repository,
-                "BRANCH" : solution.Branch,
-                "PREFIX" : solution.Prefix
             }
-        }
-    ]
+        ]
+    [#else]
+        [#local solution = occurrence.Configuration.Solution]
+        [#local id = formatResourceId(COT_CONTENTHUB_HUB_RESOURCE_TYPE, core.Id)]
+
+        [#local engine = solution.Engine ]
+        [#local repoistory = solution.Repository ]
+        [#local branch = solution.Branch ]
+        [#local prefix = solution.Prefix ]
+
+        [#return
+            {
+                "Resources" : {
+                    "contenthub" : {
+                        "Id" : id,
+                        "Type" : COT_CONTENTHUB_HUB_RESOURCE_TYPE,
+                        "Deployed" : true
+                    }
+                },
+                "Attributes" : {
+                    "ENGINE" : engine,
+                    "REPOSITORY" : repoistory,
+                    "BRANCH" : branch,
+                    "PREFIX" : prefix
+                },           
+                "Roles" : {
+                    "Inbound" : {},
+                    "Outbound" : {}
+                }
+            }
+        ]
+    [/#if]
 [/#function]
 
 
@@ -96,69 +125,7 @@
             "Attributes" : [
                 {
                     "Names" : "Path",
-                    "Children" : [
-                        {
-                            "Names" : "Host",
-                            "Type" : STRING_TYPE,
-                            "Default" : ""
-                        },
-                        {
-                            "Names" : "Style",
-                            "Type" : STRING_TYPE,
-                            "Default" : "single"
-                        },
-                        {
-                            "Names" : "IncludeInPath",
-                            "Children" : [
-
-                                {
-                                    "Names" : "Product",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default" : true
-                                },
-                                {
-                                    "Names" : "Environment",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default" : false
-                                },
-                                {
-                                    "Names" : "Solution",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default" : false
-                                },
-                                {
-                                    "Names" : "Segment",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default" : true
-                                },
-                                {
-                                    "Names" : "Tier",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default": false
-                                },
-                                {
-                                    "Names" : "Component",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default" : false
-                                },
-                                {
-                                    "Names" : "Instance",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default" : false
-                                },
-                                {
-                                    "Names" : "Version",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default" : false
-                                },
-                                {
-                                    "Names" : "Host",
-                                    "Type" : BOOLEAN_TYPE,
-                                    "Default": false
-                                }
-                            ]
-                        }
-                    ]
+                    "Children" : pathChildConfiguration
                 },
                 {
                     "Names" : "Links",

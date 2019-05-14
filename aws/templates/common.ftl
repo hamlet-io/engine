@@ -833,7 +833,7 @@ behaviour.
                 [#break]
 
             [#case "contenthub"]
-                [#local result = getContentHubState(occurrence)]
+                [#local result = getContentHubState(occurrence, result)]
                 [#break]
 
             [#case "contentnode"]
@@ -2186,10 +2186,12 @@ behaviour.
 [/#function]
 
 [#-- Directory Structure for ContentHubs --]
-[#function getContentPath occurrence ]
+[#function getContentPath occurrence pathObject={} ]
 
     [#local core = occurrence.Core ]
-    [#local pathObject = occurrence.Configuration.Solution.Path ]
+    [#local pathObject = pathObject?has_content?then(
+                            pathObject,
+                            occurrence.Configuration.Solution.Path)]
     [#local includes = pathObject.IncludeInPath]
 
     [#local path =  valueIfTrue(

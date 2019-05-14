@@ -171,6 +171,7 @@ object.
                 },
                 {
                     "Names" : "Publish",
+                    "Description" : "Deprecated - Please switch to the publishers configuration",
                     "Children" : [
                         {
                             "Names" : "DnsNamePrefix",
@@ -181,6 +182,21 @@ object.
                             "Names" : "IPAddressGroups",
                             "Type" : ARRAY_OF_STRING_TYPE,
                             "Default" : []
+                        }
+                    ]
+                },
+                {
+                    "Names" : "Publishers",
+                    "Subobjects" : true,
+                    "Children" : [
+                        {
+                            "Names" : "Links",
+                            "Subobjects" : true,
+                            "Children" : linkChildrenConfiguration
+                        },
+                        {
+                            "Names" : "Path",
+                            "Children" : pathChildConfiguration
                         }
                     ]
                 },
@@ -519,6 +535,7 @@ created in either case.
     [/#list]
 
     [#-- API documentation if required --]
+    [#-- API Docs have been deprecated this is being kept to remove the old s3 buckets --]
     [#local docsResources = {} ]
     [#local docsPrimaryFqdn = "" ]
     [#if publishPresent]
@@ -537,24 +554,13 @@ created in either case.
             [#local docsFqdnParts = splitDomainName(docsFqdn) ]
             [#local docsId = formatS3Id(docsFqdnParts) ]
 
-            [#local redirectTo =
-                valueIfTrue(
-                    docsPrimaryFqdn,
-                    isSecondaryDomain(domain),
-                    ""
-                ) ]
             [#local docsResources +=
                 {
                     docsFqdn : {
                         "bucket" : {
                             "Id" : docsId,
                             "Name" : docsFqdn,
-                            "Type" : AWS_S3_RESOURCE_TYPE,
-                            "RedirectTo" : redirectTo
-                        },
-                        "policy" : {
-                            "Id" : formatBucketPolicyId(docsFqdnParts),
-                            "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
+                            "Type" : AWS_S3_RESOURCE_TYPE
                         }
                     }
                 } ]

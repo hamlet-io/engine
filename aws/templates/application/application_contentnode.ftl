@@ -55,7 +55,7 @@
                                             getOccurrenceBuildReference(occurrence)) + " " +
                                         "   \"$\{tmpdir}\" || return $?",
                                     "  #",
-                                    "  # Sync with the operations bucket",
+                                    "  # Sync with the contentnode",
                                     "  copy_contentnode_file \"$\{tmpdir}/contentnode.zip\" " + 
                                             "\"" + linkTargetAttributes.ENGINE + "\" " +
                                             "\"" +    linkTargetAttributes.REPOSITORY + "\" " + 
