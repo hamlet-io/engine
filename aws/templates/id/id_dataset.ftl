@@ -3,6 +3,9 @@
 [#-- Components --]
 [#assign DATASET_COMPONENT_TYPE = "dataset"]
 
+[#-- Resources --]
+[#assign DATASET_S3_SNAPSHOT_RESOURCE_TYPE = "s3Snapshot" ]
+
 [#assign componentConfiguration +=
     {
         DATASET_COMPONENT_TYPE : {
@@ -58,6 +61,7 @@
     [#local attributes = {
             "DATASET_ENGINE" : solution.Engine
     }]
+    [#local resources = {}]
     [#local producePolicy = []]
     [#local consumePolicy = []]
 
@@ -87,6 +91,14 @@
                     s3ConsumePermission( 
                         registryBucket,
                         registryPrefix)]
+            
+            [#local resources += {
+                "datasetS3" : {
+                    "Id" : formatId(DATASET_S3_SNAPSHOT_RESOURCE_TYPE, core.Id),
+                    "Type" : DATASET_S3_SNAPSHOT_RESOURCE_TYPE,
+                    "Deployed" : true
+                }
+            }]
 
             [#break]
 
@@ -104,6 +116,15 @@
                 "SNAPSHOT_NAME" : registryImage,
                 "DATASET_LOCATION" : formatName( "dataset",  core.FullName, buildReference )
             }]
+
+            [#local resources += {
+                "datasetRDS" : {
+                    "Id" : formatId(AWS_RDS_SNAPSHOT_RESOURCE_TYPE, core.Id),
+                    "Type" : AWS_RDS_SNAPSHOT_RESOURCE_TYPE,
+                    "Deployed" : true
+                }
+            }]
+
             [#break]
     [/#switch]
 
@@ -161,8 +182,7 @@
 
     [#return
         {
-            "Resources" : {
-            },
+            "Resources" : resources,
             "Attributes" : attributes,
             "Roles" : {
                 "Inbound" : {},

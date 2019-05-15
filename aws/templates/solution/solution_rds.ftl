@@ -112,7 +112,7 @@
         [#assign rdsManualSnapshot = getExistingReference(formatDependentRDSManualSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
         [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE )]
 
-        [#assign links = getLinkTargets(occurrence) ]
+        [#assign links = getLinkTargets(occurrence, {}, false) ]
         [#list links as linkId,linkTarget]
 
             [#assign linkTargetCore = linkTarget.Core ]
