@@ -137,12 +137,18 @@
         [#assign cfSPAOriginId      = resources["cforiginspa"].Id]
         [#assign cfConfigOriginId   = resources["cforiginconfig"].Id]
 
-        [#if ! (getExistingReference(formatDependentCFAccessId(formatS3OperationsId()))?has_content)]
+        [#assign bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, "opsdata" ) ]
+        [#if !getExistingReference(bucketId)?has_content ]
+            [#assign bucketId = formatS3OperationsId() ]
+        [/#if]
+
+        [#assign cfAccess = getExistingReference(formatDependentCFAccessId(bucketId)) ]
+
+        [#if !cfAccess?has_content]
             [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
             [#break]
         [/#if]
 
-        [#assign cfAccess = getExistingReference(formatDependentCFAccessId(formatS3OperationsId()))]
 
         [#assign wafPresent     = isPresent(solution.WAF) ]
         [#assign wafAclId       = resources["wafacl"].Id]
@@ -181,7 +187,7 @@
                 solution.CloudFront.Compress,
                 eventHandlers,
                 _context.ForwardHeaders)]
-                
+
             [#assign configCacheBehaviour = getCFSPACacheBehaviour(
                 configOrigin,
                 "/config/*",
@@ -196,7 +202,7 @@
                 [#assign pathSolution = solution.CloudFront.Paths[id] ]
 
                 [#assign pathLink = getLinkTarget(occurrence, pathSolution.Link) ]
-                
+
                 [#if !pathLink?has_content]
                     [#continue]
                 [/#if]
@@ -217,7 +223,7 @@
                         [#assign origins += pathOrigin ]
                         [#break]
                 [/#switch]
-                
+
                 [#assign pathBehaviour = getCFLBCacheBehaviour(
                                             pathOrigin,
                                             pathSolution.PathPattern,
@@ -225,7 +231,7 @@
                                             pathSolution.Compress,
                                             _context.ForwardHeaders,
                                             eventHandlers
-                                            
+
                 )]
                 [#assign cacheBehaviours += pathBehaviour ]
             [/#list]
