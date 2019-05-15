@@ -560,7 +560,7 @@
                     mode=listMode
                     content=
                         [
-                            "error \" API Docs publishing hs been depreated \"",
+                            "error \" API Docs publishing has been deprecated \"",
                             "error \" Please remove the Publish configuration from your API Gateway\"",
                             "error \" API Publishers are now available to provide documentation publishing\""
                         ]
