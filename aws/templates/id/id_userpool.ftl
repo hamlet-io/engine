@@ -369,7 +369,7 @@
             [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
             [#local hostName = getHostName(certificateObject, occurrence) ]
             [#local userPoolCustomDomainName = formatDomainName(hostName, primaryDomainObject)]
-            [#local userPoolCustomBaseUrl = "https://" + userPoolDomainName + "/" ]
+            [#local userPoolCustomBaseUrl = "https://" + userPoolCustomDomainName + "/" ]
 
             [#local certificateId = formatDomainCertificateId(certificateObject, userPoolDomainName)]
             [#local certificateArn = (getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1" )?has_content)?then(
