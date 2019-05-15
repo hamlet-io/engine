@@ -41,7 +41,7 @@
                         "  #",
                         "  # Create SSH credential for the segment",
                         "  mkdir -p \"$\{SEGMENT_OPERATIONS_DIR}\"",
-                        "  create_pki_credentials \"$\{SEGMENT_OPERATIONS_DIR}\" " + 
+                        "  create_pki_credentials \"$\{SEGMENT_OPERATIONS_DIR}\" " +
                                 "\"" + regionId + "\" " +
                                 "\"" + accountObject.Id + "\" || return $?",
                         "  #",
@@ -92,6 +92,7 @@
             /]
         [/#if]
         [#-- Origin Access Identity for any S3 based cloudfront distributions --]
+        [#-- Output ids are formatted as ddependent on the ops bucket id --]
         [@cfScript
             mode=listMode
             content=
@@ -111,8 +112,8 @@
                 pseudoStackOutputScript(
                     "Cloudfront Origin Access Identity",
                     {
-                        "cfaccessXs3XsegmentXops" : "$\{oai_id}",
-                        "cfaccessXs3XsegmentXopsXcanonicalid" : "$\{oai_canonical_id}"
+                        "cfaccessXs3XsegmentXopsdata" : "$\{oai_id}",
+                        "cfaccessXs3XsegmentXopsdataXcanonicalid" : "$\{oai_canonical_id}"
                     }
                 ) +
                 [
