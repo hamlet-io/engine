@@ -91,8 +91,16 @@
                     ]
             /]
         [/#if]
-        [#-- Origin Access Identity for any S3 based cloudfront distributions --]
-        [#-- Output ids are formatted as ddependent on the ops bucket id --]
+        [#-- Origin Access Identity for any S3 based cloudfront distributions             --]
+        [#-- Handle change of bucket id associated with introduction of baseline unit.    --]
+        [#-- Logic assumes cmk created AFTER baseline for newer installations and         --]
+        [#-- so the bucket should already exist using the newer format. If this isn't     --]
+        [#-- the case, then use the older format as we may be creating an old environment --]
+        [#-- from scratch using the pre-baseline unit order                               --]
+        [#assign bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, "opsdata" ) ]
+        [#if !getExistingReference(bucketId)?has_content ]
+            [#assign bucketId = formatS3OperationsId() ]
+        [/#if]
         [@cfScript
             mode=listMode
             content=
@@ -112,8 +120,8 @@
                 pseudoStackOutputScript(
                     "Cloudfront Origin Access Identity",
                     {
-                        "cfaccessXs3XsegmentXopsdata" : "$\{oai_id}",
-                        "cfaccessXs3XsegmentXopsdataXcanonicalid" : "$\{oai_canonical_id}"
+                        formatDependentCFAccessId(bucketId) : "$\{oai_id}",
+                        formatDependentCFAccessId(bucketId, "canonicalid") : "$\{oai_canonical_id}"
                     }
                 ) +
                 [
