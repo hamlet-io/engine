@@ -426,13 +426,77 @@
     }
 ]]
 
+[#assign pathChildConfiguration = [
+    {
+        "Names" : "Host",
+        "Type" : STRING_TYPE,
+        "Default" : ""
+    },
+    {
+        "Names" : "Style",
+        "Type" : STRING_TYPE,
+        "Default" : "single"
+    },
+    {
+        "Names" : "IncludeInPath",
+        "Children" : [
+
+            {
+                "Names" : "Product",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
+            },
+            {
+                "Names" : "Environment",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "Solution",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "Segment",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
+            },
+            {
+                "Names" : "Tier",
+                "Type" : BOOLEAN_TYPE,
+                "Default": false
+            },
+            {
+                "Names" : "Component",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "Instance",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "Version",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : false
+            },
+            {
+                "Names" : "Host",
+                "Type" : BOOLEAN_TYPE,
+                "Default": false
+            }
+        ]
+    }
+
+]]
+
 [#assign profileChildConfiguration = [
     {
         "Names" : "Deployment",
         "Type" : STRING_TYPE
     }
 ]]
-
 
 [#assign s3NotificationChildConfiguration = [
     {

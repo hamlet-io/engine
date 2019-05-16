@@ -27,6 +27,12 @@
         [#assign fragment =
             contentIfContent(solution.Fragment, getComponentId(component)) ]
 
+        [#assign swaggerFileName ="swagger_" + runId + ".json"  ]
+        [#assign swaggerFileLocation = formatRelativePath(
+                                                    getSettingsFilePrefix(occurrence),
+                                                    "config",
+                                                    swaggerFileName)]
+
         [#assign contextLinks = getLinkTargets(occurrence) ]
         [#assign _context =
             {
@@ -255,11 +261,7 @@
                     {
                         "BodyS3Location" : {
                             "Bucket" : operationsBucket,
-                            "Key" :
-                                formatRelativePath(
-                                    getSettingsFilePrefix(occurrence),
-                                    "config",
-                                    "swagger_" + runId + ".json")
+                            "Key" : swaggerFileLocation
                         },
                         "Name" : apiName
                     } +
@@ -531,102 +533,108 @@
             [/#list]
         [/#if]
 
+        [#-- API Docs have been deprecated - keeping the S3 clear makes sure we can delete the buckets --]
         [#assign docs = resources["docs"]!{} ]
         [#list docs as key,value]
 
-            [#assign bucketId = value["bucket"].Id]
             [#assign bucketName = value["bucket"].Name]
-            [#assign bucketRedirectTo = value["bucket"].RedirectTo]
-            [#assign bucketPolicyId = value["policy"].Id ]
-
-            [#assign bucketWebsiteConfiguration =
-                getS3WebsiteConfiguration("index.html", "", bucketRedirectTo)]
-
-            [#if deploymentSubsetRequired("prologue", false) && getExistingReference(bucketId)?has_content ]
+            [#if deploymentSubsetRequired("prologue", false)  ]
                 [#-- Clear out bucket content if deleting api gateway so buckets will delete --]
+                [#if getExistingReference(bucketId)?has_content ]
+                    [@cfScript
+                        mode=listMode
+                        content=
+                            [
+                                "clear_bucket_files=()"
+                            ] +
+                            syncFilesToBucketScript(
+                                "clear_bucket_files",
+                                regionId,
+                                bucketName,
+                                ""
+                            ) 
+                    /]
+                [/#if]
+
                 [@cfScript
                     mode=listMode
                     content=
                         [
-                            "clear_bucket_files=()"
-                        ] +
-                        syncFilesToBucketScript(
-                            "clear_bucket_files",
-                            regionId,
-                            bucketName,
-                            ""
-                        )
+                            "error \" API Docs publishing has been deprecated \"",
+                            "error \" Please remove the Publish configuration from your API Gateway\"",
+                            "error \" API Publishers are now available to provide documentation publishing\""
+                        ]
                 /]
             [/#if]
+        [/#list]
 
-            [#if deploymentSubsetRequired("s3", true) && isPartOfCurrentDeploymentUnit(bucketId)]
-                [#assign bucketWhitelist =
-                    getIPCondition(
-                        getGroupCIDRs(solution.Publish.IPAddressGroups)) ]
-
-                [@createBucketPolicy
-                    mode=listMode
-                    id=bucketPolicyId
-                    bucket=bucketName
-                    statements=
-                        s3ReadPermission(
-                            bucketName,
-                            "",
-                            "*",
-                            "*",
-                            bucketWhitelist
-                        )
-                    dependencies=bucketId
-                /]
-
-                [@createS3Bucket
-                    mode=listMode
-                    id=bucketId
-                    name=bucketName
-                    websiteConfiguration=bucketWebsiteConfiguration
-                /]
-            [/#if]
-
-            [#if deploymentSubsetRequired("epilogue", false) && (bucketRedirectTo == "") ]
+        [#-- Send API Specification to an external publisher --]
+        [#if solution.Publishers?has_content ]
+            [#if deploymentSubsetRequired("epilogue", false ) ]
                 [@cfScript
                     mode=listMode
                     content=
                     [
-                        "function get_apidoc_file() {",
-                        "  #",
-                        "  # Fetch the apidoc file",
-                        "  copyFilesFromBucket" + " " +
-                            regionId + " " +
-                            getRegistryEndPoint("swagger", occurrence) + " " +
-                            formatRelativePath(
-                                getRegistryPrefix("swagger", occurrence) + productName,
-                                getOccurrenceBuildUnit(occurrence),
-                                getOccurrenceBuildReference(occurrence)) + " " +
-                        "   \"$\{tmpdir}\" || return $?",
-                        "  #",
-                        "  # Insert host in Doc File ",
-                        "  add_host_to_apidoc" + " " +
-                        "\"" + attributes.FQDN + "\" " +
-                        "\"" +  attributes.SCHEME + "\" " +
-                        "\"" +  attributes.BASE_PATH + "\" " +
-                        "\"" +  getOccurrenceBuildReference(occurrence) + "\" " +
-                        "\"**COT Deployment:** " + core.TypedFullName + "\" " +
-                        "\"$\{tmpdir}/apidoc.zip\"  || return $?",
-                        "  # Sync to the API Doc bucket",
-                        "  copy_apidoc_file" + " " + bucketName + " " +
-                        "  \"$\{tmpdir}/apidoc.zip\" || return $?",
-                        "}",
-                        "#",
                         "case $\{STACK_OPERATION} in",
                         "  create|update)",
-                        "    get_apidoc_file",
-                        "    ;;",
-                        "esac",
-                        "#"
+                        "   # Fetch the apidoc file",
+                        "   info \"Building API Specification Document\"",
+                        "   copyFilesFromBucket" + " " +
+                            regionId + " " +
+                            operationsBucket + " " +
+                            swaggerFileLocation + " " +
+                        "   \"$\{tmpdir}\" || return $?"
+                        "   # Insert host in Doc File ",
+                        "   add_host_to_apidoc" + " " +
+                        "   \"" + attributes.FQDN + "\" " +
+                        "   \"" +  attributes.SCHEME + "\" " +
+                        "   \"" +  attributes.BASE_PATH + "\" " +
+                        "   \"" +  getOccurrenceBuildReference(occurrence) + "\" " +
+                        "   \"**COT Deployment:** " + core.TypedFullName + "\" " +
+                        "   \"$\{tmpdir}/" + swaggerFileName + "\"  || return $?",
+                        "   mkdir \"$\{tmpdir}/dist\" && mv \"$\{tmpdir}/" + swaggerFileName + "\" \"$\{tmpdir}/dist/swagger.json\" || return $?",
+                        "   ;;",
+                        " esac"
                     ]
                 /]
             [/#if]
-        [/#list]
+
+            [#list solution.Publishers as id,publisher ]
+ 
+                [#assign publisherPath = getContentPath( occurrence, publisher.Path )]
+                [#assign publisherLinks = getLinkTargets(occurrence, publisher.Links )]
+                
+                [#list publisherLinks as publisherLinkId, publisherLinkTarget ]
+                    [#assign publisherLinkTargetCore = publisherLinkTarget.Core ]
+                    [#assign publisherLinkTargetAttributes = publisherLinkTarget.State.Attributes ]
+
+                    [#switch publisherLinkTargetCore.Type ]
+                        [#case CONTENTHUB_HUB_COMPONENT_TYPE ]
+                        [#case "external"]
+                            [#if deploymentSubsetRequired("epilogue", false ) ]
+                                [@cfScript
+                                    mode=listMode
+                                    content= 
+                                    [
+                                        "case $\{STACK_OPERATION} in",
+                                        "  create|update)",
+                                        "info \"Sending API Specification to " + id + "-" + publisherLinkId + "\"",
+                                        "  copy_contentnode_file \"$\{tmpdir}/dist/swagger.json\" " + 
+                                        "\"" +    publisherLinkTargetAttributes.ENGINE + "\" " +
+                                        "\"" +    publisherLinkTargetAttributes.REPOSITORY + "\" " + 
+                                        "\"" +    publisherLinkTargetAttributes.PREFIX + "\" " +
+                                        "\"" +    publisherPath + "\" " +
+                                        "\"" +    publisherLinkTargetAttributes.BRANCH + "\" || return $? ",
+                                        "       ;;",
+                                        " esac"
+                                    ]
+                                /]
+                            [/#if]
+                            [#break]
+                    [/#switch]
+                [/#list]
+            [/#list]
+        [/#if]
 
         [#assign legacyId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION) ]
         [#if getExistingReference(legacyId)?has_content && deploymentSubsetRequired("prologue", false) ]

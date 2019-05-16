@@ -677,6 +677,47 @@ function addJSONAncestorObjects() {
   runJQ "${pattern}" < "${file}"
 }
 
+# -- API Gateway --
+function add_host_to_apidoc() { 
+  # adds the API Host endpoint to the swagger spec
+  local apiHost="$1"; shift
+  local scheme="$1"; shift
+  local basePath="$1"; shift
+  local version="$1"; shift
+  local description="$1"; shift
+  local swaggerJson="$1"; shift
+  local tempSwaggerJson="${tmp_dir}/swagger-temp.json"
+
+  if [[ -f "${swaggerJson}" ]]; then  
+
+    if [[ -n "${basePath}" ]]; then 
+        jq -r --arg basePath "${basePath}" '.basePath = $basePath' < "${swaggerJson}" > "${tempSwaggerJson}"
+        mv "${tempSwaggerJson}" "${swaggerJson}"
+    fi
+
+    if [[ -n "${scheme}" ]]; then 
+        jq -r --arg scheme "${scheme}" '.schemes = ( $scheme / "," )' < "${swaggerJson}" > "${tempSwaggerJson}"
+        mv "${tempSwaggerJson}" "${swaggerJson}"
+    fi
+
+    if [[ -n "${apiHost}" ]]; then 
+        jq -r --arg apiHost "${apiHost}" '.host = $apiHost' < "${swaggerJson}" > "${tempSwaggerJson}"
+        mv "${tempSwaggerJson}" "${swaggerJson}"
+    fi
+
+    if [[ -n "${version}" ]]; then 
+        jq -r --arg version "${version}" '.info.version = $version' < "${swaggerJson}" > "${tempSwaggerJson}"
+        mv "${tempSwaggerJson}" "${swaggerJson}"
+    fi
+
+    if [[ -n "${description}" ]]; then
+        jq -r --arg description "${description}" '.info.description = .info.description + " \n" + $description' < "${swaggerJson}" > "${tempSwaggerJson}"
+        mv "${tempSwaggerJson}" "${swaggerJson}"
+    fi
+  fi
+
+  return 0
+}
 # -- KMS --
 function decrypt_kms_string() {
   local region="$1"; shift
@@ -821,6 +862,86 @@ function get_cloudformation_stack_output() {
   if [[ -n "${stack_id}" ]]; then 
     aws --region "${region}" cloudformation describe-stacks --stack-name "${stackName}" --query "Stacks[*].Outputs[?OutputKey == '${stackOutputKey}'].OutputValue" --output text || return $?
   fi
+}
+
+# -- Content Node --
+function copy_contentnode_file() { 
+  local files="$1"; shift
+  local engine="$1"; shift
+  local path="$1"; shift
+  local prefix="$1"; shift
+  local nodepath="$1"; shift
+  local branch="$1"; 
+
+  local contentnodedir="${tmp_dir}/contentnode"
+  local contenthubdir="${tmp_dir}/contenthub"
+  local hubpath="${contenthubdir}/${prefix}${nodepath}"
+
+  # Copy files into repo 
+  if [[ -f "${files}" ]]; then 
+
+    case ${engine} in 
+      github) 
+
+        # Copy files locally so we can synch with git
+        for file in "${files[@]}" ; do
+          if [[ -f "${file}" ]]; then
+            case "$(fileExtension "${file}")" in
+              zip)
+                unzip "${file}" -d "${contentnodedir}" || return $?
+                ;;
+              *)
+                if [[ ! -d "${contentnodedir}" ]]; then 
+                  mkdir -p "${contentnodedir}"
+                fi
+                cp "${file}" "${contentnodedir}" || return $?
+                ;;
+            esac
+          fi
+        done
+
+        # Clone the Repo
+        local host="github.com"
+        clone_git_repo "${engine}" "${host}" "${path}" "${branch}" "${contenthubdir}" || return $?
+
+        case ${STACK_OPERATION} in 
+
+          delete) 
+            if [[ -n "${hubpath}" ]]; then
+              rm -rf "${hubpath}" || return $?
+            else 
+              fatal "Hub path not defined" 
+              return 1
+            fi
+          ;;
+          
+          create|update)
+            if [[ -n "${hubpath}" ]]; then
+              if [[ -d "${hubpath}" ]]; then 
+                rm -rf "${hubpath}" || return $?
+              fi 
+              mkdir -p "${hubpath}"
+              cp -R "${contentnodedir}/" "${hubpath}" || return $?
+            else
+              fatal "Hub path not defined"
+              return 1
+            fi
+          ;;
+        esac
+
+        # Commit Repo
+        cd "${contenthubdir}"
+        push_git_repo "${host}/${path}" "${branch}" "origin" \
+            "ContentNodeDeployment-${PRODUCT}-${SEGMENT}-${DEPLOYMENT_UNIT}" \
+            "${GIT_USER}" "${GIT_EMAIL}" || return $?
+
+      ;;
+    esac 
+  else 
+    info "No files found to copy" 
+  fi
+
+  return 0
 }
 
 # -- Cognito --
