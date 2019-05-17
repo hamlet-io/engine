@@ -2710,28 +2710,6 @@
         }
       ]
     },
-    "OWASP2017-Basic" : {
-      "Description" : "Minimal checks",
-      "NameSuffix" : "owasp-basic",
-      "Conditions" : [
-        {
-          "Condition" : "OWASP2017A1",
-          "Negated" : false
-        },
-        {
-          "Condition" : "OWASP2017A3",
-          "Negated" : false
-        },
-        {
-          "Condition" : "OWASP2017A7",
-          "Negated" : false
-        },
-        {
-          "Condition" : "OWASP2017A9",
-          "Negated" : false
-        }
-      ]
-    },
     "blacklist" : {
       "Description" : "Blacklist",
       "NameSuffix" : "blacklist",
@@ -2756,7 +2734,10 @@
   "WAFRuleGroups" : {
     "OWASP2017-Basic" : {
       "WAFRules" : [
-        "OWASP2017-Basic"
+        "OWASP2017A1",
+        "OWASP2017A3",
+        "OWASP2017A7",
+        "OWASP2017A9"
       ]
     }
   },
