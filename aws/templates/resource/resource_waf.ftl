@@ -260,10 +260,10 @@
         [#local conditionName = condition.Name!conditionId]
         [#-- Generate id/name from rule equivalents if not provided --]
         [#if !conditionId?has_content]
-            [#local conditionId = formatDependentWAFConditionId(condition.Type, id, condition?counter)]
+            [#local conditionId = formatDependentWAFConditionId(condition.Type, id, "c" + condition?counter?c)]
         [/#if]
         [#if !conditionName?has_content]
-            [#local conditionName = formatName(name,condition.Type,condition?counter)]
+            [#local conditionName = formatName(name,"c" + condition?counter?c,condition.Type)]
         [/#if]
         [#if condition.Filters?has_content]
             [#-- Condition to be created with the rule --]
@@ -326,13 +326,13 @@
             [#-- Rule to be created with the acl --]
             [#-- Generate id/name/metric from acl equivalents if not provided --]
             [#if !ruleId?has_content]
-                [#local ruleId = formatDependentWAFRuleId(id,"rule",rule?counter)]
+                [#local ruleId = formatDependentWAFRuleId(id,"r" + rule?counter?c)]
             [/#if]
             [#if !ruleName?has_content]
-                [#local ruleName = formatName(name,"rule",rule?counter)]
+                [#local ruleName = formatName(name,"r" + rule?counter?c,rule.NameSuffix!"")]
             [/#if]
             [#if !ruleMetric?has_content]
-                [#local ruleMetric = formatId(metric,"rule",rule?counter)]
+                [#local ruleMetric = formatId(metric,"r" + rule?counter?c)]
             [/#if]
             [#if rule.Conditions?has_content]
                 [@createWAFRule
@@ -397,7 +397,13 @@
                     ] ]
                 [/#if]
             [/#list]
-            [#local result += [{"Conditions" : conditionList, "Action" : ruleEntry.Action}] ]
+            [#local result += [
+                {
+                    "Conditions" : conditionList,
+                    "Action" : ruleEntry.Action
+                } +
+                attributeIfContent("NameSuffix", rules[ruleListEntry].NameSuffix!"")
+            ] ]
         [/#list]
     [/#list]
     [#return result]
