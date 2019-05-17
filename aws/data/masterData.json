@@ -2610,6 +2610,7 @@
   "WAFRules" : {
     "OWASP2017A1" : {
       "Description" : "SQL Injection protections",
+      "NameSuffix" : "owasp-sql",
       "Conditions" : [
         {
           "Condition" : "OWASP2017A1",
@@ -2619,6 +2620,7 @@
     },
     "OWASP2017A2" : {
       "Description" : "Broken Tokens",
+      "NameSuffix" : "owasp-tokens",
       "Conditions" : [
         {
           "Condition" : "OWASP2017A2-1",
@@ -2632,6 +2634,7 @@
     },
     "OWASP2017A3" : {
       "Description" : "Cross Site Scripting protections",
+      "NameSuffix" : "owasp-xss",
       "Conditions" : [
         {
           "Condition" : "OWASP2017A3",
@@ -2641,6 +2644,7 @@
     },
     "OWASP2017A4-1" : {
       "Description" : "Path Traversal",
+      "NameSuffix" : "owasp-paths",
       "Conditions" : [
         {
           "Condition" : "OWASP2017A4-1",
@@ -2650,6 +2654,7 @@
     },
     "OWASP2017A4-2" : {
       "Description" : "Admin path protections",
+      "NameSuffix" : "owasp-admin-paths",
       "Conditions" : [
         {
           "Condition" : "OWASP2017A4-2",
@@ -2663,6 +2668,7 @@
     },
     "OWASP2017A5-PHP" : {
       "Description" : "PHP Specific protections",
+      "NameSuffix" : "owasp-php",
       "Conditions" : [
         {
           "Condition" : "OWASP2017A5-PHP",
@@ -2672,6 +2678,7 @@
     },
     "OWASP2017A7" : {
       "Description" : "Size Constraints",
+      "NameSuffix" : "owasp-size",
       "Conditions" : [
         {
           "Condition" : "OWASP2017A7",
@@ -2681,6 +2688,7 @@
     },
     "OWASP2017A8" : {
       "Description" : "CSRF Detection",
+      "NameSuffix" : "owasp-csrf",
       "Conditions" : [
         {
           "Condition" : "OWASP2017A8-1",
@@ -2694,7 +2702,30 @@
     },
     "OWASP2017A9" : {
       "Description" : "Known Vulnerabilities",
+      "NameSuffix" : "owasp-vulnerabilities",
       "Conditions" : [
+        {
+          "Condition" : "OWASP2017A9",
+          "Negated" : false
+        }
+      ]
+    },
+    "OWASP2017-Basic" : {
+      "Description" : "Minimal checks",
+      "NameSuffix" : "owasp-basic",
+      "Conditions" : [
+        {
+          "Condition" : "OWASP2017A1",
+          "Negated" : false
+        },
+        {
+          "Condition" : "OWASP2017A3",
+          "Negated" : false
+        },
+        {
+          "Condition" : "OWASP2017A7",
+          "Negated" : false
+        },
         {
           "Condition" : "OWASP2017A9",
           "Negated" : false
@@ -2703,6 +2734,7 @@
     },
     "blacklist" : {
       "Description" : "Blacklist",
+      "NameSuffix" : "blacklist",
       "Conditions" : [
         {
           "Condition" : "blacklist",
@@ -2712,6 +2744,7 @@
     },
     "whitelist" : {
       "Description" : "Whitelist",
+      "NameSuffix" : "whitelist",
       "Conditions" : [
         {
           "Condition" : "whitelist",
@@ -2723,10 +2756,7 @@
   "WAFRuleGroups" : {
     "OWASP2017-Basic" : {
       "WAFRules" : [
-        "OWASP2017A1",
-        "OWASP2017A3",
-        "OWASP2017A7",
-        "OWASP2017A9"
+        "OWASP2017-Basic"
       ]
     }
   },
