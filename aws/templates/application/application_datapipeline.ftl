@@ -25,8 +25,8 @@
         [#assign securityGroupId = resources["securityGroup"].Id]
         [#assign securityGroupName = resources["securityGroup"].Name]
 
-        [#assign ec2ProcessorProfile = getProcessor(tier, component, "EC2")]
-        [#assign emrProcessorProfile = getProcessor(tier, component, "EMR")]
+        [#assign ec2ProcessorProfile = getProcessor(occurrence, "EC2")]
+        [#assign emrProcessorProfile = getProcessor(occurrence, "EMR")]
 
         [#assign pipelineCreateCommand = "createPipeline"]
      

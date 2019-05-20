@@ -17,7 +17,7 @@
         [#assign esName = resources["es"].Name]
         [#assign esServiceRoleId = resources["servicerole"].Id]
 
-        [#assign processorProfile = getProcessor(tier, component, "ElasticSearch")]
+        [#assign processorProfile = getProcessor(occurrence, "ElasticSearch")]
         [#assign master = processorProfile.Master!{}]
 
         [#assign esUpdateCommand = "updateESDomain" ]

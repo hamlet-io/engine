@@ -23,7 +23,7 @@
         [#assign ec2LogGroupId          = resources["lg"].Id]
         [#assign ec2LogGroupName        = resources["lg"].Name]
 
-        [#assign processorProfile       = getProcessor(tier, component, "EC2")]
+        [#assign processorProfile       = getProcessor(occurrence, "EC2")]
         [#assign storageProfile         = getStorage(tier, component, "EC2")]
         [#assign logFileProfile         = getLogFileProfile(tier, component, "EC2")]
         [#assign bootstrapProfile       = getBootstrapProfile(tier, component, "EC2")]

@@ -80,7 +80,7 @@
                                                 cacheSecurityGroupId, 
                                                 port)]
 
-        [#assign processorProfile = getProcessor(tier, component, "ElastiCache")]
+        [#assign processorProfile = getProcessor(occurrence, "ElastiCache")]
         [#assign countPerZone = processorProfile.CountPerZone]
         [#assign awsZones = [] ]
         [#list zones as zone]
