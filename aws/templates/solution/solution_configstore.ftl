@@ -14,6 +14,7 @@
 
         [#assign tableId = parentResources["table"].Id ]
         [#assign tableKey = parentResources["table"].Key ]
+        [#assign tableSortKey = parentResources["table"].SortKey!"" ]
 
         [#assign itemInitCommand = "initItem"]
         [#assign itemUpdateCommand = "updateItem" ]
@@ -21,6 +22,11 @@
 
         [#assign dynamoTableKeys = getDynamoDbTableKey(tableKey , "hash")]
         [#assign dynamoTableKeyAttributes = getDynamoDbTableAttribute( tableKey, STRING_TYPE)]
+
+        [#if parentSolution.SecondaryKey ]
+            [#assign dynamoTableKeys += getDynamoDbTableKey(tableSortKey, "range" )]
+            [#assign dynamoTableKeyAttributes += getDynamoDbTableAttribute(tableSortKey, STRING_TYPE)]
+        [/#if]
 
         [#assign runIdAttributeName = "runId" ]
         [#assign runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
@@ -67,7 +73,8 @@
             [#assign resources = subOccurrence.State.Resources ]
 
             [#assign itemId = resources["item"].Id]
-            [#assign itemName = resources["item"].Name]
+            [#assign itemPrimaryKey = resources["item"].PrimaryKey ]
+            [#assign itemSecondaryKey = (resources["item"].SecondaryKey)!"" ]
 
             [#assign initCliId = formatId( itemId, "init")]
             [#assign updateCliId = formatId( itemId, "update" )]
@@ -86,7 +93,7 @@
                     "DefaultCoreVariables" : false,
                     "DefaultEnvironmentVariables" : false,
                     "DefaultLinkVariables" : true,
-                    "Branch" : itemName
+                    "Branch" : formatName(itemPrimaryKey + itemSecondaryKey) 
                 }
             ]
 
@@ -109,7 +116,11 @@
 
             [#if deploymentSubsetRequired("cli", false) ]
 
-                [#assign branchItemKey = getDynamoDbTableItem( tableKey, itemName )]
+                [#assign branchItemKey = getDynamoDbTableItem( tableKey, itemPrimaryKey )]
+
+                [#if parentSolution.SecondaryKey ]
+                    [#assign branchItemKey = mergeObjects(branchItemKey, getDynamoDbTableItem( tableSortKey, itemSecondaryKey) ) ]
+                [/#if]
 
                 [#assign branchUpdateAttribtueValues = runIdAttribute ]
                 [#assign branchUpdateExpression =
@@ -157,7 +168,7 @@
                         " case $\{STACK_OPERATION} in",
                         "   create|update)",
                         "       # Manage Branch Attributes",
-                        "       info \"Creating DynamoDB Item - Table: " + tableId + " - Item: " + itemName + "\"",
+                        "       info \"Creating DynamoDB Item - Table: " + tableId + " - Primary Key: " + itemPrimaryKey + + " - Secondary Key: " + itemSecondaryKey "\"",
                         "       upsert_dynamodb_item" +
                         "       \"" + region + "\" " +
                         "       \"$\{tableName}\" " +
@@ -176,6 +187,14 @@
             [#assign cleanupFilterExpression = "NOT " + runIdAttributeName + " = :run_id"  ]
             [#assign cleanupExpressionAttributeValues = runIdAttribute ]
 
+            [#assign projectionExpression = [ "#" + tableKey]  ]
+            [#assign expressionAttributeNames = { "#" + tableKey : tableKey } ]
+
+            [#if parentSolution.SecondaryKey ]
+                [#assign projectionExpression += [ "#" + tableSortKey ] ]
+                [#assign expressionAttributeNames += { "#" + tableSortKey : tableSortKey } ]
+            [/#if]
+
             [@cfCli
                 mode=listMode
                 id=tableId
@@ -183,10 +202,8 @@
                 content={
                     "FilterExpression" : cleanupFilterExpression,
                     "ExpressionAttributeValues" : cleanupExpressionAttributeValues,
-                    "ProjectionExpression" : "#" + tableKey,
-                    "ExpressionAttributeNames" : {
-                        "#" + tableKey : tableKey
-                    }
+                    "ProjectionExpression" : projectionExpression?join(", "),
+                    "ExpressionAttributeNames" : expressionAttributeNames
                 }
             /]
         [/#if]

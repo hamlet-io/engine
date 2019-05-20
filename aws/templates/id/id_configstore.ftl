@@ -30,6 +30,12 @@
                 {
                     "Names" : "Table",
                     "Children" : dynamoDbTableChildConfiguration
+                },
+                {
+                    "Names" : "SecondaryKey",
+                    "Description" : "Uses the name of the branch to provide a secondary sort key on branches - id being the primary",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : false
                 }
             ],
             "Components" : [
@@ -84,13 +90,19 @@
 
     [#local id = formatResourceId(AWS_DYNAMODB_TABLE_RESOURCE_TYPE, core.Id )]
     [#local key = "branch" ]
-
+    
+    [#local sortKey = "" ]
+    [#if solution.SecondaryKey ]
+        [#local sortKey = "instance" ]
+    [/#if]
+    
     [#return
         {
             "Resources" : {
                 "table" : {
                     "Id" : id,
                     "Key" : key,
+                    "SortKey" : sortKey,
                     "Type" : AWS_DYNAMODB_TABLE_RESOURCE_TYPE
                 }
             },
@@ -98,7 +110,11 @@
                 "TABLE_NAME" : getExistingReference(id),
                 "TABLE_ARN" : getExistingReference(id, ARN_ATTRIBUTE_TYPE),
                 "TABLE_KEY" : key
-            },
+            } + 
+            attributeIfContent(
+                "TABLE_SORT_KEY",
+                sortKey
+            ),
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {
@@ -116,14 +132,21 @@
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
+    [#local parentSolution = parent.Configuration.Solution ]
     [#local parentStateAttributes = parent.State.Attributes ]
     [#local parentResources = parent.State.Resources]
+
+    [#local itemId = core.Id ]
+    [#if parentSolution.SecondaryKey ]
+        [#local itemId = formatId(core.Id, core.SubComponent.Name)]
+    [/#if]
 
     [#local tableId = parentResources["table"].Id ]
     [#local tableArn = parentStateAttributes["TABLE_ARN"]]
     [#local tableKey = parentStateAttributes["TABLE_KEY"]]
 
-    [#local branchName = core.SubComponent.Name ]
+    [#local primaryKeyValue = core.SubComponent.Id ]
+    [#local secondaryKeyValue = core.SubComponent.Name]
 
     [#local states = [] ]
     [#local stateManagementPolicy = []]
@@ -135,16 +158,26 @@
         {
             "Resources" : {
                 "item" : {
-                    "Id" : core.Id,
-                    "Name" : branchName,
+                    "Id" : itemId,
+                    "PrimaryKey" : primaryKeyValue,
                     "Type" : AWS_DYNAMODB_ITEM_RESOURCE_TYPE
-                },
+                } + 
+                attributeIfTrue(
+                    "SecondaryKey"
+                    parentSolution.SecondaryKey,
+                    secondaryKeyValue
+                ),
                 "table" : parentResources["table"]
             },
             "Attributes" : {
-                "KEY_VALUE" : branchName,
+                "PRIMARY_KEY_VALUE" : primaryKeyValue,
                 "STATE_KEYS" : states?join(",")
             } + 
+            attributeIfTrue(
+                "SECONDARY_KEY_VALUE",
+                parentSolution.SecondaryKey,
+                secondaryKeyValue
+            ) + 
             parentStateAttributes,
             "Roles" : {
                 "Inbound" : {},
@@ -155,7 +188,7 @@
                         [], 
                         "",
                         getDynamoDbItemCondition(
-                            branchName
+                            primaryKeyValue
                          )),
                     "managestate" :
                         dynamoDbViewerPermission(
@@ -163,7 +196,7 @@
                             [], 
                             "",
                             getDynamoDbItemCondition(
-                                branchName
+                                primaryKeyValue
                             )
                         ) + 
                         valueIfContent(
@@ -171,7 +204,7 @@
                                 getReference(tableId, ARN_ATTRIBUTE_TYPE), 
                                 "",
                                 getDynamoDbItemCondition(
-                                    branchName,
+                                    primaryKeyValue,
                                     states
                                 ))
                             states,
