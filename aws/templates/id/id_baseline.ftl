@@ -1,6 +1,7 @@
 [#-- Components --]
 [#assign BASELINE_COMPONENT_TYPE = "baseline" ]
 [#assign BASELINE_DATA_COMPONENT_TYPE = "baselinedata" ]
+[#assign BASELINE_KEYS_COMPONENT_TYPE = "baselinekeys" ]
 
 [#assign componentConfiguration +=
     {
@@ -41,6 +42,11 @@
                     "Type" : BASELINE_DATA_COMPONENT_TYPE,
                     "Component" : "DataBuckets",
                     "Link" : ["DataBucket"]
+                },
+                {
+                    "Type" : BASELINE_KEYS_COMPONENT_TYPE,
+                    "Component" : "Keys",
+                    "Link" : ["Key"]
                 }
             ]
         },
@@ -105,6 +111,35 @@
                     "Children" : s3NotificationChildConfiguration
                 }
             ]
+        },
+        BASELINE_KEYS_COMPONENT_TYPE : {
+                "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Shared security keys for a segment"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "segment"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Engine",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "cmk", "ssh", "oai" ],
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                }
+            ]
         }
     }]
 
@@ -166,22 +201,22 @@
     [#local role = solution.Role]
     [#local legacyS3 = false]
 
-    [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, core.SubComponent.Id ) ]
+    [#local bucketId = formatSegmentS3Id(core.SubComponent.Id ) ]
     [#local bucketName = formatSegmentBucketName( segmentSeed, core.SubComponent.Id )]]
 
     [#switch core.SubComponent.Id ]
         [#case "appdata" ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "data") ]
+            [#local bucketId = formatS3DataId() ]
             [#if getExistingReference(formatS3DataId())?has_content ]
-                [#local bucketId = formatS3DataId() ]
                 [#local legacyS3 = true ]
             [/#if]
             [#break]
 
         [#case "opsdata" ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "ops") ]
+            [#local bucketId = formatS3OperationsId()]
             [#if getExistingReference(formatS3OperationsId())?has_content ]
-                [#local bucketId = formatS3OperationsId() ]
                 [#local legacyS3 = true]
             [/#if]
             [#break]
@@ -214,6 +249,74 @@
     [#return result ]
 [/#function]
 
+[#function getBaselineKeyState occurrence parent ]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+
+    [#local parentCore = occurrence.Core ]
+    [#local parentState = parent.State ]
+
+    [#local legacyKey = false]
+
+    [#local resources = {}]
+
+    [#switch solution.Engine ]
+        [#case "cmk"]
+            
+            [#if core.SubComponent.Id == "cmk" &&
+                    getExistingReference(formatSegmentCMKTemplateId())?has_content ]
+                [#local cmkId = formatSegmentCMKTemplateId()]
+                [#local cmkAliasId = formatSegmentCMKAliasId(cmkId)]
+                [#local legacyKey = true ]
+            [#else]
+                [#local cmkId = formatResourceId(AWS_CMK_RESOURCE_TYPE, core.Id )]
+                [#local cmkAliasId = formatResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, core.Id )]
+            [/#if]
+
+            [#local resources += 
+                {
+                    "cmk" : {
+                        "Id" : cmkId,
+                        "Name" : core.FullName,
+                        "Type" : AWS_CMK_RESOURCE_TYPE
+                    },
+                    "cmkAlias" : {
+                        "Id" : cmkAliasId,
+                        "Name" : "alias/" + core.FullName,
+                        "Type" : AWS_CMK_ALIAS_RESOURCE_TYPE
+                    }
+                }
+            ]
+
+            [#break]
+        [#case "ssh"]
+            [#break]
+        [#case "oai"]
+
+            [#break]
+        [#default]
+            [@cfException
+                mode=listMode
+                description="Unsupported Key Type"
+                detail=solution.Engine
+                context=occurrence
+            /]
+    [/#switch]
+
+    [#local result =
+        {
+            "Resources" : resources,
+            "Attributes" : {
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        }
+    ]
+    [#return result ]
+[/#function]
+
 [#-- Resources --]
 [#assign SEED_RESOURCE_TYPE = "seed" ]
 
@@ -228,17 +331,23 @@
 [#function formatS3OperationsId]
     [#return
         migrateToResourceId(
-            formatSegmentS3Id("ops"),
-            formatSegmentS3Id("operations"),
-            formatSegmentS3Id("logs")
+            formatSegmentS3Id("opsdata"),
+            [
+                formatSegmentS3Id("ops"),
+                formatSegmentS3Id("operations"),
+                formatSegmentS3Id("logs")
+            ]
         )]
 [/#function]
 
 [#function formatS3DataId]
     [#return
         migrateToResourceId(
+            formatSegmentS3Id("appdata"),
+            [
             formatSegmentS3Id("data"),
             formatSegmentS3Id("application"),
             formatSegmentS3Id("backups")
+            ]
         )]
 [/#function]

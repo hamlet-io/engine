@@ -149,7 +149,6 @@
             [#break]
         [/#if]
 
-
         [#assign wafPresent     = isPresent(solution.WAF) ]
         [#assign wafAclId       = resources["wafacl"].Id]
         [#assign wafAclName     = resources["wafacl"].Name]
