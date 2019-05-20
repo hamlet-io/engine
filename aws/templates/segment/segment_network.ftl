@@ -222,7 +222,7 @@
                                     route=
                                         {
                                             "Type" : "gateway",
-                                            "IgwId" : legacyIGWId,
+                                            "IgwId" : legacyIGWResourceId,
                                             "CIDR" : "0.0.0.0/0"
                                         }
                                 /]
