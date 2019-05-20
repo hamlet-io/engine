@@ -3,7 +3,7 @@
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
-            
+
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
@@ -93,7 +93,7 @@
             [#assign legacyIGWId = resources["legacyIGW"].Id ]
             [#assign legacyIGWResourceId = resources["legacyIGW"].ResourceId]
             [#assign legacyIGWName = resources["legacyIGW"].Name]
-            [#assign legacyIGWAttachmentId = resources["legacyIGWAttachement"].Id ]
+            [#assign legacyIGWAttachmentId = resources["legacyIGWAttachment"].Id ]
 
             [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                 [@createIGW
@@ -106,15 +106,15 @@
                     mode=listMode
                     id=legacyIGWAttachmentId
                     vpcId=vpcResourceId
-                    igwId=legacyIGWId
+                    igwId=legacyIGWResourceId
                 /]
             [/#if]
         [/#if]
-        
+
         [#if (resources["subnets"]!{})?has_content ]
 
             [#assign subnetResources = resources["subnets"]]
-            
+
             [#list subnetResources as tierId, zoneSubnets  ]
 
                 [#assign networkTier = getTier(tierId) ]
@@ -124,10 +124,10 @@
                 [#assign networkACLId = networkTier.Network.NetworkACL!"" ]
 
                 [#if !networkLink?has_content || !routeTableId?has_content || !networkACLId?has_content ]
-                    [@cfException 
-                        listMode 
+                    [@cfException
+                        listMode
                         "Tier Network configuration incomplete",
-                        networkTier.Network + 
+                        networkTier.Network +
                             {
                                 "Link" : networkLink,
                                 "RouteTable" : routeTableId,
@@ -154,7 +154,7 @@
                             [#assign routeTableAssociationId = zoneSubnetResources["routeTableAssoc"].Id]
                             [#assign networkACLAssociationId = zoneSubnetResources["networkACLAssoc"].Id]
                             [#assign routeTableId = (routeTableZones[zone.Id]["routeTable"]).Id]
-                            
+
                             [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                                 [@createSubnet
                                     mode=listMode
@@ -225,9 +225,9 @@
                                             "IgwId" : legacyIGWId,
                                             "CIDR" : "0.0.0.0/0"
                                         }
-                                /]   
-                            [/#if] 
-                            
+                                /]
+                            [/#if]
+
                         [/#if]
                     [/#if]
                 [/#list]
@@ -239,7 +239,7 @@
                 [#assign networkACLName = resources["networkACL"].Name]
 
                 [#assign networkACLRules = resources["rules"]]
-                
+
                 [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                     [@createNetworkACL
                         mode=listMode
@@ -247,12 +247,12 @@
                         name=networkACLName
                         vpcId=vpcResourceId
                     /]
-                    
+
                     [#list networkACLRules as id, rule ]
                         [#assign ruleId = rule.Id ]
                         [#assign ruleConfig = solution.Rules[id] ]
-                        
-                        [#if (ruleConfig.Source.IPAddressGroups)?seq_contains("_localnet") 
+
+                        [#if (ruleConfig.Source.IPAddressGroups)?seq_contains("_localnet")
                                 && (ruleConfig.Source.IPAddressGroups)?size == 1 ]
 
                             [#assign direction = "outbound" ]
@@ -261,7 +261,7 @@
                             [#assign returnIpAddresses = getGroupCIDRs(ruleConfig.Destination.IPAddressGroups, true, occurrence)]
                             [#assign returnPort = ports[ruleConfig.Source.Port]]
 
-                        [#elseif (ruleConfig.Destination.IPAddressGroups)?seq_contains("_localnet")  
+                        [#elseif (ruleConfig.Destination.IPAddressGroups)?seq_contains("_localnet")
                                     && (ruleConfig.Source.IPAddressGroups)?size == 1 ]
 
                             [#assign direction = "inbound" ]

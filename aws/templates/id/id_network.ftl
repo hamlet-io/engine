@@ -122,7 +122,7 @@
                     "Type" : "ComponentLevel",
                     "Value" : "segment"
                 }
-            ], 
+            ],
             "Attributes" : [
                 {
                     "Names" : "Active",
@@ -199,13 +199,13 @@
         [#local vpcName = formatVPCName()]
         [#local legacyIGWId = formatVPCIGWTemplateId() ]
         [#local legacyIGWName = formatIGWName() ]
-        [#local legacyIGWAttachementId = formatId(AWS_VPC_IGW_ATTACHMENT_TYPE) ]
+        [#local legacyIGWAttachmentId = formatId(AWS_VPC_IGW_ATTACHMENT_TYPE) ]
         [#local legacySegmentTopicId = formatSegmentSNSTopicId() ]
     [#else]
         [#local vpcId = formatResourceId(AWS_VPC_RESOURCE_TYPE, core.Id)]
         [#local vpcName = core.FullName ]
     [/#if]
-    
+
     [#assign vpcFlowLogEnabled = environmentObject.Operations.FlowLogs.Enabled!
                                     segmentObject.Operations.FlowLogs.Enabled!
                                     solution.Logging.EnableFlowLogs ]
@@ -234,7 +234,7 @@
     [#-- Define subnets --]
     [#list segmentObject.Network.Tiers.Order as tierId]
         [#local networkTier = getTier(tierId) ]
-        [#if ! (networkTier?has_content && networkTier.Network.Enabled && 
+        [#if ! (networkTier?has_content && networkTier.Network.Enabled &&
                     networkTier.Network.Link.Tier == core.Tier.Id && networkTier.Network.Link.Component == core.Component.Id &&
                     (networkTier.Network.Link.Version!core.Version.Id) == core.Version.Id && (networkTier.Network.Link.Instance!core.Instance.Id) == core.Instance.Id  ) ]
             [#continue]
@@ -243,7 +243,7 @@
             [#local subnetId = legacyVpc?then(
                                     formatSubnetId(networkTier, zone),
                                     formatResourceId(AWS_VPC_SUBNET_RESOURCE_TYPE, core.Id, networkTier.Id, zone.Id))]
-            
+
             [#local subnetName = legacyVpc?then(
                                     formatSubnetName(networkTier, zone),
                                     formatName(core.FullName, networkTier.Name, zone.Name))]
@@ -285,9 +285,9 @@
                     "Type" : AWS_VPC_RESOURCE_TYPE
                 },
                 "subnets" : subnets
-            } + 
+            } +
             vpcFlowLogEnabled?then(
-                { "flowlogs" : { 
+                { "flowlogs" : {
                     "flowLogRole" : {
                         "Id" : formatDependentRoleId(vpcId),
                         "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
@@ -303,7 +303,7 @@
                     }
                 }},
                 {}
-            ) + 
+            ) +
             legacyVpc?then(
                 {
                     "legacySnsTopic" : {
@@ -316,12 +316,12 @@
                         "Name" : legacyIGWName,
                         "Type" : AWS_VPC_IGW_RESOURCE_TYPE
                     },
-                    "legacyIGWAttachement" : {
-                        "Id" : legacyIGWAttachementId,
+                    "legacyIGWAttachment" : {
+                        "Id" : legacyIGWAttachmentId,
                         "Type" : AWS_VPC_IGW_ATTACHMENT_TYPE
                     }
                 },
-                {} 
+                {}
             ),
             "Attributes" : {
             },
@@ -366,7 +366,7 @@
                             "Name" : zoneRouteTableName,
                             "Type" : AWS_VPC_ROUTE_TABLE_RESOURCE_TYPE
                         }
-                    } + 
+                    } +
                     (legacyVpc && solution.Public )?then(
                         {
                             "legacyIGWRoute" : {
@@ -380,9 +380,9 @@
         [/#list]
     [/#list]
 
-    [#return 
+    [#return
         {
-            "Resources" : { 
+            "Resources" : {
                 "routeTables" : routeTables
             },
             "Attributes" : {
@@ -406,7 +406,7 @@
         [#local networkACLId = formatNetworkACLId(core.Id) ]
         [#local networkACLName = formatNetworkACLName(core.Name)]
     [/#if]
-    
+
     [#local networkACLRules = {}]
     [#list solution.Rules as id, rule]
         [#local networkACLRules += {
@@ -420,9 +420,9 @@
         }]
     [/#list]
 
-    [#return 
+    [#return
         {
-            "Resources" : { 
+            "Resources" : {
                 "networkACL" : {
                     "Id" : networkACLId,
                     "Name" : networkACLName,
