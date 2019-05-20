@@ -168,7 +168,7 @@
                         " case $\{STACK_OPERATION} in",
                         "   create|update)",
                         "       # Manage Branch Attributes",
-                        "       info \"Creating DynamoDB Item - Table: " + tableId + " - Primary Key: " + itemPrimaryKey + + " - Secondary Key: " + itemSecondaryKey "\"",
+                        "       info \"Creating DynamoDB Item - Table: " + tableId + " - Primary Key: " + itemPrimaryKey + " - Secondary Key: " + itemSecondaryKey "\"",
                         "       upsert_dynamodb_item" +
                         "       \"" + region + "\" " +
                         "       \"$\{tableName}\" " +
