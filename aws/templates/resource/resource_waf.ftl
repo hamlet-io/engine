@@ -410,15 +410,14 @@
 [/#function]
 
 [#macro createWAFAclFromSecurityProfile mode id name metric wafSolution securityProfile occurrence={} regional=false]
-    [#local isWhitelisted = getGroupCIDRs(wafSolution.IPAddressGroups, true, occurrence, true) ]
-    [#if (!isWhitelisted) || wafSolution.OWASP]
+    [#if wafSolution.OWASP]
         [#local wafProfile = blueprintObject.WAFProfiles[securityProfile.WAFProfile!""]!{} ]
     [#else]
         [#local wafProfile = {"Rules" : [], "DefaultAction" : "ALLOW"} ]
     [/#if]
     [#local wafValueSet = blueprintObject.WAFValueSets[securityProfile.WAFValueSet!""]!{} ]
 
-    [#if isWhitelisted]
+    [#if getGroupCIDRs(wafSolution.IPAddressGroups, true, occurrence, true) ]
         [#local wafValueSet += {
                 "whitelistedips" : getGroupCIDRs(wafSolution.IPAddressGroups, true, occurrence)
             } ]
