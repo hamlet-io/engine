@@ -27,7 +27,7 @@
         [#assign logFileProfile = getLogFileProfile(tier, component, "ComputeCluster")]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ComputeCluster")]
         [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
-        [#assign processorProfile = getProcessor(tier, component, "ComputeCluster")]
+        [#assign processorProfile = getProcessor(occurrence, "ComputeCluster")]
 
         [#assign networkLink = tier.Network.Link!{} ]
 

@@ -1847,12 +1847,12 @@ behaviour.
 [/#function]
 
 [#-- Get processor settings --]
-[#function getProcessor tier component type extensions...]
-    [#local tc = formatComponentShortName(
-                    tier,
-                    component,
-                    extensions)]
-    [#local defaultProfile = "default"]
+[#function getProcessor occurrence type ]
+
+    [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
+
+    [#local processorProfile = occurrence.Configuration.Solution.Profiles.Processor ]
+    
     [#if (component[type].Processor)??]
         [#return component[type].Processor]
     [/#if]
@@ -1862,11 +1862,11 @@ behaviour.
     [#if (processors[solutionObject.CapacityProfile][type])??]
         [#return processors[solutionObject.CapacityProfile][type]]
     [/#if]
-    [#if (processors[defaultProfile][tc])??]
-        [#return processors[defaultProfile][tc]]
+    [#if (processors[processorProfile][tc])??]
+        [#return processors[processorProfile][tc]]
     [/#if]
-    [#if (processors[defaultProfile][type])??]
-        [#return processors[defaultProfile][type]]
+    [#if (processors[processorProfile][type])??]
+        [#return processors[processorProfile][type]]
     [/#if]
     [#return {}]
 [/#function]

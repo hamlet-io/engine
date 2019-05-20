@@ -494,7 +494,7 @@
 [#assign profileChildConfiguration = [
     {
         "Names" : "Deployment",
-        "Type" : STRING_TYPE
+        "Type" : ARRAY_OF_STRING_TYPE
     }
 ]]
 

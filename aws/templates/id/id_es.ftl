@@ -77,7 +77,14 @@
                 },
                 {
                     "Names" : "Profiles",
-                    "Children" : profileChildConfiguration
+                    "Children" : profileChildConfiguration + 
+                                    [
+                                        {
+                                            "Names" : "Processor",
+                                            "Type" : STRING_TYPE,
+                                            "Default" : "default"
+                                        }
+                                    ]
                 },
                 {
                     "Names" : "Alerts",

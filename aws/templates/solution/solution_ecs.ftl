@@ -32,7 +32,7 @@
 
         [#assign logFileProfile = getLogFileProfile(tier, component, "ECS")]
         [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ECS")]
-        [#assign processorProfile = getProcessor(tier, component, "ECS")]
+        [#assign processorProfile = getProcessor(occurrence, "ECS")]
         [#assign storageProfile = getStorage(tier, component, "ECS")]
 
         [#assign networkLink = tier.Network.Link!{} ]

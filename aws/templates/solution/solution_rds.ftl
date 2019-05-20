@@ -176,7 +176,7 @@
             [/#if]
         [/#list]
 
-        [#assign processorProfile = getProcessor(tier, component, "RDS")]
+        [#assign processorProfile = getProcessor(occurrence, "RDS")]
 
         [#if deploymentSubsetRequired("prologue", false)]
             [@cfScript
