@@ -115,6 +115,11 @@
             {
                 "Names" : "Type",
                 "Type" : STRING_TYPE
+            },
+            {
+                "Names" : "Enabled",
+                "Type" : BOOLEAN_TYPE,
+                "Default" : true
             }
         ]
 ]

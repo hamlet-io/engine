@@ -1400,10 +1400,6 @@ behaviour.
         [#local typeObject = component ]
     [/#if]
 
-    [#--  Deployment Profile Configuration Overrides --]
-    [#local deploymentProfileComponents = getDeploymentProfile(typeObject, deploymentMode) ]
-    [#local typeObject = mergeObjects(typeObject, deploymentProfileComponents[type]!{} )]
-
     [#if tier?has_content]
         [#local tierId = getTierId(tier) ]
         [#local tierName = getTierName(tier) ]
@@ -1499,12 +1495,29 @@ behaviour.
                                     "Id" : formatId(subComponentId),
                                     "Name" : formatName(subComponentName)
                                 }
-                            ),
+                            )
+                        }
+                    ]
+
+                    [#local occurrenceProfiles = [] ]
+                    [#list occurrenceContexts as occurrenceContext ]
+                        [#if ((occurrenceContext.Profiles.Deployment)![])?has_content ]
+                            [#local occurrenceProfiles = occurrenceContext.Profiles.Deployment ]
+                        [/#if]
+                    [/#list]
+
+                    [#if occurrenceProfiles?has_content ]
+                        [#local occurrenceContexts += [ (getDeploymentProfile(occurrenceProfiles, deploymentMode)[type])!{} ]]
+                    [/#if]
+
+                    [#local occurrence += 
+                        {
                             "Configuration" : {
                                 "Solution" : getCompositeObject(attributes, occurrenceContexts)
                             }
                         }
                     ]
+
                     [#local occurrence +=
                         {
                             "Core" :
@@ -1669,140 +1682,141 @@ behaviour.
         }
         false
     /]
-    [#if link.Tier?lower_case == "external"]
-        [#local targetOccurrence =
-            {
-                "Core" : {
-                    "External" : true,
-                    "Type" : link.Type!"external",
-                    "Tier" : {
-                        "Id" : link.Tier,
-                        "Name" : link.Tier
+    [#if (link.Enabled)!true ]
+        [#if link.Tier?lower_case == "external"]
+            [#local targetOccurrence =
+                {
+                    "Core" : {
+                        "External" : true,
+                        "Type" : link.Type!"external",
+                        "Tier" : {
+                            "Id" : link.Tier,
+                            "Name" : link.Tier
+                        },
+                        "Component" : {
+                            "Id" : link.Component,
+                            "Name" : link.Component
+                        },
+                        "Instance" : {
+                            "Id" : "",
+                            "Name" : ""
+                        },
+                        "Version" : {
+                            "Id" : "",
+                            "Name" : ""
+                        }
                     },
-                    "Component" : {
-                        "Id" : link.Component,
-                        "Name" : link.Component
-                    },
-                    "Instance" : {
-                        "Id" : "",
-                        "Name" : ""
-                    },
-                    "Version" : {
-                        "Id" : "",
-                        "Name" : ""
+                    "Configuration" : {
+                        "Environment" : occurrence.Configuration.Environment
                     }
-                },
-                "Configuration" : {
-                    "Environment" : occurrence.Configuration.Environment
                 }
-            }
-        ]
-        [#return
-            targetOccurrence +
-            {
-                "State" : getOccurrenceState(targetOccurrence, {}),
-                "Direction" : link.Direction!"outbound",
-                "Role" : link.Role!"external"
-            }
-        ]
-    [/#if]
+            ]
+            [#return
+                targetOccurrence +
+                {
+                    "State" : getOccurrenceState(targetOccurrence, {}),
+                    "Direction" : link.Direction!"outbound",
+                    "Role" : link.Role!"external"
+                }
+            ]
+        [/#if]
 
-    [#list getOccurrences(
-                getTier(link.Tier),
-                getComponent(link.Tier, link.Component)) as targetOccurrence]
+        [#list getOccurrences(
+                    getTier(link.Tier),
+                    getComponent(link.Tier, link.Component)) as targetOccurrence]
 
-        [@cfDebug
-            listMode
-            {
-                "Text" : "Possible link target",
-                "Occurrence" : targetOccurrence
-            }
-            false
-        /]
+            [@cfDebug
+                listMode
+                {
+                    "Text" : "Possible link target",
+                    "Occurrence" : targetOccurrence
+                }
+                false
+            /]
 
-        [#local core = targetOccurrence.Core ]
+            [#local core = targetOccurrence.Core ]
 
-        [#local targetSubOccurrences = [targetOccurrence] ]
-        [#local subComponentId = "" ]
+            [#local targetSubOccurrences = [targetOccurrence] ]
+            [#local subComponentId = "" ]
 
-        [#-- Check if suboccurrence linking is required --]
-        [#-- Support multiple alternatives --]
-        [#local subComponents = getOccurrenceSubComponents(core.Type) ]
-        [#list subComponents as subComponent]
-            [#local linkAttributes = asFlattenedArray(subComponent.Link!"") ]
-            [#list linkAttributes as linkAttribute]
-                [#local subComponentId = link[linkAttribute]!"" ]
+            [#-- Check if suboccurrence linking is required --]
+            [#-- Support multiple alternatives --]
+            [#local subComponents = getOccurrenceSubComponents(core.Type) ]
+            [#list subComponents as subComponent]
+                [#local linkAttributes = asFlattenedArray(subComponent.Link!"") ]
+                [#list linkAttributes as linkAttribute]
+                    [#local subComponentId = link[linkAttribute]!"" ]
+                    [#if subComponentId?has_content ]
+                        [#break]
+                    [/#if]
+                [/#list]
                 [#if subComponentId?has_content ]
                     [#break]
                 [/#if]
             [/#list]
-            [#if subComponentId?has_content ]
-                [#break]
+
+            [#-- Legacy support for links to lambda without explicit function --]
+            [#if targetOccurrence.Occurrences?has_content &&
+                    subComponentId == "" &&
+                    (core.Type == LAMBDA_COMPONENT_TYPE) ]
+                [#local subComponentId = (targetOccurrence.Occurrences[0].Core.SubComponent.Id)!"" ]
             [/#if]
+
+            [#if subComponentId?has_content]
+                [#local targetSubOccurrences = targetOccurrence.Occurrences![] ]
+            [/#if]
+
+            [#list targetSubOccurrences as targetSubOccurrence]
+                [#local core = targetSubOccurrence.Core ]
+
+                [#-- Subcomponent checking --]
+                [#if subComponentId?has_content &&
+                        (subComponentId != (core.SubComponent.Id)!"") ]
+                    [#continue]
+                [/#if]
+
+                [#-- Match needs to be exact                            --]
+                [#-- If occurrences do not match, overrides can be added --]
+                [#-- to the link.                                       --]
+                [#if (core.Instance.Id != instanceToMatch) ||
+                    (core.Version.Id != versionToMatch) ]
+                    [#continue]
+                [/#if]
+
+                [@cfDebug listMode "Link matched target" false /]
+
+                [#-- Determine if deployed --]
+                [#if activeOnly && !isOccurrenceDeployed(targetSubOccurrence) ]
+                    [#return {} ]
+                [/#if]
+
+                [#-- Determine the role --]
+                [#local direction = link.Direction!"outbound"]
+
+                [#local role =
+                    link.Role!
+                    (targetSubOccurrence.State.Roles[direction?capitalize]["default"])!""]
+
+                [#return
+                    targetSubOccurrence +
+                    {
+                        "Direction" : direction,
+                        "Role" : role
+                    } ]
+            [/#list]
         [/#list]
 
-        [#-- Legacy support for links to lambda without explicit function --]
-        [#if targetOccurrence.Occurrences?has_content &&
-                subComponentId == "" &&
-                (core.Type == LAMBDA_COMPONENT_TYPE) ]
-            [#local subComponentId = (targetOccurrence.Occurrences[0].Core.SubComponent.Id)!"" ]
-        [/#if]
-
-        [#if subComponentId?has_content]
-            [#local targetSubOccurrences = targetOccurrence.Occurrences![] ]
-        [/#if]
-
-        [#list targetSubOccurrences as targetSubOccurrence]
-            [#local core = targetSubOccurrence.Core ]
-
-            [#-- Subcomponent checking --]
-            [#if subComponentId?has_content &&
-                    (subComponentId != (core.SubComponent.Id)!"") ]
-                [#continue]
-            [/#if]
-
-            [#-- Match needs to be exact                            --]
-            [#-- If occurrences do not match, overrides can be added --]
-            [#-- to the link.                                       --]
-            [#if (core.Instance.Id != instanceToMatch) ||
-                (core.Version.Id != versionToMatch) ]
-                [#continue]
-            [/#if]
-
-            [@cfDebug listMode "Link matched target" false /]
-
-            [#-- Determine if deployed --]
-            [#if activeOnly && !isOccurrenceDeployed(targetSubOccurrence) ]
-                [#return {} ]
-            [/#if]
-
-            [#-- Determine the role --]
-            [#local direction = link.Direction!"outbound"]
-
-            [#local role =
-                link.Role!
-                (targetSubOccurrence.State.Roles[direction?capitalize]["default"])!""]
-
-            [#return
-                targetSubOccurrence +
-                {
-                    "Direction" : direction,
-                    "Role" : role
-                } ]
-        [/#list]
-    [/#list]
-
-    [@cfPostconditionFailed
-        listMode
-        "getLinkTarget"
-        {
-            "Occurrence" : occurrence,
-            "Link" : link,
-            "EffectiveInstance" : instanceToMatch,
-            "EffectiveVersion" : versionToMatch
-        }
-        "COTException:Link not found" /]
-
+        [@cfPostconditionFailed
+            listMode
+            "getLinkTarget"
+            {
+                "Occurrence" : occurrence,
+                "Link" : link,
+                "EffectiveInstance" : instanceToMatch,
+                "EffectiveVersion" : versionToMatch
+            }
+            "COTException:Link not found" /]
+    [/#if]
     [#return {} ]
 [/#function]
 
@@ -1943,12 +1957,12 @@ behaviour.
     [#return networkEndpoints]
 [/#function]
 
-[#function getDeploymentProfile typeObject deploymentMode ]
+[#function getDeploymentProfile occurrenceProfiles deploymentMode ]
 
     [#local deploymentProfileNames = []]
 
-    [#if (typeObject.Profiles.Deployment)?? ]
-        [#list asArray(typeObject.Profiles.Deployment) as profileName ]
+    [#if (occurrenceProfiles)?? ]
+        [#list asArray(occurrenceProfiles) as profileName ]
             [#if ! deploymentProfileNames?seq_contains(profileName) ]
                 [#local deploymentProfileNames += [ profileName ] ]
             [/#if]
