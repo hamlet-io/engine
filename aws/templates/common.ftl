@@ -1126,6 +1126,11 @@ behaviour.
             alternatives
         ) ]
 
+    [#-- a local unit build commit takes preference over a shared one --]
+    [#if occurrenceBuild.COMMIT?has_content]
+        [#local occurrenceBuildCommit = occurrenceBuild.COMMIT ]
+    [/#if]
+
     [#-- Reference could be a deployment unit or a component --]
     [#if occurrenceBuild.REFERENCE?has_content]
         [#-- Support cross-segment references --]
@@ -1153,7 +1158,7 @@ behaviour.
     [#return
         attributeIfContent(
             "BUILD_REFERENCE",
-            occurrenceBuild.COMMIT!{}
+            (occurrenceBuildCommit!occurrenceBuild.COMMIT)!{}
         ) +
         attributeIfContent(
             "BUILD_UNIT",
