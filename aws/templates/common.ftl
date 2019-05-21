@@ -1126,6 +1126,10 @@ behaviour.
             alternatives
         ) ]
 
+    [#-- a local unit build commit/tag takes preference over a shared one --]
+    [#local occurrenceBuildCommit = occurrenceBuild.COMMIT!"" ]
+    [#local occurrenceBuildTag = occurrenceBuild.TAG!"" ]
+
     [#-- Reference could be a deployment unit or a component --]
     [#if occurrenceBuild.REFERENCE?has_content]
         [#-- Support cross-segment references --]
@@ -1151,9 +1155,23 @@ behaviour.
     [/#if]
 
     [#return
-        attributeIfContent(
+        attributeIfTrue(
             "BUILD_REFERENCE",
-            occurrenceBuild.COMMIT!{}
+            (occurrenceBuildCommit?has_content || (occurrenceBuild.COMMIT!{})?has_content),
+            valueIfContent(
+                occurrenceBuildCommit,
+                occurrenceBuildCommit,
+                occurrenceBuild.COMMIT!{}
+            )
+        ) +
+        attributeIfTrue(
+            "APP_REFERENCE",
+            (occurrenceBuildTag?has_content || (occurrenceBuild.TAG!{})?has_content),
+            valueIfContent(
+                occurrenceBuildTag,
+                occurrenceBuildTag,
+                occurrenceBuild.TAG!{}
+            )
         ) +
         attributeIfContent(
             "BUILD_UNIT",
@@ -1166,11 +1184,8 @@ behaviour.
                     deploymentUnit
                 )
             )
-        ) +
-        attributeIfContent(
-            "APP_REFERENCE"
-            occurrenceBuild.TAG!{}
-        ) ]
+        )
+    ]
 [/#function]
 
 [#function getOccurrenceProductSettings occurrence ]
