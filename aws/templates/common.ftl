@@ -1173,7 +1173,7 @@ behaviour.
         ) +
         attributeIfTrue(
             "APP_REFERENCE",
-            (occurrenceBuildTag?has_content || (occurrenceBuild.TAG!{})?has_content)
+            (occurrenceBuildTag?has_content || (occurrenceBuild.TAG!{})?has_content),
             valueIfContent(
                 occurrenceBuildTag,
                 occurrenceBuildTag,
