@@ -875,7 +875,7 @@ behaviour.
             [#case ES_COMPONENT_TYPE]
                 [#local result = getESState(occurrence)]
                 [#break]
-            
+
             [#case ES_DATAFEED_COMPONENT_TYPE]
                 [#local result = getESFeedState(occurrence)]
                 [#break]
@@ -1155,18 +1155,16 @@ behaviour.
     [/#if]
 
     [#return
-        attributeIfTrue(
+        attributeIfContent(
             "BUILD_REFERENCE",
-            (occurrenceBuildCommit?has_content || (occurrenceBuild.COMMIT!{})?has_content),
             valueIfContent(
                 occurrenceBuildCommit,
                 occurrenceBuildCommit,
                 occurrenceBuild.COMMIT!{}
             )
         ) +
-        attributeIfTrue(
+        attributeIfContent(
             "APP_REFERENCE",
-            (occurrenceBuildTag?has_content || (occurrenceBuild.TAG!{})?has_content),
             valueIfContent(
                 occurrenceBuildTag,
                 occurrenceBuildTag,
@@ -1523,7 +1521,7 @@ behaviour.
 
                     [#local occurrenceContexts += [ (getDeploymentProfile(occurrenceProfiles, deploymentMode)[type])!{} ]]
 
-                    [#local occurrence += 
+                    [#local occurrence +=
                         {
                             "Configuration" : {
                                 "Solution" : getCompositeObject(attributes, occurrenceContexts)
@@ -1881,7 +1879,7 @@ behaviour.
     [#local tc = formatComponentShortName( occurrence.Core.Tier.Id, occurrence.Core.Component.Id)]
 
     [#local processorProfile = occurrence.Configuration.Solution.Profiles.Processor ]
-    
+
     [#if (component[type].Processor)??]
         [#return component[type].Processor]
     [/#if]
@@ -1982,37 +1980,29 @@ behaviour.
         [/#if]
     [/#list]
 
-    [#if (environmentObject.Profiles.Deployment)?? ]
-        [#list asArray(environmentObject.Profiles.Deployment) as profileName ]
-            [#if ! deploymentProfileNames?seq_contains(profileName) ]
-                [#local deploymentProfileNames += [ profileName ] ]
-            [/#if]
-        [/#list]
-    [/#if]
+    [#list asArray((environmentObject.Profiles.Deployment)![]) as profileName ]
+        [#if ! deploymentProfileNames?seq_contains(profileName) ]
+            [#local deploymentProfileNames += [ profileName ] ]
+        [/#if]
+    [/#list]
 
-    [#if (productObject.Profiles.Deployment)?? ]
-        [#list asArray(productObject.Profiles.Deployment) as profileName ]
-            [#if ! deploymentProfileNames?seq_contains(profileName) ]
-                [#local deploymentProfileNames += [ profileName ] ]
-            [/#if]
-        [/#list]
-    [/#if]
+    [#list asArray((productObject.Profiles.Deployment)![]) as profileName ]
+        [#if ! deploymentProfileNames?seq_contains(profileName) ]
+            [#local deploymentProfileNames += [ profileName ] ]
+        [/#if]
+    [/#list]
 
-    [#if (accountObject.Profiles.Deployment)?? ]
-        [#list asArray(accountObject.Profiles.Deployment) as profileName ]
-            [#if ! deploymentProfileNames?seq_contains(profileName) ]
-                [#local deploymentProfileNames += [ profileName ] ]
-            [/#if]
-        [/#list]
-    [/#if]
+    [#list asArray((accountObject.Profiles.Deployment)![]) as profileName ]
+        [#if ! deploymentProfileNames?seq_contains(profileName) ]
+            [#local deploymentProfileNames += [ profileName ] ]
+        [/#if]
+    [/#list]
 
-    [#if (tenantObject.Profiles.Deployment)?? ]
-        [#list asArray(tenantObject.Profiles.Deployment) as profileName ]
-            [#if ! deploymentProfileNames?seq_contains(profileName) ]
-                [#local deploymentProfileNames += [ profileName ] ]
-            [/#if]
-        [/#list]
-    [/#if]
+    [#list asArray((tenantObject.Profiles.Deployment)![]) as profileName ]
+        [#if ! deploymentProfileNames?seq_contains(profileName) ]
+            [#local deploymentProfileNames += [ profileName ] ]
+        [/#if]
+    [/#list]
 
     [#local deploymentProfile = {} ]
     [#list deploymentProfileNames as deploymentProfileName ]
