@@ -1400,10 +1400,6 @@ behaviour.
         [#local typeObject = component ]
     [/#if]
 
-    [#--  Deployment Profile Configuration Overrides --]
-    [#local deploymentProfileComponents = getDeploymentProfile(typeObject, deploymentMode) ]
-    [#local typeObject = mergeObjects(typeObject, deploymentProfileComponents[type]!{} )]
-
     [#if tier?has_content]
         [#local tierId = getTierId(tier) ]
         [#local tierName = getTierName(tier) ]
@@ -1499,12 +1495,27 @@ behaviour.
                                     "Id" : formatId(subComponentId),
                                     "Name" : formatName(subComponentName)
                                 }
-                            ),
+                            )
+                        }
+                    ]
+
+                    [#local occurrenceProfiles = [] ]
+                    [#list occurrenceContexts as occurrenceContext ]
+                        [#if ((occurrenceContext.Profiles.Deployment)![])?has_content ]
+                            [#local occurrenceProfiles = occurrenceContext.Profiles.Deployment ]
+                        [/#if]
+                    [/#list]
+
+                    [#local occurrenceContexts += [ (getDeploymentProfile(occurrenceProfiles, deploymentMode)[type])!{} ]]
+
+                    [#local occurrence += 
+                        {
                             "Configuration" : {
                                 "Solution" : getCompositeObject(attributes, occurrenceContexts)
                             }
                         }
                     ]
+
                     [#local occurrence +=
                         {
                             "Core" :
@@ -1669,6 +1680,10 @@ behaviour.
         }
         false
     /]
+    [#if ! (link.Enabled)!true ]
+        [#return {} ]
+    [/#if]
+
     [#if link.Tier?lower_case == "external"]
         [#local targetOccurrence =
             {
@@ -1802,7 +1817,6 @@ behaviour.
             "EffectiveVersion" : versionToMatch
         }
         "COTException:Link not found" /]
-
     [#return {} ]
 [/#function]
 
@@ -1943,17 +1957,15 @@ behaviour.
     [#return networkEndpoints]
 [/#function]
 
-[#function getDeploymentProfile typeObject deploymentMode ]
+[#function getDeploymentProfile occurrenceProfiles deploymentMode ]
 
     [#local deploymentProfileNames = []]
 
-    [#if (typeObject.Profiles.Deployment)?? ]
-        [#list asArray(typeObject.Profiles.Deployment) as profileName ]
-            [#if ! deploymentProfileNames?seq_contains(profileName) ]
-                [#local deploymentProfileNames += [ profileName ] ]
-            [/#if]
-        [/#list]
-    [/#if]
+    [#list asArray(occurrenceProfiles![]) as profileName ]
+        [#if ! deploymentProfileNames?seq_contains(profileName) ]
+            [#local deploymentProfileNames += [ profileName ] ]
+        [/#if]
+    [/#list]
 
     [#if (environmentObject.Profiles.Deployment)?? ]
         [#list asArray(environmentObject.Profiles.Deployment) as profileName ]
