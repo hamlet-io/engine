@@ -1127,15 +1127,8 @@ behaviour.
         ) ]
 
     [#-- a local unit build commit/tag takes preference over a shared one --]
-    [#local occurrenceBuildCommit = "" ]
-    [#if occurrenceBuild.COMMIT?has_content]
-        [#local occurrenceBuildCommit = occurrenceBuild.COMMIT ]
-    [/#if]
-
-    [#local occurrenceBuildTag = ""]
-    [#if occurrenceBuild.TAG?has_content ]
-        [#local occurrenceBuildTag = occurrenceBuild.TAG ]
-    [/#if]
+    [#local occurrenceBuildCommit = occurrenceBuild.COMMIT!"" ]
+    [#local occurrenceBuildTag = occurrenceBuild.TAG!"" ]
 
     [#-- Reference could be a deployment unit or a component --]
     [#if occurrenceBuild.REFERENCE?has_content]
