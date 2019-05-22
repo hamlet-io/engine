@@ -437,6 +437,7 @@
                 "Attributes" : {
                     "AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
                     "USER_POOL" : getExistingReference(userPoolId),
+                    "USER_POOL_ARN" : getExistingReference(userPoolId, ARN_ATTRIBUTE_TYPE),
                     "IDENTITY_POOL" : getExistingReference(identityPoolId),
                     "REGION" : region,
                     "UI_INTERNAL_BASE_URL" : userPoolBaseUrl,
