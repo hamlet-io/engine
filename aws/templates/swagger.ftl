@@ -178,7 +178,7 @@
     [#return "" ]
 [/#function]
 
-[#function getSwaggerGlobalSecurity context ]
+[#function getSwaggerGlobalSecurity definitionVersion context  ]
     [#local result =
         {
             "api_key": {
@@ -211,7 +211,15 @@
         ]
     [/#list]
 
-    [#return { "securityDefinitions": result } ]
+    [#if definitionVersion gte 3 ]
+        [#return {
+            "components" : {
+                "securitySchemes" : result
+            }
+        }]
+    [#else]
+        [#return { "securityDefinitions" : result } ]
+    [/#if]
 [/#function]
 
 [#function getSwaggerSecurity sig4Required apiKeyRequired userPoolRequired cognitoPoolName=""]
@@ -495,6 +503,10 @@
     [#local gatewayErrorReportingRequired = integrations.GatewayErrorReporting ! true ]
     [#local gatewayErrorMap               = defaultGatewayErrorMap + (integrations.gatewayErrorMap!{}) ]
 
+    [#-- Get Swagger Spec Version --]
+    [#local definitionVersion = definition.openapi!definition.swagger ]
+    [#local definitionMajorVersion = (definitionVersion?split(".")[0])?number ]
+
     [#-- Correct typing error with proxyRequired --]
     [#if proxyRequired?is_string]
         [#local proxyRequired = (proxyRequired?lower_case == "true")]
@@ -508,11 +520,15 @@
         valueIfTrue(definition, merge) +
         getSwaggerValidationLevels() +
         getSwaggerValidation(defaultValidationLevel) +
-        getSwaggerGlobalSecurity(context) +
         getSwaggerSecurity(defaultSig4Required, defaultApiKeyRequired, defaultUserPoolRequired, defaultCognitoPoolName) +
         getSwaggerBinaryMediaTypes(binaryTypes) +
         getSwaggerErrorResponses(gatewayErrorReportingRequired, gatewayErrorMap)
     ]
+
+    [#-- merge configuration which might replace required feilds --]
+    [#local globalConfiguration = mergeObjects(
+                                        globalConfiguration, 
+                                        getSwaggerGlobalSecurity(definitionMajorVersion, context) )]
 
     [#local paths = {} ]
     [#list (definition.paths!{}) + getSwaggerProxyPaths(proxyRequired) as path, pathObject]
