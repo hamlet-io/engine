@@ -321,10 +321,12 @@
     ]
 [/#function]
 
-[#function getSwaggerMethodEntry context path verb type apiVariable
+[#function getSwaggerMethodEntry context 
+    path verb type apiVariable
     validationLevel sig4Required apiKeyRequired
     userPoolRequired cognitoPoolName
     useClientCredsRequired
+    contentHandling
     requests={}
     responses={}
     corsConfiguration={} ]
@@ -364,6 +366,10 @@
                             "credentials" : "arn:aws:iam::*:user/*"
                         },
                         useClientCredsRequired
+                    ) +
+                    attributeIfContent(
+                        "contentHandling",
+                        contentHandling
                     ),
                     "responses" : {}
                 }
@@ -416,6 +422,10 @@
                         },
                         useClientCredsRequired
                     ) +
+                    attributeIfContent(
+                        "contentHandling",
+                        contentHandling
+                    ) +
                     requests
                 }
             ]
@@ -426,7 +436,11 @@
                 {
                     "x-amazon-apigateway-integration" : {
                         "type": "mock"
-                    }
+                    } + 
+                    attributeIfContent(
+                        "contentHandling",
+                        contentHandling
+                    )
                 }
             ]
             [#break]
@@ -468,6 +482,7 @@
     [#local defaultApiKeyRequired         = integrations.ApiKey         ! false]
     [#local defaultUserPoolRequired       = integrations.userPool       ! false ]
     [#local defaultUseClientCredsRequired = integrations.useClientCreds ! false ]
+    [#local defaultContentHandling        = integrations.ContentHandling ! "" ]
 
     [#-- CORS defaults --]
     [#local defaultCorsHeaders            = integrations.corsHeaders    ! ["Content-Type","X-Amz-Date","Authorization","X-Api-Key"] ]
@@ -524,6 +539,7 @@
                             pattern.UserPool ! pattern.userPool ! defaultUserPoolRequired,
                             pattern.CognitoPoolName ! defaultCognitoPoolName,
                             pattern.UseClientCreds ! pattern.useClientCreds ! defaultUseClientCredsRequired,
+                            pattern.ContentHandling ! pattern.contentHandling ! defaultContentHandling,
                             pattern.Requests ! {}
                             pattern.Responses ! {}
                         )
@@ -546,7 +562,8 @@
                         defaultApiKeyRequired,
                         defaultUserPoolRequired,
                         defaultCognitoPoolName,
-                        defaultUseClientCredsRequired
+                        defaultUseClientCredsRequired,
+                        defaultContentHandling
                     )
                 ]
                 [#local optionsSig4 = optionsSig4 || defaultSig4Required]
@@ -594,6 +611,7 @@
                         false,
                         "",
                         false,
+                        "",
                         {},
                         {},
                         getSwaggerCorsHeaders(defaultCorsHeaders,defaultCorsMethods,defaultCorsOrigin)
