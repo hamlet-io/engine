@@ -84,6 +84,6 @@ if [[ "${#RAW_VARIABLES[@]}" -gt 0 ]]; then
   RAW_VARIABLES=("-r" "${RAW_VARIABLES[@]}")
 fi
 
-java -jar "${GENERATION_DIR}/freemarker-wrapper-1.4.jar" -i $TEMPLATE -d $TEMPLATEDIR -o $OUTPUT "${VARIABLES[@]}" "${RAW_VARIABLES[@]}"
+java -jar "${GENERATION_DIR}/freemarker-wrapper-1.6.jar" -i $TEMPLATE -d $TEMPLATEDIR -o $OUTPUT "${VARIABLES[@]}" "${RAW_VARIABLES[@]}"
 RESULT=$?
 
