@@ -38,6 +38,7 @@ EOF
     exit
 }
 
+TEMPLATEDIRS=()
 RAW_VARIABLES=()
 VARIABLES=()
 
@@ -45,7 +46,7 @@ VARIABLES=()
 while getopts ":d:ho:r:t:v:" opt; do
     case $opt in
         d)
-            TEMPLATEDIR="${OPTARG}"
+            TEMPLATEDIRS+=("${OPTARG}")
             ;;
         h)
             usage
@@ -76,6 +77,10 @@ done
     (-z "${TEMPLATEDIR}") ||
     (-z "${OUTPUT}") ]] && fatalMandatory
 
+if [[ "${#TEMPLATEDIRS[@]}" -gt 0 ]]; then
+  TEMPLATEDIRS=("-d" "${TEMPLATEDIRS[@]}")
+fi
+
 if [[ "${#VARIABLES[@]}" -gt 0 ]]; then
   VARIABLES=("-v" "${VARIABLES[@]}")
 fi
@@ -84,6 +89,6 @@ if [[ "${#RAW_VARIABLES[@]}" -gt 0 ]]; then
   RAW_VARIABLES=("-r" "${RAW_VARIABLES[@]}")
 fi
 
-java -jar "${GENERATION_DIR}/freemarker-wrapper-1.7.jar" -i $TEMPLATE -d $TEMPLATEDIR -o $OUTPUT "${VARIABLES[@]}" "${RAW_VARIABLES[@]}"
+java -jar "${GENERATION_DIR}/freemarker-wrapper-1.8.jar" -i $TEMPLATE "${TEMPLATEDIRS[@]}" -o $OUTPUT "${VARIABLES[@]}" "${RAW_VARIABLES[@]}"
 RESULT=$?
 
