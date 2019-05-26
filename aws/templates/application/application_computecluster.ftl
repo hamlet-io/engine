@@ -1,6 +1,6 @@
-[#-- COMPUTECLUSTER --]
-[#if componentType == COMPUTECLUSTER_COMPONENT_TYPE]
-
+[#ftl]
+[#macro application_computecluster tier component]
+    [#-- COMPUTECLUSTER --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -370,4 +370,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

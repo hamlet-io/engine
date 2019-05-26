@@ -1,6 +1,6 @@
-[#-- BASTION/SSH --]
-[#if componentType == BASTION_COMPONENT_TYPE ]
-
+[#ftl]
+[#macro segment_bastion tier component]
+    [#-- BASTION/SSH --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -266,4 +266,4 @@
             [/#if]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

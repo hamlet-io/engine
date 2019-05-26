@@ -1,7 +1,6 @@
-[#-- ECS --]
-
-[#if componentType == ECS_COMPONENT_TYPE]
-
+[#ftl]
+[#macro solution_ecs tier component]
+    [#-- ECS --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -335,4 +334,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

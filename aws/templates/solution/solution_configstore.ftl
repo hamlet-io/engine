@@ -1,7 +1,6 @@
-[#-- Config Store --]
-
-[#if componentType == CONFIGSTORE_COMPONENT_TYPE ]
-
+[#ftl]
+[#macro solution_configstore tier component]
+    [#-- Config Store --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -93,7 +92,7 @@
                     "DefaultCoreVariables" : false,
                     "DefaultEnvironmentVariables" : false,
                     "DefaultLinkVariables" : true,
-                    "Branch" : formatName(itemPrimaryKey + itemSecondaryKey) 
+                    "Branch" : formatName(itemPrimaryKey + itemSecondaryKey)
                 }
             ]
 
@@ -247,4 +246,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

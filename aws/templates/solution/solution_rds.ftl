@@ -1,7 +1,6 @@
-[#-- RDS --]
-
-[#if (componentType == RDS_COMPONENT_TYPE)]
-
+[#ftl]
+[#macro solution_rds tier component]
+    [#-- RDS --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -12,7 +11,7 @@
         [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
-    
+
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
@@ -93,7 +92,7 @@
             [#assign rdsPassword = "DummyPassword" ]
             [#assign rdsEncryptedPassword = (
                         getExistingReference(
-                            rdsId, 
+                            rdsId,
                             GENERATEDPASSWORD_ATTRIBUTE_TYPE)
                         )?remove_beginning(
                             passwordEncryptionScheme
@@ -103,7 +102,7 @@
             [#assign rdsPassword = attributes.PASSWORD ]
         [/#if]
 
-        [#assign hibernate = solution.Hibernate.Enabled  &&              
+        [#assign hibernate = solution.Hibernate.Enabled  &&
                 (getExistingReference(rdsId)?has_content) ]
 
         [#assign hibernateStartUpMode = solution.Hibernate.StartUpMode ]
@@ -150,13 +149,13 @@
             [#assign restoreSnapshotName = rdsPreDeploySnapshotId ]
         [/#if]
 
-        [#assign preDeploySnapshot = solution.Backup.SnapshotOnDeploy || 
-                                ( hibernate && hibernateStartUpMode == "restore" ) || 
+        [#assign preDeploySnapshot = solution.Backup.SnapshotOnDeploy ||
+                                ( hibernate && hibernateStartUpMode == "restore" ) ||
                                 rdsManualSnapshot?has_content ]
 
         [#if solution.AlwaysCreateFromSnapshot ]
             [#if !rdsManualSnapshot?has_content ]
-                [@cfException 
+                [@cfException
                     mode=listMode
                     description="Snapshot must be provided to create this database"
                     context=occurrence
@@ -166,9 +165,9 @@
 
             [#assign restoreSnapshotName = rdsManualSnapshot ]
             [#assign preDeploySnapshot = false ]
-        
+
         [/#if]
-        
+
         [#assign dbParameters = {} ]
         [#list solution.DBParameters as key,value ]
             [#if key != "Name" && key != "Id" ]
@@ -194,7 +193,7 @@
                             "check_rds_snapshot_username" +
                             " \"" + region + "\" " +
                             " \"" + rdsManualSnapshot + "\" " +
-                            " \"" + rdsUsername + "\" || return $?" 
+                            " \"" + rdsUsername + "\" || return $?"
                         ],
                         []
                     ) +
@@ -207,10 +206,10 @@
                             " \"" + region + "\" " +
                             " \"" + rdsFullName + "\" " +
                             " \"" + rdsPreDeploySnapshotId + "\" || return $?"
-                        ] + 
+                        ] +
                         pseudoStackOutputScript(
                             "RDS Pre-Deploy Snapshot",
-                            { 
+                            {
                                 formatId("snapshot", rdsId, "name") : rdsPreDeploySnapshotId,
                                 formatId("manualsnapshot", rdsId, "name") : ""
                             }
@@ -220,8 +219,8 @@
                             "create_deploy_snapshot || return $?"
                         ],
                         []) +
-                    (( solution.Backup.SnapshotOnDeploy || 
-                        ( hibernate && hibernateStartUpMode == "restore" ) )  
+                    (( solution.Backup.SnapshotOnDeploy ||
+                        ( hibernate && hibernateStartUpMode == "restore" ) )
                         && solution.Encrypted)?then(
                         [
                             "# Encrypt RDS snapshot",
@@ -462,7 +461,7 @@
                         ) +
                         [
                             "info \"Generating URL... \"",
-                            "rds_hostname=\"$(get_rds_hostname" + 
+                            "rds_hostname=\"$(get_rds_hostname" +
                             " \"" + region + "\" " +
                             " \"" + rdsFullName + "\" || return $?)\"",
                             "rds_url=\"$(get_rds_url" +
@@ -502,7 +501,7 @@
                             " \"" + rdsFullName + "\" " +
                             " \"$\{master_password}\" || return $?",
                             "info \"Generating URL... \"",
-                            "rds_hostname=\"$(get_rds_hostname" + 
+                            "rds_hostname=\"$(get_rds_hostname" +
                             " \"" + region + "\" " +
                             " \"" + rdsFullName + "\" || return $?)\"",
                             "rds_url=\"$(get_rds_url" +
@@ -527,7 +526,7 @@
                             "reset_master_password || return $?"
                         ],
                     []) +
-                    [            
+                    [
                         "       ;;",
                         "       esac"
                     ]
@@ -535,4 +534,4 @@
             [/#if]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

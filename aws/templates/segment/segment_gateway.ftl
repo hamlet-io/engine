@@ -1,4 +1,5 @@
-[#if componentType == NETWORK_GATEWAY_COMPONENT_TYPE ]
+[#ftl]
+[#macro segment_gateway tier component]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -17,12 +18,12 @@
                         "",
                         true)]
 
-                            
+
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#if !networkLink?has_content ]
-            [@cfException 
-                listMode 
+            [@cfException
+                listMode
                 "Tier Network configuration incomplete",
                     {
                         "networkTier" : tier.Network,
@@ -42,7 +43,7 @@
             [#assign networkResources = networkLinkTarget.State.Resources ]
 
             [#assign legacyIGW = (networkResources["legacyIGW"]!{})?has_content]
-            
+
             [#assign vpcId = networkResources["vpc"].Id ]
             [#assign vpcPrivateDNS = networkConfiguration.DNS.UseProvider && networkConfiguration.DNS.GenerateHostNames]
 
@@ -95,12 +96,12 @@
                 [#break]
 
                 [#case "igw"]
-                    
+
                     [#if !legacyIGW ]
                         [#assign IGWId = gwResources["internetGateway"].Id ]
                         [#assign IGWName = gwResources["internetGateway"].Name ]
                         [#assign IGWAttachementId = gwResources["internetGatewayAttachement"].Id ]
-                                        
+
                         [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                             [@createIGW
                                 mode=listMode
@@ -119,7 +120,7 @@
 
                 [#case "vpcendpoint"]
                 [#break]
-    
+
             [/#switch]
 
             [#-- Security Group Creation --]
@@ -131,7 +132,7 @@
                 [#case "vpcendpoint" ]
                     [#assign securityGroupId = gwResources["sg"].Id]
                     [#assign securityGroupName = gwResources["sg"].Name ]
-                    
+
                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                         [@createSecurityGroup
                             mode=listMode
@@ -143,7 +144,7 @@
                             /]
 
                         [#list sourceCidrs as cidr ]
-                            
+
                             [@createSecurityGroupIngress
                                 mode=listMode
                                 id=
@@ -173,7 +174,7 @@
                 [#assign cidrs = getGroupCIDRs(destinationIPAddressGroups, true, subOccurrence)]
 
                 [#assign routeTableIds = []]
-                
+
                 [#list solution.Links?values as link]
                     [#if link?is_hash]
 
@@ -252,12 +253,12 @@
                                                         /]
                                                     [/#if]
                                                 [/#if]
-                                                [#break]                          
+                                                [#break]
                                             [/#switch]
                                         [/#if]
                                     [/#list]
                                 [#break]
-                            
+
                         [/#switch]
                     [/#if]
                 [/#list]
@@ -267,7 +268,7 @@
                         [#assign vpcEndpointResources = resources["vpcEndpoints"]!{} ]
                         [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
 
-                            [#list vpcEndpointResources as resourceId, zoneVpcEndpoint ] 
+                            [#list vpcEndpointResources as resourceId, zoneVpcEndpoint ]
                                 [#assign endpointSubnets = [] ]
                                 [#list networkResources["subnets"][tier.Id] as zone,resources]
                                     [#if zoneVpcEndpoint.EndpointZones?seq_contains(zone )]
@@ -292,4 +293,4 @@
             [/#list]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

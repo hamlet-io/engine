@@ -1,4 +1,5 @@
-[#if componentType == NETWORK_COMPONENT_TYPE ]
+[#ftl]
+[#macro segment_network tier component]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -318,4 +319,4 @@
             [/#if]
         [/#list]
     [/#list]
-[/#if]
+[/#macro]

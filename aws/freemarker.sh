@@ -73,7 +73,7 @@ while getopts ":d:ho:r:t:v:" opt; do
 done
 
 # Ensure mandatory arguments have been provided
-[[ (-z "${TEMPLATE}") || 
+[[ (-z "${TEMPLATE}") ||
     (-z "${TEMPLATEDIR}") ||
     (-z "${OUTPUT}") ]] && fatalMandatory
 

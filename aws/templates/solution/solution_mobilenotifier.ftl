@@ -1,7 +1,6 @@
-[#-- Mobile Notifier --]
-
-[#if componentType == MOBILENOTIFIER_COMPONENT_TYPE  ]
-
+[#ftl]
+[#macro solution_mobilenotifier tier component]
+    [#-- Mobile Notifier --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -289,6 +288,5 @@
                 /]
             [/#if]
         [/#if]
-
     [/#list]
-[/#if]
+[/#macro]

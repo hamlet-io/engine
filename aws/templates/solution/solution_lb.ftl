@@ -1,6 +1,6 @@
-[#-- LB --]
-[#if (componentType == LB_COMPONENT_TYPE) ]
-
+[#ftl]
+[#macro solution_lb tier component]
+    [#-- LB --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -16,11 +16,11 @@
         [#assign lbShortName = resources["lb"].ShortName ]
         [#assign lbLogs = solution.Logs ]
         [#assign lbSecurityGroupIds = [] ]
-      
+
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
-        
+
         [#if ! networkLinkTarget?has_content ]
             [@cfException listMode "Network could not be found" networkLink /]
             [#break]
@@ -219,16 +219,16 @@
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                             [@createListenerRule
                                 mode=listMode
-                                id=rule.Id 
+                                id=rule.Id
                                 listenerId=listenerId
                                 actions=getListenerRuleRedirectAction(
                                         "#\{protocol}",
                                         "#\{port}",
                                         fqdn,
                                         "#\{path}",
-                                        "#\{query}") 
-                                conditions=getListenerRuleHostCondition(rule.RedirectFrom) 
-                                priority=rule.Priority 
+                                        "#\{query}")
+                                conditions=getListenerRuleHostCondition(rule.RedirectFrom)
+                                priority=rule.Priority
                                 dependencies=listenerId
                             /]
                         [/#if]
@@ -246,7 +246,7 @@
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createListenerRule
                             mode=listMode
-                            id=listenerRuleId 
+                            id=listenerRuleId
                             listenerId=listenerId
                             actions=getListenerRuleRedirectAction(
                                             solution.Redirect.Protocol,
@@ -272,7 +272,7 @@
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                             [@createListenerRule
                                 mode=listMode
-                                id=listenerRuleId 
+                                id=listenerRuleId
                                 listenerId=listenerId
                                 actions=getListenerRuleFixedAction(
                                         contentIfContent(
@@ -350,7 +350,7 @@
                             [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application" ]
                                 [@createListenerRule
                                     mode=listMode
-                                    id=listenerRuleId 
+                                    id=listenerRuleId
                                     listenerId=listenerId
                                     actions=getListenerRuleAuthCognitoAction(
                                                         userPoolArn,
@@ -360,7 +360,7 @@
                                                         userPoolSessionTimeout,
                                                         userPoolOauthScope,
                                                         1
-                                                ) + 
+                                                ) +
                                             getListenerRuleForwardAction(targetGroupId, 2)
                                     conditions=listenerRuleConditions
                                     priority=listenerRulePriority
@@ -375,7 +375,7 @@
                             [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application"  ]
                                 [@createListenerRule
                                     mode=listMode
-                                    id=listenerRuleId 
+                                    id=listenerRuleId
                                     listenerId=listenerId
                                     actions=getListenerRuleRedirectAction(
                                                 "HTTPS",
@@ -447,7 +447,7 @@
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                                 [@createListenerRule
                                     mode=listMode
-                                    id=listenerRuleId 
+                                    id=listenerRuleId
                                     listenerId=listenerId
                                     actions=getListenerRuleForwardAction(targetGroupId)
                                     conditions=listenerRuleConditions
@@ -568,10 +568,10 @@
                         "    # Apply CLI level updates to ELB listener",
                         "    info \"Removing rules created by cli rules\""
                     ] +
-                    ruleCleanupScript + 
+                    ruleCleanupScript +
                     pseudoStackOutputScript(
                         "CLI Rule Cleanup",
-                        { 
+                        {
                             formatId(listenerId, "cleanup") : true?c
                         }
                     ) +
@@ -667,4 +667,4 @@
                 [#break]
         [/#switch ]
     [/#list]
-[/#if]
+[/#macro]

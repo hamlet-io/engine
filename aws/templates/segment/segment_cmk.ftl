@@ -1,5 +1,6 @@
-[#-- KMS --]
-[#if (componentType == "cmk") ]
+[#ftl]
+[#macro segment_cmk tier component]
+    [#-- KMS --]
     [#if deploymentSubsetRequired("cmk", true)]
         [#-- TODO: Get rid of inconsistent id usage --]
         [#assign cmkId = formatSegmentCMKTemplateId()]
@@ -141,6 +142,5 @@
                 ]
         /]
     [/#if]
-
-[/#if]
+[/#macro]
 

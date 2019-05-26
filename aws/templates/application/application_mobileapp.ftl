@@ -1,6 +1,6 @@
-[#-- MobileApp --]
-[#if componentType == MOBILEAPP_COMPONENT_TYPE]
-
+[#ftl]
+[#macro application_mobileapp tier component]
+    [#-- MobileApp --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -81,4 +81,4 @@
                     ) /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

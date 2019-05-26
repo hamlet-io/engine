@@ -1,7 +1,6 @@
-[#-- Content Node --]
-
-[#if componentType = "contentnode"]
-
+[#ftl]
+[#macro application_contentnode tier component]
+    [#-- Content Node --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -47,7 +46,7 @@
                                     "  #",
                                     "  # Fetch the spa zip file",
                                     "  copyFilesFromBucket" + " " +
-                                        regionId + " " + 
+                                        regionId + " " +
                                         getRegistryEndPoint("contentnode", occurrence) + " " +
                                         formatRelativePath(
                                             getRegistryPrefix("contentnode", occurrence) + productName,
@@ -56,9 +55,9 @@
                                         "   \"$\{tmpdir}\" || return $?",
                                     "  #",
                                     "  # Sync with the contentnode",
-                                    "  copy_contentnode_file \"$\{tmpdir}/contentnode.zip\" " + 
+                                    "  copy_contentnode_file \"$\{tmpdir}/contentnode.zip\" " +
                                             "\"" + linkTargetAttributes.ENGINE + "\" " +
-                                            "\"" +    linkTargetAttributes.REPOSITORY + "\" " + 
+                                            "\"" +    linkTargetAttributes.REPOSITORY + "\" " +
                                             "\"" +    linkTargetAttributes.PREFIX + "\" " +
                                             "\"" +    pathObject + "\" " +
                                             "\"" +    linkTargetAttributes.BRANCH + "\" ",
@@ -69,8 +68,8 @@
                             /]
                         [/#if]
                     [#break]
-                [/#switch]     
+                [/#switch]
             [/#if]
         [/#list]
     [/#list]
-[/#if]
+[/#macro]

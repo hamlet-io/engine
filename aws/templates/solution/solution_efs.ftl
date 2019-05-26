@@ -1,7 +1,6 @@
-[#-- EFS --]
-
-[#if componentType == EFS_COMPONENT_TYPE  ]
-
+[#ftl]
+[#macro solution_efs tier component]
+    [#-- EFS --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -12,7 +11,7 @@
         [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
         [#assign zoneResources = occurrence.State.Resources.Zones]
-      
+
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
@@ -33,9 +32,9 @@
         [#assign efsFullName            = resources["efs"].Name]
         [#assign efsSecurityGroupId     = resources["sg"].Id]
         [#assign efsSecurityGroupName   = resources["sg"].Name]
-        
+
         [#assign efsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
-                                                efsSecurityGroupId, 
+                                                efsSecurityGroupId,
                                                 efsPort)]
 
         [#if deploymentSubsetRequired("efs", true) ]
@@ -55,8 +54,8 @@
                 cidr="0.0.0.0/0"
                 groupId=efsSecurityGroupId
             /]
-            
-            [@createEFS 
+
+            [@createEFS
                 mode=listMode
                 tier=tier
                 id=efsId
@@ -78,4 +77,4 @@
             [/#list]
         [/#if ]
     [/#list]
-[/#if]
+[/#macro]

@@ -231,14 +231,19 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
         ("${GENERATION_USE_FRAGMENTS_CACHE}" != "true")) ||
       (! -f "${CACHE_DIR}/composite_account.ftl") ]]; then
     for composite in "${TEMPLATE_COMPOSITES[@]}"; do
-        for blueprint_alternate_dir in "${blueprint_alternate_dirs[@]}"; do
-            [[ (-z "${blueprint_alternate_dir}") || (! -d "${blueprint_alternate_dir}") ]] && continue
-            for fragment in "${blueprint_alternate_dir}"/${composite}_*.ftl; do
-                fragment_name="$(fileName "${fragment}")"
-                $(inArray "${composite}_array" "${fragment_name}") ||
-                    addToArray "${composite}_array" "${fragment}"
+
+        # only support provision of fragment files via cmdb
+        # others can now be provided via the plugin mechanism
+        if [[ "${composite}" == "fragment" ]]; then
+            for blueprint_alternate_dir in "${blueprint_alternate_dirs[@]}"; do
+                [[ (-z "${blueprint_alternate_dir}") || (! -d "${blueprint_alternate_dir}") ]] && continue
+                for fragment in "${blueprint_alternate_dir}"/${composite}_*.ftl; do
+                    fragment_name="$(fileName "${fragment}")"
+                    $(inArray "${composite}_array" "${fragment_name}") ||
+                        addToArray "${composite}_array" "${fragment}"
+                done
             done
-        done
+        fi
 
         for fragment in ${GENERATION_DIR}/templates/${composite}/${composite}_*.ftl; do
                 $(inArray "${composite}_array" $(fileName "${fragment}")) ||
@@ -256,6 +261,10 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
           eval "declare composite_array=(\"\${${composite}_array[@]}\")"
         debug "${composite^^}=${composite_array[*]}"
         cat "${composite_array[@]}" > "${CACHE_DIR}/composite_${composite}.ftl"
+    done
+
+    for composite in "segment" "solution" "application"; do
+        rm -rf "${CACHE_DIR}/composite_${composite}.ftl"
     done
 fi
 

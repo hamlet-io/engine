@@ -1,7 +1,6 @@
-[#-- Single Page App --]
-
-[#if componentType == SPA_COMPONENT_TYPE]
-
+[#ftl]
+[#macro solution_spa tier component]
+    [#-- Single Page App --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -334,4 +333,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

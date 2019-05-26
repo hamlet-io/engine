@@ -1,6 +1,6 @@
-[#-- API Gateway --]
-
-[#if (componentType == APIGATEWAY_COMPONENT_TYPE)]
+[#ftl]
+[#macro application_apigateway]
+    [#-- API Gateway --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -552,7 +552,7 @@
                                 regionId,
                                 bucketName,
                                 ""
-                            ) 
+                            )
                     /]
                 [/#if]
 
@@ -600,10 +600,10 @@
             [/#if]
 
             [#list solution.Publishers as id,publisher ]
- 
+
                 [#assign publisherPath = getContentPath( occurrence, publisher.Path )]
                 [#assign publisherLinks = getLinkTargets(occurrence, publisher.Links )]
-                
+
                 [#list publisherLinks as publisherLinkId, publisherLinkTarget ]
                     [#assign publisherLinkTargetCore = publisherLinkTarget.Core ]
                     [#assign publisherLinkTargetAttributes = publisherLinkTarget.State.Attributes ]
@@ -614,14 +614,14 @@
                             [#if deploymentSubsetRequired("epilogue", false ) ]
                                 [@cfScript
                                     mode=listMode
-                                    content= 
+                                    content=
                                     [
                                         "case $\{STACK_OPERATION} in",
                                         "  create|update)",
                                         "info \"Sending API Specification to " + id + "-" + publisherLinkId + "\"",
-                                        "  copy_contentnode_file \"$\{tmpdir}/dist/swagger.json\" " + 
+                                        "  copy_contentnode_file \"$\{tmpdir}/dist/swagger.json\" " +
                                         "\"" +    publisherLinkTargetAttributes.ENGINE + "\" " +
-                                        "\"" +    publisherLinkTargetAttributes.REPOSITORY + "\" " + 
+                                        "\"" +    publisherLinkTargetAttributes.REPOSITORY + "\" " +
                                         "\"" +    publisherLinkTargetAttributes.PREFIX + "\" " +
                                         "\"" +    publisherPath + "\" " +
                                         "\"" +    publisherLinkTargetAttributes.BRANCH + "\" || return $? ",
@@ -778,4 +778,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

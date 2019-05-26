@@ -1,6 +1,6 @@
-[#-- Baseline Component --]
-[#if componentType == BASELINE_COMPONENT_TYPE ]
-
+[#ftl]
+[#macro segment_baseline tier component]
+    [#-- Baseline Component --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -13,14 +13,14 @@
 
         [#-- make sure we only have one occurence --]
         [#if  core.Tier.Id == "mgmt" &&
-                core.Component.Id == "baseline" && 
-                core.Version.Id == "" && 
+                core.Component.Id == "baseline" &&
+                core.Version.Id == "" &&
                 core.Instance.Id == "" ]
-            
+
             [#-- Segment Seed --]
             [#assign segmentSeedId = resources["segmentSeed"].Id ]
             [#if !(getExistingReference(segmentSeedId)?has_content) ]
-                
+
                 [#assign segmentSeedValue = resources["segmentSeed"].Value]
 
                 [#if deploymentSubsetRequired("prologue", false)]
@@ -36,7 +36,7 @@
                                 { segmentSeedId : segmentSeedValue },
                                 "seed"
                         ) +
-                        [            
+                        [
                             "       ;;",
                             "       esac"
                         ]
@@ -69,12 +69,12 @@
                     [#assign bucketPolicyId = subResources["bucketpolicy"].Id ]
                     [#assign legacyS3 = subResources["bucket"].LegacyS3 ]
 
-                    [#if ( deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true) && legacyS3 == false ) || 
+                    [#if ( deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true) && legacyS3 == false ) ||
                         ( deploymentSubsetRequired("s3") && legacyS3 == true) ]
 
                         [#assign lifecycleRules = [] ]
                         [#list subSolution.Lifecycles?values as lifecycle ]
-                            [#assign lifecycleRules += 
+                            [#assign lifecycleRules +=
                                 getS3LifecycleRule(lifecycle.Expiration, lifecycle.Offline, lifecycle.Prefix)]
                         [/#list]
 
@@ -103,7 +103,7 @@
                                                         [#assign sqsNotifications +=
                                                                 getS3SQSNotification(sqsId, event, notification.Prefix, notification.Suffix) ]
                                                     [/#list]
-                                                    
+
                                                 [/#if]
                                                 [#break]
                                         [/#switch]
@@ -135,15 +135,15 @@
                             sqsNotifications=sqsNotifications
                             dependencies=bucketDependencies
                         /]
-                                    
+
                         [#-- role based bucket policies --]
                         [#assign bucketPolicy = []]
                         [#switch subSolution.Role ]
                             [#case "operations" ]
                                 [#assign cfAccess =
                                     getExistingReference(formatDependentCFAccessId(bucketId), CANONICAL_ID_ATTRIBUTE_TYPE)]
-                                
-                                [#assign bucketPolicy += 
+
+                                [#assign bucketPolicy +=
                                     s3WritePermission(
                                         bucketName,
                                         "AWSLogs",
@@ -176,9 +176,9 @@
                                         []
                                     )]
                                 [#break]
-                            [#case "appdata" ] 
+                            [#case "appdata" ]
                                 [#if dataPublicEnabled ]
-        
+
                                     [#assign dataPublicWhitelistCondition =
                                         getIPCondition(getGroupCIDRs(dataPublicIPAddressGroups, true)) ]
 
@@ -192,7 +192,7 @@
                                 [/#if]
                                 [#break]
                         [/#switch]
-        
+
                         [#if bucketPolicy?has_content ]
                             [@createBucketPolicy
                                 mode=listMode
@@ -202,7 +202,7 @@
                                 dependencies=bucketId
                             /]
                         [/#if]
-                    [/#if]            
+                    [/#if]
                 [/#if]
             [/#list]
 
@@ -216,4 +216,4 @@
 
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

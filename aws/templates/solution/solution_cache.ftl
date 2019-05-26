@@ -1,7 +1,6 @@
-[#-- Cache --]
-
-[#if componentType == CACHE_COMPONENT_TYPE ]
-
+[#ftl]
+[#macro solution_cache tier component]
+    [#-- Cache --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -11,7 +10,7 @@
         [#assign core = occurrence.Core ]
         [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
-    
+
         [#assign networkLink = tier.Network.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
@@ -42,7 +41,7 @@
                     [#assign port = ports[port].Port ]
                 [#else]
                     [@cfException listMode "Unknown Port" port /]
-                [/#if]                
+                [/#if]
                 [#break]
 
             [#case "redis"]
@@ -60,7 +59,7 @@
                     [#assign port = ports[port].Port ]
                 [#else]
                     [@cfException listMode "Unknown Port" port /]
-                [/#if]                
+                [/#if]
                 [#break]
 
             [#default]
@@ -68,7 +67,7 @@
                 [#assign engineVersion = "unknown" ]
                 [#assign family = "unknown" ]
                 [#assign port = "unknown" ]
-        [/#switch]                    
+        [/#switch]
 
         [#assign cacheId = resources["cache"].Id ]
         [#assign cacheFullName = resources["cache"].Name ]
@@ -77,7 +76,7 @@
         [#assign cacheSecurityGroupId = resources["sg"].Id ]
 
         [#assign cacheSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
-                                                cacheSecurityGroupId, 
+                                                cacheSecurityGroupId,
                                                 port)]
 
         [#assign processorProfile = getProcessor(occurrence, "ElastiCache")]
@@ -89,7 +88,7 @@
             [/#list]
         [/#list]
 
-        [#assign hibernate = solution.Hibernate.Enabled  &&              
+        [#assign hibernate = solution.Hibernate.Enabled  &&
             (getExistingReference(cacheId)?has_content) ]
 
         [#if deploymentSubsetRequired("cache", true)]
@@ -102,7 +101,7 @@
                 resourceName=cacheFullName
                 vpcId=vpcId
             /]
-        
+
             [@createSecurityGroupIngress
                 mode=listMode
                 id=cacheSecurityGroupIngressId
@@ -110,7 +109,7 @@
                 cidr="0.0.0.0/0"
                 groupId=cacheSecurityGroupId
             /]
-        
+
             [@cfResource
                 mode=listMode
                 id=cacheSubnetGroupId
@@ -122,7 +121,7 @@
                     }
                 outputs={}
             /]
-            
+
             [@cfResource
                 mode=listMode
                 id=cacheParameterGroupId
@@ -174,7 +173,7 @@
                         [/#switch]
                     [/#list]
                 [/#list]
-                
+
                 [@cfResource
                     mode=listMode
                     id=cacheId
@@ -215,4 +214,4 @@
             [/#if]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]
