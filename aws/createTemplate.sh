@@ -416,7 +416,8 @@ function process_template() {
       local result_file="${results_dir}/${output_filename}"
 
       ${GENERATION_DIR}/freemarker.sh \
-        -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
+        -d "${template_dir}" ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"}
+		-t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
 
       # Ignore whitespace only files
       if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -eq 0 ]]; then
