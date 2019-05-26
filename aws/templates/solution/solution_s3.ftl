@@ -1,7 +1,6 @@
-[#-- S3 --]
-
-[#if (componentType == S3_COMPONENT_TYPE)]
-
+[#ftl]
+[#macro solution_s3 tier component]
+    [#-- S3 --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -256,4 +255,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

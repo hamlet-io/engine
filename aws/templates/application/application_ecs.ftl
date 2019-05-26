@@ -1,6 +1,6 @@
-[#-- ECS --]
-
-[#if componentType == "ecs"]
+[#ftl]
+[#macro application_ecs tier component]
+    [#-- ECS --]
     [#list getOccurrences(tier, component) as occurrence ]
 
         [@cfDebug listMode occurrence false /]
@@ -719,5 +719,5 @@
             [/#if]
        [/#list]
     [/#list]
-[/#if]
+[/#macro]
 

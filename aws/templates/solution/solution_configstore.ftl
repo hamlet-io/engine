@@ -1,7 +1,6 @@
-[#-- Config Store --]
-
-[#if componentType == CONFIGSTORE_COMPONENT_TYPE ]
-
+[#ftl]
+[#macro solution_configstore tier component]
+    [#-- Config Store --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -246,4 +245,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

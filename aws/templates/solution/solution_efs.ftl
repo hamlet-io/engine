@@ -1,7 +1,6 @@
-[#-- EFS --]
-
-[#if componentType == EFS_COMPONENT_TYPE  ]
-
+[#ftl]
+[#macro solution_efs tier component]
+    [#-- EFS --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -77,4 +76,4 @@
             [/#list]
         [/#if ]
     [/#list]
-[/#if]
+[/#macro]

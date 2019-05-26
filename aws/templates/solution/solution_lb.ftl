@@ -1,6 +1,6 @@
-[#-- LB --]
-[#if (componentType == LB_COMPONENT_TYPE) ]
-
+[#ftl]
+[#macro solution_lb tier component]
+    [#-- LB --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -706,4 +706,4 @@
                 [#break]
         [/#switch ]
     [/#list]
-[/#if]
+[/#macro]

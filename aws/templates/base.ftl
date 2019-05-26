@@ -463,3 +463,27 @@
     [#return result]
 [/#function]
 
+[#----------------------------
+-- Dynamic template loading --
+------------------------------]
+[#assign loadOnceTemplates = [] ]
+
+[#function includeTemplate template loadOnce=false relativeTo="" ]
+    [#if relativeTo?has_content]
+        [#local t = template?absolute_template_name(relativeTo)]
+    [#else]
+        [#local t = template?absolute_template_name]
+    [/#if]
+    [#if loadOnce && loadOnceTemplates?seq_contains(t)]
+        [#return true]
+    [/#if]
+    [#local templateStatus = .get_optional_template(t)]
+    [#if templateStatus.exists]
+        [@templateStatus.include /]
+        [#if loadOnce]
+            [#assign loadOnceTemplates += [t] ]
+        [/#if]
+        [#return true]
+    [/#if]
+    [#return false]
+[/#function]

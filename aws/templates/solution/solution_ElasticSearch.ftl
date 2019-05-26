@@ -1,7 +1,11 @@
-[#-- ElasticSearch --]
+[#ftl]
 
-[#if (componentType == ES_COMPONENT_TYPE || componentType == "elasticsearch" || componentType == "es") ]
+[#macro solution_es tier component]
+    [@solution_elasticsearch tier component]
+[/#macro]
 
+[#macro solution_elasticsearch tier component]
+    [#-- ElasticSearch --]
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
@@ -401,4 +405,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

@@ -1,6 +1,6 @@
-[#-- API Gateway --]
-
-[#if (componentType == APIGATEWAY_COMPONENT_TYPE)]
+[#ftl]
+[#macro application_apigateway]
+    [#-- API Gateway --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -780,4 +780,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

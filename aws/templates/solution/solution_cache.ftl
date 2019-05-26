@@ -1,7 +1,6 @@
-[#-- Cache --]
-
-[#if componentType == CACHE_COMPONENT_TYPE ]
-
+[#ftl]
+[#macro solution_cache tier component]
+    [#-- Cache --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -210,4 +209,4 @@
             [/#if]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

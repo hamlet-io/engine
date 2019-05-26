@@ -1,7 +1,6 @@
-[#-- DATAVOLUME --]
-
-[#if componentType == DATAVOLUME_COMPONENT_TYPE  ]
-
+[#ftl]
+[#macro solution_datavolume tier component]
+    [#-- DATAVOLUME --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -202,4 +201,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

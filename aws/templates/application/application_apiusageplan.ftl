@@ -1,6 +1,6 @@
-[#-- API Gateway Usage Plan --]
-
-[#if (componentType == APIGATEWAY_USAGEPLAN_COMPONENT_TYPE)]
+[#ftl]
+[#macro application_apiusageplan tier component]
+    [#-- API Gateway Usage Plan --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -58,4 +58,4 @@
         [/#if]
 
     [/#list]
-[/#if]
+[/#macro]

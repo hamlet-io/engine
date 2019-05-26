@@ -1,7 +1,6 @@
-[#-- RDS --]
-
-[#if (componentType == RDS_COMPONENT_TYPE)]
-
+[#ftl]
+[#macro solution_rds tier component]
+    [#-- RDS --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -524,4 +523,4 @@
             [/#if]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

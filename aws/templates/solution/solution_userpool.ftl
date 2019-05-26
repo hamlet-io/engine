@@ -1,6 +1,6 @@
-[#-- Cognito User Pool --]
-[#if componentType == USERPOOL_COMPONENT_TYPE ]
-
+[#ftl]
+[#macro solution_userpool tier component]
+    [#-- Cognito User Pool --]
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
@@ -832,4 +832,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

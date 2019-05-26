@@ -1,5 +1,5 @@
-[#if componentType == USER_COMPONENT_TYPE]
-
+[#ftl]
+[#macro application_user tier component]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -244,4 +244,4 @@
         [/#if]
 
     [/#list]
-[/#if]
+[/#macro]

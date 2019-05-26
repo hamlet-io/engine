@@ -1,12 +1,12 @@
-[#-- ECS Log Group --]
-
-[#if componentType == "lg"]
+[#ftl]
+[#macro solution_lg tier component]
+    [#-- ECS Log Group --]
     [#assign componentLogGroupId = formatComponentLogGroupId(tier, component)]
     [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(componentLogGroupId)]
-        [@createLogGroup 
+        [@createLogGroup
             mode=listMode
             id=componentLogGroupId
             name=formatComponentLogGroupName(tier, component) /]
     [/#if]
-[/#if]
+[/#macro]

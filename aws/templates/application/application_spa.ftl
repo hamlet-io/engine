@@ -1,7 +1,6 @@
-[#-- SPA --]
-
-[#if componentType == SPA_COMPONENT_TYPE]
-
+[#ftl]
+[#macro application_spa tier component]
+    [#-- SPA --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -107,4 +106,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

@@ -1,7 +1,6 @@
-[#-- Content Hub --]
-
-[#if (componentType == CONTENTHUB_HUB_COMPONENT_TYPE) ]
-
+[#ftl]
+[#macro solution_contenthub tier component]
+    [#-- Content Hub --]
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
@@ -20,10 +19,10 @@
                 mode=listMode
                 content=[
                         "info \"Creating Contenthub Pseudo Stack\""
-                    ] + 
+                    ] +
                     pseudoStackOutputScript(
                         "Content Hub Deployment",
-                        { 
+                        {
                             formatId(contentHubId, "engine") : solution.Engine,
                             formatId(contentHubId, "repository") : solution.Repository,
                             formatId(contentHubId, "prefix") : contentHubPrefix,
@@ -33,4 +32,4 @@
             /]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]

@@ -1,7 +1,6 @@
-[#-- Lambda --]
-
-[#if componentType = "lambda"]
-
+[#ftl]
+[#macro application_lambda tier component]
+    [#-- Lambda --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence ]
@@ -485,4 +484,4 @@
             [/#if]
         [/#list]
     [/#list]
-[/#if]
+[/#macro]

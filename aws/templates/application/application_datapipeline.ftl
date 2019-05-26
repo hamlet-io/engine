@@ -1,6 +1,6 @@
-[#-- Data Pipeline --]
-
-[#if componentType == DATAPIPELINE_COMPONENT_TYPE]
+[#ftl]
+[#macro application_datapipeline tier component]
+    [#-- Data Pipeline --]
     [#list requiredOccurrences(
             getOccurrences(tier, component),
             deploymentUnit) as occurrence]
@@ -324,4 +324,4 @@
         [/#if]
 
     [/#list]
-[/#if]
+[/#macro]

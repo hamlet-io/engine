@@ -1,7 +1,6 @@
-[#-- Dashboard --]
-
-[#if componentType == "dashboard"]
-
+[#ftl]
+[#macro segment_dashboard tier component]
+    [#-- Dashboard --]
     [#if deploymentSubsetRequired("dashboard", true)]
         [@createDashboard
             mode=listMode
@@ -10,6 +9,6 @@
             components=dashboardComponents
         /]
     [/#if]
-[/#if]
+[/#macro]
 
 

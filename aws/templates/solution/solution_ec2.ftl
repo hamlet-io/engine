@@ -1,6 +1,6 @@
-[#-- EC2 --]
-
-[#if componentType == EC2_COMPONENT_TYPE]
+[#ftl]
+[#macro solution_e 2 tier component]
+    [#-- EC2 --]
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
@@ -460,4 +460,4 @@
             [/#list]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]
