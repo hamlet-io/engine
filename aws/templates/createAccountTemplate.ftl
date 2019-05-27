@@ -17,5 +17,5 @@
 
 [#assign componentLevel="account" ]
 [@cfTemplate
-    level=componentLevel
+    levels=[componentLevel]
     include=accountList /]

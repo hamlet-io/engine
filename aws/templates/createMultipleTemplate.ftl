@@ -5,7 +5,7 @@
 [#assign allDeploymentUnits = true]
 
 [#-- Generate resources across multiple levels --]
-[#assign compositeLists=[segmentList, solutionList, applicationList] ]
+[#assign levels=["segment", "solution", "application"] ]
 
 [#-- Special processing --]
 [#switch deploymentUnit]
@@ -14,15 +14,14 @@
         [#assign dashboardComponents = [] ]
         [#assign deploymentUnitSubset = deploymentUnit]
         [#assign ignoreDeploymentUnitSubsetInOutputs = true]
-        
+
         [#-- No effect except addition to the dashboardComponents array --]
         [#assign listMode="dashboard"]
-        [@includeCompositeLists
-            level="multiple"
-            compositeLists=compositeLists /]
-        
+        [@includeLevelTemplates levels /]
+        [@processComponents levels /]
+
         [#-- Reset to create the dashboard resource --]
-        [#assign compositeLists=[segmentList] ]
+        [#assign levels=["segment"] ]
         [#assign deploymentUnitSubset = ""]
         [#assign allDeploymentUnits = false]
         [#break]
@@ -35,6 +34,5 @@
 [/#switch]
 
 [#assign componentLevel="multiple" ]
-[@cfTemplate
-    level=componentLevel
-    compositeLists=compositeLists /]
+[@cfTemplate levels=levels /]
+

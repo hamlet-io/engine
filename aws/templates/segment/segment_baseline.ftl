@@ -207,7 +207,5 @@
             description="The baseline component can only be deployed once as an unversioned component"
             context=core
         /]
-        [#break]
-
     [/#if]
 [/#macro]

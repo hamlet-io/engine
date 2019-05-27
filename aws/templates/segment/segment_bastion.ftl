@@ -37,7 +37,7 @@
 
         [#if ! networkLinkTarget?has_content ]
             [@cfException listMode "Network could not be found" networkLink /]
-            [#break]
+            [#return]
         [/#if]
 
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]

@@ -600,19 +600,8 @@
 
 [#-- Load all the templates expected to be used --]
 [#-- Some references may be indirect via links  --]
-[#macro includeLevelTemplates compositeLists=[] ]
-    [#list asArray(compositeLists) as compositeList]
-        [#-- Determine the level --]
-        [#local regex = compositeList?matches(r"^.*composite_(.*).ftl$")]
-        [#if !regex]
-            [#continue]
-        [/#if]
-        [#local level = regex?groups[1]]
-
-        [#if !(["segment", "solution", "application"]?seq_contains(level))]
-            [#continue]
-        [/#if]
-
+[#macro includeLevelTemplates levels ]
+    [#list asArray(levels) as level]
         [#list tiers as tier]
             [#list (tier.Components!{})?values as component]
                 [#-- Only interested in enabled components --]
@@ -628,8 +617,7 @@
     [/#list]
 [/#macro]
 
-
-[#macro includeCompositeLists compositeLists=[] ]
+[#macro processComponents levels ]
     [#list tiers as tier]
         [#list (tier.Components!{})?values as component]
             [#if deploymentRequired(component, deploymentUnit)]
@@ -638,27 +626,17 @@
                 [#assign dashboardRows = []]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
 
-                [#list asArray(compositeLists) as compositeList]
-                    [#local regex = compositeList?matches(r"^.*composite_(.*).ftl$")]
-                    [#if regex]
-                        [#local level = regex?groups[1]]
-                        [#if ["segment", "solution", "application"]?seq_contains(level)]
-                            [#local componentMacro = level + "_" + componentType]
-                            [#if (.vars[componentMacro]!"")?is_directive]
-                                [#list requiredOccurrences(
-                                    getOccurrences(tier, component),
-                                    deploymentUnit,
-                                    true) as occurrence]
-                                    [@(.vars[componentMacro]) occurrence /]
-                                [/#list]
-                            [#else]
-                                [@cfDebug listMode "Unable to invoke macro " + componentMacro false /]
-                            [/#if]
-                            [#continue]
-                        [/#if]
-                    [/#if]
-                    [#if !includeTemplate(compositeList)]
-                        [@cfException listMode "Unable to load template" template /]
+                [#list asArray(levels) as level]
+                    [#local componentMacro = level + "_" + getComponentType(component)]
+                    [#if (.vars[componentMacro]!"")?is_directive]
+                        [#list requiredOccurrences(
+                            getOccurrences(tier, component),
+                            deploymentUnit,
+                            true) as occurrence]
+                            [@(.vars[componentMacro]) occurrence /]
+                        [/#list]
+                    [#else]
+                        [@cfDebug listMode "Unable to invoke macro " + componentMacro false /]
                     [/#if]
                 [/#list]
             [/#if]
@@ -666,7 +644,7 @@
     [/#list]
 [/#macro]
 
-[#macro cfTemplate level include="" compositeLists=[]]
+[#macro cfTemplate levels=[] include="" ]
 
 
     [#-- Resources --]
@@ -679,8 +657,8 @@
         [#include include?ensure_starts_with("/")]
     [#else]
         [#-- Load all the component templates we need --]
-        [@includeLevelTemplates compositeLists /]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@includeLevelTemplates levels /]
+        [@processComponents levels /]
     [/#if]
 
     [#-- Outputs --]
@@ -689,7 +667,7 @@
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents levels /]
     [/#if]
 
     [#-- Config --]
@@ -698,7 +676,7 @@
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents levels /]
     [/#if]
 
     [#-- CLI --]
@@ -707,7 +685,7 @@
         [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents levels /]
     [/#if]
 
     [#-- Script --]
@@ -716,7 +694,7 @@
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents levels /]
     [/#if]
 
     [#if templateResources?has_content || exceptionResources?has_content
