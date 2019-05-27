@@ -1,11 +1,10 @@
-[#-- DataFeed --]
-
-[#if componentType == DATAFEED_COMPONENT_TYPE ]
-
+[#ftl]
+[#macro solution_datafeed tier component]
+    [#-- DataFeed --]
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
-        
+
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
@@ -14,13 +13,13 @@
 
         [#assign streamId = resources["stream"].Id ]
         [#assign streamName = resources["stream"].Name ]
-        
+
         [#assign streamRoleId = resources["role"].Id ]
         [#assign streamRolePolicyId = formatDependentPolicyId(streamRoleId, "local")]
 
         [#assign streamSubscriptionRoleId = resources["subscriptionRole"].Id!"" ]
         [#assign streamSubscriptionPolicyId = formatDependentPolicyId(streamSubscriptionRoleId, "local")]
-        
+
         [#assign streamLgId = (resources["lg"].Id)!"" ]
         [#assign streamLgName = (resources["lg"].Name)!"" ]
         [#assign streamLgStreamId = (resources["streamlgstream"].Id)!""]
@@ -33,7 +32,7 @@
 
         [#assign streamProcessors = []]
 
-        [#assign appDataLink = getLinkTarget(occurrence, 
+        [#assign appDataLink = getLinkTarget(occurrence,
                                     {
                                         "Tier" : "mgmt",
                                         "Component" : "baseline",
@@ -52,7 +51,7 @@
                     mode=listMode
                     id=streamLgId
                     name=streamLgName /]
-                
+
                 [@createLogStream
                     mode=listMode
                     id=streamLgStreamId
@@ -123,8 +122,8 @@
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
                     [#assign linkPolicies += lambdaKinesisPermission( linkTargetAttributes["ARN"])]
-                    
-                    [#assign streamProcessors += 
+
+                    [#assign streamProcessors +=
                             [ getFirehoseStreamLambdaProcessor(
                                 linkTargetAttributes["ARN"],
                                 streamRoleId,
@@ -139,8 +138,8 @@
         [/#list]
 
         [#assign destinationLink = getLinkTarget(
-                                        occurrence, 
-                                        solution.Destination.Link + 
+                                        occurrence,
+                                        solution.Destination.Link +
                                         {
                                             "Role" : "datafeed"
                                         }
@@ -151,7 +150,7 @@
         [/#if]
 
         [#if deploymentSubsetRequired("iam", true)]
-                
+
             [#if isPartOfCurrentDeploymentUnit(streamRoleId)]
 
                 [@createRole
@@ -169,11 +168,11 @@
                                             region
                                     ),
                                     []
-                                ) + 
+                                ) +
                                 logging?then(
                                     cwLogsProducePermission(streamLgName),
                                     []
-                                ) + 
+                                ) +
                                 s3AllPermission(dataBucket, dataBucketPrefix),
                                 "base"
                             )
@@ -183,7 +182,7 @@
                             linkPolicies)
                 /]
             [/#if]
-    
+
             [#if solution.LogWatchers?has_content &&
                     isPartOfCurrentDeploymentUnit(streamSubscriptionRoleId)]
 
@@ -225,7 +224,7 @@
                 /]
             [/#if]
 
-            [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration( 
+            [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
                                                     logging
                                                     streamLgName
                                                     streamLgStreamName )]
@@ -262,17 +261,17 @@
                                                     streamS3BackupDestination,
                                                     streamLoggingConfiguration,
                                                     streamProcessors)]
-                    
-                    [@createFirehoseStream 
-                        mode=listMode 
-                        id=streamId 
-                        name=streamName 
-                        destination=streamESDestination 
+
+                    [@createFirehoseStream
+                        mode=listMode
+                        id=streamId
+                        name=streamName
+                        destination=streamESDestination
                         dependencies=streamDependencies
                     /]
                     [#break]
 
-                [#default] 
+                [#default]
                     [@cfException
                         mode=listMode
                         description="Invalid stream destination or destination not found"
@@ -282,4 +281,4 @@
             [/#switch]
         [/#if]
     [/#list]
-[/#if]
+[/#macro]
