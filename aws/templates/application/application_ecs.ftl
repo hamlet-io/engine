@@ -650,7 +650,6 @@
                 [#list (solution.Containers!{})?values as container]
                     [#assign fragmentListMode = listMode]
                     [#assign fragmentId = formatFragmentId(container, occurrence)]
-                    [@cfDebug listMode fragmentId true /]]
                     [#include fragmentList?ensure_starts_with("/")]
                 [/#list]
 
