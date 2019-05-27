@@ -73,9 +73,9 @@ while getopts ":d:ho:r:t:v:" opt; do
 done
 
 # Ensure mandatory arguments have been provided
-[[ (-z "${TEMPLATE}") || 
-    (-z "${TEMPLATEDIR}") ||
-    (-z "${OUTPUT}") ]] && fatalMandatory
+[[ (-z "${TEMPLATE}") ||
+    ("${#TEMPLATEDIRS[@]}" -eq 0) ||
+    (-z "${OUTPUT}") ]] && fatalMandatory && exit 1
 
 if [[ "${#TEMPLATEDIRS[@]}" -gt 0 ]]; then
   TEMPLATEDIRS=("-d" "${TEMPLATEDIRS[@]}")
@@ -89,6 +89,6 @@ if [[ "${#RAW_VARIABLES[@]}" -gt 0 ]]; then
   RAW_VARIABLES=("-r" "${RAW_VARIABLES[@]}")
 fi
 
-java -jar "${GENERATION_DIR}/freemarker-wrapper-1.8.jar" -i $TEMPLATE "${TEMPLATEDIRS[@]}" -o $OUTPUT "${VARIABLES[@]}" "${RAW_VARIABLES[@]}"
+java -jar "${GENERATION_DIR}/freemarker-wrapper-1.8.1.jar" -i $TEMPLATE "${TEMPLATEDIRS[@]}" -o $OUTPUT "${VARIABLES[@]}" "${RAW_VARIABLES[@]}"
 RESULT=$?
 

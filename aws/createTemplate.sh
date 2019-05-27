@@ -416,7 +416,7 @@ function process_template() {
       local result_file="${results_dir}/${output_filename}"
 
       ${GENERATION_DIR}/freemarker.sh \
-        -d "${template_dir}" ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"}
+        -d "${template_dir}" ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"} \
 		-t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
 
       # Ignore whitespace only files
@@ -513,25 +513,25 @@ function process_template() {
             sed_patterns=("-e" "s/${request_reference}//g")
             sed_patterns+=("-e" "s/${configuration_reference}//g")
             sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
-  
+
             existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
             [[ -z "${existing_request_reference}" ]] && existing_request_reference="$( jq -r ".REQUEST_REFERENCE | select(.!=null)" < "${output_file}" )"
             [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
-  
+
             existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
             [[ -z "${existing_configuration_reference}" ]] && existing_configuration_reference="$( jq -r ".CONFIGURATION_REFERENCE | select(.!=null)" < "${output_file}" )"
             [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
-  
+
             if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
               sed_patterns+=("-e" "s/${run_id}//g")
               existing_run_id="$( jq -r ".Metadata.RunId | select(.!=null)" < "${output_file}" )"
               [[ -z "${existing_run_id}" ]] && existing_run_id="$( jq -r ".RUN_ID | select(.!=null)" < "${output_file}" )"
               [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id}//g")
             fi
-  
+
             cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
             cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
-  
+
             diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
               info "No change in ${file_description} detected ...\n" ||
               differences_detected="true"
