@@ -49,7 +49,7 @@
 [#function getFirehoseStreamESDestination 
         bufferInterval 
         bufferSize 
-        esDomainId 
+        esDomain
         roleId
         indexName
         indexRotation
@@ -60,9 +60,6 @@
         loggingConfiguration
         lambdaProcessor ]
     
-    [#local roleArn = getReference(roleId, ARN_ATTRIBUTE_TYPE)]
-    [#local backupLogStreamName = "S3Backup" ]
-
     [#return 
         {
             "ElasticsearchDestinationConfiguration" : {
@@ -70,7 +67,7 @@
                     "IntervalInSeconds" : bufferInterval,
                     "SizeInMBs" : bufferSize
                 },
-                "DomainARN" : getReference(esDomainId, ARN_ATTRIBUTE_TYPE),
+                "DomainARN" : getArn(esDomain, true),
                 "IndexName" : indexName,
                 "IndexRotationPeriod" : indexRotation,
                 "TypeName" : documentType,
@@ -102,7 +99,7 @@
 
     [#return 
         {
-            "BucketARN" : getReference(bucketId, ARN_ATTRIBUTE_TYPE),
+            "BucketARN" : getArn(bucketId),
             "BufferingHints" : {
                 "IntervalInSeconds" : bufferInterval,
                 "SizeInMBs" : bufferSize

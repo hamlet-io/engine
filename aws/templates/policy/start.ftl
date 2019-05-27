@@ -2,7 +2,7 @@
 
 [#-- Policy Structure --]
 
-[#function getPolicyStatement actions resources="*" principals="" conditions="" allow=true sid=""]
+[#function getPolicyStatement actions resources="*" principals="" conditions="" allow=true sid="" notprincipals=""]
     [#return
         {
             "Effect" : allow?then("Allow", "Deny"),
@@ -11,6 +11,7 @@
         attributeIfContent("Sid", sid) +
         attributeIfContent("Resource", resources) +
         attributeIfContent("Principal", principals) +
+        attributeIfContent("NotPrincipal", notprincipals) +
         attributeIfContent("Condition", conditions)
     ]
 [/#function]

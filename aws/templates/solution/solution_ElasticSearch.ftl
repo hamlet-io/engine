@@ -33,7 +33,7 @@
         [#assign volume = (storageProfile.Volumes["codeontap"])!{}]
         [#assign esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
 
-        [#if !esCIDRs?has_content ]
+        [#if !esCIDRs?has_content && !(esAuthentication == "SIG4ORIP") ]
             [@cfException
                 mode=listMode
                 description="No IP Policy Found"
@@ -62,10 +62,23 @@
 
         [#assign AccessPolicyStatements = [] ]
 
+        [#assign esAccounts = getAWSAccountIds( solution.Accounts )]
+        [#assign esAccountPrincipals = []]
+        [#assign esGlobalAccountAccess = false ]
+
+        [#if esAccounts?seq_contains("*") ]
+            [#assign esGlobalAccountAccess = true ]
+            [#assign esAccountPrincipals = [ "*" ]]
+        [#else]
+            [#list esAccounts as esAccount ]
+                [#assign esAccountPrincipals += [ formatAccountPrincipalArn( esAccount ) ]]
+            [/#list]
+        [/#if]
+
+
         [#if esAuthentication == "SIG4ANDIP" ]
 
-            [#assign AccessPolicyStatements +=
-                [
+            [#assign AccessPolicyStatements += [
                     getPolicyStatement(
                         "es:ESHttp*",
                         "*",
@@ -73,14 +86,14 @@
                             "AWS" : "*"
                         },
                         {
-                            "Null" : { 
+                            "Null" : {
                                 "aws:principaltype" : true
                             }
-                        }, 
+                        },
                         false
                     )
                 ]
-             ]
+            ]
         [/#if]
 
         [#if ( esAuthentication == "SIG4ANDIP" || esAuthentication == "IP" ) && !esCIDRs?seq_contains("0.0.0.0/0") ]
@@ -104,7 +117,46 @@
              ]
         [/#if]
 
-        [#if ( esAuthentication == "IP" || esAuthentication == "SIG4ORIP" )  ]
+        [#if esAuthentication == "SIG4ORIP" && esCIDRs?has_content ]
+            [#assign AccessPolicyStatements += 
+                [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS": "*"
+                        },
+                        attributeIfContent(
+                            "IpAddress",
+                            esCIDRs,
+                            {
+                                "aws:SourceIp": esCIDRs
+                            })
+                    )
+                ]
+            ]
+        [/#if]
+
+        [#if (esAuthentication == "SIG4ANDIP" || esAuthentication == "SIG4ORIP" ) && ! esGlobalAccountAccess]
+            [#assign AccessPolicyStatements += [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS" : "*"
+                        },
+                        {},
+                        false,
+                        {}
+                        {
+                            "AWS" : esAccountPrincipals
+                        }
+                    )
+                ]
+            ]
+        [/#if]
+
+        [#if esAuthentication == "IP" ]
             [#assign AccessPolicyStatements += 
                 [
                     getPolicyStatement(
@@ -246,7 +298,6 @@
                 type="AWS::Elasticsearch::Domain"
                 properties=
                     {
-                        "AccessPolicies" : getPolicyDocumentContent(AccessPolicyStatements),
                         "ElasticsearchVersion" : solution.Version,
                         "ElasticsearchClusterConfig" :
                             {
@@ -291,6 +342,11 @@
                             "Enabled" : true,
                             "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
                         }
+                    ) + 
+                    attributeIfContent(
+                        "AccessPolicies",
+                        AccessPolicyStatements,
+                        getPolicyDocumentContent(AccessPolicyStatements)
                     )
                 tags=
                     getCfTemplateCoreTags(
@@ -348,257 +404,5 @@
                     )
             /]
         [/#if]
-
-        [#list occurrence.Occurrences![] as subOccurrence]
-
-            [#assign subCore = subOccurrence.Core ]
-            [#assign subSolution = subOccurrence.Configuration.Solution ]
-            [#assign subResources = subOccurrence.State.Resources ]
-
-            [#switch subCore.Type ]
-                [#case ES_DATAFEED_COMPONENT_TYPE ]
-
-                    [#assign streamId = subResources["stream"].Id ]
-                    [#assign streamName = subResources["stream"].Name ]
-                    
-                    [#assign streamRoleId = subResources["role"].Id ]
-                    [#assign streamRolePolicyId = formatDependentPolicyId(streamRoleId, "local")]
-
-                    [#assign streamSubscriptionRoleId = subResources["subscriptionRole"].Id!"" ]
-                    [#assign streamSubscriptionPolicyId = formatDependentPolicyId(streamSubscriptionRoleId, "local")]
-                    
-                    [#assign streamLgId = (subResources["lg"].Id)!"" ]
-                    [#assign streamLgName = (subResources["lg"].Name)!"" ]
-                    [#assign streamLgStreamId = (subResources["streamlgstream"].Id)!""]
-                    [#assign streamLgStreamName = (subResources["streamlgstream"].Name)!""]
-                    [#assign streamLgBackupId = (subResources["backuplgstream"].Id)!""]
-                    [#assign streamLgBackupName = (subResources["backuplgstream"].Name)!""]
-
-                    [#assign logging = subSolution.Logging ]
-                    [#assign encrypted = subSolution.Encrypted]
-
-                    [#assign streamProcessors = []]
-
-                    [#assign dataBucketPrefix = getAppDataFilePrefix(subOccurrence) ]
-
-                    [#if logging ]
-                        [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(streamLgId) ]
-                            [@createLogGroup
-                                mode=listMode
-                                id=streamLgId
-                                name=streamLgName /]
-                            
-                            [@createLogStream
-                                mode=listMode
-                                id=streamLgStreamId
-                                name=streamLgStreamName
-                                logGroup=streamLgName
-                                dependencies=streamLgId
-                            /]
-
-                            [@createLogStream
-                                mode=listMode
-                                id=streamLgBackupId
-                                name=streamLgBackupName
-                                logGroup=streamLgName
-                                dependencies=streamLgId
-                            /]
-
-                        [/#if]
-                    [/#if]
-
-                    [#list subSolution.LogWatchers as logWatcherName,logwatcher ]
-
-                        [#assign logFilter = (logFilters[logwatcher.LogFilter].Pattern)!"" ]
-
-                        [#assign logSubscriptionRoleRequired = true ]
-
-                        [#list logwatcher.Links as logWatcherLinkName,logWatcherLink ]
-                            [#assign logWatcherLinkTarget = getLinkTarget(subOccurrence, logWatcherLink) ]
-
-                            [#if !logWatcherLinkTarget?has_content]
-                                [#continue]
-                            [/#if]
-
-                            [#assign roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]]
-
-                            [#list asArray(roleSource.LogGroupIds) as logGroupId ]
-
-                                [#assign logGroupArn = getExistingReference(logGroupId, ARN_ATTRIBUTE_TYPE)]
-
-                                [#if logGroupArn?has_content ]
-
-                                    [#if deploymentSubsetRequired(ES_COMPONENT_TYPE, true)]
-                                        [@createLogSubscription
-                                            mode=listMode
-                                            id=formatDependentLogSubscriptionId(streamId, logWatcherLink.Id, logGroupId?index)
-                                            logGroupName=getExistingReference(logGroupId)
-                                            filter=logFilter
-                                            destination=streamId
-                                            role=streamSubscriptionRoleId
-                                            dependencies=streamId
-                                        /]
-                                    [/#if]
-                                [/#if]
-                            [/#list]
-                        [/#list]
-                    [/#list]
-
-                    [#assign links = getLinkTargets(subOccurrence) ]
-                    [#assign linkPolicies = []]
-
-                    [#list links as linkId,linkTarget]
-
-                        [#assign linkTargetCore = linkTarget.Core ]
-                        [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                        [#assign linkTargetResources = linkTarget.State.Resources ]
-                        [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-
-                        [#switch linkTargetCore.Type]
-                            [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
-
-                                [#assign linkPolicies += lambdaKinesisPermission( linkTargetAttributes["ARN"])]
-                                
-                                [#assign streamProcessors += 
-                                        [ getFirehoseStreamLambdaProcessor(
-                                            linkTargetAttributes["ARN"],
-                                            streamRoleId,
-                                            subSolution.Buffering.Interval,
-                                            subSolution.Buffering.Size
-                                        )]]
-                                [#break]
-
-                            [#default]
-                                [#assign linkPolicies += getLinkTargetsOutboundRoles( { linkId, linkTarget} ) ]
-                        [/#switch]
-                    [/#list]
-
-                    [#if deploymentSubsetRequired("iam", true)]
-                            
-                        [#if isPartOfCurrentDeploymentUnit(streamRoleId)]
-
-                            [@createRole
-                                mode=listMode
-                                id=streamRoleId
-                                trustedServices=[ "firehose.amazonaws.com" ]
-                                policies=
-                                    [
-                                        getPolicyDocument(
-                                            encrypted?then(
-                                                s3EncryptionPermission(
-                                                        formatSegmentCMKId(),
-                                                        dataBucket,
-                                                        dataBucketPrefix,
-                                                        region
-                                                ),
-                                                []
-                                            ) + 
-                                            logging?then(
-                                                cwLogsProducePermission(streamLgName),
-                                                []
-                                            ) + 
-                                            s3AllPermission(dataBucket, dataBucketPrefix),
-                                            "base"
-                                        )
-                                    ] +
-                                    arrayIfContent(
-                                        [getPolicyDocument(linkPolicies, "links")],
-                                        linkPolicies)
-                            /]
-                        [/#if]
-               
-                        [#if subSolution.LogWatchers?has_content &&
-                              isPartOfCurrentDeploymentUnit(streamSubscriptionRoleId)]
-
-                            [@createRole
-                                mode=listMode
-                                id=streamSubscriptionRoleId
-                                trustedServices=[ formatDomainName("logs", regionId, "amazonaws.com") ]
-                            /]
-                        [/#if]
-                    [/#if]
-
-                    [#if deploymentSubsetRequired(ES_COMPONENT_TYPE, true)]
-
-                        [#if !streamProcessors?has_content && subSolution.LogWatchers?has_content ]
-                            [@cfException
-                                mode=listMode
-                                description="Lambda stream processor required for CloudwatchLogs"
-                                detail="Add the lambda as a link to this feed"
-                                context=subOccurrence
-                            /]
-                        [/#if]
-
-                        [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration( 
-                                                                logging
-                                                                streamLgName
-                                                                streamLgStreamName )]
-
-                        [#assign streamBackupLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
-                                                                logging,
-                                                                streamLgName,
-                                                                streamLgBackupName )]
-
-                        [#assign streamS3BackupDestination = getFirehoseStreamS3Destination(
-                                                                formatS3DataId(),
-                                                                dataBucketPrefix,
-                                                                subSolution.Buffering.Interval,
-                                                                subSolution.Buffering.Size,
-                                                                streamRoleId,
-                                                                encrypted,
-                                                                streamBackupLoggingConfiguration )]
-
-                        [#assign streamESDestination = getFirehoseStreamESDestination(
-                                                                subSolution.Buffering.Interval,
-                                                                subSolution.Buffering.Size,
-                                                                esId,
-                                                                streamRoleId,
-                                                                subSolution.IndexPrefix,
-                                                                subSolution.IndexRotation,
-                                                                subSolution.DocumentType,
-                                                                subSolution.Backup.FailureDuration,
-                                                                subSolution.Backup.Policy,
-                                                                streamS3BackupDestination,
-                                                                streamLoggingConfiguration,
-                                                                streamProcessors)]
-                        [#assign streamDependencies = []]
-
-                        [#assign streamDependencies += [ streamRolePolicyId ]] 
-                        [@createPolicy
-                            mode=listMode
-                            id=streamRolePolicyId
-                            name="local"
-                            statements=esKinesesStreamPermission(esId)
-                            roles=streamRoleId
-                        /]
-
-                        [#if subSolution.LogWatchers?has_content ]
-                            [@createPolicy
-                                mode=listMode
-                                id=streamSubscriptionPolicyId
-                                name="local"
-                                statements=
-                                            (subSolution.LogWatchers?has_content)?then(
-                                                firehoseStreamCloudwatchPermission(streamId)  +
-                                                    iamPassRolePermission(
-                                                        getReference(streamSubscriptionRoleId, ARN_ATTRIBUTE_TYPE)
-                                                ),
-                                                []
-                                            )
-                                roles=streamSubscriptionRoleId
-                            /]
-                        [/#if]
-
-                        [@createFirehoseStream 
-                            mode=listMode 
-                            id=streamId 
-                            name=streamName 
-                            destination=streamESDestination 
-                            dependencies=streamDependencies
-                        /]
-                    [/#if]
-                [#break]
-            [/#switch]
-        [/#list]
     [/#list]
 [/#if]

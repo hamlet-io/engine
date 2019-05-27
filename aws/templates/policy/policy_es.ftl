@@ -1,11 +1,12 @@
 [#-- ElasticSearch --]
 
 [#function esConsumePermission id  ]
+    [#local esArn = getArn(id)]
     [#return
         [
             getPolicyStatement(
                 [ "es:ESHttp*"],
-                formatESDomainArn(id)
+                formatRelativePath(esArn, "*")
             )
         ]
     ]
@@ -13,6 +14,7 @@
 
 
 [#function esKinesesStreamPermission id ]
+    [#local esArn = getArn(id) ]
     [#return 
         [
             getPolicyStatement(
@@ -25,8 +27,8 @@
                     "es:ESHttpGet"
                 ],
                 [
-                    getReference(id, ARN_ATTRIBUTE_TYPE),
-                    formatESDomainArn(id)
+                    esArn,
+                    formatRelativePath(esArn, "*")
                 ]
             )
         ]
