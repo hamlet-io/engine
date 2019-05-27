@@ -1419,6 +1419,8 @@ function create_pki_credentials() {
   local dir="$1"; shift
   local region="$1"; shift
   local account="$1"; shift
+  local publickeyname="$1"; shift
+  local privatekeyname="$1"; shift
 
   if [[ (! -f "${dir}/aws-ssh-crt.pem") &&
         (! -f "${dir}/aws-ssh-prv.pem") &&
@@ -1426,8 +1428,8 @@ function create_pki_credentials() {
         (! -f "${dir}/.aws-ssh-prv.pem") &&
         (! -f "${dir}/.aws-${account}-${region}-ssh-crt.pem") &&
         (! -f "${dir}/.aws-${account}-${region}-ssh-prv.pem") ]]; then
-      openssl genrsa -out "${dir}/.aws-${account}-${region}-ssh-prv.pem.plaintext" 2048 || return $?
-      openssl rsa -in "${dir}/.aws-${account}-${region}-ssh-prv.pem.plaintext" -pubout > "${dir}/.aws-${account}-${region}-ssh-crt.pem" || return $?
+      openssl genrsa -out "${dir}/${privatekeyname}.plaintext" 2048 || return $?
+      openssl rsa -in "${dir}/${privatekeyname}.plaintext" -pubout > "${dir}/${publickeyname}.pem" || return $?
   fi
 
   if [[ ! -f "${dir}/.gitignore" ]]; then
@@ -1445,15 +1447,16 @@ function delete_pki_credentials() {
   local dir="$1"; shift
   local region="$1"; shift
   local account="$1"; shift
+  local publickeyname="$1"; shift
+  local privatekeyname="$1"; shift
 
   local restore_nullglob="$(shopt -p nullglob)"
   shopt -s nullglob
 
-  rm -f "${dir}"/.aws-${account}-${region}-ssh-crt* "${dir}"/.aws-${account}-${region}-ssh-prv*
+  rm -f "${dir}"/.aws-${account}-${region}-ssh-crt* "${dir}"/.aws-${account}-${region}-ssh-prv* "${dir}"/${publickeyname}* "${dir}"/${privatekeyname}*
 
   ${restore_nullglob}
 }
-
 # -- SSH --
 
 function check_ssh_credentials() {

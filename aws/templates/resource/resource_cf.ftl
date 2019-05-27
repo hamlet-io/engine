@@ -11,7 +11,6 @@
     }
 ]
 
-[#-- Not yet defined by cloud formation --]
 [#assign CF_ACCESS_ID_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -89,6 +88,7 @@
         ]
     ]
 [/#function]
+
 [#function getCFCacheBehaviour origin
     path=""
     methods={}
@@ -347,6 +347,22 @@
                     attributeIfContent("WebACLId", getReference(wafAclId))
             }
         outputs=CF_OUTPUT_MAPPINGS
+        dependencies=dependencies
+    /]
+[/#macro]
+
+[#macro createCFOriginAccessIdentity mode id name dependencies="" ]
+    [@cfResource
+        mode=mode
+        id=id
+        type="AWS::CloudFront::CloudFrontOriginAccessIdentity"
+        properties=
+            {
+                "CloudFrontOriginAccessIdentityConfig" : {
+                    "Comment" : name
+                }
+            }
+        outputs=CF_ACCESS_ID_OUTPUT_MAPPINGS
         dependencies=dependencies
     /]
 [/#macro]

@@ -1,7 +1,7 @@
 [#-- KMS --]
+[#--
 [#if (componentType == "cmk") ]
     [#if deploymentSubsetRequired("cmk", true)]
-        [#-- TODO: Get rid of inconsistent id usage --]
         [#assign cmkId = formatSegmentCMKTemplateId()]
         [#assign cmkAliasId = formatSegmentCMKAliasId(cmkId)]
 
@@ -30,8 +30,8 @@
         /]
     [/#if]
     [#if deploymentSubsetRequired("epilogue", false)]
+
         [#if sshPerEnvironment]
-            [#-- Make sure SSH credentials are in place --]
             [@cfScript
                 mode=listMode
                 content=
@@ -91,12 +91,6 @@
                     ]
             /]
         [/#if]
-        [#-- Origin Access Identity for any S3 based cloudfront distributions             --]
-        [#-- Handle change of bucket id associated with introduction of baseline unit.    --]
-        [#-- Logic assumes cmk created AFTER baseline for newer installations and         --]
-        [#-- so the bucket should already exist using the newer format. If this isn't     --]
-        [#-- the case, then use the older format as we may be creating an old environment --]
-        [#-- from scratch using the pre-baseline unit order                               --]
         [#assign bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, "opsdata" ) ]
         [#if !getExistingReference(bucketId)?has_content ]
             [#assign bucketId = formatS3OperationsId() ]
@@ -143,4 +137,5 @@
     [/#if]
 
 [/#if]
+--]
 
