@@ -33,7 +33,7 @@
         [#assign volume = (storageProfile.Volumes["codeontap"])!{}]
         [#assign esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
 
-        [#if !esCIDRs?has_content ]
+        [#if !esCIDRs?has_content && !(esAuthentication == "SIG4ORIP") ]
             [@cfException
                 mode=listMode
                 description="No IP Policy Found"
@@ -62,10 +62,23 @@
 
         [#assign AccessPolicyStatements = [] ]
 
+        [#assign esAccounts = getAWSAccountIds( solution.Accounts )]
+        [#assign esAccountPrincipals = []]
+        [#assign esGlobalAccountAccess = false ]
+
+        [#if esAccounts?seq_contains("*") ]
+            [#assign esGlobalAccountAccess = true ]
+            [#assign esAccountPrincipals = [ "*" ]]
+        [#else]
+            [#list esAccounts as esAccount ]
+                [#assign esAccountPrincipals += [ formatAccountPrincipalArn( esAccount ) ]]
+            [/#list]
+        [/#if]
+
+
         [#if esAuthentication == "SIG4ANDIP" ]
 
-            [#assign AccessPolicyStatements +=
-                [
+            [#assign AccessPolicyStatements += [
                     getPolicyStatement(
                         "es:ESHttp*",
                         "*",
@@ -73,14 +86,14 @@
                             "AWS" : "*"
                         },
                         {
-                            "Null" : { 
+                            "Null" : {
                                 "aws:principaltype" : true
                             }
-                        }, 
+                        },
                         false
                     )
                 ]
-             ]
+            ]
         [/#if]
 
         [#if ( esAuthentication == "SIG4ANDIP" || esAuthentication == "IP" ) && !esCIDRs?seq_contains("0.0.0.0/0") ]
@@ -104,7 +117,46 @@
              ]
         [/#if]
 
-        [#if ( esAuthentication == "IP" || esAuthentication == "SIG4ORIP" )  ]
+        [#if esAuthentication == "SIG4ORIP" && esCIDRs?has_content ]
+            [#assign AccessPolicyStatements += 
+                [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS": "*"
+                        },
+                        attributeIfContent(
+                            "IpAddress",
+                            esCIDRs,
+                            {
+                                "aws:SourceIp": esCIDRs
+                            })
+                    )
+                ]
+            ]
+        [/#if]
+
+        [#if (esAuthentication == "SIG4ANDIP" || esAuthentication == "SIG4ORIP" ) && ! esGlobalAccountAccess]
+            [#assign AccessPolicyStatements += [
+                    getPolicyStatement(
+                        "es:ESHttp*",
+                        "*",
+                        {
+                            "AWS" : "*"
+                        },
+                        {},
+                        false,
+                        {}
+                        {
+                            "AWS" : esAccountPrincipals
+                        }
+                    )
+                ]
+            ]
+        [/#if]
+
+        [#if esAuthentication == "IP" ]
             [#assign AccessPolicyStatements += 
                 [
                     getPolicyStatement(
@@ -246,7 +298,6 @@
                 type="AWS::Elasticsearch::Domain"
                 properties=
                     {
-                        "AccessPolicies" : getPolicyDocumentContent(AccessPolicyStatements),
                         "ElasticsearchVersion" : solution.Version,
                         "ElasticsearchClusterConfig" :
                             {
@@ -291,6 +342,11 @@
                             "Enabled" : true,
                             "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
                         }
+                    ) + 
+                    attributeIfContent(
+                        "AccessPolicies",
+                        AccessPolicyStatements,
+                        getPolicyDocumentContent(AccessPolicyStatements)
                     )
                 tags=
                     getCfTemplateCoreTags(

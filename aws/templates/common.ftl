@@ -840,6 +840,10 @@ behaviour.
                 [#local result = getContentNodeState(occurrence)]
                 [#break]
 
+            [#case DATAFEED_COMPONENT_TYPE]
+                [#local result = getDataFeedState(occurrence)]
+                [#break]
+
             [#case DATASET_COMPONENT_TYPE ]
                 [#local result = getDataSetState(occurrence)]
                 [#break]
@@ -873,11 +877,7 @@ behaviour.
                 [#break]
 
             [#case ES_COMPONENT_TYPE]
-                [#local result = getESState(occurrence)]
-                [#break]
-
-            [#case ES_DATAFEED_COMPONENT_TYPE]
-                [#local result = getESFeedState(occurrence)]
+                [#local result = getESState(occurrence, result)]
                 [#break]
 
             [#case "function"]

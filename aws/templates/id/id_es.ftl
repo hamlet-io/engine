@@ -40,7 +40,14 @@
                     "Default" : "IP"
                 },
                 {
+                    "Names" : "Accounts",
+                    "Description" : "A list of accounts which will be permitted to access the ES index",
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Default" : [ "_environment" ]
+                },
+                {
                     "Names" : "IPAddressGroups",
+                    "Description" : "A list of IP Address Groups which will be permitted to access the ES index",
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Mandatory" : true
                 },
@@ -52,7 +59,7 @@
                 {
                     "Names" : "Version",
                     "Type" : STRING_TYPE,
-                    "Default" : "2.3"
+                    "Mandatory" : true
                 },
                 {
                     "Names" : "Encrypted",
@@ -94,10 +101,37 @@
         }
     }]
 
-[#function getESState occurrence]
+[#function getESState occurrence baseState]
     [#local core = occurrence.Core]
-    [#local solution = occurrence.Configuration.Solution]
 
+    [#if core.External!false]
+        [#local id = baseState.Attributes["ES_DOMAIN_ARN"]!"" ]
+        [#return
+            baseState +
+            valueIfContent(
+                {
+                    "Roles" : {
+                        "Outbound" : {
+                            "default" : "consume",
+                            "consume" : esConsumePermission(esId),
+                            "datafeed" : esKinesesStreamPermission(esId)
+                        },
+                        "Inbound" : {
+                        }
+                    }
+                },
+                id,
+                {
+                    "Roles" : {
+                        "Inbound" : {},
+                        "Outbound" : {}
+                    }
+                }
+            )
+        ]
+    [/#if]
+
+    [#local solution = occurrence.Configuration.Solution]
     [#local esId = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
     [#local esHostName = getExistingReference(esId, DNS_ATTRIBUTE_TYPE) ]
 
@@ -126,7 +160,8 @@
             "Roles" : {
                 "Outbound" : {
                     "default" : "consume",
-                    "consume" : esConsumePermission(esId)
+                    "consume" : esConsumePermission(esId),
+                    "datafeed" : esKinesesStreamPermission(esId)
                 },
                 "Inbound" : {
                 }

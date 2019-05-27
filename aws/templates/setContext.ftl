@@ -671,6 +671,38 @@
 
 [/#if]
 
+[#function getAWSAccountIds accountIds ]
+    [#local AWSAccountIds = [] ]
+
+    [#list accountIds as accountId ]
+        [#switch accountId]
+            [#case "_tenant"]
+            [#case "_tenant_"]
+            [#case "__tenant__"]
+                [#list accounts as id,account ]
+                    [#local AWSAccountIds += [ (account.AWSId)!""]  ]
+                [/#list]
+                [#break]
+
+            [#case "_environment"]
+            [#case "_environment_"]
+            [#case "__environment__"]
+                [#local AWSAccountIds += [ accountObject.AWSId ] ]
+                [#break]
+            
+            [#case "_global" ]
+            [#case "_global_" ]
+            [#case "__global__" ]
+                [#local AWSAccountIds += [ "*" ]]
+                [#break]
+
+            [#default]  
+                [#local AWSAccountIds += [ (accounts[accountId].AWSId)!"" ]]
+        [/#switch]
+    [/#list]
+    [#return AWSAccountIds ]
+[/#function]
+
 [#-- Deployment Profiles --]
 [#--  Tenant DeploymentProfiles override standard DeploymentProfiles and Account DeploymentProfiles override this result --]
 [#assign deploymentProfiles = {} ]

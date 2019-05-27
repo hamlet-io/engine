@@ -33,6 +33,17 @@
 
         [#assign streamProcessors = []]
 
+        [#assign appDataLink = getLinkTarget(occurrence, 
+                                    {
+                                        "Tier" : "mgmt",
+                                        "Component" : "baseline",
+                                        "Instance" : "",
+                                        "Version" : "",
+                                        "DataBucket" : "appdata"
+                                    }
+        )]
+
+        [#assign appdataBucketId = appDataLink.State.Resources["bucket"].Id ]
         [#assign dataBucketPrefix = getAppDataFilePrefix(occurrence) ]
 
         [#if logging ]
@@ -101,9 +112,6 @@
         [#assign links = getLinkTargets(occurrence) ]
         [#assign linkPolicies = []]
 
-        [#assign destinationCount = 0]
-        [#assign destinationLink = {}]
-
         [#list links as linkId,linkTarget]
 
             [#assign linkTargetCore = linkTarget.Core ]
@@ -125,15 +133,22 @@
                             )]]
                     [#break]
 
-                [#case ES_COMPONENT_TYPE]
-                    [#assign destinationCount ++ ]
-                    [#assign destinationLink += linkTarget ]
-                    [#break]
-                    
                 [#default]
                     [#assign linkPolicies += getLinkTargetsOutboundRoles( { linkId, linkTarget} ) ]
             [/#switch]
         [/#list]
+
+        [#assign destinationLink = getLinkTarget(
+                                        occurrence, 
+                                        solution.Destination.Link + 
+                                        {
+                                            "Role" : "datafeed"
+                                        }
+                                    )]
+
+        [#if destinationLink?has_content ]
+            [#assign linkPolicies += getLinkTargetsOutboundRoles( { "destination", destinationLink} ) ]
+        [/#if]
 
         [#if deploymentSubsetRequired("iam", true)]
                 
@@ -182,6 +197,8 @@
 
         [#if deploymentSubsetRequired(DATAFEED_COMPONENT_TYPE, true)]
 
+            [#assign streamDependencies = []]
+
             [#if !streamProcessors?has_content && solution.LogWatchers?has_content ]
                 [@cfException
                     mode=listMode
@@ -190,49 +207,6 @@
                     context=occurrence
                 /]
             [/#if]
-
-            [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration( 
-                                                    logging
-                                                    streamLgName
-                                                    streamLgStreamName )]
-
-            [#assign streamBackupLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
-                                                    logging,
-                                                    streamLgName,
-                                                    streamLgBackupName )]
-
-            [#assign streamS3BackupDestination = getFirehoseStreamS3Destination(
-                                                    formatS3DataId(),
-                                                    dataBucketPrefix,
-                                                    solution.Buffering.Interval,
-                                                    solution.Buffering.Size,
-                                                    streamRoleId,
-                                                    encrypted,
-                                                    streamBackupLoggingConfiguration )]
-
-            [#assign streamESDestination = getFirehoseStreamESDestination(
-                                                    solution.Buffering.Interval,
-                                                    solution.Buffering.Size,
-                                                    esId,
-                                                    streamRoleId,
-                                                    solution.IndexPrefix,
-                                                    solution.IndexRotation,
-                                                    solution.DocumentType,
-                                                    solution.Backup.FailureDuration,
-                                                    solution.Backup.Policy,
-                                                    streamS3BackupDestination,
-                                                    streamLoggingConfiguration,
-                                                    streamProcessors)]
-            [#assign streamDependencies = []]
-
-            [#assign streamDependencies += [ streamRolePolicyId ]] 
-            [@createPolicy
-                mode=listMode
-                id=streamRolePolicyId
-                name="local"
-                statements=esKinesesStreamPermission(esId)
-                roles=streamRoleId
-            /]
 
             [#if solution.LogWatchers?has_content ]
                 [@createPolicy
@@ -251,13 +225,61 @@
                 /]
             [/#if]
 
-            [@createFirehoseStream 
-                mode=listMode 
-                id=streamId 
-                name=streamName 
-                destination=streamESDestination 
-                dependencies=streamDependencies
-            /]
+            [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration( 
+                                                    logging
+                                                    streamLgName
+                                                    streamLgStreamName )]
+
+            [#assign streamBackupLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
+                                                    logging,
+                                                    streamLgName,
+                                                    streamLgBackupName )]
+
+            [#assign streamS3BackupDestination = getFirehoseStreamS3Destination(
+                                                    appdataBucketId,
+                                                    dataBucketPrefix,
+                                                    solution.Buffering.Interval,
+                                                    solution.Buffering.Size,
+                                                    streamRoleId,
+                                                    encrypted,
+                                                    streamBackupLoggingConfiguration )]
+
+
+            [#switch (destinationLink.Core.Type)!"notfound" ]
+                [#case ES_COMPONENT_TYPE ]
+
+                    [#assign esId = destinationLink.State.Resources["es"].Id ]
+                    [#assign streamESDestination = getFirehoseStreamESDestination(
+                                                    solution.Buffering.Interval,
+                                                    solution.Buffering.Size,
+                                                    esId,
+                                                    streamRoleId,
+                                                    solution.ElasticSearch.IndexPrefix,
+                                                    solution.ElasticSearch.IndexRotation,
+                                                    solution.ElasticSearch.DocumentType,
+                                                    solution.Backup.FailureDuration,
+                                                    solution.Backup.Policy,
+                                                    streamS3BackupDestination,
+                                                    streamLoggingConfiguration,
+                                                    streamProcessors)]
+                    
+                    [@createFirehoseStream 
+                        mode=listMode 
+                        id=streamId 
+                        name=streamName 
+                        destination=streamESDestination 
+                        dependencies=streamDependencies
+                    /]
+                    [#break]
+
+                [#default] 
+                    [@cfException
+                        mode=listMode
+                        description="Invalid stream destination or destination not found"
+                        detail="Supported Destinations - ES"
+                        context=occurrence
+                    /]
+            [/#switch]
         [/#if]
     [/#list]
 [/#if]
