@@ -204,22 +204,22 @@
     [#local role = solution.Role]
     [#local legacyS3 = false]
 
-    [#local bucketId = formatSegmentS3Id(core.SubComponent.Id ) ]
+    [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, core.SubComponent.Id ) ]
     [#local bucketName = formatSegmentBucketName( segmentSeed, core.SubComponent.Id )]]
 
     [#switch core.SubComponent.Id ]
         [#case "appdata" ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "data") ]
-            [#local bucketId = formatS3DataId() ]
             [#if getExistingReference(formatS3DataId())?has_content ]
+                [#local bucketId = formatS3DataId() ]
                 [#local legacyS3 = true ]
             [/#if]
             [#break]
 
         [#case "opsdata" ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "ops") ]
-            [#local bucketId = formatS3OperationsId()]
             [#if getExistingReference(formatS3OperationsId())?has_content ]
+                [#local bucketId = formatS3OperationsId() ]
                 [#local legacyS3 = true]
             [/#if]
             [#break]
@@ -407,23 +407,17 @@
 [#function formatS3OperationsId]
     [#return
         migrateToResourceId(
-            formatSegmentS3Id("opsdata"),
-            [
-                formatSegmentS3Id("ops"),
-                formatSegmentS3Id("operations"),
-                formatSegmentS3Id("logs")
-            ]
+            formatSegmentS3Id("ops"),
+            formatSegmentS3Id("operations"),
+            formatSegmentS3Id("logs")
         )]
 [/#function]
 
 [#function formatS3DataId]
     [#return
         migrateToResourceId(
-            formatSegmentS3Id("appdata"),
-            [
             formatSegmentS3Id("data"),
             formatSegmentS3Id("application"),
             formatSegmentS3Id("backups")
-            ]
         )]
 [/#function]    

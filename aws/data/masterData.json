@@ -1317,11 +1317,6 @@
             "cert"
           ]
         },
-        "seg-cmk": {
-          "DeploymentUnits": [
-            "cmk"
-          ]
-        },
         "seg-dns": {
           "DeploymentUnits": [
             "dns"
