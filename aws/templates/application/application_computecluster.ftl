@@ -29,7 +29,8 @@
         [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
         [#assign processorProfile = getProcessor(occurrence, "ComputeCluster")]
 
-        [#assign networkLink = tier.Network.Link!{} ]
+        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+        [#assign networkLink = occurrenceNetwork.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
@@ -43,7 +44,7 @@
 
         [#assign vpcId = networkResources["vpc"].Id ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 

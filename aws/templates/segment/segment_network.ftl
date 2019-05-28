@@ -117,17 +117,17 @@
 
             [#list subnetResources as tierId, zoneSubnets  ]
 
-                [#assign networkTier = getTier(tierId) ]
+                [#assign subnetNetwork = getTierNetwork(tierId) ]
 
-                [#assign networkLink = networkTier.Network.Link!{} ]
-                [#assign routeTableId = networkTier.Network.RouteTable!"" ]
-                [#assign networkACLId = networkTier.Network.NetworkACL!"" ]
+                [#assign networkLink = subnetNetwork.Link!{} ]
+                [#assign routeTableId = subnetNetwork.RouteTable!"" ]
+                [#assign networkACLId = subnetNetwork.NetworkACL!"" ]
 
                 [#if !networkLink?has_content || !routeTableId?has_content || !networkACLId?has_content ]
                     [@cfException
                         listMode
                         "Tier Network configuration incomplete",
-                        networkTier.Network +
+                        subnetNetwork +
                             {
                                 "Link" : networkLink,
                                 "RouteTable" : routeTableId,

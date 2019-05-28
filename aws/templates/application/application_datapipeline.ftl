@@ -12,7 +12,7 @@
         [#assign settings = occurrence.Configuration.Settings]
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
-        
+
         [#assign pipelineId = resources["dataPipeline"].Id]
         [#assign pipelineName = resources["dataPipeline"].Name]
         [#assign pipelineRoleId = resources["pipelineRole"].Id]
@@ -29,11 +29,11 @@
         [#assign emrProcessorProfile = getProcessor(occurrence, "EMR")]
 
         [#assign pipelineCreateCommand = "createPipeline"]
-     
-        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
-        
+
         [#if ! networkLinkTarget?has_content ]
             [@cfException listMode "Network could not be found" networkLink /]
             [#break]
@@ -55,12 +55,12 @@
                 "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
                 "_INSTANCE_COUNT_EMR_CORE" : emrProcessorProfile.DesiredCorePerZone?c,
                 "_INSTANCE_COUNT_EMR_TASK" : emrProcessorProfile.DesiredCorePerZone?c,
-                "_PIPELINE_LOG_URI" : "s3://" + operationsBucket + 
+                "_PIPELINE_LOG_URI" : "s3://" + operationsBucket +
                                                 formatAbsolutePath(
                                                     "datapipeline",
                                                     core.FullName,
                                                     "logs"),
-                "_PIPELINE_CODE_URI" :  "s3://" + operationsBucket + 
+                "_PIPELINE_CODE_URI" :  "s3://" + operationsBucket +
                                                 formatAbsolutePath(
                                                     getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
                                                     "pipeline"
@@ -90,7 +90,7 @@
                 "DefaultLinkVariables" : true
             }
         ]
-        
+
         [#if solution.Fragment?has_content ]
             [#assign fragmentListMode = "model"]
             [#assign fragmentId = formatFragmentId(_context)]
@@ -102,7 +102,7 @@
 
         [#assign myParameterValues = {}]
         [#list parameterValues as key,value ]
-            [#assign myParameterValues += 
+            [#assign myParameterValues +=
                 {
                     key?ensure_starts_with("my") : value
                 }]
@@ -168,7 +168,7 @@
                         roles=resourceRoleId
                     /]
                 [/#if]
-                
+
             [/#if]
 
         [/#if]
@@ -236,7 +236,7 @@
                 "tags" : cliTags
             }]
 
-            [@cfCli 
+            [@cfCli
                 mode=listMode
                 id=pipelineId
                 command=pipelineCreateCommand
@@ -265,7 +265,7 @@
         [#if deploymentSubsetRequired("epilogue", false) ]
             [@cfScript
                 mode=listMode
-                content=                     
+                content=
                     getBuildScript(
                         "pipelineFiles",
                         regionId,
@@ -288,7 +288,7 @@
                         "$\{CONFIG}",
                         "config.json"
                     ) +
-                    [ 
+                    [
                         "case $\{STACK_OPERATION} in",
                         "  create|update)",
                         "       mkdir \"$\{tmpdir}/pipeline\" ",
@@ -298,33 +298,33 @@
                         "       # Create Data pipeline",
                         "       info \"Applying cli level configurtion\""
                         "       pipelineId=\"$(create_data_pipeline" +
-                        "       \"" + region + "\" " + 
-                        "       \"$\{tmpdir}/cli-" + 
+                        "       \"" + region + "\" " +
+                        "       \"$\{tmpdir}/cli-" +
                                     pipelineId + "-" + pipelineCreateCommand + ".json\")\"",
                         "       # Add Pipeline Definition" ,
                         "       info \"Updating pipeline definition\"",
                         "       update_data_pipeline" +
                         "       \"" + region + "\" " +
                         "       \"$\{pipelineId}\" " +
-                        "       \"$\{tmpdir}/pipeline/pipeline-definition.json\" " + 
-                        "       \"$\{tmpdir}/pipeline/pipeline-parameters.json\" " + 
+                        "       \"$\{tmpdir}/pipeline/pipeline-definition.json\" " +
+                        "       \"$\{tmpdir}/pipeline/pipeline-parameters.json\" " +
                         "       \"$\{tmpdir}/config.json\" " +
                         "       \"$\{STACK_NAME}\" " +
                         "       \"" + securityGroupId + "\" || return $?"
                     ] +
                     pseudoStackOutputScript(
                         "Data Pipeline",
-                        { 
+                        {
                             pipelineId : "$\{pipelineId}"
                         },
                         "creds-system"
-                    ) + 
+                    ) +
                     [
                         "   ;;",
                         "   esac"
                     ]
             /]
         [/#if]
-    
+
     [/#list]
 [/#if]

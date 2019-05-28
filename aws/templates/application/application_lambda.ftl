@@ -26,7 +26,7 @@
 
             [#assign vpcAccess = solution.VPCAccess ]
             [#if vpcAccess ]
-                [#assign networkLink = tier.Network.Link!{} ]
+                [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
                 [#assign networkLinkTarget = getLinkTarget(fn, networkLink ) ]
                 [#if ! networkLinkTarget?has_content ]

@@ -35,7 +35,8 @@
         [/#switch]
 
         [#if deploymentSubsetRequired("bastion", true) ]
-            [#assign networkLink = tier.Network.Link!{} ]
+            [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+            [#assign networkLink = occurrenceNetwork.Link!{} ]
             [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
             [#if ! networkLinkTarget?has_content ]
@@ -48,7 +49,7 @@
 
             [#assign vpcId = networkResources["vpc"].Id ]
 
-            [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable }, false)]
+            [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable }, false)]
             [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
             [#assign publicRouteTable = routeTableConfiguration.Public ]
         [/#if]

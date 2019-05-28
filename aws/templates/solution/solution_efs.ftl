@@ -12,8 +12,8 @@
         [#assign solution = occurrence.Configuration.Solution]
         [#assign resources = occurrence.State.Resources]
         [#assign zoneResources = occurrence.State.Resources.Zones]
-      
-        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
@@ -33,9 +33,9 @@
         [#assign efsFullName            = resources["efs"].Name]
         [#assign efsSecurityGroupId     = resources["sg"].Id]
         [#assign efsSecurityGroupName   = resources["sg"].Name]
-        
+
         [#assign efsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
-                                                efsSecurityGroupId, 
+                                                efsSecurityGroupId,
                                                 efsPort)]
 
         [#if deploymentSubsetRequired("efs", true) ]
@@ -55,8 +55,8 @@
                 cidr="0.0.0.0/0"
                 groupId=efsSecurityGroupId
             /]
-            
-            [@createEFS 
+
+            [@createEFS
                 mode=listMode
                 tier=tier
                 id=efsId

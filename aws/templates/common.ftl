@@ -173,6 +173,10 @@
     [#return {} ]
 [/#function]
 
+[#function getTierNetwork tier]
+    [#return (getTier(tier).Network)!{}]
+[/#function]
+
 [#-- Get the id for a tier --]
 [#function getTierId tier]
     [#return getTier(tier).Id!""]
@@ -1310,6 +1314,10 @@ behaviour.
                 "COTException: Build unit not found"
             )
         ) ]
+[/#function]
+
+[#function getOccurrenceNetwork occurrence]
+    [#return getTierNetwork(occurrence.Tier.Id)]
 [/#function]
 
 [#function getAsFileSettings settings ]

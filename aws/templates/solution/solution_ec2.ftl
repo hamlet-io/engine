@@ -27,8 +27,9 @@
         [#assign storageProfile         = getStorage(tier, component, "EC2")]
         [#assign logFileProfile         = getLogFileProfile(tier, component, "EC2")]
         [#assign bootstrapProfile       = getBootstrapProfile(tier, component, "EC2")]
-   
-        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+        [#assign networkLink = occurrenceNetwork.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
@@ -42,7 +43,7 @@
 
         [#assign vpcId = networkResources["vpc"].Id ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
@@ -117,7 +118,7 @@
 
         [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
-        [#assign configSets +=  
+        [#assign configSets +=
             getInitConfigEnvFacts(environmentVariables, false) +
             getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
@@ -149,7 +150,7 @@
                     [#assign targetGroupPermission = true]
                     [#assign destinationPort = linkTargetAttributes["DESTINATION_PORT"]]
 
-                    [#switch linkTargetAttributes["ENGINE"] ] 
+                    [#switch linkTargetAttributes["ENGINE"] ]
                         [#case "application" ]
                         [#case "classic"]
                             [#assign sourceSecurityGroupIds += [ linkTargetResources["sg"].Id ] ]
@@ -183,7 +184,7 @@
                             link.Id
                         )]
                     [#break]
-                    
+
                 [#case DATAVOLUME_COMPONENT_TYPE]
                     [#assign linkVolumeResources = {}]
                     [#list linkTargetResources["Zones"] as zoneId, linkZoneResources ]
@@ -204,11 +205,11 @@
                     [#break]
             [/#switch]
 
-            [#if deploymentSubsetRequired(EC2_COMPONENT_TYPE, true)] 
+            [#if deploymentSubsetRequired(EC2_COMPONENT_TYPE, true)]
 
                 [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, occurrence)]
                 [#list securityGroupCIDRs as cidr ]
-                    
+
                     [@createSecurityGroupIngress
                         mode=listMode
                         id=
@@ -259,8 +260,8 @@
                             s3ReadPermission(codeBucket) +
                             s3ListPermission(operationsBucket) +
                             s3WritePermission(operationsBucket, "DOCKERLogs") +
-                            s3WritePermission(operationsBucket, "Backups") + 
-                            cwLogsProducePermission(ec2LogGroupName) + 
+                            s3WritePermission(operationsBucket, "Backups") +
+                            cwLogsProducePermission(ec2LogGroupName) +
                             ec2EBSVolumeReadPermission(),
                             "basic")
                     ] + targetGroupPermission?then(
@@ -270,7 +271,7 @@
                                 "loadbalancing")
                         ],
                         []
-                    ) + 
+                    ) +
                     arrayIfContent(
                         [getPolicyDocument(linkPolicies, "links")],
                         linkPolicies) +
@@ -281,7 +282,7 @@
         [/#if]
 
         [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(ec2LogGroupId) ]
-            [@createLogGroup 
+            [@createLogGroup
                 mode=listMode
                 id=ec2LogGroupId
                 name=ec2LogGroupName /]
@@ -345,7 +346,7 @@
                                     instanceId=zoneEc2InstanceId
                                     volumeId=zoneVolume
                                 /]
-                                [#assign configSets += 
+                                [#assign configSets +=
                                     getInitConfigDataVolumeMount(
                                         volumeMount.DeviceId
                                         volumeMount.MountPath
