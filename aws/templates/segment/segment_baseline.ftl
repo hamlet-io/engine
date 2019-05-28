@@ -89,6 +89,7 @@
                     [#assign sqsNotifications = [] ]
                     [#assign sqsNotificationIds = [] ]
                     [#assign bucketDependencies = [] ]
+                    [#assign cfAccessCanonicalIds = [] ]
 
                     [#list subSolution.Notifications!{} as id,notification ]
                         [#if notification?is_hash]
@@ -103,7 +104,7 @@
                                     [#assign linkTargetResources = linkTarget.State.Resources ]
 
                                     [#switch linkTarget.Core.Type]
-                                        [#case AWS_SQS_RESOURCE_TYPE ]
+                                        [#case SQS_COMPONENT_TYPE ]
                                             [#if isLinkTargetActive(linkTarget) ]
                                                 [#assign sqsId = linkTargetResources["queue"].Id ]
                                                 [#assign sqsNotificationIds = [ sqsId ]]
@@ -114,6 +115,10 @@
                                                 
                                             [/#if]
                                             [#break]
+                                        [#case BASELINE_KEY_COMPONENT_TYPE]
+                                            [#if linkTarget.Configuration.Solution.Engine == "oai" ]
+                                                [#assign cfAccessCanonicalIds = [ getReference(linkTargetResources["originAccessId"].Id, CANONICAL_ID_ATTRIBUTE_TYPE )]]
+                                            [/#if]
                                     [/#switch]
                                 [/#if]
                             [/#list]
@@ -148,9 +153,6 @@
                     [#assign bucketPolicy = []]
                     [#switch subSolution.Role ]
                         [#case "operations" ]
-                            [#assign cfAccess =
-                                getExistingReference(formatDependentCFAccessId(bucketId), CANONICAL_ID_ATTRIBUTE_TYPE)]
-                            
                             [#assign bucketPolicy += 
                                 s3WritePermission(
                                     bucketName,
@@ -177,10 +179,10 @@
                                         formatSegmentPrefixPath("settings"),
                                         "*",
                                         {
-                                            "CanonicalUser": cfAccess
+                                            "CanonicalUser": cfAccessCanonicalIds
                                         }
                                     )
-                                    cfAccess,
+                                    cfAccessCanonicalIds,
                                     []
                                 )]
                             [#break]

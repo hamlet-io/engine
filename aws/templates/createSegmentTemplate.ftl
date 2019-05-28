@@ -7,6 +7,7 @@
     [#case "iam"]
     [#case "lg"]
     [#case "s3"]
+    [#case "cmk"]
         [#if !(deploymentUnitSubset?has_content)]
             [#assign allDeploymentUnits = true]
             [#assign deploymentUnitSubset = deploymentUnit]

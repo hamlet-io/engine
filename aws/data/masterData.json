@@ -1351,6 +1351,15 @@
                     "Expiration" : "_operations",
                     "Offline" : "_operations"
                   }
+                },
+                "Links" : {
+                  "cf_key" : { 
+                    "Tier" : "mgmt",
+                    "Component" : "baseline",
+                    "Instance" : "",
+                    "Version" : "",
+                    "Key" : "oai"
+                  }
                 }
               },
               "appdata" : {
@@ -1361,6 +1370,17 @@
                     "Offline" : "_data"
                   }
                 }
+              }
+            },
+            "Keys" : {
+              "ssh" : {
+                "Engine" : "ssh"
+              },
+              "cmk" : {
+                "Engine" : "cmk"
+              },
+              "oai" : {
+                "Engine" : "oai"
               }
             }
           }
