@@ -105,11 +105,18 @@
     [#local core = occurrence.Core]
 
     [#if core.External!false]
-        [#local id = baseState.Attributes["ES_DOMAIN_ARN"]!"" ]
+        [#local esId = baseState.Attributes["ES_DOMAIN_ARN"]!"COTException: Could not find ARN" ]
         [#return
             baseState +
             valueIfContent(
                 {
+                    "Resources" : {
+                        "es" : { 
+                            "Id" : esId,
+                            "Type" : AWS_ES_RESOURCE_TYPE,
+                            "Deployed" : true
+                        }
+                    },
                     "Roles" : {
                         "Outbound" : {
                             "default" : "consume",
@@ -120,13 +127,8 @@
                         }
                     }
                 },
-                id,
-                {
-                    "Roles" : {
-                        "Inbound" : {},
-                        "Outbound" : {}
-                    }
-                }
+                esId,
+                {}
             )
         ]
     [/#if]
