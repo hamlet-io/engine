@@ -174,6 +174,8 @@
                 {}
             ),
             "Attributes" : {
+                "STREAM_NAME" : getExistingReference(streamId),
+                "STREAM_ARN" : getExistingReference(streamId, ARN_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Outbound" : {
