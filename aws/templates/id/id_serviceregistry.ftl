@@ -1,6 +1,6 @@
 [#-- Resources --]
-[#assign AWS_CLOUDMAP_DNS_NAMESPACE_RESOURCE_TYPE = "cloudmapDNSNamespace" ]
-[#assign AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE = "cloudmapService"]
+[#assign AWS_CLOUDMAP_DNS_NAMESPACE_RESOURCE_TYPE = "cloudmapdnsnamespace" ]
+[#assign AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE = "cloudmapservice"]
 
 [#-- Components --]
 [#assign REGISTRY_COMPONENT_TYPE = "registry" ]
@@ -8,7 +8,7 @@
 
 [#assign componentConfiguration +=
     {
-        SERIVCE_REGISTRY_COMPONENT_TYPE : {
+        REGISTRY_COMPONENT_TYPE : {
             "Properties"  : [
                 {
                     "Type"  : "Description",
@@ -79,8 +79,9 @@
                 {
                     "Names" : "RecordTypes",
                     "Description" : "The types of DNS records that an instance can register with the service",
-                    "Type" : ARRAY_OF_STRING_TYPE
-                    "Values" : [ "A", "AAAA", "CNMAE", SRV ]
+                    "Type" : ARRAY_OF_STRING_TYPE,
+                    "Values" : [ "A", "AAAA", "CNMAE", "SRV" ],
+                    "Default" : [ "A", "AAAA" ]
                 },
                 {
                     "Names" : "RecordTTL",
@@ -93,18 +94,18 @@
                     "Description" : "How the service returns records to the client",
                     "Values" : [ "AllAtOnce", "OnlyOne" ],
                     "Type" : STRING_TYPE,
-                    "Default" : "OnlyOne
+                    "Default" : "OnlyOne"
                 }
             ]
         }
     }]
 
-[#function getRegistryState occurrence]
+[#function getRegistryState occurrence ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
     [#local domainObject = getCertificateObject(solution.Namespace, segmentQualifiers)]
-    [#local domainName = getCertificatePrimaryDomain(domainObject) ]
+    [#local domainName = getCertificatePrimaryDomain(domainObject).Name ]
 
     [#return
         {
@@ -136,7 +137,7 @@
     [#local parentAttributes = parent.State.Attributes ]
 
     [#local serviceHostObject = mergeObjects(parentSolution.Namespace, solution.ServiceName) ]
-    [#local domainObject = getCertificateObject( serviceHostNameObject, segmentQualifiers)]
+    [#local domainObject = getCertificateObject( serviceHostObject, segmentQualifiers)]
 
     [#local serviceHost = getHostName(domainObject, occurrence)  ]
     [#local hostName = formatDomainName(serviceHost, parentAttributes["DOMAIN_NAME"] ) ]

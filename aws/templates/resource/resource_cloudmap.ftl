@@ -19,9 +19,6 @@
         },
         ARN_ATTRIBUTE_TYPE : { 
             "Attribute" : "Arn"
-        },
-        NAME_ATTRIBUTE_TYPE : {
-            "Attribute" : "Name"
         }
     }
 ]
@@ -48,7 +45,7 @@
             type="AWS::ServiceDiscovery::PublicDnsNamespace"
             properties=
                 {
-                    "Description" : name
+                    "Description" : name,
                     "Name" : domainName
                 }
             outputs=CLOUDMAP_DNS_NAMESPACE_OUTPUT_MAPPINGS
@@ -61,7 +58,7 @@
             type="AWS::ServiceDiscovery::PrivateDnsNamespace"
             properties=
                 {
-                    "Description" : name
+                    "Description" : name,
                     "Name" : domainName,
                     "Vpc" : getReference(vpcId)
                 }
@@ -82,8 +79,9 @@
 ]
 
     [#local dnsRecords = [] ]
+
     [#list recordTypes as recordType ]
-        [#assign dnsRecords += 
+        [#local dnsRecords += 
             [ 
                 {
                     "TTL" : recordTTL?c,
@@ -92,7 +90,6 @@
             ]]
     [/#list]
     
-
     [#switch routingPolicy?upper_case ]
         [#case "ALLATONCE" ]
         [#case "MULTIVALUE" ]
@@ -100,10 +97,28 @@
             [#break]
         
         [#case "ONLYONE" ]
-        [#csae "WEIGHTED" ]
+        [#case "WEIGHTED" ]
             [#local routingPolicy = "WEIGHTED" ]
             [#break]
     [/#switch]
+
+    [#if recordTypes?seq_contains("CNAME") ]
+        [#if !(routingPolicy == "WEIGHTED") ]
+           [@cfException
+                mode=listMode
+                description="CNAME records are only supported for WEIGHTED Routing policy"
+                context=occurrence
+            /]
+        [/#if]
+
+        [#if recordTypes.size > 1 ]
+            [@cfException
+                mode=listMode
+                description="CNAME record types can not be used with other record types"
+                context=occurrence
+            /]
+        [/#if]
+    [/#if]
 
     [@cfResource 
         mode=mode

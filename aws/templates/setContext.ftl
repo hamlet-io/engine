@@ -139,8 +139,7 @@
     ]
 ]
 
-[#assign
-    logMetricChildrenConfiguration = [
+[#assign logMetricChildrenConfiguration = [
         {
             "Names" : "LogFilter",
             "Type" : STRING_TYPE,
@@ -149,8 +148,7 @@
     ]
 ]
 
-[#assign
-    alertChildrenConfiguration = [
+[#assign alertChildrenConfiguration = [
         "Description",
         {
             "Names" : "Name",
@@ -349,24 +347,6 @@
     }
 ]]
 
-[#assign certificateChildConfiguration = [
-    {
-        "Names" : "Qualifiers",
-        "Type" : OBJECT_TYPE
-    },
-    {
-        "Names" : "External",
-        "Type" : BOOLEAN_TYPE
-    },
-    {
-        "Names" : "Wildcard",
-        "Type" : BOOLEAN_TYPE
-    }
-] + 
-    domainNameChildConfiguration + 
-    hostNameChildConfiguration
-] 
-
 [#assign domainNameChildConfiguration = [
     {
         "Names" : "Qualifiers",
@@ -443,6 +423,25 @@
         ]
     }
 ]]
+
+[#assign certificateChildConfiguration = 
+    domainNameChildConfiguration + 
+    hostNameChildConfiguration + 
+    [
+        {
+            "Names" : "Qualifiers",
+            "Type" : OBJECT_TYPE
+        },
+        {
+            "Names" : "External",
+            "Type" : BOOLEAN_TYPE
+        },
+        {
+            "Names" : "Wildcard",
+            "Type" : BOOLEAN_TYPE
+        }
+    ]
+] 
 
 [#assign pathChildConfiguration = [
     {

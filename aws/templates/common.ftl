@@ -908,6 +908,14 @@ behaviour.
                 [#local result = getRDSState(occurrence)]
                 [#break]
 
+            [#case REGISTRY_COMPONENT_TYPE]
+                [#local result = getRegistryState(occurrence)]
+                [#break]
+            
+            [#case REGISTRY_SERVICE_COMPONENT_TYPE]
+                [#local result = getRegistryServiceState(occurrence, parentOccurrence)]
+                [#break]
+
             [#case "s3"]
                 [#local result = getS3State(occurrence)]
                 [#break]

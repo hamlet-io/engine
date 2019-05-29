@@ -13,7 +13,7 @@
 
         [#assign registryId = resources["namespace"].Id ]
         [#assign registryName = resources["namespace"].Name ]
-        [#assign registryDnsDomain = resource["namespace"].DomainName ]
+        [#assign registryDnsDomain = resources["namespace"].DomainName ]
 
         [#-- Network lookup --]
         [#assign networkLink = tier.Network.Link!{} ]
@@ -53,7 +53,7 @@
             [#assign serviceHostName = resources["service"].ServiceName ]
 
             [#if deploymentSubsetRequired(REGISTRY_COMPONENT_TYPE, true) ]
-                [#macro createCloudMapService
+                [@createCloudMapService
                     mode=listMode
                     id=serviceId
                     name=serviceName
@@ -61,7 +61,7 @@
                     hostName=serviceHostName
                     routingPolicy=solution.RoutingPolicy
                     recordTypes=solution.RecordTypes
-                    recordTTL=soltuion.RecordTTL
+                    recordTTL=solution.RecordTTL
                     dependencies=registryId
                 /]
             [/#if]
