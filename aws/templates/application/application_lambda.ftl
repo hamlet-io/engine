@@ -41,8 +41,7 @@
                 [#assign vpc = getExistingReference(vpcId)]
             [/#if]
 
-            [#assign fragment =
-                contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
+            [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
             [#assign contextLinks = getLinkTargets(fn) ]
             [#assign _context =
@@ -233,10 +232,9 @@
                 [#if vpcAccess ]
                     [@createDependentSecurityGroup
                         mode=listMode
-                        tier=tier
-                        component=component
                         resourceId=fnId
                         resourceName=formatName("lambda", fnName)
+                        occurrence=occurrence
                         vpcId=vpcId/]
                 [/#if]
 

@@ -41,10 +41,9 @@
         [#if deploymentSubsetRequired("efs", true) ]
             [@createSecurityGroup
                 mode=listMode
-                tier=tier
-                component=component
                 id=efsSecurityGroupId
                 name=efsSecurityGroupName
+                occurrence=occurrence
                 vpcId=vpcId
             /]
 
@@ -58,10 +57,10 @@
 
             [@createEFS
                 mode=listMode
-                tier=tier
+                tier=core.Tier
                 id=efsId
                 name=efsFullName
-                component=component
+                component=core.Component
                 encrypted=solution.Encrypted
             /]
 
@@ -70,7 +69,7 @@
                 [@createEFSMountTarget
                     mode=listMode
                     id=zoneEfsMountTargetId
-                    subnet=getSubnets(tier, networkResources, zone.Id, true, false)
+                    subnet=getSubnets(core.Tier, networkResources, zone.Id, true, false)
                     efsId=efsId
                     securityGroups=efsSecurityGroupId
                     dependencies=[efsId,efsSecurityGroupId]

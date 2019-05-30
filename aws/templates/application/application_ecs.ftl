@@ -91,10 +91,9 @@
                 [#if deploymentSubsetRequired("ecs", true)]
                     [@createSecurityGroup
                         mode=listMode
-                        tier=tier
-                        component=component
                         id=ecsSecurityGroupId
                         name=ecsSecurityGroupName
+                        occurrence=occurrence
                         vpcId=vpcId /]
                 [/#if]
             [/#if]

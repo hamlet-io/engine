@@ -15,8 +15,7 @@
         [#assign configFilePath = resources["mobileapp"].ConfigFilePath ]
         [#assign configFileName = resources["mobileapp"].ConfigFileName ]
 
-        [#assign fragment =
-                contentIfContent(solution.Fragment, getComponentId(core.Component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign contextLinks = getLinkTargets(occurrence) ]
         [#assign _context =

@@ -12,8 +12,8 @@
 
         [#assign tags = getCfTemplateCoreTags(
                         gwCore.FullName,
-                        tier,
-                        component,
+                        gwCore.Tier,
+                        gwCore.Component,
                         "",
                         true)]
 
@@ -74,12 +74,12 @@
                         [#assign natGatewayName = zoneResources["natGateway"].Name ]
                         [#assign eipId = zoneResources["eip"].Id]
 
-                        [#assign subnetId = (networkResources["subnets"][tier.Id][zone])["subnet"].Id]
+                        [#assign subnetId = (networkResources["subnets"][gwCore.Tier.Id][zone])["subnet"].Id]
 
                         [#assign natGwTags = getCfTemplateCoreTags(
                                                     natGatewayName,
-                                                    tier,
-                                                    component,
+                                                    gwCore.Tier,
+                                                    gwCore.Component,
                                                     "",
                                                     false)]
                         [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
@@ -138,8 +138,7 @@
                             mode=listMode
                             id=securityGroupId
                             name=securityGroupName
-                            tier=tier
-                            component=component
+                            occurrence=occurrence
                             vpcId=vpcId
                             /]
 
@@ -270,7 +269,7 @@
 
                             [#list vpcEndpointResources as resourceId, zoneVpcEndpoint ]
                                 [#assign endpointSubnets = [] ]
-                                [#list networkResources["subnets"][tier.Id] as zone,resources]
+                                [#list networkResources["subnets"][gwCore.Tier.Id] as zone,resources]
                                     [#if zoneVpcEndpoint.EndpointZones?seq_contains(zone )]
                                         [#assign endpointSubnets += [ resources["subnet"].Id ] ]
                                     [/#if]

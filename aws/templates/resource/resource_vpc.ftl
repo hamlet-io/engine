@@ -16,7 +16,7 @@
                         "FromPort": port,
                         "ToPort" : port
                     }
-                ),                    
+                ),
                 {
                     "IpProtocol": ports[port]?has_content?then(
                                         (ports[port].IPProtocol == "all")?then(
@@ -31,7 +31,7 @@
                                                 ports[port].Port
                                         ),
                                         1),
-                    
+
                     "ToPort": ports[port]?has_content?then(
                                         ports[port].PortRange?has_content?then(
                                             ports[port].PortRange.To,
@@ -99,7 +99,7 @@
     [/#list]
 [/#macro]
 
-[#macro createSecurityGroup mode tier component id name vpcId description="" ingressRules=[] ]
+[#macro createSecurityGroup mode id name vpcId tier={} component={} occurrence={} description="" ingressRules=[] ]
     [#local nonemptyIngressRules = [] ]
     [#list asFlattenedArray(ingressRules) as ingressRule]
         [#if ingressRule.CIDR?has_content]
@@ -129,86 +129,89 @@
         id=id
         type="AWS::EC2::SecurityGroup"
         properties=properties
-        tags=getCfTemplateCoreTags(name, tier, component)
+        tags=
+            getCfTemplateCoreTags(
+                name,
+                contentIfContent(tier,occurrence.Core.Tier),
+                contentIfContent(component,occurrence.Core.Component))
     /]
 [/#macro]
 
 [#macro createDependentSecurityGroup
             mode
-            tier
-            component
             resourceId
             resourceName
             vpcId
+            tier={}
+            component={}
+            occurrence={}
             ingressRules=[]]
-    [@createSecurityGroup 
-        mode=mode 
-        tier=tier 
-        component=component
+    [@createSecurityGroup
+        mode=mode
         id=formatDependentSecurityGroupId(resourceId)
         name=resourceName
+        vpcId=vpcId
+        tier=tier
+        component=component
+        occurrence=occurrence
         description="Security Group for " + resourceName
-        ingressRules=ingressRules 
-        vpcId=vpcId/]
+        ingressRules=ingressRules
+        /]
 [/#macro]
 
 [#macro createComponentSecurityGroup
             mode
-            tier
-            component
+            occurrence
+            vpcId=vpcId
             extensions=""
-            ingressRules=[]
-            vpcId=vpcId]
-    [@createSecurityGroup 
-        mode=mode 
-        tier=tier 
-        component=component
+            ingressRules=[] ]
+    [@createSecurityGroup
+        mode=mode
         id=formatComponentSecurityGroupId(
-            tier,
-            component,
+            occurrence.Core.Tier,
+            occurrence.Core.Component,
             extensions)
         name=formatComponentFullName(
-            tier,
-            component,
+            occurrence.Core.Tier,
+            occurrence.Core.Component,
             extensions)
+        vpcId=vpcId
+        occurrence=occurrence
         ingressRules=ingressRules
-        vpcId=vpcId /]
+    /]
 [/#macro]
 
 [#macro createDependentComponentSecurityGroup
             mode
-            tier
-            component
             resourceId
             resourceName
+            occurrence
             extensions=""
-            ingressRules=[]
-            vpcId=vpcId]
+            vpcId=vpcId
+            ingressRules=[] ]
     [#local legacyId = formatComponentSecurityGroupId(
-                        tier,
-                        component,
+                        occurrence.Core.Tier,
+                        occurrence.Core.Component,
                         extensions)]
     [#if getExistingReference(legacyId)?has_content]
-        [@createComponentSecurityGroup 
-            mode=mode 
-            tier=tier 
-            component=component
+        [@createComponentSecurityGroup
+            mode=mode
+            vpcId=vpcId
+            occurrence=occurrence
             extensions=extensions
-            ingressRules=ingressRules
-            vpcId=vpcId /]
+            ingressRules=ingressRules /]
     [#else]
-        [@createDependentSecurityGroup 
-            mode=mode 
-            tier=tier 
-            component=component
+        [@createDependentSecurityGroup
+            mode=mode
             resourceId=resourceId
             resourceName=resourceName
-            ingressRules=ingressRules 
-            vpcId=vpcId/]
+            occurrence=occurrence
+            vpcId=vpcId
+            ingressRules=ingressRules /]
     [/#if]
 [/#macro]
 
-[#macro createFlowLog 
+[#macro createFlowLog
             mode
             id
             roleId
@@ -216,7 +219,7 @@
             resourceId
             resourceType
             trafficType]
-    [@cfResource 
+    [@cfResource
         mode=mode
         id=id
         type="AWS::EC2::FlowLog"
@@ -295,10 +298,10 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        IP_ADDRESS_ATTRIBUTE_TYPE : { 
+        IP_ADDRESS_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ALLOCATION_ATTRIBUTE_TYPE : { 
+        ALLOCATION_ATTRIBUTE_TYPE : {
             "Attribute" : "AllocationId"
         }
     }
@@ -370,7 +373,7 @@
             routeTableId,
             route
             dependencies=""]
-            
+
     [#local properties =
         {
             "RouteTableId" : getReference(routeTableId),
@@ -393,7 +396,7 @@
                 }
             ]
             [#break]
-        
+
         [#case "nat"]
             [#local properties +=
                 {
@@ -401,7 +404,7 @@
                 }
             ]
             [#break]
-        
+
     [/#switch]
     [@cfResource
         mode=mode
@@ -438,7 +441,7 @@
             outbound,
             rule,
             port]
-    
+
     [#local protocol = port.IPProtocol]
 
     [#local fromPort = (port.PortRange.From)?has_content?then(
@@ -505,7 +508,7 @@
         id=id
         type="AWS::EC2::NetworkAclEntry"
         properties=
-            properties + 
+            properties +
             {
                 "NetworkAclId" : getReference(networkACLId),
                 "Egress" : outbound,
@@ -535,7 +538,7 @@
                 }
             ],
             []
-        ) 
+        )
     ]
     [@cfResource
         mode=mode
@@ -558,7 +561,7 @@
             id,
             subnetId,
             routeTableId]
-            
+
     [@cfResource
         mode=mode
         id=id
@@ -577,7 +580,7 @@
             id,
             subnetId,
             networkACLId]
-            
+
     [@cfResource
         mode=mode
         id=id
@@ -630,7 +633,7 @@
                 },
                 {}
             )
-            
+
         outputs={}
     /]
 [/#macro]

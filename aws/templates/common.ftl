@@ -1320,6 +1320,10 @@ behaviour.
     [#return getTierNetwork(occurrence.Tier.Id)]
 [/#function]
 
+[#function getOccurrenceFragmentBase occurrence]
+    [#return contentIfContent(occurrence.Solution.Fragment, occurrence.Core.Component.Id)]
+[/#function]
+
 [#function getAsFileSettings settings ]
     [#local result = [] ]
     [#list settings as key,value]
@@ -1906,10 +1910,10 @@ behaviour.
     [#return {}]
 [/#function]
 
-[#function getLogFileProfile tier component type extensions... ]
+[#function getLogFileProfile occurrence type extensions... ]
     [#local tc = formatComponentShortName(
-                    tier,
-                    component,
+                    occurrence.Tier,
+                    occurrence.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].LogFileProfile)??]
@@ -1923,10 +1927,10 @@ behaviour.
     [/#if]
 [/#function]
 
-[#function getBootstrapProfile tier component type extensions... ]
+[#function getBootstrapProfile occurrence type extensions... ]
     [#local tc = formatComponentShortName(
-                    tier,
-                    component,
+                    occurrence.Tier,
+                    occurrence.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].BootstrapProfile)??]
@@ -2021,10 +2025,10 @@ behaviour.
 [/#function]
 
 [#-- Get storage settings --]
-[#function getStorage tier component type extensions...]
+[#function getStorage occurrence type extensions...]
     [#local tc = formatComponentShortName(
-                    tier,
-                    component,
+                    occurrence.Tier,
+                    occurrence.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].Storage)??]

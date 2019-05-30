@@ -405,8 +405,7 @@
                             mode=listMode
                             id=securityGroupId
                             name=securityGroupName
-                            tier=tier
-                            component=component
+                            occurrence=occurrence
                             ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidrs} ]
                             vpcId=vpcId/]
 
@@ -482,8 +481,8 @@
                                 mode=listMode
                                 id=defaultTargetGroupId
                                 name=defaultTargetGroupName
-                                tier=tier
-                                component=component
+                                tier=core.Tier
+                                component=core.Component
                                 destination=destinationPort
                                 attributes=tgAttributes
                                 targetType=solution.Forward.TargetType
@@ -500,8 +499,8 @@
                             mode=listMode
                             id=targetGroupId
                             name=targetGroupName
-                            tier=tier
-                            component=component
+                            tier=core.Tier
+                            component=core.Component
                             destination=destinationPort
                             attributes=tgAttributes
                             targetType=solution.Forward.TargetType
@@ -621,8 +620,8 @@
                         id=lbId
                         name=lbName
                         shortName=lbShortName
-                        tier=tier
-                        component=component
+                        tier=core.Tier
+                        component=core.Component
                         securityGroups=lbSecurityGroupIds
                         networkResources=networkResources
                         publicEndpoint=publicRouteTable
@@ -650,8 +649,8 @@
                         id=lbId
                         name=lbName
                         shortName=lbShortName
-                        tier=tier
-                        component=component
+                        tier=core.Tier
+                        component=core.Component
                         listeners=classicListeners
                         healthCheck=healthCheck
                         securityGroups=lbSecurityGroupIds

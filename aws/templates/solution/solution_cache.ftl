@@ -96,10 +96,9 @@
 
             [@createDependentSecurityGroup
                 mode=listMode
-                tier=tier
-                component=component
                 resourceId=cacheId
                 resourceName=cacheFullName
+                occurrence=occurrence
                 vpcId=vpcId
             /]
 
@@ -118,7 +117,7 @@
                 properties=
                     {
                         "Description" : cacheFullName,
-                        "SubnetIds" : getSubnets(tier, networkResources)
+                        "SubnetIds" : getSubnets(core.Tier, networkResources)
                     }
                 outputs={}
             /]
@@ -205,8 +204,8 @@
                     tags=
                         getCfTemplateCoreTags(
                             cacheFullName,
-                            tier,
-                            component)
+                            core.Tier,
+                            core.Component)
                     outputs=engine?switch(
                         "memcached", MEMCACHED_OUTPUT_MAPPINGS,
                         "redis", REDIS_OUTPUT_MAPPINGS,

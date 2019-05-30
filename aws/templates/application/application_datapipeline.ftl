@@ -48,7 +48,7 @@
                 "_AWS_REGION" : regionId,
                 "_AVAILABILITY_ZONE" : zones[0].AWSZone,
                 "_VPC_ID" : getExistingReference(vpcId),
-                "_SUBNET_ID" : getSubnets(tier, networkResources)[0],
+                "_SUBNET_ID" : getSubnets(core.Tier, networkResources)[0],
                 "_SSH_KEY_PAIR" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                 "_INSTANCE_TYPE_EC2" : ec2ProcessorProfile.Processor,
                 "_INSTANCE_IMAGE_EC2" : regionObject.AMIs.Centos.EC2,
@@ -69,8 +69,7 @@
                 "_ROLE_RESOURCE_NAME" : resourceRoleName
         }]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#-- Add in container specifics including override of defaults --]
         [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
@@ -193,8 +192,7 @@
                 mode=listMode
                 id=securityGroupId
                 name=securityGroupName
-                tier=tier
-                component=component
+                occurrence=occurrence
                 vpcId=vpcId
             /]
 
@@ -213,8 +211,8 @@
 
             [#assign coreTags = getCfTemplateCoreTags(
                         pipelineName,
-                        tier,
-                        component,
+                        core.Tier,
+                        core.Component,
                         "",
                         false,
                         false,

@@ -77,7 +77,7 @@
         [#assign rdsParameterGroupId = resources["parameterGroup"].Id ]
         [#assign rdsOptionGroupId = resources["optionGroup"].Id ]
 
-        [#assign rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(tier, component, rdsId) ]
+        [#assign rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(core.Tier, core.Component, rdsId) ]
         [#assign rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                                 rdsSecurityGroupId,
                                                 port)]
@@ -141,8 +141,8 @@
 
         [#assign rdsTags = getCfTemplateCoreTags(
                                         rdsFullName,
-                                        tier,
-                                        component)]
+                                        core.Tier,
+                                        core.Component)]
 
         [#assign restoreSnapshotName = "" ]
 
@@ -252,8 +252,8 @@
 
             [@createDependentComponentSecurityGroup
                 mode=listMode
-                tier=tier
-                component=component
+                tier=core.Tier
+                component=core.Component
                 resourceId=rdsId
                 resourceName=rdsFullName
                 vpcId=vpcId
@@ -274,7 +274,7 @@
                 properties=
                     {
                         "DBSubnetGroupDescription" : rdsFullName,
-                        "SubnetIds" : getSubnets(tier, networkResources)
+                        "SubnetIds" : getSubnets(core.Tier, networkResources)
                     }
                 tags=rdsTags
                 outputs={}
@@ -293,8 +293,8 @@
                 tags=
                     getCfTemplateCoreTags(
                         rdsFullName,
-                        tier,
-                        component)
+                        core.Tier,
+                        core.Component)
                 outputs={}
             /]
 
@@ -314,8 +314,8 @@
                 tags=
                     getCfTemplateCoreTags(
                         rdsFullName,
-                        tier,
-                        component)
+                        core.Tier,
+                        core.Component)
                 outputs={}
             /]
 

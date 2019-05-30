@@ -24,10 +24,10 @@
         [#assign computeClusterLogGroupId           = resources["lg"].Id]
         [#assign computeClusterLogGroupName         = resources["lg"].Name]
 
-        [#assign logFileProfile = getLogFileProfile(tier, component, "ComputeCluster")]
-        [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ComputeCluster")]
-        [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
         [#assign processorProfile = getProcessor(occurrence, "ComputeCluster")]
+        [#assign storageProfile   = getStorage(occurrence, "ComputeCluster")]
+        [#assign logFileProfile   = getLogFileProfile(occurrence, "ComputeCluster")]
+        [#assign bootstrapProfile = getBootstrapProfile(occurrence, "ComputeCluster")]
 
         [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
         [#assign networkLink = occurrenceNetwork.Link!{} ]
@@ -51,8 +51,8 @@
         [#assign computeAutoScaleGroupTags =
                 getCfTemplateCoreTags(
                         computeClusterAutoScaleGroupName,
-                        tier,
-                        component,
+                        core.Tier,
+                        core.Component,
                         "",
                         true)]
 
@@ -109,8 +109,7 @@
             )
         ]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign contextLinks = getLinkTargets(occurrence, links) ]
         [#assign _context =
@@ -300,8 +299,7 @@
 
             [@createSecurityGroup
                 mode=listMode
-                tier=tier
-                component=component
+                occurrence=occurrence
                 id=computeClusterSecurityGroupId
                 name=computeClusterSecurityGroupName
                 vpcId=vpcId /]
@@ -337,7 +335,7 @@
             [@createEc2AutoScaleGroup
                 mode=listMode
                 id=computeClusterAutoScaleGroupId
-                tier=tier
+                tier=core.Tier
                 configSetName=configSetName
                 configSets=configSets
                 launchConfigId=computeClusterLaunchConfigId

@@ -31,8 +31,7 @@
         [#assign runIdAttributeName = "runId" ]
         [#assign runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
 
-        [#assign fragment =
-                contentIfContent(parentSolution.Fragment, getComponentId(parentCore.Component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign _parentContext =
             {
@@ -93,7 +92,7 @@
                     "DefaultCoreVariables" : false,
                     "DefaultEnvironmentVariables" : false,
                     "DefaultLinkVariables" : true,
-                    "Branch" : formatName(itemPrimaryKey + itemSecondaryKey) 
+                    "Branch" : formatName(itemPrimaryKey + itemSecondaryKey)
                 }
             ]
 

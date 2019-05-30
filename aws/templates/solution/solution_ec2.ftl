@@ -24,9 +24,9 @@
         [#assign ec2LogGroupName        = resources["lg"].Name]
 
         [#assign processorProfile       = getProcessor(occurrence, "EC2")]
-        [#assign storageProfile         = getStorage(tier, component, "EC2")]
-        [#assign logFileProfile         = getLogFileProfile(tier, component, "EC2")]
-        [#assign bootstrapProfile       = getBootstrapProfile(tier, component, "EC2")]
+        [#assign storageProfile         = getStorage(occurrence, "EC2")]
+        [#assign logFileProfile         = getLogFileProfile(occurrence, "EC2")]
+        [#assign bootstrapProfile       = getBootstrapProfile(occurrence, "EC2")]
 
         [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
         [#assign networkLink = occurrenceNetwork.Link!{} ]
@@ -87,8 +87,7 @@
             [/#if]
         [/#list]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign contextLinks = getLinkTargets(occurrence, links) ]
         [#assign _context =
@@ -300,8 +299,7 @@
                 mode=listMode
                 id=ec2SecurityGroupId
                 name=ec2SecurityGroupName
-                tier=tier
-                component=component
+                occurrence=occurrence
                 ingressRules=ingressRules
                 vpcId=vpcId /]
 
@@ -403,9 +401,9 @@
                             )
                         tags=
                             getCfTemplateCoreTags(
-                                formatComponentFullName(tier, component, zone),
-                                tier,
-                                component,
+                                formatComponentFullName(core.Tier, core.Component, zone),
+                                core.Tier,
+                                core.Component,
                                 zone)
                         outputs={}
                         dependencies=[zoneEc2ENIId] +
@@ -422,7 +420,7 @@
                         properties=
                             {
                                 "Description" : "eth0",
-                                "SubnetId" : getSubnets(tier, networkResources, zone.Id)[0],
+                                "SubnetId" : getSubnets(core.Tier, networkResources, zone.Id)[0],
                                 "SourceDestCheck" : true,
                                 "GroupSet" :
                                     [getReference(ec2SecurityGroupId)] +
@@ -433,9 +431,9 @@
                             }
                         tags=
                             getCfTemplateCoreTags(
-                                formatComponentFullName(tier, component, zone, "eth0"),
-                                tier,
-                                component,
+                                formatComponentFullName(core.Tier, core.Component, zone, "eth0"),
+                                core.Tier,
+                                core.Component,
                                 zone)
                         outputs={}
                     /]

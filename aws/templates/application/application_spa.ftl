@@ -13,8 +13,7 @@
         [#assign settings = occurrence.Configuration.Settings ]
         [#assign resources = occurrence.State.Resources]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign contextLinks = getLinkTargets(occurrence) ]
         [#assign _context =

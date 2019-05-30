@@ -5,7 +5,7 @@
     [#list requiredOccurrences(
         getOccurrences(tier, component),
         deploymentUnit) as occurrence]
-        
+
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core]
@@ -29,7 +29,7 @@
 
         [#assign esPolicyStatements = [] ]
 
-        [#assign storageProfile = getStorage(tier, component, "ElasticSearch")]
+        [#assign storageProfile = getStorage(occurrence, "ElasticSearch")]
         [#assign volume = (storageProfile.Volumes["codeontap"])!{}]
         [#assign esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
 
@@ -107,10 +107,10 @@
                             "AWS" : "*"
                         },
                         {
-                            "NotIpAddress" : { 
+                            "NotIpAddress" : {
                                 "aws:SourceIp": esCIDRs
                             }
-                        }, 
+                        },
                         false
                     )
                 ]
@@ -118,7 +118,7 @@
         [/#if]
 
         [#if esAuthentication == "SIG4ORIP" && esCIDRs?has_content ]
-            [#assign AccessPolicyStatements += 
+            [#assign AccessPolicyStatements +=
                 [
                     getPolicyStatement(
                         "es:ESHttp*",
@@ -157,7 +157,7 @@
         [/#if]
 
         [#if esAuthentication == "IP" ]
-            [#assign AccessPolicyStatements += 
+            [#assign AccessPolicyStatements +=
                 [
                     getPolicyStatement(
                         "es:ESHttp*",
@@ -196,7 +196,7 @@
                     [#case USERPOOL_COMPONENT_TYPE]
                         [#assign cognitoIntegration = true ]
 
-                        [#assign cognitoCliConfig = 
+                        [#assign cognitoCliConfig =
                             {
                                 "CognitoOptions" : {
                                     "Enabled" : true,
@@ -205,12 +205,12 @@
                                     "RoleArn" : getExistingReference(esServiceRoleId, ARN_ATTRIBUTE_TYPE)
                                 }
                             }]
-                        
+
                             [#assign policyId = formatDependentPolicyId(
                                                     esId,
                                                     link.Name)]
 
-                            
+
                             [#if deploymentSubsetRequired("es", true)]
                                 [#if linkTargetCore.External!false ]
                                     [@cfResource
@@ -223,7 +223,7 @@
                                                 "Roles" : [ linkTargetAttributes.USERPOOL_USERROLE_ARN ]
                                             }
                                     /]
-                                [#else] 
+                                [#else]
                                     [@createPolicy
                                         mode=listMode
                                         id=policyId
@@ -319,7 +319,7 @@
                                     "DedicatedMasterEnabled" : false
                                 }
                             )
-                    } + 
+                    } +
                     attributeIfContent("AdvancedOptions", esAdvancedOptions) +
                     attributeIfContent("SnapshotOptions", solution.Snapshot.Hour, solution.Snapshot.Hour) +
                     attributeIfContent(
@@ -342,7 +342,7 @@
                             "Enabled" : true,
                             "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
                         }
-                    ) + 
+                    ) +
                     attributeIfContent(
                         "AccessPolicies",
                         AccessPolicyStatements,
@@ -351,15 +351,15 @@
                 tags=
                     getCfTemplateCoreTags(
                         "",
-                        tier,
-                        component)
+                        core.Tier,
+                        core.Component)
                 outputs=ES_OUTPUT_MAPPINGS
             /]
         [/#if]
 
         [#if deploymentSubsetRequired("cli", false)]
 
-            [#assign esCliConfig = 
+            [#assign esCliConfig =
                 valueIfContent(
                     cognitoCliConfig,
                     cognitoCliConfig,
@@ -367,10 +367,10 @@
                         "CognitoOptions" : {
                             "Enabled" : false
                         }
-                    }       
+                    }
                 )]
 
-            [@cfCli 
+            [@cfCli
                 mode=listMode
                 id=esId
                 command=esUpdateCommand
@@ -387,13 +387,13 @@
                             "case $\{STACK_OPERATION} in",
                             "  create|update)",
                             "       # Get cli config file",
-                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?", 
+                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
                             "       # Apply CLI level updates to ES Domain",
                             "       info \"Applying cli level configurtion\""
                             "       update_es_domain" +
-                            "       \"" + region + "\" " + 
-                            "       \"" + getExistingReference(esId) + "\" " + 
-                            "       \"$\{tmpdir}/cli-" + 
+                            "       \"" + region + "\" " +
+                            "       \"" + getExistingReference(esId) + "\" " +
+                            "       \"$\{tmpdir}/cli-" +
                             esId + "-" + esUpdateCommand + ".json\" || return $?"
                             "   ;;",
                             "   esac"
