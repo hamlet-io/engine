@@ -400,10 +400,9 @@
                                 { "ImageId" : regionObject.AMIs.Centos.EC2}
                             )
                         tags=
-                            getCfTemplateCoreTags(
+                            getOccurrenceCoreTags(
+                                occurrence,
                                 formatComponentFullName(core.Tier, core.Component, zone),
-                                core.Tier,
-                                core.Component,
                                 zone)
                         outputs={}
                         dependencies=[zoneEc2ENIId] +
@@ -430,10 +429,9 @@
                                     )
                             }
                         tags=
-                            getCfTemplateCoreTags(
+                            getOccurrenceCoreTags(
+                                occurrence,
                                 formatComponentFullName(core.Tier, core.Component, zone, "eth0"),
-                                core.Tier,
-                                core.Component,
                                 zone)
                         outputs={}
                     /]

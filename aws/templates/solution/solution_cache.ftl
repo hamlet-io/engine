@@ -201,11 +201,7 @@
                             }
                         ) +
                         attributeIfContent("SnapshotRetentionLimit", solution.Backup.RetentionPeriod)
-                    tags=
-                        getCfTemplateCoreTags(
-                            cacheFullName,
-                            core.Tier,
-                            core.Component)
+                    tags=getOccurrenceCoreTags(occurrence, cacheFullName)
                     outputs=engine?switch(
                         "memcached", MEMCACHED_OUTPUT_MAPPINGS,
                         "redis", REDIS_OUTPUT_MAPPINGS,

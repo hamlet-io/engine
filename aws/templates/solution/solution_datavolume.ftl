@@ -32,10 +32,9 @@
             [#assign volumeId = zoneResources["ebsVolume"].Id ]
             [#assign volumeName = zoneResources["ebsVolume"].Name ]
 
-            [#assign volumeTags = getCfTemplateCoreTags(
+            [#assign volumeTags = getOccurrenceCoreTags(
+                                        occurrence,
                                         volumeName,
-                                        core.Tier,
-                                        core.Component,
                                         "",
                                         false)]
 
@@ -112,10 +111,9 @@
         [/#list]
 
         [#if deploymentSubsetRequired(DATAVOLUME_COMPONENT_TYPE, true)]
-            [#assign maintenanceWindowTags = getCfTemplateCoreTags(
+            [#assign maintenanceWindowTags = getOccurrenceCoreTags(
+                                                occurrence,
                                                 maintenanceWindowName,
-                                                core.Tier,
-                                                core.Component,
                                                 "",
                                                 false)]
             [@createSSMMaintenanceWindow

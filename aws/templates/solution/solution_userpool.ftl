@@ -519,10 +519,7 @@
                 tier=core.Tier
                 id=userPoolId
                 name=userPoolName
-                tags=getCfTemplateCoreTags(
-                        userPoolName,
-                        core.Tier,
-                        core.Component)
+                tags=getOccurrenceCoreTags(occurrence, userPoolName)
                 mfa=solution.MFA
                 adminCreatesUser=solution.AdminCreatesUser
                 unusedTimeout=solution.UnusedAccountTimeout
@@ -651,10 +648,9 @@
                         solution.PasswordPolicy.Numbers,
                         solution.PasswordPolicy.SpecialCharacters),
                 "MfaConfiguration": solution.MFA?then("ON","OFF"),
-                "UserPoolTags": getCfTemplateCoreTags(
+                "UserPoolTags": getOccurrenceCoreTags(
+                                    occurrence,
                                     userPoolName,
-                                    core.Tier,
-                                    core.Component,
                                     ""
                                     false,
                                     true),

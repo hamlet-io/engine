@@ -226,10 +226,9 @@
                 /]
 
                 [#assign asgTags =
-                    getCfTemplateCoreTags(
+                    getOccurrenceCoreTags(
+                        occurrence,
                         bastionAutoScaleGroupName
-                        core.Tier,
-                        core.Component,
                         "",
                         true)]
 

@@ -1324,6 +1324,9 @@ behaviour.
     [#return contentIfContent(occurrence.Solution.Fragment, occurrence.Core.Component.Id)]
 [/#function]
 
+[#function getOccurrenceCoreTags occurrence={} name="" zone="" propagate=false flatten=false maxTagCount=-1]
+    [#return getCfTemplateCoreTags(name, (occurrence.Core.Tier)!"", (occurrence.Core.Component)!"", zone, propagate, flatten, maxTagCount)]
+[/#function]
 [#function getAsFileSettings settings ]
     [#local result = [] ]
     [#list settings as key,value]

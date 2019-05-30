@@ -10,13 +10,7 @@
         [#assign gwSolution = occurrence.Configuration.Solution ]
         [#assign gwResources = occurrence.State.Resources ]
 
-        [#assign tags = getCfTemplateCoreTags(
-                        gwCore.FullName,
-                        gwCore.Tier,
-                        gwCore.Component,
-                        "",
-                        true)]
-
+        [#assign tags = getOccurrenceCoreTags(occurrence, gwCore.FullName, "", true)]
 
         [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
         [#assign networkLink = occurrenceNetwork.Link!{} ]
@@ -76,10 +70,9 @@
 
                         [#assign subnetId = (networkResources["subnets"][gwCore.Tier.Id][zone])["subnet"].Id]
 
-                        [#assign natGwTags = getCfTemplateCoreTags(
+                        [#assign natGwTags = getOccurrenceCoreTags(
+                                                    occurrence,
                                                     natGatewayName,
-                                                    gwCore.Tier,
-                                                    gwCore.Component,
                                                     "",
                                                     false)]
                         [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]

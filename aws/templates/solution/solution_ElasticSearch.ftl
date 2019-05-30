@@ -348,11 +348,7 @@
                         AccessPolicyStatements,
                         getPolicyDocumentContent(AccessPolicyStatements)
                     )
-                tags=
-                    getCfTemplateCoreTags(
-                        "",
-                        core.Tier,
-                        core.Component)
+                tags=getOccurrenceCoreTags(occurrence, "")
                 outputs=ES_OUTPUT_MAPPINGS
             /]
         [/#if]

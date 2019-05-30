@@ -209,10 +209,9 @@
 
         [#if deploymentSubsetRequired("cli", false)]
 
-            [#assign coreTags = getCfTemplateCoreTags(
+            [#assign coreTags = getOccurrenceCoreTags(
+                        occurrence,
                         pipelineName,
-                        core.Tier,
-                        core.Component,
                         "",
                         false,
                         false,

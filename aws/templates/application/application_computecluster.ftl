@@ -49,10 +49,9 @@
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
         [#assign computeAutoScaleGroupTags =
-                getCfTemplateCoreTags(
+                getOccurrenceCoreTags(
+                        occurrence,
                         computeClusterAutoScaleGroupName,
-                        core.Tier,
-                        core.Component,
                         "",
                         true)]
 

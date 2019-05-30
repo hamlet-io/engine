@@ -139,10 +139,7 @@
                                             runId,
                                             "pre-deploy")]
 
-        [#assign rdsTags = getCfTemplateCoreTags(
-                                        rdsFullName,
-                                        core.Tier,
-                                        core.Component)]
+        [#assign rdsTags = getOccurrenceCoreTags(occurrence, rdsFullName)]
 
         [#assign restoreSnapshotName = "" ]
 
@@ -290,11 +287,7 @@
                         "Description" : rdsFullName,
                         "Parameters" : dbParameters
                     }
-                tags=
-                    getCfTemplateCoreTags(
-                        rdsFullName,
-                        core.Tier,
-                        core.Component)
+                tags=getOccurrenceCoreTags(occurrence, rdsFullName)
                 outputs={}
             /]
 
@@ -311,11 +304,7 @@
                         "OptionConfigurations" : [
                         ]
                     }
-                tags=
-                    getCfTemplateCoreTags(
-                        rdsFullName,
-                        core.Tier,
-                        core.Component)
+                tags=getOccurrenceCoreTags(occurrence, rdsFullName)
                 outputs={}
             /]
 

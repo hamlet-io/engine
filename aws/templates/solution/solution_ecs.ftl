@@ -54,12 +54,7 @@
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
-        [#assign ecsTags = getCfTemplateCoreTags(
-                        ecsName,
-                        core.Tier,
-                        core.Component,
-                        "",
-                        true)]
+        [#assign ecsTags = getOccurrenceCoreTags(occurrence, ecsName, "", true)]
 
         [#assign environmentVariables = {}]
 
