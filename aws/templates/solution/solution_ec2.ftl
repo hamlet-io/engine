@@ -55,7 +55,7 @@
         [#assign configSetName = componentType ]
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(component.Role!"") +
+                getInitConfigBootstrap(occurrence, component.Role!"") +
                 getInitConfigPuppet() ]
 
         [#assign efsMountPoints = {}]

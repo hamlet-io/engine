@@ -61,7 +61,7 @@
         [#assign configSetName = componentType ]
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(component.Role!"") +
+                getInitConfigBootstrap(occurrence, component.Role!"") +
                 getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers, solution.VolumeDrivers ) ]
 
         [#assign efsMountPoints = {}]

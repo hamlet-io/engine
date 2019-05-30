@@ -600,12 +600,9 @@
 
 [#macro includeCompositeLists compositeLists=[] ]
     [#list tiers as tier]
-        [#assign tierId = tier.Id]
-        [#assign tierName = tier.Name]
         [#list (tier.Components!{})?values as component]
             [#if deploymentRequired(component, deploymentUnit)]
                 [#assign componentTemplates = {} ]
-                [#assign componentId = getComponentId(component)]
                 [#assign componentType = getComponentType(component)]
                 [#assign dashboardRows = []]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
