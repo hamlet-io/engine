@@ -1317,11 +1317,11 @@ behaviour.
 [/#function]
 
 [#function getOccurrenceNetwork occurrence]
-    [#return getTierNetwork(occurrence.Tier.Id)]
+    [#return getTierNetwork(occurrence.Core.Tier.Id)]
 [/#function]
 
 [#function getOccurrenceFragmentBase occurrence]
-    [#return contentIfContent(occurrence.Solution.Fragment, occurrence.Core.Component.Id)]
+    [#return contentIfContent((occurrence.Configuration.Solution.Fragment)!"", occurrence.Core.Component.Id)]
 [/#function]
 
 [#function getOccurrenceCoreTags occurrence={} name="" zone="" propagate=false flatten=false maxTagCount=-1]
@@ -1915,8 +1915,8 @@ behaviour.
 
 [#function getLogFileProfile occurrence type extensions... ]
     [#local tc = formatComponentShortName(
-                    occurrence.Tier,
-                    occurrence.Component,
+                    occurrence.Core.Tier,
+                    occurrence.Core.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].LogFileProfile)??]
@@ -1932,8 +1932,8 @@ behaviour.
 
 [#function getBootstrapProfile occurrence type extensions... ]
     [#local tc = formatComponentShortName(
-                    occurrence.Tier,
-                    occurrence.Component,
+                    occurrence.Core.Tier,
+                    occurrence.Core.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].BootstrapProfile)??]
@@ -2030,8 +2030,8 @@ behaviour.
 [#-- Get storage settings --]
 [#function getStorage occurrence type extensions...]
     [#local tc = formatComponentShortName(
-                    occurrence.Tier,
-                    occurrence.Component,
+                    occurrence.Core.Tier,
+                    occurrence.Core.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].Storage)??]
