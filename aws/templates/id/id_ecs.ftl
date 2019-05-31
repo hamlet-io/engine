@@ -77,10 +77,14 @@
                     "Names" : "DynamicHostPort",
                     "Type" : BOOLEAN_TYPE,
                     "Default" : false
-                }
+                },
                 {
                     "Names" : "LB",
                     "Children" : lbChildConfiguration
+                },
+                {
+                    "Names" : "Registry",
+                    "Children" : srvRegChildConfiguration
                 },
                 {
                     "Names" : "IPAddressGroups",

@@ -77,6 +77,11 @@
                     "Names" : "Alerts",
                     "Subobjects" : true,
                     "Children" : alertChildrenConfiguration
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
                 }
             ],
             "Components" : [

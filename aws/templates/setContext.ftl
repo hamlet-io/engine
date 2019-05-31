@@ -88,7 +88,11 @@
         {
             "Names" : [ "DataFeed" ],
             "Type" : STRING_TYPE
-        }
+        },
+        {
+            "Names" : [ "RegistryService" ],
+            "Type" : STRING_TYPE
+        },
         {
             "Names" : "Instance",
             "Type" : STRING_TYPE
@@ -139,8 +143,7 @@
     ]
 ]
 
-[#assign
-    logMetricChildrenConfiguration = [
+[#assign logMetricChildrenConfiguration = [
         {
             "Names" : "LogFilter",
             "Type" : STRING_TYPE,
@@ -149,8 +152,7 @@
     ]
 ]
 
-[#assign
-    alertChildrenConfiguration = [
+[#assign alertChildrenConfiguration = [
         "Description",
         {
             "Names" : "Name",
@@ -260,6 +262,37 @@
     ]
 ]
 
+[#assign srvRegChildConfiguration = [
+        {
+            "Names" : "Tier",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "Component",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "LinkName",
+            "Type" : STRING_TYPE,
+            "Default" : "srvreg"
+        },
+        {
+            "Names" : "Instance",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Version",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "RegistryService",
+            "Type" : STRING_TYPE
+        }
+    ]
+]
+
 [#assign wafChildConfiguration = [
         {
             "Names" : "IPAddressGroups",
@@ -349,23 +382,35 @@
     }
 ]]
 
-[#assign certificateChildConfiguration = [
+[#assign domainNameChildConfiguration = [
     {
         "Names" : "Qualifiers",
         "Type" : OBJECT_TYPE
     },
     {
-        "Names" : "External",
-        "Type" : BOOLEAN_TYPE
-    },
-    {
-        "Names" : "Wildcard",
-        "Type" : BOOLEAN_TYPE
-    },
-    {
         "Names" : "Domain",
         "Type" : STRING_TYPE
     },
+    {
+        "Names" : "IncludeInDomain",
+        "Children" : [
+            {
+                "Names" : "Product",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Environment",
+                "Type" : BOOLEAN_TYPE
+            },
+            {
+                "Names" : "Segment",
+                "Type" : BOOLEAN_TYPE
+            }
+        ]
+    }
+]]
+
+[#assign hostNameChildConfiguration = [
     {
         "Names" : "Host",
         "Type" : STRING_TYPE,
@@ -411,25 +456,27 @@
                 "Type" : BOOLEAN_TYPE
             }
         ]
-    },
-    {
-        "Names" : "IncludeInDomain",
-        "Children" : [
-            {
-                "Names" : "Product",
-                "Type" : BOOLEAN_TYPE
-            },
-            {
-                "Names" : "Environment",
-                "Type" : BOOLEAN_TYPE
-            },
-            {
-                "Names" : "Segment",
-                "Type" : BOOLEAN_TYPE
-            }
-        ]
     }
 ]]
+
+[#assign certificateChildConfiguration = 
+    domainNameChildConfiguration + 
+    hostNameChildConfiguration + 
+    [
+        {
+            "Names" : "Qualifiers",
+            "Type" : OBJECT_TYPE
+        },
+        {
+            "Names" : "External",
+            "Type" : BOOLEAN_TYPE
+        },
+        {
+            "Names" : "Wildcard",
+            "Type" : BOOLEAN_TYPE
+        }
+    ]
+] 
 
 [#assign pathChildConfiguration = [
     {

@@ -547,6 +547,34 @@
 
             [/#if]
 
+            [#if port.Registry.Configured]
+                [#local RegistryLink = getRegistryLink(task, port)]
+
+                [#if isDuplicateLink(containerLinks, RegistryLink) ]
+                    [@cfException
+                        mode=listMode
+                        description="Duplicate Link Name"
+                        context=containerLinks
+                        detail=RegistryLink /]
+                    [#continue]
+                [/#if]
+
+                [#-- Add to normal container links --]
+                [#local containerLinks += RegistryLink]
+
+                [#list RegistryLink as key,serviceRegistry]
+                    [#local containerPortMapping +=
+                        {
+                            "ServiceRegistry" :
+                                {
+                                    "Link" : serviceRegistry.Name
+                                }
+                        }
+                    ]
+
+                [/#list]
+            [/#if]
+
             [#if port.IPAddressGroups?has_content]
                 [#if solution.NetworkMode == "awsvpc" || !port.LB.Configured ]
                     [#list getGroupCIDRs(port.IPAddressGroups, true, task ) as cidr]

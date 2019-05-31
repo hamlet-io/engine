@@ -908,6 +908,14 @@ behaviour.
                 [#local result = getRDSState(occurrence)]
                 [#break]
 
+            [#case SERVICE_REGISTRY_COMPONENT_TYPE]
+                [#local result = getServiceRegistryState(occurrence)]
+                [#break]
+            
+            [#case SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE]
+                [#local result = getServiceRegistryServiceState(occurrence, parentOccurrence)]
+                [#break]
+
             [#case "s3"]
                 [#local result = getS3State(occurrence)]
                 [#break]
@@ -2279,6 +2287,38 @@ behaviour.
         attributeIfTrue("Instance", port.LB.Instance??, port.LB.Instance!"") +
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
         attributeIfContent("PortMapping",  portMapping)
+    ]
+    [@cfDebug listMode { targetLinkName : targetLink } false /]
+
+    [#return { targetLinkName : targetLink } ]
+[/#function]
+
+[#function getRegistryLink occurrence port ]
+
+    [#assign core = occurrence.Core]
+    [#assign targetTierId = (port.Registry.Tier) ]
+    [#assign targetComponentId = (port.Registry.Component) ]
+    [#assign targetLinkName = formatName(port.Registry.LinkName) ]
+    [#assign registryService = contentIfContent(port.Registry.RegistryService, port.Name)]
+
+    [#-- Need to be careful to allow an empty value for --]
+    [#-- Instance/Version to be explicitly provided and --]
+    [#-- correctly handled in getLinkTarget.            --]
+    [#--                                                --]
+    [#-- Also note that the LinkName configuration      --]
+    [#-- must be provided if more than one port is used --]
+    [#-- to avoid links overwriting                     --]
+    [#-- each other.                                    --]
+    [#local targetLink =
+        {
+            "Id" : targetLinkName,
+            "Name" : targetLinkName,
+            "Tier" : targetTierId,
+            "Component" : targetComponentId
+        } +
+        attributeIfTrue("Instance", port.Registry.Instance??, port.Registry.Instance!"") +
+        attributeIfTrue("Version",  port.Registry.Version??, port.Registry.Version!"") +
+        attributeIfContent("RegistryService",  registryService)
     ]
     [@cfDebug listMode { targetLinkName : targetLink } false /]
 

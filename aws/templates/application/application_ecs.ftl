@@ -106,6 +106,7 @@
                 [#if deploymentSubsetRequired("ecs", true)]
 
                     [#assign loadBalancers = [] ]
+                    [#assign serviceRegistries = []]
                     [#assign dependencies = [] ]
                     [#list containers as container]
 
@@ -241,6 +242,49 @@
                                     /]
                                 [/#list]
                             [/#if]
+
+                            [#if portMapping.ServiceRegistry?has_content]
+                                [#assign serviceRegistry = portMapping.ServiceRegistry]
+                                [#assign link = container.Links[serviceRegistry.Link] ]
+                                [@cfDebug listMode link false /]
+                                [#assign linkCore = link.Core ]
+                                [#assign linkResources = link.State.Resources ]
+                                [#assign linkConfiguration = link.Configuration.Solution ]
+                                [#assign linkAttributes = link.State.Attributes ]
+
+                                [#switch linkCore.Type]
+
+                                    [#case SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE]
+
+                                        [#assign serviceRecordTypes = linkAttributes["RECORD_TYPES"]?split(",") ]
+
+                                        [#assign portAttributes = {}]
+                                        [#if serviceRecordTypes?seq_contains("SRV") ]
+                                            [#assign portAttributes = {
+                                                "ContainerPort" : ports[portMapping.ContainerPort].Port
+                                            }]
+                                        [/#if]
+
+                                        [#if serviceRecordTypes?seq_contains("A") && networkMode != "awsvpc" ]
+                                            [@cfException listMode "A record registration only availalbe on awsvpc network Type" link /]
+                                        [/#if]
+
+                                        [#if serviceRecordTypes?seq_contains("AAAA") ]
+                                            [@cfException listMode "AAAA Service record are not supported" link /]
+                                        [/#if]
+
+                                        [#assign serviceRegistries +=
+                                            [
+                                                {
+                                                    "ContainerName" : container.Name,
+                                                    "RegistryArn" : linkAttributes["SERVICE_ARN"]
+                                                } +
+                                                portAttributes
+                                            ]
+                                        ]
+                                        [#break]
+                                [/#switch]
+                            [/#if]
                         [/#list]
                         [#if container.IngressRules?has_content ]
                             [#list container.IngressRules as ingressRule ]
@@ -277,6 +321,7 @@
                         desiredCount=desiredCount
                         taskId=taskId
                         loadBalancers=loadBalancers
+                        serviceRegistries=serviceRegistries
                         roleId=ecsServiceRoleId
                         networkMode=networkMode
                         networkConfiguration=aswVpcNetworkConfiguration!{}
