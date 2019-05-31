@@ -24,12 +24,13 @@
         [#assign computeClusterLogGroupId           = resources["lg"].Id]
         [#assign computeClusterLogGroupName         = resources["lg"].Name]
 
-        [#assign logFileProfile = getLogFileProfile(tier, component, "ComputeCluster")]
-        [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ComputeCluster")]
-        [#assign storageProfile = getStorage(tier, component, "ComputeCluster")]
         [#assign processorProfile = getProcessor(occurrence, "ComputeCluster")]
+        [#assign storageProfile   = getStorage(occurrence, "ComputeCluster")]
+        [#assign logFileProfile   = getLogFileProfile(occurrence, "ComputeCluster")]
+        [#assign bootstrapProfile = getBootstrapProfile(occurrence, "ComputeCluster")]
 
-        [#assign networkLink = tier.Network.Link!{} ]
+        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+        [#assign networkLink = occurrenceNetwork.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
@@ -43,15 +44,14 @@
 
         [#assign vpcId = networkResources["vpc"].Id ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
         [#assign computeAutoScaleGroupTags =
-                getCfTemplateCoreTags(
+                getOccurrenceCoreTags(
+                        occurrence,
                         computeClusterAutoScaleGroupName,
-                        tier,
-                        component,
                         "",
                         true)]
 
@@ -90,7 +90,7 @@
 
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(component.Role!"") ]
+                getInitConfigBootstrap(occurrence, component.Role!"") ]
 
         [#assign scriptsPath =
                 formatRelativePath(
@@ -108,8 +108,7 @@
             )
         ]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign contextLinks = getLinkTargets(occurrence, links) ]
         [#assign _context =
@@ -299,8 +298,7 @@
 
             [@createSecurityGroup
                 mode=listMode
-                tier=tier
-                component=component
+                occurrence=occurrence
                 id=computeClusterSecurityGroupId
                 name=computeClusterSecurityGroupName
                 vpcId=vpcId /]
@@ -336,7 +334,7 @@
             [@createEc2AutoScaleGroup
                 mode=listMode
                 id=computeClusterAutoScaleGroupId
-                tier=tier
+                tier=core.Tier
                 configSetName=configSetName
                 configSets=configSets
                 launchConfigId=computeClusterLaunchConfigId

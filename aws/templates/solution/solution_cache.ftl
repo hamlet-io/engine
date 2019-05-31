@@ -11,8 +11,8 @@
         [#assign core = occurrence.Core ]
         [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
-    
-        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#if ! networkLinkTarget?has_content ]
@@ -42,7 +42,7 @@
                     [#assign port = ports[port].Port ]
                 [#else]
                     [@cfException listMode "Unknown Port" port /]
-                [/#if]                
+                [/#if]
                 [#break]
 
             [#case "redis"]
@@ -60,7 +60,7 @@
                     [#assign port = ports[port].Port ]
                 [#else]
                     [@cfException listMode "Unknown Port" port /]
-                [/#if]                
+                [/#if]
                 [#break]
 
             [#default]
@@ -68,7 +68,7 @@
                 [#assign engineVersion = "unknown" ]
                 [#assign family = "unknown" ]
                 [#assign port = "unknown" ]
-        [/#switch]                    
+        [/#switch]
 
         [#assign cacheId = resources["cache"].Id ]
         [#assign cacheFullName = resources["cache"].Name ]
@@ -77,7 +77,7 @@
         [#assign cacheSecurityGroupId = resources["sg"].Id ]
 
         [#assign cacheSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
-                                                cacheSecurityGroupId, 
+                                                cacheSecurityGroupId,
                                                 port)]
 
         [#assign processorProfile = getProcessor(occurrence, "ElastiCache")]
@@ -89,20 +89,19 @@
             [/#list]
         [/#list]
 
-        [#assign hibernate = solution.Hibernate.Enabled  &&              
+        [#assign hibernate = solution.Hibernate.Enabled  &&
             (getExistingReference(cacheId)?has_content) ]
 
         [#if deploymentSubsetRequired("cache", true)]
 
             [@createDependentSecurityGroup
                 mode=listMode
-                tier=tier
-                component=component
                 resourceId=cacheId
                 resourceName=cacheFullName
+                occurrence=occurrence
                 vpcId=vpcId
             /]
-        
+
             [@createSecurityGroupIngress
                 mode=listMode
                 id=cacheSecurityGroupIngressId
@@ -110,7 +109,7 @@
                 cidr="0.0.0.0/0"
                 groupId=cacheSecurityGroupId
             /]
-        
+
             [@cfResource
                 mode=listMode
                 id=cacheSubnetGroupId
@@ -118,11 +117,11 @@
                 properties=
                     {
                         "Description" : cacheFullName,
-                        "SubnetIds" : getSubnets(tier, networkResources)
+                        "SubnetIds" : getSubnets(core.Tier, networkResources)
                     }
                 outputs={}
             /]
-            
+
             [@cfResource
                 mode=listMode
                 id=cacheParameterGroupId
@@ -174,7 +173,7 @@
                         [/#switch]
                     [/#list]
                 [/#list]
-                
+
                 [@cfResource
                     mode=listMode
                     id=cacheId
@@ -202,11 +201,7 @@
                             }
                         ) +
                         attributeIfContent("SnapshotRetentionLimit", solution.Backup.RetentionPeriod)
-                    tags=
-                        getCfTemplateCoreTags(
-                            cacheFullName,
-                            tier,
-                            component)
+                    tags=getOccurrenceCoreTags(occurrence, cacheFullName)
                     outputs=engine?switch(
                         "memcached", MEMCACHED_OUTPUT_MAPPINGS,
                         "redis", REDIS_OUTPUT_MAPPINGS,

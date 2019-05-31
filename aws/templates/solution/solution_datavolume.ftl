@@ -32,13 +32,12 @@
             [#assign volumeId = zoneResources["ebsVolume"].Id ]
             [#assign volumeName = zoneResources["ebsVolume"].Name ]
 
-            [#assign volumeTags = getCfTemplateCoreTags(
+            [#assign volumeTags = getOccurrenceCoreTags(
+                                        occurrence,
                                         volumeName,
-                                        tier,
-                                        component,
                                         "",
                                         false)]
-            
+
             [#assign resourceZone = {}]
             [#list zones as zone ]
                 [#if zoneId == zone.Id ]
@@ -47,7 +46,7 @@
             [/#list]
 
             [#if deploymentSubsetRequired(DATAVOLUME_COMPONENT_TYPE, true)]
-                [@createEBSVolume 
+                [@createEBSVolume
                     mode=listMode
                     id=volumeId
                     tags=volumeTags
@@ -64,7 +63,7 @@
                     [#assign snapshotCreateTaskId = zoneResources["taskCreateSnapshot"].Id ]
                     [#assign snapshotCreateTaskName = zoneResources["taskCreateSnapshot"].Name ]
 
-                    [@createSSMMaintenanceWindowTask 
+                    [@createSSMMaintenanceWindowTask
                         mode=listMode
                         id=snapshotCreateTaskId
                         name=snapshotCreateTaskName
@@ -74,7 +73,7 @@
                         windowId=maintenanceWindowId
                         taskId="AWS-CreateSnapshot"
                         taskType="Automation"
-                        taskParameters=getSSMWindowAutomationTaskParameters( 
+                        taskParameters=getSSMWindowAutomationTaskParameters(
                                             {
                                                 "AutomationAssumeRole" : asArray(getReference(maintenanceServiceRoleId,ARN_ATTRIBUTE_TYPE)),
                                                 "VolumeId" : asArray(getReference(volumeId))
@@ -86,7 +85,7 @@
                     [#assign snapshotDeleteTaskId = zoneResources["taskDeleteSnapshot"].Id ]
                     [#assign snapshotDeleteTaskName = zoneResources["taskDeleteSnapshot"].Name ]
 
-                    [@createSSMMaintenanceWindowTask 
+                    [@createSSMMaintenanceWindowTask
                         mode=listMode
                         id=snapshotDeleteTaskId
                         name=snapshotDeleteTaskName
@@ -96,7 +95,7 @@
                         windowId=maintenanceWindowId
                         taskId="AWS-DeleteEbsVolumeSnapshots"
                         taskType="Automation"
-                        taskParameters=getSSMWindowAutomationTaskParameters( 
+                        taskParameters=getSSMWindowAutomationTaskParameters(
                                             {
                                                 "AutomationAssumeRole" : asArray(getReference(maintenanceServiceRoleId, ARN_ATTRIBUTE_TYPE)),
                                                 "LambdaAssumeRole" : asArray(getReference(maintenanceLambdaRoleId, ARN_ATTRIBUTE_TYPE)),
@@ -112,14 +111,13 @@
         [/#list]
 
         [#if deploymentSubsetRequired(DATAVOLUME_COMPONENT_TYPE, true)]
-            [#assign maintenanceWindowTags = getCfTemplateCoreTags(
+            [#assign maintenanceWindowTags = getOccurrenceCoreTags(
+                                                occurrence,
                                                 maintenanceWindowName,
-                                                tier,
-                                                component,
                                                 "",
                                                 false)]
-            [@createSSMMaintenanceWindow 
-                mode=listMode 
+            [@createSSMMaintenanceWindow
+                mode=listMode
                 id=maintenanceWindowId
                 name=maintenanceWindowName
                 schedule=solution.Backup.Schedule
@@ -129,8 +127,8 @@
                 scheduleTimezone=solution.Backup.ScheduleTimeZone
             /]
 
-            [@createSSMMaintenanceWindowTarget 
-                mode=listMode 
+            [@createSSMMaintenanceWindowTarget
+                mode=listMode
                 id=windowTargetId
                 name=windowTargetName
                 windowId=maintenanceWindowId
@@ -162,8 +160,8 @@
                                             getReference(maintenanceLambdaRoleId, ARN_ATTRIBUTE_TYPE),
                                             getReference(maintenanceServiceRoleId, ARN_ATTRIBUTE_TYPE)
                                         ]
-                                    ) + 
-                                    ec2EBSVolumeSnapshotAllPermission() + 
+                                    ) +
+                                    ec2EBSVolumeSnapshotAllPermission() +
                                     lambdaSSMAutomationPermission()
                         roles=maintenanceServiceRoleId
                     /]
@@ -192,12 +190,12 @@
                 [
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
-                ] +    
+                ] +
                 pseudoStackOutputScript(
                     "Manual Snapshot",
                     { manualSnapshotId : "" }
                 ) +
-                [            
+                [
                     "       ;;",
                     "       esac"
                 ]

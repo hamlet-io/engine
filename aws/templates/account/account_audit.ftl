@@ -7,16 +7,16 @@
             [#assign lifecycleRules = []]
 
             [#if accountObject.Audit.Expiration?has_content ]
-                [#assign lifecycleRules += 
+                [#assign lifecycleRules +=
                     getS3LifecycleRule(
-                        accountObject.Audit.Expiration, 
+                        accountObject.Audit.Expiration,
                         accountObject.Audit.Offline)
                 ]
             [/#if]
-        
+
             [#assign sqsNotifications = []]
-            
-            [@cfResource 
+
+            [@cfResource
                 mode=listMode
                 id=formatAccountS3Id("audit")
                 type="AWS::S3::Bucket"
@@ -39,8 +39,8 @@
                         sqsNotifications,
                         {
                             "QueueConfigurations" : sqsNotifications
-                        }) 
-                tags=getCfTemplateCoreTags("", tier, component, "", false, false, 7)
+                        })
+                tags=getCfTemplateCoreTags("", "", "", "", false, false, 7)
                 outputs=S3_OUTPUT_MAPPINGS
             /]
         [/#if]

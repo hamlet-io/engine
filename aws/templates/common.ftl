@@ -173,6 +173,10 @@
     [#return {} ]
 [/#function]
 
+[#function getTierNetwork tier]
+    [#return (getTier(tier).Network)!{}]
+[/#function]
+
 [#-- Get the id for a tier --]
 [#function getTierId tier]
     [#return getTier(tier).Id!""]
@@ -1312,6 +1316,17 @@ behaviour.
         ) ]
 [/#function]
 
+[#function getOccurrenceNetwork occurrence]
+    [#return getTierNetwork(occurrence.Core.Tier.Id)]
+[/#function]
+
+[#function getOccurrenceFragmentBase occurrence]
+    [#return contentIfContent((occurrence.Configuration.Solution.Fragment)!"", occurrence.Core.Component.Id)]
+[/#function]
+
+[#function getOccurrenceCoreTags occurrence={} name="" zone="" propagate=false flatten=false maxTagCount=-1]
+    [#return getCfTemplateCoreTags(name, (occurrence.Core.Tier)!"", (occurrence.Core.Component)!"", zone, propagate, flatten, maxTagCount)]
+[/#function]
 [#function getAsFileSettings settings ]
     [#local result = [] ]
     [#list settings as key,value]
@@ -1898,10 +1913,10 @@ behaviour.
     [#return {}]
 [/#function]
 
-[#function getLogFileProfile tier component type extensions... ]
+[#function getLogFileProfile occurrence type extensions... ]
     [#local tc = formatComponentShortName(
-                    tier,
-                    component,
+                    occurrence.Core.Tier,
+                    occurrence.Core.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].LogFileProfile)??]
@@ -1915,10 +1930,10 @@ behaviour.
     [/#if]
 [/#function]
 
-[#function getBootstrapProfile tier component type extensions... ]
+[#function getBootstrapProfile occurrence type extensions... ]
     [#local tc = formatComponentShortName(
-                    tier,
-                    component,
+                    occurrence.Core.Tier,
+                    occurrence.Core.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].BootstrapProfile)??]
@@ -2013,10 +2028,10 @@ behaviour.
 [/#function]
 
 [#-- Get storage settings --]
-[#function getStorage tier component type extensions...]
+[#function getStorage occurrence type extensions...]
     [#local tc = formatComponentShortName(
-                    tier,
-                    component,
+                    occurrence.Core.Tier,
+                    occurrence.Core.Component,
                     extensions)]
     [#local defaultProfile = "default"]
     [#if (component[type].Storage)??]

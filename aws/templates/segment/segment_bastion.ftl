@@ -35,7 +35,8 @@
         [/#switch]
 
         [#if deploymentSubsetRequired("bastion", true) ]
-            [#assign networkLink = tier.Network.Link!{} ]
+            [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+            [#assign networkLink = occurrenceNetwork.Link!{} ]
             [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
             [#if ! networkLinkTarget?has_content ]
@@ -48,14 +49,14 @@
 
             [#assign vpcId = networkResources["vpc"].Id ]
 
-            [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable }, false)]
+            [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable }, false)]
             [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
             [#assign publicRouteTable = routeTableConfiguration.Public ]
         [/#if]
 
-        [#assign storageProfile = getStorage(tier, component, BASTION_COMPONENT_TYPE)]
-        [#assign logFileProfile = getLogFileProfile(tier, component, BASTION_COMPONENT_TYPE)]
-        [#assign bootstrapProfile = getBootstrapProfile(tier, component, BASTION_COMPONENT_TYPE)]
+        [#assign storageProfile = getStorage(occurrence, BASTION_COMPONENT_TYPE)]
+        [#assign logFileProfile = getLogFileProfile(occurrence, BASTION_COMPONENT_TYPE)]
+        [#assign bootstrapProfile = getBootstrapProfile(occurrence, BASTION_COMPONENT_TYPE)]
 
         [#assign processorProfile = (getProcessor(occurrence, "SSH")?has_content)?then(
                                         getProcessor(occurrence, "SSH"),
@@ -70,10 +71,9 @@
 
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(component.Role!"")]
+                getInitConfigBootstrap(occurrence, component.Role!"")]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign contextLinks = getLinkTargets(occurrence, links) ]
         [#assign _context =
@@ -175,10 +175,9 @@
             [#if deploymentSubsetRequired("bastion", true)]
                 [@createSecurityGroup
                     mode=listMode
-                    tier=tier
-                    component=component
                     id=bastionSecurityGroupToId
                     name=bastionSecurityGroupToName
+                    occurrence=occurrence
                     description="Security Group for inbound SSH to the SSH Proxy"
                     ingressRules=
                         [
@@ -199,10 +198,10 @@
 
                 [@createSecurityGroup
                     mode=listMode
-                    tier="all"
-                    component=component
                     id=bastionSecurityGroupFromId
                     name=bastionSecurityGroupFromName
+                    tier="all"
+                    occurrence=occurrence
                     description="Security Group for SSH access from the SSH Proxy"
                     ingressRules=
                         [
@@ -227,17 +226,16 @@
                 /]
 
                 [#assign asgTags =
-                    getCfTemplateCoreTags(
+                    getOccurrenceCoreTags(
+                        occurrence,
                         bastionAutoScaleGroupName
-                        tier,
-                        component,
                         "",
                         true)]
 
                 [@createEc2AutoScaleGroup
                     mode=listMode
                     id=bastionAutoScaleGroupId
-                    tier=tier
+                    tier=core.Tier
                     configSetName=configSetName
                     configSets=configSets
                     launchConfigId=bastionLaunchConfigId

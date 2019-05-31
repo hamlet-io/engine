@@ -40,8 +40,7 @@
                 passwordEncryptionScheme
             )]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#-- Add in container specifics including override of defaults --]
         [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]

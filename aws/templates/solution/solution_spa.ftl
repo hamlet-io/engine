@@ -12,8 +12,7 @@
         [#assign resources = occurrence.State.Resources]
         [#assign solution = occurrence.Configuration.Solution ]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign contextLinks = getLinkTargets(occurrence) ]
         [#assign _context =
@@ -285,8 +284,8 @@
                     getCFLogging(
                         operationsBucket,
                         formatComponentAbsoluteFullPath(
-                            tier,
-                            component,
+                            core.Tier,
+                            core.Component,
                             occurrence
                         )
                     ),

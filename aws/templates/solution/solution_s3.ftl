@@ -49,7 +49,7 @@
                                         [#assign sqsNotifications +=
                                                 getS3SQSNotification(sqsId, event, notification.Prefix, notification.Suffix) ]
                                     [/#list]
-                                    
+
                                 [/#if]
                                 [#break]
                         [/#switch]
@@ -111,7 +111,7 @@
                 [/#if]
             [/#list]
         [/#list]
-        
+
         [#list solution.Links?values as link]
             [#if link?is_hash]
 
@@ -134,11 +134,11 @@
                             [#case  "replicadestination" ]
                                 [#assign replicationEnabled = true]
                                 [#if linkTargetAttributes["REGION"] == regionId ]
-                                    [@cfException 
+                                    [@cfException
                                         mode=listMode
-                                        description="Replication buckets must be in different regions" 
+                                        description="Replication buckets must be in different regions"
                                         context=
-                                            { 
+                                            {
                                                 "SourceBucket" : regionId,
                                                 "DestinationBucket" : linkTargetAttributes["REGION"]
                                             }
@@ -149,18 +149,18 @@
 
                                 [#if !replicationBucket?has_content ]
                                     [#if !linkTargetAttributes["ARN"]?has_content ]
-                                        [@cfException 
+                                        [@cfException
                                             mode=listMode
-                                            description="Replication destination must be deployed before source" 
+                                            description="Replication destination must be deployed before source"
                                             context=
                                                 linkTarget
                                         /]
                                     [/#if]
                                     [#assign replicationBucket = linkTargetAttributes["ARN"]]
                                 [#else]
-                                    [@cfException 
-                                        mode=listMode 
-                                        description="Only one replication destination is supported" 
+                                    [@cfException
+                                        mode=listMode
+                                        description="Only one replication destination is supported"
                                         context=links
                                     /]
                                 [/#if]
@@ -179,7 +179,7 @@
         [#if replicationEnabled ]
             [#assign replicationRules = [] ]
             [#list solution.Replication.Prefixes as prefix ]
-                [#assign replicationRules += 
+                [#assign replicationRules +=
                     [ getS3ReplicationRule(
                         replicationBucket,
                         solution.Replication.Enabled,
@@ -198,18 +198,18 @@
                 isPartOfCurrentDeploymentUnit(roleId)]
             [#assign linkPolicies = getLinkTargetsOutboundRoles(links) ]
 
-            [#assign rolePolicies = 
+            [#assign rolePolicies =
                     arrayIfContent(
                         [getPolicyDocument(linkPolicies, "links")],
                         linkPolicies) +
                     arrayIfContent(
-                        getPolicyDocument( 
-                            s3ReplicaSourcePermission(s3Id) + 
-                            s3ReplicationConfigurationPermission(s3Id), 
+                        getPolicyDocument(
+                            s3ReplicaSourcePermission(s3Id) +
+                            s3ReplicationConfigurationPermission(s3Id),
                             "replication"),
                         replicationConfiguration
                     )]
-            
+
             [#if rolePolicies?has_content ]
                 [@createRole
                     mode=listMode
@@ -237,8 +237,8 @@
                 mode=listMode
                 id=s3Id
                 name=s3Name
-                tier=tier
-                component=component
+                tier=core.Tier
+                component=core.Component
                 lifecycleRules=
                     (solution.Lifecycle.Configured && ((solution.Lifecycle.Expiration!operationsExpiration)?has_content || (solution.Lifecycle.Offline!operationsOffline)?has_content))?then(
                             getS3LifecycleRule(solution.Lifecycle.Expiration!operationsExpiration, solution.Lifecycle.Offline!operationsOffline),

@@ -12,7 +12,8 @@
         [#assign ecsSecurityGroupId = parentResources["securityGroup"].Id ]
         [#assign ecsServiceRoleId = parentResources["serviceRole"].Id ]
 
-        [#assign networkLink = tier.Network.Link!{} ]
+        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+        [#assign networkLink = occurrenceNetwork.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
         [#if ! networkLinkTarget?has_content ]
@@ -23,7 +24,7 @@
         [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
         [#assign networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
@@ -90,10 +91,9 @@
                 [#if deploymentSubsetRequired("ecs", true)]
                     [@createSecurityGroup
                         mode=listMode
-                        tier=tier
-                        component=component
                         id=ecsSecurityGroupId
                         name=ecsSecurityGroupName
+                        occurrence=occurrence
                         vpcId=vpcId /]
                 [/#if]
             [/#if]

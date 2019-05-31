@@ -10,9 +10,9 @@
                 "HostedZoneConfig" : {
                     "Comment" : formatSegmentFullName()
                 },
-                "HostedZoneTags" : getCfTemplateCoreTags(),
+                "HostedZoneTags" : getOccurrenceCoreTags(),
                 "Name" : concatenate(fullNamePrefixes?reverse + ["internal"], "."),
-                "VPCs" : [                
+                "VPCs" : [
                     {
                         "VPCId" : getReference(formatVPCId()),
                         "VPCRegion" : regionId

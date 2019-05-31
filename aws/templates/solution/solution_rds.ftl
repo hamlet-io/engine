@@ -12,8 +12,8 @@
         [#assign solution = occurrence.Configuration.Solution ]
         [#assign resources = occurrence.State.Resources ]
         [#assign attributes = occurrence.State.Attributes ]
-    
-        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
@@ -77,7 +77,7 @@
         [#assign rdsParameterGroupId = resources["parameterGroup"].Id ]
         [#assign rdsOptionGroupId = resources["optionGroup"].Id ]
 
-        [#assign rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(tier, component, rdsId) ]
+        [#assign rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(core.Tier, core.Component, rdsId) ]
         [#assign rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                                 rdsSecurityGroupId,
                                                 port)]
@@ -93,7 +93,7 @@
             [#assign rdsPassword = "DummyPassword" ]
             [#assign rdsEncryptedPassword = (
                         getExistingReference(
-                            rdsId, 
+                            rdsId,
                             GENERATEDPASSWORD_ATTRIBUTE_TYPE)
                         )?remove_beginning(
                             passwordEncryptionScheme
@@ -103,7 +103,7 @@
             [#assign rdsPassword = attributes.PASSWORD ]
         [/#if]
 
-        [#assign hibernate = solution.Hibernate.Enabled  &&              
+        [#assign hibernate = solution.Hibernate.Enabled  &&
                 (getExistingReference(rdsId)?has_content) ]
 
         [#assign hibernateStartUpMode = solution.Hibernate.StartUpMode ]
@@ -139,10 +139,7 @@
                                             runId,
                                             "pre-deploy")]
 
-        [#assign rdsTags = getCfTemplateCoreTags(
-                                        rdsFullName,
-                                        tier,
-                                        component)]
+        [#assign rdsTags = getOccurrenceCoreTags(occurrence, rdsFullName)]
 
         [#assign restoreSnapshotName = "" ]
 
@@ -150,13 +147,13 @@
             [#assign restoreSnapshotName = rdsPreDeploySnapshotId ]
         [/#if]
 
-        [#assign preDeploySnapshot = solution.Backup.SnapshotOnDeploy || 
-                                ( hibernate && hibernateStartUpMode == "restore" ) || 
+        [#assign preDeploySnapshot = solution.Backup.SnapshotOnDeploy ||
+                                ( hibernate && hibernateStartUpMode == "restore" ) ||
                                 rdsManualSnapshot?has_content ]
 
         [#if solution.AlwaysCreateFromSnapshot ]
             [#if !rdsManualSnapshot?has_content ]
-                [@cfException 
+                [@cfException
                     mode=listMode
                     description="Snapshot must be provided to create this database"
                     context=occurrence
@@ -166,9 +163,9 @@
 
             [#assign restoreSnapshotName = rdsManualSnapshot ]
             [#assign preDeploySnapshot = false ]
-        
+
         [/#if]
-        
+
         [#assign dbParameters = {} ]
         [#list solution.DBParameters as key,value ]
             [#if key != "Name" && key != "Id" ]
@@ -194,7 +191,7 @@
                             "check_rds_snapshot_username" +
                             " \"" + region + "\" " +
                             " \"" + rdsManualSnapshot + "\" " +
-                            " \"" + rdsUsername + "\" || return $?" 
+                            " \"" + rdsUsername + "\" || return $?"
                         ],
                         []
                     ) +
@@ -207,10 +204,10 @@
                             " \"" + region + "\" " +
                             " \"" + rdsFullName + "\" " +
                             " \"" + rdsPreDeploySnapshotId + "\" || return $?"
-                        ] + 
+                        ] +
                         pseudoStackOutputScript(
                             "RDS Pre-Deploy Snapshot",
-                            { 
+                            {
                                 formatId("snapshot", rdsId, "name") : rdsPreDeploySnapshotId,
                                 formatId("manualsnapshot", rdsId, "name") : ""
                             }
@@ -220,8 +217,8 @@
                             "create_deploy_snapshot || return $?"
                         ],
                         []) +
-                    (( solution.Backup.SnapshotOnDeploy || 
-                        ( hibernate && hibernateStartUpMode == "restore" ) )  
+                    (( solution.Backup.SnapshotOnDeploy ||
+                        ( hibernate && hibernateStartUpMode == "restore" ) )
                         && solution.Encrypted)?then(
                         [
                             "# Encrypt RDS snapshot",
@@ -252,8 +249,8 @@
 
             [@createDependentComponentSecurityGroup
                 mode=listMode
-                tier=tier
-                component=component
+                tier=core.Tier
+                component=core.Component
                 resourceId=rdsId
                 resourceName=rdsFullName
                 vpcId=vpcId
@@ -274,7 +271,7 @@
                 properties=
                     {
                         "DBSubnetGroupDescription" : rdsFullName,
-                        "SubnetIds" : getSubnets(tier, networkResources)
+                        "SubnetIds" : getSubnets(core.Tier, networkResources)
                     }
                 tags=rdsTags
                 outputs={}
@@ -290,11 +287,7 @@
                         "Description" : rdsFullName,
                         "Parameters" : dbParameters
                     }
-                tags=
-                    getCfTemplateCoreTags(
-                        rdsFullName,
-                        tier,
-                        component)
+                tags=getOccurrenceCoreTags(occurrence, rdsFullName)
                 outputs={}
             /]
 
@@ -311,11 +304,7 @@
                         "OptionConfigurations" : [
                         ]
                     }
-                tags=
-                    getCfTemplateCoreTags(
-                        rdsFullName,
-                        tier,
-                        component)
+                tags=getOccurrenceCoreTags(occurrence, rdsFullName)
                 outputs={}
             /]
 
@@ -462,7 +451,7 @@
                         ) +
                         [
                             "info \"Generating URL... \"",
-                            "rds_hostname=\"$(get_rds_hostname" + 
+                            "rds_hostname=\"$(get_rds_hostname" +
                             " \"" + region + "\" " +
                             " \"" + rdsFullName + "\" || return $?)\"",
                             "rds_url=\"$(get_rds_url" +
@@ -502,7 +491,7 @@
                             " \"" + rdsFullName + "\" " +
                             " \"$\{master_password}\" || return $?",
                             "info \"Generating URL... \"",
-                            "rds_hostname=\"$(get_rds_hostname" + 
+                            "rds_hostname=\"$(get_rds_hostname" +
                             " \"" + region + "\" " +
                             " \"" + rdsFullName + "\" || return $?)\"",
                             "rds_url=\"$(get_rds_url" +
@@ -527,7 +516,7 @@
                             "reset_master_password || return $?"
                         ],
                     []) +
-                    [            
+                    [
                         "       ;;",
                         "       esac"
                     ]

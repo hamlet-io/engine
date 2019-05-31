@@ -432,8 +432,8 @@
                 [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
                     [@createUserPoolClient
                         mode=listMode
-                        component=component
-                        tier=tier
+                        component=core.Component
+                        tier=core.Tier
                         id=userPoolClientId
                         name=userPoolClientName
                         userPoolId=userPoolId
@@ -515,14 +515,11 @@
         [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
             [@createUserPool
                 mode=listMode
-                component=component
-                tier=tier
+                component=core.Component
+                tier=core.Tier
                 id=userPoolId
                 name=userPoolName
-                tags=getCfTemplateCoreTags(
-                        userPoolName,
-                        tier,
-                        component)
+                tags=getOccurrenceCoreTags(occurrence, userPoolName)
                 mfa=solution.MFA
                 adminCreatesUser=solution.AdminCreatesUser
                 unusedTimeout=solution.UnusedAccountTimeout
@@ -551,8 +548,8 @@
 
             [@createIdentityPool
                 mode=listMode
-                component=component
-                tier=tier
+                component=core.Component
+                tier=core.Tier
                 id=identityPoolId
                 name=identityPoolName
                 cognitoIdProviders=identityPoolProviders
@@ -601,8 +598,8 @@
 
             [@createIdentityPoolRoleMapping
                 mode=listMode
-                component=component
-                tier=tier
+                component=core.Component
+                tier=core.Tier
                 id=identityPoolRoleMappingId
                 identityPoolId=getReference(identityPoolId)
                 authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
@@ -651,10 +648,9 @@
                         solution.PasswordPolicy.Numbers,
                         solution.PasswordPolicy.SpecialCharacters),
                 "MfaConfiguration": solution.MFA?then("ON","OFF"),
-                "UserPoolTags": getCfTemplateCoreTags(
+                "UserPoolTags": getOccurrenceCoreTags(
+                                    occurrence,
                                     userPoolName,
-                                    tier,
-                                    component,
                                     ""
                                     false,
                                     true),

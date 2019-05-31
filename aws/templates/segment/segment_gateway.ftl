@@ -10,22 +10,17 @@
         [#assign gwSolution = occurrence.Configuration.Solution ]
         [#assign gwResources = occurrence.State.Resources ]
 
-        [#assign tags = getCfTemplateCoreTags(
-                        gwCore.FullName,
-                        tier,
-                        component,
-                        "",
-                        true)]
+        [#assign tags = getOccurrenceCoreTags(occurrence, gwCore.FullName, "", true)]
 
-                            
-        [#assign networkLink = tier.Network.Link!{} ]
+        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+        [#assign networkLink = occurrenceNetwork.Link!{} ]
 
         [#if !networkLink?has_content ]
-            [@cfException 
-                listMode 
+            [@cfException
+                listMode
                 "Tier Network configuration incomplete",
                     {
-                        "networkTier" : tier.Network,
+                        "networkTier" : occurrenceNetwork,
                         "Link" : networkLink
                     }
             /]
@@ -42,7 +37,7 @@
             [#assign networkResources = networkLinkTarget.State.Resources ]
 
             [#assign legacyIGW = (networkResources["legacyIGW"]!{})?has_content]
-            
+
             [#assign vpcId = networkResources["vpc"].Id ]
             [#assign vpcPrivateDNS = networkConfiguration.DNS.UseProvider && networkConfiguration.DNS.GenerateHostNames]
 
@@ -73,12 +68,11 @@
                         [#assign natGatewayName = zoneResources["natGateway"].Name ]
                         [#assign eipId = zoneResources["eip"].Id]
 
-                        [#assign subnetId = (networkResources["subnets"][tier.Id][zone])["subnet"].Id]
+                        [#assign subnetId = (networkResources["subnets"][gwCore.Tier.Id][zone])["subnet"].Id]
 
-                        [#assign natGwTags = getCfTemplateCoreTags(
+                        [#assign natGwTags = getOccurrenceCoreTags(
+                                                    occurrence,
                                                     natGatewayName,
-                                                    tier,
-                                                    component,
                                                     "",
                                                     false)]
                         [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
@@ -95,12 +89,12 @@
                 [#break]
 
                 [#case "igw"]
-                    
+
                     [#if !legacyIGW ]
                         [#assign IGWId = gwResources["internetGateway"].Id ]
                         [#assign IGWName = gwResources["internetGateway"].Name ]
                         [#assign IGWAttachementId = gwResources["internetGatewayAttachement"].Id ]
-                                        
+
                         [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                             [@createIGW
                                 mode=listMode
@@ -119,7 +113,7 @@
 
                 [#case "vpcendpoint"]
                 [#break]
-    
+
             [/#switch]
 
             [#-- Security Group Creation --]
@@ -131,19 +125,18 @@
                 [#case "vpcendpoint" ]
                     [#assign securityGroupId = gwResources["sg"].Id]
                     [#assign securityGroupName = gwResources["sg"].Name ]
-                    
+
                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                         [@createSecurityGroup
                             mode=listMode
                             id=securityGroupId
                             name=securityGroupName
-                            tier=tier
-                            component=component
+                            occurrence=occurrence
                             vpcId=vpcId
                             /]
 
                         [#list sourceCidrs as cidr ]
-                            
+
                             [@createSecurityGroupIngress
                                 mode=listMode
                                 id=
@@ -173,7 +166,7 @@
                 [#assign cidrs = getGroupCIDRs(destinationIPAddressGroups, true, subOccurrence)]
 
                 [#assign routeTableIds = []]
-                
+
                 [#list solution.Links?values as link]
                     [#if link?is_hash]
 
@@ -252,12 +245,12 @@
                                                         /]
                                                     [/#if]
                                                 [/#if]
-                                                [#break]                          
+                                                [#break]
                                             [/#switch]
                                         [/#if]
                                     [/#list]
                                 [#break]
-                            
+
                         [/#switch]
                     [/#if]
                 [/#list]
@@ -267,9 +260,9 @@
                         [#assign vpcEndpointResources = resources["vpcEndpoints"]!{} ]
                         [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
 
-                            [#list vpcEndpointResources as resourceId, zoneVpcEndpoint ] 
+                            [#list vpcEndpointResources as resourceId, zoneVpcEndpoint ]
                                 [#assign endpointSubnets = [] ]
-                                [#list networkResources["subnets"][tier.Id] as zone,resources]
+                                [#list networkResources["subnets"][gwCore.Tier.Id] as zone,resources]
                                     [#if zoneVpcEndpoint.EndpointZones?seq_contains(zone )]
                                         [#assign endpointSubnets += [ resources["subnet"].Id ] ]
                                     [/#if]

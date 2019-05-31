@@ -6,7 +6,7 @@
     }
 ]
 
-[#assign AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS = 
+[#assign AWS_EC2_EBS_VOLUME_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
@@ -32,12 +32,12 @@
             "configSets" : {
                 configSetName : configSet?sort
             }
-        } + configKeys 
+        } + configKeys
     } ]
 [/#function]
 
-[#function getInitConfigBootstrap role ignoreErrors=false priority=1 ]
-    [#return 
+[#function getInitConfigBootstrap occurrence role ignoreErrors=false priority=1 ]
+    [#return
         {
             "${priority}_Bootstrap": {
                 "packages" : {
@@ -53,22 +53,22 @@
                                 "",
                                 [
                                     "#!/bin/bash\n",
-                                    "echo \"cot:request="       + requestReference       + "\"\n",
-                                    "echo \"cot:configuration=" + configurationReference + "\"\n",
-                                    "echo \"cot:accountRegion=" + accountRegionId        + "\"\n",
-                                    "echo \"cot:tenant="        + tenantId               + "\"\n",
-                                    "echo \"cot:account="       + accountId              + "\"\n",
-                                    "echo \"cot:product="       + productId              + "\"\n",
-                                    "echo \"cot:region="        + regionId               + "\"\n",
-                                    "echo \"cot:segment="       + segmentId              + "\"\n",
-                                    "echo \"cot:environment="   + environmentId          + "\"\n",
-                                    "echo \"cot:tier="          + tierId                 + "\"\n",
-                                    "echo \"cot:component="     + componentId            + "\"\n",
-                                    "echo \"cot:role="          + role                   + "\"\n",
-                                    "echo \"cot:credentials="   + credentialsBucket      + "\"\n",
-                                    "echo \"cot:code="          + codeBucket             + "\"\n",
-                                    "echo \"cot:logs="          + operationsBucket       + "\"\n",
-                                    "echo \"cot:backups="       + dataBucket             + "\"\n"
+                                    "echo \"cot:request="       + requestReference        + "\"\n",
+                                    "echo \"cot:configuration=" + configurationReference  + "\"\n",
+                                    "echo \"cot:accountRegion=" + accountRegionId         + "\"\n",
+                                    "echo \"cot:tenant="        + tenantId                + "\"\n",
+                                    "echo \"cot:account="       + accountId               + "\"\n",
+                                    "echo \"cot:product="       + productId               + "\"\n",
+                                    "echo \"cot:region="        + regionId                + "\"\n",
+                                    "echo \"cot:segment="       + segmentId               + "\"\n",
+                                    "echo \"cot:environment="   + environmentId           + "\"\n",
+                                    "echo \"cot:tier="          + occurrence.Core.Tier.Id + "\"\n",
+                                    "echo \"cot:component="     + occurrence.Core.Component.Id + "\"\n",
+                                    "echo \"cot:role="          + role                    + "\"\n",
+                                    "echo \"cot:credentials="   + credentialsBucket       + "\"\n",
+                                    "echo \"cot:code="          + codeBucket              + "\"\n",
+                                    "echo \"cot:logs="          + operationsBucket        + "\"\n",
+                                    "echo \"cot:backups="       + dataBucket              + "\"\n"
                                 ]
                             ]
                         },
@@ -106,7 +106,7 @@
 [/#function]
 
 [#function getInitConfigDirectories ignoreErrors=false priority=2 ]
-    [#return 
+    [#return
         {
             "${priority}_Directories" : {
                 "commands": {
@@ -127,14 +127,14 @@
     ]]
 
     [#list envVariables as key,value]
-        [#local envContent += 
+        [#local envContent +=
             [
                 "echo \"" + key + "=" + value + "\"\n"
             ]
         ]
     [/#list]
 
-    [#return 
+    [#return
         {
             "${priority}_EnvFacts" : {
                 "files" : {
@@ -170,21 +170,21 @@
                     "file = " + logFileDetails.FilePath + "\n",
                     "log_group_name = " + logGroupName + "\n",
                     "log_stream_name = {instance_id}" + logFileDetails.FilePath + "\n"
-                ] + 
+                ] +
                 (logFileDetails.TimeFormat!"")?has_content?then(
                     [ "datetime_format = " + logFileDetails.TimeFormat + "\n" ],
                     []
-                ) + 
+                ) +
                 (logFileDetails.MultiLinePattern!"")?has_content?then(
                     [ "awslogs-multiline-pattern = " + logFileDetails.MultiLinePattern + "\n" ],
                     []
-                ) + 
+                ) +
                 [ "\n" ]
             ]
         [/#list]
     [/#list]
 
-    [#return 
+    [#return
         {
             "${priority}_LogConfig" : {
                 "packages" : {
@@ -205,7 +205,7 @@
                                     "region = " + regionId + "\n"
                                 ]
                             ]
-                        }   
+                        }
                     },
                     "/etc/awslogs/awslogs.conf" : {
                         "content" : {
@@ -229,7 +229,7 @@
 [/#function]
 
 [#function getInitConfigDirsFiles files={} directories={} ignoreErrors=false priority=3]
-    
+
     [#local initFiles = {} ]
     [#list files as fileName,file ]
 
@@ -237,10 +237,10 @@
                                     file.mode?left_pad(6, "0"),
                                     file.mode )]
 
-        [#local initFiles += 
+        [#local initFiles +=
             {
                 fileName : {
-                    "content" : { 
+                    "content" : {
                         "Fn::Join" : [
                             "\n",
                             file.content
@@ -265,11 +265,11 @@
             "else\n",
             "   chown -R " + directory.owner + ":" + directory.group + " \"" + directoryName + "\"\n",
             "   chmod " + directory.mode + " \"" + directoryName + "\"\n",
-            "fi\n" 
+            "fi\n"
         ]]
     [/#list]
 
-    [#return 
+    [#return
         { } +
         attributeIfContent(
             "${priority}_CreateDirs",
@@ -306,7 +306,7 @@
 [/#function]
 
 [#function getInitConfigEIPAllocation allocationIds ignoreErrors=false priority=3 ]
-    [#return 
+    [#return
         {
             "${priority}_AssignEIP" :  {
                 "commands" : {
@@ -329,7 +329,7 @@
 [/#function]
 
 [#function getInitConfigPuppet ignoreErrors=false priority=3 ]
-    [#return 
+    [#return
         {
             "${priority}_puppet": {
                 "commands": {
@@ -344,7 +344,7 @@
 [/#function]
 
 [#function getInitConfigEFSMount mountId efsId directory osMount ignoreErrors=false priority=4 ]
-    [#return 
+    [#return
         {
             "${priority}_EFSMount_" + mountId : {
                 "commands" :  {
@@ -364,7 +364,7 @@
 [/#function]
 
 [#function getInitConfigDataVolumeMount deviceId osMount ignoreErrors=false priority=4 ]
-    [#return 
+    [#return
         {
             "${priority}_DataVolumeMount_" + deviceId : {
                 "commands" :  {
@@ -385,10 +385,10 @@
 [#function getInitConfigECSAgent ecsId defaultLogDriver dockerUsers=[] dockerVolumeDrivers=[] ignoreErrors=false priority=5 ]
     [#local dockerUsersEnv = "" ]
 
-    [#if dockerUsers?has_content ] 
+    [#if dockerUsers?has_content ]
         [#list dockerUsers as userName,details ]
             [#local dockerUsersEnv += details.UserName?has_content?then(details.UserName,userName) + ":" + details.UID?c + "," ]
-        [/#list] 
+        [/#list]
     [/#if]
     [#local dockerUsersEnv = dockerUsersEnv?remove_ending(",")]
 
@@ -399,7 +399,7 @@
         [/#list]
     [/#if]
 
-    [#return 
+    [#return
         {
         "${priority}_ecs": {
             "commands":
@@ -420,7 +420,7 @@
                         attributeIfContent(
                             "DOCKER_USERS",
                             dockerUsersEnv
-                        ) + 
+                        ) +
                         (dockerVolumeDriverEnvs?has_content)?then(
                             dockerVolumeDriverEnvs,
                             {}
@@ -443,7 +443,7 @@
         [#local providerPackages = {}]
         [#if packages?is_sequence ]
             [#list packages as package ]
-                [#local providerPackages += 
+                [#local providerPackages +=
                     {
                         package.Name : [] +
                             (package.Version)?has_content?then(
@@ -454,9 +454,9 @@
             [/#list]
         [/#if]
         [#if providerPackages?has_content ]
-            [#local userBootstrapPackages += 
+            [#local userBootstrapPackages +=
                 {
-                    provider : providerPackages 
+                    provider : providerPackages
                 }]
         [/#if]
     [/#list]
@@ -466,7 +466,7 @@
     [#local bootstrapScriptsDir = bootstrapDir + "/scripts/" ]
     [#local bootstrapInitFile = bootstrapScriptsDir + bootstrap.InitScript!"init.sh" ]
 
-    [#return 
+    [#return
         {
             "${priority}_UserBoot_" + bootstrap.Id : {
                 "files" : {
@@ -496,12 +496,12 @@
                         "command" : bootstrapInitFile,
                         "ignoreErrors" : ignoreErrors,
                         "cwd" : bootstrapScriptsDir
-                    } + 
+                    } +
                     attributeIfContent(
                         "env",
                         environment
                     )
-                } + 
+                } +
                 attributeIfContent(
                     "packages",
                     userBootstrapPackages
@@ -512,7 +512,7 @@
 [/#function]
 
 [#function getInitConfigScriptsDeployment scriptsFile envVariables={} shutDownOnCompletion=false ignoreErrors=false priority=7 ]
-    [#return 
+    [#return
         {
             "${priority}_scripts" : {
                 "packages" : {
@@ -565,7 +565,7 @@
                         "command" : "/opt/codeontap/run_scripts.sh",
                         "cwd" : "/opt/codeontap/scripts/",
                         "ignoreErrors" : ignoreErrors
-                    } + 
+                    } +
                     attributeIfContent(
                         "env",
                         envVariables,
@@ -604,10 +604,10 @@
 [/#function]
 
 [#function getInitConfigLBClassicRegistration lbId ignoreErrors=false priority=8]
-    [#return 
+    [#return
         {
             "${priority}_RegisterWithLB_" + lbId : {
-                "commands" : { 
+                "commands" : {
                     "RegisterWithLB" : {
                         "command" : "/opt/codeontap/bootstrap/register.sh",
                         "env" : {
@@ -621,7 +621,7 @@
     ]
 [/#function]
 
-[#macro createEC2LaunchConfig mode id 
+[#macro createEC2LaunchConfig mode id
     processorProfile
     storageProfile
     securityGroupId
@@ -633,7 +633,7 @@
     environmentId
     sshFromProxy=sshFromProxySecurityGroup
     enableCfnSignal=false
-    dependencies="" 
+    dependencies=""
     outputId=""
 ]
 
@@ -655,7 +655,7 @@
                 "KeyName" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
                 "InstanceType": processorProfile.Processor,
                 "ImageId" : imageId,
-                "SecurityGroups" : 
+                "SecurityGroups" :
                     [
                         getReference(securityGroupId)
                     ] +
@@ -693,7 +693,7 @@
                                 ],
                                 []
                             )
-                            
+
                         ]
                     }
                 }
@@ -717,7 +717,7 @@
     hibernate=false
     loadBalancers=[]
     targetGroups=[]
-    dependencies="" 
+    dependencies=""
     outputId=""
 ]
 
@@ -829,7 +829,7 @@
     /]
 [/#macro]
 
-[#macro createEBSVolume mode id 
+[#macro createEBSVolume mode id
     tags
     size
     zone
@@ -837,7 +837,7 @@
     provisionedIops=0
     snapshotId=""
     encrypted=false
-    dependencies="" 
+    dependencies=""
     outputId=""
 ]
 
@@ -849,9 +849,9 @@
             "AvailabilityZone" : zone.AWSZone,
             "VolumeType" : volumeType,
             "Size" : size
-        } + 
+        } +
         (!(snapshotId?has_content) && encrypted)?then(
-            {   
+            {
                 "Encrypted" : encrypted,
                 "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
             },
@@ -879,7 +879,7 @@
 [#macro createEBSVolumeAttachment mode id
     device
     instanceId
-    volumeId 
+    volumeId
 ]
     [@cfResource
         mode=mode

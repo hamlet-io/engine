@@ -16,11 +16,12 @@
         [#assign lbShortName = resources["lb"].ShortName ]
         [#assign lbLogs = solution.Logs ]
         [#assign lbSecurityGroupIds = [] ]
-      
-        [#assign networkLink = tier.Network.Link!{} ]
+
+        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+        [#assign networkLink = occurrenceNetwork.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
-        
+
         [#if ! networkLinkTarget?has_content ]
             [@cfException listMode "Network could not be found" networkLink /]
             [#break]
@@ -31,7 +32,7 @@
 
         [#assign vpcId = networkResources["vpc"].Id ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
@@ -219,16 +220,16 @@
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                             [@createListenerRule
                                 mode=listMode
-                                id=rule.Id 
+                                id=rule.Id
                                 listenerId=listenerId
                                 actions=getListenerRuleRedirectAction(
                                         "#\{protocol}",
                                         "#\{port}",
                                         fqdn,
                                         "#\{path}",
-                                        "#\{query}") 
-                                conditions=getListenerRuleHostCondition(rule.RedirectFrom) 
-                                priority=rule.Priority 
+                                        "#\{query}")
+                                conditions=getListenerRuleHostCondition(rule.RedirectFrom)
+                                priority=rule.Priority
                                 dependencies=listenerId
                             /]
                         [/#if]
@@ -246,7 +247,7 @@
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createListenerRule
                             mode=listMode
-                            id=listenerRuleId 
+                            id=listenerRuleId
                             listenerId=listenerId
                             actions=getListenerRuleRedirectAction(
                                             solution.Redirect.Protocol,
@@ -272,7 +273,7 @@
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                             [@createListenerRule
                                 mode=listMode
-                                id=listenerRuleId 
+                                id=listenerRuleId
                                 listenerId=listenerId
                                 actions=getListenerRuleFixedAction(
                                         contentIfContent(
@@ -350,7 +351,7 @@
                             [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application" ]
                                 [@createListenerRule
                                     mode=listMode
-                                    id=listenerRuleId 
+                                    id=listenerRuleId
                                     listenerId=listenerId
                                     actions=getListenerRuleAuthCognitoAction(
                                                         userPoolArn,
@@ -360,7 +361,7 @@
                                                         userPoolSessionTimeout,
                                                         userPoolOauthScope,
                                                         1
-                                                ) + 
+                                                ) +
                                             getListenerRuleForwardAction(targetGroupId, 2)
                                     conditions=listenerRuleConditions
                                     priority=listenerRulePriority
@@ -375,7 +376,7 @@
                             [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application"  ]
                                 [@createListenerRule
                                     mode=listMode
-                                    id=listenerRuleId 
+                                    id=listenerRuleId
                                     listenerId=listenerId
                                     actions=getListenerRuleRedirectAction(
                                                 "HTTPS",
@@ -404,8 +405,7 @@
                             mode=listMode
                             id=securityGroupId
                             name=securityGroupName
-                            tier=tier
-                            component=component
+                            occurrence=occurrence
                             ingressRules=[ {"Port" : sourcePort.Port, "CIDR" : cidrs} ]
                             vpcId=vpcId/]
 
@@ -447,7 +447,7 @@
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                                 [@createListenerRule
                                     mode=listMode
-                                    id=listenerRuleId 
+                                    id=listenerRuleId
                                     listenerId=listenerId
                                     actions=getListenerRuleForwardAction(targetGroupId)
                                     conditions=listenerRuleConditions
@@ -481,8 +481,8 @@
                                 mode=listMode
                                 id=defaultTargetGroupId
                                 name=defaultTargetGroupName
-                                tier=tier
-                                component=component
+                                tier=core.Tier
+                                component=core.Component
                                 destination=destinationPort
                                 attributes=tgAttributes
                                 targetType=solution.Forward.TargetType
@@ -499,8 +499,8 @@
                             mode=listMode
                             id=targetGroupId
                             name=targetGroupName
-                            tier=tier
-                            component=component
+                            tier=core.Tier
+                            component=core.Component
                             destination=destinationPort
                             attributes=tgAttributes
                             targetType=solution.Forward.TargetType
@@ -568,10 +568,10 @@
                         "    # Apply CLI level updates to ELB listener",
                         "    info \"Removing rules created by cli rules\""
                     ] +
-                    ruleCleanupScript + 
+                    ruleCleanupScript +
                     pseudoStackOutputScript(
                         "CLI Rule Cleanup",
-                        { 
+                        {
                             formatId(listenerId, "cleanup") : true?c
                         }
                     ) +
@@ -620,8 +620,8 @@
                         id=lbId
                         name=lbName
                         shortName=lbShortName
-                        tier=tier
-                        component=component
+                        tier=core.Tier
+                        component=core.Component
                         securityGroups=lbSecurityGroupIds
                         networkResources=networkResources
                         publicEndpoint=publicRouteTable
@@ -649,8 +649,8 @@
                         id=lbId
                         name=lbName
                         shortName=lbShortName
-                        tier=tier
-                        component=component
+                        tier=core.Tier
+                        component=core.Component
                         listeners=classicListeners
                         healthCheck=healthCheck
                         securityGroups=lbSecurityGroupIds

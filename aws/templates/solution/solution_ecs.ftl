@@ -30,12 +30,13 @@
         [#assign hibernate = solution.Hibernate.Enabled &&
                                 getExistingReference(ecsId)?has_content ]
 
-        [#assign logFileProfile = getLogFileProfile(tier, component, "ECS")]
-        [#assign bootstrapProfile = getBootstrapProfile(tier, component, "ECS")]
         [#assign processorProfile = getProcessor(occurrence, "ECS")]
-        [#assign storageProfile = getStorage(tier, component, "ECS")]
+        [#assign storageProfile = getStorage(occurrence, "ECS")]
+        [#assign logFileProfile = getLogFileProfile(occurrence, "ECS")]
+        [#assign bootstrapProfile = getBootstrapProfile(occurrence, "ECS")]
 
-        [#assign networkLink = tier.Network.Link!{} ]
+        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+        [#assign networkLink = occurrenceNetwork.Link!{} ]
 
         [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
@@ -49,29 +50,23 @@
 
         [#assign vpcId = networkResources["vpc"].Id ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
-        [#assign ecsTags = getCfTemplateCoreTags(
-                        ecsName,
-                        tier,
-                        component,
-                        "",
-                        true)]
+        [#assign ecsTags = getOccurrenceCoreTags(occurrence, ecsName, "", true)]
 
         [#assign environmentVariables = {}]
 
         [#assign configSetName = componentType ]
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(component.Role!"") +
+                getInitConfigBootstrap(occurrence, component.Role!"") +
                 getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers, solution.VolumeDrivers ) ]
 
         [#assign efsMountPoints = {}]
 
-        [#assign fragment =
-            contentIfContent(solution.Fragment, getComponentId(component)) ]
+        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
         [#assign contextLinks = getLinkTargets(occurrence) ]
         [#assign _context =
@@ -203,8 +198,8 @@
 
             [@createComponentSecurityGroup
                 mode=listMode
-                tier=tier
-                component=component
+                tier=core.Tier
+                component=core.Component
                 vpcId=vpcId /]
 
             [#list resources.logMetrics!{} as logMetricName,logMetric ]
@@ -289,11 +284,11 @@
                 [#list 1..maxSize as index]
                     [@createEIP
                         mode=listMode
-                        id=formatComponentEIPId(tier, component, index)
+                        id=formatComponentEIPId(core.Tier, core.Component, index)
                     /]
                     [#assign allocationIds +=
                         [
-                            getReference(formatComponentEIPId(tier, component, index), ALLOCATION_ATTRIBUTE_TYPE)
+                            getReference(formatComponentEIPId(core.Tier, core.Component, index), ALLOCATION_ATTRIBUTE_TYPE)
                         ]
                     ]
                 [/#list]
@@ -307,7 +302,7 @@
             [@createEc2AutoScaleGroup
                 mode=listMode
                 id=ecsAutoScaleGroupId
-                tier=tier
+                tier=core.Tier
                 configSetName=configSetName
                 configSets=configSets
                 launchConfigId=ecsLaunchConfigId
