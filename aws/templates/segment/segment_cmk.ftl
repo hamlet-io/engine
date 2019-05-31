@@ -1,5 +1,5 @@
 [#ftl]
-[#macro segment_cmk tier component]
+[#macro aws_cmk_cf_segment occurrence]
     [#-- KMS --]
     [#if deploymentSubsetRequired("cmk", true)]
         [#-- TODO: Get rid of inconsistent id usage --]

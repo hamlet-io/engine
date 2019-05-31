@@ -1,6 +1,5 @@
 [#ftl]
-[#macro segment_dashboard tier component]
-    [#-- Dashboard --]
+[#macro aws_dashboard_cf_segment occurrence]
     [#if deploymentSubsetRequired("dashboard", true)]
         [@createDashboard
             mode=listMode

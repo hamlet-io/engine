@@ -1,5 +1,5 @@
 [#ftl]
-[#macro segment_dns tier component]
+[#macro aws_dns_cf_segment occurrence]
     [#-- Private DNS zone --]
     [#if deploymentSubsetRequired("dns", true)]
         [@cfResource

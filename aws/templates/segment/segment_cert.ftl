@@ -1,5 +1,6 @@
 [#ftl]
-[#macro segment_cert tier component]
+[#macro aws_cert_cf_segment occurrence]
+    [#return]
     [#-- Certificate --]
     [#if deploymentSubsetRequired("cert", true)]
         [#assign certificateId = formatCertificateId(segmentDomainCertificateId)]

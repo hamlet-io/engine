@@ -1,70 +1,64 @@
-[#-- Service Registry --]
-[#if (componentType == SERVICE_REGISTRY_COMPONENT_TYPE) ]
+[#ftl]
+[#macro aws_serviceregistry_cf_solution occurrence]
+    [@cfDebug listMode occurrence false /]
 
-    [#list requiredOccurrences(
-            getOccurrences(tier, component),
-            deploymentUnit) as occurrence]
+    [#assign core = occurrence.Core ]
+    [#assign solution = occurrence.Configuration.Solution ]
+    [#assign resources = occurrence.State.Resources ]
 
-        [@cfDebug listMode occurrence false /]
+    [#assign registryId = resources["namespace"].Id ]
+    [#assign registryName = resources["namespace"].Name ]
+    [#assign registryDnsDomain = resources["namespace"].DomainName ]
 
-        [#assign core = occurrence.Core ]
-        [#assign solution = occurrence.Configuration.Solution ]
-        [#assign resources = occurrence.State.Resources ]
+    [#-- Network lookup --]
+    [#assign networkLink = tier.Network.Link!{} ]
+    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
-        [#assign registryId = resources["namespace"].Id ]
-        [#assign registryName = resources["namespace"].Name ]
-        [#assign registryDnsDomain = resources["namespace"].DomainName ]
+    [#if ! networkLinkTarget?has_content ]
+        [@cfException listMode "Network could not be found" networkLink /]
+        [#break]
+    [/#if]
 
-        [#-- Network lookup --]
-        [#assign networkLink = tier.Network.Link!{} ]
-        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
-        
-        [#if ! networkLinkTarget?has_content ]
-            [@cfException listMode "Network could not be found" networkLink /]
-            [#break]
-        [/#if]
+    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#assign vpcId = networkResources["vpc"].Id ]
+    [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+    [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+    [#assign publicRouteTable = routeTableConfiguration.Public ]
 
-        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-        [#assign networkResources = networkLinkTarget.State.Resources ]
-        [#assign vpcId = networkResources["vpc"].Id ]
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
-        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-        [#assign publicRouteTable = routeTableConfiguration.Public ]
+    [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
+        [@createCloudMapDNSNamespace
+            mode=listMode
+            id=registryId
+            name=registryName
+            domainName=registryDnsDomain
+            public=publicRouteTable
+            vpcId=vpcId
+        /]
+    [/#if]
+
+    [#list occurrence.Occurrences![] as subOccurrence]
+
+        [#assign core = subOccurrence.Core ]
+        [#assign solution = subOccurrence.Configuration.Solution ]
+        [#assign resources = subOccurrence.State.Resources ]
+
+        [#assign serviceId = resources["service"].Id]
+        [#assign serviceName = resources["service"].Name]
+        [#assign serviceHostName = resources["service"].ServiceName ]
 
         [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
-            [@createCloudMapDNSNamespace 
+            [@createCloudMapService
                 mode=listMode
-                id=registryId
-                name=registryName
-                domainName=registryDnsDomain
-                public=publicRouteTable
-                vpcId=vpcId
+                id=serviceId
+                name=serviceName
+                namespaceId=registryId
+                hostName=serviceHostName
+                routingPolicy=solution.RoutingPolicy
+                recordTypes=solution.RecordTypes
+                recordTTL=solution.RecordTTL
+                dependencies=registryId
             /]
         [/#if]
-
-        [#list occurrence.Occurrences![] as subOccurrence]
-
-            [#assign core = subOccurrence.Core ]
-            [#assign solution = subOccurrence.Configuration.Solution ]
-            [#assign resources = subOccurrence.State.Resources ]
-
-            [#assign serviceId = resources["service"].Id]
-            [#assign serviceName = resources["service"].Name]
-            [#assign serviceHostName = resources["service"].ServiceName ]
-
-            [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
-                [@createCloudMapService
-                    mode=listMode
-                    id=serviceId
-                    name=serviceName
-                    namespaceId=registryId
-                    hostName=serviceHostName
-                    routingPolicy=solution.RoutingPolicy
-                    recordTypes=solution.RecordTypes
-                    recordTTL=solution.RecordTTL
-                    dependencies=registryId
-                /]
-            [/#if]
-        [/#list]
     [/#list]
 [/#if]

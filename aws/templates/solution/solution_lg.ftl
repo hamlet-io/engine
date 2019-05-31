@@ -1,5 +1,6 @@
 [#ftl]
-[#macro solution_lg tier component]
+[#macro aws_lg_cf_solution occurrence]
+    [#return]
     [#-- ECS Log Group --]
     [#assign componentLogGroupId = formatComponentLogGroupId(tier, component)]
     [#if deploymentSubsetRequired("lg", true) &&
