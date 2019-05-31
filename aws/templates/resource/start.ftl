@@ -605,7 +605,7 @@
         [#list tiers as tier]
             [#list (tier.Components!{})?values as component]
                 [#-- Only interested in enabled components --]
-                [#if !component?is_hash || component.Enabled!false]
+                [#if !component?is_hash || !(component.Enabled!true) ]
                     [#continue]
                 [/#if]
                 [#local template = level + "/" + level + "_" + getComponentType(component) + ".ftl"]
@@ -622,12 +622,11 @@
         [#list (tier.Components!{})?values as component]
             [#if deploymentRequired(component, deploymentUnit)]
                 [#assign componentTemplates = {} ]
-                [#assign componentType = getComponentType(component)]
                 [#assign dashboardRows = []]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
 
                 [#list asArray(levels) as level]
-                    [#local componentMacro = level + "_" + getComponentType(component)]
+                    [#local componentMacro = "aws_"+ getComponentType(component) + "_cf_" + level]
                     [#if (.vars[componentMacro]!"")?is_directive]
                         [#list requiredOccurrences(
                             getOccurrences(tier, component),

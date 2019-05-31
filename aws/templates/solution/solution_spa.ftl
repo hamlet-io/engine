@@ -139,7 +139,7 @@
 
     [#if !cfAccess?has_content]
         [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
-        [#break]
+        [#return]
     [/#if]
 
 

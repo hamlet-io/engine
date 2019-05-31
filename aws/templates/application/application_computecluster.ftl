@@ -31,7 +31,7 @@
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
-        [#break]
+        [#return]
     [/#if]
 
     [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
@@ -55,7 +55,7 @@
     [#assign loadBalancers = [] ]
     [#assign environmentVariables = {}]
 
-    [#assign configSetName = componentType]
+    [#assign configSetName = occurrence.Core.Type]
 
     [#assign ingressRules = []]
 
@@ -85,7 +85,7 @@
 
     [#assign configSets =
             getInitConfigDirectories() +
-            getInitConfigBootstrap(occurrence, component.Role!"") ]
+            getInitConfigBootstrap(occurrence) ]
 
     [#assign scriptsPath =
             formatRelativePath(

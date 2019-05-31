@@ -144,6 +144,11 @@
                             "Children" : lbChildConfiguration
                         }
                     ]
+                },
+                {
+                    "Names" : "Role",
+                    "Description" : "Server configuration role",
+                    "Default" : ""
                 }
             ]
         }
@@ -197,7 +202,7 @@
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
-                "lg" : {             
+                "lg" : {
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE

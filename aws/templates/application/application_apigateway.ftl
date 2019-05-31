@@ -145,7 +145,7 @@
             description="No IP Address Groups provided for API Gateway"
             context=occurrence
         /]
-        [#continue]
+        [#return]
     [/#if]
 
     [#-- Determine the resource policy                                                --]

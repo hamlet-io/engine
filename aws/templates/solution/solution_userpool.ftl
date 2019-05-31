@@ -377,7 +377,7 @@
                     [#assign linkTarget = getLinkTarget(occurrence,
                                             {
                                                 "Tier" : core.Tier.Id,
-                                                "Component" : component.Id,
+                                                "Component" : core.Component.Id,
                                                 "AuthProvider" : authProvider
                                             })]
                     [#if linkTarget?has_content ]

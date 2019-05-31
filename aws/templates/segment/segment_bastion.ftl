@@ -21,7 +21,8 @@
     [#assign bastionLgName = resources["lg"].Name]
 
     [#assign bastionOS = solution.OS ]
-    [#assign configSetName = componentType]
+    [#assign bastionType = occurrence.Core.Type]
+    [#assign configSetName = bastionType]
     [#assign sshInVpc = getExistingReference(bastionSecurityGroupFromId, "", "", "vpc")?has_content ]
 
     [#switch bastionOS ]
@@ -67,7 +68,7 @@
 
     [#assign configSets =
             getInitConfigDirectories() +
-            getInitConfigBootstrap(occurrence, component.Role!"")]
+            getInitConfigBootstrap(occurrence)]
 
     [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 
@@ -104,8 +105,8 @@
 
     [#if sshEnabled &&
         (
-            (componentType == "bastion") ||
-            ((componentType == "vpc") && sshInVpc)
+            (bastionType == "bastion") ||
+            ((bastionType == "vpc") && sshInVpc)
         )]
 
         [#if deploymentSubsetRequired("iam", true) &&

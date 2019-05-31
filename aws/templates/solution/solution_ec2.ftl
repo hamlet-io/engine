@@ -30,7 +30,7 @@
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
-        [#break]
+        [#return]
     [/#if]
 
     [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
@@ -47,10 +47,10 @@
 
     [#assign environmentVariables = {}]
 
-    [#assign configSetName = componentType ]
+    [#assign configSetName = occurrence.Core.Type ]
     [#assign configSets =
             getInitConfigDirectories() +
-            getInitConfigBootstrap(occurrence, component.Role!"") +
+            getInitConfigBootstrap(occurrence) +
             getInitConfigPuppet() ]
 
     [#assign efsMountPoints = {}]

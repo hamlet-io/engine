@@ -37,14 +37,14 @@
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 },
-                { 
+                {
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
                 },
                 {
                     "Names" : "Profiles",
-                    "Children" : profileChildConfiguration + 
+                    "Children" : profileChildConfiguration +
                                     [
                                         {
                                             "Names" : "Processor",
@@ -81,6 +81,11 @@
                             "Default" : false
                         }
                     ]
+                },
+                {
+                    "Names" : "Role",
+                    "Description" : "Server configuration role",
+                    "Default" : ""
                 }
             ]
         }
@@ -120,7 +125,7 @@
                     "Name" : core.FullName,
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
-                "lg" : {             
+                "lg" : {
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
@@ -132,7 +137,7 @@
                                 formatResourceId(AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE, core.Id)
                     ),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
-                } 
+                }
             },
             "Attributes" : {
             },
