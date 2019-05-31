@@ -41,7 +41,7 @@
             ],
             "Components" : [
                 {
-                    "Type" : REGISTRY_SERVICE_COMPONENT_TYPE,
+                    "Type" : SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE,
                     "Component" : "RegistryServices",
                     "Link" : ["RegistryService" ]
                 }
@@ -143,7 +143,7 @@
     [#local serviceHost = getHostName(domainObject, occurrence)  ]
     [#local hostName = formatDomainName(serviceHost, parentAttributes["DOMAIN_NAME"] ) ]
 
-    [#assign serviceId = formatResourceId(AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE, core.Id, hostName)]
+    [#assign serviceId = formatResourceId(AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE, core.Id)]
 
     [#return
         {

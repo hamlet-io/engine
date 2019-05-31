@@ -261,7 +261,7 @@
                                         [#assign portAttributes = {}]
                                         [#if serviceRecordTypes?seq_contains("SRV") ]
                                             [#assign portAttributes = {
-                                                "ContainerPort" : ports[portMapping.ContainerPort].Port,
+                                                "ContainerPort" : ports[portMapping.ContainerPort].Port
                                             }]
                                         [/#if]
 

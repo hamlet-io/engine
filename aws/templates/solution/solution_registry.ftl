@@ -1,5 +1,5 @@
 [#-- Service Registry --]
-[#if (componentType == REGISTRY_COMPONENT_TYPE) ]
+[#if (componentType == SERVICE_REGISTRY_COMPONENT_TYPE) ]
 
     [#list requiredOccurrences(
             getOccurrences(tier, component),
@@ -31,7 +31,7 @@
         [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
         [#assign publicRouteTable = routeTableConfiguration.Public ]
 
-        [#if deploymentSubsetRequired(REGISTRY_COMPONENT_TYPE, true) ]
+        [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
             [@createCloudMapDNSNamespace 
                 mode=listMode
                 id=registryId
@@ -52,7 +52,7 @@
             [#assign serviceName = resources["service"].Name]
             [#assign serviceHostName = resources["service"].ServiceName ]
 
-            [#if deploymentSubsetRequired(REGISTRY_COMPONENT_TYPE, true) ]
+            [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
                 [@createCloudMapService
                     mode=listMode
                     id=serviceId
