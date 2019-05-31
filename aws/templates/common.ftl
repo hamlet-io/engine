@@ -2293,6 +2293,38 @@ behaviour.
     [#return { targetLinkName : targetLink } ]
 [/#function]
 
+[#function getSrvRegLink occurrence port ]
+
+    [#assign core = occurrence.Core]
+    [#assign targetTierId = (port.SrvReg.Tier) ]
+    [#assign targetComponentId = (port.SrvReg.Component) ]
+    [#assign targetLinkName = formatName(port.SrvReg.LinkName) ]
+    [#assign registryService = contentIfContent(port.SrvReg.RegistryService, port.Name)]
+
+    [#-- Need to be careful to allow an empty value for --]
+    [#-- Instance/Version to be explicitly provided and --]
+    [#-- correctly handled in getLinkTarget.            --]
+    [#--                                                --]
+    [#-- Also note that the LinkName configuration      --]
+    [#-- must be provided if more than one port is used --]
+    [#-- (e.g. classic ELB) to avoid links overwriting  --]
+    [#-- each other.                                    --]
+    [#local targetLink =
+        {
+            "Id" : targetLinkName,
+            "Name" : targetLinkName,
+            "Tier" : targetTierId,
+            "Component" : targetComponentId
+        } +
+        attributeIfTrue("Instance", port.SrvReg.Instance??, port.SrvReg.Instance!"") +
+        attributeIfTrue("Version",  port.SrvReg.Version??, port.SrvReg.Version!"") +
+        attributeIfContent("RegistryService",  registryService)
+    ]
+    [@cfDebug listMode { targetLinkName : targetLink } false /]
+
+    [#return { targetLinkName : targetLink } ]
+[/#function]
+
 [#function isDuplicateLink links link ]
 
     [#local linkKey = ""]

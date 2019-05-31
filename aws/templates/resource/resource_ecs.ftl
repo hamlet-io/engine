@@ -259,6 +259,7 @@
             desiredCount 
             taskId 
             loadBalancers
+            serviceRegistries
             engine 
             networkMode=""
             networkConfiguration={}
@@ -288,9 +289,14 @@
             } + 
             valueIfContent(
                 {
-                    "LoadBalancers" : loadBalancers![]
+                    "LoadBalancers" : loadBalancers
                 },
-                loadBalancers![]) +
+                loadBalancers) +
+            valueIfContent(
+                {
+                    "ServiceRegistries" : serviceRegistries
+                },
+                serviceRegistries) +
             valueIfTrue(
                 {
                     "SchedulingStrategy" : "DAEMON"

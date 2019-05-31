@@ -547,6 +547,36 @@
 
             [/#if]
 
+            [#if port.SrvReg.Configured]
+                [#local srvRegLink = getSrvRegLink(task, port)]
+
+                [#if isDuplicateLink(containerLinks, srvRegLink) ]
+                    [@cfException
+                        mode=listMode
+                        description="Duplicate Link Name"
+                        context=containerLinks
+                        detail=srvRegLink /]
+                    [#continue]
+                [/#if]
+
+                [#-- Treat the LB link like any other - this will also detect --]
+                [#-- if the target is missing                                 --]
+                [#local containerLinks += srvRegLink]
+
+                [#-- Ports should only be defined if connecting to a load balancer --]
+                [#list srvRegLink as key,serviceRegistry]
+                    [#local containerPortMapping +=
+                        {
+                            "ServiceRegistry" :
+                                {
+                                    "Link" : serviceRegistry.Name
+                                }
+                        }
+                    ]
+
+                [/#list]
+            [/#if]
+
             [#if port.IPAddressGroups?has_content]
                 [#if solution.NetworkMode == "awsvpc" || !port.LB.Configured ]
                     [#list getGroupCIDRs(port.IPAddressGroups, true, task ) as cidr]

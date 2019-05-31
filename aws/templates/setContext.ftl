@@ -88,7 +88,11 @@
         {
             "Names" : [ "DataFeed" ],
             "Type" : STRING_TYPE
-        }
+        },
+        {
+            "Names" : [ "RegistryService" ],
+            "Type" : STRING_TYPE
+        },
         {
             "Names" : "Instance",
             "Type" : STRING_TYPE
@@ -254,6 +258,37 @@
             "Names" : ["PortMapping", "Port"],
             "Type" : STRING_TYPE,
             "Default" : ""
+        }
+    ]
+]
+
+[#assign srvRegChildConfiguration = [
+        {
+            "Names" : "Tier",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "Component",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "LinkName",
+            "Type" : STRING_TYPE,
+            "Default" : "srvreg"
+        },
+        {
+            "Names" : "Instance",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "Version",
+            "Type" : STRING_TYPE
+        },
+        {
+            "Names" : "RegistryService",
+            "Type" : STRING_TYPE
         }
     ]
 ]

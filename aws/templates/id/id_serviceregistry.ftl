@@ -1,6 +1,7 @@
 [#-- Resources --]
 [#assign AWS_CLOUDMAP_DNS_NAMESPACE_RESOURCE_TYPE = "cloudmapdnsnamespace" ]
-[#assign AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE = "cloudmapservice"]
+[#assign AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE = "cloudmapservice" ]
+[#assign AWS_CLOUDMAP_INSTANCE_RESOURCE_TYPE = "cloudmapinstance" ]
 
 [#-- Components --]
 [#assign REGISTRY_COMPONENT_TYPE = "registry" ]
@@ -80,8 +81,8 @@
                     "Names" : "RecordTypes",
                     "Description" : "The types of DNS records that an instance can register with the service",
                     "Type" : ARRAY_OF_STRING_TYPE,
-                    "Values" : [ "A", "AAAA", "CNMAE", "SRV" ],
-                    "Default" : [ "A", "AAAA" ]
+                    "Values" : [ "A", "AAAA", "CNAME", "SRV" ],
+                    "Default" : [ "A" ]
                 },
                 {
                     "Names" : "RecordTTL",
@@ -142,18 +143,22 @@
     [#local serviceHost = getHostName(domainObject, occurrence)  ]
     [#local hostName = formatDomainName(serviceHost, parentAttributes["DOMAIN_NAME"] ) ]
 
+    [#assign serviceId = formatResourceId(AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE, core.Id, hostName)]
+
     [#return
         {
             "Resources" : {
                 "service" : {
-                    "Id" : formatResourceId(AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE, core.Id),
+                    "Id" : serviceId,
                     "Name" : core.FullName,
                     "ServiceName" : serviceHost,
                     "Type" : AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE
                 }
             }, 
             "Attributes" : {
-                "FQDN" : hostName
+                "FQDN" : hostName,
+                "RECORD_TYPES" : solution.RecordTypes?join(","),
+                "SERVICE_ARN" : getExistingReference(serviceId, ARN_ATTRIBUTE_TYPE)
             },
             "Roles" : {
                 "Inbound" : {},

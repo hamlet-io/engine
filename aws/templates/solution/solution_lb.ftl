@@ -114,6 +114,45 @@
             [/#list]
         [/#if]
 
+
+        [#list solution.Links?values as link]
+            [#if link?is_hash]
+
+                [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                [@cfDebug listMode linkTarget false /]
+
+                [#if !linkTarget?has_content]
+                    [#continue]
+                [/#if]
+
+                [#assign linkTargetCore = linkTarget.Core ]
+                [#assign linkTargetConfiguration = linkTarget.Configuration ]
+                [#assign linkTargetResources = linkTarget.State.Resources ]
+                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+
+                [#switch linkTargetCore.Type]
+                    [#case REGISTRY_SERVICE_COMPONENT_TYPE ]
+                        [#assign registryServiceId = linkTargetResources["service"].Id ]
+                        [#assign instanceAttributes = getCloudMapInstanceAttribute( 
+                                                        "alias",
+                                                        getExistingReference(lbId, DNS_ATTRIBUTE_TYPE) )]
+                        
+                        [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
+                            [#assign cloudMapInstanceId = formatDependentResourceId(
+                                                                AWS_CLOUDMAP_INSTANCE_RESOURCE_TYPE, lbId, registryServiceId)]
+                            [@createCloudMapInstance 
+                                mode=listMode
+                                id=cloudMapInstanceId
+                                serviceId=registryServiceId
+                                instanceId=core.ShortName
+                                instanceAttributes=instanceAttributes
+                            /]
+                        [/#if]
+                        [#break]
+                [/#switch]
+            [/#if]
+        [/#list]
+
         [#list occurrence.Occurrences![] as subOccurrence]
 
             [#assign core = subOccurrence.Core ]

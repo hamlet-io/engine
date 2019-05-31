@@ -106,6 +106,7 @@
                 [#if deploymentSubsetRequired("ecs", true)]
 
                     [#assign loadBalancers = [] ]
+                    [#assign serviceRegistries = []]
                     [#assign dependencies = [] ]
                     [#list containers as container]
 
@@ -241,6 +242,30 @@
                                     /]
                                 [/#list]
                             [/#if]
+
+                            [#if portMapping.ServiceRegistry?has_content]
+                                [#assign serviceRegistry = portMapping.ServiceRegistry]
+                                [#assign srvReglink = container.Links[serviceRegistry.Link] ]
+                                [@cfDebug listMode srvReglink false /]
+                                [#assign srvReglinkCore = srvReglink.Core ]
+                                [#assign srvReglinkResources = srvReglink.State.Resources ]
+                                [#assign srvReglinkConfiguration = srvReglink.Configuration.Solution ]
+                                [#assign srvReglinkAttributes = srvReglink.State.Attributes ]
+
+                                [#switch srvReglinkCore.Type]
+
+                                    [#case REGISTRY_SERVICE_COMPONENT_TYPE]
+                                        [#assign serviceRegistries +=
+                                            [
+                                                {
+                                                    "ContainerName" : container.Name,
+                                                    "RegistryArn" : srvReglinkAttributes["SERVICE_ARN"]
+                                                }
+                                            ]
+                                        ]
+                                        [#break]
+                                [/#switch]
+                            [/#if]
                         [/#list]
                         [#if container.IngressRules?has_content ]
                             [#list container.IngressRules as ingressRule ]
@@ -277,6 +302,7 @@
                         desiredCount=desiredCount
                         taskId=taskId
                         loadBalancers=loadBalancers
+                        serviceRegistries=serviceRegistries
                         roleId=ecsServiceRoleId
                         networkMode=networkMode
                         networkConfiguration=aswVpcNetworkConfiguration!{}
