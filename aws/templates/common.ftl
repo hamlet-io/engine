@@ -23,12 +23,23 @@
     [#return false]
 [/#function]
 
-[#function requiredOccurrences occurrences deploymentUnit]
+[#function requiredOccurrences occurrences deploymentUnit checkSubOccurrences=false]
     [#local result = [] ]
     [#list asFlattenedArray(occurrences) as occurrence]
-        [#if occurrence.Configuration.Solution.Enabled &&
-            deploymentRequired(occurrence.Configuration.Solution, deploymentUnit, false) ]
-            [#local result += [occurrence] ]
+        [#-- Ignore if not enabled --]
+        [#if occurrence.Configuration.Solution.Enabled]
+            [#-- Is the occurrence required --]
+            [#if deploymentRequired(occurrence.Configuration.Solution, deploymentUnit, false)]
+                [#local result += [occurrence] ]
+                [#continue]
+            [/#if]
+            [#-- is a suboccurrence required --]
+            [#if checkSubOccurrences &&
+                occurrence.Occurrences?has_content &&
+                requiredOccurrences(occurrence.Occurrences, deploymentUnit, false)?has_content]
+                [#local result += [occurrence] ]
+                [#continue]
+            [/#if]
         [/#if]
     [/#list]
     [#return result ]

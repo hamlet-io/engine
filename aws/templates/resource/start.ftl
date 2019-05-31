@@ -638,15 +638,6 @@
                 [#assign dashboardRows = []]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
 
-                [#-- Check for disabled components                                       --]
-                [#-- TODO(mfl): the code that looks for required occurrences can move    --]
-                [#-- here once all templates use that approach, at which point the       --]
-                [#-- enabled check will be unnecessary as its part of requiredOccurences --]
-                [#-- This will also remove some top level boilerplate thats in every     --]
-                [#-- template so will reduce the code depth and improve readability      --]
-                [#if !(component.Enabled!true)]
-                    [#continue]
-                [/#if]
                 [#list asArray(compositeLists) as compositeList]
                     [#local regex = compositeList?matches(r"^.*composite_(.*).ftl$")]
                     [#if regex]
@@ -654,7 +645,12 @@
                         [#if ["segment", "solution", "application"]?seq_contains(level)]
                             [#local componentMacro = level + "_" + componentType]
                             [#if (.vars[componentMacro]!"")?is_directive]
-                                [@(.vars[componentMacro]) tier component/]
+                                [#list requiredOccurrences(
+                                    getOccurrences(tier, component),
+                                    deploymentUnit,
+                                    true) as occurrence]
+                                    [@(.vars[componentMacro]) occurrence /]
+                                [/#list]
                             [#else]
                                 [@cfDebug listMode "Unable to invoke macro " + componentMacro false /]
                             [/#if]
