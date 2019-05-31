@@ -229,6 +229,13 @@ object.
                     "Names" : "LogMetrics",
                     "Subobjects" : true,
                     "Children" : logMetricChildrenConfiguration
+                },
+                {
+                    "Names" : "BasePathBehaviour",
+                    "Description" : "How to handle base paths provided in the spec",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "ignore", "prepend", "split" ],
+                    "Default" : "ignore"
                 }
             ]
         },

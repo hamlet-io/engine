@@ -262,7 +262,10 @@
                             "Bucket" : operationsBucket,
                             "Key" : swaggerFileLocation
                         },
-                        "Name" : apiName
+                        "Name" : apiName,
+                        "Parameters" : {
+                            "basepath" : solution.BasePathBehaviour
+                        }
                     } +
                     attributeIfTrue(
                         "EndpointConfiguration",
