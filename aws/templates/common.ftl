@@ -908,12 +908,12 @@ behaviour.
                 [#local result = getRDSState(occurrence)]
                 [#break]
 
-            [#case REGISTRY_COMPONENT_TYPE]
-                [#local result = getRegistryState(occurrence)]
+            [#case SERVICE_REGISTRY_COMPONENT_TYPE]
+                [#local result = getServiceRegistryState(occurrence)]
                 [#break]
             
-            [#case REGISTRY_SERVICE_COMPONENT_TYPE]
-                [#local result = getRegistryServiceState(occurrence, parentOccurrence)]
+            [#case SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE]
+                [#local result = getServiceRegistryServiceState(occurrence, parentOccurrence)]
                 [#break]
 
             [#case "s3"]
@@ -2293,13 +2293,13 @@ behaviour.
     [#return { targetLinkName : targetLink } ]
 [/#function]
 
-[#function getSrvRegLink occurrence port ]
+[#function getRegistryLink occurrence port ]
 
     [#assign core = occurrence.Core]
-    [#assign targetTierId = (port.SrvReg.Tier) ]
-    [#assign targetComponentId = (port.SrvReg.Component) ]
-    [#assign targetLinkName = formatName(port.SrvReg.LinkName) ]
-    [#assign registryService = contentIfContent(port.SrvReg.RegistryService, port.Name)]
+    [#assign targetTierId = (port.Registry.Tier) ]
+    [#assign targetComponentId = (port.Registry.Component) ]
+    [#assign targetLinkName = formatName(port.Registry.LinkName) ]
+    [#assign registryService = contentIfContent(port.Registry.RegistryService, port.Name)]
 
     [#-- Need to be careful to allow an empty value for --]
     [#-- Instance/Version to be explicitly provided and --]
@@ -2307,7 +2307,7 @@ behaviour.
     [#--                                                --]
     [#-- Also note that the LinkName configuration      --]
     [#-- must be provided if more than one port is used --]
-    [#-- (e.g. classic ELB) to avoid links overwriting  --]
+    [#-- to avoid links overwriting                     --]
     [#-- each other.                                    --]
     [#local targetLink =
         {
@@ -2316,8 +2316,8 @@ behaviour.
             "Tier" : targetTierId,
             "Component" : targetComponentId
         } +
-        attributeIfTrue("Instance", port.SrvReg.Instance??, port.SrvReg.Instance!"") +
-        attributeIfTrue("Version",  port.SrvReg.Version??, port.SrvReg.Version!"") +
+        attributeIfTrue("Instance", port.Registry.Instance??, port.Registry.Instance!"") +
+        attributeIfTrue("Version",  port.Registry.Version??, port.Registry.Version!"") +
         attributeIfContent("RegistryService",  registryService)
     ]
     [@cfDebug listMode { targetLinkName : targetLink } false /]

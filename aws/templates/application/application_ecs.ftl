@@ -245,22 +245,41 @@
 
                             [#if portMapping.ServiceRegistry?has_content]
                                 [#assign serviceRegistry = portMapping.ServiceRegistry]
-                                [#assign srvReglink = container.Links[serviceRegistry.Link] ]
-                                [@cfDebug listMode srvReglink false /]
-                                [#assign srvReglinkCore = srvReglink.Core ]
-                                [#assign srvReglinkResources = srvReglink.State.Resources ]
-                                [#assign srvReglinkConfiguration = srvReglink.Configuration.Solution ]
-                                [#assign srvReglinkAttributes = srvReglink.State.Attributes ]
+                                [#assign link = container.Links[serviceRegistry.Link] ]
+                                [@cfDebug listMode link false /]
+                                [#assign linkCore = link.Core ]
+                                [#assign linkResources = link.State.Resources ]
+                                [#assign linkConfiguration = link.Configuration.Solution ]
+                                [#assign linkAttributes = link.State.Attributes ]
 
-                                [#switch srvReglinkCore.Type]
+                                [#switch linkCore.Type]
 
-                                    [#case REGISTRY_SERVICE_COMPONENT_TYPE]
+                                    [#case SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE]
+
+                                        [#assign serviceRecordTypes = linkAttributes["RECORD_TYPES"]?split(",") ]
+
+                                        [#assign portAttributes = {}]
+                                        [#if serviceRecordTypes?seq_contains("SRV") ]
+                                            [#assign portAttributes = {
+                                                "ContainerPort" : ports[portMapping.ContainerPort].Port,
+                                            }]
+                                        [/#if]
+
+                                        [#if serviceRecordTypes?seq_contains("A") && networkMode != "awsvpc" ]
+                                            [@cfException listMode "A record registration only availalbe on awsvpc network Type" link /]
+                                        [/#if]
+
+                                        [#if serviceRecordTypes?seq_contains("AAAA") ]
+                                            [@cfException listMode "AAAA Service record are not supported" link /]
+                                        [/#if]
+
                                         [#assign serviceRegistries +=
                                             [
                                                 {
                                                     "ContainerName" : container.Name,
-                                                    "RegistryArn" : srvReglinkAttributes["SERVICE_ARN"]
-                                                }
+                                                    "RegistryArn" : linkAttributes["SERVICE_ARN"]
+                                                } +
+                                                portAttributes
                                             ]
                                         ]
                                         [#break]

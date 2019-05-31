@@ -83,7 +83,7 @@
                     "Children" : lbChildConfiguration
                 },
                 {
-                    "Names" : "SrvReg",
+                    "Names" : "Registry",
                     "Children" : srvRegChildConfiguration
                 },
                 {

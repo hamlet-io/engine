@@ -547,22 +547,22 @@
 
             [/#if]
 
-            [#if port.SrvReg.Configured]
-                [#local srvRegLink = getSrvRegLink(task, port)]
+            [#if port.Registry.Configured]
+                [#local RegistryLink = getRegistryLink(task, port)]
 
-                [#if isDuplicateLink(containerLinks, srvRegLink) ]
+                [#if isDuplicateLink(containerLinks, RegistryLink) ]
                     [@cfException
                         mode=listMode
                         description="Duplicate Link Name"
                         context=containerLinks
-                        detail=srvRegLink /]
+                        detail=RegistryLink /]
                     [#continue]
                 [/#if]
 
                 [#-- Add to normal container links --]
-                [#local containerLinks += srvRegLink]
+                [#local containerLinks += RegistryLink]
 
-                [#list srvRegLink as key,serviceRegistry]
+                [#list RegistryLink as key,serviceRegistry]
                     [#local containerPortMapping +=
                         {
                             "ServiceRegistry" :

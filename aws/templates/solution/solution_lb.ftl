@@ -131,7 +131,7 @@
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
 
                 [#switch linkTargetCore.Type]
-                    [#case REGISTRY_SERVICE_COMPONENT_TYPE ]
+                    [#case SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE ]
                         [#assign registryServiceId = linkTargetResources["service"].Id ]
                         [#assign instanceAttributes = getCloudMapInstanceAttribute( 
                                                         "alias",

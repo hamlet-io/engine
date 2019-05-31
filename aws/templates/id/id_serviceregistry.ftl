@@ -4,12 +4,12 @@
 [#assign AWS_CLOUDMAP_INSTANCE_RESOURCE_TYPE = "cloudmapinstance" ]
 
 [#-- Components --]
-[#assign REGISTRY_COMPONENT_TYPE = "registry" ]
-[#assign REGISTRY_SERVICE_COMPONENT_TYPE = "registryservice" ]
+[#assign SERVICE_REGISTRY_COMPONENT_TYPE = "serviceregistry" ]
+[#assign SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE = "serviceregistryservice" ]
 
 [#assign componentConfiguration +=
     {
-        REGISTRY_COMPONENT_TYPE : {
+        SERVICE_REGISTRY_COMPONENT_TYPE : {
             "Properties"  : [
                 {
                     "Type"  : "Description",
@@ -47,7 +47,7 @@
                 }
             ]
         },
-        REGISTRY_SERVICE_COMPONENT_TYPE : {
+        SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE : {
             "Properties"  : [
                 {
                     "Type"  : "Description",
@@ -101,7 +101,7 @@
         }
     }]
 
-[#function getRegistryState occurrence ]
+[#function getServiceRegistryState occurrence ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -130,7 +130,7 @@
 [/#function]
 
 
-[#function getRegistryServiceState occurrence parent ]
+[#function getServiceRegistryServiceState occurrence parent ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
