@@ -559,11 +559,9 @@
                     [#continue]
                 [/#if]
 
-                [#-- Treat the LB link like any other - this will also detect --]
-                [#-- if the target is missing                                 --]
+                [#-- Add to normal container links --]
                 [#local containerLinks += srvRegLink]
 
-                [#-- Ports should only be defined if connecting to a load balancer --]
                 [#list srvRegLink as key,serviceRegistry]
                     [#local containerPortMapping +=
                         {
