@@ -198,9 +198,9 @@
 
             [@createComponentSecurityGroup
                 mode=listMode
-                tier=core.Tier
-                component=core.Component
-                vpcId=vpcId /]
+                occurrence=occurrence
+                vpcId=vpcId 
+            /]
 
             [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
