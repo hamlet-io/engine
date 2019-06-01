@@ -115,7 +115,7 @@
             [
                 {
                     "Key" : "idle_timeout.timeout_seconds",
-                    "Value" : idleTimeout
+                    "Value" : idleTimeout?c
                 }
             ],
             []
@@ -124,7 +124,7 @@
             [
                 {
                     "Key" : "access_logs.s3.enabled",
-                    "Value" : true
+                    "Value" : "true"
                 },
                 {
                     "Key" : "access_logs.s3.bucket",
@@ -141,7 +141,7 @@
             [
                 {
                     "Key" : "load_balancing.cross_zone.enabled",
-                    "Value" : true
+                    "Value" : "true"
                 }
             ],
             []
@@ -209,7 +209,7 @@
 
 [#macro createTargetGroup mode id name tier component destination attributes vpcId targetType=""]
 
-    [#local healthCheckProtocol = (destination.HealthCheck.Protocol)!destination.Protocol]
+    [#local healthCheckProtocol = ((destination.HealthCheck.Protocol)!destination.Protocol)?upper_case]
 
     [#local targetGroupAttributes = [] ]
     [#list attributes as key,value ]
@@ -217,7 +217,7 @@
             [
                 {
                     "Key" : key,
-                    "Value" : value
+                    "Value" : value?c
                 }
             ]]
     [/#list]
@@ -233,7 +233,7 @@
                 "HealthCheckIntervalSeconds" : destination.HealthCheck.Interval,
                 "HealthyThresholdCount" : destination.HealthCheck.HealthyThreshold,
                 "Port" : destination.Port,
-                "Protocol" : destination.Protocol,
+                "Protocol" : (destination.Protocol)?upper_case,
                 "VpcId": getReference(vpcId),
                 "TargetGroupAttributes" : targetGroupAttributes
             } +
