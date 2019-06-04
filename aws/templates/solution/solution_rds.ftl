@@ -249,8 +249,7 @@
 
             [@createDependentComponentSecurityGroup
                 mode=listMode
-                tier=core.Tier
-                component=core.Component
+                occurrence=occurrence
                 resourceId=rdsId
                 resourceName=rdsFullName
                 vpcId=vpcId
