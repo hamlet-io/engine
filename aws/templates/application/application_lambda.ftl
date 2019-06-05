@@ -41,7 +41,7 @@
                 [#assign vpc = getExistingReference(vpcId)]
             [/#if]
 
-            [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+            [#assign fragment = getOccurrenceFragmentBase(fn) ]
 
             [#assign contextLinks = getLinkTargets(fn) ]
             [#assign _context =
