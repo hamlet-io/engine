@@ -2081,14 +2081,12 @@
     "Bastion": {
       "Enabled": true,
       "Active": false,
-      "PerSegment": true,
       "IPAddressGroups": []
     },
     "ConsoleOnly": false,
     "S3": {
       "IncludeTenant": false
     },
-    "SSHPerSegment": true,
     "RotateKey": true,
     "Tiers": {
       "Order": [

@@ -1060,7 +1060,6 @@
             "Enabled" : true,
             "MultiAZ" : false
         },
-        "SSHPerSegment" : true,
         "RotateKey" : true,
         "Tiers" : {
             "Order" : ["web", "msg", "app", "db", "dir", "ana", "api", "spare",

@@ -74,6 +74,10 @@
             "Type" : STRING_TYPE
         },
         {
+            "Names" : [ "Key" ],
+            "Type" : STRING_TYPE
+        },
+        {
             "Names" : [ "Branch" ],
             "Type" : STRING_TYPE
         },
@@ -808,7 +812,6 @@
                             ((segmentObject.SSH.Enabled)!(segmentObject.Bastion.Enabled)!true)]
     [#assign sshActive = sshEnabled &&
                             ((segmentObject.SSH.Active)!(segmentObject.Bastion.Active)!false)]
-    [#assign sshPerEnvironment = (segmentObject.SSH.PerSegment)!(segmentObject.SSHPerSegment)!(segmentObject.Bastion.PerSegment)!true]
     [#assign sshFromProxySecurityGroup = getExistingReference(formatSSHFromProxySecurityGroupId())]
 
     [#assign consoleOnly = (segmentObject.ConsoleOnly)!false]

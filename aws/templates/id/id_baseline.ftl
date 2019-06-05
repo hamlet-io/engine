@@ -326,45 +326,17 @@
                 }
             ]
             [#break]
-
         [#case "oai"]
-            [#local legacyKey = false]
-            [#if core.SubComponent.Id == "oai" ]
 
-                [#assign opsDataLink = getLinkTarget(occurrence, 
-                                    {
-                                        "Tier" : "mgmt",
-                                        "Component" : "baseline",
-                                        "Instance" : "",
-                                        "Version" : "",
-                                        "DataBucket" : "opsdata"
-                                    }
-                )]
-
-                [#local opsDataBucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, "opsdata" )]
-                [#local legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
-
-                [#if getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE)?has_content ]
-                    [#local legacyKey = true]                    
-                [/#if]
-
-            [/#if]
-
-            [#if legacyKey ]
-                [#local OAIId = legacyOAIId ]
-                [#local OAIName = formatSegmentFullName()]
-            [#else]
-                [#local OAIId = formatResourceId( AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE, core.Id) ]
-                [#local OAIName = core.FullName ]
-            [/#if]
+            [#local OAIId = formatResourceId( AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE, core.Id) ]
+            [#local OAIName = core.FullName ]
 
             [#local resources += 
                 {
                     "originAccessId" : {
                         "Id" : OAIId,
                         "Name" : OAIName,
-                        "Type" : AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE,
-                        "LegacyKey": legacyKey
+                        "Type" : AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE
                     }
                 }
             ]
