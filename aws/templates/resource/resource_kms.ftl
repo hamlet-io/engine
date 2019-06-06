@@ -12,7 +12,7 @@
 ]
 [#assign outputMappings +=
     {
-                AWS_CMK_RESOURCE_TYPE : CMK_OUTPUT_MAPPINGS
+        AWS_CMK_RESOURCE_TYPE : CMK_OUTPUT_MAPPINGS
     }
 ]
 

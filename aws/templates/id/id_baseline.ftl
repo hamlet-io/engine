@@ -1,6 +1,11 @@
+[#-- Resources --]
+[#assign LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE = "sshPrivKey" ]
+[#assign AWS_SSH_KEY_PAIR_RESOURCE_TYPE = "sshKeyPair" ]
+
 [#-- Components --]
 [#assign BASELINE_COMPONENT_TYPE = "baseline" ]
 [#assign BASELINE_DATA_COMPONENT_TYPE = "baselinedata" ]
+[#assign BASELINE_KEY_COMPONENT_TYPE = "baselinekey" ]
 
 [#assign componentConfiguration +=
     {
@@ -41,6 +46,11 @@
                     "Type" : BASELINE_DATA_COMPONENT_TYPE,
                     "Component" : "DataBuckets",
                     "Link" : ["DataBucket"]
+                },
+                {
+                    "Type" : BASELINE_KEY_COMPONENT_TYPE,
+                    "Component" : "Keys",
+                    "Link" : ["Key"]
                 }
             ]
         },
@@ -105,6 +115,35 @@
                     "Children" : s3NotificationChildConfiguration
                 }
             ]
+        },
+        BASELINE_KEY_COMPONENT_TYPE : {
+                "Properties" : [
+                {
+                    "Type" : "Description",
+                    "Value" : "Shared security keys for a segment"
+                },
+                {
+                    "Type" : "Providers",
+                    "Value" : [ "aws" ]
+                },
+                {
+                    "Type" : "ComponentLevel",
+                    "Value" : "segment"
+                }
+            ],
+            "Attributes" : [
+                {
+                    "Names" : "Engine",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "cmk", "ssh", "oai" ],
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Links",
+                    "Subobjects" : true,
+                    "Children" : linkChildrenConfiguration
+                }
+            ]
         }
     }]
 
@@ -153,7 +192,6 @@
     ]
     [#return result ]
 [/#function]
-
 
 [#function getBaselineStorageState occurrence parent ]
     [#local core = occurrence.Core]
@@ -214,6 +252,119 @@
     [#return result ]
 [/#function]
 
+[#function getBaselineKeyState occurrence parent ]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+
+    [#local parentCore = occurrence.Core ]
+    [#local parentState = parent.State ]
+
+    [#local resources = {}]
+
+    [#switch solution.Engine ]
+        [#case "cmk"]
+            [#local legacyKey = false]
+            [#if core.SubComponent.Id == "cmk" &&
+                    getExistingReference(formatSegmentCMKTemplateId())?has_content ]
+                [#local cmkId = formatSegmentCMKTemplateId()]
+                [#local cmkName = formatSegmentFullName()]
+                [#local cmkAliasId = formatSegmentCMKAliasId(cmkId)]
+                [#local cmkAliasName = formatSegmentFullName() ]
+                [#local legacyKey = true ]
+            [#else]
+                [#local cmkId = formatResourceId(AWS_CMK_RESOURCE_TYPE, core.Id )]
+                [#local cmkName = core.FullName]
+                [#local cmkAliasId = formatResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, core.Id )]
+                [#local cmkAliasName = core.FullName ]
+            [/#if]
+
+            [#local resources += 
+                {
+                    "cmk" : {
+                        "Id" : legacyVpc?then(formatSegmentCMKId(), cmkId),
+                        "ResourceId" : cmkId,
+                        "Name" : cmkName,
+                        "Type" : AWS_CMK_RESOURCE_TYPE,
+                        "LegacyKey": legacyKey
+                    },
+                    "cmkAlias" : {
+                        "Id" : cmkAliasId,
+                        "Name" : formatRelativePath( "alias", cmkName),
+                        "Type" : AWS_CMK_ALIAS_RESOURCE_TYPE
+                    }
+                }
+            ]
+
+            [#break]
+
+        [#case "ssh"]
+            [#local legacyKey = false]
+            [#if core.SubComponent.Id == "ssh" &&
+                    getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE)?has_content ]
+                [#local keyPairId = formatEC2KeyPairId()]
+                [#local keyPairName = formatSegmentFullName() ]
+                [#local legacyKey = true ]
+            [#else]
+                [#local keyPairId = formatResourceId(AWS_SSH_KEY_PAIR_RESOURCE_TYPE, core.Id)]
+                [#local keyPairName = core.FullName ]
+            [/#if]
+
+            [#local resources += 
+                {
+                    "localKeyPair" : {
+                        "Id" : formatResourceId(LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE, core.Id),
+                        "PrivateKey" : formatName(".aws", accountObject.Id, regionId, core.SubComponent.Name, "prv") + ".pem",
+                        "PublicKey" : formatName(".aws", accountObject.Id, regionId, core.SubComponent.Name, "crt") + ".pem",
+                        "Type" : LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE
+                    },
+                    "ec2KeyPair" : {
+                        "Id" : keyPairId,
+                        "Name" : keyPairName,
+                        "Type" : AWS_SSH_KEY_PAIR_RESOURCE_TYPE,
+                        "LegacyKey": legacyKey
+                    }
+                }
+            ]
+            [#break]
+        [#case "oai"]
+
+            [#local OAIId = formatResourceId( AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE, core.Id) ]
+            [#local OAIName = core.FullName ]
+
+            [#local resources += 
+                {
+                    "originAccessId" : {
+                        "Id" : OAIId,
+                        "Name" : OAIName,
+                        "Type" : AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE
+                    }
+                }
+            ]
+
+            [#break]
+        [#default]
+            [@cfException
+                mode=listMode
+                description="Unsupported Key Type"
+                detail=solution.Engine
+                context=occurrence
+            /]
+    [/#switch]
+
+    [#local result =
+        {
+            "Resources" : resources,
+            "Attributes" : {
+            },
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        }
+    ]
+    [#return result ]
+[/#function]
+
 [#-- Resources --]
 [#assign SEED_RESOURCE_TYPE = "seed" ]
 
@@ -241,4 +392,4 @@
             formatSegmentS3Id("application"),
             formatSegmentS3Id("backups")
         )]
-[/#function]
+[/#function]    

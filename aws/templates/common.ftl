@@ -992,6 +992,11 @@ behaviour.
                 [#local result = getBaselineStorageState(occurrence, parentOccurrence)]
                 [#break]
 
+            
+            [#case BASELINE_KEY_COMPONENT_TYPE ]
+                [#local result = getBaselineKeyState(occurrence, parentOccurrence)]
+                [#break]
+
             [#case "external"]
                 [#local result +=
                     {
