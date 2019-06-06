@@ -61,7 +61,7 @@
         [#assign configSetName = componentType ]
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(occurrence, component.Role!"") +
+                getInitConfigBootstrap(occurrence) +
                 getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers, solution.VolumeDrivers ) ]
 
         [#assign efsMountPoints = {}]
@@ -199,7 +199,7 @@
             [@createComponentSecurityGroup
                 mode=listMode
                 occurrence=occurrence
-                vpcId=vpcId 
+                vpcId=vpcId
             /]
 
             [#list resources.logMetrics!{} as logMetricName,logMetric ]
