@@ -56,7 +56,7 @@
                 {
                     "Type" : EFS_MOUNT_COMPONENT_TYPE,
                     "Component" : "Mounts",
-                    "Link" : "Mount" 
+                    "Link" : "Mount"
                 }
             ]
         },
@@ -85,6 +85,10 @@
         }
     }]
 
+[#macro aws_efs_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getEFSState(occurrence)]
+[/#macro]
+
 [#function getEFSState occurrence]
 
     [#local core = occurrence.Core]
@@ -93,7 +97,7 @@
 
     [#local zoneResources = {} ]
     [#list zones as zone ]
-        [#local zoneResources += 
+        [#local zoneResources +=
             {
                 zone.Id : {
                     "efsMountTarget" : {
@@ -127,12 +131,16 @@
     ]
 [/#function]
 
+[#macro aws_efsmount_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getEFSMountState(occurrence, parent)]
+[/#macro]
+
 [#function getEFSMountState occurrence parent ]
     [#local configuration = occurrence.Configuration.Solution]
 
     [#local efsId = parent.State.Attributes["EFS"] ]
 
-    [#return 
+    [#return
         {
             "Resources" : {},
             "Attributes" : {

@@ -440,6 +440,9 @@
         }
     } ]
 
+[#macro aws_ecs_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getECSState(occurrence)]
+[/#macro]
 
 [#function getECSState occurrence]
     [#local core = occurrence.Core ]
@@ -532,6 +535,10 @@
     ]
 [/#function]
 
+[#macro aws_service_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getServiceState(occurrence)]
+[/#macro]
+
 [#function getServiceState occurrence]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -620,6 +627,10 @@
         }
     ]
 [/#function]
+
+[#macro aws_task_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getTaskState(occurrence, parent)]
+[/#macro]
 
 [#function getTaskState occurrence parent]
     [#local core = occurrence.Core ]

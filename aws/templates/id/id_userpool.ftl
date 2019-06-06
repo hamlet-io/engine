@@ -306,6 +306,10 @@
         }
     }]
 
+[#macro aws_userpool_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getUserPoolState(occurrence, baseState)]
+[/#macro]
+
 [#function getUserPoolState occurrence baseState]
     [#local core = occurrence.Core]
 
@@ -463,6 +467,10 @@
     [/#if]
 [/#function]
 
+[#macro aws_userpoolclient_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getUserPoolClientState(occurrence, parent)]
+[/#macro]
+
 [#function getUserPoolClientState occurrence parent ]
     [#local core = occurrence.Core]
 
@@ -496,6 +504,10 @@
             }
         }]
 [/#function]
+
+[#macro aws_userpoolauthprovider_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getUserPoolAuthProviderState(occurrence)]
+[/#macro]
 
 [#function getUserPoolAuthProviderState occurrence ]
     [#local core = occurrence.Core]

@@ -26,7 +26,7 @@
                     "Type" : STRING_TYPE,
                     "Default" : ""
                 },
-                { 
+                {
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
@@ -85,6 +85,10 @@
             ]
         }
     }]
+
+[#macro aws_user_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getUserState(occurrence)]
+[/#macro]
 
 [#function getUserState occurrence]
     [#local core = occurrence.Core]

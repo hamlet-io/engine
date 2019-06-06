@@ -321,6 +321,11 @@ If Certificate is not configured, then Mode 1 is used if CloudFront is
 configured and Mode 4 is used if CloudFront is not configured. No mappings are
 created in either case.
 --]
+
+[#macro aws_apigateway_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getAPIGatewayState(occurrence)]
+[/#macro]
+
 [#function getAPIGatewayState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -640,6 +645,10 @@ created in either case.
         }
     ]
 [/#function]
+
+[#macro aws_apiusageplan_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getAPIGatewayUsagePlanState(occurrence)]
+[/#macro]
 
 [#function getAPIGatewayUsagePlanState occurrence]
     [#local core = occurrence.Core]

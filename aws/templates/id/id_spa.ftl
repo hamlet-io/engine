@@ -201,7 +201,11 @@
             ]
         }
     }]
-    
+
+[#macro aws_spa_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getSPAState(occurrence)]
+[/#macro]
+
 [#function getSPAState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -241,16 +245,16 @@
                     "Id" : "spa",
                     "Type" : AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE
                 },
-                "cforiginconfig" : { 
+                "cforiginconfig" : {
                     "Id" : "config",
                     "Type" : AWS_CLOUDFRONT_ORIGIN_RESOURCE_TYPE
                 },
-                "wafacl" : { 
+                "wafacl" : {
                     "Id" : formatDependentWAFAclId(cfId),
                     "Name" : formatComponentWAFAclName(core.Tier, core.Component, occurrence),
                     "Type" : AWS_WAF_ACL_RESOURCE_TYPE
                 }
-            } + 
+            } +
             attributeIfContent( "paths", pathResources ),
             "Attributes" : {
                 "FQDN" : fqdn,

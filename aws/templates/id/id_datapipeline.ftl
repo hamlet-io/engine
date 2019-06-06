@@ -61,7 +61,7 @@
                 },
                 {
                     "Names" : "Profiles",
-                    "Children" : profileChildConfiguration + 
+                    "Children" : profileChildConfiguration +
                                     [
                                         {
                                             "Names" : "Processor",
@@ -74,8 +74,13 @@
         }
     }]
 
+
+[#macro aws_datapipeline_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getDataPipelineState(occurrence)]
+[/#macro]
+
 [#function getDataPipelineState occurrence]
-    
+
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence) ]

@@ -815,200 +815,26 @@ behaviour.
 
         [/#if]
 
-        [#switch core.Type!""]
-            [#case LB_COMPONENT_TYPE]
-                [#local result = getLBState(occurrence)]
-                [#break]
+        [#local stateMacro = ["aws", core.Type!"", "cf", "state"]?join("_")]
+        [#if (.vars[stateMacro]!"")?is_directive]
+            [@(.vars[stateMacro]) occurrence parentOccurrence result /]
+            [#local result = componentState]
+        [#else]
 
-            [#case LB_PORT_COMPONENT_TYPE]
-                [#local result = getLBPortState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case APIGATEWAY_COMPONENT_TYPE]
-                [#local result = getAPIGatewayState(occurrence)]
-                [#break]
-
-            [#case APIGATEWAY_USAGEPLAN_COMPONENT_TYPE]
-                [#local result = getAPIGatewayUsagePlanState(occurrence)]
-                [#break]
-
-            [#case "cache"]
-                [#local result = getCacheState(occurrence)]
-                [#break]
-
-            [#case "contenthub"]
-                [#local result = getContentHubState(occurrence, result)]
-                [#break]
-
-            [#case "contentnode"]
-                [#local result = getContentNodeState(occurrence)]
-                [#break]
-
-            [#case DATAFEED_COMPONENT_TYPE]
-                [#local result = getDataFeedState(occurrence)]
-                [#break]
-
-            [#case DATASET_COMPONENT_TYPE ]
-                [#local result = getDataSetState(occurrence)]
-                [#break]
-
-            [#case DATAPIPELINE_COMPONENT_TYPE ]
-                [#local result = getDataPipelineState(occurrence)]
-                [#break]
-
-            [#case DATAVOLUME_COMPONENT_TYPE ]
-                [#local result = getDataVolumeState(occurrence)]
-                [#break]
-
-            [#case EC2_COMPONENT_TYPE]
-                [#local result = getEC2State(occurrence)]
-                [#break]
-
-            [#case COMPUTECLUSTER_COMPONENT_TYPE]
-                [#local result = getComputeClusterState(occurrence)]
-                [#break]
-
-            [#case "ecs"]
-                [#local result = getECSState(occurrence)]
-                [#break]
-
-            [#case "efs"]
-                [#local result = getEFSState(occurrence)]
-                [#break]
-
-            [#case "efsMount" ]
-                [#local result = getEFSMountState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case ES_COMPONENT_TYPE]
-                [#local result = getESState(occurrence, result)]
-                [#break]
-
-            [#case "function"]
-                [#local result = getFunctionState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case "lambda"]
-                [#local result = getLambdaState(occurrence)]
-                [#break]
-
-            [#case MOBILEAPP_COMPONENT_TYPE]
-                [#local result = getMobileAppState(occurrence)]
-                [#break]
-
-            [#case MOBILENOTIFIER_COMPONENT_TYPE ]
-                [#local result = getMobileNotifierState(occurrence)]
-                [#break]
-
-            [#case MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE ]
-                [#local result = getMobileNotifierPlatformState(occurrence)]
-                [#break]
-
-            [#case "rds"]
-                [#local result = getRDSState(occurrence)]
-                [#break]
-
-            [#case SERVICE_REGISTRY_COMPONENT_TYPE]
-                [#local result = getServiceRegistryState(occurrence)]
-                [#break]
-            
-            [#case SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE]
-                [#local result = getServiceRegistryServiceState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case "s3"]
-                [#local result = getS3State(occurrence)]
-                [#break]
-
-            [#case "service"]
-                [#local result = getServiceState(occurrence)]
-                [#break]
-
-            [#case "spa"]
-                [#local result = getSPAState(occurrence)]
-                [#break]
-
-            [#case SQS_COMPONENT_TYPE]
-                [#local result = getSQSState(occurrence, result)]
-                [#break]
-
-            [#case CONFIGSTORE_COMPONENT_TYPE]
-                [#local result = getConfigStoreState(occurrence)]
-                [#break]
-
-            [#case CONFIGSTORE_BRANCH_COMPONENT_TYPE]
-                [#local result = getConfigBranchState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case "task"]
-                [#local result = getTaskState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case USER_COMPONENT_TYPE ]
-                [#local result = getUserState(occurrence) ]
-                [#break]
-
-            [#case USERPOOL_COMPONENT_TYPE]
-                [#local result = getUserPoolState(occurrence, result)]
-                [#break]
-
-            [#case USERPOOL_CLIENT_COMPONENT_TYPE]
-                [#local result = getUserPoolClientState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case USERPOOL_AUTHPROVIDER_COMPONENT_TYPE]
-                [#local result = getUserPoolAuthProviderState(occurrence)]
-                [#break]
-
-            [#case BASTION_COMPONENT_TYPE ]
-                [#local result = getBastionState(occurrence)]
-                [#break]
-
-            [#case NETWORK_COMPONENT_TYPE ]
-                [#local result = getNetworkState(occurrence)]
-                [#break]
-
-            [#case NETWORK_ROUTE_TABLE_COMPONENT_TYPE ]
-                [#local result = getNetworkRouteTableState(occurrence )]
-                [#break]
-
-            [#case NETWORK_ACL_COMPONENT_TYPE ]
-                [#local result = getNetworkACLState(occurrence)]
-                [#break]
-
-            [#case NETWORK_GATEWAY_COMPONENT_TYPE ]
-                [#local result = getNetworkGatewayState(occurrence)]
-                [#break]
-
-            [#case NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE ]
-                [#local result = getNetworkGatewayDestinationState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case BASELINE_COMPONENT_TYPE ]
-                [#local result = getBaselineState(occurrence)]
-                [#break]
-
-            [#case BASELINE_DATA_COMPONENT_TYPE ]
-                [#local result = getBaselineStorageState(occurrence, parentOccurrence)]
-                [#break]
-
-            
-            [#case BASELINE_KEY_COMPONENT_TYPE ]
-                [#local result = getBaselineKeyState(occurrence, parentOccurrence)]
-                [#break]
-
-            [#case "external"]
-                [#local result +=
-                    {
-                        "Roles" : {
-                            "Inbound" : {},
-                            "Outbound" : {}
+            [#switch core.Type!""]
+                [#case "external"]
+                    [#local result +=
+                        {
+                            "Roles" : {
+                                "Inbound" : {},
+                                "Outbound" : {}
+                            }
                         }
-                    }
-                ]
-                [#break]
+                    ]
+                    [#break]
 
-        [/#switch]
+            [/#switch]
+        [/#if]
     [/#if]
 
     [#-- Update resource deployment status --]

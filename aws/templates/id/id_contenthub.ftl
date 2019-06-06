@@ -9,7 +9,7 @@
 
 [#assign componentConfiguration +=
     {
-        CONTENTHUB_HUB_COMPONENT_TYPE : { 
+        CONTENTHUB_HUB_COMPONENT_TYPE : {
             "Properties" : [
                 {
                     "Type" : "Description",
@@ -49,6 +49,10 @@
         }
     }]
 
+[#macro aws_contenthub_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getContentHubState(occurrence, baseState)]
+[/#macro]
+
 [#function getContentHubState occurrence baseState]
     [#local core = occurrence.Core]
 
@@ -59,7 +63,7 @@
         [#local prefix = (baseState.Attributes["PREFIX"])!"COTException: Prefix not found" ]
 
         [#return
-            baseState + 
+            baseState +
             {
                 "Attributes" : {
                     "ENGINE" : engine,
@@ -92,7 +96,7 @@
                     "REPOSITORY" : repoistory,
                     "BRANCH" : branch,
                     "PREFIX" : prefix
-                },           
+                },
                 "Roles" : {
                     "Inbound" : {},
                     "Outbound" : {}
@@ -107,7 +111,7 @@
 
 [#assign componentConfiguration +=
     {
-        CONTENTHUB_NODE_COMPONENT_TYPE : { 
+        CONTENTHUB_NODE_COMPONENT_TYPE : {
             "Properties" : [
                 {
                     "Type" : "Description",
@@ -135,6 +139,10 @@
             ]
         }
     }]
+
+[#macro aws_contentnode_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getContentNodeState(occurrence)]
+[/#macro]
 
 [#function getContentNodeState occurrence]
     [#local core = occurrence.Core]

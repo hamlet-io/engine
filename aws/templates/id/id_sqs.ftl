@@ -66,7 +66,11 @@
             ]
         }
     }]
-    
+
+[#macro aws_sqs_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getSQSState(occurrence, baseState)]
+[/#macro]
+
 [#function getSQSState occurrence baseState]
     [#local core = occurrence.Core]
 
@@ -97,17 +101,17 @@
         ]
     [#else]
         [#local solution = occurrence.Configuration.Solution]
-        
+
         [#local id = formatResourceId(AWS_SQS_RESOURCE_TYPE, core.Id) ]
         [#local name = core.FullName ]
-    
+
         [#local dlqId = formatDependentResourceId(AWS_SQS_RESOURCE_TYPE, id, "dlq") ]
         [#local dlqName = formatName(name, "dlq")]
 
         [#assign dlqRequired =
             isPresent(solution.DeadLetterQueue) ||
             ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
-    
+
         [#return
             {
                 "Resources" : {
@@ -117,7 +121,7 @@
                         "Type" : AWS_SQS_RESOURCE_TYPE,
                         "Monitored" : true
                     }
-                } + 
+                } +
                 dlqRequired?then(
                     {
                         "dlq" : {

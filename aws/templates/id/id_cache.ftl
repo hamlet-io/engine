@@ -51,7 +51,7 @@
                 },
                 {
                     "Names" : "Profiles",
-                    "Children" : profileChildConfiguration + 
+                    "Children" : profileChildConfiguration +
                                     [
                                         {
                                             "Names" : "Processor",
@@ -84,6 +84,10 @@
             ]
         }
 }]
+
+[#macro aws_cache_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getCacheState(occurrence)]
+[/#macro]
 
 [#function getCacheState occurrence]
     [#local core = occurrence.Core]

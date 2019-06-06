@@ -50,8 +50,13 @@
         }
     }]
 
+
+[#macro aws_dataset_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getDataSetState(occurrence)]
+[/#macro]
+
 [#function getDataSetState occurrence]
-    
+
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence, true ) ]
@@ -78,20 +83,20 @@
 
             [#local attributes += {
                 "DATASET_PREFIX" : datasetPrefix,
-                "DATASET_REGISTRY" : "s3://" + registryBucket + 
+                "DATASET_REGISTRY" : "s3://" + registryBucket +
                                             formatAbsolutePath(
                                                 registryPrefix),
-                "DATASET_LOCATION" : "s3://" + registryBucket + 
+                "DATASET_LOCATION" : "s3://" + registryBucket +
                                             formatAbsolutePath(
                                                 registryPrefix,
                                                 buildReference)
                 }]
 
             [#local consumePolicy +=
-                    s3ConsumePermission( 
+                    s3ConsumePermission(
                         registryBucket,
                         registryPrefix)]
-            
+
             [#local resources += {
                 "datasetS3" : {
                     "Id" : formatId(DATASET_S3_SNAPSHOT_RESOURCE_TYPE, core.Id),
@@ -109,7 +114,7 @@
                                         registryPrefix,
                                         "rdssnapshot",
                                         productId,
-                                        dataSetDeploymentUnit, 
+                                        dataSetDeploymentUnit,
                                         buildReference)]
 
             [#local attributes += {
@@ -154,23 +159,23 @@
                 [#assign linkTargetConfiguration = linkTarget.Configuration ]
                 [#assign linkTargetResources = linkTarget.State.Resources ]
                 [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-                
+
                 [#local attributes += linkTargetAttributes]
 
                 [#switch linkTargetCore.Type]
                     [#case S3_COMPONENT_TYPE ]
-                        [#local attributes += { 
+                        [#local attributes += {
                             "DATASET_MASTER_LOCATION" :  "s3://" + linkTargetAttributes.NAME + formatAbsolutePath(datasetPrefix )
                         }]
                         [#local producePolicy += s3ProducePermission(
                                                     linkTargetAttributes.NAME,
-                                                    datasetPrefix 
+                                                    datasetPrefix
                             )]
                         [#break]
 
                     [#case RDS_COMPONENT_TYPE ]
                         [#break]
-                    
+
                     [#default]
                         [#local attributes += {
                             "DATASET_ENGINE" : "COTException: DataSet Support not available for " + linkTargetCore.Type
