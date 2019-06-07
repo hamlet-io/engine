@@ -310,30 +310,36 @@
     [#local core = occurrence.Core]
 
     [#if core.External!false]
-        [#local id = baseState.Attributes["USER_POOL_ARN"]!"" ]
+        [#local id = baseState.Attributes["USERPOOL_ARN"]!"COTException: External Userpool ARN Not configured" ]
+        [#local FQDN = ((baseState.Attributes["USERPOOL_BASE_URL"])!"")?remove_beginning("https://")?remove_ending("/")]
         [#return
             baseState +
-            valueIfContent(
-                {
-                    "Roles" : {
-                        "Inbound" : {
-                            "invoke" : {
-                                "Principal" : "cognito-idp.amazonaws.com",
-                                "SourceArn" : id
-                            }
-                        },
-                        "Outbound" : {
+            {
+                "Roles" : {
+                    "Inbound" : {
+                        "invoke" : {
+                            "Principal" : "cognito-idp.amazonaws.com",
+                            "SourceArn" : id
                         }
+                    },
+                    "Outbound" : {
                     }
                 },
-                id,
-                {
-                    "Roles" : {
-                        "Inbound" : {},
-                        "Outbound" : {}
-                    }
+                "Attributes" : {
+                    "USER_POOL_ARN" : baseState.Attributes["USERPOOL_ARN"],
+                    "CLIENT" : baseState.Attributes["USERPOOL_CLIENTID" ]!"",
+                    "USER_POOL" : baseState.Attributes["USERPOOL_ID"]!"",
+                    "IDENTITY_POOL" : baseState.Attributes["USERPOOL_IDENTITYPOOL_ID"]!"",
+                    "REGION" : baseState.Attributes["USERPOOL_REGION"]!region,
+                    "UI_INTERNAL_BASE_URL" : baseState.Attributes["USERPOOL_BASE_URL"]!"",
+                    "UI_INTERNAL_FQDN" : FQDN,
+                    "UI_BASE_URL" : baseState.Attributes["USERPOOL_BASE_URL"]!"",
+                    "UI_FQDN" : FQDN,
+                    "API_AUTHORIZATION_HEADER" : baseState.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"",
+                    "LB_OAUTH_SCOPE" : baseState.Attributes["USERPOOL_OAUTH_SCOPE"]!"",
+                    "AUTH_USERROLE_ARN" : baseState.Attributes["USERPOOL_USERROLE_ARN"]!""
                 }
-            )
+            }
         ]
     [#else]
         [#local solution = occurrence.Configuration.Solution]
@@ -358,7 +364,8 @@
         [#local userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
         [#local certificatePresent = isPresent(solution.HostedUI.Certificate) ]
         [#local userPoolDomainName = formatName("auth", core.ShortFullName, segmentSeed)]
-        [#local userPoolBaseUrl = "https://" + formatDomainName(userPoolDomainName, "auth", region, "amazoncognito.com") + "/" ]
+        [#local userPoolFQDN = formatDomainName(userPoolDomainName, "auth", region, "amazoncognito.com")]
+        [#local userPoolBaseUrl = "https://" + userPoolFQDN + "/" ]
 
         [#local region = getExistingReference(userPoolId, REGION_ATTRIBUTE_TYPE)!regionId ]
 
@@ -435,13 +442,15 @@
                     {}
                 ),
                 "Attributes" : {
-                    "AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
+                    "API_AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
                     "USER_POOL" : getExistingReference(userPoolId),
                     "USER_POOL_ARN" : getExistingReference(userPoolId, ARN_ATTRIBUTE_TYPE),
                     "IDENTITY_POOL" : getExistingReference(identityPoolId),
                     "REGION" : region,
                     "UI_INTERNAL_BASE_URL" : userPoolBaseUrl,
-                    "UI_BASE_URL" : userPoolCustomBaseUrl!userPoolBaseUrl
+                    "UI_INTERNAL_FQDN" : userPoolFQDN,
+                    "UI_BASE_URL" : userPoolCustomBaseUrl!userPoolBaseUrl,
+                    "UI_FQDN" : userPoolCustomDomainName!userPoolFQDN
                 } +
                 defaultUserPoolClientRequired?then(
                     {
@@ -465,6 +474,7 @@
 
 [#function getUserPoolClientState occurrence parent ]
     [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
 
     [#local userPoolClientId = formatResourceId(AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE, core.Id)]
     [#local userPoolClientName = formatSegmentFullName(core.Name)]
@@ -487,7 +497,8 @@
                 }
             },
             "Attributes" : {
-                "CLIENT" : getReference(userPoolClientId)
+                "CLIENT" : getReference(userPoolClientId),
+                "LB_OAUTH_SCOPE" : (solution.OAuth.Scopes)?join(", ")
             } +
             parentAttributes,
             "Roles" : {

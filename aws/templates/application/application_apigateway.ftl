@@ -105,7 +105,7 @@
                                 {
                                     link.Name : {
                                         "Name" : link.Name,
-                                        "Header" : linkTargetAttributes["AUTHORIZATION_HEADER"]!"Authorization",
+                                        "Header" : linkTargetAttributes["API_AUTHORIZATION_HEADER"]!"Authorization",
                                         "UserPoolArn" : linkTargetAttributes["USER_POOL_ARN"],
                                         "Default" : true
                                     }
@@ -117,12 +117,17 @@
                                                         apiId,
                                                         link.Name)]
 
-                                [@createPolicy
+                                [#assign role = (linkTargetResources["authrole"].Id)!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
+                                [#assign roleArn = getArn(role) ]
+                                [@cfResource
                                     mode=listMode
                                     id=policyId
-                                    name=apiName
-                                    statements=asFlattenedArray(roles.Outbound["invoke"])
-                                    roles=linkTargetResources["authrole"].Id
+                                    type="AWS::IAM::Policy"
+                                    properties=
+                                        getPolicyDocument(asFlattenedArray(roles.Outbound["invoke"]), apiName) +
+                                        {
+                                            "Roles" : [ roleArn ] 
+                                        }
                                 /]
                             [/#if]
                         [/#if]
