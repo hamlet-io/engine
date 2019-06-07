@@ -118,17 +118,22 @@
                                                         link.Name)]
 
                                 [#assign role = (linkTargetResources["authrole"].Id)!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
-                                [#assign roleArn = getArn(role) ]
-                                [@cfResource
-                                    mode=listMode
-                                    id=policyId
-                                    type="AWS::IAM::Policy"
-                                    properties=
-                                        getPolicyDocument(asFlattenedArray(roles.Outbound["invoke"]), apiName) +
-                                        {
-                                            "Roles" : [ roleArn ] 
-                                        }
-                                /]
+                                [#assign localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
+
+                                [#if localRoleAccount ]
+                                    [#assign roleName = (role?split("/"))[1] ]
+
+                                    [@cfResource
+                                        mode=listMode
+                                        id=policyId
+                                        type="AWS::IAM::Policy"
+                                        properties=
+                                            getPolicyDocument(asFlattenedArray(roles.Outbound["invoke"]), apiName) +
+                                            {
+                                                "Roles" : [ roleName ] 
+                                            }
+                                    /]
+                                [/#if]
                             [/#if]
                         [/#if]
                         [#break]
