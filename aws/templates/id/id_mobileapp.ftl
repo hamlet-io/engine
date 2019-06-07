@@ -8,7 +8,7 @@
 
 [#assign componentConfiguration +=
     {
-        MOBILEAPP_COMPONENT_TYPE : { 
+        MOBILEAPP_COMPONENT_TYPE : {
             "Properties" : [
                 {
                     "Type" : "Description",
@@ -50,6 +50,10 @@
         }
     }]
 
+[#macro aws_mobileapp_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getMobileAppState(occurrence)]
+[/#macro]
+
 [#function getMobileAppState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -62,7 +66,7 @@
 
     [#local releaseChannel = getOccurrenceSettingValue(occurrence, "RELEASE_CHANNEL", true)?has_content?then(
             getOccurrenceSettingValue(occurrence, "RELEASE_CHANNEL", true),
-            environmentName 
+            environmentName
     )]
 
     [#local codeSrcBucket = getRegistryEndPoint("scripts", occurrence)]

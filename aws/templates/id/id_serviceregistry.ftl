@@ -101,6 +101,10 @@
         }
     }]
 
+[#macro aws_serviceregistry_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getServiceRegistryState(occurrence)]
+[/#macro]
+
 [#function getServiceRegistryState occurrence ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -117,7 +121,7 @@
                     "DomainName" : domainName,
                     "Type" : AWS_CLOUDMAP_DNS_NAMESPACE_RESOURCE_TYPE
                 }
-            }, 
+            },
             "Attributes" : {
                 "DOMAIN_NAME" : domainName
             },
@@ -129,6 +133,9 @@
     ]
 [/#function]
 
+[#macro aws_serviceregistryservice_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getServiceRegistryServiceState(occurrence, parent)]
+[/#macro]
 
 [#function getServiceRegistryServiceState occurrence parent ]
     [#local core = occurrence.Core]
@@ -154,7 +161,7 @@
                     "ServiceName" : serviceHost,
                     "Type" : AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE
                 }
-            }, 
+            },
             "Attributes" : {
                 "FQDN" : hostName,
                 "RECORD_TYPES" : solution.RecordTypes?join(","),

@@ -17,7 +17,7 @@
                 },
                 {
                     "Type" : "ComponentLevel",
-                    "Value" : "solution" 
+                    "Value" : "solution"
                 }
             ],
             "Attributes" : [
@@ -89,7 +89,7 @@
                             "Values" : [ "AllDocuments", "FailedDocumentsOnly" ],
                             "Default" : "FailedDocumentsOnly"
                         }
-                    ]   
+                    ]
                 },
                 {
                     "Names" : "Destination",
@@ -121,6 +121,10 @@
     }
 ]
 
+[#macro aws_datafeed_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getDataFeedState(occurrence)]
+[/#macro]
+
 [#function getDataFeedState occurrence ]
 
     [#local core = occurrence.Core]
@@ -133,7 +137,7 @@
     [#return
         {
             "Resources" : {
-                "stream" : { 
+                "stream" : {
                     "Id" : streamId,
                     "Name" : streamName,
                     "Type" : AWS_KINESIS_FIREHOSE_STREAM_RESOURCE_TYPE,
@@ -143,7 +147,7 @@
                     "Id" : formatResourceId(AWS_IAM_ROLE_RESOURCE_TYPE, core.Id),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 }
-            } + 
+            } +
             solution.Logging?then(
                 {
                     "lg" : {
@@ -163,7 +167,7 @@
                     }
                 },
                 {}
-            ) + 
+            ) +
             (solution.LogWatchers?has_content)?then(
                 {
                     "subscriptionRole" : {

@@ -85,6 +85,10 @@
         }
     }]
 
+[#macro aws_datavolume_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getDataVolumeState(occurrence)]
+[/#macro]
+
 [#function getDataVolumeState occurrence]
 
     [#local core = occurrence.Core]
@@ -100,7 +104,7 @@
 
     [#list resourceZones as zone ]
         [#local dataVolumeId = formatResourceId(AWS_EC2_EBS_RESOURCE_TYPE, core.Id, zone.Id )]
-        [#local zoneResources += 
+        [#local zoneResources +=
             {
                 zone.Id : {
                     "ebsVolume" : {
@@ -108,7 +112,7 @@
                         "Name" : core.FullName,
                         "Type" : AWS_EC2_EBS_RESOURCE_TYPE
                     }
-                } + 
+                } +
                 (solution.Backup.Enabled)?then(
                     {
                         "taskCreateSnapshot" : {
@@ -136,7 +140,7 @@
                     "Type" : AWS_EC2_EBS_MANUAL_SNAPSHOT_RESOURCE_TYPE
                 },
                 "Zones" : zoneResources
-            } + 
+            } +
             (solution.Backup.Enabled)?then(
                 {
                     "maintenanceWindow" : {
@@ -153,7 +157,7 @@
                         "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, "service", core.Id  ),
                         "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                     },
-                    "maintenanceLambdaRole" : { 
+                    "maintenanceLambdaRole" : {
                         "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, "lambda", core.Id ),
                         "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                     }

@@ -3,7 +3,7 @@
 
 [#assign componentConfiguration +=
     {
-        COMPUTECLUSTER_COMPONENT_TYPE : { 
+        COMPUTECLUSTER_COMPONENT_TYPE : {
             "Properties" : [
                 {
                     "Type" : "Description",
@@ -31,7 +31,7 @@
                 },
                 {
                     "Names" : "Profiles",
-                    "Children" : profileChildConfiguration + 
+                    "Children" : profileChildConfiguration +
                                     [
                                         {
                                             "Names" : "Processor",
@@ -73,8 +73,12 @@
         }
     }]
 
+[#macro aws_computecluster_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getComputeClusterState(occurrence)]
+[/#macro]
+
 [#function getComputeClusterState occurrence]
-    
+
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence) ]
@@ -100,7 +104,7 @@
                     "Name" : core.FullName,
                     "Type" : AWS_EC2_AUTO_SCALE_GROUP_RESOURCE_TYPE
                 },
-                "lg" : {             
+                "lg" : {
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
@@ -122,7 +126,7 @@
                                 replaceAlphaNumericOnly(buildReference))
                     ),
                     "Type" : AWS_EC2_LAUNCH_CONFIG_RESOURCE_TYPE
-                } 
+                }
             },
             "Attributes" : {
             },

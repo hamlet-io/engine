@@ -79,7 +79,7 @@
                     "Type" : ARRAY_OF_STRING_TYPE,
                     "Default" : []
                 },
-                { 
+                {
                     "Names" : "Links",
                     "Subobjects" : true,
                     "Children" : linkChildrenConfiguration
@@ -87,6 +87,10 @@
             ]
         }
     }]
+
+[#macro aws_gateway_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getNetworkGatewayState(occurrence)]
+[/#macro]
 
 [#function getNetworkGatewayState occurrence ]
 
@@ -109,7 +113,7 @@
             [#list resourceZones as zone ]
                 [#local eipId = legacyVpc?then(
                                     formatResourceId(AWS_EIP_RESOURCE_TYPE, core.Tier.Id, core.Component.Id, zone.Id),
-                                    formatResourceId(AWS_EIP_RESOURCE_TYPE, core.Id, zone.Id))]    
+                                    formatResourceId(AWS_EIP_RESOURCE_TYPE, core.Id, zone.Id))]
                 [#local zoneResources = mergeObjects( zoneResources,
                         {
                             zone.Id : {
@@ -124,7 +128,7 @@
     [/#switch]
 
     [#switch engine ]
-        [#case "natgw"] 
+        [#case "natgw"]
 
             [#list resourceZones as zone]
                 [#local natGatewayId = legacyVpc?then(
@@ -171,20 +175,20 @@
                 }]
             [#break]
 
-        [#default]  
+        [#default]
             @cfException
                 mode=listMode
                 description="Unkown Engine Type"
                 context=occurrence.Configuration.Solution
             /]
-    [/#switch] 
+    [/#switch]
 
-    [#return 
+    [#return
         {
-            "Resources" : 
-                resources + 
-                { 
-                    "Zones" : zoneResources 
+            "Resources" :
+                resources +
+                {
+                    "Zones" : zoneResources
                 },
             "Attributes" : {
             },
@@ -196,6 +200,10 @@
     ]
 [/#function]
 
+[#macro aws_gatewaydestination_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getNetworkGatewayDestinationState(occurrence, parent)]
+[/#macro]
+
 [#function getNetworkGatewayDestinationState occurrence parent ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -203,7 +211,7 @@
     [#local parentCore = parent.Core]
     [#local parentSolution = parent.Configuration.Solution ]
     [#local engine = parentSolution.Engine ]
-    
+
     [#if multiAZ!false || engine == "vpcendpoint" ]
         [#local resourceZones = zones ]
     [#else]
@@ -229,7 +237,7 @@
                     [#local endpointZones += { id : endpointTypeZones + [ zone.Id ] }]
                     [#local resources = mergeObjects( resources, {
                         "vpcEndpoints" : {
-                            "vpcEndpoint" + id : { 
+                            "vpcEndpoint" + id : {
                                 "Id" : formatResourceId(AWS_VPC_ENDPOINNT_RESOURCE_TYPE, core.Id, replaceAlphaNumericOnly(id, "X")),
                                 "EndpointType" : networkEndpoint.Type?lower_case,
                                 "EndpointZones" : endpointZones[id],
@@ -242,7 +250,7 @@
             [/#list]
             [#break]
 
-        [#default]  
+        [#default]
             [@cfException
                 mode=listMode
                 description="Unkown Engine Type"
@@ -250,7 +258,7 @@
             /]
     [/#switch]
 
-    [#return 
+    [#return
         {
             "Resources" : resources,
             "Attributes" : {

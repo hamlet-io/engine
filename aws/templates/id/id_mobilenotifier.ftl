@@ -121,6 +121,10 @@
         }
     }]
 
+[#macro aws_mobilenotifier_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getMobileNotifierState(occurrence)]
+[/#macro]
+
 [#function getMobileNotifierState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -153,6 +157,10 @@
             formatLogGroupId(name, failureId)
         ) ]
 [/#function]
+
+[#macro aws_mobilenotifierplatform_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getMobileNotifierPlatformState(occurrence)]
+[/#macro]
 
 [#function getMobileNotifierPlatformState occurrence]
     [#local core = occurrence.Core]

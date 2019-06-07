@@ -139,7 +139,7 @@
                 },
                 {
                     "Names" : "Profiles",
-                    "Children" : profileChildConfiguration + 
+                    "Children" : profileChildConfiguration +
                                     [
                                         {
                                             "Names" : "Processor",
@@ -183,6 +183,10 @@
             ]
     }
 }]
+
+[#macro aws_rds_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getRDSState(occurrence)]
+[/#macro]
 
 [#function getRDSState occurrence]
     [#local core = occurrence.Core]

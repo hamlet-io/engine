@@ -149,6 +149,10 @@
         }
     }]
 
+[#macro aws_ec2_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getEC2State(occurrence)]
+[/#macro]
+
 [#function getEC2State occurrence]
     [#local core = occurrence.Core]
 
@@ -197,7 +201,7 @@
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
                 },
-                "lg" : {             
+                "lg" : {
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : core.FullAbsolutePath,
                     "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE

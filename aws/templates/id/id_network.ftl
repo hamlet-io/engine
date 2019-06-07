@@ -190,6 +190,10 @@
         }
     }]
 
+[#macro aws_network_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getNetworkState(occurrence)]
+[/#macro]
+
 [#function getNetworkState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -334,6 +338,10 @@
     [#return result ]
 [/#function]
 
+[#macro aws_networkroute_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getNetworkRouteTableState(occurrence)]
+[/#macro]
+
 [#function getNetworkRouteTableState occurrence ]
 
     [#local core = occurrence.Core]
@@ -394,6 +402,10 @@
         }
     ]
 [/#function]
+
+[#macro aws_networkacl_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getNetworkACLState(occurrence)]
+[/#macro]
 
 [#function getNetworkACLState occurrence ]
     [#local core = occurrence.Core]

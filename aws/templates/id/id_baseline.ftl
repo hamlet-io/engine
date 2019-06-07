@@ -147,6 +147,9 @@
         }
     }]
 
+[#macro aws_baseline_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getBaselineState(occurrence)]
+[/#macro]
 
 [#function getBaselineState occurrence]
     [#local core = occurrence.Core]
@@ -192,6 +195,10 @@
     ]
     [#return result ]
 [/#function]
+
+[#macro aws_baselinedata_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getBaselineStorageState(occurrence, parent)]
+[/#macro]
 
 [#function getBaselineStorageState occurrence parent ]
     [#local core = occurrence.Core]
@@ -252,6 +259,10 @@
     [#return result ]
 [/#function]
 
+[#macro aws_baselinekey_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getBaselineKeyState(occurrence, parent)]
+[/#macro]
+
 [#function getBaselineKeyState occurrence parent ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -278,7 +289,7 @@
                 [#local cmkAliasName = core.FullName ]
             [/#if]
 
-            [#local resources += 
+            [#local resources +=
                 {
                     "cmk" : {
                         "Id" : legacyVpc?then(formatSegmentCMKId(), cmkId),
@@ -309,7 +320,7 @@
                 [#local keyPairName = core.FullName ]
             [/#if]
 
-            [#local resources += 
+            [#local resources +=
                 {
                     "localKeyPair" : {
                         "Id" : formatResourceId(LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE, core.Id),
@@ -331,7 +342,7 @@
             [#local OAIId = formatResourceId( AWS_CLOUDFRONT_ACCESS_ID_RESOURCE_TYPE, core.Id) ]
             [#local OAIName = core.FullName ]
 
-            [#local resources += 
+            [#local resources +=
                 {
                     "originAccessId" : {
                         "Id" : OAIId,
@@ -392,4 +403,4 @@
             formatSegmentS3Id("application"),
             formatSegmentS3Id("backups")
         )]
-[/#function]    
+[/#function]

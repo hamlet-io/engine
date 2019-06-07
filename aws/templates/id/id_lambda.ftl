@@ -211,6 +211,10 @@
     }
 ]
 
+[#macro aws_lambda_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getLambdaState(occurrence)]
+[/#macro]
+
 [#function getLambdaState occurrence]
     [#local core = occurrence.Core]
 
@@ -233,6 +237,10 @@
         }
     ]
 [/#function]
+
+[#macro aws_function_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getFunctionState(occurrence, parent)]
+[/#macro]
 
 [#function getFunctionState occurrence parent]
     [#local core = occurrence.Core]

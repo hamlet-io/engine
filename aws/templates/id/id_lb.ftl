@@ -242,6 +242,10 @@
         }
     }]
 
+[#macro aws_lb_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getLBState(occurrence)]
+[/#macro]
+
 [#function getLBState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
@@ -256,15 +260,15 @@
         [#case "application" ]
             [#assign resourceType = AWS_LB_APPLICATION_RESOURCE_TYPE ]
             [#break]
-        
+
         [#case "network" ]
             [#assign resourceType = AWS_LB_NETWORK_RESOURCE_TYPE ]
             [#break]
-        
+
         [#case "classic" ]
             [#assign resourceType = AWS_LB_CLASSIC_RESOURCE_TYPE ]
             [#break]
-        
+
         [#default]
             [#assign resourceType = "COTException: Unkown LB Engine" ]
     [/#switch]
@@ -290,6 +294,10 @@
         }
     ]
 [/#function]
+
+[#macro aws_lbport_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getLBPortState(occurrence, parent)]
+[/#macro]
 
 [#function getLBPortState occurrence parent]
     [#local core = occurrence.Core]
@@ -348,7 +356,7 @@
             [#local path = solution.Path ]
         [/#if]
     [/#if]
-    
+
     [#local url = scheme + "://" + fqdn  ]
     [#local internalUrl = scheme + "://" + internalFqdn ]
 

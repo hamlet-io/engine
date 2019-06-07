@@ -83,7 +83,7 @@
                 },
                 {
                     "Names" : "Profiles",
-                    "Children" : profileChildConfiguration + 
+                    "Children" : profileChildConfiguration +
                                     [
                                         {
                                             "Names" : "Processor",
@@ -101,6 +101,14 @@
         }
     }]
 
+[#macro aws_elasticsearch_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getESState(occurrence, baseState)]
+[/#macro]
+
+[#macro aws_es_cf_state occurrence parent={} baseState={}  ]
+    [#assign componentState = getESState(occurrence, baseState)]
+[/#macro]
+
 [#function getESState occurrence baseState]
     [#local core = occurrence.Core]
 
@@ -111,7 +119,7 @@
             valueIfContent(
                 {
                     "Resources" : {
-                        "es" : { 
+                        "es" : {
                             "Id" : esId,
                             "Type" : AWS_ES_RESOURCE_TYPE,
                             "Deployed" : true
@@ -140,7 +148,7 @@
     [#return
         {
             "Resources" : {
-                "es" : { 
+                "es" : {
                     "Id" : esId,
                     "Name" : core.ShortFullName,
                     "Type" : AWS_ES_RESOURCE_TYPE,
