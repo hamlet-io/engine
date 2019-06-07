@@ -105,7 +105,7 @@
                                 {
                                     link.Name : {
                                         "Name" : link.Name,
-                                        "Header" : linkTargetAttributes["API_AUTHORIZATION_HEADER"]!"Authorization",
+                                        "Header" : linkTargetAttributes["API_AUTHORIZATION_HEADER"],
                                         "UserPoolArn" : linkTargetAttributes["USER_POOL_ARN"],
                                         "Default" : true
                                     }

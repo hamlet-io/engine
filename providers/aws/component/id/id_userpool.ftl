@@ -38,7 +38,7 @@
                     "UI_INTERNAL_FQDN" : FQDN,
                     "UI_BASE_URL" : baseState.Attributes["USERPOOL_BASE_URL"]!"",
                     "UI_FQDN" : FQDN,
-                    "API_AUTHORIZATION_HEADER" : baseState.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"",
+                    "API_AUTHORIZATION_HEADER" : baseState.Attributes["USERPOOL_AUTHORIZATION_HEADER"]!"Authorization",
                     "LB_OAUTH_SCOPE" : baseState.Attributes["USERPOOL_OAUTH_SCOPE"]!"",
                     "AUTH_USERROLE_ARN" : baseState.Attributes["USERPOOL_USERROLE_ARN"]!""
                 }
