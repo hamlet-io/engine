@@ -36,7 +36,8 @@
     } ]
 [/#function]
 
-[#function getInitConfigBootstrap occurrence role ignoreErrors=false priority=1 ]
+[#function getInitConfigBootstrap occurrence ignoreErrors=false priority=1 ]
+    [#local role = (occurrence.Configuration.Settings.Product["Role"].Value)!""]
     [#return
         {
             "${priority}_Bootstrap": {

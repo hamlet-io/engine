@@ -81,6 +81,11 @@
                             "Default" : false
                         }
                     ]
+                },
+                {
+                    "Names" : "Role",
+                    "Description" : "Server configuration role",
+                    "Default" : ""
                 }
             ]
         }

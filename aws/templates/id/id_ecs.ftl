@@ -211,6 +211,11 @@
                             "Default" : "replace"
                         }
                     ]
+                },
+                {
+                    "Names" : "Role",
+                    "Description" : "Server configuration role",
+                    "Default" : ""
                 }
             ],
             "Components" : [

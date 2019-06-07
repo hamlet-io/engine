@@ -71,7 +71,7 @@
 
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(occurrence, component.Role!"")]
+                getInitConfigBootstrap(occurrence)]
 
         [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
 

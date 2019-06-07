@@ -90,7 +90,7 @@
 
         [#assign configSets =
                 getInitConfigDirectories() +
-                getInitConfigBootstrap(occurrence, component.Role!"") ]
+                getInitConfigBootstrap(occurrence) ]
 
         [#assign scriptsPath =
                 formatRelativePath(

@@ -144,6 +144,11 @@
                             "Children" : lbChildConfiguration
                         }
                     ]
+                },
+                {
+                    "Names" : "Role",
+                    "Description" : "Server configuration role",
+                    "Default" : ""
                 }
             ]
         }
