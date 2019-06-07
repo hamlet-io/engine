@@ -217,7 +217,10 @@
             [
                 {
                     "Key" : key,
-                    "Value" : value?c
+                    "Value" : (value?is_string)?then(
+                                    value,
+                                    value?c
+                                )
                 }
             ]]
     [/#list]

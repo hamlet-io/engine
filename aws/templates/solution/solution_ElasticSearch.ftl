@@ -200,8 +200,8 @@
                             {
                                 "CognitoOptions" : {
                                     "Enabled" : true,
-                                    "UserPoolId" : linkTargetAttributes.USER_POOL,
-                                    "IdentityPoolId" : linkTargetAttributes.IDENTITY_POOL,
+                                    "UserPoolId" : linkTargetAttributes["USER_POOL"],
+                                    "IdentityPoolId" : linkTargetAttributes["IDENTITY_POOL"],
                                     "RoleArn" : getExistingReference(esServiceRoleId, ARN_ATTRIBUTE_TYPE)
                                 }
                             }]
@@ -212,26 +212,18 @@
 
 
                             [#if deploymentSubsetRequired("es", true)]
-                                [#if linkTargetCore.External!false ]
-                                    [@cfResource
-                                        mode=listMode
-                                        id=policyId
-                                        type="AWS::IAM::Policy"
-                                        properties=
-                                            getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
-                                            {
-                                                "Roles" : [ linkTargetAttributes.USERPOOL_USERROLE_ARN ]
-                                            }
-                                    /]
-                                [#else]
-                                    [@createPolicy
-                                        mode=listMode
-                                        id=policyId
-                                        name=esName
-                                        statements=asFlattenedArray(roles.Outbound["consume"])
-                                        roles=linkTargetResources["authrole"].Id
-                                    /]
-                                [/#if]
+                                [#assign role = linkTargetResources["authrole"].Id!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
+                                [#assign roleArn = getArn(role) ]
+                                [@cfResource
+                                    mode=listMode
+                                    id=policyId
+                                    type="AWS::IAM::Policy"
+                                    properties=
+                                        getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
+                                        {
+                                            "Roles" : [ roleArn ] 
+                                        }
+                                /]
                             [/#if]
                         [#break]
                 [/#switch]
