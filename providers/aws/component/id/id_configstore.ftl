@@ -1,10 +1,6 @@
 [#-- Resources --]
 
 [#macro aws_configstore_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getConfigStoreState(occurrence)]
-[/#macro]
-
-[#function getConfigStoreState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -16,7 +12,7 @@
         [#local sortKey = "instance" ]
     [/#if]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "table" : {
@@ -46,13 +42,9 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_configbranch_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getConfigBranchState(occurrence, parent)]
 [/#macro]
 
-[#function getConfigBranchState occurrence parent ]
+[#macro aws_configbranch_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -78,7 +70,7 @@
         [#local states += [ state.Name ] ]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "item" : {
@@ -138,4 +130,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

@@ -2,11 +2,6 @@
 [#assign AWS_DATA_PIPELINE_RESOURCE_TYPE = "datapipeline"]
 
 [#macro aws_datapipeline_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getDataPipelineState(occurrence)]
-[/#macro]
-
-[#function getDataPipelineState occurrence]
-
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence) ]
@@ -16,7 +11,7 @@
     [#-- The ec2 Role and Instance profile must have the same name --]
     [#local resourceRoleName = formatName(core.FullName, "resource")]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "dataPipeline" : {
@@ -54,4 +49,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

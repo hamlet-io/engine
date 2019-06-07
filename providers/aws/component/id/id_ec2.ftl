@@ -77,10 +77,6 @@
 [/#function]
 
 [#macro aws_ec2_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getEC2State(occurrence)]
-[/#macro]
-
-[#function getEC2State occurrence]
     [#local core = occurrence.Core]
 
     [#local zoneResources = {}]
@@ -112,7 +108,7 @@
         ]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "instanceProfile" : {
@@ -143,4 +139,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

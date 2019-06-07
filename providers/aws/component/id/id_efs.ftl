@@ -18,11 +18,6 @@
 [/#function]
 
 [#macro aws_efs_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getEFSState(occurrence)]
-[/#macro]
-
-[#function getEFSState occurrence]
-
     [#local core = occurrence.Core]
 
     [#local id = formatEFSId( core.Tier, core.Component, occurrence) ]
@@ -41,7 +36,7 @@
         ]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "efs" : {
@@ -61,18 +56,14 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_efsmount_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getEFSMountState(occurrence, parent)]
 [/#macro]
 
-[#function getEFSMountState occurrence parent ]
+[#macro aws_efsmount_cf_state occurrence parent={} baseState={}  ]
     [#local configuration = occurrence.Configuration.Solution]
 
     [#local efsId = parent.State.Attributes["EFS"] ]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {},
             "Attributes" : {
@@ -82,4 +73,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

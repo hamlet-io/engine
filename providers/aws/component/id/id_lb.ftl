@@ -11,10 +11,6 @@
 [#assign AWS_ALB_TARGET_GROUP_RESOURCE_TYPE = "tg" ]
 
 [#macro aws_lb_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getLBState(occurrence)]
-[/#macro]
-
-[#function getLBState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -26,22 +22,22 @@
 
     [#switch solution.Engine ]
         [#case "application" ]
-            [#assign resourceType = AWS_LB_APPLICATION_RESOURCE_TYPE ]
+            [#local resourceType = AWS_LB_APPLICATION_RESOURCE_TYPE ]
             [#break]
 
         [#case "network" ]
-            [#assign resourceType = AWS_LB_NETWORK_RESOURCE_TYPE ]
+            [#local resourceType = AWS_LB_NETWORK_RESOURCE_TYPE ]
             [#break]
 
         [#case "classic" ]
-            [#assign resourceType = AWS_LB_CLASSIC_RESOURCE_TYPE ]
+            [#local resourceType = AWS_LB_CLASSIC_RESOURCE_TYPE ]
             [#break]
 
         [#default]
-            [#assign resourceType = "COTException: Unkown LB Engine" ]
+            [#local resourceType = "COTException: Unkown LB Engine" ]
     [/#switch]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "lb" : {
@@ -61,13 +57,9 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_lbport_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getLBPortState(occurrence, parent)]
 [/#macro]
 
-[#function getLBPortState occurrence parent]
+[#macro aws_lbport_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -139,7 +131,7 @@
             [#local targetGroupArn = ""]
     [/#switch]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "listener" : {
@@ -189,4 +181,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

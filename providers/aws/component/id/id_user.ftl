@@ -1,10 +1,6 @@
 [#-- Resources --]
 
 [#macro aws_user_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getUserState(occurrence)]
-[/#macro]
-
-[#function getUserState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -16,7 +12,7 @@
                     "" )]
 
     [#-- Use short full name for user as there is a length limit of 64 chars --]
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "user" : {
@@ -47,5 +43,4 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
+[/#macro]

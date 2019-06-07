@@ -20,10 +20,6 @@
 [/#function]
 
 [#macro aws_rds_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getRDSState(occurrence)]
-[/#macro]
-
-[#function getRDSState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -49,7 +45,7 @@
         [#local url = engine + "://" + masterUsername + ":" + masterPassword + "@" + fqdn + ":" + port + "/" + name]
     [/#if]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "db" : {
@@ -88,5 +84,4 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
+[/#macro]

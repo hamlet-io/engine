@@ -4,15 +4,11 @@
 [#assign AWS_CACHE_PARAMETER_GROUP_RESOURCE_TYPE = "cacheParameterGroup" ]
 
 [#macro aws_cache_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getCacheState(occurrence)]
-[/#macro]
-
-[#function getCacheState occurrence]
     [#local core = occurrence.Core]
 
     [#local id = formatResourceId(AWS_CACHE_RESOURCE_TYPE, core.Id) ]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "cache" : {
@@ -54,5 +50,4 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
+[/#macro]

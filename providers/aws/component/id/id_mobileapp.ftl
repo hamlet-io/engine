@@ -2,10 +2,6 @@
 [#assign COT_MOBILEAPP_RESOURCE_TYPE = "mobileapp"]
 
 [#macro aws_mobileapp_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getMobileAppState(occurrence)]
-[/#macro]
-
-[#function getMobileAppState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -27,10 +23,10 @@
                                     getOccurrenceBuildUnit(occurrence),
                                     getOccurrenceBuildReference(occurrence))]
 
-    [#assign configFilePath = formatRelativePath(
+    [#local configFilePath = formatRelativePath(
                                 getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
                                 "config" )]
-    [#assign configFileName = "config.json" ]
+    [#local configFileName = "config.json" ]
 
     [#list solution.Links?values as link]
         [#if link?is_hash]
@@ -42,7 +38,7 @@
                 [#continue]
             [/#if]
             [#local linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#if !(linkTarget.Configuration.Solution.Enabled!true) ]
                 [#continue]
@@ -60,7 +56,7 @@
         [/#if]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "mobileapp" : {
@@ -86,6 +82,6 @@
             }
         }
     ]
-[/#function]
+[/#macro]
 
 

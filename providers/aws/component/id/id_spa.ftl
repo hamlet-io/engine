@@ -1,10 +1,6 @@
 [#-- Resources --]
 
 [#macro aws_spa_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getSPAState(occurrence)]
-[/#macro]
-
-[#function getSPAState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -19,9 +15,9 @@
             [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
     [/#if]
 
-    [#assign pathResources = {}]
+    [#local pathResources = {}]
     [#list solution.CloudFront.Paths as id,path ]
-        [#assign pathResources += {
+        [#local pathResources += {
             id : {
                 "cforigin" : {
                     "Id" : id,
@@ -31,7 +27,7 @@
         }]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "cf" : {
@@ -64,5 +60,5 @@
             }
         }
     ]
-[/#function]
+[/#macro]
 

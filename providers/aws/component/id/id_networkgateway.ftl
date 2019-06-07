@@ -1,11 +1,6 @@
 [#-- Resources --]
 
 [#macro aws_gateway_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getNetworkGatewayState(occurrence)]
-[/#macro]
-
-[#function getNetworkGatewayState occurrence ]
-
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
     [#local engine = solution.Engine ]
@@ -95,7 +90,7 @@
             /]
     [/#switch]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" :
                 resources +
@@ -110,13 +105,9 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_gatewaydestination_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getNetworkGatewayDestinationState(occurrence, parent)]
 [/#macro]
 
-[#function getNetworkGatewayDestinationState occurrence parent ]
+[#macro aws_gatewaydestination_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -170,7 +161,7 @@
             /]
     [/#switch]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : resources,
             "Attributes" : {
@@ -181,4 +172,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

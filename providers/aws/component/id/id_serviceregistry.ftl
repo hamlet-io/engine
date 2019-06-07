@@ -4,17 +4,13 @@
 [#assign AWS_CLOUDMAP_INSTANCE_RESOURCE_TYPE = "cloudmapinstance" ]
 
 [#macro aws_serviceregistry_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getServiceRegistryState(occurrence)]
-[/#macro]
-
-[#function getServiceRegistryState occurrence ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
     [#local domainObject = getCertificateObject(solution.Namespace, segmentQualifiers)]
     [#local domainName = getCertificatePrimaryDomain(domainObject).Name ]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "namespace" : {
@@ -33,13 +29,9 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_serviceregistryservice_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getServiceRegistryServiceState(occurrence, parent)]
 [/#macro]
 
-[#function getServiceRegistryServiceState occurrence parent ]
+[#macro aws_serviceregistryservice_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -52,9 +44,9 @@
     [#local serviceHost = getHostName(domainObject, occurrence)  ]
     [#local hostName = formatDomainName(serviceHost, parentAttributes["DOMAIN_NAME"] ) ]
 
-    [#assign serviceId = formatResourceId(AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE, core.Id)]
+    [#local serviceId = formatResourceId(AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE, core.Id)]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "service" : {
@@ -75,4 +67,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

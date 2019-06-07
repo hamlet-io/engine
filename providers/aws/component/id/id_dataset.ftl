@@ -2,11 +2,6 @@
 [#assign DATASET_S3_SNAPSHOT_RESOURCE_TYPE = "s3Snapshot" ]
 
 [#macro aws_dataset_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getDataSetState(occurrence)]
-[/#macro]
-
-[#function getDataSetState occurrence]
-
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence, true ) ]
@@ -84,10 +79,10 @@
     [/#switch]
 
     [#if codeBuildEnv == environmentObject.Id ]
-        [#assign linkCount = 0 ]
+        [#local linkCount = 0 ]
         [#list solution.Links?values as link]
             [#if link?is_hash]
-                [#assign linkCount += 1 ]
+                [#local linkCount += 1 ]
                 [#if linkCount > 1 ]
                     [@cfException
                         mode=listMode
@@ -97,7 +92,7 @@
                     [#continue]
                 [/#if]
 
-                [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                [#local linkTarget = getLinkTarget(occurrence, link) ]
 
                 [@cfDebug listMode linkTarget false /]
 
@@ -105,10 +100,10 @@
                     [#continue]
                 [/#if]
 
-                [#assign linkTargetCore = linkTarget.Core ]
-                [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                [#assign linkTargetResources = linkTarget.State.Resources ]
-                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+                [#local linkTargetCore = linkTarget.Core ]
+                [#local linkTargetConfiguration = linkTarget.Configuration ]
+                [#local linkTargetResources = linkTarget.State.Resources ]
+                [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
                 [#local attributes += linkTargetAttributes]
 
@@ -135,7 +130,7 @@
         [/#list]
     [/#if]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : resources,
             "Attributes" : attributes,
@@ -149,4 +144,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

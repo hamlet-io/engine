@@ -82,10 +82,6 @@ created in either case.
 --]
 
 [#macro aws_apigateway_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getAPIGatewayState(occurrence)]
-[/#macro]
-
-[#function getAPIGatewayState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -139,8 +135,8 @@ created in either case.
 
     [#local certificateId = "" ]
 
-    [#assign lgId = formatDependentLogGroupId(stageId) ]
-    [#assign lgName = {
+    [#local lgId = formatDependentLogGroupId(stageId) ]
+    [#local lgName = {
                         "Fn::Join" : [
                             "",
                             [
@@ -152,8 +148,8 @@ created in either case.
                         ]
                     }]
 
-    [#assign accessLgId = formatDependentLogGroupId(stageId, "access") ]
-    [#assign accessLgName = formatAbsolutePath(core.FullAbsolutePath, "access")]
+    [#local accessLgId = formatDependentLogGroupId(stageId, "access") ]
+    [#local accessLgName = formatAbsolutePath(core.FullAbsolutePath, "access")]
 
     [#local logMetrics = {} ]
     [#list solution.LogMetrics as name,logMetric ]
@@ -338,7 +334,7 @@ created in either case.
          [/#list]
     [/#if]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "apigateway" : {
@@ -403,13 +399,9 @@ created in either case.
             }
         }
     ]
-[/#function]
-
-[#macro aws_apiusageplan_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getAPIGatewayUsagePlanState(occurrence)]
 [/#macro]
 
-[#function getAPIGatewayUsagePlanState occurrence]
+[#macro aws_apiusageplan_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -417,7 +409,7 @@ created in either case.
 
     [#list solution.Links?values as link]
         [#if link?is_hash]
-            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+            [#local linkTarget = getLinkTarget(occurrence, link) ]
 
             [@cfDebug listMode linkTarget false /]
 
@@ -439,7 +431,7 @@ created in either case.
         [/#if]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "apiusageplan" : {
@@ -459,4 +451,4 @@ created in either case.
             }
         }
     ]
-[/#function]
+[/#macro]

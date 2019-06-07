@@ -10,16 +10,12 @@
 [#assign USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION = "auth" ]
 
 [#macro aws_userpool_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getUserPoolState(occurrence, baseState)]
-[/#macro]
-
-[#function getUserPoolState occurrence baseState]
     [#local core = occurrence.Core]
 
     [#if core.External!false]
         [#local id = baseState.Attributes["USERPOOL_ARN"]!"COTException: External Userpool ARN Not configured" ]
         [#local FQDN = ((baseState.Attributes["USERPOOL_BASE_URL"])!"")?remove_beginning("https://")?remove_ending("/")]
-        [#return
+        [#assign componentState =
             baseState +
             {
                 "Roles" : {
@@ -92,7 +88,7 @@
                                     )]
         [/#if]
 
-        [#return
+        [#assign componentState =
             {
                 "Resources" : {
                     "userpool" : {
@@ -177,13 +173,9 @@
             }
         ]
     [/#if]
-[/#function]
-
-[#macro aws_userpoolclient_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getUserPoolClientState(occurrence, parent)]
 [/#macro]
 
-[#function getUserPoolClientState occurrence parent ]
+[#macro aws_userpoolclient_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -198,7 +190,7 @@
         [#local userPoolClientName  = parentResources["client"].Name ]
     [/#if]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "client" : {
@@ -217,19 +209,15 @@
                 "Outbound" : {}
             }
         }]
-[/#function]
-
-[#macro aws_userpoolauthprovider_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getUserPoolAuthProviderState(occurrence)]
 [/#macro]
 
-[#function getUserPoolAuthProviderState occurrence ]
+[#macro aws_userpoolauthprovider_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
 
-    [#assign authProviderId = formatResourceId(AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE, core.Id)]
-    [#assign authProviderName = core.SubComponent.Name]
+    [#local authProviderId = formatResourceId(AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE, core.Id)]
+    [#local authProviderName = core.SubComponent.Name]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "authprovider" : {
@@ -247,4 +235,4 @@
                 "Outbound" : {}
             }
         }]
-[/#function]
+[/#macro]

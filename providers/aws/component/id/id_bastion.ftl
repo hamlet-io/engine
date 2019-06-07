@@ -1,14 +1,10 @@
 [#-- Resources --]
 
 [#macro aws_bastion_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getBastionState(occurrence)]
-[/#macro]
-
-[#function getBastionState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "eip" : {
@@ -60,5 +56,4 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
+[/#macro]

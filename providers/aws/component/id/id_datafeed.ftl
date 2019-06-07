@@ -1,11 +1,6 @@
 [#-- Resources --]
 
 [#macro aws_datafeed_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getDataFeedState(occurrence)]
-[/#macro]
-
-[#function getDataFeedState occurrence ]
-
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -13,7 +8,7 @@
     [#local streamName = core.FullName]
 
     [#local lgId = formatLogGroupId(core.Id)]
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "stream" : {
@@ -70,4 +65,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

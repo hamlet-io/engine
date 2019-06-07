@@ -1,11 +1,6 @@
 [#-- Resources --]
 
 [#macro aws_datavolume_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getDataVolumeState(occurrence)]
-[/#macro]
-
-[#function getDataVolumeState occurrence]
-
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -47,7 +42,7 @@
         ]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "manualSnapshot" : {
@@ -85,4 +80,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

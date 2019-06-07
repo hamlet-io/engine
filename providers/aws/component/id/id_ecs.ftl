@@ -3,11 +3,28 @@
 [#assign AWS_ECS_TASK_RESOURCE_TYPE = "ecsTask"]
 [#assign AWS_ECS_SERVICE_RESOURCE_TYPE = "ecsService"]
 
-[#macro aws_ecs_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getECSState(occurrence)]
-[/#macro]
+[#function formatEcsClusterArn ecsId account={ "Ref" : "AWS::AccountId" }]
+    [#return
+        formatRegionalArn(
+            "ecs",
+            formatRelativePath(
+                "cluster",
+                getReference(ecsId)
+            )
+        )
+    ]
+[/#function]
 
-[#function getECSState occurrence]
+[#-- Container --]
+[#function formatContainerSecurityGroupIngressId resourceId container portRange source=""]
+    [#return formatDependentSecurityGroupIngressId(
+                resourceId,
+                getContainerId(container),
+                portRange,
+                source)]
+[/#function]
+
+[#macro aws_ecs_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -40,7 +57,7 @@
     [/#list]
 
     [#-- TODO(mfl): Use formatDependentRoleId() for roles --]
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "cluster" : {
@@ -96,13 +113,9 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_service_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getServiceState(occurrence)]
 [/#macro]
 
-[#function getServiceState occurrence]
+[#macro aws_service_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -126,7 +139,7 @@
         }]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "service" : {
@@ -189,13 +202,9 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_task_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getTaskState(occurrence, parent)]
 [/#macro]
 
-[#function getTaskState occurrence parent]
+[#macro aws_task_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -223,7 +232,7 @@
         }]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "task" : {
@@ -302,26 +311,4 @@
             }
         }
     ]
-[/#function]
-
-[#function formatEcsClusterArn ecsId account={ "Ref" : "AWS::AccountId" }]
-    [#return
-        formatRegionalArn(
-            "ecs",
-            formatRelativePath(
-                "cluster",
-                getReference(ecsId)
-            )
-        )
-    ]
-[/#function]
-
-[#-- Container --]
-
-[#function formatContainerSecurityGroupIngressId resourceId container portRange source=""]
-    [#return formatDependentSecurityGroupIngressId(
-                resourceId,
-                getContainerId(container),
-                portRange,
-                source)]
-[/#function]
+[/#macro]

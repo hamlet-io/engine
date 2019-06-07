@@ -2,15 +2,11 @@
 [#assign AWS_SQS_RESOURCE_TYPE = "sqs" ]
 
 [#macro aws_sqs_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getSQSState(occurrence, baseState)]
-[/#macro]
-
-[#function getSQSState occurrence baseState]
     [#local core = occurrence.Core]
 
     [#if core.External!false]
         [#local id = baseState.Attributes["ARN"]!"" ]
-        [#return
+        [#assign componentState =
             baseState +
             valueIfContent(
                 {
@@ -42,11 +38,11 @@
         [#local dlqId = formatDependentResourceId(AWS_SQS_RESOURCE_TYPE, id, "dlq") ]
         [#local dlqName = formatName(name, "dlq")]
 
-        [#assign dlqRequired =
+        [#local dlqRequired =
             isPresent(solution.DeadLetterQueue) ||
             ((environmentObject.Operations.DeadLetterQueue.Enabled)!false)]
 
-        [#return
+        [#assign componentState =
             {
                 "Resources" : {
                     "queue" : {
@@ -86,4 +82,4 @@
             }
         ]
     [/#if]
-[/#function]
+[/#macro]

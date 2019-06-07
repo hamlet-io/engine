@@ -1,27 +1,50 @@
 [#-- Resources --]
 [#assign LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE = "sshPrivKey" ]
 [#assign AWS_SSH_KEY_PAIR_RESOURCE_TYPE = "sshKeyPair" ]
+[#assign SEED_RESOURCE_TYPE = "seed" ]
+
+[#function formatSegmentSeedId ]
+    [#return formatSegmentResourceId(SEED_RESOURCE_TYPE)]
+[/#function]
+
+[#function formatS3BaselineId role ]
+    [#return formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, role)]
+[/#function]
+
+[#function formatS3OperationsId]
+    [#return
+        migrateToResourceId(
+            formatSegmentS3Id("ops"),
+            formatSegmentS3Id("operations"),
+            formatSegmentS3Id("logs")
+        )]
+[/#function]
+
+[#function formatS3DataId]
+    [#return
+        migrateToResourceId(
+            formatSegmentS3Id("data"),
+            formatSegmentS3Id("application"),
+            formatSegmentS3Id("backups")
+        )]
+[/#function]
 
 [#macro aws_baseline_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getBaselineState(occurrence)]
-[/#macro]
-
-[#function getBaselineState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
     [#local segmentSeedId = formatSegmentSeedId() ]
     [#if !(getExistingReference(segmentSeedId)?has_content) ]
         [#if legacyVpc ]
-            [#assign segmentSeedValue = vpc?remove_beginning("vpc-")]
+            [#local segmentSeedValue = vpc?remove_beginning("vpc-")]
         [#else]
-            [#assign segmentSeedValue = ( runId + accountObject.Seed)[0..(solution.Seed.Length - 1)]  ]
+            [#local segmentSeedValue = ( runId + accountObject.Seed)[0..(solution.Seed.Length - 1)]  ]
         [/#if]
     [#else]
-        [#assign segmentSeedValue = getExistingReference(segmentSeedId) ]
+        [#local segmentSeedValue = getExistingReference(segmentSeedId) ]
     [/#if]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "segmentSeed": {
@@ -48,14 +71,9 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
-
-[#macro aws_baselinedata_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getBaselineStorageState(occurrence, parent)]
 [/#macro]
 
-[#function getBaselineStorageState occurrence parent ]
+[#macro aws_baselinedata_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -89,7 +107,7 @@
 
     [#local bucketPolicyId = formatDependentBucketPolicyId(bucketId)]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "bucket" : {
@@ -111,14 +129,9 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
-
-[#macro aws_baselinekey_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getBaselineKeyState(occurrence, parent)]
 [/#macro]
 
-[#function getBaselineKeyState occurrence parent ]
+[#macro aws_baselinekey_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -217,7 +230,7 @@
             /]
     [/#switch]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : resources,
             "Attributes" : {
@@ -228,34 +241,4 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
-
-[#-- Resources --]
-[#assign SEED_RESOURCE_TYPE = "seed" ]
-
-[#function formatSegmentSeedId ]
-    [#return formatSegmentResourceId(SEED_RESOURCE_TYPE)]
-[/#function]
-
-[#function formatS3BaselineId role ]
-    [#return formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, role)]
-[/#function]
-
-[#function formatS3OperationsId]
-    [#return
-        migrateToResourceId(
-            formatSegmentS3Id("ops"),
-            formatSegmentS3Id("operations"),
-            formatSegmentS3Id("logs")
-        )]
-[/#function]
-
-[#function formatS3DataId]
-    [#return
-        migrateToResourceId(
-            formatSegmentS3Id("data"),
-            formatSegmentS3Id("application"),
-            formatSegmentS3Id("backups")
-        )]
-[/#function]
+[/#macro]

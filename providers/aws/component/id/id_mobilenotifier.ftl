@@ -1,14 +1,20 @@
 [#-- Resources --]
 
-[#macro aws_mobilenotifier_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getMobileNotifierState(occurrence)]
-[/#macro]
+[#function formatMobileNotifierLogGroupId engine name failure=false]
+    [#local failureId = valueIfTrue("failure", failure, "") ]
+    [#return
+        valueIfTrue(
+            formatAccountLogGroupId("sms", failureId),
+            engine == MOBILENOTIFIER_SMS_ENGINE,
+            formatLogGroupId(name, failureId)
+        ) ]
+[/#function]
 
-[#function getMobileNotifierState occurrence]
+[#macro aws_mobilenotifier_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "role" : {
@@ -24,24 +30,9 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
-
-[#function formatMobileNotifierLogGroupId engine name failure=false]
-    [#local failureId = valueIfTrue("failure", failure, "") ]
-    [#return
-        valueIfTrue(
-            formatAccountLogGroupId("sms", failureId),
-            engine == MOBILENOTIFIER_SMS_ENGINE,
-            formatLogGroupId(name, failureId)
-        ) ]
-[/#function]
-
-[#macro aws_mobilenotifierplatform_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getMobileNotifierPlatformState(occurrence)]
 [/#macro]
 
-[#function getMobileNotifierPlatformState occurrence]
+[#macro aws_mobilenotifierplatform_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -78,7 +69,7 @@
         }]
     [/#list]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "platformapplication" : {
@@ -131,5 +122,4 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
+[/#macro]

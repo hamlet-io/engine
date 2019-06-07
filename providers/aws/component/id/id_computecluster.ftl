@@ -1,16 +1,11 @@
 [#-- Resources --]
 
 [#macro aws_computecluster_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getComputeClusterState(occurrence)]
-[/#macro]
-
-[#function getComputeClusterState occurrence]
-
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
     [#local buildReference = getOccurrenceBuildReference(occurrence) ]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "securityGroup" : {
@@ -63,4 +58,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

@@ -58,10 +58,6 @@
 [/#function]
 
 [#macro aws_s3_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getS3State(occurrence)]
-[/#macro]
-
-[#function getS3State occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -74,7 +70,8 @@
             [#break]
         [/#if]
     [/#list]
-    [#return
+
+    [#assign componentState =
         {
             "Resources" : {
                 "bucket" : {
@@ -119,4 +116,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

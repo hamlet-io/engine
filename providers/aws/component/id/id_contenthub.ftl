@@ -3,10 +3,6 @@
 [#assign COT_CONTENTHUB_NODE_RESOURCE_TYPE = "contentnode"]
 
 [#macro aws_contenthub_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getContentHubState(occurrence, baseState)]
-[/#macro]
-
-[#function getContentHubState occurrence baseState]
     [#local core = occurrence.Core]
 
     [#if core.External!false ]
@@ -15,7 +11,7 @@
         [#local branch = (baseState.Attributes["BRANCH"])!"COTException: Bracnch not found" ]
         [#local prefix = (baseState.Attributes["PREFIX"])!"COTException: Prefix not found" ]
 
-        [#return
+        [#assign componentState =
             baseState +
             {
                 "Attributes" : {
@@ -35,7 +31,7 @@
         [#local branch = solution.Branch ]
         [#local prefix = solution.Prefix ]
 
-        [#return
+        [#assign componentState =
             {
                 "Resources" : {
                     "contenthub" : {
@@ -57,53 +53,15 @@
             }
         ]
     [/#if]
-[/#function]
-
-
-[#assign CONTENTHUB_NODE_COMPONENT_TYPE = "contentnode"]
-
-[#assign componentConfiguration +=
-    {
-        CONTENTHUB_NODE_COMPONENT_TYPE : {
-            "Properties" : [
-                {
-                    "Type" : "Description",
-                    "Value" : "Node for decentralised content hosting with centralised publishing"
-                },
-                {
-                    "Type" : "Providers",
-                    "Value" : [ "github" ]
-                },
-                {
-                    "Type" : "ComponentLevel",
-                    "Value" : "application"
-                }
-            ],
-            "Attributes" : [
-                {
-                    "Names" : "Path",
-                    "Children" : pathChildConfiguration
-                },
-                {
-                    "Names" : "Links",
-                    "Subobjects" : true,
-                    "Children" : linkChildrenConfiguration
-                }
-            ]
-        }
-    }]
-
-[#macro aws_contentnode_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getContentNodeState(occurrence)]
 [/#macro]
 
-[#function getContentNodeState occurrence]
+[#macro aws_contentnode_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
     [#local id = formatResourceId(COT_CONTENTHUB_NODE_RESOURCE_TYPE, core.Id)]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "contentnode" : {
@@ -120,4 +78,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

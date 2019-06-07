@@ -27,13 +27,9 @@
 [/#function]
 
 [#macro aws_lambda_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getLambdaState(occurrence)]
-[/#macro]
-
-[#function getLambdaState occurrence]
     [#local core = occurrence.Core]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "lambda" : {
@@ -51,13 +47,9 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_function_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getFunctionState(occurrence, parent)]
 [/#macro]
 
-[#function getFunctionState occurrence parent]
+[#macro aws_function_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
 
@@ -85,7 +77,7 @@
         }]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "function" : {
@@ -139,4 +131,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

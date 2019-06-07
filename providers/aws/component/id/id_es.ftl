@@ -10,19 +10,15 @@
 [/#function]
 
 [#macro aws_elasticsearch_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getESState(occurrence, baseState)]
+    [@aws_es_cf_state occurrence parent baseState /]
 [/#macro]
 
 [#macro aws_es_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getESState(occurrence, baseState)]
-[/#macro]
-
-[#function getESState occurrence baseState]
     [#local core = occurrence.Core]
 
     [#if core.External!false]
         [#local esId = baseState.Attributes["ES_DOMAIN_ARN"]!"COTException: Could not find ARN" ]
-        [#return
+        [#assign componentState =
             baseState +
             valueIfContent(
                 {
@@ -53,7 +49,7 @@
     [#local esId = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
     [#local esHostName = getExistingReference(esId, DNS_ATTRIBUTE_TYPE) ]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "es" : {
@@ -86,4 +82,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]

@@ -1,10 +1,6 @@
 [#-- Resources --]
 
 [#macro aws_network_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getNetworkState(occurrence)]
-[/#macro]
-
-[#function getNetworkState occurrence]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -20,11 +16,11 @@
         [#local vpcName = core.FullName ]
     [/#if]
 
-    [#assign vpcFlowLogEnabled = environmentObject.Operations.FlowLogs.Enabled!
+    [#local vpcFlowLogEnabled = environmentObject.Operations.FlowLogs.Enabled!
                                     segmentObject.Operations.FlowLogs.Enabled!
                                     solution.Logging.EnableFlowLogs ]
 
-    [#assign networkCIDR = (network.CIDR)?has_content?then(
+    [#local networkCIDR = (network.CIDR)?has_content?then(
                     network.CIDR.Address + "/" + network.CIDR.Mask,
                     solution.Address.CIDR )]
 
@@ -88,7 +84,7 @@
         [/#list]
     [/#list]
 
-    [#local result =
+    [#assign componentState =
         {
             "Resources" : {
                 "vpc" : {
@@ -145,15 +141,9 @@
             }
         }
     ]
-    [#return result ]
-[/#function]
-
-[#macro aws_networkroute_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getNetworkRouteTableState(occurrence)]
 [/#macro]
 
-[#function getNetworkRouteTableState occurrence ]
-
+[#macro aws_networkroute_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -198,7 +188,7 @@
         [/#list]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "routeTables" : routeTables
@@ -211,13 +201,9 @@
             }
         }
     ]
-[/#function]
-
-[#macro aws_networkacl_cf_state occurrence parent={} baseState={}  ]
-    [#assign componentState = getNetworkACLState(occurrence)]
 [/#macro]
 
-[#function getNetworkACLState occurrence ]
+[#macro aws_networkacl_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
@@ -242,7 +228,7 @@
         }]
     [/#list]
 
-    [#return
+    [#assign componentState =
         {
             "Resources" : {
                 "networkACL" : {
@@ -260,4 +246,4 @@
             }
         }
     ]
-[/#function]
+[/#macro]
