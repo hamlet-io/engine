@@ -214,16 +214,22 @@
                             [#if deploymentSubsetRequired("es", true)]
                                 [#assign role = linkTargetResources["authrole"].Id!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
                                 [#assign roleArn = getArn(role) ]
-                                [@cfResource
-                                    mode=listMode
-                                    id=policyId
-                                    type="AWS::IAM::Policy"
-                                    properties=
-                                        getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
-                                        {
-                                            "Roles" : [ roleArn ] 
-                                        }
-                                /]
+
+                                [#assign localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
+
+                                [#if localRoleAccount ]
+                                    [#assign roleName = (role?split("/"))[1] ]
+                                    [@cfResource
+                                        mode=listMode
+                                        id=policyId
+                                        type="AWS::IAM::Policy"
+                                        properties=
+                                            getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
+                                            {
+                                                "Roles" : [ roleName ] 
+                                            }
+                                    /]
+                                [/#if]
                             [/#if]
                         [#break]
                 [/#switch]
