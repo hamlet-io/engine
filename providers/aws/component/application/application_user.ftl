@@ -2,25 +2,25 @@
 [#macro aws_user_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign resources = occurrence.State.Resources]
-    [#assign solution = occurrence.Configuration.Solution ]
+    [#local core = occurrence.Core ]
+    [#local resources = occurrence.State.Resources]
+    [#local solution = occurrence.Configuration.Solution ]
 
-    [#assign userId = resources["user"].Id ]
-    [#assign userName = resources["user"].Name]
-    [#assign apikeyId = resources["apikey"].Id ]
-    [#assign apikeyName = resources["apikey"].Name]
+    [#local userId = resources["user"].Id ]
+    [#local userName = resources["user"].Name]
+    [#local apikeyId = resources["apikey"].Id ]
+    [#local apikeyName = resources["apikey"].Name]
 
-    [#assign credentialFormats = solution.GenerateCredentials.Formats]
-    [#assign userPasswordLength = solution.GenerateCredentials.CharacterLength ]
+    [#local credentialFormats = solution.GenerateCredentials.Formats]
+    [#local userPasswordLength = solution.GenerateCredentials.CharacterLength ]
 
-    [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
+    [#local segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
 
-    [#assign passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
+    [#local passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
         solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
         "" )]
 
-    [#assign encryptedSystemPassword = (
+    [#local encryptedSystemPassword = (
         getExistingReference(
             userId,
             PASSWORD_ATTRIBUTE_TYPE)
@@ -28,7 +28,7 @@
             passwordEncryptionScheme
         )]
 
-    [#assign encryptedConsolePassword = (
+    [#local encryptedConsolePassword = (
         getExistingReference(
             userId,
             GENERATEDPASSWORD_ATTRIBUTE_TYPE)
@@ -36,12 +36,12 @@
             passwordEncryptionScheme
         )]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#-- Add in container specifics including override of defaults --]
     [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
-    [#assign contextLinks = getLinkTargets(occurrence) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -58,8 +58,8 @@
     ]
 
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(_context)]
+        [#local fragmentListMode = "model"]
+        [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
@@ -83,7 +83,7 @@
     [#if deploymentSubsetRequired(USER_COMPONENT_TYPE, true)]
 
         [#if _context.Policy?has_content]
-            [#assign policyId = formatDependentPolicyId(userId)]
+            [#local policyId = formatDependentPolicyId(userId)]
             [@createPolicy
                 mode=listMode
                 id=policyId
@@ -93,10 +93,10 @@
             /]
         [/#if]
 
-        [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
+        [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
         [#if linkPolicies?has_content]
-            [#assign policyId = formatDependentPolicyId(userId, "links")]
+            [#local policyId = formatDependentPolicyId(userId, "links")]
             [@createPolicy
                 mode=listMode
                 id=policyId
@@ -122,10 +122,10 @@
         /]
 
         [#-- Manage API keys for the user if linked to usage plans --]
-        [#assign apikeyNeeded = false ]
+        [#local apikeyNeeded = false ]
         [#list solution.Links?values as link]
             [#if link?is_hash]
-                [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
+                [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
                 [@cfDebug listMode linkTarget false /]
 
@@ -133,7 +133,7 @@
                     [#continue]
                 [/#if]
 
-                [#assign linkTargetResources = linkTarget.State.Resources ]
+                [#local linkTargetResources = linkTarget.State.Resources ]
 
                 [#switch linkTarget.Core.Type]
                     [#case APIGATEWAY_USAGEPLAN_COMPONENT_TYPE ]
@@ -145,7 +145,7 @@
                                 apikeyId=apikeyId
                             /]
                         [/#if]
-                        [#assign apikeyNeeded = true]
+                        [#local apikeyNeeded = true]
                         [#break]
                 [/#switch]
             [/#if]
@@ -161,7 +161,7 @@
 
     [#if deploymentSubsetRequired("epilogue", false)]
 
-        [#assign credentialsPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-credentials-pseudo-stack.json\"" ]
+        [#local credentialsPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-credentials-pseudo-stack.json\"" ]
         [@cfScript
             mode=listMode
             content=

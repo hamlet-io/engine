@@ -2,65 +2,65 @@
 [#macro aws_ec2_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core]
-    [#assign solution = occurrence.Configuration.Solution]
-    [#assign resources = occurrence.State.Resources]
-    [#assign zoneResources = occurrence.State.Resources.Zones]
-    [#assign links = solution.Links ]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
+    [#local zoneResources = occurrence.State.Resources.Zones]
+    [#local links = solution.Links ]
 
-    [#assign fixedIP = solution.FixedIP]
-    [#assign dockerHost = solution.DockerHost]
+    [#local fixedIP = solution.FixedIP]
+    [#local dockerHost = solution.DockerHost]
 
-    [#assign ec2SecurityGroupId     = resources["sg"].Id]
-    [#assign ec2SecurityGroupName   = resources["sg"].Name]
-    [#assign ec2RoleId              = resources["ec2Role"].Id]
-    [#assign ec2InstanceProfileId   = resources["instanceProfile"].Id]
-    [#assign ec2LogGroupId          = resources["lg"].Id]
-    [#assign ec2LogGroupName        = resources["lg"].Name]
+    [#local ec2SecurityGroupId     = resources["sg"].Id]
+    [#local ec2SecurityGroupName   = resources["sg"].Name]
+    [#local ec2RoleId              = resources["ec2Role"].Id]
+    [#local ec2InstanceProfileId   = resources["instanceProfile"].Id]
+    [#local ec2LogGroupId          = resources["lg"].Id]
+    [#local ec2LogGroupName        = resources["lg"].Name]
 
-    [#assign processorProfile       = getProcessor(occurrence, "EC2")]
-    [#assign storageProfile         = getStorage(occurrence, "EC2")]
-    [#assign logFileProfile         = getLogFileProfile(occurrence, "EC2")]
-    [#assign bootstrapProfile       = getBootstrapProfile(occurrence, "EC2")]
+    [#local processorProfile       = getProcessor(occurrence, "EC2")]
+    [#local storageProfile         = getStorage(occurrence, "EC2")]
+    [#local logFileProfile         = getLogFileProfile(occurrence, "EC2")]
+    [#local bootstrapProfile       = getBootstrapProfile(occurrence, "EC2")]
 
-    [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
-    [#assign networkLink = occurrenceNetwork.Link!{} ]
+    [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+    [#local networkLink = occurrenceNetwork.Link!{} ]
 
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-    [#assign vpcId = networkResources["vpc"].Id ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-    [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
-    [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-    [#assign publicRouteTable = routeTableConfiguration.Public ]
+    [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
+    [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+    [#local publicRouteTable = routeTableConfiguration.Public ]
 
-    [#assign targetGroupRegistrations = {}]
-    [#assign targetGroupPermission = false ]
+    [#local targetGroupRegistrations = {}]
+    [#local targetGroupPermission = false ]
 
-    [#assign environmentVariables = {}]
+    [#local environmentVariables = {}]
 
-    [#assign configSetName = occurrence.Core.Type]
-    [#assign configSets =
+    [#local configSetName = occurrence.Core.Type]
+    [#local configSets =
             getInitConfigDirectories() +
             getInitConfigBootstrap(occurrence) +
             getInitConfigPuppet() ]
 
-    [#assign efsMountPoints = {}]
+    [#local efsMountPoints = {}]
 
-    [#assign componentDependencies = []]
-    [#assign ingressRules = []]
+    [#local componentDependencies = []]
+    [#local ingressRules = []]
 
     [#list solution.Ports?values as port ]
         [#if port.LB.Configured]
-            [#assign lbLink = getLBLink(occurrence, port)]
+            [#local lbLink = getLBLink(occurrence, port)]
             [#if isDuplicateLink(links, lbLink) ]
                 [@cfException
                     mode=listMode
@@ -69,11 +69,11 @@
                     detail=lbLink /]
                 [#continue]
             [/#if]
-            [#assign links += lbLink]
+            [#local links += lbLink]
         [#else]
-            [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups, true, occurrence) ]
+            [#local portCIDRs = getGroupCIDRs(port.IPAddressGroups, true, occurrence) ]
             [#if portCIDRs?has_content]
-                [#assign ingressRules +=
+                [#local ingressRules +=
                     [{
                         "Port" : port.Name,
                         "CIDR" : portCIDRs
@@ -82,10 +82,10 @@
         [/#if]
     [/#list]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign contextLinks = getLinkTargets(occurrence, links) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence, links) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -106,24 +106,24 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
-    [#assign fragmentId = formatFragmentId(_context)]
+    [#local fragmentListMode = "model"]
+    [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#local environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
-    [#assign configSets +=
+    [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +
         getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
     [#list bootstrapProfile.BootStraps as bootstrapName ]
-        [#assign bootstrap = bootstraps[bootstrapName]]
-        [#assign configSets +=
+        [#local bootstrap = bootstraps[bootstrapName]]
+        [#local configSets +=
             getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
     [/#list]
 
     [#list links as linkId,link]
-        [#assign linkTarget = getLinkTarget(occurrence, link) ]
+        [#local linkTarget = getLinkTarget(occurrence, link) ]
 
         [@cfDebug listMode linkTarget false /]
 
@@ -131,26 +131,26 @@
             [#continue]
         [/#if]
 
-        [#assign linkTargetCore = linkTarget.Core ]
-        [#assign linkTargetConfiguration = linkTarget.Configuration ]
-        [#assign linkTargetResources = linkTarget.State.Resources ]
-        [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+        [#local linkTargetCore = linkTarget.Core ]
+        [#local linkTargetConfiguration = linkTarget.Configuration ]
+        [#local linkTargetResources = linkTarget.State.Resources ]
+        [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
-        [#assign sourceSecurityGroupIds = []]
-        [#assign sourceIPAddressGroups = [] ]
+        [#local sourceSecurityGroupIds = []]
+        [#local sourceIPAddressGroups = [] ]
 
         [#switch linkTargetCore.Type]
             [#case LB_PORT_COMPONENT_TYPE]
-                [#assign targetGroupPermission = true]
-                [#assign destinationPort = linkTargetAttributes["DESTINATION_PORT"]]
+                [#local targetGroupPermission = true]
+                [#local destinationPort = linkTargetAttributes["DESTINATION_PORT"]]
 
                 [#switch linkTargetAttributes["ENGINE"] ]
                     [#case "application" ]
                     [#case "classic"]
-                        [#assign sourceSecurityGroupIds += [ linkTargetResources["sg"].Id ] ]
+                        [#local sourceSecurityGroupIds += [ linkTargetResources["sg"].Id ] ]
                         [#break]
                     [#case "network" ]
-                        [#assign sourceIPAddressGroups = linkTargetConfiguration.IPAddressGroups + [ "_localnet" ] ]
+                        [#local sourceIPAddressGroups = linkTargetConfiguration.IPAddressGroups + [ "_localnet" ] ]
                         [#break]
                 [/#switch]
 
@@ -158,19 +158,19 @@
 
                     [#case "application"]
                     [#case "network"]
-                        [#assign configSets += getInitConfigLBTargetRegistration(linkTargetCore.Id, linkTargetAttributes["TARGET_GROUP_ARN"])]
+                        [#local configSets += getInitConfigLBTargetRegistration(linkTargetCore.Id, linkTargetAttributes["TARGET_GROUP_ARN"])]
 
                         [#break]
 
                     [#case "classic" ]
-                        [#assign lbId =  linkTargetAttributes["LB"] ]
-                        [#assign configSets +=
+                        [#local lbId =  linkTargetAttributes["LB"] ]
+                        [#local configSets +=
                             getInitConfigLBClassicRegistration(lbId)]
                         [#break]
                     [/#switch]
                 [#break]
             [#case EFS_MOUNT_COMPONENT_TYPE]
-                [#assign configSets +=
+                [#local configSets +=
                     getInitConfigEFSMount(
                         linkTargetCore.Id,
                         linkTargetAttributes.EFS,
@@ -180,15 +180,15 @@
                 [#break]
 
             [#case DATAVOLUME_COMPONENT_TYPE]
-                [#assign linkVolumeResources = {}]
+                [#local linkVolumeResources = {}]
                 [#list linkTargetResources["Zones"] as zoneId, linkZoneResources ]
-                    [#assign linkVolumeResources += {
+                    [#local linkVolumeResources += {
                         zoneId : {
                             "VolumeId" : linkZoneResources["ebsVolume"].Id
                         }
                     }]
                 [/#list]
-                [#assign _context +=
+                [#local _context +=
                     {
                         "DataVolumes" :
                             (_context.DataVolumes!{}) +
@@ -201,7 +201,7 @@
 
         [#if deploymentSubsetRequired(EC2_COMPONENT_TYPE, true)]
 
-            [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, occurrence)]
+            [#local securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, occurrence)]
             [#list securityGroupCIDRs as cidr ]
 
                 [@createSecurityGroupIngress
@@ -239,7 +239,7 @@
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(ec2RoleId)]
 
-        [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
+        [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
         [@createRole
             mode=listMode
@@ -282,7 +282,7 @@
             name=ec2LogGroupName /]
     [/#if]
 
-    [#assign configSets +=
+    [#local configSets +=
         getInitConfigLogAgent(
             logFileProfile,
             ec2LogGroupName
@@ -312,25 +312,25 @@
 
         [#list zones as zone]
             [#if multiAZ || (zones[0].Id = zone.Id)]
-                [#assign zoneEc2InstanceId          = zoneResources[zone.Id]["ec2Instance"].Id ]
-                [#assign zoneEc2InstanceName        = zoneResources[zone.Id]["ec2Instance"].Name ]
-                [#assign zoneEc2ENIId               = zoneResources[zone.Id]["ec2ENI"].Id ]
-                [#assign zoneEc2EIPId               = zoneResources[zone.Id]["ec2EIP"].Id]
-                [#assign zoneEc2EIPAssociationId    = zoneResources[zone.Id]["ec2EIPAssociation"].Id]
+                [#local zoneEc2InstanceId          = zoneResources[zone.Id]["ec2Instance"].Id ]
+                [#local zoneEc2InstanceName        = zoneResources[zone.Id]["ec2Instance"].Name ]
+                [#local zoneEc2ENIId               = zoneResources[zone.Id]["ec2ENI"].Id ]
+                [#local zoneEc2EIPId               = zoneResources[zone.Id]["ec2EIP"].Id]
+                [#local zoneEc2EIPAssociationId    = zoneResources[zone.Id]["ec2EIPAssociation"].Id]
 
-                [#assign updateCommand = "yum clean all && yum -y update"]
-                [#assign dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
+                [#local updateCommand = "yum clean all && yum -y update"]
+                [#local dailyUpdateCron = 'echo \"59 13 * * * ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
                 [#if environmentId == "prod"]
                     [#-- for production update only security packages --]
-                    [#assign updateCommand += " --security"]
-                    [#assign dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
+                    [#local updateCommand += " --security"]
+                    [#local dailyUpdateCron = 'echo \"29 13 * * 6 ${updateCommand} >> /var/log/update.log 2>&1\" >crontab.txt && crontab crontab.txt']
                 [/#if]
 
                 [#-- Data Volume Mounts --]
                 [#list _context.VolumeMounts as mountId,volumeMount ]
-                    [#assign dataVolume = _context.DataVolumes[mountId]!{} ]
+                    [#local dataVolume = _context.DataVolumes[mountId]!{} ]
                     [#if dataVolume?has_content ]
-                        [#assign zoneVolume = (dataVolume[zone.Id].VolumeId)!"" ]
+                        [#local zoneVolume = (dataVolume[zone.Id].VolumeId)!"" ]
                         [#if zoneVolume?has_content ]
                             [@createEBSVolumeAttachment
                                 mode=listMode
@@ -339,7 +339,7 @@
                                 instanceId=zoneEc2InstanceId
                                 volumeId=zoneVolume
                             /]
-                            [#assign configSets +=
+                            [#local configSets +=
                                 getInitConfigDataVolumeMount(
                                     volumeMount.DeviceId
                                     volumeMount.MountPath

@@ -2,40 +2,40 @@
 [#macro aws_datavolume_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core]
-    [#assign solution = occurrence.Configuration.Solution]
-    [#assign resources = occurrence.State.Resources]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
 
-    [#assign manualSnapshotId = resources["manualSnapshot"].Id]
-    [#assign manualSnapshotName = getExistingReference(manualSnapshotId, NAME_ATTRIBUTE_TYPE)]
+    [#local manualSnapshotId = resources["manualSnapshot"].Id]
+    [#local manualSnapshotName = getExistingReference(manualSnapshotId, NAME_ATTRIBUTE_TYPE)]
 
-    [#assign backupEnabled = solution.Backup.Enabled ]
+    [#local backupEnabled = solution.Backup.Enabled ]
     [#if backupEnabled ]
-        [#assign maintenanceWindowId = resources["maintenanceWindow"].Id ]
-        [#assign maintenanceWindowName = resources["maintenanceWindow"].Name ]
-        [#assign windowTargetId = resources["windowTarget"].Id]
-        [#assign windowTargetName = resources["windowTarget"].Name]
+        [#local maintenanceWindowId = resources["maintenanceWindow"].Id ]
+        [#local maintenanceWindowName = resources["maintenanceWindow"].Name ]
+        [#local windowTargetId = resources["windowTarget"].Id]
+        [#local windowTargetName = resources["windowTarget"].Name]
 
-        [#assign maintenanceServiceRoleId = resources["maintenanceServiceRole"].Id]
-        [#assign maintenanceLambdaRoleId = resources["maintenanceLambdaRole"].Id]
+        [#local maintenanceServiceRoleId = resources["maintenanceServiceRole"].Id]
+        [#local maintenanceLambdaRoleId = resources["maintenanceLambdaRole"].Id]
 
-        [#assign ssmWindowTargets = getSSMWindowTargets( [],[],true )]
+        [#local ssmWindowTargets = getSSMWindowTargets( [],[],true )]
     [/#if]
 
     [#list resources["Zones"] as zoneId, zoneResources ]
-        [#assign volumeId = zoneResources["ebsVolume"].Id ]
-        [#assign volumeName = zoneResources["ebsVolume"].Name ]
+        [#local volumeId = zoneResources["ebsVolume"].Id ]
+        [#local volumeName = zoneResources["ebsVolume"].Name ]
 
-        [#assign volumeTags = getOccurrenceCoreTags(
+        [#local volumeTags = getOccurrenceCoreTags(
                                     occurrence,
                                     volumeName,
                                     "",
                                     false)]
 
-        [#assign resourceZone = {}]
+        [#local resourceZone = {}]
         [#list zones as zone ]
             [#if zoneId == zone.Id ]
-                [#assign resourceZone = zone ]
+                [#local resourceZone = zone ]
             [/#if]
         [/#list]
 
@@ -54,8 +54,8 @@
 
             [#if backupEnabled ]
 
-                [#assign snapshotCreateTaskId = zoneResources["taskCreateSnapshot"].Id ]
-                [#assign snapshotCreateTaskName = zoneResources["taskCreateSnapshot"].Name ]
+                [#local snapshotCreateTaskId = zoneResources["taskCreateSnapshot"].Id ]
+                [#local snapshotCreateTaskName = zoneResources["taskCreateSnapshot"].Name ]
 
                 [@createSSMMaintenanceWindowTask
                     mode=listMode
@@ -76,8 +76,8 @@
                     priority=10
                 /]
 
-                [#assign snapshotDeleteTaskId = zoneResources["taskDeleteSnapshot"].Id ]
-                [#assign snapshotDeleteTaskName = zoneResources["taskDeleteSnapshot"].Name ]
+                [#local snapshotDeleteTaskId = zoneResources["taskDeleteSnapshot"].Id ]
+                [#local snapshotDeleteTaskName = zoneResources["taskDeleteSnapshot"].Name ]
 
                 [@createSSMMaintenanceWindowTask
                     mode=listMode
@@ -105,7 +105,7 @@
     [/#list]
 
     [#if deploymentSubsetRequired(DATAVOLUME_COMPONENT_TYPE, true)]
-        [#assign maintenanceWindowTags = getOccurrenceCoreTags(
+        [#local maintenanceWindowTags = getOccurrenceCoreTags(
                                             occurrence,
                                             maintenanceWindowName,
                                             "",
@@ -144,7 +144,7 @@
                     managedArns=["arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole"]
                 /]
 
-                [#assign policyId = formatDependentPolicyId(maintenanceServiceRoleId, "passRole")]
+                [#local policyId = formatDependentPolicyId(maintenanceServiceRoleId, "passRole")]
                 [@createPolicy
                     mode=listMode
                     id=policyId

@@ -2,14 +2,14 @@
 [#macro aws_spa_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign resources = occurrence.State.Resources]
-    [#assign solution = occurrence.Configuration.Solution ]
+    [#local core = occurrence.Core ]
+    [#local resources = occurrence.State.Resources]
+    [#local solution = occurrence.Configuration.Solution ]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign contextLinks = getLinkTargets(occurrence) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -27,32 +27,32 @@
     ]
 
     [#-- Add in container specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
-    [#assign fragmentId = formatFragmentId(_context)]
+    [#local fragmentListMode = "model"]
+    [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign securityProfile    = getSecurityProfile(solution.Profiles.Security, SPA_COMPONENT_TYPE)]
+    [#local securityProfile    = getSecurityProfile(solution.Profiles.Security, SPA_COMPONENT_TYPE)]
 
-    [#assign certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
-    [#assign hostName = getHostName(certificateObject, occurrence) ]
-    [#assign certificateId = formatDomainCertificateId(certificateObject, hostName) ]
-    [#assign primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
-    [#assign primaryFQDN = formatDomainName(hostName, primaryDomainObject)]
+    [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
+    [#local hostName = getHostName(certificateObject, occurrence) ]
+    [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
+    [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
+    [#local primaryFQDN = formatDomainName(hostName, primaryDomainObject)]
 
     [#-- Get alias list --]
-    [#assign aliases = [] ]
+    [#local aliases = [] ]
     [#list certificateObject.Domains as domain]
-        [#assign aliases += [ formatDomainName(hostName, domain.Name) ] ]
+        [#local aliases += [ formatDomainName(hostName, domain.Name) ] ]
     [/#list]
 
     [#-- Get any event handlers --]
-    [#assign eventHandlerLinks = {} ]
-    [#assign eventHandlers = []]
+    [#local eventHandlerLinks = {} ]
+    [#local eventHandlers = []]
 
     [#if solution.CloudFront.RedirectAliases.Enabled
                 && ( aliases?size > 1) ]
 
-        [#assign cfRedirectLink = {
+        [#local cfRedirectLink = {
             "cfredirect" : {
                 "Tier" : "gbl",
                 "Component" : "cfredirect",
@@ -64,16 +64,16 @@
         }]
 
         [#if getLinkTarget(occurrence, cfRedirectLink.cfredirect )?has_content ]
-            [#assign eventHandlerLinks += cfRedirectLink]
+            [#local eventHandlerLinks += cfRedirectLink]
 
-            [#assign _context +=
+            [#local _context +=
                 {
                     "ForwardHeaders" : (_context.ForwardHeaders![]) + [
                         "Host"
                     ]
                 }]
 
-            [#assign _context +=
+            [#local _context +=
                 {
                     "CustomOriginHeaders" : (_context.CustomOriginHeaders![]) + [
                         getCFHTTPHeader(
@@ -94,10 +94,10 @@
         [/#if]
     [/#if]
 
-    [#assign eventHandlerLinks += solution.CloudFront.EventHandlers ]
+    [#local eventHandlerLinks += solution.CloudFront.EventHandlers ]
     [#list eventHandlerLinks?values as eventHandler]
 
-        [#assign eventHandlerTarget = getLinkTarget(occurrence, eventHandler) ]
+        [#local eventHandlerTarget = getLinkTarget(occurrence, eventHandler) ]
 
         [@cfDebug listMode eventHandlerTarget false /]
 
@@ -105,15 +105,15 @@
             [#continue]
         [/#if]
 
-        [#assign eventHandlerCore = eventHandlerTarget.Core ]
-        [#assign eventHandlerResources = eventHandlerTarget.State.Resources ]
-        [#assign eventHandlerAttributes = eventHandlerTarget.State.Attributes ]
-        [#assign eventHandlerConfiguration = eventHandlerTarget.Configuration ]
+        [#local eventHandlerCore = eventHandlerTarget.Core ]
+        [#local eventHandlerResources = eventHandlerTarget.State.Resources ]
+        [#local eventHandlerAttributes = eventHandlerTarget.State.Attributes ]
+        [#local eventHandlerConfiguration = eventHandlerTarget.Configuration ]
 
         [#if (eventHandlerCore.Type) == LAMBDA_FUNCTION_COMPONENT_TYPE &&
                 eventHandlerAttributes["DEPLOYMENT_TYPE"] == "EDGE" ]
 
-                [#assign eventHandlers += getCFEventHandler(
+                [#local eventHandlers += getCFEventHandler(
                                             eventHandler.Action,
                                             eventHandlerResources["version"].Id) ]
         [#else]
@@ -125,50 +125,50 @@
         [/#if]
     [/#list]
 
-    [#assign cfId               = resources["cf"].Id]
-    [#assign cfName             = resources["cf"].Name]
-    [#assign cfSPAOriginId      = resources["cforiginspa"].Id]
-    [#assign cfConfigOriginId   = resources["cforiginconfig"].Id]
+    [#local cfId               = resources["cf"].Id]
+    [#local cfName             = resources["cf"].Name]
+    [#local cfSPAOriginId      = resources["cforiginspa"].Id]
+    [#local cfConfigOriginId   = resources["cforiginconfig"].Id]
 
-    [#assign bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, "opsdata" ) ]
+    [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, "opsdata" ) ]
     [#if !getExistingReference(bucketId)?has_content ]
-        [#assign bucketId = formatS3OperationsId() ]
+        [#local bucketId = formatS3OperationsId() ]
     [/#if]
 
-    [#assign cfAccess = getExistingReference(formatDependentCFAccessId(bucketId)) ]
+    [#local cfAccess = getExistingReference(formatDependentCFAccessId(bucketId)) ]
 
     [#if !cfAccess?has_content]
         [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
         [#return]
     [/#if]
 
-    [#assign wafPresent     = isPresent(solution.WAF) ]
-    [#assign wafAclId       = resources["wafacl"].Id]
-    [#assign wafAclName     = resources["wafacl"].Name]
+    [#local wafPresent     = isPresent(solution.WAF) ]
+    [#local wafAclId       = resources["wafacl"].Id]
+    [#local wafAclName     = resources["wafacl"].Name]
 
     [#if deploymentSubsetRequired("spa", true)]
-        [#assign origins = []]
-        [#assign cacheBehaviours = []]
+        [#local origins = []]
+        [#local cacheBehaviours = []]
 
-        [#assign spaOrigin =
+        [#local spaOrigin =
             getCFS3Origin(
                 cfSPAOriginId,
                 operationsBucket,
                 cfAccess,
                 formatAbsolutePath(getSettingsFilePrefix(occurrence), "spa"),
                 _context.CustomOriginHeaders)]
-        [#assign origins += spaOrigin ]
+        [#local origins += spaOrigin ]
 
-        [#assign configOrigin =
+        [#local configOrigin =
             getCFS3Origin(
                 cfConfigOriginId,
                 operationsBucket,
                 cfAccess,
                 formatAbsolutePath(getSettingsFilePrefix(occurrence)),
                 _context.CustomOriginHeaders)]
-        [#assign origins += configOrigin ]
+        [#local origins += configOrigin ]
 
-        [#assign spaCacheBehaviour = getCFSPACacheBehaviour(
+        [#local spaCacheBehaviour = getCFSPACacheBehaviour(
             spaOrigin,
             "",
             {
@@ -180,43 +180,43 @@
             eventHandlers,
             _context.ForwardHeaders)]
 
-        [#assign configCacheBehaviour = getCFSPACacheBehaviour(
+        [#local configCacheBehaviour = getCFSPACacheBehaviour(
             configOrigin,
             "/config/*",
             {"Default" : 60},
             solution.CloudFront.Compress,
             eventHandlers,
             _context.ForwardHeaders) ]
-        [#assign cacheBehaviours += configCacheBehaviour ]
+        [#local cacheBehaviours += configCacheBehaviour ]
 
         [#list resources["paths"]!{} as id, path ]
-            [#assign pathOriginIdId = path["cforigin"]["Id"] ]
-            [#assign pathSolution = solution.CloudFront.Paths[id] ]
+            [#local pathOriginIdId = path["cforigin"]["Id"] ]
+            [#local pathSolution = solution.CloudFront.Paths[id] ]
 
-            [#assign pathLink = getLinkTarget(occurrence, pathSolution.Link) ]
+            [#local pathLink = getLinkTarget(occurrence, pathSolution.Link) ]
 
             [#if !pathLink?has_content]
                 [#continue]
             [/#if]
 
-            [#assign pathLinkTargetCore = pathLink.Core ]
-            [#assign pathLinkTargetConfiguration = pathLink.Configuration ]
-            [#assign pathLinkTargetResources = pathLink.State.Resources ]
-            [#assign pathLinkTargetAttributes = pathLink.State.Attributes ]
+            [#local pathLinkTargetCore = pathLink.Core ]
+            [#local pathLinkTargetConfiguration = pathLink.Configuration ]
+            [#local pathLinkTargetResources = pathLink.State.Resources ]
+            [#local pathLinkTargetAttributes = pathLink.State.Attributes ]
 
             [#switch pathLinkTargetCore.Type]
                 [#case LB_PORT_COMPONENT_TYPE ]
-                    [#assign pathOrigin = getCFHTTPOrigin(
+                    [#local pathOrigin = getCFHTTPOrigin(
                                                 pathOriginIdId,
                                                 pathLinkTargetAttributes["FQDN"],
                                                 _context.CustomOriginHeaders,
                                                 pathLinkTargetAttributes["PATH"]
                     )]
-                    [#assign origins += pathOrigin ]
+                    [#local origins += pathOrigin ]
                     [#break]
             [/#switch]
 
-            [#assign pathBehaviour = getCFLBCacheBehaviour(
+            [#local pathBehaviour = getCFLBCacheBehaviour(
                                         pathOrigin,
                                         pathSolution.PathPattern,
                                         pathSolution.CachingTTL,
@@ -225,15 +225,15 @@
                                         eventHandlers
 
             )]
-            [#assign cacheBehaviours += pathBehaviour ]
+            [#local cacheBehaviours += pathBehaviour ]
         [/#list]
 
-        [#assign restrictions = {} ]
+        [#local restrictions = {} ]
         [#if solution.CloudFront.CountryGroups?has_content]
             [#list asArray(solution.CloudFront.CountryGroups) as countryGroup]
-                [#assign group = (countryGroups[countryGroup])!{}]
+                [#local group = (countryGroups[countryGroup])!{}]
                 [#if group.Locations?has_content]
-                    [#assign restrictions +=
+                    [#local restrictions +=
                         getCFGeoRestriction(group.Locations, group.Blacklist!false) ]
                     [#break]
                 [/#if]

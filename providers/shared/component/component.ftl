@@ -66,9 +66,9 @@
     [#local resourceGroups = getComponentResourceGroups(component)]
 
     [#local possibleFiles = [] ]
-    [#local componentType = component]
+    [#local type = component]
     [#if component?is_hash]
-        [#local componentType = getComponentType(component)]
+        [#local type = getComponentType(component)]
     [/#if]
     [#list resourceGroups as id,value]
         [#-- Resource Group determines provider and deployment framework --]
@@ -92,20 +92,20 @@
         [#-- Component based hierarchy --]
 
         [#-- aws/component/lb.ftl --]
-        [#local possibleFiles += [[provider, "component", componentType ]] ]
+        [#local possibleFiles += [[provider, "component", type ]] ]
         [#-- aws/component/lb/lb.ftl --]
-        [#local possibleFiles += [[provider, "component", componentType, componentType]] ]
+        [#local possibleFiles += [[provider, "component", type, type]] ]
 
         [#-- aws/component/lb/lb-lb.ftl --]
-        [#local possibleFiles += [[provider, "component", componentType, id]] ]
+        [#local possibleFiles += [[provider, "component", type, id]] ]
         [#-- aws/component/lb/lb-lb/cf.ftl --]
-        [#local possibleFiles += [[provider, "component", componentType, id, deploymentFramework]] ]
+        [#local possibleFiles += [[provider, "component", type, id, deploymentFramework]] ]
 
         [#-- Component specific deployment framework definition --]
         [#-- aws/component/lb/cf.ftl --]
-        [#local possibleFiles += [[provider, "component", componentType, deploymentFramework]] ]
+        [#local possibleFiles += [[provider, "component", type, deploymentFramework]] ]
         [#-- aws/component/lb/cf/lb-lb.ftl --]
-        [#local possibleFiles += [[provider, "component", componentType, deploymentFramework, id]] ]
+        [#local possibleFiles += [[provider, "component", type, deploymentFramework, id]] ]
 
         [#-- Resource group based hierarchy --]
 
@@ -119,11 +119,11 @@
 
         [#list ["id", "name", "setup", "state"] as level]
             [#-- aws/component/lb/id.ftl --]
-            [#local possibleFiles += [[provider, "component", componentType, level]] ]
+            [#local possibleFiles += [[provider, "component", type, level]] ]
             [#-- aws/component/lb/lb-lb/id.ftl --]
-            [#local possibleFiles += [[provider, "component", componentType, id, level]] ]
+            [#local possibleFiles += [[provider, "component", type, id, level]] ]
             [#-- aws/component/lb/lb-lb/cf/id.ftl --]
-            [#local possibleFiles += [[provider, "component", componentType, id, deploymentFramework, level]] ]
+            [#local possibleFiles += [[provider, "component", type, id, deploymentFramework, level]] ]
 
             [#-- aws/resourcegroup/lb-lb/id.ftl --]
             [#local possibleFiles += [[provider, "resourcegroup", id, level]] ]
@@ -136,14 +136,14 @@
         [#-- TODO(mfl): Remove when transition complete --]
         [#list ["segment", "solution", "application"] as level]
             [#-- aws/component/segment/segment_lb.ftl --]
-            [#local possibleFiles += [[provider, "component", level, level + "_" + componentType]] ]
+            [#local possibleFiles += [[provider, "component", level, level + "_" + type]] ]
         [/#list]
 
         [#-- Service based hierarchy --]
 
         [#-- Resource group identifies the provider services it depends on  --]
         [#-- TODO(mfl): Work out how to determine these from the configuration --]
-        [#local services = [componentType] ]
+        [#local services = [type] ]
 
         [#-- General hierarchy is provider;service;deploymentFramework;level --]
 
@@ -168,7 +168,7 @@
         [#local filename = possibleFile?join("/") + ".ftl" ]
         [@cfDebug listMode "Checking for template " + filename + "..." false /]
         [#if includeTemplate(filename, true)]
-            [@cfDebug listMode "Loaded template " + filename + " for component " + componentType false /]
+            [@cfDebug listMode "Loaded template " + filename + " for component " + type false /]
         [/#if]
     [/#list]
 [/#macro]
@@ -237,16 +237,16 @@
     /]
 [/#macro]
 
-[#macro addComponentChildren componentType childType childAttribute linkAttribute ]
+[#macro addComponentChildren type childType childAttribute linkAttribute ]
     [#local components =
-        ((componentConfiguration[componentType].Components)![]) +
+        ((componentConfiguration[type].Components)![]) +
         {
             "Type" : childType,
             "Component" : childAttribute,
             "Link" : linkAttributes
         } ]
     [@mergeComponentConfiguration
-        componentType
+        type
         {
             "Components" : components
         }

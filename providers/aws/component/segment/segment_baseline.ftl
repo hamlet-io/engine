@@ -2,9 +2,9 @@
 [#macro aws_baseline_cf_segment occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
 
     [#-- make sure we only have one occurence --]
     [#if  ! ( core.Tier.Id == "mgmt" &&
@@ -21,10 +21,10 @@
     [/#if]
 
     [#-- Segment Seed --]
-    [#assign segmentSeedId = resources["segmentSeed"].Id ]
+    [#local segmentSeedId = resources["segmentSeed"].Id ]
     [#if !(getExistingReference(segmentSeedId)?has_content) ]
 
-        [#assign segmentSeedValue = resources["segmentSeed"].Value]
+        [#local segmentSeedValue = resources["segmentSeed"].Value]
 
         [#if deploymentSubsetRequired("prologue", false)]
             [@cfScript
@@ -49,7 +49,7 @@
 
     [#-- Monitoring Topic --]
     [#if (resources["segmentSNSTopic"]!{})?has_content ]
-        [#assign topicId = resources["segmentSNSTopic"].Id ]
+        [#local topicId = resources["segmentSNSTopic"].Id ]
         [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
             [@createSegmentSNSTopic
                 mode=listMode
@@ -61,50 +61,50 @@
     [#-- Subcomponents --]
     [#list occurrence.Occurrences![] as subOccurrence]
 
-        [#assign subCore = subOccurrence.Core ]
-        [#assign subSolution = subOccurrence.Configuration.Solution ]
-        [#assign subResources = subOccurrence.State.Resources ]
+        [#local subCore = subOccurrence.Core ]
+        [#local subSolution = subOccurrence.Configuration.Solution ]
+        [#local subResources = subOccurrence.State.Resources ]
 
         [#-- Storage bucket --]
         [#if subCore.Type == BASELINE_DATA_COMPONENT_TYPE ]
-            [#assign bucketId = subResources["bucket"].Id ]
-            [#assign bucketName = subResources["bucket"].Name ]
-            [#assign bucketPolicyId = subResources["bucketpolicy"].Id ]
-            [#assign legacyS3 = subResources["bucket"].LegacyS3 ]
+            [#local bucketId = subResources["bucket"].Id ]
+            [#local bucketName = subResources["bucket"].Name ]
+            [#local bucketPolicyId = subResources["bucketpolicy"].Id ]
+            [#local legacyS3 = subResources["bucket"].LegacyS3 ]
 
             [#if ( deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true) && legacyS3 == false ) ||
                 ( deploymentSubsetRequired("s3") && legacyS3 == true) ]
 
-                [#assign lifecycleRules = [] ]
+                [#local lifecycleRules = [] ]
                 [#list subSolution.Lifecycles?values as lifecycle ]
-                    [#assign lifecycleRules +=
+                    [#local lifecycleRules +=
                         getS3LifecycleRule(lifecycle.Expiration, lifecycle.Offline, lifecycle.Prefix)]
                 [/#list]
 
-                [#assign sqsNotifications = [] ]
-                [#assign sqsNotificationIds = [] ]
-                [#assign bucketDependencies = [] ]
-                [#assign cfAccessCanonicalIds = [] ]
+                [#local sqsNotifications = [] ]
+                [#local sqsNotificationIds = [] ]
+                [#local bucketDependencies = [] ]
+                [#local cfAccessCanonicalIds = [] ]
 
                 [#list subSolution.Notifications!{} as id,notification ]
                     [#if notification?is_hash]
                         [#list notification.Links?values as link]
                             [#if link?is_hash]
-                                [#assign linkTarget = getLinkTarget(subOccurrence, link, false) ]
+                                [#local linkTarget = getLinkTarget(subOccurrence, link, false) ]
                                 [@cfDebug listMode linkTarget false /]
                                 [#if !linkTarget?has_content]
                                     [#continue]
                                 [/#if]
 
-                                [#assign linkTargetResources = linkTarget.State.Resources ]
+                                [#local linkTargetResources = linkTarget.State.Resources ]
 
                                 [#switch linkTarget.Core.Type]
                                     [#case SQS_COMPONENT_TYPE ]
                                         [#if isLinkTargetActive(linkTarget) ]
-                                            [#assign sqsId = linkTargetResources["queue"].Id ]
-                                            [#assign sqsNotificationIds = [ sqsId ]]
+                                            [#local sqsId = linkTargetResources["queue"].Id ]
+                                            [#local sqsNotificationIds = [ sqsId ]]
                                             [#list notification.Events as event ]
-                                                [#assign sqsNotifications +=
+                                                [#local sqsNotifications +=
                                                         getS3SQSNotification(sqsId, event, notification.Prefix, notification.Suffix) ]
                                             [/#list]
 
@@ -118,7 +118,7 @@
 
                 [#list subSolution.Links?values as link]
                     [#if link?is_hash]
-                        [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                        [#local linkTarget = getLinkTarget(occurrence, link) ]
 
                         [@cfDebug listMode linkTarget false /]
 
@@ -126,16 +126,16 @@
                             [#continue]
                         [/#if]
 
-                        [#assign linkTargetCore = linkTarget.Core ]
-                        [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                        [#assign linkTargetResources = linkTarget.State.Resources ]
-                        [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+                        [#local linkTargetCore = linkTarget.Core ]
+                        [#local linkTargetConfiguration = linkTarget.Configuration ]
+                        [#local linkTargetResources = linkTarget.State.Resources ]
+                        [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
                         [#switch linkTargetCore.Type]
 
                             [#case BASELINE_KEY_COMPONENT_TYPE]
                                 [#if linkTargetConfiguration.Solution.Engine == "oai" ]
-                                    [#assign cfAccessCanonicalIds = [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
+                                    [#local cfAccessCanonicalIds = [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
                                 [/#if]
                                 [#break]
                         [/#switch]
@@ -143,7 +143,7 @@
                 [/#list]
 
                 [#list sqsNotificationIds as sqsId ]
-                    [#assign sqsPolicyId =
+                    [#local sqsPolicyId =
                         formatS3NotificationsQueuePolicyId(
                             bucketId,
                             sqsId) ]
@@ -153,7 +153,7 @@
                             queues=sqsId
                             statements=sqsS3WritePermission(sqsId, bucketName)
                         /]
-                    [#assign bucketDependencies += [sqsPolicyId] ]
+                    [#local bucketDependencies += [sqsPolicyId] ]
                 [/#list]
 
                 [@createS3Bucket
@@ -167,14 +167,14 @@
                 /]
 
                 [#-- role based bucket policies --]
-                [#assign bucketPolicy = []]
+                [#local bucketPolicy = []]
                 [#switch subSolution.Role ]
                     [#case "operations" ]
 
-                        [#assign legacyOAIId = formatDependentCFAccessId(bucketId)]
-                        [#assign cfAccessCanonicalIds = [ getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]]
+                        [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
+                        [#local cfAccessCanonicalIds = [ getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]]
 
-                        [#assign bucketPolicy +=
+                        [#local bucketPolicy +=
                             s3WritePermission(
                                 bucketName,
                                 "AWSLogs",
@@ -210,10 +210,10 @@
                     [#case "appdata" ]
                         [#if dataPublicEnabled ]
 
-                            [#assign dataPublicWhitelistCondition =
+                            [#local dataPublicWhitelistCondition =
                                 getIPCondition(getGroupCIDRs(dataPublicIPAddressGroups, true)) ]
 
-                            [#assign bucketPolicy += s3ReadPermission(
+                            [#local bucketPolicy += s3ReadPermission(
                                         bucketName,
                                         formatSegmentPrefixPath("apppublic"),
                                         "*",
@@ -242,12 +242,12 @@
             [#switch subSolution.Engine ]
                 [#case "cmk" ]
 
-                    [#assign legacyCmk = subResources["cmk"].LegacyKey]
-                    [#assign cmkId = subResources["cmk"].Id ]
-                    [#assign cmkResourceId = subResources["cmk"].Id]
-                    [#assign cmkName = subResources["cmk"].Name ]
-                    [#assign cmkAliasId = subResources["cmkAlias"].Id]
-                    [#assign cmkAliasName = subResources["cmkAlias"].Name]
+                    [#local legacyCmk = subResources["cmk"].LegacyKey]
+                    [#local cmkId = subResources["cmk"].Id ]
+                    [#local cmkResourceId = subResources["cmk"].Id]
+                    [#local cmkName = subResources["cmk"].Name ]
+                    [#local cmkAliasId = subResources["cmkAlias"].Id]
+                    [#local cmkAliasName = subResources["cmkAlias"].Name]
 
 
                     [#if ( deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true) && legacyCmk == false ) ||
@@ -281,13 +281,13 @@
 
                 [#case "ssh" ]
 
-                    [#assign localKeyPairId = subResources["localKeyPair"].Id]
-                    [#assign localKeyPairPublicKey = subResources["localKeyPair"].PublicKey ]
-                    [#assign localKeyPairPrivateKey = subResources["localKeyPair"].PrivateKey ]
+                    [#local localKeyPairId = subResources["localKeyPair"].Id]
+                    [#local localKeyPairPublicKey = subResources["localKeyPair"].PublicKey ]
+                    [#local localKeyPairPrivateKey = subResources["localKeyPair"].PrivateKey ]
 
-                    [#assign ec2KeyPairId = subResources["ec2KeyPair"].Id ]
-                    [#assign ec2KeyPairName = subResources["ec2KeyPair"].Name ]
-                    [#assign legacyKey = subResources["ec2KeyPair"].LegacyKey ]
+                    [#local ec2KeyPairId = subResources["ec2KeyPair"].Id ]
+                    [#local ec2KeyPairName = subResources["ec2KeyPair"].Name ]
+                    [#local legacyKey = subResources["ec2KeyPair"].LegacyKey ]
 
                     [#if deploymentSubsetRequired("epilogue", false)]
                         [#-- Make sure SSH credentials are in place --]
@@ -366,12 +366,12 @@
 
                 [#case "oai" ]
 
-                    [#assign OAIId = subResources["originAccessId"].Id ]
-                    [#assign OAIName = subResources["originAccessId"].Name ]
-                    [#assign legacyKey = false]
+                    [#local OAIId = subResources["originAccessId"].Id ]
+                    [#local OAIName = subResources["originAccessId"].Name ]
+                    [#local legacyKey = false]
 
                     [#-- legacy OAI lookup --]
-                    [#assign opsDataLink = {
+                    [#local opsDataLink = {
                                 "Tier" : "mgmt",
                                 "Component" : "baseline",
                                 "Instance" : "",
@@ -379,16 +379,16 @@
                                 "DataBucket" : "opsdata"
                         }]
 
-                    [#assign opsDataLinkTarget = getLinkTarget({}, opsDataLink )]
+                    [#local opsDataLinkTarget = getLinkTarget({}, opsDataLink )]
 
-                    [#assign opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
-                    [#assign legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
+                    [#local opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
+                    [#local legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
 
                     [#if subCore.SubComponent.Id == "oai" ]
                         [#if (getExistingReference(legacyOAIId!"", CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
-                            [#assign legacyKey = true]
-                            [#assign OAIId = legacyOAIId ]
-                            [#assign OAIName = formatSegmentFullName()]
+                            [#local legacyKey = true]
+                            [#local OAIId = legacyOAIId ]
+                            [#local OAIName = formatSegmentFullName()]
                         [/#if]
                     [/#if]
 

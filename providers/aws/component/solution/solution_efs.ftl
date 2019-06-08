@@ -2,33 +2,33 @@
 [#macro aws_efs_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core]
-    [#assign solution = occurrence.Configuration.Solution]
-    [#assign resources = occurrence.State.Resources]
-    [#assign zoneResources = occurrence.State.Resources.Zones]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
+    [#local zoneResources = occurrence.State.Resources.Zones]
 
-    [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
+    [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-    [#assign vpcId = networkResources["vpc"].Id ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-    [#assign efsPort = 2049]
+    [#local efsPort = 2049]
 
-    [#assign efsId                  = resources["efs"].Id]
-    [#assign efsFullName            = resources["efs"].Name]
-    [#assign efsSecurityGroupId     = resources["sg"].Id]
-    [#assign efsSecurityGroupName   = resources["sg"].Name]
+    [#local efsId                  = resources["efs"].Id]
+    [#local efsFullName            = resources["efs"].Name]
+    [#local efsSecurityGroupId     = resources["sg"].Id]
+    [#local efsSecurityGroupName   = resources["sg"].Name]
 
-    [#assign efsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
+    [#local efsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                             efsSecurityGroupId,
                                             efsPort)]
 
@@ -59,7 +59,7 @@
         /]
 
         [#list zones as zone ]
-            [#assign zoneEfsMountTargetId   = zoneResources[zone.Id]["efsMountTarget"].Id]
+            [#local zoneEfsMountTargetId   = zoneResources[zone.Id]["efsMountTarget"].Id]
             [@createEFSMountTarget
                 mode=listMode
                 id=zoneEfsMountTargetId

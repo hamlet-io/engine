@@ -2,66 +2,66 @@
 [#macro aws_computecluster_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
-    [#assign links = solution.Links ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
+    [#local links = solution.Links ]
 
-    [#assign dockerHost = solution.DockerHost]
+    [#local dockerHost = solution.DockerHost]
 
-    [#assign computeClusterRoleId               = resources["role"].Id ]
-    [#assign computeClusterInstanceProfileId    = resources["instanceProfile"].Id ]
-    [#assign computeClusterAutoScaleGroupId     = resources["autoScaleGroup"].Id ]
-    [#assign computeClusterAutoScaleGroupName   = resources["autoScaleGroup"].Name ]
-    [#assign computeClusterLaunchConfigId       = resources["launchConfig"].Id ]
-    [#assign computeClusterSecurityGroupId      = resources["securityGroup"].Id ]
-    [#assign computeClusterSecurityGroupName    = resources["securityGroup"].Name ]
-    [#assign computeClusterLogGroupId           = resources["lg"].Id]
-    [#assign computeClusterLogGroupName         = resources["lg"].Name]
+    [#local computeClusterRoleId               = resources["role"].Id ]
+    [#local computeClusterInstanceProfileId    = resources["instanceProfile"].Id ]
+    [#local computeClusterAutoScaleGroupId     = resources["autoScaleGroup"].Id ]
+    [#local computeClusterAutoScaleGroupName   = resources["autoScaleGroup"].Name ]
+    [#local computeClusterLaunchConfigId       = resources["launchConfig"].Id ]
+    [#local computeClusterSecurityGroupId      = resources["securityGroup"].Id ]
+    [#local computeClusterSecurityGroupName    = resources["securityGroup"].Name ]
+    [#local computeClusterLogGroupId           = resources["lg"].Id]
+    [#local computeClusterLogGroupName         = resources["lg"].Name]
 
-    [#assign processorProfile = getProcessor(occurrence, "ComputeCluster")]
-    [#assign storageProfile   = getStorage(occurrence, "ComputeCluster")]
-    [#assign logFileProfile   = getLogFileProfile(occurrence, "ComputeCluster")]
-    [#assign bootstrapProfile = getBootstrapProfile(occurrence, "ComputeCluster")]
+    [#local processorProfile = getProcessor(occurrence, "ComputeCluster")]
+    [#local storageProfile   = getStorage(occurrence, "ComputeCluster")]
+    [#local logFileProfile   = getLogFileProfile(occurrence, "ComputeCluster")]
+    [#local bootstrapProfile = getBootstrapProfile(occurrence, "ComputeCluster")]
 
-    [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
-    [#assign networkLink = occurrenceNetwork.Link!{} ]
+    [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+    [#local networkLink = occurrenceNetwork.Link!{} ]
 
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-    [#assign vpcId = networkResources["vpc"].Id ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-    [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
-    [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-    [#assign publicRouteTable = routeTableConfiguration.Public ]
+    [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
+    [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+    [#local publicRouteTable = routeTableConfiguration.Public ]
 
-    [#assign computeAutoScaleGroupTags =
+    [#local computeAutoScaleGroupTags =
             getOccurrenceCoreTags(
                     occurrence,
                     computeClusterAutoScaleGroupName,
                     "",
                     true)]
 
-    [#assign targetGroupPermission = false ]
-    [#assign targetGroups = [] ]
-    [#assign loadBalancers = [] ]
-    [#assign environmentVariables = {}]
+    [#local targetGroupPermission = false ]
+    [#local targetGroups = [] ]
+    [#local loadBalancers = [] ]
+    [#local environmentVariables = {}]
 
-    [#assign configSetName = occurrence.Core.Type]
+    [#local configSetName = occurrence.Core.Type]
 
-    [#assign ingressRules = []]
+    [#local ingressRules = []]
 
     [#list solution.Ports?values as port ]
         [#if port.LB.Configured]
-            [#assign lbLink = getLBLink(occurrence, port)]
+            [#local lbLink = getLBLink(occurrence, port)]
             [#if isDuplicateLink(links, lbLink) ]
                 [@cfException
                     mode=listMode
@@ -70,11 +70,11 @@
                     detail=lbLink /]
                 [#continue]
             [/#if]
-            [#assign links += lbLink]
+            [#local links += lbLink]
         [#else]
-            [#assign portCIDRs = getGroupCIDRs(port.IPAddressGroups, true, occurrence) ]
+            [#local portCIDRs = getGroupCIDRs(port.IPAddressGroups, true, occurrence) ]
             [#if portCIDRs?has_content]
-                [#assign ingressRules +=
+                [#local ingressRules +=
                     [{
                         "Port" : port.Name,
                         "CIDR" : portCIDRs
@@ -83,11 +83,11 @@
         [/#if]
     [/#list]
 
-    [#assign configSets =
+    [#local configSets =
             getInitConfigDirectories() +
             getInitConfigBootstrap(occurrence) ]
 
-    [#assign scriptsPath =
+    [#local scriptsPath =
             formatRelativePath(
             getRegistryEndPoint("scripts", occurrence),
             getRegistryPrefix("scripts", occurrence),
@@ -96,17 +96,17 @@
             getOccurrenceBuildReference(occurrence)
             ) ]
 
-    [#assign scriptsFile =
+    [#local scriptsFile =
         formatRelativePath(
             scriptsPath,
             "scripts.zip"
         )
     ]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign contextLinks = getLinkTargets(occurrence, links) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence, links) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -126,19 +126,19 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
-    [#assign fragmentId = formatFragmentId(_context)]
+    [#local fragmentListMode = "model"]
+    [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#local environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
-    [#assign configSets +=
+    [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +
         getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
     [#list bootstrapProfile.BootStraps as bootstrapName ]
-        [#assign bootstrap = bootstraps[bootstrapName]]
-        [#assign configSets +=
+        [#local bootstrap = bootstraps[bootstrapName]]
+        [#local configSets +=
             getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
     [/#list]
 
@@ -181,7 +181,7 @@
     [/#if]
 
     [#list links?values as link]
-        [#assign linkTarget = getLinkTarget(occurrence, link) ]
+        [#local linkTarget = getLinkTarget(occurrence, link) ]
 
         [@cfDebug listMode linkTarget false /]
 
@@ -189,26 +189,26 @@
             [#continue]
         [/#if]
 
-        [#assign linkTargetCore = linkTarget.Core ]
-        [#assign linkTargetConfiguration = linkTarget.Configuration ]
-        [#assign linkTargetResources = linkTarget.State.Resources ]
-        [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+        [#local linkTargetCore = linkTarget.Core ]
+        [#local linkTargetConfiguration = linkTarget.Configuration ]
+        [#local linkTargetResources = linkTarget.State.Resources ]
+        [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
-        [#assign sourceSecurityGroupIds = []]
-        [#assign sourceIPAddressGroups = [] ]
+        [#local sourceSecurityGroupIds = []]
+        [#local sourceIPAddressGroups = [] ]
 
         [#switch linkTargetCore.Type]
             [#case LB_PORT_COMPONENT_TYPE]
-                [#assign targetGroupPermission = true]
-                [#assign destinationPort = linkTargetAttributes["DESTINATION_PORT"]]
+                [#local targetGroupPermission = true]
+                [#local destinationPort = linkTargetAttributes["DESTINATION_PORT"]]
 
                 [#switch linkTargetAttributes["ENGINE"] ]
                     [#case "application" ]
                     [#case "classic"]
-                        [#assign sourceSecurityGroupIds += [ linkTargetResources["sg"].Id ] ]
+                        [#local sourceSecurityGroupIds += [ linkTargetResources["sg"].Id ] ]
                         [#break]
                     [#case "network" ]
-                        [#assign sourceIPAddressGroups = linkTargetConfiguration.IPAddressGroups + [ "_localnet" ] ]
+                        [#local sourceIPAddressGroups = linkTargetConfiguration.IPAddressGroups + [ "_localnet" ] ]
                         [#break]
                 [/#switch]
 
@@ -216,18 +216,18 @@
 
                     [#case "application"]
                     [#case "network"]
-                        [#assign targetGroups += [ linkTargetAttributes["TARGET_GROUP_ARN"] ] ]
+                        [#local targetGroups += [ linkTargetAttributes["TARGET_GROUP_ARN"] ] ]
                         [#break]
 
                     [#case "classic" ]
-                        [#assign lbId = linkTargetAttributes["LB"] ]
+                        [#local lbId = linkTargetAttributes["LB"] ]
                         [#-- Classic ELB's register the instance so we only need 1 registration --]
-                        [#assign loadBalancers += [ getExistingReference(lbId) ]]
+                        [#local loadBalancers += [ getExistingReference(lbId) ]]
                         [#break]
                     [/#switch]
                 [#break]
             [#case EFS_MOUNT_COMPONENT_TYPE]
-                [#assign configSets +=
+                [#local configSets +=
                     getInitConfigEFSMount(
                         linkTargetCore.Id,
                         linkTargetAttributes.EFS,
@@ -239,7 +239,7 @@
 
         [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
 
-            [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, occurrence)]
+            [#local securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, occurrence)]
             [#list securityGroupCIDRs as cidr ]
 
                 [@createSecurityGroupIngress
@@ -274,7 +274,7 @@
         [/#if]
     [/#list]
 
-    [#assign configSets += getInitConfigScriptsDeployment(scriptsFile, environmentVariables, solution.UseInitAsService, false)]
+    [#local configSets += getInitConfigScriptsDeployment(scriptsFile, environmentVariables, solution.UseInitAsService, false)]
 
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(computeClusterLogGroupId) ]
         [@createLogGroup
@@ -283,7 +283,7 @@
             name=computeClusterLogGroupName /]
     [/#if]
 
-    [#assign configSets +=
+    [#local configSets +=
         getInitConfigLogAgent(
             logFileProfile,
             computeClusterLogGroupName
@@ -322,7 +322,7 @@
         /]
 
 
-        [#assign autoScalingConfig = solution.AutoScaling + {
+        [#local autoScalingConfig = solution.AutoScaling + {
                                             "WaitForSignal" : (solution.UseInitAsService != true)
                                     }]
 
@@ -342,7 +342,7 @@
             networkResources=networkResources
         /]
 
-        [#assign imageId = dockerHost?then(
+        [#local imageId = dockerHost?then(
             regionObject.AMIs.Centos.ECS,
             regionObject.AMIs.Centos.EC2
         )]

@@ -2,77 +2,77 @@
 [#macro aws_bastion_cf_segment occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
 
-    [#assign bastionRoleId = resources["role"].Id ]
-    [#assign bastionEIPId = resources["eip"].Id ]
-    [#assign bastionSecurityGroupFromId = resources["securityGroupFrom"].Id]
-    [#assign bastionSecurityGroupFromName = resources["securityGroupFrom"].Name]
-    [#assign bastionSecurityGroupToId = resources["securityGroupTo"].Id]
-    [#assign bastionSecurityGroupToName = resources["securityGroupTo"].Name]
-    [#assign bastionInstanceProfileId = resources["instanceProfile"].Id]
-    [#assign bastionAutoScaleGroupId = resources["autoScaleGroup"].Id]
-    [#assign bastionAutoScaleGroupName = resources["autoScaleGroup"].Name]
-    [#assign bastionLaunchConfigId = resources["launchConfig"].Id]
-    [#assign bastionLgId = resources["lg"].Id]
-    [#assign bastionLgName = resources["lg"].Name]
+    [#local bastionRoleId = resources["role"].Id ]
+    [#local bastionEIPId = resources["eip"].Id ]
+    [#local bastionSecurityGroupFromId = resources["securityGroupFrom"].Id]
+    [#local bastionSecurityGroupFromName = resources["securityGroupFrom"].Name]
+    [#local bastionSecurityGroupToId = resources["securityGroupTo"].Id]
+    [#local bastionSecurityGroupToName = resources["securityGroupTo"].Name]
+    [#local bastionInstanceProfileId = resources["instanceProfile"].Id]
+    [#local bastionAutoScaleGroupId = resources["autoScaleGroup"].Id]
+    [#local bastionAutoScaleGroupName = resources["autoScaleGroup"].Name]
+    [#local bastionLaunchConfigId = resources["launchConfig"].Id]
+    [#local bastionLgId = resources["lg"].Id]
+    [#local bastionLgName = resources["lg"].Name]
 
-    [#assign bastionOS = solution.OS ]
-    [#assign bastionType = occurrence.Core.Type]
-    [#assign configSetName = bastionType]
-    [#assign sshInVpc = getExistingReference(bastionSecurityGroupFromId, "", "", "vpc")?has_content ]
+    [#local bastionOS = solution.OS ]
+    [#local bastionType = occurrence.Core.Type]
+    [#local configSetName = bastionType]
+    [#local sshInVpc = getExistingReference(bastionSecurityGroupFromId, "", "", "vpc")?has_content ]
 
     [#switch bastionOS ]
         [#case "linux" ]
-            [#assign imageId = regionObject.AMIs.Centos.EC2]
+            [#local imageId = regionObject.AMIs.Centos.EC2]
             [#break]
     [/#switch]
 
     [#if deploymentSubsetRequired("bastion", true) ]
-        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
-        [#assign networkLink = occurrenceNetwork.Link!{} ]
-        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+        [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+        [#local networkLink = occurrenceNetwork.Link!{} ]
+        [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
         [#if ! networkLinkTarget?has_content ]
             [@cfException listMode "Network could not be found" networkLink /]
             [#return]
         [/#if]
 
-        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-        [#assign networkResources = networkLinkTarget.State.Resources ]
+        [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#local networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign vpcId = networkResources["vpc"].Id ]
+        [#local vpcId = networkResources["vpc"].Id ]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable }, false)]
-        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-        [#assign publicRouteTable = routeTableConfiguration.Public ]
+        [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable }, false)]
+        [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+        [#local publicRouteTable = routeTableConfiguration.Public ]
     [/#if]
 
-    [#assign storageProfile = getStorage(occurrence, BASTION_COMPONENT_TYPE)]
-    [#assign logFileProfile = getLogFileProfile(occurrence, BASTION_COMPONENT_TYPE)]
-    [#assign bootstrapProfile = getBootstrapProfile(occurrence, BASTION_COMPONENT_TYPE)]
+    [#local storageProfile = getStorage(occurrence, BASTION_COMPONENT_TYPE)]
+    [#local logFileProfile = getLogFileProfile(occurrence, BASTION_COMPONENT_TYPE)]
+    [#local bootstrapProfile = getBootstrapProfile(occurrence, BASTION_COMPONENT_TYPE)]
 
-    [#assign processorProfile = (getProcessor(occurrence, "SSH")?has_content)?then(
+    [#local processorProfile = (getProcessor(occurrence, "SSH")?has_content)?then(
                                     getProcessor(occurrence, "SSH"),
                                     getProcessor(occurrence, BASTION_COMPONENT_TYPE)
                                 )]
 
-    [#assign processorProfile += {
+    [#local processorProfile += {
                 "MaxCount" : 2,
                 "MinCount" : sshActive?then(1,0),
                 "DesiredCount" : sshActive?then(1,0)
     }]
 
-    [#assign configSets =
+    [#local configSets =
             getInitConfigDirectories() +
             getInitConfigBootstrap(occurrence)]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign contextLinks = getLinkTargets(occurrence, links) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence, links) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -92,13 +92,13 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
-    [#assign fragmentId = formatFragmentId(_context)]
+    [#local fragmentListMode = "model"]
+    [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign environmentVariables = getFinalEnvironment(occurrence, _context).Environment ]
+    [#local environmentVariables = getFinalEnvironment(occurrence, _context).Environment ]
 
-    [#assign configSets +=
+    [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +
         getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
@@ -146,7 +146,7 @@
                 /]
             [/#if]
 
-            [#assign configSets +=
+            [#local configSets +=
                 getInitConfigEIPAllocation(
                     getReference(
                         bastionEIPId,
@@ -162,7 +162,7 @@
                 name=bastionLgName /]
         [/#if]
 
-        [#assign configSets +=
+        [#local configSets +=
             getInitConfigLogAgent(
                 logFileProfile,
                 bastionLgName
@@ -221,7 +221,7 @@
                 outputs={}
             /]
 
-            [#assign asgTags =
+            [#local asgTags =
                 getOccurrenceCoreTags(
                     occurrence,
                     bastionAutoScaleGroupName

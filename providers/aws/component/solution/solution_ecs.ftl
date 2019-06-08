@@ -2,68 +2,68 @@
 [#macro aws_ecs_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
 
-    [#assign ecsId = resources["cluster"].Id ]
-    [#assign ecsName = resources["cluster"].Name ]
-    [#assign ecsRoleId = resources["role"].Id ]
-    [#assign ecsServiceRoleId = resources["serviceRole"].Id ]
-    [#assign ecsInstanceProfileId = resources["instanceProfile"].Id ]
-    [#assign ecsAutoScaleGroupId = resources["autoScaleGroup"].Id ]
-    [#assign ecsLaunchConfigId = resources["launchConfig"].Id ]
-    [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
-    [#assign ecsLogGroupId = resources["lg"].Id ]
-    [#assign ecsLogGroupName = resources["lg"].Name ]
-    [#assign ecsInstanceLogGroupId = resources["lgInstanceLog"].Id]
-    [#assign ecsInstanceLogGroupName = resources["lgInstanceLog"].Name]
-    [#assign defaultLogDriver = solution.LogDriver ]
-    [#assign fixedIP = solution.FixedIP ]
+    [#local ecsId = resources["cluster"].Id ]
+    [#local ecsName = resources["cluster"].Name ]
+    [#local ecsRoleId = resources["role"].Id ]
+    [#local ecsServiceRoleId = resources["serviceRole"].Id ]
+    [#local ecsInstanceProfileId = resources["instanceProfile"].Id ]
+    [#local ecsAutoScaleGroupId = resources["autoScaleGroup"].Id ]
+    [#local ecsLaunchConfigId = resources["launchConfig"].Id ]
+    [#local ecsSecurityGroupId = resources["securityGroup"].Id ]
+    [#local ecsLogGroupId = resources["lg"].Id ]
+    [#local ecsLogGroupName = resources["lg"].Name ]
+    [#local ecsInstanceLogGroupId = resources["lgInstanceLog"].Id]
+    [#local ecsInstanceLogGroupName = resources["lgInstanceLog"].Name]
+    [#local defaultLogDriver = solution.LogDriver ]
+    [#local fixedIP = solution.FixedIP ]
 
-    [#assign hibernate = solution.Hibernate.Enabled &&
+    [#local hibernate = solution.Hibernate.Enabled &&
                             getExistingReference(ecsId)?has_content ]
 
-    [#assign processorProfile = getProcessor(occurrence, "ECS")]
-    [#assign storageProfile = getStorage(occurrence, "ECS")]
-    [#assign logFileProfile = getLogFileProfile(occurrence, "ECS")]
-    [#assign bootstrapProfile = getBootstrapProfile(occurrence, "ECS")]
+    [#local processorProfile = getProcessor(occurrence, "ECS")]
+    [#local storageProfile = getStorage(occurrence, "ECS")]
+    [#local logFileProfile = getLogFileProfile(occurrence, "ECS")]
+    [#local bootstrapProfile = getBootstrapProfile(occurrence, "ECS")]
 
-    [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
-    [#assign networkLink = occurrenceNetwork.Link!{} ]
+    [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+    [#local networkLink = occurrenceNetwork.Link!{} ]
 
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-    [#assign vpcId = networkResources["vpc"].Id ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-    [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
-    [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-    [#assign publicRouteTable = routeTableConfiguration.Public ]
+    [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
+    [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+    [#local publicRouteTable = routeTableConfiguration.Public ]
 
-    [#assign ecsTags = getOccurrenceCoreTags(occurrence, ecsName, "", true)]
+    [#local ecsTags = getOccurrenceCoreTags(occurrence, ecsName, "", true)]
 
-    [#assign environmentVariables = {}]
+    [#local environmentVariables = {}]
 
-    [#assign configSetName = occurrence.Core.Type]
-    [#assign configSets =
+    [#local configSetName = occurrence.Core.Type]
+    [#local configSets =
             getInitConfigDirectories() +
             getInitConfigBootstrap(occurrence) +
             getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers, solution.VolumeDrivers ) ]
 
-    [#assign efsMountPoints = {}]
+    [#local efsMountPoints = {}]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign contextLinks = getLinkTargets(occurrence) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -83,25 +83,25 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
-    [#assign fragmentId = formatFragmentId(_context)]
+    [#local fragmentListMode = "model"]
+    [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#local environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
-    [#assign configSets +=
+    [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +
         getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
     [#list bootstrapProfile.BootStraps as bootstrapName ]
-        [#assign bootstrap = bootstraps[bootstrapName]]
-        [#assign configSets +=
+        [#local bootstrap = bootstraps[bootstrapName]]
+        [#local configSets +=
             getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
     [/#list]
 
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(ecsRoleId)]
-        [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
+        [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
         [@createRole
             mode=listMode
@@ -163,7 +163,7 @@
             name=ecsInstanceLogGroupName /]
     [/#if]
 
-    [#assign configSets +=
+    [#local configSets +=
         getInitConfigLogAgent(
             logFileProfile,
             ecsInstanceLogGroupName
@@ -172,14 +172,14 @@
     [#if deploymentSubsetRequired("ecs", true)]
 
         [#list _context.Links as linkId,linkTarget]
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#switch linkTargetCore.Type]
                 [#case EFS_MOUNT_COMPONENT_TYPE]
-                    [#assign configSets +=
+                    [#local configSets +=
                         getInitConfigEFSMount(
                             linkTargetCore.Id,
                             linkTargetAttributes.EFS,
@@ -213,7 +213,7 @@
 
         [#list solution.Alerts?values as alert ]
 
-            [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
                 [@cfDebug listMode monitoredResource false /]
@@ -248,11 +248,11 @@
         [/#list]
 
         [#if processorProfile.MaxCount?has_content]
-            [#assign maxSize = processorProfile.MaxCount ]
+            [#local maxSize = processorProfile.MaxCount ]
         [#else]
-            [#assign maxSize = processorProfile.MaxPerZone]
+            [#local maxSize = processorProfile.MaxPerZone]
             [#if multiAZ]
-                [#assign maxSize = maxSize * zones?size]
+                [#local maxSize = maxSize * zones?size]
             [/#if]
         [/#if]
 
@@ -273,14 +273,14 @@
             outputs={}
         /]
 
-        [#assign allocationIds = [] ]
+        [#local allocationIds = [] ]
         [#if fixedIP]
             [#list 1..maxSize as index]
                 [@createEIP
                     mode=listMode
                     id=formatComponentEIPId(core.Tier, core.Component, index)
                 /]
-                [#assign allocationIds +=
+                [#local allocationIds +=
                     [
                         getReference(formatComponentEIPId(core.Tier, core.Component, index), ALLOCATION_ATTRIBUTE_TYPE)
                     ]
@@ -289,7 +289,7 @@
         [/#if]
 
         [#if allocationIds?has_content ]
-            [#assign configSets +=
+            [#local configSets +=
                 getInitConfigEIPAllocation(allocationIds)]
         [/#if]
 

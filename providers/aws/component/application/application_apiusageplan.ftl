@@ -2,20 +2,20 @@
 [#macro aws_apiusageplan_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
-    [#assign attributes = occurrence.State.Attributes ]
-    [#assign roles = occurrence.State.Roles]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
+    [#local attributes = occurrence.State.Attributes ]
+    [#local roles = occurrence.State.Roles]
 
-    [#assign planId   = resources["apiusageplan"].Id]
-    [#assign planName = resources["apiusageplan"].Name]
+    [#local planId   = resources["apiusageplan"].Id]
+    [#local planName = resources["apiusageplan"].Name]
 
-    [#assign stages = [] ]
+    [#local stages = [] ]
 
     [#list solution.Links?values as link]
         [#if link?is_hash]
-            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+            [#local linkTarget = getLinkTarget(occurrence, link) ]
 
             [@cfDebug listMode linkTarget false /]
 
@@ -23,14 +23,14 @@
                 [#continue]
             [/#if]
 
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#switch linkTargetCore.Type]
                 [#case APIGATEWAY_COMPONENT_TYPE ]
-                    [#assign stages +=
+                    [#local stages +=
                         [
                             {
                                 "ApiId" : getReference(linkTargetResources["apigateway"].Id),

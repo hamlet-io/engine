@@ -2,18 +2,18 @@
 [#macro aws_mobileapp_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
 
-    [#assign mobileAppId = resources["mobileapp"].Id]
-    [#assign configFilePath = resources["mobileapp"].ConfigFilePath ]
-    [#assign configFileName = resources["mobileapp"].ConfigFileName ]
+    [#local mobileAppId = resources["mobileapp"].Id]
+    [#local configFilePath = resources["mobileapp"].ConfigFilePath ]
+    [#local configFileName = resources["mobileapp"].ConfigFileName ]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign contextLinks = getLinkTargets(occurrence) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -29,11 +29,11 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
-    [#assign fragmentId = formatFragmentId(_context)]
+    [#local fragmentListMode = "model"]
+    [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign finalAsFileEnvironment = getFinalEnvironment(occurrence, _context, { "Json" : { "Include" : { "Sensitive" : false }}}) ]
+    [#local finalAsFileEnvironment = getFinalEnvironment(occurrence, _context, { "Json" : { "Include" : { "Sensitive" : false }}}) ]
 
     [#if deploymentSubsetRequired("config", false)]
         [@cfConfig
@@ -44,7 +44,7 @@
 
     [#if deploymentSubsetRequired("prologue", false)]
         [#-- Copy any asFiles needed by the task --]
-        [#assign asFiles = getAsFileSettings(occurrence.Configuration.Settings.Product) ]
+        [#local asFiles = getAsFileSettings(occurrence.Configuration.Settings.Product) ]
         [#if asFiles?has_content]
             [@cfDebug listMode asFiles false /]
             [@cfScript

@@ -2,29 +2,29 @@
 [#macro aws_serviceregistry_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
 
-    [#assign registryId = resources["namespace"].Id ]
-    [#assign registryName = resources["namespace"].Name ]
-    [#assign registryDnsDomain = resources["namespace"].DomainName ]
+    [#local registryId = resources["namespace"].Id ]
+    [#local registryName = resources["namespace"].Name ]
+    [#local registryDnsDomain = resources["namespace"].DomainName ]
 
     [#-- Network lookup --]
-    [#assign networkLink = tier.Network.Link!{} ]
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLink = tier.Network.Link!{} ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
-    [#assign vpcId = networkResources["vpc"].Id ]
-    [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
-    [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-    [#assign publicRouteTable = routeTableConfiguration.Public ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
+    [#local vpcId = networkResources["vpc"].Id ]
+    [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+    [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+    [#local publicRouteTable = routeTableConfiguration.Public ]
 
     [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
         [@createCloudMapDNSNamespace
@@ -39,13 +39,13 @@
 
     [#list occurrence.Occurrences![] as subOccurrence]
 
-        [#assign core = subOccurrence.Core ]
-        [#assign solution = subOccurrence.Configuration.Solution ]
-        [#assign resources = subOccurrence.State.Resources ]
+        [#local core = subOccurrence.Core ]
+        [#local solution = subOccurrence.Configuration.Solution ]
+        [#local resources = subOccurrence.State.Resources ]
 
-        [#assign serviceId = resources["service"].Id]
-        [#assign serviceName = resources["service"].Name]
-        [#assign serviceHostName = resources["service"].ServiceName ]
+        [#local serviceId = resources["service"].Id]
+        [#local serviceName = resources["service"].Name]
+        [#local serviceHostName = resources["service"].ServiceName ]
 
         [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
             [@createCloudMapService

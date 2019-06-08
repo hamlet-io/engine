@@ -2,12 +2,12 @@
 [#macro aws_contenthub_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources]
 
-    [#assign contentHubId = resources["contenthub"].Id]
-    [#assign contentHubPrefix = solution.Prefix ]
+    [#local contentHubId = resources["contenthub"].Id]
+    [#local contentHubPrefix = solution.Prefix ]
 
     [#if deploymentSubsetRequired("prologue", false)]
         [@cfScript

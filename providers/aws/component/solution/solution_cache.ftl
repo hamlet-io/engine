@@ -2,56 +2,56 @@
 [#macro aws_cache_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
 
-    [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
+    [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-    [#assign vpcId = networkResources["vpc"].Id ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-    [#assign engine = solution.Engine]
+    [#local engine = solution.Engine]
     [#switch engine]
         [#case "memcached"]
-            [#assign engineVersion =
+            [#local engineVersion =
                 valueIfContent(
                     solution.EngineVersion!"",
                     solution.EngineVersion!"",
                     "1.4.24"
                 )
             ]
-            [#assign familyVersionIndex = engineVersion?last_index_of(".") - 1]
-            [#assign family = "memcached" + engineVersion[0..familyVersionIndex]]
-            [#assign port = solution.Port!"memcached" ]
+            [#local familyVersionIndex = engineVersion?last_index_of(".") - 1]
+            [#local family = "memcached" + engineVersion[0..familyVersionIndex]]
+            [#local port = solution.Port!"memcached" ]
             [#if (ports[port].Port)?has_content]
-                [#assign port = ports[port].Port ]
+                [#local port = ports[port].Port ]
             [#else]
                 [@cfException listMode "Unknown Port" port /]
             [/#if]
             [#break]
 
         [#case "redis"]
-            [#assign engineVersion =
+            [#local engineVersion =
                 valueIfContent(
                     solution.EngineVersion!"",
                     solution.EngineVersion!"",
                     "2.8.24"
                 )
             ]
-            [#assign familyVersionIndex = engineVersion?last_index_of(".") - 1]
-            [#assign family = "redis" + engineVersion[0..familyVersionIndex]]
-            [#assign port = solution.Port!"redis" ]
+            [#local familyVersionIndex = engineVersion?last_index_of(".") - 1]
+            [#local family = "redis" + engineVersion[0..familyVersionIndex]]
+            [#local port = solution.Port!"redis" ]
             [#if (ports[port].Port)?has_content]
-                [#assign port = ports[port].Port ]
+                [#local port = ports[port].Port ]
             [#else]
                 [@cfException listMode "Unknown Port" port /]
             [/#if]
@@ -59,31 +59,31 @@
 
         [#default]
             [@cfPreconditionFailed listMode "solution_cache" occurrence "Unsupported engine provided" /]
-            [#assign engineVersion = "unknown" ]
-            [#assign family = "unknown" ]
-            [#assign port = "unknown" ]
+            [#local engineVersion = "unknown" ]
+            [#local family = "unknown" ]
+            [#local port = "unknown" ]
     [/#switch]
 
-    [#assign cacheId = resources["cache"].Id ]
-    [#assign cacheFullName = resources["cache"].Name ]
-    [#assign cacheSubnetGroupId = resources["subnetGroup"].Id ]
-    [#assign cacheParameterGroupId = resources["parameterGroup"].Id ]
-    [#assign cacheSecurityGroupId = resources["sg"].Id ]
+    [#local cacheId = resources["cache"].Id ]
+    [#local cacheFullName = resources["cache"].Name ]
+    [#local cacheSubnetGroupId = resources["subnetGroup"].Id ]
+    [#local cacheParameterGroupId = resources["parameterGroup"].Id ]
+    [#local cacheSecurityGroupId = resources["sg"].Id ]
 
-    [#assign cacheSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
+    [#local cacheSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                             cacheSecurityGroupId,
                                             port)]
 
-    [#assign processorProfile = getProcessor(occurrence, "ElastiCache")]
-    [#assign countPerZone = processorProfile.CountPerZone]
-    [#assign awsZones = [] ]
+    [#local processorProfile = getProcessor(occurrence, "ElastiCache")]
+    [#local countPerZone = processorProfile.CountPerZone]
+    [#local awsZones = [] ]
     [#list zones as zone]
         [#list 1..countPerZone as i]
-            [#assign awsZones += [zone.AWSZone] ]
+            [#local awsZones += [zone.AWSZone] ]
         [/#list]
     [/#list]
 
-    [#assign hibernate = solution.Hibernate.Enabled  &&
+    [#local hibernate = solution.Hibernate.Enabled  &&
         (getExistingReference(cacheId)?has_content) ]
 
     [#if deploymentSubsetRequired("cache", true)]
@@ -134,7 +134,7 @@
 
             [#list solution.Alerts?values as alert ]
 
-                [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
                     [@cfDebug listMode monitoredResource false /]

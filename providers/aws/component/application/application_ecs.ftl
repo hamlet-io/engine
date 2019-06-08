@@ -2,32 +2,32 @@
 [#macro aws_ecs_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign parentResources = occurrence.State.Resources]
-    [#assign parentSolution = occurrence.Configuration.Solution ]
+    [#local parentResources = occurrence.State.Resources]
+    [#local parentSolution = occurrence.Configuration.Solution ]
 
-    [#assign ecsId = parentResources["cluster"].Id ]
-    [#assign ecsSecurityGroupId = parentResources["securityGroup"].Id ]
-    [#assign ecsServiceRoleId = parentResources["serviceRole"].Id ]
+    [#local ecsId = parentResources["cluster"].Id ]
+    [#local ecsSecurityGroupId = parentResources["securityGroup"].Id ]
+    [#local ecsServiceRoleId = parentResources["serviceRole"].Id ]
 
-    [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
-    [#assign networkLink = occurrenceNetwork.Link!{} ]
+    [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+    [#local networkLink = occurrenceNetwork.Link!{} ]
 
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-    [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
-    [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-    [#assign publicRouteTable = routeTableConfiguration.Public ]
+    [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
+    [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+    [#local publicRouteTable = routeTableConfiguration.Public ]
 
-    [#assign vpcId = networkResources["vpc"].Id ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-    [#assign hibernate = parentSolution.Hibernate.Enabled &&
+    [#local hibernate = parentSolution.Hibernate.Enabled &&
                             getExistingReference(ecsId)?has_content ]
 
     [#list requiredOccurrences(
@@ -36,19 +36,19 @@
 
         [@cfDebug listMode subOccurrence false /]
 
-        [#assign core = subOccurrence.Core ]
-        [#assign solution = subOccurrence.Configuration.Solution ]
-        [#assign resources = subOccurrence.State.Resources]
+        [#local core = subOccurrence.Core ]
+        [#local solution = subOccurrence.Configuration.Solution ]
+        [#local resources = subOccurrence.State.Resources]
 
-        [#assign taskId = resources["task"].Id ]
-        [#assign taskName = resources["task"].Name ]
-        [#assign containers = getTaskContainers(occurrence, subOccurrence) ]
+        [#local taskId = resources["task"].Id ]
+        [#local taskName = resources["task"].Name ]
+        [#local containers = getTaskContainers(occurrence, subOccurrence) ]
 
-        [#assign networkMode = solution.NetworkMode ]
-        [#assign lbTargetType = "instance"]
-        [#assign networkLinks = [] ]
-        [#assign engine = solution.Engine?lower_case ]
-        [#assign executionRoleId = ""]
+        [#local networkMode = solution.NetworkMode ]
+        [#local lbTargetType = "instance"]
+        [#local networkLinks = [] ]
+        [#local engine = solution.Engine?lower_case ]
+        [#local executionRoleId = ""]
 
         [#if engine == "fargate" && networkMode != "awsvpc" ]
             [@cfException
@@ -65,17 +65,17 @@
 
         [#if networkMode == "awsvpc" ]
 
-            [#assign lbTargetType = "ip" ]
+            [#local lbTargetType = "ip" ]
 
-            [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
-            [#assign ecsSecurityGroupName = resources["securityGroup"].Name ]
+            [#local ecsSecurityGroupId = resources["securityGroup"].Id ]
+            [#local ecsSecurityGroupName = resources["securityGroup"].Name ]
 
-            [#assign subnets = multiAZ?then(
+            [#local subnets = multiAZ?then(
                 getSubnets(core.Tier, networkResources),
                 getSubnets(core.Tier, networkResources)[0..0]
             )]
 
-            [#assign aswVpcNetworkConfiguration =
+            [#local aswVpcNetworkConfiguration =
                 {
                     "AwsvpcConfiguration" : {
                         "SecurityGroups" : getReferences(ecsSecurityGroupId),
@@ -97,20 +97,20 @@
 
         [#if core.Type == ECS_SERVICE_COMPONENT_TYPE]
 
-            [#assign serviceId = resources["service"].Id  ]
-            [#assign serviceDependencies = []]
+            [#local serviceId = resources["service"].Id  ]
+            [#local serviceDependencies = []]
 
             [#if deploymentSubsetRequired("ecs", true)]
 
-                [#assign loadBalancers = [] ]
-                [#assign serviceRegistries = []]
-                [#assign dependencies = [] ]
+                [#local loadBalancers = [] ]
+                [#local serviceRegistries = []]
+                [#local dependencies = [] ]
                 [#list containers as container]
 
                     [#-- allow local network comms between containers in the same service --]
                     [#if solution.ContainerNetworkLinks ]
                         [#if networkMode == "bridge" || engine != "fargate" ]
-                            [#assign networkLinks += [ container.Name ] ]
+                            [#local networkLinks += [ container.Name ] ]
                         [#else]
                             [@cfException
                                 mode=listMode
@@ -126,17 +126,17 @@
 
                     [#list container.PortMappings![] as portMapping]
                         [#if portMapping.LoadBalancer?has_content]
-                            [#assign loadBalancer = portMapping.LoadBalancer]
-                            [#assign link = container.Links[loadBalancer.Link] ]
+                            [#local loadBalancer = portMapping.LoadBalancer]
+                            [#local link = container.Links[loadBalancer.Link] ]
                             [@cfDebug listMode link false /]
-                            [#assign linkCore = link.Core ]
-                            [#assign linkResources = link.State.Resources ]
-                            [#assign linkConfiguration = link.Configuration.Solution ]
-                            [#assign linkAttributes = link.State.Attributes ]
-                            [#assign targetId = "" ]
+                            [#local linkCore = link.Core ]
+                            [#local linkResources = link.State.Resources ]
+                            [#local linkConfiguration = link.Configuration.Solution ]
+                            [#local linkAttributes = link.State.Attributes ]
+                            [#local targetId = "" ]
 
-                            [#assign sourceSecurityGroupIds = []]
-                            [#assign sourceIPAddressGroups = [] ]
+                            [#local sourceSecurityGroupIds = []]
+                            [#local sourceIPAddressGroups = [] ]
 
                             [#switch linkCore.Type]
 
@@ -145,17 +145,17 @@
                                     [#switch linkAttributes["ENGINE"] ]
                                         [#case "application" ]
                                         [#case "classic"]
-                                            [#assign sourceSecurityGroupIds += [ linkResources["sg"].Id ] ]
+                                            [#local sourceSecurityGroupIds += [ linkResources["sg"].Id ] ]
                                             [#break]
                                         [#case "network" ]
-                                            [#assign sourceIPAddressGroups = linkConfiguration.IPAddressGroups + [ "_localnet" ] ]
+                                            [#local sourceIPAddressGroups = linkConfiguration.IPAddressGroups + [ "_localnet" ] ]
                                             [#break]
                                     [/#switch]
 
                                     [#switch linkAttributes["ENGINE"] ]
                                         [#case "network" ]
                                         [#case "application" ]
-                                            [#assign loadBalancers +=
+                                            [#local loadBalancers +=
                                                 [
                                                     {
                                                         "ContainerName" : container.Name,
@@ -180,10 +180,10 @@
                                                 /]
                                             [/#if]
 
-                                            [#assign lbId =  linkAttributes["LB"] ]
+                                            [#local lbId =  linkAttributes["LB"] ]
                                             [#-- Classic ELB's register the instance so we only need 1 registration --]
                                             [#-- TODO: Change back to += when AWS allows multiple load balancer registrations per container --]
-                                            [#assign loadBalancers =
+                                            [#local loadBalancers =
                                                 [
                                                     {
                                                         "ContainerName" : container.Name,
@@ -198,9 +198,9 @@
                                 [#break]
                             [/#switch]
 
-                            [#assign dependencies += [targetId] ]
+                            [#local dependencies += [targetId] ]
 
-                            [#assign securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, subOccurrence)]
+                            [#local securityGroupCIDRs = getGroupCIDRs(sourceIPAddressGroups, true, subOccurrence)]
                             [#list securityGroupCIDRs as cidr ]
 
                                 [@createSecurityGroupIngress
@@ -241,23 +241,23 @@
                         [/#if]
 
                         [#if portMapping.ServiceRegistry?has_content]
-                            [#assign serviceRegistry = portMapping.ServiceRegistry]
-                            [#assign link = container.Links[serviceRegistry.Link] ]
+                            [#local serviceRegistry = portMapping.ServiceRegistry]
+                            [#local link = container.Links[serviceRegistry.Link] ]
                             [@cfDebug listMode link false /]
-                            [#assign linkCore = link.Core ]
-                            [#assign linkResources = link.State.Resources ]
-                            [#assign linkConfiguration = link.Configuration.Solution ]
-                            [#assign linkAttributes = link.State.Attributes ]
+                            [#local linkCore = link.Core ]
+                            [#local linkResources = link.State.Resources ]
+                            [#local linkConfiguration = link.Configuration.Solution ]
+                            [#local linkAttributes = link.State.Attributes ]
 
                             [#switch linkCore.Type]
 
                                 [#case SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE]
 
-                                    [#assign serviceRecordTypes = linkAttributes["RECORD_TYPES"]?split(",") ]
+                                    [#local serviceRecordTypes = linkAttributes["RECORD_TYPES"]?split(",") ]
 
-                                    [#assign portAttributes = {}]
+                                    [#local portAttributes = {}]
                                     [#if serviceRecordTypes?seq_contains("SRV") ]
-                                        [#assign portAttributes = {
+                                        [#local portAttributes = {
                                             "ContainerPort" : ports[portMapping.ContainerPort].Port
                                         }]
                                     [/#if]
@@ -270,7 +270,7 @@
                                         [@cfException listMode "AAAA Service record are not supported" link /]
                                     [/#if]
 
-                                    [#assign serviceRegistries +=
+                                    [#local serviceRegistries +=
                                         [
                                             {
                                                 "ContainerName" : container.Name,
@@ -301,13 +301,13 @@
                     [/#if]
                 [/#list]
 
-                [#assign desiredCount = (solution.DesiredCount >= 0)?then(
+                [#local desiredCount = (solution.DesiredCount >= 0)?then(
                             solution.DesiredCount,
                             multiAZ?then(zones?size,1)
                         ) ]
 
                 [#if hibernate ]
-                    [#assign desiredCount = 0 ]
+                    [#local desiredCount = 0 ]
                 [/#if]
 
                 [@createECSService
@@ -328,20 +328,20 @@
             [/#if]
         [/#if]
 
-        [#assign dependencies = [] ]
-        [#assign roleId = "" ]
+        [#local dependencies = [] ]
+        [#local roleId = "" ]
         [#if solution.UseTaskRole]
-            [#assign roleId = resources["taskrole"].Id ]
+            [#local roleId = resources["taskrole"].Id ]
             [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
-                [#assign managedPolicy = []]
+                [#local managedPolicy = []]
 
                 [#list containers as container]
                     [#if container.ManagedPolicy?has_content ]
-                        [#assign managedPolicy += container.ManagedPolicy ]
+                        [#local managedPolicy += container.ManagedPolicy ]
                     [/#if]
 
                     [#if container.Policy?has_content]
-                        [#assign policyId = formatDependentPolicyId(taskId, container.Id) ]
+                        [#local policyId = formatDependentPolicyId(taskId, container.Id) ]
                         [@createPolicy
                             mode=listMode
                             id=policyId
@@ -349,13 +349,13 @@
                             statements=container.Policy
                             roles=roleId
                         /]
-                        [#assign dependencies += [policyId] ]
+                        [#local dependencies += [policyId] ]
                     [/#if]
 
-                    [#assign linkPolicies = getLinkTargetsOutboundRoles(container.Links) ]
+                    [#local linkPolicies = getLinkTargetsOutboundRoles(container.Links) ]
 
                     [#if linkPolicies?has_content]
-                        [#assign policyId = formatDependentPolicyId(taskId, container.Id, "links")]
+                        [#local policyId = formatDependentPolicyId(taskId, container.Id, "links")]
                         [@createPolicy
                             mode=listMode
                             id=policyId
@@ -363,7 +363,7 @@
                             statements=linkPolicies
                             roles=roleId
                         /]
-                        [#assign dependencies += [policyId] ]
+                        [#local dependencies += [policyId] ]
                     [/#if]
                 [/#list]
 
@@ -376,9 +376,9 @@
             [/#if]
         [/#if]
 
-        [#assign executionRoleId = ""]
+        [#local executionRoleId = ""]
         [#if resources["executionRole"]?has_content ]
-            [#assign executionRoleId = resources["executionRole"].Id]
+            [#local executionRoleId = resources["executionRole"].Id]
             [#if deploymentSubsetRequired("iam", true ) && isPartOfCurrentDeploymentUnit(executionRoleId) ]
                 [@createRole
                     mode=listMode
@@ -394,7 +394,7 @@
         [#if core.Type == ECS_TASK_COMPONENT_TYPE]
             [#if solution.Schedules?has_content ]
 
-                [#assign scheduleTaskRoleId = resources["scheduleRole"].Id ]
+                [#local scheduleTaskRoleId = resources["scheduleRole"].Id ]
 
                 [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(scheduleTaskRoleId)]
                     [@createRole
@@ -424,8 +424,8 @@
 
                 [#list solution.Schedules?values as schedule ]
 
-                    [#assign scheduleRuleId = formatEventRuleId(subOccurrence, "schedule", schedule.Id) ]
-                    [#assign scheduleEnabled = hibernate?then(
+                    [#local scheduleRuleId = formatEventRuleId(subOccurrence, "schedule", schedule.Id) ]
+                    [#local scheduleEnabled = hibernate?then(
                                 false,
                                 schedule.Enabled
                     )]
@@ -433,13 +433,13 @@
                     [#if networkMode == "awsvpc" ]
 
                         [#-- Cloudfomation support not available for awsvpc network config which means that fargate isn't supported --]
-                        [#assign eventRuleCliConfig =
+                        [#local eventRuleCliConfig =
                             {
                                 "ScheduleExpression" : schedule.Expression,
                                 "State" : scheduleEnabled?then("ENABLED", "DISABLED")
                             }]
 
-                        [#assign eventTargetCliConfig =
+                        [#local eventTargetCliConfig =
                             {
                                 "Targets" : [
                                     {
@@ -467,10 +467,10 @@
                                 ]
                             }]
 
-                        [#assign ruleCliId = formatId(taskId, "rule")]
-                        [#assign ruleCommand = "updateEventRule" ]
-                        [#assign targetCliId = formatId(taskId, "target")]
-                        [#assign targetCommand = "updateTargetRule" ]
+                        [#local ruleCliId = formatId(taskId, "rule")]
+                        [#local ruleCommand = "updateEventRule" ]
+                        [#local targetCliId = formatId(taskId, "target")]
+                        [#local targetCommand = "updateTargetRule" ]
 
                         [#if deploymentSubsetRequired("cli", false) ]
                             [@cfCli
@@ -490,7 +490,7 @@
 
                         [#if deploymentSubsetRequired("epilogue", false)]
 
-                            [#assign targetParameters = {
+                            [#local targetParameters = {
                                 "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
                                 "Id" : taskId,
                                 "EcsParameters" : {
@@ -565,8 +565,8 @@
 
         [#if deploymentSubsetRequired("lg", true) ]
             [#if solution.TaskLogGroup ]
-                [#assign lgId = resources["lg"].Id ]
-                [#assign lgName = resources["lg"].Name]
+                [#local lgId = resources["lg"].Id ]
+                [#local lgName = resources["lg"].Name]
                 [#if isPartOfCurrentDeploymentUnit(lgId) ]
                     [@createLogGroup
                         mode=listMode
@@ -576,7 +576,7 @@
             [/#if]
             [#list containers as container]
                 [#if container.LogGroup?has_content]
-                    [#assign lgId = container.LogGroup.Id ]
+                    [#local lgId = container.LogGroup.Id ]
                     [#if isPartOfCurrentDeploymentUnit(lgId) ]
                         [@createLogGroup
                             mode=listMode
@@ -593,19 +593,19 @@
                 [#if container.LogGroup?has_content && container.LogMetrics?has_content ]
                     [#list container.LogMetrics as name,logMetric ]
 
-                        [#assign lgId = container.LogGroup.Id ]
-                        [#assign lgName = container.LogGroup.Name ]
+                        [#local lgId = container.LogGroup.Id ]
+                        [#local lgName = container.LogGroup.Name ]
 
-                        [#assign logMetricId = formatDependentLogMetricId(lgId, logMetric.Id)]
+                        [#local logMetricId = formatDependentLogMetricId(lgId, logMetric.Id)]
 
-                        [#assign containerLogMetricName = getMetricName(
+                        [#local containerLogMetricName = getMetricName(
                                 logMetric.Name,
                                 AWS_CLOUDWATCH_LOG_METRIC_RESOURCE_TYPE,
                                 formatName(core.ShortFullName, container.Name) )]
 
-                        [#assign logFilter = logFilters[logMetric.LogFilter].Pattern ]
+                        [#local logFilter = logFilters[logMetric.LogFilter].Pattern ]
 
-                        [#assign resources += {
+                        [#local resources += {
                             "logMetrics" : resources.LogMetrics!{} + {
                                 "lgMetric" + name + container.Name : {
                                 "Id" : formatDependentLogMetricId( lgId, logMetric.Id ),
@@ -639,7 +639,7 @@
 
             [#list solution.Alerts?values as alert ]
 
-                [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
                     [#switch alert.Comparison ]
@@ -690,8 +690,8 @@
 
             [#-- Pick any extra macros in the container fragments --]
             [#list (solution.Containers!{})?values as container]
-                [#assign fragmentListMode = listMode]
-                [#assign fragmentId = formatFragmentId(container, occurrence)]
+                [#local fragmentListMode = listMode]
+                [#local fragmentId = formatFragmentId(container, occurrence)]
                 [#include fragmentList?ensure_starts_with("/")]
             [/#list]
 
@@ -699,7 +699,7 @@
 
         [#if deploymentSubsetRequired("prologue", false)]
             [#-- Copy any asFiles needed by the task --]
-            [#assign asFiles = getAsFileSettings(subOccurrence.Configuration.Settings.Product) ]
+            [#local asFiles = getAsFileSettings(subOccurrence.Configuration.Settings.Product) ]
             [#if asFiles?has_content]
                 [@cfDebug listMode asFiles false /]
                 [@cfScript

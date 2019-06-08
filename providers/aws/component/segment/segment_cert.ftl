@@ -1,7 +1,7 @@
 [#ftl]
 [#macro aws_cert_cf_segment occurrence ]
     [#if deploymentSubsetRequired("cert", true)]
-        [#assign certificateId = formatCertificateId(segmentDomainCertificateId)]
+        [#local certificateId = formatCertificateId(segmentDomainCertificateId)]
 
         [@createCertificate
             mode=listMode

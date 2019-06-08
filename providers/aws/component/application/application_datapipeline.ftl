@@ -2,44 +2,44 @@
 [#macro aws_datapipeline_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign settings = occurrence.Configuration.Settings]
-    [#assign resources = occurrence.State.Resources ]
-    [#assign attributes = occurrence.State.Attributes ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local settings = occurrence.Configuration.Settings]
+    [#local resources = occurrence.State.Resources ]
+    [#local attributes = occurrence.State.Attributes ]
 
-    [#assign pipelineId = resources["dataPipeline"].Id]
-    [#assign pipelineName = resources["dataPipeline"].Name]
-    [#assign pipelineRoleId = resources["pipelineRole"].Id]
-    [#assign pipelineRoleName = resources["pipelineRole"].Name]
-    [#assign resourceRoleId = resources["resourceRole"].Id]
-    [#assign resourceRoleName = resources["resourceRole"].Name]
-    [#assign resourceInstanceProfileId = resources["resourceInstanceProfile"].Id]
-    [#assign resourceInstanceProfileName = resources["resourceInstanceProfile"].Name]
+    [#local pipelineId = resources["dataPipeline"].Id]
+    [#local pipelineName = resources["dataPipeline"].Name]
+    [#local pipelineRoleId = resources["pipelineRole"].Id]
+    [#local pipelineRoleName = resources["pipelineRole"].Name]
+    [#local resourceRoleId = resources["resourceRole"].Id]
+    [#local resourceRoleName = resources["resourceRole"].Name]
+    [#local resourceInstanceProfileId = resources["resourceInstanceProfile"].Id]
+    [#local resourceInstanceProfileName = resources["resourceInstanceProfile"].Name]
 
-    [#assign securityGroupId = resources["securityGroup"].Id]
-    [#assign securityGroupName = resources["securityGroup"].Name]
+    [#local securityGroupId = resources["securityGroup"].Id]
+    [#local securityGroupName = resources["securityGroup"].Name]
 
-    [#assign ec2ProcessorProfile = getProcessor(occurrence, "EC2")]
-    [#assign emrProcessorProfile = getProcessor(occurrence, "EMR")]
+    [#local ec2ProcessorProfile = getProcessor(occurrence, "EC2")]
+    [#local emrProcessorProfile = getProcessor(occurrence, "EMR")]
 
-    [#assign pipelineCreateCommand = "createPipeline"]
+    [#local pipelineCreateCommand = "createPipeline"]
 
-    [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
+    [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-    [#assign vpcId = networkResources["vpc"].Id ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-    [#assign parameterValues = {
+    [#local parameterValues = {
             "_AWS_REGION" : regionId,
             "_AVAILABILITY_ZONE" : zones[0].AWSZone,
             "_VPC_ID" : getExistingReference(vpcId),
@@ -64,12 +64,12 @@
             "_ROLE_RESOURCE_NAME" : resourceRoleName
     }]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#-- Add in container specifics including override of defaults --]
     [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
-    [#assign contextLinks = getLinkTargets(occurrence) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -86,17 +86,17 @@
     ]
 
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(_context)]
+        [#local fragmentListMode = "model"]
+        [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
-    [#assign _context += getFinalEnvironment(occurrence, _context) ]
-    [#assign parameterValues += _context.Environment ]
+    [#local _context += getFinalEnvironment(occurrence, _context) ]
+    [#local parameterValues += _context.Environment ]
 
-    [#assign myParameterValues = {}]
+    [#local myParameterValues = {}]
     [#list parameterValues as key,value ]
-        [#assign myParameterValues +=
+        [#local myParameterValues +=
             {
                 key?ensure_starts_with("my") : value
             }]
@@ -140,7 +140,7 @@
             /]
 
             [#if _context.Policy?has_content]
-                [#assign policyId = formatDependentPolicyId(pipelineId)]
+                [#local policyId = formatDependentPolicyId(pipelineId)]
                 [@createPolicy
                     mode=listMode
                     id=policyId
@@ -150,10 +150,10 @@
                 /]
             [/#if]
 
-            [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
+            [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
             [#if linkPolicies?has_content]
-                [#assign policyId = formatDependentPolicyId(pipelineId, "links")]
+                [#local policyId = formatDependentPolicyId(pipelineId, "links")]
                 [@createPolicy
                     mode=listMode
                     id=policyId
@@ -204,7 +204,7 @@
 
     [#if deploymentSubsetRequired("cli", false)]
 
-        [#assign coreTags = getOccurrenceCoreTags(
+        [#local coreTags = getOccurrenceCoreTags(
                     occurrence,
                     pipelineName,
                     "",
@@ -212,17 +212,17 @@
                     false,
                     10) ]
 
-        [#assign cliTags = [] ]
+        [#local cliTags = [] ]
         [#-- datapiplines only allow 10 tags --]
         [#list coreTags as tag ]
-            [#assign cliTags += [
+            [#local cliTags += [
                 {
                 "key" : tag.Key,
                 "value" : tag.Value
             } ] ]
         [/#list]
 
-        [#assign pipelineCreateCliConfig = {
+        [#local pipelineCreateCliConfig = {
             "name" : pipelineName,
             "uniqueId" : pipelineId,
             "tags" : cliTags
@@ -238,7 +238,7 @@
 
     [#if deploymentSubsetRequired("prologue", false)]
         [#-- Copy any asFiles needed by the task --]
-        [#assign asFiles = getAsFileSettings(settings.Product) ]
+        [#local asFiles = getAsFileSettings(settings.Product) ]
         [#if asFiles?has_content]
             [@cfDebug listMode asFiles false /]
             [@cfScript

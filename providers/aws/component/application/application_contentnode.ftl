@@ -2,12 +2,12 @@
 [#macro aws_contentnode_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources]
 
-    [#assign contentNodeId = resources["contentnode"].Id ]
-    [#assign pathObject = getContentPath(occurrence) ]
+    [#local contentNodeId = resources["contentnode"].Id ]
+    [#local pathObject = getContentPath(occurrence) ]
 
     [#if ! (solution.Links?has_content)]
         [@cfPreconditionFailed listMode "contentnode" occurrence "No content hub link configured" /]
@@ -16,7 +16,7 @@
 
     [#list solution.Links?values as link]
         [#if link?is_hash]
-            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+            [#local linkTarget = getLinkTarget(occurrence, link) ]
 
             [@cfDebug listMode linkTarget false /]
 
@@ -24,9 +24,9 @@
                 [#continue]
             [/#if]
 
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#switch linkTargetCore.Type]
                 [#case "external"]

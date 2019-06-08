@@ -2,32 +2,32 @@
 [#macro aws_configstore_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign parentCore = occurrence.Core]
-    [#assign parentSolution = occurrence.Configuration.Solution]
-    [#assign parentResources = occurrence.State.Resources]
+    [#local parentCore = occurrence.Core]
+    [#local parentSolution = occurrence.Configuration.Solution]
+    [#local parentResources = occurrence.State.Resources]
 
-    [#assign tableId = parentResources["table"].Id ]
-    [#assign tableKey = parentResources["table"].Key ]
-    [#assign tableSortKey = parentResources["table"].SortKey!"" ]
+    [#local tableId = parentResources["table"].Id ]
+    [#local tableKey = parentResources["table"].Key ]
+    [#local tableSortKey = parentResources["table"].SortKey!"" ]
 
-    [#assign itemInitCommand = "initItem"]
-    [#assign itemUpdateCommand = "updateItem" ]
-    [#assign tableCleanupCommand = "cleanupTable" ]
+    [#local itemInitCommand = "initItem"]
+    [#local itemUpdateCommand = "updateItem" ]
+    [#local tableCleanupCommand = "cleanupTable" ]
 
-    [#assign dynamoTableKeys = getDynamoDbTableKey(tableKey , "hash")]
-    [#assign dynamoTableKeyAttributes = getDynamoDbTableAttribute( tableKey, STRING_TYPE)]
+    [#local dynamoTableKeys = getDynamoDbTableKey(tableKey , "hash")]
+    [#local dynamoTableKeyAttributes = getDynamoDbTableAttribute( tableKey, STRING_TYPE)]
 
     [#if parentSolution.SecondaryKey ]
-        [#assign dynamoTableKeys += getDynamoDbTableKey(tableSortKey, "range" )]
-        [#assign dynamoTableKeyAttributes += getDynamoDbTableAttribute(tableSortKey, STRING_TYPE)]
+        [#local dynamoTableKeys += getDynamoDbTableKey(tableSortKey, "range" )]
+        [#local dynamoTableKeyAttributes += getDynamoDbTableAttribute(tableSortKey, STRING_TYPE)]
     [/#if]
 
-    [#assign runIdAttributeName = "runId" ]
-    [#assign runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
+    [#local runIdAttributeName = "runId" ]
+    [#local runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign _parentContext =
+    [#local _parentContext =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -35,7 +35,7 @@
             "Version" : parentCore.Version.Id
         }
     ]
-    [#assign fragmentId = formatFragmentId(_parentContext)]
+    [#local fragmentId = formatFragmentId(_parentContext)]
 
     [#-- Lookup table name once it has been deployed --]
     [#if deploymentSubsetRequired("epilogue", false)]
@@ -61,20 +61,20 @@
     [#-- Branch setup --]
     [#list occurrence.Occurrences![] as subOccurrence]
 
-        [#assign core = subOccurrence.Core ]
-        [#assign solution = subOccurrence.Configuration.Solution ]
-        [#assign resources = subOccurrence.State.Resources ]
+        [#local core = subOccurrence.Core ]
+        [#local solution = subOccurrence.Configuration.Solution ]
+        [#local resources = subOccurrence.State.Resources ]
 
-        [#assign itemId = resources["item"].Id]
-        [#assign itemPrimaryKey = resources["item"].PrimaryKey ]
-        [#assign itemSecondaryKey = (resources["item"].SecondaryKey)!"" ]
+        [#local itemId = resources["item"].Id]
+        [#local itemPrimaryKey = resources["item"].PrimaryKey ]
+        [#local itemSecondaryKey = (resources["item"].SecondaryKey)!"" ]
 
-        [#assign initCliId = formatId( itemId, "init")]
-        [#assign updateCliId = formatId( itemId, "update" )]
+        [#local initCliId = formatId( itemId, "init")]
+        [#local updateCliId = formatId( itemId, "update" )]
 
-        [#assign contextLinks = getLinkTargets(subOccurrence)]
+        [#local contextLinks = getLinkTargets(subOccurrence)]
 
-        [#assign _context =
+        [#local _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -91,13 +91,13 @@
         ]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
+        [#local fragmentListMode = "model"]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#assign finalEnvironment = getFinalEnvironment(subOccurrence, _context ) ]
-        [#assign _context += finalEnvironment ]
+        [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context ) ]
+        [#local _context += finalEnvironment ]
 
-        [#assign _context +=
+        [#local _context +=
             {
                 "Environment" : {
                                     "configStore" : parentCore.Id
@@ -109,28 +109,28 @@
 
         [#if deploymentSubsetRequired("cli", false) ]
 
-            [#assign branchItemKey = getDynamoDbTableItem( tableKey, itemPrimaryKey )]
+            [#local branchItemKey = getDynamoDbTableItem( tableKey, itemPrimaryKey )]
 
             [#if parentSolution.SecondaryKey ]
-                [#assign branchItemKey = mergeObjects(branchItemKey, getDynamoDbTableItem( tableSortKey, itemSecondaryKey) ) ]
+                [#local branchItemKey = mergeObjects(branchItemKey, getDynamoDbTableItem( tableSortKey, itemSecondaryKey) ) ]
             [/#if]
 
-            [#assign branchUpdateAttribtueValues = runIdAttribute ]
-            [#assign branchUpdateExpression =
+            [#local branchUpdateAttribtueValues = runIdAttribute ]
+            [#local branchUpdateExpression =
                 [
                     runIdAttributeName + " = :run_id"
                 ]
             ]
 
             [#list solution.States as id,state ]
-                [#assign branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + state.Name, state.InitialValue )]
-                [#assign branchUpdateExpression += [ state.Name + " = if_not_exists(" + state.Name + ", :" + state.Name + ")" ]]
+                [#local branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + state.Name, state.InitialValue )]
+                [#local branchUpdateExpression += [ state.Name + " = if_not_exists(" + state.Name + ", :" + state.Name + ")" ]]
             [/#list]
 
             [#list _context.Environment as envKey, envValue ]
                 [#if envValue?has_content ]
-                    [#assign branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + envKey, envValue )]
-                    [#assign branchUpdateExpression += [ envKey + " = :" + envKey ]]
+                    [#local branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + envKey, envValue )]
+                    [#local branchUpdateExpression += [ envKey + " = :" + envKey ]]
                 [/#if]
             [/#list]
 
@@ -177,15 +177,15 @@
 
     [#-- cleanup old items --]
     [#if deploymentSubsetRequired("cli", false) ]
-        [#assign cleanupFilterExpression = "NOT " + runIdAttributeName + " = :run_id"  ]
-        [#assign cleanupExpressionAttributeValues = runIdAttribute ]
+        [#local cleanupFilterExpression = "NOT " + runIdAttributeName + " = :run_id"  ]
+        [#local cleanupExpressionAttributeValues = runIdAttribute ]
 
-        [#assign projectionExpression = [ "#" + tableKey]  ]
-        [#assign expressionAttributeNames = { "#" + tableKey : tableKey } ]
+        [#local projectionExpression = [ "#" + tableKey]  ]
+        [#local expressionAttributeNames = { "#" + tableKey : tableKey } ]
 
         [#if parentSolution.SecondaryKey ]
-            [#assign projectionExpression += [ "#" + tableSortKey ] ]
-            [#assign expressionAttributeNames += { "#" + tableSortKey : tableSortKey } ]
+            [#local projectionExpression += [ "#" + tableSortKey ] ]
+            [#local expressionAttributeNames += { "#" + tableSortKey : tableSortKey } ]
         [/#if]
 
         [@cfCli

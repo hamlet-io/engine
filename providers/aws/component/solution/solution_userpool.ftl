@@ -2,74 +2,74 @@
 [#macro aws_userpool_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core]
-    [#assign solution = occurrence.Configuration.Solution]
-    [#assign resources = occurrence.State.Resources]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
 
-    [#assign userPoolId                 = resources["userpool"].Id]
-    [#assign userPoolName               = resources["userpool"].Name]
+    [#local userPoolId                 = resources["userpool"].Id]
+    [#local userPoolName               = resources["userpool"].Name]
 
-    [#assign userPoolDomainId           = resources["domain"].Id]
-    [#assign userPoolHostName           = resources["domain"].Name]
-    [#assign customDomainRequired       = ((resources["customdomain"].Id)!"")?has_content ]
+    [#local userPoolDomainId           = resources["domain"].Id]
+    [#local userPoolHostName           = resources["domain"].Name]
+    [#local customDomainRequired       = ((resources["customdomain"].Id)!"")?has_content ]
     [#if customDomainRequired ]
-        [#assign userPoolCustomDomainId = resources["customdomain"].Id ]
-        [#assign userPoolCustomDomainName = resources["customdomain"].Name ]
-        [#assign userPoolCustomDomainCertArn = resources["customdomain"].CertificateArn]
+        [#local userPoolCustomDomainId = resources["customdomain"].Id ]
+        [#local userPoolCustomDomainName = resources["customdomain"].Name ]
+        [#local userPoolCustomDomainCertArn = resources["customdomain"].CertificateArn]
     [/#if]
 
-    [#assign userPoolRoleId             = resources["userpoolrole"].Id]
+    [#local userPoolRoleId             = resources["userpoolrole"].Id]
 
-    [#assign identityPoolId             = resources["identitypool"].Id]
-    [#assign identityPoolName           = resources["identitypool"].Name]
-    [#assign identityPoolUnAuthRoleId   = resources["unauthrole"].Id]
-    [#assign identityPoolAuthRoleId     = resources["authrole"].Id]
-    [#assign identityPoolRoleMappingId  = resources["rolemapping"].Id]
+    [#local identityPoolId             = resources["identitypool"].Id]
+    [#local identityPoolName           = resources["identitypool"].Name]
+    [#local identityPoolUnAuthRoleId   = resources["unauthrole"].Id]
+    [#local identityPoolAuthRoleId     = resources["authrole"].Id]
+    [#local identityPoolRoleMappingId  = resources["rolemapping"].Id]
 
-    [#assign smsVerification = false]
-    [#assign userPoolTriggerConfig = {}]
-    [#assign userPoolManualTriggerConfig = {}]
-    [#assign smsConfig = {}]
-    [#assign identityPoolProviders = []]
-    [#assign authProviders = []]
+    [#local smsVerification = false]
+    [#local userPoolTriggerConfig = {}]
+    [#local userPoolManualTriggerConfig = {}]
+    [#local smsConfig = {}]
+    [#local identityPoolProviders = []]
+    [#local authProviders = []]
 
-    [#assign defaultUserPoolClientRequired = false ]
-    [#assign defaultUserPoolClientConfigured = false ]
+    [#local defaultUserPoolClientRequired = false ]
+    [#local defaultUserPoolClientConfigured = false ]
 
     [#if (resources["client"]!{})?has_content]
-        [#assign defaultUserPoolClientRequired = true ]
-        [#assign defaultUserPoolClientId = resources["client"].Id]
+        [#local defaultUserPoolClientRequired = true ]
+        [#local defaultUserPoolClientId = resources["client"].Id]
     [/#if]
 
-    [#assign userPoolUpdateCommand = "updateUserPool" ]
-    [#assign userPoolClientUpdateCommand = "updateUserPoolClient" ]
-    [#assign userPoolDomainCommand = "setDomainUserPool" ]
-    [#assign userPoolAuthProviderUpdateCommand = "updateUserPoolAuthProvider" ]
+    [#local userPoolUpdateCommand = "updateUserPool" ]
+    [#local userPoolClientUpdateCommand = "updateUserPoolClient" ]
+    [#local userPoolDomainCommand = "setDomainUserPool" ]
+    [#local userPoolAuthProviderUpdateCommand = "updateUserPoolAuthProvider" ]
 
-    [#assign emailVerificationMessage =
+    [#local emailVerificationMessage =
         getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationMessage"], true) ]
 
-    [#assign emailVerificationSubject =
+    [#local emailVerificationSubject =
         getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationSubject"], true) ]
 
-    [#assign smsVerificationMessage =
+    [#local smsVerificationMessage =
         getOccurrenceSettingValue(occurrence, ["UserPool", "SMSVerificationMessage"], true) ]
 
-    [#assign emailInviteMessage =
+    [#local emailInviteMessage =
         getOccurrenceSettingValue(occurrence, ["UserPool", "EmailInviteMessage"], true) ]
 
-    [#assign emailInviteSubject =
+    [#local emailInviteSubject =
         getOccurrenceSettingValue(occurrence, ["UserPool", "EmailInviteSubject"], true) ]
 
-    [#assign smsInviteMessage =
+    [#local smsInviteMessage =
         getOccurrenceSettingValue(occurrence, ["UserPool", "SMSInviteMessage"], true) ]
 
-    [#assign smsAuthenticationMessage =
+    [#local smsAuthenticationMessage =
         getOccurrenceSettingValue(occurrence, ["UserPool", "SMSAuthenticationMessage"], true) ]
 
-    [#assign schema = []]
+    [#local schema = []]
     [#list solution.Schema as key,schemaAttribute ]
-        [#assign schema +=  getUserPoolSchemaObject(
+        [#local schema +=  getUserPoolSchemaObject(
                             key,
                             schemaAttribute.DataType,
                             schemaAttribute.Mutable,
@@ -92,8 +92,8 @@
                 }/]
         [/#if]
 
-        [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
-        [#assign smsVerification = true]
+        [#local smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
+        [#local smsVerification = true]
     [/#if]
 
     [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
@@ -113,7 +113,7 @@
     [/#if]
 
     [#list solution.Links?values as link]
-        [#assign linkTarget = getLinkTarget(occurrence, link)]
+        [#local linkTarget = getLinkTarget(occurrence, link)]
 
         [@cfDebug listMode linkTarget false /]
 
@@ -121,10 +121,10 @@
             [#continue]
         [/#if]
 
-        [#assign linkTargetCore = linkTarget.Core]
-        [#assign linkTargetConfiguration = linkTarget.Configuration ]
-        [#assign linkTargetResources = linkTarget.State.Resources]
-        [#assign linkTargetAttributes = linkTarget.State.Attributes]
+        [#local linkTargetCore = linkTarget.Core]
+        [#local linkTargetConfiguration = linkTarget.Configuration ]
+        [#local linkTargetResources = linkTarget.State.Resources]
+        [#local linkTargetAttributes = linkTarget.State.Attributes]
 
         [#switch linkTargetCore.Type]
 
@@ -134,7 +134,7 @@
                 [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
                 [#switch link.Name?lower_case]
                     [#case "createauthchallenge"]
-                        [#assign userPoolTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "CreateAuthChallenge",
                                 linkTargetAttributes.ARN
@@ -142,7 +142,7 @@
                         ]
                         [#break]
                     [#case "custommessage"]
-                        [#assign userPoolTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "CustomMessage",
                                 linkTargetAttributes.ARN
@@ -150,7 +150,7 @@
                         ]
                         [#break]
                     [#case "defineauthchallenge"]
-                        [#assign userPoolTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "DefineAuthChallenge",
                                 linkTargetAttributes.ARN
@@ -158,7 +158,7 @@
                         ]
                         [#break]
                     [#case "postauthentication"]
-                        [#assign userPoolTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "PostAuthentication",
                                 linkTargetAttributes.ARN
@@ -166,7 +166,7 @@
                         ]
                         [#break]
                     [#case "postconfirmation"]
-                        [#assign userPoolTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "PostConfirmation",
                                 linkTargetAttributes.ARN
@@ -174,7 +174,7 @@
                         ]
                         [#break]
                     [#case "preauthentication"]
-                        [#assign userPoolTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "PreAuthentication",
                                 linkTargetAttributes.ARN
@@ -182,7 +182,7 @@
                         ]
                         [#break]
                     [#case "presignup"]
-                        [#assign userPoolTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "PreSignUp",
                                 linkTargetAttributes.ARN
@@ -190,7 +190,7 @@
                         ]
                         [#break]
                     [#case "verifyauthchallengeresponse"]
-                        [#assign userPoolTriggerConfig +=
+                        [#local userPoolTriggerConfig +=
                             attributeIfContent (
                                 "VerifyAuthChallengeResponse",
                                 linkTargetAttributes.ARN
@@ -198,7 +198,7 @@
                         ]
                         [#break]
                     [#case "pretokengeneration"]
-                        [#assign userPoolManualTriggerConfig +=
+                        [#local userPoolManualTriggerConfig +=
                             attributeIfContent (
                                 "PreTokenGeneration",
                                 linkTargetAttributes.ARN
@@ -206,7 +206,7 @@
                         ]
                         [#break]
                     [#case "usermigration"]
-                        [#assign userPoolManualTriggerConfig +=
+                        [#local userPoolManualTriggerConfig +=
                             attributeIfContent (
                                 "UserMigration",
                                 linkTargetAttributes.ARN
@@ -218,12 +218,12 @@
         [/#switch]
     [/#list]
 
-    [#assign userPoolManualTriggerString = [] ]
+    [#local userPoolManualTriggerString = [] ]
     [#list userPoolManualTriggerConfig as key,value ]
-        [#assign userPoolManualTriggerString += [ key + "=" + value ]]
+        [#local userPoolManualTriggerString += [ key + "=" + value ]]
     [/#list]
 
-    [#assign userPoolManualTriggerString = userPoolManualTriggerString?join(",")]
+    [#local userPoolManualTriggerString = userPoolManualTriggerString?join(",")]
 
     [#-- Initialise epilogue script with common parameters --]
     [#if deploymentSubsetRequired("epilogue", false)]
@@ -265,14 +265,14 @@
         [/#if]
     [/#if]
 
-    [#assign authProviderEpilogue = []]
-    [#assign userPoolClientEpilogue = []]
+    [#local authProviderEpilogue = []]
+    [#local userPoolClientEpilogue = []]
 
     [#list occurrence.Occurrences![] as subOccurrence]
 
-        [#assign subCore = subOccurrence.Core ]
-        [#assign subSolution = subOccurrence.Configuration.Solution ]
-        [#assign subResources = subOccurrence.State.Resources ]
+        [#local subCore = subOccurrence.Core ]
+        [#local subSolution = subOccurrence.Configuration.Solution ]
+        [#local subResources = subOccurrence.State.Resources ]
 
         [#if !subSolution.Enabled]
             [#continue]
@@ -280,36 +280,36 @@
 
         [#if subCore.Type == USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
 
-            [#assign authProviderId = subResources["authprovider"].Id ]
-            [#assign authProviderName = subResources["authprovider"].Name ]
-            [#assign authProviderEngine = subSolution.Engine]
+            [#local authProviderId = subResources["authprovider"].Id ]
+            [#local authProviderName = subResources["authprovider"].Name ]
+            [#local authProviderEngine = subSolution.Engine]
 
-            [#assign authProviders += [ authProviderName ]]
+            [#local authProviders += [ authProviderName ]]
 
             [#if deploymentSubsetRequired("cli", false)]
 
-                [#assign attributeMappings = {} ]
+                [#local attributeMappings = {} ]
                 [#list subSolution.AttributeMappings as id, attributeMapping ]
-                    [#assign localAttribute = attributeMapping.UserPoolAttribute?has_content?then(
+                    [#local localAttribute = attributeMapping.UserPoolAttribute?has_content?then(
                                                 attributeMapping.UserPoolAttribute,
                                                 id
                     )]
 
-                    [#assign attributeMappings += {
+                    [#local attributeMappings += {
                         localAttribute : attributeMapping.ProviderAttribute
                     }]
                 [/#list]
 
                 [#switch authProviderEngine ]
                     [#case "SAML" ]
-                        [#assign providerDetails = {
+                        [#local providerDetails = {
                             "MetadataURL" : subSolution.SAML.MetadataUrl,
                             "IDPSignout" : subSolution.SAML.EnableIDPSignOut?c
                         }]
                         [#break]
                 [/#switch]
 
-                [#assign updateUserPoolAuthProvider =  {
+                [#local updateUserPoolAuthProvider =  {
                         "ProviderType" : authProviderEngine,
                         "AttributeMapping" : attributeMappings,
                         "ProviderDetails" : providerDetails
@@ -333,7 +333,7 @@
             [/#if]
 
             [#if deploymentSubsetRequired("epilogue", false)]
-                [#assign authProviderEpilogue +=
+                [#local authProviderEpilogue +=
                     [
                         " case $\{STACK_OPERATION} in",
                         "   create|update)",
@@ -356,38 +356,38 @@
         [#if subCore.Type == USERPOOL_CLIENT_COMPONENT_TYPE]
 
             [#if subCore.SubComponent.Id = "default" ]
-                [#assign defaultUserPoolClientConfigured = true]
+                [#local defaultUserPoolClientConfigured = true]
             [/#if]
 
-            [#assign userPoolClientId           = subResources["client"].Id]
-            [#assign userPoolClientName         = subResources["client"].Name]
-            [#assign identityPoolProviders      += subSolution.IdentityPoolAccess?then(
+            [#local userPoolClientId           = subResources["client"].Id]
+            [#local userPoolClientName         = subResources["client"].Name]
+            [#local identityPoolProviders      += subSolution.IdentityPoolAccess?then(
                                                     [getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )],
                                                     []
                                                 )]
 
-            [#assign callbackUrls = []]
-            [#assign logoutUrls = []]
-            [#assign identityProviders = [ ]]
+            [#local callbackUrls = []]
+            [#local logoutUrls = []]
+            [#local identityProviders = [ ]]
 
             [#list subSolution.AuthProviders as authProvider ]
                 [#if authProvider?upper_case == "COGNITO" ]
-                    [#assign identityProviders += [ "COGNITO" ] ]
+                    [#local identityProviders += [ "COGNITO" ] ]
                 [#else]
-                    [#assign linkTarget = getLinkTarget(occurrence,
+                    [#local linkTarget = getLinkTarget(occurrence,
                                             {
                                                 "Tier" : core.Tier.Id,
                                                 "Component" : core.Component.Id,
                                                 "AuthProvider" : authProvider
                                             })]
                     [#if linkTarget?has_content ]
-                        [#assign identityProviders += [ linkTarget.State.Attributes["PROVIDER_NAME"] ]]
+                        [#local identityProviders += [ linkTarget.State.Attributes["PROVIDER_NAME"] ]]
                     [/#if]
                 [/#if]
             [/#list]
 
             [#list subSolution.Links?values as link]
-                [#assign linkTarget = getLinkTarget(subOccurrence, link)]
+                [#local linkTarget = getLinkTarget(subOccurrence, link)]
 
                 [@cfDebug listMode linkTarget false /]
 
@@ -395,14 +395,14 @@
                     [#continue]
                 [/#if]
 
-                [#assign linkTargetCore = linkTarget.Core]
-                [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                [#assign linkTargetResources = linkTarget.State.Resources]
-                [#assign linkTargetAttributes = linkTarget.State.Attributes]
+                [#local linkTargetCore = linkTarget.Core]
+                [#local linkTargetConfiguration = linkTarget.Configuration ]
+                [#local linkTargetResources = linkTarget.State.Resources]
+                [#local linkTargetAttributes = linkTarget.State.Attributes]
 
                 [#switch linkTargetCore.Type]
                     [#case LB_PORT_COMPONENT_TYPE]
-                        [#assign callbackUrls += [
+                        [#local callbackUrls += [
                             linkTargetAttributes["AUTH_CALLBACK_URL"],
                             linkTargetAttributes["AUTH_CALLBACK_INTERNAL_URL"]
                             ]
@@ -411,15 +411,15 @@
 
                     [#case "external" ]
                         [#if linkTargetAttributes["AUTH_CALLBACK_URL"]?has_content ]
-                            [#assign callbackUrls += linkTargetAttributes["AUTH_CALLBACK_URL"]?split(",") ]
+                            [#local callbackUrls += linkTargetAttributes["AUTH_CALLBACK_URL"]?split(",") ]
                         [/#if]
                         [#if linkTargetAttributes["AUTH_SIGNOUT_URL"]?has_content ]
-                            [#assign logoutUrls += linkTargetAttributes["AUTH_SIGNOUT_URL"]?split(",") ]
+                            [#local logoutUrls += linkTargetAttributes["AUTH_SIGNOUT_URL"]?split(",") ]
                         [/#if]
                         [#break]
 
                     [#case USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
-                        [#assign identityProviders += [ linkTargetAttributes["PROVIDER_NAME"] ] ]
+                        [#local identityProviders += [ linkTargetAttributes["PROVIDER_NAME"] ] ]
                         [#break]
                 [/#switch]
             [/#list]
@@ -438,7 +438,7 @@
             [/#if]
 
             [#if deploymentSubsetRequired("cli", false)]
-                [#assign updateUserPoolClient =  {
+                [#local updateUserPoolClient =  {
                         "CallbackURLs": callbackUrls,
                         "LogoutURLs": logoutUrls,
                         "AllowedOAuthFlows": asArray(subSolution.OAuth.Flows),
@@ -457,7 +457,7 @@
             [/#if]
 
             [#if deploymentSubsetRequired("epilogue", false)]
-                [#assign userPoolClientEpilogue +=
+                [#local userPoolClientEpilogue +=
                     [
                         " case $\{STACK_OPERATION} in",
                         "   create|update)",
@@ -605,7 +605,7 @@
     [#-- So to use the CLI to update the lambda triggers we need to generate all of the custom configuration we use in the CF template and use this as the update --]
     [#if deploymentSubsetRequired("cli", false)]
 
-        [#assign userPoolDomain = {
+        [#local userPoolDomain = {
             "Domain" : userPoolHostName
         }]
 
@@ -618,7 +618,7 @@
 
         [#if customDomainRequired]
 
-            [#assign userPoolCustomDomain = {
+            [#local userPoolCustomDomain = {
                 "Domain" : userPoolCustomDomainName,
                 "CustomDomainConfig" : {
                     "CertificateArn" : userPoolCustomDomainCertArn
@@ -634,7 +634,7 @@
 
         [/#if]
 
-        [#assign userpoolConfig = {
+        [#local userpoolConfig = {
             "UserPoolId": getExistingReference(userPoolId),
             "Policies": getUserPoolPasswordPolicy(
                     solution.PasswordPolicy.MinimumLength,

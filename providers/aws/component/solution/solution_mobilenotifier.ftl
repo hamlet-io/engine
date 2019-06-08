@@ -2,73 +2,73 @@
 [#macro aws_mobilenotifier_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core]
-    [#assign solution = occurrence.Configuration.Solution]
-    [#assign resources = occurrence.State.Resources]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
 
-    [#assign successSampleRate = solution.SuccessSampleRate ]
-    [#assign encryptionScheme = solution.Credentials.EncryptionScheme?ensure_ends_with(":")]
+    [#local successSampleRate = solution.SuccessSampleRate ]
+    [#local encryptionScheme = solution.Credentials.EncryptionScheme?ensure_ends_with(":")]
 
-    [#assign deployedPlatformAppArns = []]
+    [#local deployedPlatformAppArns = []]
 
-    [#assign roleId = resources["role"].Id]
+    [#local roleId = resources["role"].Id]
 
-    [#assign platformAppAttributesCommand = "attributesPlatformApp" ]
-    [#assign platformAppDeleteCommand = "deletePlatformApp" ]
+    [#local platformAppAttributesCommand = "attributesPlatformApp" ]
+    [#local platformAppDeleteCommand = "deletePlatformApp" ]
 
-    [#assign hasPlatformApp = false]
+    [#local hasPlatformApp = false]
 
     [#list occurrence.Occurrences![] as subOccurrence]
 
-        [#assign core = subOccurrence.Core ]
-        [#assign solution = subOccurrence.Configuration.Solution ]
-        [#assign resources = subOccurrence.State.Resources ]
+        [#local core = subOccurrence.Core ]
+        [#local solution = subOccurrence.Configuration.Solution ]
+        [#local resources = subOccurrence.State.Resources ]
 
-        [#assign successSampleRate = solution.SuccessSampleRate!successSampleRate ]
-        [#assign encryptionScheme = solution.EncryptionScheme!encryptionScheme]
+        [#local successSampleRate = solution.SuccessSampleRate!successSampleRate ]
+        [#local encryptionScheme = solution.EncryptionScheme!encryptionScheme]
 
-        [#assign platformAppId = resources["platformapplication"].Id]
-        [#assign platformAppName = resources["platformapplication"].Name ]
-        [#assign engine = resources["platformapplication"].Engine ]
+        [#local platformAppId = resources["platformapplication"].Id]
+        [#local platformAppName = resources["platformapplication"].Name ]
+        [#local engine = resources["platformapplication"].Engine ]
 
-        [#assign lgId= resources["lg"].Id ]
-        [#assign lgName = resources["lg"].Name ]
-        [#assign lgFailureId = resources["lgfailure"].Id ]
-        [#assign lgFailureName = resources["lgfailure"].Name ]
+        [#local lgId= resources["lg"].Id ]
+        [#local lgName = resources["lg"].Name ]
+        [#local lgFailureId = resources["lgfailure"].Id ]
+        [#local lgFailureName = resources["lgfailure"].Name ]
 
-        [#assign platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
+        [#local platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
 
-        [#assign platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ]
+        [#local platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ]
 
         [#if platformArn?has_content ]
-            [#assign deployedPlatformAppArns += [ platformArn ] ]
+            [#local deployedPlatformAppArns += [ platformArn ] ]
         [/#if]
 
-        [#assign isPlatformApp = false]
+        [#local isPlatformApp = false]
 
-        [#assign platformAppCreateCli = {} ]
-        [#assign platformAppUpdateCli = {} ]
+        [#local platformAppCreateCli = {} ]
+        [#local platformAppUpdateCli = {} ]
 
-        [#assign platformAppPrincipal =
+        [#local platformAppPrincipal =
             getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Principal"], true) ]
 
-        [#assign platformAppCredential =
+        [#local platformAppCredential =
             getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Credential"], true) ]
 
-        [#assign engineFamily = "" ]
+        [#local engineFamily = "" ]
 
         [#switch engine ]
             [#case "APNS" ]
             [#case "APNS_SANDBOX" ]
-                [#assign engineFamily = "APPLE" ]
+                [#local engineFamily = "APPLE" ]
                 [#break]
 
             [#case "GCM" ]
-                [#assign engineFamily = "GOOGLE" ]
+                [#local engineFamily = "GOOGLE" ]
                 [#break]
 
             [#case MOBILENOTIFIER_SMS_ENGINE ]
-                [#assign engineFamily = MOBILENOTIFIER_SMS_ENGINE ]
+                [#local engineFamily = MOBILENOTIFIER_SMS_ENGINE ]
                 [#break]
 
             [#default]
@@ -81,8 +81,8 @@
 
         [#switch engineFamily ]
             [#case "APPLE" ]
-                [#assign isPlatformApp = true]
-                [#assign hasPlatformApp = true]
+                [#local isPlatformApp = true]
+                [#local hasPlatformApp = true]
                 [#if !platformAppCredential?has_content || !platformAppPrincipal?has_content ]
                     [@cfException
                         mode=listMode
@@ -96,8 +96,8 @@
                 [#break]
 
             [#case "GOOGLE" ]
-                [#assign isPlatformApp = true]
-                [#assign hasPlatformApp = true]
+                [#local isPlatformApp = true]
+                [#local hasPlatformApp = true]
                 [#if !platformAppPrincipal?has_content ]
                     [@cfException
                         mode=listMode
@@ -146,7 +146,7 @@
 
             [#list solution.Alerts?values as alert ]
 
-                [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
                     [@cfDebug listMode monitoredResource false /]
@@ -184,7 +184,7 @@
         [#if isPlatformApp ]
             [#if deploymentSubsetRequired("cli", false ) ]
 
-                [#assign platformAppAttributes =
+                [#local platformAppAttributes =
                     getSNSPlatformAppAttributes(
                         roleId,
                         successSampleRate

@@ -2,43 +2,43 @@
 [#macro aws_lambda_cf_application occurrence ]
     [@cfDebug listMode occurrence false  /]
 
-    [#assign lambdaCore = occurrence.Core ]
-    [#assign lambdaSolution = occurrence.Configuration.Solution ]
+    [#local lambdaCore = occurrence.Core ]
+    [#local lambdaSolution = occurrence.Configuration.Solution ]
 
-    [#assign deploymentType = lambdaSolution.DeploymentType ]
+    [#local deploymentType = lambdaSolution.DeploymentType ]
 
     [#list occurrence.Occurrences as fn]
-        [#assign core = fn.Core ]
-        [#assign solution = fn.Configuration.Solution ]
-        [#assign resources = fn.State.Resources ]
+        [#local core = fn.Core ]
+        [#local solution = fn.Configuration.Solution ]
+        [#local resources = fn.State.Resources ]
 
-        [#assign fnId = resources["function"].Id ]
-        [#assign fnName = resources["function"].Name ]
+        [#local fnId = resources["function"].Id ]
+        [#local fnName = resources["function"].Name ]
 
-        [#assign fnLgId = resources["lg"].Id ]
-        [#assign fnLgName = resources["lg"].Name ]
+        [#local fnLgId = resources["lg"].Id ]
+        [#local fnLgName = resources["lg"].Name ]
 
-        [#assign vpcAccess = solution.VPCAccess ]
+        [#local vpcAccess = solution.VPCAccess ]
         [#if vpcAccess ]
-            [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
+            [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
-            [#assign networkLinkTarget = getLinkTarget(fn, networkLink ) ]
+            [#local networkLinkTarget = getLinkTarget(fn, networkLink ) ]
             [#if ! networkLinkTarget?has_content ]
                 [@cfException listMode "Network could not be found" networkLink /]
                 [#return]
             [/#if]
 
-            [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-            [#assign networkResources = networkLinkTarget.State.Resources ]
+            [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+            [#local networkResources = networkLinkTarget.State.Resources ]
 
-            [#assign vpcId = networkResources["vpc"].Id ]
-            [#assign vpc = getExistingReference(vpcId)]
+            [#local vpcId = networkResources["vpc"].Id ]
+            [#local vpc = getExistingReference(vpcId)]
         [/#if]
 
-        [#assign fragment = getOccurrenceFragmentBase(fn) ]
+        [#local fragment = getOccurrenceFragmentBase(fn) ]
 
-        [#assign contextLinks = getLinkTargets(fn) ]
-        [#assign _context =
+        [#local contextLinks = getLinkTargets(fn) ]
+        [#local _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -67,13 +67,13 @@
         [#if deploymentSubsetRequired("lambda", true)]
             [#list _context.Links as linkName,linkTarget]
 
-                [#assign linkTargetCore = linkTarget.Core ]
-                [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                [#assign linkTargetResources = linkTarget.State.Resources ]
-                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-                [#assign linkTargetRoles = linkTarget.State.Roles ]
-                [#assign linkDirection = linkTarget.Direction ]
-                [#assign linkRole = linkTarget.Role]
+                [#local linkTargetCore = linkTarget.Core ]
+                [#local linkTargetConfiguration = linkTarget.Configuration ]
+                [#local linkTargetResources = linkTarget.State.Resources ]
+                [#local linkTargetAttributes = linkTarget.State.Attributes ]
+                [#local linkTargetRoles = linkTarget.State.Roles ]
+                [#local linkDirection = linkTarget.Direction ]
+                [#local linkRole = linkTarget.Role]
 
                 [#switch linkDirection ]
                     [#case "inbound" ]
@@ -120,31 +120,31 @@
         [/#if]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(_context)]
+        [#local fragmentListMode = "model"]
+        [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#-- clear all environment variables for EDGE deployments --]
         [#if deploymentType == "EDGE" ]
-                [#assign _context += {
+                [#local _context += {
                 "DefaultEnvironment" : {},
                 "Environment" : {}
             }]
         [/#if]
 
-        [#assign finalEnvironment = getFinalEnvironment(fn, _context, solution.Environment) ]
-        [#assign finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
-        [#assign _context += finalEnvironment ]
+        [#local finalEnvironment = getFinalEnvironment(fn, _context, solution.Environment) ]
+        [#local finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
+        [#local _context += finalEnvironment ]
 
-        [#assign roleId = formatDependentRoleId(fnId)]
-        [#assign managedPolicies =
+        [#local roleId = formatDependentRoleId(fnId)]
+        [#local managedPolicies =
             (vpcAccess)?then(
                 ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"],
                 ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
             ) +
             _context.ManagedPolicy ]
 
-        [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
+        [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
 
@@ -167,7 +167,7 @@
             /]
 
             [#if _context.Policy?has_content]
-                [#assign policyId = formatDependentPolicyId(fnId)]
+                [#local policyId = formatDependentPolicyId(fnId)]
                 [@createPolicy
                     mode=listMode
                     id=policyId
@@ -178,7 +178,7 @@
             [/#if]
 
             [#if linkPolicies?has_content]
-                [#assign policyId = formatDependentPolicyId(fnId, "links")]
+                [#local policyId = formatDependentPolicyId(fnId, "links")]
                 [@createPolicy
                     mode=listMode
                     id=policyId
@@ -202,8 +202,8 @@
 
         [#if deploymentSubsetRequired("lambda", true)]
             [#if isPresent(solution.FixedCodeVersion) ]
-                [#assign versionId = resources["version"].Id  ]
-                [#assign codeHash = _context.CodeHash!solution.FixedCodeVersion.CodeHash ]
+                [#local versionId = resources["version"].Id  ]
+                [#local codeHash = _context.CodeHash!solution.FixedCodeVersion.CodeHash ]
 
                 [#if !(core.Version?has_content)]
                     [@cfException
@@ -304,9 +304,9 @@
 
             [#list solution.Schedules?values as schedule ]
 
-                [#assign scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
+                [#local scheduleRuleId = formatEventRuleId(fn, "schedule", schedule.Id) ]
 
-                [#assign targetParameters = {
+                [#local targetParameters = {
                     "Arn" : getReference(fnId, ARN_ATTRIBUTE_TYPE),
                     "Id" : fnId,
                     "Input" : getJSON(schedule.Input?has_content?then(schedule.Input,{ "path" : schedule.InputPath }))
@@ -333,20 +333,20 @@
 
             [#list solution.LogWatchers as logWatcherName,logwatcher ]
 
-                [#assign logFilter = logFilters[logwatcher.LogFilter].Pattern ]
+                [#local logFilter = logFilters[logwatcher.LogFilter].Pattern ]
 
                 [#list logwatcher.Links as logWatcherLinkName,logWatcherLink ]
-                    [#assign logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
+                    [#local logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
 
                     [#if !logWatcherLinkTarget?has_content]
                         [#continue]
                     [/#if]
 
-                    [#assign roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]]
+                    [#local roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]]
 
                     [#list asArray(roleSource.LogGroupIds) as logGroupId ]
 
-                        [#assign logGroupArn = getExistingReference(logGroupId, ARN_ATTRIBUTE_TYPE)]
+                        [#local logGroupArn = getExistingReference(logGroupId, ARN_ATTRIBUTE_TYPE)]
 
                         [#if logGroupArn?has_content ]
 
@@ -377,7 +377,7 @@
 
             [#list solution.Alerts?values as alert ]
 
-                [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
                     [#switch alert.Comparison ]
@@ -410,7 +410,7 @@
             [/#list]
 
             [#-- Pick any extra macros in the fragment --]
-            [#assign fragmentListMode = listMode]
+            [#local fragmentListMode = listMode]
             [#include fragmentList?ensure_starts_with("/")]
         [/#if]
         [#if solution.Environment.AsFile && deploymentSubsetRequired("config", false)]
@@ -421,7 +421,7 @@
         [/#if]
         [#if deploymentSubsetRequired("prologue", false)]
             [#-- Copy any asFiles needed by the task --]
-            [#assign asFiles = getAsFileSettings(fn.Configuration.Settings.Product) ]
+            [#local asFiles = getAsFileSettings(fn.Configuration.Settings.Product) ]
             [#if asFiles?has_content]
                 [@cfDebug listMode asFiles false /]
                 [@cfScript

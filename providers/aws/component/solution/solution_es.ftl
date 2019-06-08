@@ -2,30 +2,30 @@
 [#macro aws_es_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core]
-    [#assign solution = occurrence.Configuration.Solution]
-    [#assign resources = occurrence.State.Resources]
-    [#assign roles = occurrence.State.Roles]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
+    [#local roles = occurrence.State.Roles]
 
-    [#assign esId = resources["es"].Id]
-    [#assign esName = resources["es"].Name]
-    [#assign esServiceRoleId = resources["servicerole"].Id]
+    [#local esId = resources["es"].Id]
+    [#local esName = resources["es"].Name]
+    [#local esServiceRoleId = resources["servicerole"].Id]
 
-    [#assign processorProfile = getProcessor(occurrence, "ElasticSearch")]
-    [#assign master = processorProfile.Master!{}]
+    [#local processorProfile = getProcessor(occurrence, "ElasticSearch")]
+    [#local master = processorProfile.Master!{}]
 
-    [#assign esUpdateCommand = "updateESDomain" ]
+    [#local esUpdateCommand = "updateESDomain" ]
 
-    [#assign esAuthentication = solution.Authentication]
+    [#local esAuthentication = solution.Authentication]
 
-    [#assign cognitoIntegration = false ]
-    [#assign cognitoCliConfig = {} ]
+    [#local cognitoIntegration = false ]
+    [#local cognitoCliConfig = {} ]
 
-    [#assign esPolicyStatements = [] ]
+    [#local esPolicyStatements = [] ]
 
-    [#assign storageProfile = getStorage(occurrence, "ElasticSearch")]
-    [#assign volume = (storageProfile.Volumes["codeontap"])!{}]
-    [#assign esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
+    [#local storageProfile = getStorage(occurrence, "ElasticSearch")]
+    [#local volume = (storageProfile.Volumes["codeontap"])!{}]
+    [#local esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
 
     [#if !esCIDRs?has_content && !(esAuthentication == "SIG4ORIP") ]
         [@cfException
@@ -45,34 +45,34 @@
         /]
     [/#if]
 
-    [#assign esAdvancedOptions = {} ]
+    [#local esAdvancedOptions = {} ]
     [#list solution.AdvancedOptions as option]
-        [#assign esAdvancedOptions +=
+        [#local esAdvancedOptions +=
             {
                 option.Id : option.Value
             }
         ]
     [/#list]
 
-    [#assign AccessPolicyStatements = [] ]
+    [#local AccessPolicyStatements = [] ]
 
-    [#assign esAccounts = getAWSAccountIds( solution.Accounts )]
-    [#assign esAccountPrincipals = []]
-    [#assign esGlobalAccountAccess = false ]
+    [#local esAccounts = getAWSAccountIds( solution.Accounts )]
+    [#local esAccountPrincipals = []]
+    [#local esGlobalAccountAccess = false ]
 
     [#if esAccounts?seq_contains("*") ]
-        [#assign esGlobalAccountAccess = true ]
-        [#assign esAccountPrincipals = [ "*" ]]
+        [#local esGlobalAccountAccess = true ]
+        [#local esAccountPrincipals = [ "*" ]]
     [#else]
         [#list esAccounts as esAccount ]
-            [#assign esAccountPrincipals += [ formatAccountPrincipalArn( esAccount ) ]]
+            [#local esAccountPrincipals += [ formatAccountPrincipalArn( esAccount ) ]]
         [/#list]
     [/#if]
 
 
     [#if esAuthentication == "SIG4ANDIP" ]
 
-        [#assign AccessPolicyStatements += [
+        [#local AccessPolicyStatements += [
                 getPolicyStatement(
                     "es:ESHttp*",
                     "*",
@@ -92,7 +92,7 @@
 
     [#if ( esAuthentication == "SIG4ANDIP" || esAuthentication == "IP" ) && !esCIDRs?seq_contains("0.0.0.0/0") ]
 
-        [#assign AccessPolicyStatements +=
+        [#local AccessPolicyStatements +=
             [
                 getPolicyStatement(
                     "es:ESHttp*",
@@ -112,7 +112,7 @@
     [/#if]
 
     [#if esAuthentication == "SIG4ORIP" && esCIDRs?has_content ]
-        [#assign AccessPolicyStatements +=
+        [#local AccessPolicyStatements +=
             [
                 getPolicyStatement(
                     "es:ESHttp*",
@@ -132,7 +132,7 @@
     [/#if]
 
     [#if (esAuthentication == "SIG4ANDIP" || esAuthentication == "SIG4ORIP" ) && ! esGlobalAccountAccess]
-        [#assign AccessPolicyStatements += [
+        [#local AccessPolicyStatements += [
                 getPolicyStatement(
                     "es:ESHttp*",
                     "*",
@@ -151,7 +151,7 @@
     [/#if]
 
     [#if esAuthentication == "IP" ]
-        [#assign AccessPolicyStatements +=
+        [#local AccessPolicyStatements +=
             [
                 getPolicyStatement(
                     "es:ESHttp*",
@@ -173,7 +173,7 @@
 
     [#list solution.Links?values as link]
         [#if link?is_hash]
-            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+            [#local linkTarget = getLinkTarget(occurrence, link) ]
 
             [@cfDebug listMode linkTarget false /]
 
@@ -181,16 +181,16 @@
                 [#continue]
             [/#if]
 
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
             [#switch linkTargetCore.Type]
 
                 [#case USERPOOL_COMPONENT_TYPE]
-                    [#assign cognitoIntegration = true ]
+                    [#local cognitoIntegration = true ]
 
-                    [#assign cognitoCliConfig =
+                    [#local cognitoCliConfig =
                         {
                             "CognitoOptions" : {
                                 "Enabled" : true,
@@ -200,19 +200,19 @@
                             }
                         }]
 
-                        [#assign policyId = formatDependentPolicyId(
+                        [#local policyId = formatDependentPolicyId(
                                                 esId,
                                                 link.Name)]
 
 
                         [#if deploymentSubsetRequired("es", true)]
-                            [#assign role = linkTargetResources["authrole"].Id!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
-                            [#assign roleArn = getArn(role) ]
+                            [#local role = linkTargetResources["authrole"].Id!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
+                            [#local roleArn = getArn(role) ]
 
-                            [#assign localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
+                            [#local localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
 
                             [#if localRoleAccount ]
-                                [#assign roleName = (role?split("/"))[1] ]
+                                [#local roleName = (role?split("/"))[1] ]
                                 [@cfResource
                                     mode=listMode
                                     id=policyId
@@ -250,7 +250,7 @@
 
         [#list solution.Alerts?values as alert ]
 
-            [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
                 [@cfDebug listMode monitoredResource false /]
@@ -347,7 +347,7 @@
 
     [#if deploymentSubsetRequired("cli", false)]
 
-        [#assign esCliConfig =
+        [#local esCliConfig =
             valueIfContent(
                 cognitoCliConfig,
                 cognitoCliConfig,

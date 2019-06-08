@@ -2,32 +2,32 @@
 [#macro aws_datafeed_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core]
-    [#assign solution = occurrence.Configuration.Solution]
-    [#assign resources = occurrence.State.Resources]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
 
-    [#assign streamId = resources["stream"].Id ]
-    [#assign streamName = resources["stream"].Name ]
+    [#local streamId = resources["stream"].Id ]
+    [#local streamName = resources["stream"].Name ]
 
-    [#assign streamRoleId = resources["role"].Id ]
-    [#assign streamRolePolicyId = formatDependentPolicyId(streamRoleId, "local")]
+    [#local streamRoleId = resources["role"].Id ]
+    [#local streamRolePolicyId = formatDependentPolicyId(streamRoleId, "local")]
 
-    [#assign streamSubscriptionRoleId = resources["subscriptionRole"].Id!"" ]
-    [#assign streamSubscriptionPolicyId = formatDependentPolicyId(streamSubscriptionRoleId, "local")]
+    [#local streamSubscriptionRoleId = resources["subscriptionRole"].Id!"" ]
+    [#local streamSubscriptionPolicyId = formatDependentPolicyId(streamSubscriptionRoleId, "local")]
 
-    [#assign streamLgId = (resources["lg"].Id)!"" ]
-    [#assign streamLgName = (resources["lg"].Name)!"" ]
-    [#assign streamLgStreamId = (resources["streamlgstream"].Id)!""]
-    [#assign streamLgStreamName = (resources["streamlgstream"].Name)!""]
-    [#assign streamLgBackupId = (resources["backuplgstream"].Id)!""]
-    [#assign streamLgBackupName = (resources["backuplgstream"].Name)!""]
+    [#local streamLgId = (resources["lg"].Id)!"" ]
+    [#local streamLgName = (resources["lg"].Name)!"" ]
+    [#local streamLgStreamId = (resources["streamlgstream"].Id)!""]
+    [#local streamLgStreamName = (resources["streamlgstream"].Name)!""]
+    [#local streamLgBackupId = (resources["backuplgstream"].Id)!""]
+    [#local streamLgBackupName = (resources["backuplgstream"].Name)!""]
 
-    [#assign logging = solution.Logging ]
-    [#assign encrypted = solution.Encrypted]
+    [#local logging = solution.Logging ]
+    [#local encrypted = solution.Encrypted]
 
-    [#assign streamProcessors = []]
+    [#local streamProcessors = []]
 
-    [#assign appDataLink = getLinkTarget(occurrence,
+    [#local appDataLink = getLinkTarget(occurrence,
                                 {
                                     "Tier" : "mgmt",
                                     "Component" : "baseline",
@@ -37,8 +37,8 @@
                                 }
     )]
 
-    [#assign appdataBucketId = appDataLink.State.Resources["bucket"].Id ]
-    [#assign dataBucketPrefix = getAppDataFilePrefix(occurrence) ]
+    [#local appdataBucketId = appDataLink.State.Resources["bucket"].Id ]
+    [#local dataBucketPrefix = getAppDataFilePrefix(occurrence) ]
 
     [#if logging ]
         [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(streamLgId) ]
@@ -68,22 +68,22 @@
 
     [#list solution.LogWatchers as logWatcherName,logwatcher ]
 
-        [#assign logFilter = (logFilters[logwatcher.LogFilter].Pattern)!"" ]
+        [#local logFilter = (logFilters[logwatcher.LogFilter].Pattern)!"" ]
 
-        [#assign logSubscriptionRoleRequired = true ]
+        [#local logSubscriptionRoleRequired = true ]
 
         [#list logwatcher.Links as logWatcherLinkName,logWatcherLink ]
-            [#assign logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
+            [#local logWatcherLinkTarget = getLinkTarget(occurrence, logWatcherLink) ]
 
             [#if !logWatcherLinkTarget?has_content]
                 [#continue]
             [/#if]
 
-            [#assign roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]]
+            [#local roleSource = logWatcherLinkTarget.State.Roles.Inbound["logwatch"]]
 
             [#list asArray(roleSource.LogGroupIds) as logGroupId ]
 
-                [#assign logGroupArn = getExistingReference(logGroupId, ARN_ATTRIBUTE_TYPE)]
+                [#local logGroupArn = getExistingReference(logGroupId, ARN_ATTRIBUTE_TYPE)]
 
                 [#if logGroupArn?has_content ]
 
@@ -103,22 +103,22 @@
         [/#list]
     [/#list]
 
-    [#assign links = getLinkTargets(occurrence) ]
-    [#assign linkPolicies = []]
+    [#local links = getLinkTargets(occurrence) ]
+    [#local linkPolicies = []]
 
     [#list links as linkId,linkTarget]
 
-        [#assign linkTargetCore = linkTarget.Core ]
-        [#assign linkTargetConfiguration = linkTarget.Configuration ]
-        [#assign linkTargetResources = linkTarget.State.Resources ]
-        [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+        [#local linkTargetCore = linkTarget.Core ]
+        [#local linkTargetConfiguration = linkTarget.Configuration ]
+        [#local linkTargetResources = linkTarget.State.Resources ]
+        [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
         [#switch linkTargetCore.Type]
             [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
-                [#assign linkPolicies += lambdaKinesisPermission( linkTargetAttributes["ARN"])]
+                [#local linkPolicies += lambdaKinesisPermission( linkTargetAttributes["ARN"])]
 
-                [#assign streamProcessors +=
+                [#local streamProcessors +=
                         [ getFirehoseStreamLambdaProcessor(
                             linkTargetAttributes["ARN"],
                             streamRoleId,
@@ -128,11 +128,11 @@
                 [#break]
 
             [#default]
-                [#assign linkPolicies += getLinkTargetsOutboundRoles( { linkId, linkTarget} ) ]
+                [#local linkPolicies += getLinkTargetsOutboundRoles( { linkId, linkTarget} ) ]
         [/#switch]
     [/#list]
 
-    [#assign destinationLink = getLinkTarget(
+    [#local destinationLink = getLinkTarget(
                                     occurrence,
                                     solution.Destination.Link +
                                     {
@@ -141,7 +141,7 @@
                                 )]
 
     [#if destinationLink?has_content ]
-        [#assign linkPolicies += getLinkTargetsOutboundRoles( { "destination", destinationLink} ) ]
+        [#local linkPolicies += getLinkTargetsOutboundRoles( { "destination", destinationLink} ) ]
     [/#if]
 
     [#if deploymentSubsetRequired("iam", true)]
@@ -191,7 +191,7 @@
 
     [#if deploymentSubsetRequired(DATAFEED_COMPONENT_TYPE, true)]
 
-        [#assign streamDependencies = []]
+        [#local streamDependencies = []]
 
         [#if !streamProcessors?has_content && solution.LogWatchers?has_content ]
             [@cfException
@@ -219,17 +219,17 @@
             /]
         [/#if]
 
-        [#assign streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
+        [#local streamLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
                                                 logging
                                                 streamLgName
                                                 streamLgStreamName )]
 
-        [#assign streamBackupLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
+        [#local streamBackupLoggingConfiguration = getFirehoseStreamLoggingConfiguration(
                                                 logging,
                                                 streamLgName,
                                                 streamLgBackupName )]
 
-        [#assign streamS3BackupDestination = getFirehoseStreamS3Destination(
+        [#local streamS3BackupDestination = getFirehoseStreamS3Destination(
                                                 appdataBucketId,
                                                 dataBucketPrefix,
                                                 solution.Buffering.Interval,
@@ -242,8 +242,8 @@
         [#switch (destinationLink.Core.Type)!"notfound" ]
             [#case ES_COMPONENT_TYPE ]
 
-                [#assign esId = destinationLink.State.Resources["es"].Id ]
-                [#assign streamESDestination = getFirehoseStreamESDestination(
+                [#local esId = destinationLink.State.Resources["es"].Id ]
+                [#local streamESDestination = getFirehoseStreamESDestination(
                                                 solution.Buffering.Interval,
                                                 solution.Buffering.Size,
                                                 esId,

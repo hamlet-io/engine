@@ -2,15 +2,15 @@
 [#macro aws_spa_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign settings = occurrence.Configuration.Settings ]
-    [#assign resources = occurrence.State.Resources]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local settings = occurrence.Configuration.Settings ]
+    [#local resources = occurrence.State.Resources]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign contextLinks = getLinkTargets(occurrence) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -26,11 +26,11 @@
     ]
 
     [#-- Add in container specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
-    [#assign fragmentId = formatFragmentId(_context)]
+    [#local fragmentListMode = "model"]
+    [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign _context += getFinalEnvironment(occurrence, _context) ]
+    [#local _context += getFinalEnvironment(occurrence, _context) ]
 
     [#if deploymentSubsetRequired("config", false)]
         [@cfConfig
@@ -75,7 +75,7 @@
                     )
                 ) /]
 
-        [#assign cfId = resources["cf"].Id]
+        [#local cfId = resources["cf"].Id]
 
         [@cfScript
             mode=listMode

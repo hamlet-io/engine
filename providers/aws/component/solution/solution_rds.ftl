@@ -2,56 +2,56 @@
 [#macro aws_rds_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
-    [#assign attributes = occurrence.State.Attributes ]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
+    [#local attributes = occurrence.State.Attributes ]
 
-    [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
+    [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
-    [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
         [@cfException listMode "Network could not be found" networkLink /]
         [#return]
     [/#if]
 
-    [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-    [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-    [#assign vpcId = networkResources["vpc"].Id ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-    [#assign engine = solution.Engine]
+    [#local engine = solution.Engine]
     [#switch engine]
         [#case "mysql"]
-            [#assign engineVersion =
+            [#local engineVersion =
                 valueIfContent(
                     solution.EngineVersion!"",
                     solution.EngineVersion!"",
                     "5.6"
                 )
             ]
-            [#assign family = "mysql" + engineVersion]
-            [#assign port = solution.Port!"mysql" ]
+            [#local family = "mysql" + engineVersion]
+            [#local port = solution.Port!"mysql" ]
             [#if (ports[port].Port)?has_content]
-                [#assign port = ports[port].Port ]
+                [#local port = ports[port].Port ]
             [#else]
                 [@cfException listMode "Unknown Port" port /]
             [/#if]
             [#break]
 
         [#case "postgres"]
-            [#assign engineVersion =
+            [#local engineVersion =
                 valueIfContent(
                     solution.EngineVersion!"",
                     solution.EngineVersion!"",
                     "9.4"
                 )
             ]
-            [#assign family = "postgres" + engineVersion]
-            [#assign port = solution.Port!"postgresql" ]
+            [#local family = "postgres" + engineVersion]
+            [#local port = solution.Port!"postgresql" ]
             [#if (ports[port].Port)?has_content]
-                [#assign port = ports[port].Port ]
+                [#local port = ports[port].Port ]
             [#else]
                 [@cfException listMode "Unknown Port" port /]
             [/#if]
@@ -59,33 +59,33 @@
 
         [#default]
             [@cfPreconditionFailed listMode "solution_rds" occurrence "Unsupported engine provided" /]
-            [#assign engineVersion = "unknown" ]
-            [#assign family = "unknown" ]
-            [#assign port = "unknown" ]
+            [#local engineVersion = "unknown" ]
+            [#local family = "unknown" ]
+            [#local port = "unknown" ]
             [#break]
     [/#switch]
 
-    [#assign rdsId = resources["db"].Id ]
-    [#assign rdsFullName = resources["db"].Name ]
-    [#assign rdsSubnetGroupId = resources["subnetGroup"].Id ]
-    [#assign rdsParameterGroupId = resources["parameterGroup"].Id ]
-    [#assign rdsOptionGroupId = resources["optionGroup"].Id ]
+    [#local rdsId = resources["db"].Id ]
+    [#local rdsFullName = resources["db"].Name ]
+    [#local rdsSubnetGroupId = resources["subnetGroup"].Id ]
+    [#local rdsParameterGroupId = resources["parameterGroup"].Id ]
+    [#local rdsOptionGroupId = resources["optionGroup"].Id ]
 
-    [#assign rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(core.Tier, core.Component, rdsId) ]
-    [#assign rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
+    [#local rdsSecurityGroupId =  formatDependentComponentSecurityGroupId(core.Tier, core.Component, rdsId) ]
+    [#local rdsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
                                             rdsSecurityGroupId,
                                             port)]
 
-    [#assign rdsDatabaseName = solution.DatabaseName!productName]
-    [#assign passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
+    [#local rdsDatabaseName = solution.DatabaseName!productName]
+    [#local passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
             solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
             "" )]
 
     [#if solution.GenerateCredentials.Enabled ]
-        [#assign rdsUsername = solution.GenerateCredentials.MasterUserName]
-        [#assign rdsPasswordLength = solution.GenerateCredentials.CharacterLength]
-        [#assign rdsPassword = "DummyPassword" ]
-        [#assign rdsEncryptedPassword = (
+        [#local rdsUsername = solution.GenerateCredentials.MasterUserName]
+        [#local rdsPasswordLength = solution.GenerateCredentials.CharacterLength]
+        [#local rdsPassword = "DummyPassword" ]
+        [#local rdsEncryptedPassword = (
                     getExistingReference(
                         rdsId,
                         GENERATEDPASSWORD_ATTRIBUTE_TYPE)
@@ -93,55 +93,55 @@
                         passwordEncryptionScheme
                     )]
     [#else]
-        [#assign rdsUsername = attributes.USERNAME ]
-        [#assign rdsPassword = attributes.PASSWORD ]
+        [#local rdsUsername = attributes.USERNAME ]
+        [#local rdsPassword = attributes.PASSWORD ]
     [/#if]
 
-    [#assign hibernate = solution.Hibernate.Enabled  &&
+    [#local hibernate = solution.Hibernate.Enabled  &&
             (getExistingReference(rdsId)?has_content) ]
 
-    [#assign hibernateStartUpMode = solution.Hibernate.StartUpMode ]
+    [#local hibernateStartUpMode = solution.Hibernate.StartUpMode ]
 
-    [#assign rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
-    [#assign rdsManualSnapshot = getExistingReference(formatDependentRDSManualSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
-    [#assign rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE )]
+    [#local rdsRestoreSnapshot = getExistingReference(formatDependentRDSSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
+    [#local rdsManualSnapshot = getExistingReference(formatDependentRDSManualSnapshotId(rdsId), NAME_ATTRIBUTE_TYPE)]
+    [#local rdsLastSnapshot = getExistingReference(rdsId, LASTRESTORE_ATTRIBUTE_TYPE )]
 
-    [#assign links = getLinkTargets(occurrence, {}, false) ]
+    [#local links = getLinkTargets(occurrence, {}, false) ]
     [#list links as linkId,linkTarget]
 
-        [#assign linkTargetCore = linkTarget.Core ]
-        [#assign linkTargetConfiguration = linkTarget.Configuration ]
-        [#assign linkTargetResources = linkTarget.State.Resources ]
-        [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+        [#local linkTargetCore = linkTarget.Core ]
+        [#local linkTargetConfiguration = linkTarget.Configuration ]
+        [#local linkTargetResources = linkTarget.State.Resources ]
+        [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
         [#switch linkTargetCore.Type]
             [#case DATASET_COMPONENT_TYPE]
                 [#if linkTargetConfiguration.Solution.Engine == "rds" ]
-                    [#assign rdsManualSnapshot = linkTargetAttributes["SNAPSHOT_NAME"] ]
+                    [#local rdsManualSnapshot = linkTargetAttributes["SNAPSHOT_NAME"] ]
                 [/#if]
                 [#break]
         [/#switch]
     [/#list]
 
-    [#assign deletionPolicy = solution.Backup.DeletionPolicy]
-    [#assign updateReplacePolicy = solution.Backup.UpdateReplacePolicy]
+    [#local deletionPolicy = solution.Backup.DeletionPolicy]
+    [#local updateReplacePolicy = solution.Backup.UpdateReplacePolicy]
 
-    [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
+    [#local segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
 
-    [#assign rdsPreDeploySnapshotId = formatName(
+    [#local rdsPreDeploySnapshotId = formatName(
                                         rdsFullName,
                                         runId,
                                         "pre-deploy")]
 
-    [#assign rdsTags = getOccurrenceCoreTags(occurrence, rdsFullName)]
+    [#local rdsTags = getOccurrenceCoreTags(occurrence, rdsFullName)]
 
-    [#assign restoreSnapshotName = "" ]
+    [#local restoreSnapshotName = "" ]
 
     [#if hibernate && hibernateStartUpMode == "restore" ]
-        [#assign restoreSnapshotName = rdsPreDeploySnapshotId ]
+        [#local restoreSnapshotName = rdsPreDeploySnapshotId ]
     [/#if]
 
-    [#assign preDeploySnapshot = solution.Backup.SnapshotOnDeploy ||
+    [#local preDeploySnapshot = solution.Backup.SnapshotOnDeploy ||
                             ( hibernate && hibernateStartUpMode == "restore" ) ||
                             rdsManualSnapshot?has_content ]
 
@@ -155,19 +155,19 @@
             /]
         [/#if]
 
-        [#assign restoreSnapshotName = rdsManualSnapshot ]
-        [#assign preDeploySnapshot = false ]
+        [#local restoreSnapshotName = rdsManualSnapshot ]
+        [#local preDeploySnapshot = false ]
 
     [/#if]
 
-    [#assign dbParameters = {} ]
+    [#local dbParameters = {} ]
     [#list solution.DBParameters as key,value ]
         [#if key != "Name" && key != "Id" ]
-            [#assign dbParameters += { key : value }]
+            [#local dbParameters += { key : value }]
         [/#if]
     [/#list]
 
-    [#assign processorProfile = getProcessor(occurrence, "RDS")]
+    [#local processorProfile = getProcessor(occurrence, "RDS")]
 
     [#if deploymentSubsetRequired("prologue", false)]
         [@cfScript
@@ -303,29 +303,29 @@
 
         [#switch alternative ]
             [#case "replace1" ]
-                [#assign multiAZ = false]
-                [#assign deletionPolicy = "Delete" ]
-                [#assign updateReplacePolicy = "Delete" ]
-                [#assign rdsFullName=formatName(rdsFullName, "backup") ]
+                [#local multiAZ = false]
+                [#local deletionPolicy = "Delete" ]
+                [#local updateReplacePolicy = "Delete" ]
+                [#local rdsFullName=formatName(rdsFullName, "backup") ]
                 [#if rdsManualSnapshot?has_content ]
-                    [#assign snapshotId = rdsManualSnapshot ]
+                    [#local snapshotId = rdsManualSnapshot ]
                 [#else]
-                    [#assign snapshotId = valueIfTrue(
+                    [#local snapshotId = valueIfTrue(
                             rdsPreDeploySnapshotId,
                             solution.Backup.SnapshotOnDeploy,
                             rdsRestoreSnapshot)]
                 [/#if]
 
                 [#if solution.Backup.UpdateReplacePolicy == "Delete" ]
-                    [#assign hibernate = true ]
+                    [#local hibernate = true ]
                 [/#if]
             [#break]
 
             [#case "replace2"]
                 [#if rdsManualSnapshot?has_content ]
-                    [#assign snapshotId = rdsManualSnapshot ]
+                    [#local snapshotId = rdsManualSnapshot ]
                 [#else]
-                [#assign snapshotId = valueIfTrue(
+                [#local snapshotId = valueIfTrue(
                         rdsPreDeploySnapshotId,
                         solution.Backup.SnapshotOnDeploy,
                         rdsRestoreSnapshot)]
@@ -334,9 +334,9 @@
 
             [#default]
                 [#if rdsManualSnapshot?has_content ]
-                    [#assign snapshotId = rdsManualSnapshot ]
+                    [#local snapshotId = rdsManualSnapshot ]
                 [#else]
-                    [#assign snapshotId = rdsLastSnapshot]
+                    [#local snapshotId = rdsLastSnapshot]
                 [/#if]
         [/#switch]
 
@@ -344,7 +344,7 @@
 
             [#list solution.Alerts?values as alert ]
 
-                [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
                     [@cfDebug listMode monitoredResource false /]
@@ -409,10 +409,10 @@
     [#if !hibernate ]
         [#if deploymentSubsetRequired("epilogue", false)]
 
-            [#assign rdsFQDN = getExistingReference(rdsId, DNS_ATTRIBUTE_TYPE)]
+            [#local rdsFQDN = getExistingReference(rdsId, DNS_ATTRIBUTE_TYPE)]
 
-            [#assign passwordPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
-            [#assign urlPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
+            [#local passwordPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
+            [#local urlPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
             [@cfScript
                 mode=listMode
                 content=

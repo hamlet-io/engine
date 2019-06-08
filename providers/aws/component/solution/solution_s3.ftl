@@ -2,45 +2,45 @@
 [#macro aws_s3_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
-    [#assign links = getLinkTargets(occurrence )]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
+    [#local links = getLinkTargets(occurrence )]
 
-    [#assign s3Id = resources["bucket"].Id ]
-    [#assign s3Name = resources["bucket"].Name ]
+    [#local s3Id = resources["bucket"].Id ]
+    [#local s3Name = resources["bucket"].Name ]
 
-    [#assign roleId = resources["role"].Id ]
+    [#local roleId = resources["role"].Id ]
 
-    [#assign versioningEnabled = solution.Lifecycle.Versioning ]
+    [#local versioningEnabled = solution.Lifecycle.Versioning ]
 
-    [#assign replicationEnabled = false]
-    [#assign replicationConfiguration = {} ]
-    [#assign replicationBucket = ""]
+    [#local replicationEnabled = false]
+    [#local replicationConfiguration = {} ]
+    [#local replicationBucket = ""]
 
-    [#assign sqsNotifications = [] ]
-    [#assign sqsNotificationIds = [] ]
-    [#assign dependencies = [] ]
+    [#local sqsNotifications = [] ]
+    [#local sqsNotificationIds = [] ]
+    [#local dependencies = [] ]
 
     [#list solution.Notifications as id,notification ]
         [#if notification?is_hash]
             [#list notification.Links?values as link]
                 [#if link?is_hash]
-                    [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
+                    [#local linkTarget = getLinkTarget(occurrence, link, false) ]
                     [@cfDebug listMode linkTarget false /]
                     [#if !linkTarget?has_content]
                         [#continue]
                     [/#if]
 
-                    [#assign linkTargetResources = linkTarget.State.Resources ]
+                    [#local linkTargetResources = linkTarget.State.Resources ]
 
                     [#switch linkTarget.Core.Type]
                         [#case AWS_SQS_RESOURCE_TYPE ]
                             [#if isLinkTargetActive(linkTarget) ]
-                                [#assign sqsId = linkTargetResources["queue"].Id ]
-                                [#assign sqsNotificationIds = [ sqsId ]]
+                                [#local sqsId = linkTargetResources["queue"].Id ]
+                                [#local sqsNotificationIds = [ sqsId ]]
                                 [#list notification.Events as event ]
-                                    [#assign sqsNotifications +=
+                                    [#local sqsNotifications +=
                                             getS3SQSNotification(sqsId, event, notification.Prefix, notification.Suffix) ]
                                 [/#list]
 
@@ -54,7 +54,7 @@
 
     [#if deploymentSubsetRequired("s3", true)]
         [#list sqsNotificationIds as sqsId ]
-            [#assign sqsPolicyId =
+            [#local sqsPolicyId =
                 formatS3NotificationsQueuePolicyId(
                     s3Id,
                     sqsId) ]
@@ -64,21 +64,21 @@
                     queues=sqsId
                     statements=sqsS3WritePermission(sqsId, s3Name)
                 /]
-            [#assign dependencies += [sqsPolicyId] ]
+            [#local dependencies += [sqsPolicyId] ]
         [/#list]
     [/#if]
 
-    [#assign policyStatements = [] ]
+    [#local policyStatements = [] ]
 
     [#list solution.PublicAccess?values as publicAccessConfiguration]
         [#list publicAccessConfiguration.Paths as publicPrefix]
             [#if publicAccessConfiguration.Enabled ]
-                [#assign publicIPWhiteList =
+                [#local publicIPWhiteList =
                     getIPCondition(getGroupCIDRs(publicAccessConfiguration.IPAddressGroups, true)) ]
 
                 [#switch publicAccessConfiguration.Permissions ]
                     [#case "ro" ]
-                        [#assign policyStatements += s3ReadPermission(
+                        [#local policyStatements += s3ReadPermission(
                                                         s3Name,
                                                         publicPrefix,
                                                         "*",
@@ -86,7 +86,7 @@
                                                         publicIPWhiteList)]
                         [#break]
                     [#case "wo" ]
-                        [#assign policyStatements += s3WritePermission(
+                        [#local policyStatements += s3WritePermission(
                                                         s3Name,
                                                         publicPrefix,
                                                         "*",
@@ -94,7 +94,7 @@
                                                         publicIPWhiteList)]
                         [#break]
                     [#case "rw" ]
-                        [#assign policyStatements += s3AllPermission(
+                        [#local policyStatements += s3AllPermission(
                                                         s3Name,
                                                         publicPrefix,
                                                         "*",
@@ -109,7 +109,7 @@
     [#list solution.Links?values as link]
         [#if link?is_hash]
 
-            [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
+            [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
             [@cfDebug listMode linkTarget false /]
 
@@ -117,16 +117,16 @@
                 [#continue]
             [/#if]
 
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#switch linkTargetCore.Type]
                 [#case S3_COMPONENT_TYPE ]
                     [#switch linkTarget.Role ]
                         [#case  "replicadestination" ]
-                            [#assign replicationEnabled = true]
+                            [#local replicationEnabled = true]
                             [#if linkTargetAttributes["REGION"] == regionId ]
                                 [@cfException
                                     mode=listMode
@@ -139,7 +139,7 @@
                                 /]
                             [/#if]
 
-                            [#assign versioningEnabled = true]
+                            [#local versioningEnabled = true]
 
                             [#if !replicationBucket?has_content ]
                                 [#if !linkTargetAttributes["ARN"]?has_content ]
@@ -150,7 +150,7 @@
                                             linkTarget
                                     /]
                                 [/#if]
-                                [#assign replicationBucket = linkTargetAttributes["ARN"]]
+                                [#local replicationBucket = linkTargetAttributes["ARN"]]
                             [#else]
                                 [@cfException
                                     mode=listMode
@@ -161,7 +161,7 @@
                             [#break]
 
                         [#case "replicasource" ]
-                            [#assign versioningEnabled = true]
+                            [#local versioningEnabled = true]
                             [#break]
                     [/#switch]
                     [#break]
@@ -171,9 +171,9 @@
 
     [#-- Add Replication Rules --]
     [#if replicationEnabled ]
-        [#assign replicationRules = [] ]
+        [#local replicationRules = [] ]
         [#list solution.Replication.Prefixes as prefix ]
-            [#assign replicationRules +=
+            [#local replicationRules +=
                 [ getS3ReplicationRule(
                     replicationBucket,
                     solution.Replication.Enabled,
@@ -182,7 +182,7 @@
                 )]]
         [/#list]
 
-        [#assign replicationConfiguration = getS3ReplicationConfiguration(
+        [#local replicationConfiguration = getS3ReplicationConfiguration(
                                                 roleId,
                                                 replicationRules
                                             )]
@@ -190,9 +190,9 @@
 
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(roleId)]
-        [#assign linkPolicies = getLinkTargetsOutboundRoles(links) ]
+        [#local linkPolicies = getLinkTargetsOutboundRoles(links) ]
 
-        [#assign rolePolicies =
+        [#local rolePolicies =
                 arrayIfContent(
                     [getPolicyDocument(linkPolicies, "links")],
                     linkPolicies) +
@@ -217,7 +217,7 @@
     [#if deploymentSubsetRequired("s3", true)]
 
         [#if policyStatements?has_content ]
-            [#assign bucketPolicyId = resources["bucketpolicy"].Id ]
+            [#local bucketPolicyId = resources["bucketpolicy"].Id ]
             [@createBucketPolicy
                 mode=listMode
                 id=bucketPolicyId

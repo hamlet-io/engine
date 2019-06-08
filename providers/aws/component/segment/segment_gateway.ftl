@@ -2,14 +2,14 @@
 [#macro aws_gateway_cf_segment occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign gwCore = occurrence.Core ]
-    [#assign gwSolution = occurrence.Configuration.Solution ]
-    [#assign gwResources = occurrence.State.Resources ]
+    [#local gwCore = occurrence.Core ]
+    [#local gwSolution = occurrence.Configuration.Solution ]
+    [#local gwResources = occurrence.State.Resources ]
 
-    [#assign tags = getOccurrenceCoreTags(occurrence, gwCore.FullName, "", true)]
+    [#local tags = getOccurrenceCoreTags(occurrence, gwCore.FullName, "", true)]
 
-    [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
-    [#assign networkLink = occurrenceNetwork.Link!{} ]
+    [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+    [#local networkLink = occurrenceNetwork.Link!{} ]
 
     [#if !networkLink?has_content ]
         [@cfException
@@ -23,27 +23,27 @@
 
     [#else]
 
-        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink, false) ]
+        [#local networkLinkTarget = getLinkTarget(occurrence, networkLink, false) ]
         [#if ! networkLinkTarget?has_content ]
             [@cfException listMode "Network could not be found" networkLink /]
             [#return]
         [/#if]
 
-        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-        [#assign networkResources = networkLinkTarget.State.Resources ]
+        [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+        [#local networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign legacyIGW = (networkResources["legacyIGW"]!{})?has_content]
+        [#local legacyIGW = (networkResources["legacyIGW"]!{})?has_content]
 
-        [#assign vpcId = networkResources["vpc"].Id ]
-        [#assign vpcPrivateDNS = networkConfiguration.DNS.UseProvider && networkConfiguration.DNS.GenerateHostNames]
+        [#local vpcId = networkResources["vpc"].Id ]
+        [#local vpcPrivateDNS = networkConfiguration.DNS.UseProvider && networkConfiguration.DNS.GenerateHostNames]
 
-        [#assign sourceIPAddressGroups = gwSolution.SourceIPAddressGroups ]
-        [#assign sourceCidrs = getGroupCIDRs(sourceIPAddressGroups, true, occurrence)]
+        [#local sourceIPAddressGroups = gwSolution.SourceIPAddressGroups ]
+        [#local sourceCidrs = getGroupCIDRs(sourceIPAddressGroups, true, occurrence)]
 
         [#-- create Elastic IPs --]
         [#list gwResources["Zones"] as zone, zoneResources ]
             [#if (zoneResources["eip"]!{})?has_content ]
-                [#assign eipId = zoneResources["eip"].Id ]
+                [#local eipId = zoneResources["eip"].Id ]
                 [#if deploymentSubsetRequired("eip", true) &&
                         isPartOfCurrentDeploymentUnit(eipId)]
 
@@ -60,13 +60,13 @@
         [#switch gwSolution.Engine ]
             [#case "natgw"]
                 [#list gwResources["Zones"] as zone, zoneResources ]
-                    [#assign natGatewayId = zoneResources["natGateway"].Id ]
-                    [#assign natGatewayName = zoneResources["natGateway"].Name ]
-                    [#assign eipId = zoneResources["eip"].Id]
+                    [#local natGatewayId = zoneResources["natGateway"].Id ]
+                    [#local natGatewayName = zoneResources["natGateway"].Name ]
+                    [#local eipId = zoneResources["eip"].Id]
 
-                    [#assign subnetId = (networkResources["subnets"][gwCore.Tier.Id][zone])["subnet"].Id]
+                    [#local subnetId = (networkResources["subnets"][gwCore.Tier.Id][zone])["subnet"].Id]
 
-                    [#assign natGwTags = getOccurrenceCoreTags(
+                    [#local natGwTags = getOccurrenceCoreTags(
                                                 occurrence,
                                                 natGatewayName,
                                                 "",
@@ -87,9 +87,9 @@
             [#case "igw"]
 
                 [#if !legacyIGW ]
-                    [#assign IGWId = gwResources["internetGateway"].Id ]
-                    [#assign IGWName = gwResources["internetGateway"].Name ]
-                    [#assign IGWAttachementId = gwResources["internetGatewayAttachement"].Id ]
+                    [#local IGWId = gwResources["internetGateway"].Id ]
+                    [#local IGWName = gwResources["internetGateway"].Name ]
+                    [#local IGWAttachementId = gwResources["internetGatewayAttachement"].Id ]
 
                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                         [@createIGW
@@ -114,13 +114,13 @@
 
         [#-- Security Group Creation --]
 
-        [#assign securityGroupId=""]
-        [#assign securityGroupName=""]
+        [#local securityGroupId=""]
+        [#local securityGroupName=""]
 
         [#switch gwSolution.Engine ]
             [#case "vpcendpoint" ]
-                [#assign securityGroupId = gwResources["sg"].Id]
-                [#assign securityGroupName = gwResources["sg"].Name ]
+                [#local securityGroupId = gwResources["sg"].Id]
+                [#local securityGroupName = gwResources["sg"].Name ]
 
                 [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                     [@createSecurityGroup
@@ -153,20 +153,20 @@
 
             [@cfDebug listMode subOccurrence false /]
 
-            [#assign core = subOccurrence.Core ]
-            [#assign solution = subOccurrence.Configuration.Solution ]
-            [#assign resources = subOccurrence.State.Resources ]
+            [#local core = subOccurrence.Core ]
+            [#local solution = subOccurrence.Configuration.Solution ]
+            [#local resources = subOccurrence.State.Resources ]
 
             [#-- Determine the IP whitelisting required --]
-            [#assign destinationIPAddressGroups = solution.IPAddressGroups ]
-            [#assign cidrs = getGroupCIDRs(destinationIPAddressGroups, true, subOccurrence)]
+            [#local destinationIPAddressGroups = solution.IPAddressGroups ]
+            [#local cidrs = getGroupCIDRs(destinationIPAddressGroups, true, subOccurrence)]
 
-            [#assign routeTableIds = []]
+            [#local routeTableIds = []]
 
             [#list solution.Links?values as link]
                 [#if link?is_hash]
 
-                    [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                    [#local linkTarget = getLinkTarget(occurrence, link) ]
 
                     [@cfDebug listMode linkTarget false /]
 
@@ -174,31 +174,31 @@
                         [#continue]
                     [/#if]
 
-                    [#assign linkTargetCore = linkTarget.Core ]
-                    [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                    [#assign linkTargetResources = linkTarget.State.Resources ]
-                    [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+                    [#local linkTargetCore = linkTarget.Core ]
+                    [#local linkTargetConfiguration = linkTarget.Configuration ]
+                    [#local linkTargetResources = linkTarget.State.Resources ]
+                    [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
                     [#switch linkTargetCore.Type]
 
                         [#case NETWORK_ROUTE_TABLE_COMPONENT_TYPE]
 
-                            [#assign publicRouteTable = linkTargetConfiguration.Solution.Public ]
+                            [#local publicRouteTable = linkTargetConfiguration.Solution.Public ]
 
                             [#list linkTargetResources["routeTables"] as zone, zoneRouteTableResources ]
 
-                                [#assign zoneRouteTableId = zoneRouteTableResources["routeTable"].Id]
-                                [#assign routeTableIds += [ zoneRouteTableId ]]
+                                [#local zoneRouteTableId = zoneRouteTableResources["routeTable"].Id]
+                                [#local routeTableIds += [ zoneRouteTableId ]]
 
                                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
 
                                     [#switch gwSolution.Engine ]
                                         [#case "natgw" ]
-                                            [#assign zoneResources = gwResources["Zones"]]
+                                            [#local zoneResources = gwResources["Zones"]]
                                             [#if multiAZ ]
-                                                [#assign natGatewayId = (zoneResources[zone]["natGateway"]).Id]
+                                                [#local natGatewayId = (zoneResources[zone]["natGateway"]).Id]
                                             [#else]
-                                                [#assign natGatewayId = (zoneResources[(zones[0].Id)]["natGateway"]).Id]
+                                                [#local natGatewayId = (zoneResources[(zones[0].Id)]["natGateway"]).Id]
                                             [/#if]
                                             [#list cidrs as cidr ]
                                                 [@createRoute
@@ -253,14 +253,14 @@
 
             [#switch gwSolution.Engine ]
                 [#case "vpcendpoint" ]
-                    [#assign vpcEndpointResources = resources["vpcEndpoints"]!{} ]
+                    [#local vpcEndpointResources = resources["vpcEndpoints"]!{} ]
                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
 
                         [#list vpcEndpointResources as resourceId, zoneVpcEndpoint ]
-                            [#assign endpointSubnets = [] ]
+                            [#local endpointSubnets = [] ]
                             [#list networkResources["subnets"][gwCore.Tier.Id] as zone,resources]
                                 [#if zoneVpcEndpoint.EndpointZones?seq_contains(zone )]
-                                    [#assign endpointSubnets += [ resources["subnet"].Id ] ]
+                                    [#local endpointSubnets += [ resources["subnet"].Id ] ]
                                 [/#if]
                             [/#list]
                             [@createVPCEndpoint

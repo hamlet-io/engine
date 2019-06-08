@@ -2,33 +2,33 @@
 [#macro aws_apigateway_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
-    [#assign core = occurrence.Core ]
-    [#assign solution = occurrence.Configuration.Solution ]
-    [#assign resources = occurrence.State.Resources ]
-    [#assign attributes = occurrence.State.Attributes ]
-    [#assign roles = occurrence.State.Roles]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
+    [#local attributes = occurrence.State.Attributes ]
+    [#local roles = occurrence.State.Roles]
 
-    [#assign apiId      = resources["apigateway"].Id]
-    [#assign apiName    = resources["apigateway"].Name]
+    [#local apiId      = resources["apigateway"].Id]
+    [#local apiName    = resources["apigateway"].Name]
 
     [#-- Use runId to ensure deploy happens every time --]
-    [#assign deployId   = resources["apideploy"].Id]
-    [#assign stageId    = resources["apistage"].Id]
-    [#assign stageName  = resources["apistage"].Name]
+    [#local deployId   = resources["apideploy"].Id]
+    [#local stageId    = resources["apistage"].Id]
+    [#local stageName  = resources["apistage"].Name]
 
     [#-- Determine the stage variables required --]
-    [#assign stageVariables = {} ]
+    [#local stageVariables = {} ]
 
-    [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#assign swaggerFileName ="swagger_" + runId + ".json"  ]
-    [#assign swaggerFileLocation = formatRelativePath(
+    [#local swaggerFileName ="swagger_" + runId + ".json"  ]
+    [#local swaggerFileLocation = formatRelativePath(
                                                 getSettingsFilePrefix(occurrence),
                                                 "config",
                                                 swaggerFileName)]
 
-    [#assign contextLinks = getLinkTargets(occurrence) ]
-    [#assign _context =
+    [#local contextLinks = getLinkTargets(occurrence) ]
+    [#local _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -46,18 +46,18 @@
 
     [#-- Add in fragment specifics including override of defaults --]
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(_context)]
+        [#local fragmentListMode = "model"]
+        [#local fragmentId = formatFragmentId(_context)]
             [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
-    [#assign stageVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#local stageVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
-    [#assign cognitoPools = {} ]
+    [#local cognitoPools = {} ]
 
     [#list solution.Links?values as link]
         [#if link?is_hash]
-            [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
+            [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
             [@cfDebug listMode linkTarget false /]
 
@@ -65,15 +65,15 @@
                 [#continue]
             [/#if]
 
-            [#assign linkTargetCore = linkTarget.Core ]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources ]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
 
             [#switch linkTargetCore.Type]
                 [#case LB_COMPONENT_TYPE ]
                     [#if isLinkTargetActive(linkTarget) ]
-                        [#assign stageVariables +=
+                        [#local stageVariables +=
                             {
                                 formatSettingName(link.Name, "DOCKER") : linkTargetAttributes.FQDN
                             }
@@ -84,7 +84,7 @@
                 [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
                     [#-- Add function even if it isn't active so APi gateway if fully configured --]
                     [#-- even if lambda have yet to be deployed                                  --]
-                    [#assign stageVariables +=
+                    [#local stageVariables +=
                         {
                             formatSettingName(
                                 link.Name,
@@ -96,7 +96,7 @@
 
                 [#case USERPOOL_COMPONENT_TYPE]
                     [#if isLinkTargetActive(linkTarget) ]
-                        [#assign cognitoPools +=
+                        [#local cognitoPools +=
                             {
                                 link.Name : {
                                     "Name" : link.Name,
@@ -108,15 +108,15 @@
 
                         [#if deploymentSubsetRequired("apigateway", true)]
 
-                            [#assign policyId = formatDependentPolicyId(
+                            [#local policyId = formatDependentPolicyId(
                                                     apiId,
                                                     link.Name)]
 
-                            [#assign role = (linkTargetResources["authrole"].Id)!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
-                            [#assign localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
+                            [#local role = (linkTargetResources["authrole"].Id)!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
+                            [#local localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
 
                             [#if localRoleAccount ]
-                                [#assign roleName = (role?split("/"))[1] ]
+                                [#local roleName = (role?split("/"))[1] ]
 
                                 [@cfResource
                                     mode=listMode
@@ -136,19 +136,19 @@
         [/#if]
     [/#list]
 
-    [#assign endpointType           = solution.EndpointType ]
-    [#assign isRegionalEndpointType = endpointType == "REGIONAL" ]
+    [#local endpointType           = solution.EndpointType ]
+    [#local isRegionalEndpointType = endpointType == "REGIONAL" ]
 
-    [#assign securityProfile        = getSecurityProfile(solution.Profiles.Security, "apigateway")]
+    [#local securityProfile        = getSecurityProfile(solution.Profiles.Security, "apigateway")]
 
-    [#assign wafAclResources        = resources["wafacl"]!{} ]
-    [#assign cfResources            = resources["cf"]!{} ]
-    [#assign customDomainResources  = resources["customDomains"]!{} ]
+    [#local wafAclResources        = resources["wafacl"]!{} ]
+    [#local cfResources            = resources["cf"]!{} ]
+    [#local customDomainResources  = resources["customDomains"]!{} ]
 
-    [#assign apiPolicyStatements    = _context.Policy ]
-    [#assign apiPolicyAuth          = solution.Authentication?upper_case ]
+    [#local apiPolicyStatements    = _context.Policy ]
+    [#local apiPolicyAuth          = solution.Authentication?upper_case ]
 
-    [#assign apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
+    [#local apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
     [#if (!(wafAclResources?has_content)) && (!(apiPolicyCidr?has_content)) ]
         [@cfException
             mode=listMode
@@ -174,7 +174,7 @@
     [#--                                                                              --]
 
     [#-- Ensure the stage(s) used for deployments can't be accessed externally --]
-    [#assign apiPolicyStatements +=
+    [#local apiPolicyStatements +=
         [
             getPolicyStatement(
                 "execute-api:Invoke",
@@ -189,7 +189,7 @@
         [#switch apiPolicyAuth ]
             [#case "IP" ]
                 [#-- No explicit ALLOW so provide one in the resource policy --]
-                [#assign apiPolicyStatements +=
+                [#local apiPolicyStatements +=
                     [
                         getPolicyStatement(
                             "execute-api:Invoke",
@@ -209,7 +209,7 @@
             [#case "SIG4ORIP" ]
                 [#-- Resource policy provides ALLOW on IP --]
                 [#-- AWS_IAM provides ALLOW on SIG4       --]
-                [#assign apiPolicyStatements +=
+                [#local apiPolicyStatements +=
                     [
                         getPolicyStatement(
                             "execute-api:Invoke",
@@ -222,7 +222,7 @@
 
             [#case "SIG4ANDIP" ]
                 [#-- Rely on AWS_IAM to provide the explicit ALLOW to avoid the implicit DENY --]
-                [#assign apiPolicyStatements +=
+                [#local apiPolicyStatements +=
                     [
                         getPolicyStatement(
                             "execute-api:Invoke",
@@ -236,7 +236,7 @@
         [/#switch]
     [#else]
         [#-- No IP filtering required so add explicit ALLOW in the resource policy --]
-        [#assign apiPolicyStatements +=
+        [#local apiPolicyStatements +=
             [
                 getPolicyStatement(
                     "execute-api:Invoke",
@@ -246,8 +246,8 @@
             ] ]
     [/#if]
 
-    [#assign accessLgId   = resources["accesslg"].Id]
-    [#assign accessLgName = resources["accesslg"].Name]
+    [#local accessLgId   = resources["accesslg"].Id]
+    [#local accessLgName = resources["accesslg"].Name]
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(accessLgId) ]
         [@createLogGroup
             mode=listMode
@@ -364,7 +364,7 @@
 
         [#-- Create a CloudFront distribution if required --]
         [#if cfResources?has_content]
-            [#assign origin =
+            [#local origin =
                 getCFHTTPOrigin(
                     cfResources["origin"].Id,
                     valueIfTrue(
@@ -385,7 +385,7 @@
                         getOccurrenceSettingValue(
                             occurrence,
                             ["APIGateway","API","AccessKey"]))) ]
-            [#assign defaultCacheBehaviour =
+            [#local defaultCacheBehaviour =
                 getCFAPIGatewayCacheBehaviour(
                     origin,
                     solution.CloudFront.CustomHeaders +
@@ -395,12 +395,12 @@
                             []
                         ),
                     solution.CloudFront.Compress) ]
-            [#assign restrictions = {} ]
+            [#local restrictions = {} ]
             [#if solution.CloudFront.CountryGroups?has_content]
                 [#list asArray(solution.CloudFront.CountryGroups) as countryGroup]
-                    [#assign group = (countryGroups[countryGroup])!{}]
+                    [#local group = (countryGroups[countryGroup])!{}]
                     [#if group.Locations?has_content]
-                        [#assign restrictions +=
+                        [#local restrictions +=
                             getCFGeoRestriction(group.Locations, group.Blacklist!false) ]
                         [#break]
                     [/#if]
@@ -490,7 +490,7 @@
 
         [#list solution.Alerts?values as alert ]
 
-            [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
                 [@cfDebug listMode monitoredResource false /]
@@ -541,10 +541,10 @@
     [/#if]
 
     [#-- API Docs have been deprecated - keeping the S3 clear makes sure we can delete the buckets --]
-    [#assign docs = resources["docs"]!{} ]
+    [#local docs = resources["docs"]!{} ]
     [#list docs as key,value]
 
-        [#assign bucketName = value["bucket"].Name]
+        [#local bucketName = value["bucket"].Name]
         [#if deploymentSubsetRequired("prologue", false)  ]
             [#-- Clear out bucket content if deleting api gateway so buckets will delete --]
             [#if getExistingReference(bucketId)?has_content ]
@@ -608,12 +608,12 @@
 
         [#list solution.Publishers as id,publisher ]
 
-            [#assign publisherPath = getContentPath( occurrence, publisher.Path )]
-            [#assign publisherLinks = getLinkTargets(occurrence, publisher.Links )]
+            [#local publisherPath = getContentPath( occurrence, publisher.Path )]
+            [#local publisherLinks = getLinkTargets(occurrence, publisher.Links )]
 
             [#list publisherLinks as publisherLinkId, publisherLinkTarget ]
-                [#assign publisherLinkTargetCore = publisherLinkTarget.Core ]
-                [#assign publisherLinkTargetAttributes = publisherLinkTarget.State.Attributes ]
+                [#local publisherLinkTargetCore = publisherLinkTarget.Core ]
+                [#local publisherLinkTargetAttributes = publisherLinkTarget.State.Attributes ]
 
                 [#switch publisherLinkTargetCore.Type ]
                     [#case CONTENTHUB_HUB_COMPONENT_TYPE ]
@@ -643,7 +643,7 @@
         [/#list]
     [/#if]
 
-    [#assign legacyId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION) ]
+    [#local legacyId = formatS3Id(core.Id, APIGATEWAY_COMPONENT_DOCS_EXTENSION) ]
     [#if getExistingReference(legacyId)?has_content && deploymentSubsetRequired("prologue", false) ]
         [#-- Remove legacy docs bucket id - it will likely be recreated with new id format --]
         [#-- which uses bucket name --]
@@ -695,22 +695,22 @@
     [/#if]
 
     [#if definitionsObject[core.Id]?? ]
-        [#assign swaggerDefinition = definitionsObject[core.Id] ]
+        [#local swaggerDefinition = definitionsObject[core.Id] ]
         [#if swaggerDefinition["x-amazon-apigateway-request-validator"]?? ]
             [#-- Pass definition through - it is legacy and has already has been processed --]
-            [#assign extendedSwaggerDefinition = swaggerDefinition ]
+            [#local extendedSwaggerDefinition = swaggerDefinition ]
         [#else]
-            [#assign swaggerIntegrations = getOccurrenceSettingValue(occurrence, [["apigw"], ["Integrations"]], true) ]
+            [#local swaggerIntegrations = getOccurrenceSettingValue(occurrence, [["apigw"], ["Integrations"]], true) ]
             [#if !swaggerIntegrations?has_content]
                 [@cfException
                     mode=listMode
                     description="API Gateway integration definitions not found"
                     context=occurrence
                 /]
-                [#assign swaggerIntegrations = {} ]
+                [#local swaggerIntegrations = {} ]
             [/#if]
             [#if swaggerIntegrations?is_hash]
-                [#assign swaggerContext =
+                [#local swaggerContext =
                     {
                         "Account" : accountObject.AWSId,
                         "Region" : region,
@@ -718,9 +718,9 @@
                     } ]
 
                 [#-- Determine if there are any roles required by specific methods --]
-                [#assign extendedSwaggerRoles = getSwaggerDefinitionRoles(swaggerDefinition, swaggerIntegrations) ]
+                [#local extendedSwaggerRoles = getSwaggerDefinitionRoles(swaggerDefinition, swaggerIntegrations) ]
                 [#list extendedSwaggerRoles as path,policies]
-                    [#assign swaggerRoleId = formatDependentRoleId(stageId, formatId(path))]
+                    [#local swaggerRoleId = formatDependentRoleId(stageId, formatId(path))]
                     [#-- Roles must be defined in a separate unit so the ARNs are available here --]
                     [#if deploymentSubsetRequired("iam", false)  &&
                         isPartOfCurrentDeploymentUnit(swaggerRoleId)]
@@ -731,14 +731,14 @@
                             policies=policies
                         /]
                     [/#if]
-                    [#assign swaggerContext +=
+                    [#local swaggerContext +=
                         {
                             formatAbsolutePath(path,"rolearn") : getArn(swaggerRoleId, true)
                         } ]
                 [/#list]
 
                 [#-- Generate the extended swagger specification --]
-                [#assign extendedSwaggerDefinition =
+                [#local extendedSwaggerDefinition =
                     extendSwaggerDefinition(
                         swaggerDefinition,
                         swaggerIntegrations,
@@ -746,7 +746,7 @@
                         true) ]
 
             [#else]
-                [#assign extendedSwaggerDefinition = {} ]
+                [#local extendedSwaggerDefinition = {} ]
                 [@cfException
                     mode=listMode
                     description="API Gateway integration definitions should be a hash"
