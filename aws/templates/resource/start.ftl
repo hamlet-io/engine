@@ -238,11 +238,10 @@
     [#return result]
 [/#function]
 
-[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=deploymentUnit level=componentLevel deploymentMode=deploymentMode ]
+[#function getCFTemplateCoreOutputs region={ "Ref" : "AWS::Region" } account={ "Ref" : "AWS::AccountId" } deploymentUnit=deploymentUnit deploymentMode=deploymentMode ]
     [#return {
         "Account" :{ "Value" : account },
         "Region" : {"Value" : region },
-        "Level" : {"Value" : level},
         "DeploymentUnit" : {
             "Value" :
                 deploymentUnit +
@@ -598,23 +597,7 @@
     [/#switch]
 [/#macro]
 
-[#macro includeCompositeLists compositeLists=[] ]
-    [#list tiers as tier]
-        [#list (tier.Components!{})?values as component]
-            [#if deploymentRequired(component, deploymentUnit)]
-                [#assign componentTemplates = {} ]
-                [#assign componentType = getComponentType(component)]
-                [#assign dashboardRows = []]
-                [#assign multiAZ = component.MultiAZ!solnMultiAZ]
-                [#list asArray(compositeLists) as compositeList]
-                    [#include compositeList?ensure_starts_with("/")]
-                [/#list]
-            [/#if]
-        [/#list]
-    [/#list]
-[/#macro]
-
-[#macro cfTemplate level include="" compositeLists=[]]
+[#macro cfTemplate level include="" ]
 
     [#-- Resources --]
     [#assign templateResources = {} ]
@@ -624,7 +607,7 @@
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents level /]
     [/#if]
 
     [#-- Outputs --]
@@ -633,7 +616,7 @@
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents level /]
     [/#if]
 
     [#-- Config --]
@@ -642,7 +625,7 @@
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents level /]
     [/#if]
 
     [#-- CLI --]
@@ -651,7 +634,7 @@
         [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents level /]
     [/#if]
 
     [#-- Script --]
@@ -660,7 +643,7 @@
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
-        [@includeCompositeLists asArray(compositeLists) /]
+        [@processComponents level /]
     [/#if]
 
     [#if templateResources?has_content || exceptionResources?has_content

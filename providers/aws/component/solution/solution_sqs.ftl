@@ -1,10 +1,6 @@
-[#-- SQS --]
-[#if (componentType == SQS_COMPONENT_TYPE) && deploymentSubsetRequired("sqs", true)]
-
-    [#list requiredOccurrences(
-            getOccurrences(tier, component),
-            deploymentUnit) as occurrence]
-
+[#ftl]
+[#macro aws_sqs_cf_solution occurrence ]
+    [#if deploymentSubsetRequired("sqs", true)]
         [@cfDebug listMode occurrence false /]
 
         [#assign core = occurrence.Core ]
@@ -13,7 +9,7 @@
 
         [#assign sqsId = resources["queue"].Id ]
         [#assign sqsName = resources["queue"].Name ]
-    
+
         [#assign dlqRequired = (resources["dlq"]!{})?has_content ]
 
         [#if dlqRequired ]
@@ -78,5 +74,5 @@
                 [/#switch]
             [/#list]
         [/#list]
-    [/#list]
-[/#if]
+    [/#if]
+[/#macro]
