@@ -2185,7 +2185,16 @@ behaviour.
 
 [/#function]
 
-[#-- Prologue/epilogue script creation --]
+[#-- Plan/Prologue/epilogue script creation --]
+
+[#function getGenerationPlan subsets=[] alternatives=[] ]
+    [#return
+        [
+            "local plan_subsets=(" + asArray(subsets)?join(" ") + ")"
+            "local plan_alternatives=(" + asArray(alternatives)?join(" ") + ")"
+        ]
+    ]
+[/#function]
 
 [#function syncFilesToBucketScript filesArrayName region bucket prefix]
     [#return

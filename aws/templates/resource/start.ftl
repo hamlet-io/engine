@@ -597,8 +597,9 @@
     [/#switch]
 [/#macro]
 
-[#macro cfTemplate level include="" ]
+[#assign templateScript = [] ]
 
+[#macro cfTemplate level include="" ]
     [#-- Resources --]
     [#assign templateResources = {} ]
     [#assign debugResources = [] ]
@@ -638,7 +639,6 @@
     [/#if]
 
     [#-- Script --]
-    [#assign templateScript = [] ]
     [#assign listMode="script"]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
