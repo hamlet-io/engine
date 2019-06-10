@@ -699,7 +699,7 @@
 
             [#-- Pick any extra macros in the container fragments --]
             [#list (solution.Containers!{})?values as container]
-                [#local fragmentListMode = listMode]
+                [#assign fragmentListMode = listMode]
                 [#local fragmentId = formatFragmentId(container, occurrence)]
                 [#include fragmentList?ensure_starts_with("/")]
             [/#list]

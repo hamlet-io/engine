@@ -129,7 +129,7 @@
         [/#if]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#local fragmentListMode = "model"]
+        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
 
@@ -144,6 +144,8 @@
         [#local finalEnvironment = getFinalEnvironment(fn, _context, solution.Environment) ]
         [#local finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
         [#assign _context += finalEnvironment ]
+
+        [@cfDebug listMode _context true /]
 
         [#local roleId = formatDependentRoleId(fnId)]
         [#local managedPolicies =
@@ -417,10 +419,6 @@
                     [/#switch]
                 [/#list]
             [/#list]
-
-            [#-- Pick any extra macros in the fragment --]
-            [#local fragmentListMode = listMode]
-            [#include fragmentList?ensure_starts_with("/")]
         [/#if]
         [#if solution.Environment.AsFile && deploymentSubsetRequired("config", false)]
             [@cfConfig

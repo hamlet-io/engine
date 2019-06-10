@@ -115,7 +115,7 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#local fragmentListMode = "model"]
+    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
