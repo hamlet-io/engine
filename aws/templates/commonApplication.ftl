@@ -632,7 +632,7 @@
                 containerLgId,
                 container.ContainerLogGroup,
                 valueIfTrue(
-                    resources["lg"].Id!"",
+                    task.State.Resources["lg"].Id!"",
                     solution.TaskLogGroup,
                     valueIfTrue(
                         ecs.State.Resources["lg"].Id!"",
