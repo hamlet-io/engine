@@ -1,5 +1,14 @@
 [#ftl]
 [#macro aws_mobilenotifier_cf_solution occurrence ]
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["prologue", "template", "epilogue", "cli"])
+        /]
+        [#return]
+    [/#if]
+
     [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]

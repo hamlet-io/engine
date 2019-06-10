@@ -1,17 +1,25 @@
 [#-- Account level roles --]
 [#if deploymentUnit?contains("roles")  || (allDeploymentUnits!false) ]
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["template"])
+        /]
+    [/#if]
+
     [#if deploymentSubsetRequired("roles", true)]
         [#assign automationRoleId = formatAccountRoleId("automation")]
         [#assign administratorRoleId = formatAccountRoleId("administrator")]
         [#assign viewerRoleId = formatAccountRoleId("viewer")]
-    
+
         [#assign accessAccounts=[]]
         [#list accountObject.Access?values as accessAccount]
             [#if accessAccount?is_hash]
                 [#assign accessAccounts += [accessAccount.AWSId]]
             [/#if]
         [/#list]
-    
+
         [@createRole
             mode=listMode
             id=automationRoleId

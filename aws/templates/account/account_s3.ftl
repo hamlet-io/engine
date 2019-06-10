@@ -1,6 +1,14 @@
 [#-- Standard set of buckets for an account --]
 [#if deploymentUnit?contains("s3") || (allDeploymentUnits!false) ]
     [#if accountObject.Seed?has_content]
+        [#if deploymentSubsetRequired("genplan", false)]
+            [@cfScript
+                mode=listMode
+                content=
+                    getGenerationPlan(["template", "epilogue"])
+            /]
+        [/#if]
+
         [#if deploymentSubsetRequired("s3", true)]
 
             [#assign buckets = ["credentials", "code", "registry"] ]
@@ -95,10 +103,10 @@
                                 "fi"
                             ]]
                             [#break]
-                            
+
                         [#case "github" ]
                             [#assign scriptSyncContent += [
-                                "stage_dir=\"$\{tmpdir}/" + storePrefix + "\"", 
+                                "stage_dir=\"$\{tmpdir}/" + storePrefix + "\"",
                                 "mkdir -p \"$\{stage_dir}\"",
                                 "# Clone the Repo",
                                 "clone_git_repo \"github\" \"github.com\" \"" + scriptStore.Source.Repository +"\" \"" + scriptStore.Source.Branch + "\" \"$\{stage_dir}\" ||",
@@ -119,7 +127,7 @@
                     [
                         "function sync_code_bucket() {"
                     ] +
-                        scriptSyncContent + 
+                        scriptSyncContent +
                     [
                         "}",
                         "#",

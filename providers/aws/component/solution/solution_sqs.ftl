@@ -1,11 +1,15 @@
 [#ftl]
 [#macro aws_sqs_cf_solution occurrence ]
-    [@cfDebug listMode occurrence false /]
-
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript listMode getGenerationPlan("template") /]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["template"])
+        /]
         [#return]
     [/#if]
+
+    [@cfDebug listMode occurrence false /]
 
     [#if deploymentSubsetRequired("sqs", true)]
 

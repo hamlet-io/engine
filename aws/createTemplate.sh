@@ -378,7 +378,7 @@ function process_template_pass() {
 
   [[ "${pass_alternative}" == "primary" ]] && pass_alternative=""
   pass_alternative_prefix=""
-  if [[ -n "${pass_alternative}"]]; then
+  if [[ -n "${pass_alternative}" ]]; then
     args+=("-v" "alternative=${pass_alternative}")
     pass_alternative_prefix="${pass_alternative}-"
   fi
@@ -544,24 +544,21 @@ function process_template() {
   local deployment_mode="${1}"; shift
 
   # Defaults
-  local passes=("pregeneration" "prologue" "template" "epilogue")
+  local passes=("template")
   local template_alternatives=("primary")
   local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
 
   case "${level}" in
     blueprint)
-      passes=("template")
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       ;;
 
     buildblueprint)
-      passes=("template")
       # this is expected to run from an automation context
       cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
       ;;
 
     account)
-      passes=("${passes[@]}" "cli")
       cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
       ;;
 
@@ -570,14 +567,12 @@ function process_template() {
       ;;
 
     solution)
-      passes=("${passes[@]}" "cli")
       ;;
 
     segment)
       ;;
 
     application)
-      passes=("${passes[@]}" "cli" "config")
       ;;
 
     multiple)

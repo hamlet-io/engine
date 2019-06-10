@@ -2,6 +2,15 @@
 [#macro aws_lambda_cf_application occurrence ]
     [@cfDebug listMode occurrence false  /]
 
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["prologue", "template", "config"])
+        /]
+        [#return]
+    [/#if]
+
     [#local lambdaCore = occurrence.Core ]
     [#local lambdaSolution = occurrence.Configuration.Solution ]
 

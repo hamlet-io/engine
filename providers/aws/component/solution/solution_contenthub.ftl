@@ -1,5 +1,14 @@
 [#ftl]
 [#macro aws_contenthub_cf_solution occurrence ]
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["prologue"])
+        /]
+        [#return]
+    [/#if]
+
     [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]

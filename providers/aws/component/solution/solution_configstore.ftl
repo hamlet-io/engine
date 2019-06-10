@@ -1,5 +1,14 @@
 [#ftl]
 [#macro aws_configstore_cf_solution occurrence ]
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["template", "epilogue", "cli"])
+        /]
+        [#return]
+    [/#if]
+
     [@cfDebug listMode occurrence false /]
 
     [#local parentCore = occurrence.Core]

@@ -1,5 +1,13 @@
 [#if deploymentUnit?contains("console") || (allDeploymentUnits!false) ]
 
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["epilogue", "cli"])
+        /]
+    [/#if]
+
     [#assign consoleLgId = formatLogGroupId( "console" )]
     [#assign consoleLgName = formatAbsolutePath("ssm", "session-trace" )]
     [#assign consoleRoleId = formatAccountRoleId( "console" )]
@@ -9,7 +17,7 @@
 
     [#assign consoleCliCommand = "setSSMSessionPreferences" ]
     [#assign consoleResourceId = "ssmPreferences" ]
-    
+
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(consoleRoleId)]
         [@createRole
@@ -25,7 +33,7 @@
         /]
     [/#if]
 
-    [#if deploymentSubsetRequired("lg", true) && 
+    [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(consoleLgId)]
         [@createLogGroup
             mode=listMode

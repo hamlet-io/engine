@@ -5,10 +5,10 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        DNS_ATTRIBUTE_TYPE : { 
+        DNS_ATTRIBUTE_TYPE : {
             "Attribute" : "Endpoint.Address"
         },
-        PORT_ATTRIBUTE_TYPE : { 
+        PORT_ATTRIBUTE_TYPE : {
             "Attribute" : "Endpoint.Port"
         },
         REGION_ATTRIBUTE_TYPE : {
@@ -28,14 +28,14 @@
             "Namespace" : "AWS/RDS",
             "Dimensions" : {
                 "DBInstanceIdentifier" : {
-                    "Output" : "" 
+                    "Output" : ""
                 }
             }
         }
     }
 ]
 
-[#macro createRDSInstance mode id name 
+[#macro createRDSInstance mode id name
     engine
     engineVersion
     processor
@@ -52,18 +52,18 @@
     optionGroupId
     snapshotId
     securityGroupId
-    tier="" 
-    component=""     
-    dependencies="" 
+    tier=""
+    component=""
+    dependencies=""
     outputId=""
     autoMinorVersionUpgrade=true
     deleteAutomatedBackups=true
     deletionPolicy="Snapshot"
     updateReplacePolicy="Snapshot"
 ]
-    [@cfResource 
+    [@cfResource
     mode=listMode
-    id=rdsId
+    id=id
     type="AWS::RDS::DBInstance"
     deletionPolicy=deletionPolicy
     updateReplacePolicy=updateReplacePolicy
@@ -91,7 +91,7 @@
             {
                 "AvailabilityZone" : zones[0].AWSZone
             }
-        ) + 
+        ) +
         (!(snapshotId?has_content) && encrypted)?then(
             {
                 "StorageEncrypted" : true,
@@ -112,13 +112,13 @@
         )
 tags=
     getCfTemplateCoreTags(
-        rdsFullName,
+        name,
         tier,
         component)
 outputs=
     RDS_OUTPUT_MAPPINGS +
     {
-        DATABASENAME_ATTRIBUTE_TYPE : { 
+        DATABASENAME_ATTRIBUTE_TYPE : {
             "Value" : databaseName
         }
     } +
