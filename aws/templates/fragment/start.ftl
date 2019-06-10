@@ -1,3 +1,3 @@
 [#ftl]
-[@cfDebug listMode fragmentId true /]
+[@cfDebug listMode fragmentId false /]
 [#switch fragmentId]
