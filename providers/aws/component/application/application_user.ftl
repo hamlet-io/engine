@@ -50,7 +50,7 @@
     [#-- Add in container specifics including override of defaults --]
     [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
     [#local contextLinks = getLinkTargets(occurrence) ]
-    [#local _context =
+    [#assign _context =
         {
             "Id" : fragment,
             "Name" : fragment,

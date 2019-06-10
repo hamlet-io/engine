@@ -47,7 +47,7 @@
         [#local fragment = getOccurrenceFragmentBase(fn) ]
 
         [#local contextLinks = getLinkTargets(fn) ]
-        [#local _context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -143,7 +143,7 @@
 
         [#local finalEnvironment = getFinalEnvironment(fn, _context, solution.Environment) ]
         [#local finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
-        [#local _context += finalEnvironment ]
+        [#assign _context += finalEnvironment ]
 
         [#local roleId = formatDependentRoleId(fnId)]
         [#local managedPolicies =

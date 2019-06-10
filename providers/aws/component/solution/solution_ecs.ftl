@@ -72,7 +72,7 @@
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local contextLinks = getLinkTargets(occurrence) ]
-    [#local _context =
+    [#assign _context =
         {
             "Id" : fragment,
             "Name" : fragment,

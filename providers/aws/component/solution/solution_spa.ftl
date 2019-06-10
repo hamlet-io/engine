@@ -18,7 +18,7 @@
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local contextLinks = getLinkTargets(occurrence) ]
-    [#local _context =
+    [#assign _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -75,14 +75,14 @@
         [#if getLinkTarget(occurrence, cfRedirectLink.cfredirect )?has_content ]
             [#local eventHandlerLinks += cfRedirectLink]
 
-            [#local _context +=
+            [#assign _context +=
                 {
                     "ForwardHeaders" : (_context.ForwardHeaders![]) + [
                         "Host"
                     ]
                 }]
 
-            [#local _context +=
+            [#assign _context +=
                 {
                     "CustomOriginHeaders" : (_context.CustomOriginHeaders![]) + [
                         getCFHTTPHeader(
