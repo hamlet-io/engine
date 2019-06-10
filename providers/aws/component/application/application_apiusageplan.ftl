@@ -1,61 +1,54 @@
-[#-- API Gateway Usage Plan --]
+[#ftl]
+[#macro aws_apiusageplan_cf_application occurrence ]
+    [@cfDebug listMode occurrence false /]
 
-[#if (componentType == APIGATEWAY_USAGEPLAN_COMPONENT_TYPE)]
-    [#list requiredOccurrences(
-            getOccurrences(tier, component),
-            deploymentUnit) as occurrence]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
+    [#local attributes = occurrence.State.Attributes ]
+    [#local roles = occurrence.State.Roles]
 
-        [@cfDebug listMode occurrence false /]
+    [#local planId   = resources["apiusageplan"].Id]
+    [#local planName = resources["apiusageplan"].Name]
 
-        [#assign core = occurrence.Core ]
-        [#assign solution = occurrence.Configuration.Solution ]
-        [#assign resources = occurrence.State.Resources ]
-        [#assign attributes = occurrence.State.Attributes ]
-        [#assign roles = occurrence.State.Roles]
+    [#local stages = [] ]
 
-        [#assign planId   = resources["apiusageplan"].Id]
-        [#assign planName = resources["apiusageplan"].Name]
+    [#list solution.Links?values as link]
+        [#if link?is_hash]
+            [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-        [#assign stages = [] ]
+            [@cfDebug listMode linkTarget false /]
 
-        [#list solution.Links?values as link]
-            [#if link?is_hash]
-                [#assign linkTarget = getLinkTarget(occurrence, link) ]
-
-                [@cfDebug listMode linkTarget false /]
-
-                [#if !linkTarget?has_content ]
-                    [#continue]
-                [/#if]
-
-                [#assign linkTargetCore = linkTarget.Core ]
-                [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                [#assign linkTargetResources = linkTarget.State.Resources ]
-                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-
-                [#switch linkTargetCore.Type]
-                    [#case APIGATEWAY_COMPONENT_TYPE ]
-                        [#assign stages +=
-                            [
-                                {
-                                    "ApiId" : getReference(linkTargetResources["apigateway"].Id),
-                                    "Stage" : linkTargetResources["apistage"].Name
-                                }
-                            ]
-                        ]
-                        [#break]
-                [/#switch]
+            [#if !linkTarget?has_content ]
+                [#continue]
             [/#if]
-        [/#list]
 
-        [#if deploymentSubsetRequired("apiusageplan", true)]
-            [@createAPIUsagePlan
-                mode=listMode
-                id=planId
-                name=planName
-                stages=stages
-            /]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
+
+            [#switch linkTargetCore.Type]
+                [#case APIGATEWAY_COMPONENT_TYPE ]
+                    [#local stages +=
+                        [
+                            {
+                                "ApiId" : getReference(linkTargetResources["apigateway"].Id),
+                                "Stage" : linkTargetResources["apistage"].Name
+                            }
+                        ]
+                    ]
+                    [#break]
+            [/#switch]
         [/#if]
-
     [/#list]
-[/#if]
+
+    [#if deploymentSubsetRequired("apiusageplan", true)]
+        [@createAPIUsagePlan
+            mode=listMode
+            id=planId
+            name=planName
+            stages=stages
+        /]
+    [/#if]
+[/#macro]

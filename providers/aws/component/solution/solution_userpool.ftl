@@ -1,835 +1,829 @@
-[#-- Cognito User Pool --]
-[#if componentType == USERPOOL_COMPONENT_TYPE ]
+[#ftl]
+[#macro aws_userpool_cf_solution occurrence ]
+    [@cfDebug listMode occurrence false /]
 
-    [#list requiredOccurrences(
-        getOccurrences(tier, component),
-        deploymentUnit) as occurrence]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
 
-        [@cfDebug listMode occurrence false /]
+    [#local userPoolId                 = resources["userpool"].Id]
+    [#local userPoolName               = resources["userpool"].Name]
 
-        [#assign core = occurrence.Core]
-        [#assign solution = occurrence.Configuration.Solution]
-        [#assign resources = occurrence.State.Resources]
+    [#local userPoolDomainId           = resources["domain"].Id]
+    [#local userPoolHostName           = resources["domain"].Name]
+    [#local customDomainRequired       = ((resources["customdomain"].Id)!"")?has_content ]
+    [#if customDomainRequired ]
+        [#local userPoolCustomDomainId = resources["customdomain"].Id ]
+        [#local userPoolCustomDomainName = resources["customdomain"].Name ]
+        [#local userPoolCustomDomainCertArn = resources["customdomain"].CertificateArn]
+    [/#if]
 
-        [#assign userPoolId                 = resources["userpool"].Id]
-        [#assign userPoolName               = resources["userpool"].Name]
+    [#local userPoolRoleId             = resources["userpoolrole"].Id]
 
-        [#assign userPoolDomainId           = resources["domain"].Id]
-        [#assign userPoolHostName           = resources["domain"].Name]
-        [#assign customDomainRequired       = ((resources["customdomain"].Id)!"")?has_content ]
-        [#if customDomainRequired ]
-            [#assign userPoolCustomDomainId = resources["customdomain"].Id ]
-            [#assign userPoolCustomDomainName = resources["customdomain"].Name ]
-            [#assign userPoolCustomDomainCertArn = resources["customdomain"].CertificateArn]
-        [/#if]
+    [#local identityPoolId             = resources["identitypool"].Id]
+    [#local identityPoolName           = resources["identitypool"].Name]
+    [#local identityPoolUnAuthRoleId   = resources["unauthrole"].Id]
+    [#local identityPoolAuthRoleId     = resources["authrole"].Id]
+    [#local identityPoolRoleMappingId  = resources["rolemapping"].Id]
 
-        [#assign userPoolRoleId             = resources["userpoolrole"].Id]
+    [#local smsVerification = false]
+    [#local userPoolTriggerConfig = {}]
+    [#local userPoolManualTriggerConfig = {}]
+    [#local smsConfig = {}]
+    [#local identityPoolProviders = []]
+    [#local authProviders = []]
 
-        [#assign identityPoolId             = resources["identitypool"].Id]
-        [#assign identityPoolName           = resources["identitypool"].Name]
-        [#assign identityPoolUnAuthRoleId   = resources["unauthrole"].Id]
-        [#assign identityPoolAuthRoleId     = resources["authrole"].Id]
-        [#assign identityPoolRoleMappingId  = resources["rolemapping"].Id]
+    [#local defaultUserPoolClientRequired = false ]
+    [#local defaultUserPoolClientConfigured = false ]
 
-        [#assign smsVerification = false]
-        [#assign userPoolTriggerConfig = {}]
-        [#assign userPoolManualTriggerConfig = {}]
-        [#assign smsConfig = {}]
-        [#assign identityPoolProviders = []]
-        [#assign authProviders = []]
+    [#if (resources["client"]!{})?has_content]
+        [#local defaultUserPoolClientRequired = true ]
+        [#local defaultUserPoolClientId = resources["client"].Id]
+    [/#if]
 
-        [#assign defaultUserPoolClientRequired = false ]
-        [#assign defaultUserPoolClientConfigured = false ]
+    [#local userPoolUpdateCommand = "updateUserPool" ]
+    [#local userPoolClientUpdateCommand = "updateUserPoolClient" ]
+    [#local userPoolDomainCommand = "setDomainUserPool" ]
+    [#local userPoolAuthProviderUpdateCommand = "updateUserPoolAuthProvider" ]
 
-        [#if (resources["client"]!{})?has_content]
-            [#assign defaultUserPoolClientRequired = true ]
-            [#assign defaultUserPoolClientId = resources["client"].Id]
-        [/#if]
+    [#local emailVerificationMessage =
+        getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationMessage"], true) ]
 
-        [#assign userPoolUpdateCommand = "updateUserPool" ]
-        [#assign userPoolClientUpdateCommand = "updateUserPoolClient" ]
-        [#assign userPoolDomainCommand = "setDomainUserPool" ]
-        [#assign userPoolAuthProviderUpdateCommand = "updateUserPoolAuthProvider" ]
+    [#local emailVerificationSubject =
+        getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationSubject"], true) ]
 
-        [#assign emailVerificationMessage =
-            getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationMessage"], true) ]
+    [#local smsVerificationMessage =
+        getOccurrenceSettingValue(occurrence, ["UserPool", "SMSVerificationMessage"], true) ]
 
-        [#assign emailVerificationSubject =
-            getOccurrenceSettingValue(occurrence, ["UserPool", "EmailVerificationSubject"], true) ]
+    [#local emailInviteMessage =
+        getOccurrenceSettingValue(occurrence, ["UserPool", "EmailInviteMessage"], true) ]
 
-        [#assign smsVerificationMessage =
-            getOccurrenceSettingValue(occurrence, ["UserPool", "SMSVerificationMessage"], true) ]
+    [#local emailInviteSubject =
+        getOccurrenceSettingValue(occurrence, ["UserPool", "EmailInviteSubject"], true) ]
 
-        [#assign emailInviteMessage =
-            getOccurrenceSettingValue(occurrence, ["UserPool", "EmailInviteMessage"], true) ]
+    [#local smsInviteMessage =
+        getOccurrenceSettingValue(occurrence, ["UserPool", "SMSInviteMessage"], true) ]
 
-        [#assign emailInviteSubject =
-            getOccurrenceSettingValue(occurrence, ["UserPool", "EmailInviteSubject"], true) ]
+    [#local smsAuthenticationMessage =
+        getOccurrenceSettingValue(occurrence, ["UserPool", "SMSAuthenticationMessage"], true) ]
 
-        [#assign smsInviteMessage =
-            getOccurrenceSettingValue(occurrence, ["UserPool", "SMSInviteMessage"], true) ]
+    [#local schema = []]
+    [#list solution.Schema as key,schemaAttribute ]
+        [#local schema +=  getUserPoolSchemaObject(
+                            key,
+                            schemaAttribute.DataType,
+                            schemaAttribute.Mutable,
+                            schemaAttribute.Required
+        )]
+    [/#list]
 
-        [#assign smsAuthenticationMessage =
-            getOccurrenceSettingValue(occurrence, ["UserPool", "SMSAuthenticationMessage"], true) ]
-
-        [#assign schema = []]
-        [#list solution.Schema as key,schemaAttribute ]
-            [#assign schema +=  getUserPoolSchemaObject(
-                                key,
-                                schemaAttribute.DataType,
-                                schemaAttribute.Mutable,
-                                schemaAttribute.Required
-            )]
-        [/#list]
-
-        [#if ((solution.MFA) || ( solution.VerifyPhone))]
-            [#if ! (solution.Schema["phone_number"]!"")?has_content ]
-                [@cfException
-                    mode=listMode
-                    description="Schema Attribute required: phone_number - Add Schema listed in detail"
-                    context=schema
-                    detail={
-                        "phone_number" : {
-                            "DataType" : "String",
-                            "Mutable" : true,
-                            "Required" : true
-                        }
-                    }/]
-            [/#if]
-
-            [#assign smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
-            [#assign smsVerification = true]
-        [/#if]
-
-        [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
-            [#if ! (solution.Schema["email"]!"")?has_content ]
-                [@cfException
-                    mode=listMode
-                    description="Schema Attribute required: email - Add Schema listed in detail"
-                    context=schema
-                    detail={
-                        "email" : {
-                            "DataType" : "String",
-                            "Mutable" : true,
-                            "Required" : true
-                        }
-                    }/]
-            [/#if]
-        [/#if]
-
-        [#list solution.Links?values as link]
-            [#assign linkTarget = getLinkTarget(occurrence, link)]
-
-            [@cfDebug listMode linkTarget false /]
-
-            [#if !linkTarget?has_content]
-                [#continue]
-            [/#if]
-
-            [#assign linkTargetCore = linkTarget.Core]
-            [#assign linkTargetConfiguration = linkTarget.Configuration ]
-            [#assign linkTargetResources = linkTarget.State.Resources]
-            [#assign linkTargetAttributes = linkTarget.State.Attributes]
-
-            [#switch linkTargetCore.Type]
-
-                [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
-
-                    [#-- Cognito Userpool Event Triggers --]
-                    [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
-                    [#switch link.Name?lower_case]
-                        [#case "createauthchallenge"]
-                            [#assign userPoolTriggerConfig +=
-                                attributeIfContent (
-                                    "CreateAuthChallenge",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "custommessage"]
-                            [#assign userPoolTriggerConfig +=
-                                attributeIfContent (
-                                    "CustomMessage",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "defineauthchallenge"]
-                            [#assign userPoolTriggerConfig +=
-                                attributeIfContent (
-                                    "DefineAuthChallenge",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "postauthentication"]
-                            [#assign userPoolTriggerConfig +=
-                                attributeIfContent (
-                                    "PostAuthentication",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "postconfirmation"]
-                            [#assign userPoolTriggerConfig +=
-                                attributeIfContent (
-                                    "PostConfirmation",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "preauthentication"]
-                            [#assign userPoolTriggerConfig +=
-                                attributeIfContent (
-                                    "PreAuthentication",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "presignup"]
-                            [#assign userPoolTriggerConfig +=
-                                attributeIfContent (
-                                    "PreSignUp",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "verifyauthchallengeresponse"]
-                            [#assign userPoolTriggerConfig +=
-                                attributeIfContent (
-                                    "VerifyAuthChallengeResponse",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "pretokengeneration"]
-                            [#assign userPoolManualTriggerConfig +=
-                                attributeIfContent (
-                                    "PreTokenGeneration",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                        [#case "usermigration"]
-                            [#assign userPoolManualTriggerConfig +=
-                                attributeIfContent (
-                                    "UserMigration",
-                                    linkTargetAttributes.ARN
-                                )
-                            ]
-                            [#break]
-                    [/#switch]
-                [#break]
-            [/#switch]
-        [/#list]
-
-        [#assign userPoolManualTriggerString = [] ]
-        [#list userPoolManualTriggerConfig as key,value ]
-            [#assign userPoolManualTriggerString += [ key + "=" + value ]]
-        [/#list]
-
-        [#assign userPoolManualTriggerString = userPoolManualTriggerString?join(",")]
-
-        [#-- Initialise epilogue script with common parameters --]
-        [#if deploymentSubsetRequired("epilogue", false)]
-            [@cfScript
+    [#if ((solution.MFA) || ( solution.VerifyPhone))]
+        [#if ! (solution.Schema["phone_number"]!"")?has_content ]
+            [@cfException
                 mode=listMode
-                content=[
-                    " case $\{STACK_OPERATION} in",
-                    "   create|update)",
-                    "       # Get cli config file",
-                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                    "       # Get userpool id",
-                    "       export userPoolId=$(get_cloudformation_stack_output" +
-                    "       \"" + region + "\" " +
-                    "       \"$\{STACK_NAME}\" " +
-                    "       \"" + userPoolId + "\" " +
-                    "       || return $?)",
-                    "       ;;",
-                    " esac"
-                ]
-            /]
+                description="Schema Attribute required: phone_number - Add Schema listed in detail"
+                context=schema
+                detail={
+                    "phone_number" : {
+                        "DataType" : "String",
+                        "Mutable" : true,
+                        "Required" : true
+                    }
+                }/]
         [/#if]
 
-        [#if ((solution.MFA) || ( solution.VerifyPhone))]
-            [#if (deploymentSubsetRequired("iam", true) || deploymentSubsetRequired("userpool", true)) &&
-                isPartOfCurrentDeploymentUnit(userPoolId)]
+        [#local smsConfig = getUserPoolSMSConfiguration( getReference(userPoolRoleId, ARN_ATTRIBUTE_TYPE), userPoolName )]
+        [#local smsVerification = true]
+    [/#if]
 
-                    [@createRole
-                        mode=listMode
-                        id=userPoolRoleId
-                        trustedServices=["cognito-idp.amazonaws.com"]
-                        policies=
-                            [
-                                getPolicyDocument(
-                                    snsPublishPermission(),
-                                    "smsVerification"
-                                )
-                            ]
-                    /]
-            [/#if]
+    [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
+        [#if ! (solution.Schema["email"]!"")?has_content ]
+            [@cfException
+                mode=listMode
+                description="Schema Attribute required: email - Add Schema listed in detail"
+                context=schema
+                detail={
+                    "email" : {
+                        "DataType" : "String",
+                        "Mutable" : true,
+                        "Required" : true
+                    }
+                }/]
+        [/#if]
+    [/#if]
+
+    [#list solution.Links?values as link]
+        [#local linkTarget = getLinkTarget(occurrence, link)]
+
+        [@cfDebug listMode linkTarget false /]
+
+        [#if !linkTarget?has_content]
+            [#continue]
         [/#if]
 
-        [#assign authProviderEpilogue = []]
-        [#assign userPoolClientEpilogue = []]
+        [#local linkTargetCore = linkTarget.Core]
+        [#local linkTargetConfiguration = linkTarget.Configuration ]
+        [#local linkTargetResources = linkTarget.State.Resources]
+        [#local linkTargetAttributes = linkTarget.State.Attributes]
 
-        [#list occurrence.Occurrences![] as subOccurrence]
+        [#switch linkTargetCore.Type]
 
-            [#assign subCore = subOccurrence.Core ]
-            [#assign subSolution = subOccurrence.Configuration.Solution ]
-            [#assign subResources = subOccurrence.State.Resources ]
+            [#case LAMBDA_FUNCTION_COMPONENT_TYPE]
 
-            [#if !subSolution.Enabled]
-                [#continue]
-            [/#if]
-
-            [#if subCore.Type == USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
-
-                [#assign authProviderId = subResources["authprovider"].Id ]
-                [#assign authProviderName = subResources["authprovider"].Name ]
-                [#assign authProviderEngine = subSolution.Engine]
-
-                [#assign authProviders += [ authProviderName ]]
-
-                [#if deploymentSubsetRequired("cli", false)]
-
-                    [#assign attributeMappings = {} ]
-                    [#list subSolution.AttributeMappings as id, attributeMapping ]
-                        [#assign localAttribute = attributeMapping.UserPoolAttribute?has_content?then(
-                                                    attributeMapping.UserPoolAttribute,
-                                                    id
-                        )]
-
-                        [#assign attributeMappings += {
-                            localAttribute : attributeMapping.ProviderAttribute
-                        }]
-                    [/#list]
-
-                    [#switch authProviderEngine ]
-                        [#case "SAML" ]
-                            [#assign providerDetails = {
-                                "MetadataURL" : subSolution.SAML.MetadataUrl,
-                                "IDPSignout" : subSolution.SAML.EnableIDPSignOut?c
-                            }]
-                            [#break]
-                    [/#switch]
-
-                    [#assign updateUserPoolAuthProvider =  {
-                            "ProviderType" : authProviderEngine,
-                            "AttributeMapping" : attributeMappings,
-                            "ProviderDetails" : providerDetails
-                        } +
-                        attributeIfContent(
-                            "AttributeMapping",
-                            attributeMappings
-                        ) +
-                        attributeIfContent(
-                            "IdpIdentifiers",
-                            subSolution.IDPIdentifiers
-                        )
-                    ]
-
-                    [@cfCli
-                        mode=listMode
-                        id=authProviderId
-                        command=userPoolAuthProviderUpdateCommand
-                        content=updateUserPoolAuthProvider
-                    /]
-                [/#if]
-
-                [#if deploymentSubsetRequired("epilogue", false)]
-                    [#assign authProviderEpilogue +=
-                        [
-                            " case $\{STACK_OPERATION} in",
-                            "   create|update)",
-                            "       # Manage Userpool auth provider",
-                            "       info \"Applying Cli level configuration to UserPool Auth Provider - Id: " + authProviderId +  "\"",
-                            "       update_cognito_userpool_authprovider" +
-                            "       \"" + region + "\" " +
-                            "       \"$\{userPoolId}\" " +
-                            "       \"" + authProviderName + "\" " +
-                            "       \"" + authProviderEngine + "\" " +
-                            "       \"$\{tmpdir}/cli-" +
-                                authProviderId + "-" + userPoolAuthProviderUpdateCommand + ".json\" || return $?",
-                            "       ;;",
-                            " esac"
+                [#-- Cognito Userpool Event Triggers --]
+                [#-- TODO: When all Cognito Events are available via Cloudformation update the userPoolManualTriggerConfig to userPoolTriggerConfig --]
+                [#switch link.Name?lower_case]
+                    [#case "createauthchallenge"]
+                        [#local userPoolTriggerConfig +=
+                            attributeIfContent (
+                                "CreateAuthChallenge",
+                                linkTargetAttributes.ARN
+                            )
                         ]
-                    ]
-                [/#if]
-            [/#if]
-
-            [#if subCore.Type == USERPOOL_CLIENT_COMPONENT_TYPE]
-
-                [#if subCore.SubComponent.Id = "default" ]
-                    [#assign defaultUserPoolClientConfigured = true]
-                [/#if]
-
-                [#assign userPoolClientId           = subResources["client"].Id]
-                [#assign userPoolClientName         = subResources["client"].Name]
-                [#assign identityPoolProviders      += subSolution.IdentityPoolAccess?then(
-                                                        [getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )],
-                                                        []
-                                                    )]
-
-                [#assign callbackUrls = []]
-                [#assign logoutUrls = []]
-                [#assign identityProviders = [ ]]
-
-                [#list subSolution.AuthProviders as authProvider ]
-                    [#if authProvider?upper_case == "COGNITO" ]
-                        [#assign identityProviders += [ "COGNITO" ] ]
-                    [#else]
-                        [#assign linkTarget = getLinkTarget(occurrence,
-                                                {
-                                                    "Tier" : core.Tier.Id,
-                                                    "Component" : component.Id,
-                                                    "AuthProvider" : authProvider
-                                                })]
-                        [#if linkTarget?has_content ]
-                            [#assign identityProviders += [ linkTarget.State.Attributes["PROVIDER_NAME"] ]]
-                        [/#if]
-                    [/#if]
-                [/#list]
-
-                [#list subSolution.Links?values as link]
-                    [#assign linkTarget = getLinkTarget(subOccurrence, link)]
-
-                    [@cfDebug listMode linkTarget false /]
-
-                    [#if !linkTarget?has_content]
-                        [#continue]
-                    [/#if]
-
-                    [#assign linkTargetCore = linkTarget.Core]
-                    [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                    [#assign linkTargetResources = linkTarget.State.Resources]
-                    [#assign linkTargetAttributes = linkTarget.State.Attributes]
-
-                    [#switch linkTargetCore.Type]
-                        [#case LB_PORT_COMPONENT_TYPE]
-                            [#assign callbackUrls += [
-                                linkTargetAttributes["AUTH_CALLBACK_URL"],
-                                linkTargetAttributes["AUTH_CALLBACK_INTERNAL_URL"]
-                                ]
-                            ]
-                            [#break]
-
-                        [#case "external" ]
-                            [#if linkTargetAttributes["AUTH_CALLBACK_URL"]?has_content ]
-                                [#assign callbackUrls += linkTargetAttributes["AUTH_CALLBACK_URL"]?split(",") ]
-                            [/#if]
-                            [#if linkTargetAttributes["AUTH_SIGNOUT_URL"]?has_content ]
-                                [#assign logoutUrls += linkTargetAttributes["AUTH_SIGNOUT_URL"]?split(",") ]
-                            [/#if]
-                            [#break]
-
-                        [#case USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
-                            [#assign identityProviders += [ linkTargetAttributes["PROVIDER_NAME"] ] ]
-                            [#break]
-                    [/#switch]
-                [/#list]
-
-                [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
-                    [@createUserPoolClient
-                        mode=listMode
-                        component=core.Component
-                        tier=core.Tier
-                        id=userPoolClientId
-                        name=userPoolClientName
-                        userPoolId=userPoolId
-                        generateSecret=subSolution.ClientGenerateSecret
-                        tokenValidity=subSolution.ClientTokenValidity
-                    /]
-                [/#if]
-
-                [#if deploymentSubsetRequired("cli", false)]
-                    [#assign updateUserPoolClient =  {
-                            "CallbackURLs": callbackUrls,
-                            "LogoutURLs": logoutUrls,
-                            "AllowedOAuthFlows": asArray(subSolution.OAuth.Flows),
-                            "AllowedOAuthScopes": asArray(subSolution.OAuth.Scopes),
-                            "AllowedOAuthFlowsUserPoolClient": true,
-                            "SupportedIdentityProviders" : identityProviders
-                        }
-                    ]
-
-                    [@cfCli
-                        mode=listMode
-                        id=userPoolClientId
-                        command=userPoolClientUpdateCommand
-                        content=updateUserPoolClient
-                    /]
-                [/#if]
-
-                [#if deploymentSubsetRequired("epilogue", false)]
-                    [#assign userPoolClientEpilogue +=
-                        [
-                            " case $\{STACK_OPERATION} in",
-                            "   create|update)",
-                            "       # Manage Userpool client",
-                            "       info \"Applying Cli level configuration to UserPool Client - Id: " + userPoolClientId +  "\"",
-                            "       export userPoolClientId=$(get_cloudformation_stack_output" +
-                            "       \"" + region + "\" " +
-                            "       \"$\{STACK_NAME}\" " +
-                            "       \"" + userPoolClientId + "\" " +
-                            "       || return $?)",
-                            "       update_cognito_userpool_client" +
-                            "       \"" + region + "\" " +
-                            "       \"$\{userPoolId}\" " +
-                            "       \"$\{userPoolClientId}\" " +
-                            "       \"$\{tmpdir}/cli-" +
-                                userPoolClientId + "-" + userPoolClientUpdateCommand + ".json\" || return $?",
-                            "       ;;",
-                            " esac"
+                        [#break]
+                    [#case "custommessage"]
+                        [#local userPoolTriggerConfig +=
+                            attributeIfContent (
+                                "CustomMessage",
+                                linkTargetAttributes.ARN
+                            )
                         ]
-                    ]
-                [/#if]
-            [/#if]
+                        [#break]
+                    [#case "defineauthchallenge"]
+                        [#local userPoolTriggerConfig +=
+                            attributeIfContent (
+                                "DefineAuthChallenge",
+                                linkTargetAttributes.ARN
+                            )
+                        ]
+                        [#break]
+                    [#case "postauthentication"]
+                        [#local userPoolTriggerConfig +=
+                            attributeIfContent (
+                                "PostAuthentication",
+                                linkTargetAttributes.ARN
+                            )
+                        ]
+                        [#break]
+                    [#case "postconfirmation"]
+                        [#local userPoolTriggerConfig +=
+                            attributeIfContent (
+                                "PostConfirmation",
+                                linkTargetAttributes.ARN
+                            )
+                        ]
+                        [#break]
+                    [#case "preauthentication"]
+                        [#local userPoolTriggerConfig +=
+                            attributeIfContent (
+                                "PreAuthentication",
+                                linkTargetAttributes.ARN
+                            )
+                        ]
+                        [#break]
+                    [#case "presignup"]
+                        [#local userPoolTriggerConfig +=
+                            attributeIfContent (
+                                "PreSignUp",
+                                linkTargetAttributes.ARN
+                            )
+                        ]
+                        [#break]
+                    [#case "verifyauthchallengeresponse"]
+                        [#local userPoolTriggerConfig +=
+                            attributeIfContent (
+                                "VerifyAuthChallengeResponse",
+                                linkTargetAttributes.ARN
+                            )
+                        ]
+                        [#break]
+                    [#case "pretokengeneration"]
+                        [#local userPoolManualTriggerConfig +=
+                            attributeIfContent (
+                                "PreTokenGeneration",
+                                linkTargetAttributes.ARN
+                            )
+                        ]
+                        [#break]
+                    [#case "usermigration"]
+                        [#local userPoolManualTriggerConfig +=
+                            attributeIfContent (
+                                "UserMigration",
+                                linkTargetAttributes.ARN
+                            )
+                        ]
+                        [#break]
+                [/#switch]
+            [#break]
+        [/#switch]
+    [/#list]
 
-        [/#list]
+    [#local userPoolManualTriggerString = [] ]
+    [#list userPoolManualTriggerConfig as key,value ]
+        [#local userPoolManualTriggerString += [ key + "=" + value ]]
+    [/#list]
 
-        [#if defaultUserPoolClientRequired && ! defaultUserPoolClientConfigured ]
-                [@cfException
+    [#local userPoolManualTriggerString = userPoolManualTriggerString?join(",")]
+
+    [#-- Initialise epilogue script with common parameters --]
+    [#if deploymentSubsetRequired("epilogue", false)]
+        [@cfScript
+            mode=listMode
+            content=[
+                " case $\{STACK_OPERATION} in",
+                "   create|update)",
+                "       # Get cli config file",
+                "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                "       # Get userpool id",
+                "       export userPoolId=$(get_cloudformation_stack_output" +
+                "       \"" + region + "\" " +
+                "       \"$\{STACK_NAME}\" " +
+                "       \"" + userPoolId + "\" " +
+                "       || return $?)",
+                "       ;;",
+                " esac"
+            ]
+        /]
+    [/#if]
+
+    [#if ((solution.MFA) || ( solution.VerifyPhone))]
+        [#if (deploymentSubsetRequired("iam", true) || deploymentSubsetRequired("userpool", true)) &&
+            isPartOfCurrentDeploymentUnit(userPoolId)]
+
+                [@createRole
                     mode=listMode
-                    description="A default userpool client is required"
-                    context=solution
-                    detail={
-                        "ActionOptions" : {
-                            "1" : "Add a Client to the userpool with the id default and copy any client configuration to it",
-                            "2" : "Decommission the use of the legacy client and disable DefaultClient in the solution config"
-                        },
-                        "context" : {
-                            "DefaultClient" : defaultUserPoolClientId,
-                            "DefaultClientId" : getExistingReference(defaultUserPoolClientId)
-                        },
-                        "Configuration" : {
-                            "Clients" : {
-                                "default" : {
-                                }
+                    id=userPoolRoleId
+                    trustedServices=["cognito-idp.amazonaws.com"]
+                    policies=
+                        [
+                            getPolicyDocument(
+                                snsPublishPermission(),
+                                "smsVerification"
+                            )
+                        ]
+                /]
+        [/#if]
+    [/#if]
+
+    [#local authProviderEpilogue = []]
+    [#local userPoolClientEpilogue = []]
+
+    [#list occurrence.Occurrences![] as subOccurrence]
+
+        [#local subCore = subOccurrence.Core ]
+        [#local subSolution = subOccurrence.Configuration.Solution ]
+        [#local subResources = subOccurrence.State.Resources ]
+
+        [#if !subSolution.Enabled]
+            [#continue]
+        [/#if]
+
+        [#if subCore.Type == USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
+
+            [#local authProviderId = subResources["authprovider"].Id ]
+            [#local authProviderName = subResources["authprovider"].Name ]
+            [#local authProviderEngine = subSolution.Engine]
+
+            [#local authProviders += [ authProviderName ]]
+
+            [#if deploymentSubsetRequired("cli", false)]
+
+                [#local attributeMappings = {} ]
+                [#list subSolution.AttributeMappings as id, attributeMapping ]
+                    [#local localAttribute = attributeMapping.UserPoolAttribute?has_content?then(
+                                                attributeMapping.UserPoolAttribute,
+                                                id
+                    )]
+
+                    [#local attributeMappings += {
+                        localAttribute : attributeMapping.ProviderAttribute
+                    }]
+                [/#list]
+
+                [#switch authProviderEngine ]
+                    [#case "SAML" ]
+                        [#local providerDetails = {
+                            "MetadataURL" : subSolution.SAML.MetadataUrl,
+                            "IDPSignout" : subSolution.SAML.EnableIDPSignOut?c
+                        }]
+                        [#break]
+                [/#switch]
+
+                [#local updateUserPoolAuthProvider =  {
+                        "ProviderType" : authProviderEngine,
+                        "AttributeMapping" : attributeMappings,
+                        "ProviderDetails" : providerDetails
+                    } +
+                    attributeIfContent(
+                        "AttributeMapping",
+                        attributeMappings
+                    ) +
+                    attributeIfContent(
+                        "IdpIdentifiers",
+                        subSolution.IDPIdentifiers
+                    )
+                ]
+
+                [@cfCli
+                    mode=listMode
+                    id=authProviderId
+                    command=userPoolAuthProviderUpdateCommand
+                    content=updateUserPoolAuthProvider
+                /]
+            [/#if]
+
+            [#if deploymentSubsetRequired("epilogue", false)]
+                [#local authProviderEpilogue +=
+                    [
+                        " case $\{STACK_OPERATION} in",
+                        "   create|update)",
+                        "       # Manage Userpool auth provider",
+                        "       info \"Applying Cli level configuration to UserPool Auth Provider - Id: " + authProviderId +  "\"",
+                        "       update_cognito_userpool_authprovider" +
+                        "       \"" + region + "\" " +
+                        "       \"$\{userPoolId}\" " +
+                        "       \"" + authProviderName + "\" " +
+                        "       \"" + authProviderEngine + "\" " +
+                        "       \"$\{tmpdir}/cli-" +
+                            authProviderId + "-" + userPoolAuthProviderUpdateCommand + ".json\" || return $?",
+                        "       ;;",
+                        " esac"
+                    ]
+                ]
+            [/#if]
+        [/#if]
+
+        [#if subCore.Type == USERPOOL_CLIENT_COMPONENT_TYPE]
+
+            [#if subCore.SubComponent.Id = "default" ]
+                [#local defaultUserPoolClientConfigured = true]
+            [/#if]
+
+            [#local userPoolClientId           = subResources["client"].Id]
+            [#local userPoolClientName         = subResources["client"].Name]
+            [#local identityPoolProviders      += subSolution.IdentityPoolAccess?then(
+                                                    [getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )],
+                                                    []
+                                                )]
+
+            [#local callbackUrls = []]
+            [#local logoutUrls = []]
+            [#local identityProviders = [ ]]
+
+            [#list subSolution.AuthProviders as authProvider ]
+                [#if authProvider?upper_case == "COGNITO" ]
+                    [#local identityProviders += [ "COGNITO" ] ]
+                [#else]
+                    [#local linkTarget = getLinkTarget(occurrence,
+                                            {
+                                                "Tier" : core.Tier.Id,
+                                                "Component" : core.Component.Id,
+                                                "AuthProvider" : authProvider
+                                            })]
+                    [#if linkTarget?has_content ]
+                        [#local identityProviders += [ linkTarget.State.Attributes["PROVIDER_NAME"] ]]
+                    [/#if]
+                [/#if]
+            [/#list]
+
+            [#list subSolution.Links?values as link]
+                [#local linkTarget = getLinkTarget(subOccurrence, link)]
+
+                [@cfDebug listMode linkTarget false /]
+
+                [#if !linkTarget?has_content]
+                    [#continue]
+                [/#if]
+
+                [#local linkTargetCore = linkTarget.Core]
+                [#local linkTargetConfiguration = linkTarget.Configuration ]
+                [#local linkTargetResources = linkTarget.State.Resources]
+                [#local linkTargetAttributes = linkTarget.State.Attributes]
+
+                [#switch linkTargetCore.Type]
+                    [#case LB_PORT_COMPONENT_TYPE]
+                        [#local callbackUrls += [
+                            linkTargetAttributes["AUTH_CALLBACK_URL"],
+                            linkTargetAttributes["AUTH_CALLBACK_INTERNAL_URL"]
+                            ]
+                        ]
+                        [#break]
+
+                    [#case "external" ]
+                        [#if linkTargetAttributes["AUTH_CALLBACK_URL"]?has_content ]
+                            [#local callbackUrls += linkTargetAttributes["AUTH_CALLBACK_URL"]?split(",") ]
+                        [/#if]
+                        [#if linkTargetAttributes["AUTH_SIGNOUT_URL"]?has_content ]
+                            [#local logoutUrls += linkTargetAttributes["AUTH_SIGNOUT_URL"]?split(",") ]
+                        [/#if]
+                        [#break]
+
+                    [#case USERPOOL_AUTHPROVIDER_COMPONENT_TYPE ]
+                        [#local identityProviders += [ linkTargetAttributes["PROVIDER_NAME"] ] ]
+                        [#break]
+                [/#switch]
+            [/#list]
+
+            [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
+                [@createUserPoolClient
+                    mode=listMode
+                    component=core.Component
+                    tier=core.Tier
+                    id=userPoolClientId
+                    name=userPoolClientName
+                    userPoolId=userPoolId
+                    generateSecret=subSolution.ClientGenerateSecret
+                    tokenValidity=subSolution.ClientTokenValidity
+                /]
+            [/#if]
+
+            [#if deploymentSubsetRequired("cli", false)]
+                [#local updateUserPoolClient =  {
+                        "CallbackURLs": callbackUrls,
+                        "LogoutURLs": logoutUrls,
+                        "AllowedOAuthFlows": asArray(subSolution.OAuth.Flows),
+                        "AllowedOAuthScopes": asArray(subSolution.OAuth.Scopes),
+                        "AllowedOAuthFlowsUserPoolClient": true,
+                        "SupportedIdentityProviders" : identityProviders
+                    }
+                ]
+
+                [@cfCli
+                    mode=listMode
+                    id=userPoolClientId
+                    command=userPoolClientUpdateCommand
+                    content=updateUserPoolClient
+                /]
+            [/#if]
+
+            [#if deploymentSubsetRequired("epilogue", false)]
+                [#local userPoolClientEpilogue +=
+                    [
+                        " case $\{STACK_OPERATION} in",
+                        "   create|update)",
+                        "       # Manage Userpool client",
+                        "       info \"Applying Cli level configuration to UserPool Client - Id: " + userPoolClientId +  "\"",
+                        "       export userPoolClientId=$(get_cloudformation_stack_output" +
+                        "       \"" + region + "\" " +
+                        "       \"$\{STACK_NAME}\" " +
+                        "       \"" + userPoolClientId + "\" " +
+                        "       || return $?)",
+                        "       update_cognito_userpool_client" +
+                        "       \"" + region + "\" " +
+                        "       \"$\{userPoolId}\" " +
+                        "       \"$\{userPoolClientId}\" " +
+                        "       \"$\{tmpdir}/cli-" +
+                            userPoolClientId + "-" + userPoolClientUpdateCommand + ".json\" || return $?",
+                        "       ;;",
+                        " esac"
+                    ]
+                ]
+            [/#if]
+        [/#if]
+
+    [/#list]
+
+    [#if defaultUserPoolClientRequired && ! defaultUserPoolClientConfigured ]
+            [@cfException
+                mode=listMode
+                description="A default userpool client is required"
+                context=solution
+                detail={
+                    "ActionOptions" : {
+                        "1" : "Add a Client to the userpool with the id default and copy any client configuration to it",
+                        "2" : "Decommission the use of the legacy client and disable DefaultClient in the solution config"
+                    },
+                    "context" : {
+                        "DefaultClient" : defaultUserPoolClientId,
+                        "DefaultClientId" : getExistingReference(defaultUserPoolClientId)
+                    },
+                    "Configuration" : {
+                        "Clients" : {
+                            "default" : {
                             }
                         }
                     }
-                /]
-        [/#if]
+                }
+            /]
+    [/#if]
 
-        [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
-            [@createUserPool
-                mode=listMode
-                component=core.Component
-                tier=core.Tier
-                id=userPoolId
-                name=userPoolName
-                tags=getOccurrenceCoreTags(occurrence, userPoolName)
-                mfa=solution.MFA
-                adminCreatesUser=solution.AdminCreatesUser
-                unusedTimeout=solution.UnusedAccountTimeout
-                schema=schema
-                emailVerificationMessage=emailVerificationMessage
-                emailVerificationSubject=emailVerificationSubject
-                smsVerificationMessage=smsVerificationMessage
-                smsAuthenticationMessage=smsAuthenticationMessage
-                smsInviteMessage=smsInviteMessage
-                emailInviteMessage=emailInviteMessage
-                emailInviteSubject=emailInviteSubject
-                lambdaTriggers=userPoolTriggerConfig
-                autoVerify=(solution.VerifyEmail || smsVerification)?then(
-                    getUserPoolAutoVerification(solution.VerifyEmail, smsVerification),
-                    []
+    [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
+        [@createUserPool
+            mode=listMode
+            component=core.Component
+            tier=core.Tier
+            id=userPoolId
+            name=userPoolName
+            tags=getOccurrenceCoreTags(occurrence, userPoolName)
+            mfa=solution.MFA
+            adminCreatesUser=solution.AdminCreatesUser
+            unusedTimeout=solution.UnusedAccountTimeout
+            schema=schema
+            emailVerificationMessage=emailVerificationMessage
+            emailVerificationSubject=emailVerificationSubject
+            smsVerificationMessage=smsVerificationMessage
+            smsAuthenticationMessage=smsAuthenticationMessage
+            smsInviteMessage=smsInviteMessage
+            emailInviteMessage=emailInviteMessage
+            emailInviteSubject=emailInviteSubject
+            lambdaTriggers=userPoolTriggerConfig
+            autoVerify=(solution.VerifyEmail || smsVerification)?then(
+                getUserPoolAutoVerification(solution.VerifyEmail, smsVerification),
+                []
+            )
+            loginAliases=solution.LoginAliases
+            passwordPolicy=getUserPoolPasswordPolicy(
+                    solution.PasswordPolicy.MinimumLength,
+                    solution.PasswordPolicy.Lowercase,
+                    solution.PasswordPolicy.Uppsercase,
+                    solution.PasswordPolicy.Numbers,
+                    solution.PasswordPolicy.SpecialCharacters)
+            smsConfiguration=smsConfig
+        /]
+
+        [@createIdentityPool
+            mode=listMode
+            component=core.Component
+            tier=core.Tier
+            id=identityPoolId
+            name=identityPoolName
+            cognitoIdProviders=identityPoolProviders
+            allowUnauthenticatedIdentities=solution.AllowUnauthenticatedIds
+        /]
+
+        [@createRole
+            mode=listMode
+            id=identityPoolUnAuthRoleId
+            policies=[
+                getPolicyDocument(
+                    getUserPoolUnAuthPolicy(),
+                    "DefaultUnAuthIdentityRole"
                 )
-                loginAliases=solution.LoginAliases
-                passwordPolicy=getUserPoolPasswordPolicy(
-                        solution.PasswordPolicy.MinimumLength,
-                        solution.PasswordPolicy.Lowercase,
-                        solution.PasswordPolicy.Uppsercase,
-                        solution.PasswordPolicy.Numbers,
-                        solution.PasswordPolicy.SpecialCharacters)
-                smsConfiguration=smsConfig
-            /]
-
-            [@createIdentityPool
-                mode=listMode
-                component=core.Component
-                tier=core.Tier
-                id=identityPoolId
-                name=identityPoolName
-                cognitoIdProviders=identityPoolProviders
-                allowUnauthenticatedIdentities=solution.AllowUnauthenticatedIds
-            /]
-
-            [@createRole
-                mode=listMode
-                id=identityPoolUnAuthRoleId
-                policies=[
-                    getPolicyDocument(
-                        getUserPoolUnAuthPolicy(),
-                        "DefaultUnAuthIdentityRole"
-                    )
-                ]
-                federatedServices="cognito-identity.amazonaws.com"
-                condition={
-                    "StringEquals": {
-                        "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-                    },
-                    "ForAnyValue:StringLike": {
-                        "cognito-identity.amazonaws.com:amr": "unauthenticated"
-                    }
+            ]
+            federatedServices="cognito-identity.amazonaws.com"
+            condition={
+                "StringEquals": {
+                    "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
+                },
+                "ForAnyValue:StringLike": {
+                    "cognito-identity.amazonaws.com:amr": "unauthenticated"
                 }
-            /]
+            }
+        /]
 
-            [@createRole
-                mode=listMode
-                id=identityPoolAuthRoleId
-                policies=[
-                    getPolicyDocument(
-                        getUserPoolAuthPolicy(),
-                        "DefaultAuthIdentityRole"
-                    )
-                ]
-                federatedServices="cognito-identity.amazonaws.com"
-                condition={
-                    "StringEquals": {
-                        "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-                    },
-                    "ForAnyValue:StringLike": {
-                        "cognito-identity.amazonaws.com:amr": "authenticated"
-                    }
+        [@createRole
+            mode=listMode
+            id=identityPoolAuthRoleId
+            policies=[
+                getPolicyDocument(
+                    getUserPoolAuthPolicy(),
+                    "DefaultAuthIdentityRole"
+                )
+            ]
+            federatedServices="cognito-identity.amazonaws.com"
+            condition={
+                "StringEquals": {
+                    "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
+                },
+                "ForAnyValue:StringLike": {
+                    "cognito-identity.amazonaws.com:amr": "authenticated"
                 }
-            /]
+            }
+        /]
 
-            [@createIdentityPoolRoleMapping
-                mode=listMode
-                component=core.Component
-                tier=core.Tier
-                id=identityPoolRoleMappingId
-                identityPoolId=getReference(identityPoolId)
-                authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
-                unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
-            /]
-        [/#if]
-        [#-- When using the cli to update a user pool, any properties that are not set in the update are reset to their default value --]
-        [#-- So to use the CLI to update the lambda triggers we need to generate all of the custom configuration we use in the CF template and use this as the update --]
-        [#if deploymentSubsetRequired("cli", false)]
+        [@createIdentityPoolRoleMapping
+            mode=listMode
+            component=core.Component
+            tier=core.Tier
+            id=identityPoolRoleMappingId
+            identityPoolId=getReference(identityPoolId)
+            authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
+            unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
+        /]
+    [/#if]
+    [#-- When using the cli to update a user pool, any properties that are not set in the update are reset to their default value --]
+    [#-- So to use the CLI to update the lambda triggers we need to generate all of the custom configuration we use in the CF template and use this as the update --]
+    [#if deploymentSubsetRequired("cli", false)]
 
-            [#assign userPoolDomain = {
-                "Domain" : userPoolHostName
+        [#local userPoolDomain = {
+            "Domain" : userPoolHostName
+        }]
+
+        [@cfCli
+            mode=listMode
+            id=userPoolDomainId
+            command=userPoolDomainCommand
+            content=userPoolDomain
+        /]
+
+        [#if customDomainRequired]
+
+            [#local userPoolCustomDomain = {
+                "Domain" : userPoolCustomDomainName,
+                "CustomDomainConfig" : {
+                    "CertificateArn" : userPoolCustomDomainCertArn
+                }
             }]
 
             [@cfCli
                 mode=listMode
-                id=userPoolDomainId
+                id=userPoolCustomDomainId
                 command=userPoolDomainCommand
-                content=userPoolDomain
+                content=userPoolCustomDomain
             /]
 
-            [#if customDomainRequired]
-
-                [#assign userPoolCustomDomain = {
-                    "Domain" : userPoolCustomDomainName,
-                    "CustomDomainConfig" : {
-                        "CertificateArn" : userPoolCustomDomainCertArn
-                    }
-                }]
-
-                [@cfCli
-                    mode=listMode
-                    id=userPoolCustomDomainId
-                    command=userPoolDomainCommand
-                    content=userPoolCustomDomain
-                /]
-
-            [/#if]
-
-            [#assign userpoolConfig = {
-                "UserPoolId": getExistingReference(userPoolId),
-                "Policies": getUserPoolPasswordPolicy(
-                        solution.PasswordPolicy.MinimumLength,
-                        solution.PasswordPolicy.Lowercase,
-                        solution.PasswordPolicy.Uppsercase,
-                        solution.PasswordPolicy.Numbers,
-                        solution.PasswordPolicy.SpecialCharacters),
-                "MfaConfiguration": solution.MFA?then("ON","OFF"),
-                "UserPoolTags": getOccurrenceCoreTags(
-                                    occurrence,
-                                    userPoolName,
-                                    ""
-                                    false,
-                                    true),
-                "AdminCreateUserConfig": getUserPoolAdminCreateUserConfig(
-                                                solution.AdminCreatesUser,
-                                                solution.UnusedAccountTimeout,
-                                                getUserPoolInviteMessageTemplate(
-                                                    emailInviteMessage,
-                                                    emailInviteSubject,
-                                                    smsInviteMessage))
-            } +
-            attributeIfContent(
-                "SmsVerificationMessage",
-                smsVerificationMessage
-            ) +
-            attributeIfContent(
-                "EmailVerificationMessage",
-                emailVerificationMessage
-            ) +
-            attributeIfContent(
-                "EmailVerificationSubject",
-                emailVerificationSubject
-            ) +
-            attributeIfContent(
-                "SmsConfiguration",
-                smsConfig
-            ) +
-            attributeIfTrue(
-                "AutoVerifiedAttributes",
-                (solution.VerifyEmail || smsVerification),
-                getUserPoolAutoVerification(solution.VerifyEmail, smsVerification)
-            ) +
-            attributeIfTrue(
-                "LambdaConfig",
-                (userPoolTriggerConfig?has_content || userPoolManualTriggerConfig?has_content ),
-                userPoolTriggerConfig + userPoolManualTriggerConfig
-            )]
-
-            [#if userPoolManualTriggerConfig?has_content ]
-                [@cfCli
-                    mode=listMode
-                    id=userPoolId
-                    command=userPoolUpdateCommand
-                    content=userpoolConfig
-                /]
-            [/#if]
         [/#if]
 
-        [#if deploymentSubsetRequired("prologue", false)]
-            [@cfScript
+        [#local userpoolConfig = {
+            "UserPoolId": getExistingReference(userPoolId),
+            "Policies": getUserPoolPasswordPolicy(
+                    solution.PasswordPolicy.MinimumLength,
+                    solution.PasswordPolicy.Lowercase,
+                    solution.PasswordPolicy.Uppsercase,
+                    solution.PasswordPolicy.Numbers,
+                    solution.PasswordPolicy.SpecialCharacters),
+            "MfaConfiguration": solution.MFA?then("ON","OFF"),
+            "UserPoolTags": getOccurrenceCoreTags(
+                                occurrence,
+                                userPoolName,
+                                ""
+                                false,
+                                true),
+            "AdminCreateUserConfig": getUserPoolAdminCreateUserConfig(
+                                            solution.AdminCreatesUser,
+                                            solution.UnusedAccountTimeout,
+                                            getUserPoolInviteMessageTemplate(
+                                                emailInviteMessage,
+                                                emailInviteSubject,
+                                                smsInviteMessage))
+        } +
+        attributeIfContent(
+            "SmsVerificationMessage",
+            smsVerificationMessage
+        ) +
+        attributeIfContent(
+            "EmailVerificationMessage",
+            emailVerificationMessage
+        ) +
+        attributeIfContent(
+            "EmailVerificationSubject",
+            emailVerificationSubject
+        ) +
+        attributeIfContent(
+            "SmsConfiguration",
+            smsConfig
+        ) +
+        attributeIfTrue(
+            "AutoVerifiedAttributes",
+            (solution.VerifyEmail || smsVerification),
+            getUserPoolAutoVerification(solution.VerifyEmail, smsVerification)
+        ) +
+        attributeIfTrue(
+            "LambdaConfig",
+            (userPoolTriggerConfig?has_content || userPoolManualTriggerConfig?has_content ),
+            userPoolTriggerConfig + userPoolManualTriggerConfig
+        )]
+
+        [#if userPoolManualTriggerConfig?has_content ]
+            [@cfCli
                 mode=listMode
-                content=(getExistingReference(userPoolId)?has_content)?then(
+                id=userPoolId
+                command=userPoolUpdateCommand
+                content=userpoolConfig
+            /]
+        [/#if]
+    [/#if]
+
+    [#if deploymentSubsetRequired("prologue", false)]
+        [@cfScript
+            mode=listMode
+            content=(getExistingReference(userPoolId)?has_content)?then(
+                [
+                    " # Get cli config file",
+                    " split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                    " case $\{STACK_OPERATION} in",
+                    "    delete)",
+                    "       # Remove All Auth providers",
+                    "       info \"Removing any Auth providers\"",
+                    "       cleanup_cognito_userpool_authproviders" +
+                    "       \"" + region + "\" " +
+                    "       \"" + getExistingReference(userPoolId) + "\" " +
+                    "       \"" + authProviders?join(",") + "\" " +
+                    "       \"true\" || return $?",
+                    "       # Delete Userpool Domain",
+                    "       info \"Removing internal userpool hosted UI Domain\"",
+                    "       manage_cognito_userpool_domain" +
+                    "       \"" + region + "\" " +
+                    "       \"" + getExistingReference(userPoolId) + "\" " +
+                    "       \"$\{tmpdir}/cli-" +
+                                userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"internal\" || return $?"
+                ] +
+                (customDomainRequired)?then(
                     [
-                        " # Get cli config file",
-                        " split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                        " case $\{STACK_OPERATION} in",
-                        "    delete)",
-                        "       # Remove All Auth providers",
-                        "       info \"Removing any Auth providers\"",
-                        "       cleanup_cognito_userpool_authproviders" +
-                        "       \"" + region + "\" " +
-                        "       \"" + getExistingReference(userPoolId) + "\" " +
-                        "       \"" + authProviders?join(",") + "\" " +
-                        "       \"true\" || return $?",
                         "       # Delete Userpool Domain",
-                        "       info \"Removing internal userpool hosted UI Domain\"",
+                        "       info \"Removing custom userpool hosted UI Domain\"",
                         "       manage_cognito_userpool_domain" +
                         "       \"" + region + "\" " +
                         "       \"" + getExistingReference(userPoolId) + "\" " +
                         "       \"$\{tmpdir}/cli-" +
-                                    userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"internal\" || return $?"
+                                    userPoolCustomDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"custom\" || return $?"
+                    ],
+                    []
+                ) +
+                [
+                    "       ;;",
+                    " esac"
+                ],
+                []
+            )
+        /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("epilogue", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                [
+                    "case $\{STACK_OPERATION} in",
+                    "  create|update)"
+                    "       # Adding Userpool Domain",
+                    "       info \"Adding internal domain for Userpool hosted UI\"",
+                    "       manage_cognito_userpool_domain" +
+                    "       \"" + region + "\" " +
+                    "       \"$\{userPoolId}\" " +
+                    "       \"$\{tmpdir}/cli-" +
+                                userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"create\" \"internal\" || return $?",
+                    "       ;;",
+                    " esac"
+                ] +
+                (customDomainRequired)?then(
+                    [
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)"
+                        "       # Adding Userpool Domain",
+                        "       info \"Adding custom domain for Userpool hosted UI\"",
+                        "       manage_cognito_userpool_domain" +
+                        "       \"" + region + "\" " +
+                        "       \"$\{userPoolId}\" " +
+                        "       \"$\{tmpdir}/cli-" +
+                                    userPoolCustomDomainId + "-" + userPoolDomainCommand + ".json\" \"create\" \"custom\" || return $?",
+                        "       customDomainDistribution=$(get_cognito_userpool_custom_distribution" +
+                        "       \"" + region + "\" " +
+                        "       \"" + userPoolCustomDomainName + "\" " +
+                        "       || return $?)"
                     ] +
-                    (customDomainRequired)?then(
-                        [
-                            "       # Delete Userpool Domain",
-                            "       info \"Removing custom userpool hosted UI Domain\"",
-                            "       manage_cognito_userpool_domain" +
-                            "       \"" + region + "\" " +
-                            "       \"" + getExistingReference(userPoolId) + "\" " +
-                            "       \"$\{tmpdir}/cli-" +
-                                        userPoolCustomDomainId + "-" + userPoolDomainCommand + ".json\" \"delete\" \"custom\" || return $?"
-                        ],
-                        []
+                    pseudoStackOutputScript(
+                        "UserPool Hosted UI Custom Domain CloudFront distribution",
+                        {
+                            formatId(userPoolCustomDomainId, DNS_ATTRIBUTE_TYPE) : "$\{customDomainDistribution}"
+                        },
+                        "hosted-ui"
                     ) +
                     [
                         "       ;;",
                         " esac"
                     ],
                     []
-                )
-            /]
-        [/#if]
-
-        [#if deploymentSubsetRequired("epilogue", false)]
-            [@cfScript
-                mode=listMode
-                content=
+                )+
+                [#-- auth providers need to be created before userpool clients are updated --]
+                (authProviderEpilogue?has_content)?then(
+                    authProviderEpilogue +
                     [
                         "case $\{STACK_OPERATION} in",
                         "  create|update)"
-                        "       # Adding Userpool Domain",
-                        "       info \"Adding internal domain for Userpool hosted UI\"",
-                        "       manage_cognito_userpool_domain" +
+                        "       # Remove Old Auth providers",
+                        "       info \"Removing old Auth providers\"",
+                        "       cleanup_cognito_userpool_authproviders" +
+                        "       \"" + region + "\" " +
+                        "       \"" + getExistingReference(userPoolId) + "\" " +
+                        "       \"" + authProviders?join(",") + "\" " +
+                        "       \"false\" || return $?",
+                        "       ;;",
+                        "esac"
+                    ],
+                    []
+                ) +
+                (userPoolClientEpilogue?has_content)?then(
+                    userPoolClientEpilogue,
+                    []
+                ) +
+                [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
+                (userPoolManualTriggerConfig?has_content)?then(
+                    [
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)"
+                        "       # Add Manual Cognito Triggers",
+                        "       info \"Adding Cognito Triggers that are not part of cloudformation\"",
+                        "       update_cognito_userpool" +
                         "       \"" + region + "\" " +
                         "       \"$\{userPoolId}\" " +
                         "       \"$\{tmpdir}/cli-" +
-                                    userPoolDomainId + "-" + userPoolDomainCommand + ".json\" \"create\" \"internal\" || return $?",
+                                    userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?",
                         "       ;;",
-                        " esac"
-                    ] +
-                    (customDomainRequired)?then(
-                        [
-                            "case $\{STACK_OPERATION} in",
-                            "  create|update)"
-                            "       # Adding Userpool Domain",
-                            "       info \"Adding custom domain for Userpool hosted UI\"",
-                            "       manage_cognito_userpool_domain" +
-                            "       \"" + region + "\" " +
-                            "       \"$\{userPoolId}\" " +
-                            "       \"$\{tmpdir}/cli-" +
-                                        userPoolCustomDomainId + "-" + userPoolDomainCommand + ".json\" \"create\" \"custom\" || return $?",
-                            "       customDomainDistribution=$(get_cognito_userpool_custom_distribution" +
-                            "       \"" + region + "\" " +
-                            "       \"" + userPoolCustomDomainName + "\" " +
-                            "       || return $?)"
-                        ] +
-                        pseudoStackOutputScript(
-                            "UserPool Hosted UI Custom Domain CloudFront distribution",
-                            {
-                                formatId(userPoolCustomDomainId, DNS_ATTRIBUTE_TYPE) : "$\{customDomainDistribution}"
-                            },
-                            "hosted-ui"
-                        ) +
-                        [
-                            "       ;;",
-                            " esac"
-                        ],
-                        []
-                    )+
-                    [#-- auth providers need to be created before userpool clients are updated --]
-                    (authProviderEpilogue?has_content)?then(
-                        authProviderEpilogue +
-                        [
-                            "case $\{STACK_OPERATION} in",
-                            "  create|update)"
-                            "       # Remove Old Auth providers",
-                            "       info \"Removing old Auth providers\"",
-                            "       cleanup_cognito_userpool_authproviders" +
-                            "       \"" + region + "\" " +
-                            "       \"" + getExistingReference(userPoolId) + "\" " +
-                            "       \"" + authProviders?join(",") + "\" " +
-                            "       \"false\" || return $?",
-                            "       ;;",
-                            "esac"
-                        ],
-                        []
-                    ) +
-                    (userPoolClientEpilogue?has_content)?then(
-                        userPoolClientEpilogue,
-                        []
-                    ) +
-                    [#-- Some Userpool Lambda triggers are not available via Cloudformation but are available via CLI --]
-                    (userPoolManualTriggerConfig?has_content)?then(
-                        [
-                            "case $\{STACK_OPERATION} in",
-                            "  create|update)"
-                            "       # Add Manual Cognito Triggers",
-                            "       info \"Adding Cognito Triggers that are not part of cloudformation\"",
-                            "       update_cognito_userpool" +
-                            "       \"" + region + "\" " +
-                            "       \"$\{userPoolId}\" " +
-                            "       \"$\{tmpdir}/cli-" +
-                                        userPoolId + "-" + userPoolUpdateCommand + ".json\" || return $?",
-                            "       ;;",
-                            "esac"
-                        ],
-                        []
-                    )
-            /]
-        [/#if]
-    [/#list]
-[/#if]
+                        "esac"
+                    ],
+                    []
+                )
+        /]
+    [/#if]
+[/#macro]

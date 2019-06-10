@@ -1,294 +1,286 @@
-[#-- Mobile Notifier --]
+[#ftl]
+[#macro aws_mobilenotifier_cf_solution occurrence ]
+    [@cfDebug listMode occurrence false /]
 
-[#if componentType == MOBILENOTIFIER_COMPONENT_TYPE  ]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
 
-    [#list requiredOccurrences(
-            getOccurrences(tier, component),
-            deploymentUnit) as occurrence]
+    [#local successSampleRate = solution.SuccessSampleRate ]
+    [#local encryptionScheme = solution.Credentials.EncryptionScheme?ensure_ends_with(":")]
 
-        [@cfDebug listMode occurrence false /]
+    [#local deployedPlatformAppArns = []]
 
-        [#assign core = occurrence.Core]
-        [#assign solution = occurrence.Configuration.Solution]
-        [#assign resources = occurrence.State.Resources]
+    [#local roleId = resources["role"].Id]
 
-        [#assign successSampleRate = solution.SuccessSampleRate ]
-        [#assign encryptionScheme = solution.Credentials.EncryptionScheme?ensure_ends_with(":")]
+    [#local platformAppAttributesCommand = "attributesPlatformApp" ]
+    [#local platformAppDeleteCommand = "deletePlatformApp" ]
 
-        [#assign deployedPlatformAppArns = []]
+    [#local hasPlatformApp = false]
 
-        [#assign roleId = resources["role"].Id]
+    [#list occurrence.Occurrences![] as subOccurrence]
 
-        [#assign platformAppAttributesCommand = "attributesPlatformApp" ]
-        [#assign platformAppDeleteCommand = "deletePlatformApp" ]
+        [#local core = subOccurrence.Core ]
+        [#local solution = subOccurrence.Configuration.Solution ]
+        [#local resources = subOccurrence.State.Resources ]
 
-        [#assign hasPlatformApp = false]
+        [#local successSampleRate = solution.SuccessSampleRate!successSampleRate ]
+        [#local encryptionScheme = solution.EncryptionScheme!encryptionScheme]
 
-        [#list occurrence.Occurrences![] as subOccurrence]
+        [#local platformAppId = resources["platformapplication"].Id]
+        [#local platformAppName = resources["platformapplication"].Name ]
+        [#local engine = resources["platformapplication"].Engine ]
 
-            [#assign core = subOccurrence.Core ]
-            [#assign solution = subOccurrence.Configuration.Solution ]
-            [#assign resources = subOccurrence.State.Resources ]
+        [#local lgId= resources["lg"].Id ]
+        [#local lgName = resources["lg"].Name ]
+        [#local lgFailureId = resources["lgfailure"].Id ]
+        [#local lgFailureName = resources["lgfailure"].Name ]
 
-            [#assign successSampleRate = solution.SuccessSampleRate!successSampleRate ]
-            [#assign encryptionScheme = solution.EncryptionScheme!encryptionScheme]
+        [#local platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
 
-            [#assign platformAppId = resources["platformapplication"].Id]
-            [#assign platformAppName = resources["platformapplication"].Name ]
-            [#assign engine = resources["platformapplication"].Engine ]
+        [#local platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ]
 
-            [#assign lgId= resources["lg"].Id ]
-            [#assign lgName = resources["lg"].Name ]
-            [#assign lgFailureId = resources["lgfailure"].Id ]
-            [#assign lgFailureName = resources["lgfailure"].Name ]
+        [#if platformArn?has_content ]
+            [#local deployedPlatformAppArns += [ platformArn ] ]
+        [/#if]
 
-            [#assign platformAppAttributesCliId = formatId( platformAppId, "attributes" )]
+        [#local isPlatformApp = false]
 
-            [#assign platformArn = getExistingReference( platformAppId, ARN_ATTRIBUTE_TYPE) ]
+        [#local platformAppCreateCli = {} ]
+        [#local platformAppUpdateCli = {} ]
 
-            [#if platformArn?has_content ]
-                [#assign deployedPlatformAppArns += [ platformArn ] ]
-            [/#if]
+        [#local platformAppPrincipal =
+            getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Principal"], true) ]
 
-            [#assign isPlatformApp = false]
+        [#local platformAppCredential =
+            getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Credential"], true) ]
 
-            [#assign platformAppCreateCli = {} ]
-            [#assign platformAppUpdateCli = {} ]
+        [#local engineFamily = "" ]
 
-            [#assign platformAppPrincipal =
-                getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Principal"], true) ]
+        [#switch engine ]
+            [#case "APNS" ]
+            [#case "APNS_SANDBOX" ]
+                [#local engineFamily = "APPLE" ]
+                [#break]
 
-            [#assign platformAppCredential =
-                getOccurrenceSettingValue(occurrence, ["MobileNotifier", core.SubComponent.Name + "_Credential"], true) ]
+            [#case "GCM" ]
+                [#local engineFamily = "GOOGLE" ]
+                [#break]
 
-            [#assign engineFamily = "" ]
+            [#case MOBILENOTIFIER_SMS_ENGINE ]
+                [#local engineFamily = MOBILENOTIFIER_SMS_ENGINE ]
+                [#break]
 
-            [#switch engine ]
-                [#case "APNS" ]
-                [#case "APNS_SANDBOX" ]
-                    [#assign engineFamily = "APPLE" ]
-                    [#break]
+            [#default]
+                [@cfException
+                    mode=listMode
+                    description="Unkown Engine"
+                    context=component
+                    detail=engine /]
+        [/#switch]
 
-                [#case "GCM" ]
-                    [#assign engineFamily = "GOOGLE" ]
-                    [#break]
-
-                [#case MOBILENOTIFIER_SMS_ENGINE ]
-                    [#assign engineFamily = MOBILENOTIFIER_SMS_ENGINE ]
-                    [#break]
-
-                [#default]
+        [#switch engineFamily ]
+            [#case "APPLE" ]
+                [#local isPlatformApp = true]
+                [#local hasPlatformApp = true]
+                [#if !platformAppCredential?has_content || !platformAppPrincipal?has_content ]
                     [@cfException
                         mode=listMode
-                        description="Unkown Engine"
+                        description="Missing Credentials - Requires both Credential and Principal"
                         context=component
-                        detail=engine /]
-            [/#switch]
-
-            [#switch engineFamily ]
-                [#case "APPLE" ]
-                    [#assign isPlatformApp = true]
-                    [#assign hasPlatformApp = true]
-                    [#if !platformAppCredential?has_content || !platformAppPrincipal?has_content ]
-                        [@cfException
-                            mode=listMode
-                            description="Missing Credentials - Requires both Credential and Principal"
-                            context=component
-                            detail={
-                                "Credential" : platformAppCredential!"",
-                                "Principal" : platformAppPrincipal!""
-                            } /]
-                    [/#if]
-                    [#break]
-
-                [#case "GOOGLE" ]
-                    [#assign isPlatformApp = true]
-                    [#assign hasPlatformApp = true]
-                    [#if !platformAppPrincipal?has_content ]
-                        [@cfException
-                            mode=listMode
-                            description="Missing Credential - Requires Principal"
-                            context=component
-                            detail={
-                                "Principal" : platformAppPrincipal!""
-                            } /]
-                    [/#if]
-                    [#break]
-            [/#switch]
-
-            [#if deploymentSubsetRequired("lg", true) &&
-                isPartOfCurrentDeploymentUnit(lgId)]
-
-                [#if engine != MOBILENOTIFIER_SMS_ENGINE]
-                    [@createLogGroup
-                        mode=listMode
-                        id=lgId
-                        name=lgName /]
-
-                    [@createLogGroup
-                        mode=listMode
-                        id=lgFailureId
-                        name=lgFailureName /]
+                        detail={
+                            "Credential" : platformAppCredential!"",
+                            "Principal" : platformAppPrincipal!""
+                        } /]
                 [/#if]
+                [#break]
 
+            [#case "GOOGLE" ]
+                [#local isPlatformApp = true]
+                [#local hasPlatformApp = true]
+                [#if !platformAppPrincipal?has_content ]
+                    [@cfException
+                        mode=listMode
+                        description="Missing Credential - Requires Principal"
+                        context=component
+                        detail={
+                            "Principal" : platformAppPrincipal!""
+                        } /]
+                [/#if]
+                [#break]
+        [/#switch]
+
+        [#if deploymentSubsetRequired("lg", true) &&
+            isPartOfCurrentDeploymentUnit(lgId)]
+
+            [#if engine != MOBILENOTIFIER_SMS_ENGINE]
+                [@createLogGroup
+                    mode=listMode
+                    id=lgId
+                    name=lgName /]
+
+                [@createLogGroup
+                    mode=listMode
+                    id=lgFailureId
+                    name=lgFailureName /]
             [/#if]
 
-            [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
+        [/#if]
 
-                [#list resources.logMetrics!{} as logMetricName,logMetric ]
+        [#if deploymentSubsetRequired(MOBILENOTIFIER_COMPONENT_TYPE, true)]
 
-                    [@createLogMetric
-                        mode=listMode
-                        id=logMetric.Id
-                        name=logMetric.Name
-                        logGroup=logMetric.LogGroupName
-                        filter=logFilters[logMetric.LogFilter].Pattern
-                        namespace=getResourceMetricNamespace(logMetric.Type)
-                        value=1
-                        dependencies=logMetric.LogGroupId
-                    /]
+            [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
+                [@createLogMetric
+                    mode=listMode
+                    id=logMetric.Id
+                    name=logMetric.Name
+                    logGroup=logMetric.LogGroupName
+                    filter=logFilters[logMetric.LogFilter].Pattern
+                    namespace=getResourceMetricNamespace(logMetric.Type)
+                    value=1
+                    dependencies=logMetric.LogGroupId
+                /]
+
+            [/#list]
+
+            [#list solution.Alerts?values as alert ]
+
+                [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
+                [#list monitoredResources as name,monitoredResource ]
+
+                    [@cfDebug listMode monitoredResource false /]
+
+                    [#switch alert.Comparison ]
+                        [#case "Threshold" ]
+                            [@createCountAlarm
+                                mode=listMode
+                                id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                                severity=alert.Severity
+                                resourceName=core.FullName
+                                alertName=alert.Name
+                                actions=[
+                                    getReference(formatSegmentSNSTopicId())
+                                ]
+                                metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                                namespace=getResourceMetricNamespace(monitoredResource.Type)
+                                description=alert.Description!alert.Name
+                                threshold=alert.Threshold
+                                statistic=alert.Statistic
+                                evaluationPeriods=alert.Periods
+                                period=alert.Time
+                                operator=alert.Operator
+                                reportOK=alert.ReportOk
+                                missingData=alert.MissingData
+                                dimensions=getResourceMetricDimensions(monitoredResource, resources)
+                                dependencies=monitoredResource.Id
+                            /]
+                        [#break]
+                    [/#switch]
                 [/#list]
+            [/#list]
+        [/#if]
 
-                [#list solution.Alerts?values as alert ]
+        [#if isPlatformApp ]
+            [#if deploymentSubsetRequired("cli", false ) ]
 
-                    [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
-                    [#list monitoredResources as name,monitoredResource ]
+                [#local platformAppAttributes =
+                    getSNSPlatformAppAttributes(
+                        roleId,
+                        successSampleRate
+                        platformAppCredential,
+                        platformAppPrincipal )]
 
-                        [@cfDebug listMode monitoredResource false /]
+                [@cfCli
+                    mode=listMode
+                    id=platformAppAttributesCliId
+                    command=platformAppAttributesCommand
+                    content=platformAppAttributes
+                /]
 
-                        [#switch alert.Comparison ]
-                            [#case "Threshold" ]
-                                [@createCountAlarm
-                                    mode=listMode
-                                    id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
-                                    severity=alert.Severity
-                                    resourceName=core.FullName
-                                    alertName=alert.Name
-                                    actions=[
-                                        getReference(formatSegmentSNSTopicId())
-                                    ]
-                                    metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
-                                    namespace=getResourceMetricNamespace(monitoredResource.Type)
-                                    description=alert.Description!alert.Name
-                                    threshold=alert.Threshold
-                                    statistic=alert.Statistic
-                                    evaluationPeriods=alert.Periods
-                                    period=alert.Time
-                                    operator=alert.Operator
-                                    reportOK=alert.ReportOk
-                                    missingData=alert.MissingData
-                                    dimensions=getResourceMetricDimensions(monitoredResource, resources)
-                                    dependencies=monitoredResource.Id
-                                /]
-                            [#break]
-                        [/#switch]
-                    [/#list]
-                [/#list]
             [/#if]
 
-            [#if isPlatformApp ]
-                [#if deploymentSubsetRequired("cli", false ) ]
+            [#if deploymentSubsetRequired( "epilogue", false) ]
 
-                    [#assign platformAppAttributes =
-                        getSNSPlatformAppAttributes(
-                            roleId,
-                            successSampleRate
-                            platformAppCredential,
-                            platformAppPrincipal )]
-
-                    [@cfCli
-                        mode=listMode
-                        id=platformAppAttributesCliId
-                        command=platformAppAttributesCommand
-                        content=platformAppAttributes
-                    /]
-
-                [/#if]
-
-                [#if deploymentSubsetRequired( "epilogue", false) ]
-
-                    [@cfScript
-                        mode=listMode
-                        content=
-                            [
-                                "# Platform: " + core.SubComponent.Name,
-                                "case $\{STACK_OPERATION} in",
-                                "  create|update)",
-                                "       # Get cli config file",
-                                "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                                "       info \"Deploying SNS PlatformApp: " + core.SubComponent.Name + "\"",
-                                "       platform_app_arn=\"$(deploy_sns_platformapp" +
-                                "       \"" + region + "\" " +
-                                "       \"" + platformAppName + "\" " +
-                                "       \"" + platformArn + "\" " +
-                                "       \"" + encryptionScheme + "\" " +
-                                "       \"" + engine + "\" " +
-                                "       \"$\{tmpdir}/cli-" +
-                                        platformAppAttributesCliId + "-" + platformAppAttributesCommand + ".json\")\""
-                            ] +
-                            pseudoStackOutputScript(
-                                "SNS Platform App",
-                                {
-                                    formatId(platformAppId, "arn") : "$\{platform_app_arn}",
-                                    platformAppId : core.Name
-                                },
-                                core.SubComponent.Id
-                            ) +
-                            [
-                                "       ;;",
-                                "  delete)",
-                                "       # Delete SNS Platform Application",
-                                "       info \"Deleting SNS Platform App " + core.SubComponent.Name + "\" ",
-                                "       delete_sns_platformapp" +
-                                "       \"" + region + "\" " +
-                                "       \"" + platformArn + "\" "
-                                "   ;;",
-                                "   esac"
-                            ]
-                    /]
-                [/#if]
-            [/#if]
-        [/#list]
-
-        [#if hasPlatformApp ]
-            [#if deploymentSubsetRequired( "prologue", false) ]
                 [@cfScript
                     mode=listMode
                     content=
                         [
-                            "# Mobile Notifier Cleanup",
+                            "# Platform: " + core.SubComponent.Name,
                             "case $\{STACK_OPERATION} in",
                             "  create|update)",
-                            "       info \"Cleaning up platforms that have been removed from config\"",
-                            "       cleanup_sns_platformapps " +
+                            "       # Get cli config file",
+                            "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                            "       info \"Deploying SNS PlatformApp: " + core.SubComponent.Name + "\"",
+                            "       platform_app_arn=\"$(deploy_sns_platformapp" +
                             "       \"" + region + "\" " +
                             "       \"" + platformAppName + "\" " +
-                            "       '" + getJSON(deployedPlatformAppArns, false) + "' || return $?",
-                            "       ;;",
-                            "       esac"
-                        ]
-
-                /]
-            [/#if]
-
-            [#if deploymentSubsetRequired("iam", true)
-                && isPartOfCurrentDeploymentUnit(roleId)]
-
-                [@createRole
-                    mode=listMode
-                    id=roleId
-                    trustedServices=["sns.amazonaws.com" ]
-                    policies=
+                            "       \"" + platformArn + "\" " +
+                            "       \"" + encryptionScheme + "\" " +
+                            "       \"" + engine + "\" " +
+                            "       \"$\{tmpdir}/cli-" +
+                                    platformAppAttributesCliId + "-" + platformAppAttributesCommand + ".json\")\""
+                        ] +
+                        pseudoStackOutputScript(
+                            "SNS Platform App",
+                            {
+                                formatId(platformAppId, "arn") : "$\{platform_app_arn}",
+                                platformAppId : core.Name
+                            },
+                            core.SubComponent.Id
+                        ) +
                         [
-                            getPolicyDocument(
-                                    cwLogsProducePermission() +
-                                    cwLogsConfigurePermission(),
-                                "logging")
+                            "       ;;",
+                            "  delete)",
+                            "       # Delete SNS Platform Application",
+                            "       info \"Deleting SNS Platform App " + core.SubComponent.Name + "\" ",
+                            "       delete_sns_platformapp" +
+                            "       \"" + region + "\" " +
+                            "       \"" + platformArn + "\" "
+                            "   ;;",
+                            "   esac"
                         ]
                 /]
             [/#if]
         [/#if]
-
     [/#list]
-[/#if]
+
+    [#if hasPlatformApp ]
+        [#if deploymentSubsetRequired( "prologue", false) ]
+            [@cfScript
+                mode=listMode
+                content=
+                    [
+                        "# Mobile Notifier Cleanup",
+                        "case $\{STACK_OPERATION} in",
+                        "  create|update)",
+                        "       info \"Cleaning up platforms that have been removed from config\"",
+                        "       cleanup_sns_platformapps " +
+                        "       \"" + region + "\" " +
+                        "       \"" + platformAppName + "\" " +
+                        "       '" + getJSON(deployedPlatformAppArns, false) + "' || return $?",
+                        "       ;;",
+                        "       esac"
+                    ]
+
+            /]
+        [/#if]
+
+        [#if deploymentSubsetRequired("iam", true)
+            && isPartOfCurrentDeploymentUnit(roleId)]
+
+            [@createRole
+                mode=listMode
+                id=roleId
+                trustedServices=["sns.amazonaws.com" ]
+                policies=
+                    [
+                        getPolicyDocument(
+                                cwLogsProducePermission() +
+                                cwLogsConfigurePermission(),
+                            "logging")
+                    ]
+            /]
+        [/#if]
+    [/#if]
+[/#macro]

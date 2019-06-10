@@ -463,3 +463,27 @@
     [#return result]
 [/#function]
 
+[#----------------------------
+-- Dynamic template loading --
+------------------------------]
+[#assign includeOnceTemplates = [] ]
+
+[#function includeTemplate template includeOnce=false relativeToCaller=false ]
+    [#if relativeToCaller]
+        [#local t = template?absolute_template_name(.caller_template_name)]
+    [#else]
+        [#local t = template?ensure_starts_with("/")]
+    [/#if]
+    [#if includeOnce && includeOnceTemplates?seq_contains(t)]
+        [#return true]
+    [/#if]
+    [#local templateStatus = .get_optional_template(t)]
+    [#if templateStatus.exists]
+        [@templateStatus.include /]
+        [#if includeOnce]
+            [#assign includeOnceTemplates += [t] ]
+        [/#if]
+        [#return true]
+    [/#if]
+    [#return false]
+[/#function]

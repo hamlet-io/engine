@@ -1,24 +1,20 @@
-[#-- SQS --]
-[#if (componentType == SQS_COMPONENT_TYPE) && deploymentSubsetRequired("sqs", true)]
-
-    [#list requiredOccurrences(
-            getOccurrences(tier, component),
-            deploymentUnit) as occurrence]
-
+[#ftl]
+[#macro aws_sqs_cf_solution occurrence ]
+    [#if deploymentSubsetRequired("sqs", true)]
         [@cfDebug listMode occurrence false /]
 
-        [#assign core = occurrence.Core ]
-        [#assign solution = occurrence.Configuration.Solution ]
-        [#assign resources = occurrence.State.Resources ]
+        [#local core = occurrence.Core ]
+        [#local solution = occurrence.Configuration.Solution ]
+        [#local resources = occurrence.State.Resources ]
 
-        [#assign sqsId = resources["queue"].Id ]
-        [#assign sqsName = resources["queue"].Name ]
-    
-        [#assign dlqRequired = (resources["dlq"]!{})?has_content ]
+        [#local sqsId = resources["queue"].Id ]
+        [#local sqsName = resources["queue"].Name ]
+
+        [#local dlqRequired = (resources["dlq"]!{})?has_content ]
 
         [#if dlqRequired ]
-            [#assign dlqId = resources["dlq"].Id ]
-            [#assign dlqName = resources["dlq"].Name ]
+            [#local dlqId = resources["dlq"].Id ]
+            [#local dlqName = resources["dlq"].Name ]
             [@createSQSQueue
                 mode=listMode
                 id=dlqId
@@ -47,7 +43,7 @@
 
         [#list solution.Alerts?values as alert ]
 
-            [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
                 [#switch alert.Comparison ]
@@ -78,5 +74,5 @@
                 [/#switch]
             [/#list]
         [/#list]
-    [/#list]
-[/#if]
+    [/#if]
+[/#macro]

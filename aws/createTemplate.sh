@@ -228,7 +228,7 @@ function process_template() {
     blueprint)
       cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
       passes=("template")
-      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "FRAGMENT" )
+      template_composites+=("FRAGMENT" )
 
       # Blueprint applies across accounts and regions
       for pass in "${pass_list[@]}"; do
@@ -245,7 +245,7 @@ function process_template() {
       # this is expected to run from an automation context
       cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
       passes=("template")
-      template_composites+=("APPLICATION" "FRAGMENT" )
+      template_composites+=("FRAGMENT" )
 
       # Blueprint applies across accounts and regions
       for pass in "${pass_list[@]}"; do
@@ -281,7 +281,7 @@ function process_template() {
       ;;
 
     solution)
-      template_composites+=("SOLUTION" "FRAGMENT")
+      template_composites+=("FRAGMENT")
       passes=("${passes[@]}" "cli")
       if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
         for pass in "${pass_list[@]}"; do
@@ -298,7 +298,7 @@ function process_template() {
 
     segment)
       for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="seg-"; done
-      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "FRAGMENT" )
+      template_composites+=("FRAGMENT" )
 
       # LEGACY: Support old formats for existing stacks so they can be updated
       if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
@@ -327,13 +327,13 @@ function process_template() {
 
     application)
       for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="app-"; done
-      template_composites+=("APPLICATION" "FRAGMENT" )
+      template_composites+=("FRAGMENT" )
       passes=("${passes[@]}" "cli" "config")
       ;;
 
     multiple)
       for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="multi-"; done
-      template_composites+=("SEGMENT" "SOLUTION" "APPLICATION" "FRAGMENT")
+      template_composites+=("FRAGMENT")
       ;;
 
     *)
@@ -416,8 +416,13 @@ function process_template() {
       local result_file="${results_dir}/${output_filename}"
 
       ${GENERATION_DIR}/freemarker.sh \
-        -d "${template_dir}" ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"} \
-		-t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
+        -d "${template_dir}" \
+        ${GENERATION_PRE_PLUGIN_DIRS:+ -d "${GENERATION_PRE_PLUGIN_DIRS}"} \
+        -d "${GENERATION_BASE_DIR}/providers" \
+        ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"} \
+		    -t "${template}" \
+        -o "${template_result_file}" \
+        "${pass_args[@]}" || return $?
 
       # Ignore whitespace only files
       if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -eq 0 ]]; then

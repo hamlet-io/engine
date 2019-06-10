@@ -14,7 +14,4 @@
         [#break]
 [/#switch]
 
-[#assign componentLevel="solution" ]
-[@cfTemplate
-    level=componentLevel
-    compositeLists=solutionList /]
+[@cfTemplate level="solution" /]

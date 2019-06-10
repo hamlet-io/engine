@@ -13,7 +13,7 @@
 [#assign productDomainValidation =
             (productDomainObject.Validation)!
             (domains.Validation)!
-            ""]           
+            ""]
 [#assign productDomainCertificateId = productDomain]
 [#switch productDomainBehaviour]
     [#case "productInDomain"]
@@ -36,7 +36,4 @@
 [#-- Product --]
 [#assign rotateKeys = (productObject.RotateKeys)!true]
 
-[#assign componentLevel="product" ]
-[@cfTemplate
-    level=componentLevel
-    include=productList/]
+[@cfTemplate include=productList /]

@@ -55,9 +55,8 @@ mkdir -p "${CACHE_DIR}"
 # Generate the list of files constituting the composites based on the contents
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
-TEMPLATE_COMPOSITES=(
-    "account" "product" "segment" "solution" "application" \
-    "policy" "fragment" "id" "name" "resource")
+TEMPLATE_COMPOSITES=("account" "product" "policy" "fragment" "id" "name" "resource")
+
 for composite in "${TEMPLATE_COMPOSITES[@]}"; do
     # Define the composite
     declare -gx COMPOSITE_${composite^^}="${CACHE_DIR}/composite_${composite}.ftl"
@@ -244,14 +243,19 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
         ("${GENERATION_USE_FRAGMENTS_CACHE}" != "true")) ||
       (! -f "${CACHE_DIR}/composite_account.ftl") ]]; then
     for composite in "${TEMPLATE_COMPOSITES[@]}"; do
-        for blueprint_alternate_dir in "${blueprint_alternate_dirs[@]}"; do
-            [[ (-z "${blueprint_alternate_dir}") || (! -d "${blueprint_alternate_dir}") ]] && continue
-            for fragment in "${blueprint_alternate_dir}"/${composite}_*.ftl; do
-                fragment_name="$(fileName "${fragment}")"
-                $(inArray "${composite}_array" "${fragment_name}") && continue
-                addToArray "${composite}_array" "${fragment}"
+
+        # only support provision of fragment files via cmdb
+        # others can now be provided via the plugin mechanism
+        if [[ "${composite}" == "fragment" ]]; then
+            for blueprint_alternate_dir in "${blueprint_alternate_dirs[@]}"; do
+                [[ (-z "${blueprint_alternate_dir}") || (! -d "${blueprint_alternate_dir}") ]] && continue
+                for fragment in "${blueprint_alternate_dir}"/${composite}_*.ftl; do
+                    fragment_name="$(fileName "${fragment}")"
+                    $(inArray "${composite}_array" "${fragment_name}") && continue
+                    addToArray "${composite}_array" "${fragment}"
+                done
             done
-        done
+        fi
 
         # Transitional fragments
         for fragment in "${GENERATION_DIR}"/../providers/shared/component/${composite}/${composite}_*.ftl; do
@@ -293,6 +297,10 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
           eval "declare composite_array=(\"\${${composite}_array[@]}\")"
         debug "${composite^^}=${composite_array[*]}"
         cat "${composite_array[@]}" > "${CACHE_DIR}/composite_${composite}.ftl"
+    done
+
+    for composite in "segment" "solution" "application"; do
+        rm -rf "${CACHE_DIR}/composite_${composite}.ftl"
     done
 fi
 

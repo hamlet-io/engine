@@ -1,333 +1,326 @@
-[#-- ECS --]
+[#ftl]
+[#macro aws_ecs_cf_solution occurrence ]
+    [@cfDebug listMode occurrence false /]
 
-[#if componentType == ECS_COMPONENT_TYPE]
+    [#local core = occurrence.Core ]
+    [#local solution = occurrence.Configuration.Solution ]
+    [#local resources = occurrence.State.Resources ]
 
-    [#list requiredOccurrences(
-            getOccurrences(tier, component),
-            deploymentUnit) as occurrence]
+    [#local ecsId = resources["cluster"].Id ]
+    [#local ecsName = resources["cluster"].Name ]
+    [#local ecsRoleId = resources["role"].Id ]
+    [#local ecsServiceRoleId = resources["serviceRole"].Id ]
+    [#local ecsInstanceProfileId = resources["instanceProfile"].Id ]
+    [#local ecsAutoScaleGroupId = resources["autoScaleGroup"].Id ]
+    [#local ecsLaunchConfigId = resources["launchConfig"].Id ]
+    [#local ecsSecurityGroupId = resources["securityGroup"].Id ]
+    [#local ecsLogGroupId = resources["lg"].Id ]
+    [#local ecsLogGroupName = resources["lg"].Name ]
+    [#local ecsInstanceLogGroupId = resources["lgInstanceLog"].Id]
+    [#local ecsInstanceLogGroupName = resources["lgInstanceLog"].Name]
+    [#local defaultLogDriver = solution.LogDriver ]
+    [#local fixedIP = solution.FixedIP ]
 
-        [@cfDebug listMode occurrence false /]
+    [#local hibernate = solution.Hibernate.Enabled &&
+                            getExistingReference(ecsId)?has_content ]
 
-        [#assign core = occurrence.Core ]
-        [#assign solution = occurrence.Configuration.Solution ]
-        [#assign resources = occurrence.State.Resources ]
+    [#local processorProfile = getProcessor(occurrence, "ECS")]
+    [#local storageProfile = getStorage(occurrence, "ECS")]
+    [#local logFileProfile = getLogFileProfile(occurrence, "ECS")]
+    [#local bootstrapProfile = getBootstrapProfile(occurrence, "ECS")]
 
-        [#assign ecsId = resources["cluster"].Id ]
-        [#assign ecsName = resources["cluster"].Name ]
-        [#assign ecsRoleId = resources["role"].Id ]
-        [#assign ecsServiceRoleId = resources["serviceRole"].Id ]
-        [#assign ecsInstanceProfileId = resources["instanceProfile"].Id ]
-        [#assign ecsAutoScaleGroupId = resources["autoScaleGroup"].Id ]
-        [#assign ecsLaunchConfigId = resources["launchConfig"].Id ]
-        [#assign ecsSecurityGroupId = resources["securityGroup"].Id ]
-        [#assign ecsLogGroupId = resources["lg"].Id ]
-        [#assign ecsLogGroupName = resources["lg"].Name ]
-        [#assign ecsInstanceLogGroupId = resources["lgInstanceLog"].Id]
-        [#assign ecsInstanceLogGroupName = resources["lgInstanceLog"].Name]
-        [#assign defaultLogDriver = solution.LogDriver ]
-        [#assign fixedIP = solution.FixedIP ]
+    [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+    [#local networkLink = occurrenceNetwork.Link!{} ]
 
-        [#assign hibernate = solution.Hibernate.Enabled &&
-                                getExistingReference(ecsId)?has_content ]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
-        [#assign processorProfile = getProcessor(occurrence, "ECS")]
-        [#assign storageProfile = getStorage(occurrence, "ECS")]
-        [#assign logFileProfile = getLogFileProfile(occurrence, "ECS")]
-        [#assign bootstrapProfile = getBootstrapProfile(occurrence, "ECS")]
+    [#if ! networkLinkTarget?has_content ]
+        [@cfException listMode "Network could not be found" networkLink /]
+        [#return]
+    [/#if]
 
-        [#assign occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
-        [#assign networkLink = occurrenceNetwork.Link!{} ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-        [#if ! networkLinkTarget?has_content ]
-            [@cfException listMode "Network could not be found" networkLink /]
-            [#break]
-        [/#if]
+    [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
+    [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
+    [#local publicRouteTable = routeTableConfiguration.Public ]
 
-        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-        [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local ecsTags = getOccurrenceCoreTags(occurrence, ecsName, "", true)]
 
-        [#assign vpcId = networkResources["vpc"].Id ]
+    [#local environmentVariables = {}]
 
-        [#assign routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
-        [#assign routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
-        [#assign publicRouteTable = routeTableConfiguration.Public ]
+    [#local configSetName = occurrence.Core.Type]
+    [#local configSets =
+            getInitConfigDirectories() +
+            getInitConfigBootstrap(occurrence) +
+            getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers, solution.VolumeDrivers ) ]
 
-        [#assign ecsTags = getOccurrenceCoreTags(occurrence, ecsName, "", true)]
+    [#local efsMountPoints = {}]
 
-        [#assign environmentVariables = {}]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-        [#assign configSetName = componentType ]
-        [#assign configSets =
-                getInitConfigDirectories() +
-                getInitConfigBootstrap(occurrence) +
-                getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers, solution.VolumeDrivers ) ]
+    [#local contextLinks = getLinkTargets(occurrence) ]
+    [#local _context =
+        {
+            "Id" : fragment,
+            "Name" : fragment,
+            "Instance" : core.Instance.Id,
+            "Version" : core.Version.Id,
+            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+            "Environment" : {},
+            "Links" : contextLinks,
+            "DefaultCoreVariables" : true,
+            "DefaultEnvironmentVariables" : true,
+            "DefaultLinkVariables" : true,
+            "Policy" : [],
+            "ManagedPolicy" : [],
+            "Files" : {},
+            "Directories" : {}
+        }
+    ]
 
-        [#assign efsMountPoints = {}]
+    [#-- Add in fragment specifics including override of defaults --]
+    [#local fragmentListMode = "model"]
+    [#local fragmentId = formatFragmentId(_context)]
+    [#include fragmentList?ensure_starts_with("/")]
 
-        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#local environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
 
-        [#assign contextLinks = getLinkTargets(occurrence) ]
-        [#assign _context =
-            {
-                "Id" : fragment,
-                "Name" : fragment,
-                "Instance" : core.Instance.Id,
-                "Version" : core.Version.Id,
-                "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
-                "Environment" : {},
-                "Links" : contextLinks,
-                "DefaultCoreVariables" : true,
-                "DefaultEnvironmentVariables" : true,
-                "DefaultLinkVariables" : true,
-                "Policy" : [],
-                "ManagedPolicy" : [],
-                "Files" : {},
-                "Directories" : {}
-            }
-        ]
+    [#local configSets +=
+        getInitConfigEnvFacts(environmentVariables, false) +
+        getInitConfigDirsFiles(_context.Files, _context.Directories) ]
 
-        [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
-        [#assign fragmentId = formatFragmentId(_context)]
-        [#include fragmentList?ensure_starts_with("/")]
+    [#list bootstrapProfile.BootStraps as bootstrapName ]
+        [#local bootstrap = bootstraps[bootstrapName]]
+        [#local configSets +=
+            getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
+    [/#list]
 
-        [#assign environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#if deploymentSubsetRequired("iam", true) &&
+            isPartOfCurrentDeploymentUnit(ecsRoleId)]
+        [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
-        [#assign configSets +=
-            getInitConfigEnvFacts(environmentVariables, false) +
-            getInitConfigDirsFiles(_context.Files, _context.Directories) ]
+        [@createRole
+            mode=listMode
+            id=ecsRoleId
+            trustedServices=["ec2.amazonaws.com" ]
+            managedArns=
+                ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"] +
+                _context.ManagedPolicy
+            policies=
+                [
+                    getPolicyDocument(
+                            s3ListPermission(codeBucket) +
+                            s3ReadPermission(credentialsBucket, accountId + "/alm/docker") +
+                            fixedIP?then(
+                                ec2IPAddressUpdatePermission(),
+                                []
+                            ) +
+                            s3ReadPermission(codeBucket) +
+                            s3ListPermission(operationsBucket) +
+                            s3WritePermission(operationsBucket, getSegmentBackupsFilePrefix()) +
+                            s3WritePermission(operationsBucket, "DOCKERLogs") +
+                            cwLogsProducePermission(ecsLogGroupName) +
+                            (solution.VolumeDrivers?seq_contains("ebs"))?then(
+                                ec2EBSVolumeUpdatePermission(),
+                                []
+                            ) ,
+                        "docker")
+                ] +
+                arrayIfContent(
+                    [getPolicyDocument(_context.Policy, "fragment")],
+                    _context.Policy) +
+                arrayIfContent(
+                    [getPolicyDocument(linkPolicies, "links")],
+                    linkPolicies)
+        /]
 
-        [#list bootstrapProfile.BootStraps as bootstrapName ]
-            [#assign bootstrap = bootstraps[bootstrapName]]
-            [#assign configSets +=
-                getInitConfigUserBootstrap(bootstrap, environmentVariables )!{}]
+        [@createRole
+            mode=listMode
+            id=ecsServiceRoleId
+            trustedServices=["ecs.amazonaws.com" ]
+            managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
+        /]
+
+    [/#if]
+
+    [#if solution.ClusterLogGroup &&
+            deploymentSubsetRequired("lg", true) &&
+            isPartOfCurrentDeploymentUnit(ecsLogGroupId)]
+        [@createLogGroup
+            mode=listMode
+            id=ecsLogGroupId
+            name=ecsLogGroupName /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(ecsInstanceLogGroupId) ]
+        [@createLogGroup
+            mode=listMode
+            id=ecsInstanceLogGroupId
+            name=ecsInstanceLogGroupName /]
+    [/#if]
+
+    [#local configSets +=
+        getInitConfigLogAgent(
+            logFileProfile,
+            ecsInstanceLogGroupName
+        )]
+
+    [#if deploymentSubsetRequired("ecs", true)]
+
+        [#list _context.Links as linkId,linkTarget]
+            [#local linkTargetCore = linkTarget.Core ]
+            [#local linkTargetConfiguration = linkTarget.Configuration ]
+            [#local linkTargetResources = linkTarget.State.Resources ]
+            [#local linkTargetAttributes = linkTarget.State.Attributes ]
+
+            [#switch linkTargetCore.Type]
+                [#case EFS_MOUNT_COMPONENT_TYPE]
+                    [#local configSets +=
+                        getInitConfigEFSMount(
+                            linkTargetCore.Id,
+                            linkTargetAttributes.EFS,
+                            linkTargetAttributes.DIRECTORY,
+                            linkId
+                        )]
+                    [#break]
+            [/#switch]
         [/#list]
 
-        [#if deploymentSubsetRequired("iam", true) &&
-                isPartOfCurrentDeploymentUnit(ecsRoleId)]
-            [#assign linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
+        [@createComponentSecurityGroup
+            mode=listMode
+            occurrence=occurrence
+            vpcId=vpcId
+        /]
 
-            [@createRole
+        [#list resources.logMetrics!{} as logMetricName,logMetric ]
+
+            [@createLogMetric
                 mode=listMode
-                id=ecsRoleId
-                trustedServices=["ec2.amazonaws.com" ]
-                managedArns=
-                    ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"] +
-                    _context.ManagedPolicy
-                policies=
-                    [
-                        getPolicyDocument(
-                                s3ListPermission(codeBucket) +
-                                s3ReadPermission(credentialsBucket, accountId + "/alm/docker") +
-                                fixedIP?then(
-                                    ec2IPAddressUpdatePermission(),
-                                    []
-                                ) +
-                                s3ReadPermission(codeBucket) +
-                                s3ListPermission(operationsBucket) +
-                                s3WritePermission(operationsBucket, getSegmentBackupsFilePrefix()) +
-                                s3WritePermission(operationsBucket, "DOCKERLogs") +
-                                cwLogsProducePermission(ecsLogGroupName) +
-                                (solution.VolumeDrivers?seq_contains("ebs"))?then(
-                                    ec2EBSVolumeUpdatePermission(),
-                                    []
-                                ) ,
-                            "docker")
-                    ] +
-                    arrayIfContent(
-                        [getPolicyDocument(_context.Policy, "fragment")],
-                        _context.Policy) +
-                    arrayIfContent(
-                        [getPolicyDocument(linkPolicies, "links")],
-                        linkPolicies)
+                id=logMetric.Id
+                name=logMetric.Name
+                logGroup=logMetric.LogGroupName
+                filter=logFilters[logMetric.LogFilter].Pattern
+                namespace=getResourceMetricNamespace(logMetric.Type)
+                value=1
+                dependencies=logMetric.LogGroupId
             /]
 
-            [@createRole
-                mode=listMode
-                id=ecsServiceRoleId
-                trustedServices=["ecs.amazonaws.com" ]
-                managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
-            /]
+        [/#list]
 
-        [/#if]
+        [#list solution.Alerts?values as alert ]
 
-        [#if solution.ClusterLogGroup &&
-                deploymentSubsetRequired("lg", true) &&
-                isPartOfCurrentDeploymentUnit(ecsLogGroupId)]
-            [@createLogGroup
-                mode=listMode
-                id=ecsLogGroupId
-                name=ecsLogGroupName /]
-        [/#if]
+            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#list monitoredResources as name,monitoredResource ]
 
-        [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(ecsInstanceLogGroupId) ]
-            [@createLogGroup
-                mode=listMode
-                id=ecsInstanceLogGroupId
-                name=ecsInstanceLogGroupName /]
-        [/#if]
+                [@cfDebug listMode monitoredResource false /]
 
-        [#assign configSets +=
-            getInitConfigLogAgent(
-                logFileProfile,
-                ecsInstanceLogGroupName
-            )]
-
-        [#if deploymentSubsetRequired("ecs", true)]
-
-            [#list _context.Links as linkId,linkTarget]
-                [#assign linkTargetCore = linkTarget.Core ]
-                [#assign linkTargetConfiguration = linkTarget.Configuration ]
-                [#assign linkTargetResources = linkTarget.State.Resources ]
-                [#assign linkTargetAttributes = linkTarget.State.Attributes ]
-
-                [#switch linkTargetCore.Type]
-                    [#case EFS_MOUNT_COMPONENT_TYPE]
-                        [#assign configSets +=
-                            getInitConfigEFSMount(
-                                linkTargetCore.Id,
-                                linkTargetAttributes.EFS,
-                                linkTargetAttributes.DIRECTORY,
-                                linkId
-                            )]
-                        [#break]
+                [#switch alert.Comparison ]
+                    [#case "Threshold" ]
+                        [@createCountAlarm
+                            mode=listMode
+                            id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                            severity=alert.Severity
+                            resourceName=core.FullName
+                            alertName=alert.Name
+                            actions=[
+                                getReference(formatSegmentSNSTopicId())
+                            ]
+                            metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                            namespace=getResourceMetricNamespace(monitoredResource.Type)
+                            description=alert.Description!alert.Name
+                            threshold=alert.Threshold
+                            statistic=alert.Statistic
+                            evaluationPeriods=alert.Periods
+                            period=alert.Time
+                            operator=alert.Operator
+                            reportOK=alert.ReportOk
+                            missingData=alert.MissingData
+                            dimensions=getResourceMetricDimensions(monitoredResource, resources)
+                            dependencies=monitoredResource.Id
+                        /]
+                    [#break]
                 [/#switch]
             [/#list]
+        [/#list]
 
-            [@createComponentSecurityGroup
-                mode=listMode
-                occurrence=occurrence
-                vpcId=vpcId
-            /]
-
-            [#list resources.logMetrics!{} as logMetricName,logMetric ]
-
-                [@createLogMetric
-                    mode=listMode
-                    id=logMetric.Id
-                    name=logMetric.Name
-                    logGroup=logMetric.LogGroupName
-                    filter=logFilters[logMetric.LogFilter].Pattern
-                    namespace=getResourceMetricNamespace(logMetric.Type)
-                    value=1
-                    dependencies=logMetric.LogGroupId
-                /]
-
-            [/#list]
-
-            [#list solution.Alerts?values as alert ]
-
-                [#assign monitoredResources = getMonitoredResources(resources, alert.Resource)]
-                [#list monitoredResources as name,monitoredResource ]
-
-                    [@cfDebug listMode monitoredResource false /]
-
-                    [#switch alert.Comparison ]
-                        [#case "Threshold" ]
-                            [@createCountAlarm
-                                mode=listMode
-                                id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
-                                severity=alert.Severity
-                                resourceName=core.FullName
-                                alertName=alert.Name
-                                actions=[
-                                    getReference(formatSegmentSNSTopicId())
-                                ]
-                                metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
-                                namespace=getResourceMetricNamespace(monitoredResource.Type)
-                                description=alert.Description!alert.Name
-                                threshold=alert.Threshold
-                                statistic=alert.Statistic
-                                evaluationPeriods=alert.Periods
-                                period=alert.Time
-                                operator=alert.Operator
-                                reportOK=alert.ReportOk
-                                missingData=alert.MissingData
-                                dimensions=getResourceMetricDimensions(monitoredResource, resources)
-                                dependencies=monitoredResource.Id
-                            /]
-                        [#break]
-                    [/#switch]
-                [/#list]
-            [/#list]
-
-            [#if processorProfile.MaxCount?has_content]
-                [#assign maxSize = processorProfile.MaxCount ]
-            [#else]
-                [#assign maxSize = processorProfile.MaxPerZone]
-                [#if multiAZ]
-                    [#assign maxSize = maxSize * zones?size]
-                [/#if]
+        [#if processorProfile.MaxCount?has_content]
+            [#local maxSize = processorProfile.MaxCount ]
+        [#else]
+            [#local maxSize = processorProfile.MaxPerZone]
+            [#if multiAZ]
+                [#local maxSize = maxSize * zones?size]
             [/#if]
-
-            [@createECSCluster
-                mode=listMode
-                id=ecsId
-            /]
-
-            [@cfResource
-                mode=listMode
-                id=ecsInstanceProfileId
-                type="AWS::IAM::InstanceProfile"
-                properties=
-                    {
-                        "Path" : "/",
-                        "Roles" : [getReference(ecsRoleId)]
-                    }
-                outputs={}
-            /]
-
-            [#assign allocationIds = [] ]
-            [#if fixedIP]
-                [#list 1..maxSize as index]
-                    [@createEIP
-                        mode=listMode
-                        id=formatComponentEIPId(core.Tier, core.Component, index)
-                    /]
-                    [#assign allocationIds +=
-                        [
-                            getReference(formatComponentEIPId(core.Tier, core.Component, index), ALLOCATION_ATTRIBUTE_TYPE)
-                        ]
-                    ]
-                [/#list]
-            [/#if]
-
-            [#if allocationIds?has_content ]
-                [#assign configSets +=
-                    getInitConfigEIPAllocation(allocationIds)]
-            [/#if]
-
-            [@createEc2AutoScaleGroup
-                mode=listMode
-                id=ecsAutoScaleGroupId
-                tier=core.Tier
-                configSetName=configSetName
-                configSets=configSets
-                launchConfigId=ecsLaunchConfigId
-                processorProfile=processorProfile
-                autoScalingConfig=solution.AutoScaling
-                multiAZ=multiAZ
-                tags=ecsTags
-                networkResources=networkResources
-                hibernate=hibernate
-            /]
-
-            [@createEC2LaunchConfig
-                mode=listMode
-                id=ecsLaunchConfigId
-                processorProfile=processorProfile
-                storageProfile=storageProfile
-                instanceProfileId=ecsInstanceProfileId
-                securityGroupId=ecsSecurityGroupId
-                resourceId=ecsAutoScaleGroupId
-                imageId=regionObject.AMIs.Centos.ECS
-                publicIP=publicRouteTable
-                configSet=configSetName
-                environmentId=environmentId
-                enableCfnSignal=solution.AutoScaling.WaitForSignal
-            /]
         [/#if]
-    [/#list]
-[/#if]
+
+        [@createECSCluster
+            mode=listMode
+            id=ecsId
+        /]
+
+        [@cfResource
+            mode=listMode
+            id=ecsInstanceProfileId
+            type="AWS::IAM::InstanceProfile"
+            properties=
+                {
+                    "Path" : "/",
+                    "Roles" : [getReference(ecsRoleId)]
+                }
+            outputs={}
+        /]
+
+        [#local allocationIds = [] ]
+        [#if fixedIP]
+            [#list 1..maxSize as index]
+                [@createEIP
+                    mode=listMode
+                    id=formatComponentEIPId(core.Tier, core.Component, index)
+                /]
+                [#local allocationIds +=
+                    [
+                        getReference(formatComponentEIPId(core.Tier, core.Component, index), ALLOCATION_ATTRIBUTE_TYPE)
+                    ]
+                ]
+            [/#list]
+        [/#if]
+
+        [#if allocationIds?has_content ]
+            [#local configSets +=
+                getInitConfigEIPAllocation(allocationIds)]
+        [/#if]
+
+        [@createEc2AutoScaleGroup
+            mode=listMode
+            id=ecsAutoScaleGroupId
+            tier=core.Tier
+            configSetName=configSetName
+            configSets=configSets
+            launchConfigId=ecsLaunchConfigId
+            processorProfile=processorProfile
+            autoScalingConfig=solution.AutoScaling
+            multiAZ=multiAZ
+            tags=ecsTags
+            networkResources=networkResources
+            hibernate=hibernate
+        /]
+
+        [@createEC2LaunchConfig
+            mode=listMode
+            id=ecsLaunchConfigId
+            processorProfile=processorProfile
+            storageProfile=storageProfile
+            instanceProfileId=ecsInstanceProfileId
+            securityGroupId=ecsSecurityGroupId
+            resourceId=ecsAutoScaleGroupId
+            imageId=regionObject.AMIs.Centos.ECS
+            publicIP=publicRouteTable
+            configSet=configSetName
+            environmentId=environmentId
+            enableCfnSignal=solution.AutoScaling.WaitForSignal
+        /]
+    [/#if]
+[/#macro]

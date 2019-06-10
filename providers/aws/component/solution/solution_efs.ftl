@@ -1,80 +1,73 @@
-[#-- EFS --]
+[#ftl]
+[#macro aws_efs_cf_solution occurrence ]
+    [@cfDebug listMode occurrence false /]
 
-[#if componentType == EFS_COMPONENT_TYPE  ]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
+    [#local zoneResources = occurrence.State.Resources.Zones]
 
-    [#list requiredOccurrences(
-            getOccurrences(tier, component),
-            deploymentUnit) as occurrence]
+    [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
-        [@cfDebug listMode occurrence false /]
+    [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
-        [#assign core = occurrence.Core]
-        [#assign solution = occurrence.Configuration.Solution]
-        [#assign resources = occurrence.State.Resources]
-        [#assign zoneResources = occurrence.State.Resources.Zones]
+    [#if ! networkLinkTarget?has_content ]
+        [@cfException listMode "Network could not be found" networkLink /]
+        [#return]
+    [/#if]
 
-        [#assign networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
+    [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
+    [#local networkResources = networkLinkTarget.State.Resources ]
 
-        [#assign networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
+    [#local vpcId = networkResources["vpc"].Id ]
 
-        [#if ! networkLinkTarget?has_content ]
-            [@cfException listMode "Network could not be found" networkLink /]
-            [#break]
-        [/#if]
+    [#local efsPort = 2049]
 
-        [#assign networkConfiguration = networkLinkTarget.Configuration.Solution]
-        [#assign networkResources = networkLinkTarget.State.Resources ]
+    [#local efsId                  = resources["efs"].Id]
+    [#local efsFullName            = resources["efs"].Name]
+    [#local efsSecurityGroupId     = resources["sg"].Id]
+    [#local efsSecurityGroupName   = resources["sg"].Name]
 
-        [#assign vpcId = networkResources["vpc"].Id ]
+    [#local efsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
+                                            efsSecurityGroupId,
+                                            efsPort)]
 
-        [#assign efsPort = 2049]
+    [#if deploymentSubsetRequired("efs", true) ]
+        [@createSecurityGroup
+            mode=listMode
+            id=efsSecurityGroupId
+            name=efsSecurityGroupName
+            occurrence=occurrence
+            vpcId=vpcId
+        /]
 
-        [#assign efsId                  = resources["efs"].Id]
-        [#assign efsFullName            = resources["efs"].Name]
-        [#assign efsSecurityGroupId     = resources["sg"].Id]
-        [#assign efsSecurityGroupName   = resources["sg"].Name]
+        [@createSecurityGroupIngress
+            mode=listMode
+            id=efsSecurityGroupIngressId
+            port=efsPort
+            cidr="0.0.0.0/0"
+            groupId=efsSecurityGroupId
+        /]
 
-        [#assign efsSecurityGroupIngressId = formatDependentSecurityGroupIngressId(
-                                                efsSecurityGroupId,
-                                                efsPort)]
+        [@createEFS
+            mode=listMode
+            tier=core.Tier
+            id=efsId
+            name=efsFullName
+            component=core.Component
+            encrypted=solution.Encrypted
+        /]
 
-        [#if deploymentSubsetRequired("efs", true) ]
-            [@createSecurityGroup
+        [#list zones as zone ]
+            [#local zoneEfsMountTargetId   = zoneResources[zone.Id]["efsMountTarget"].Id]
+            [@createEFSMountTarget
                 mode=listMode
-                id=efsSecurityGroupId
-                name=efsSecurityGroupName
-                occurrence=occurrence
-                vpcId=vpcId
+                id=zoneEfsMountTargetId
+                subnet=getSubnets(core.Tier, networkResources, zone.Id, true, false)
+                efsId=efsId
+                securityGroups=efsSecurityGroupId
+                dependencies=[efsId,efsSecurityGroupId]
             /]
-
-            [@createSecurityGroupIngress
-                mode=listMode
-                id=efsSecurityGroupIngressId
-                port=efsPort
-                cidr="0.0.0.0/0"
-                groupId=efsSecurityGroupId
-            /]
-
-            [@createEFS
-                mode=listMode
-                tier=core.Tier
-                id=efsId
-                name=efsFullName
-                component=core.Component
-                encrypted=solution.Encrypted
-            /]
-
-            [#list zones as zone ]
-                [#assign zoneEfsMountTargetId   = zoneResources[zone.Id]["efsMountTarget"].Id]
-                [@createEFSMountTarget
-                    mode=listMode
-                    id=zoneEfsMountTargetId
-                    subnet=getSubnets(core.Tier, networkResources, zone.Id, true, false)
-                    efsId=efsId
-                    securityGroups=efsSecurityGroupId
-                    dependencies=[efsId,efsSecurityGroupId]
-                /]
-            [/#list]
-        [/#if ]
-    [/#list]
-[/#if]
+        [/#list]
+    [/#if ]
+[/#macro]

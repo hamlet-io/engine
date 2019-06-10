@@ -1,211 +1,158 @@
-[#-- Config Store --]
+[#ftl]
+[#macro aws_configstore_cf_solution occurrence ]
+    [@cfDebug listMode occurrence false /]
 
-[#if componentType == CONFIGSTORE_COMPONENT_TYPE ]
+    [#local parentCore = occurrence.Core]
+    [#local parentSolution = occurrence.Configuration.Solution]
+    [#local parentResources = occurrence.State.Resources]
 
-    [#list requiredOccurrences(
-            getOccurrences(tier, component),
-            deploymentUnit) as occurrence]
+    [#local tableId = parentResources["table"].Id ]
+    [#local tableKey = parentResources["table"].Key ]
+    [#local tableSortKey = parentResources["table"].SortKey!"" ]
 
-        [@cfDebug listMode occurrence false /]
+    [#local itemInitCommand = "initItem"]
+    [#local itemUpdateCommand = "updateItem" ]
+    [#local tableCleanupCommand = "cleanupTable" ]
 
-        [#assign parentCore = occurrence.Core]
-        [#assign parentSolution = occurrence.Configuration.Solution]
-        [#assign parentResources = occurrence.State.Resources]
+    [#local dynamoTableKeys = getDynamoDbTableKey(tableKey , "hash")]
+    [#local dynamoTableKeyAttributes = getDynamoDbTableAttribute( tableKey, STRING_TYPE)]
 
-        [#assign tableId = parentResources["table"].Id ]
-        [#assign tableKey = parentResources["table"].Key ]
-        [#assign tableSortKey = parentResources["table"].SortKey!"" ]
+    [#if parentSolution.SecondaryKey ]
+        [#local dynamoTableKeys += getDynamoDbTableKey(tableSortKey, "range" )]
+        [#local dynamoTableKeyAttributes += getDynamoDbTableAttribute(tableSortKey, STRING_TYPE)]
+    [/#if]
 
-        [#assign itemInitCommand = "initItem"]
-        [#assign itemUpdateCommand = "updateItem" ]
-        [#assign tableCleanupCommand = "cleanupTable" ]
+    [#local runIdAttributeName = "runId" ]
+    [#local runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
 
-        [#assign dynamoTableKeys = getDynamoDbTableKey(tableKey , "hash")]
-        [#assign dynamoTableKeyAttributes = getDynamoDbTableAttribute( tableKey, STRING_TYPE)]
+    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-        [#if parentSolution.SecondaryKey ]
-            [#assign dynamoTableKeys += getDynamoDbTableKey(tableSortKey, "range" )]
-            [#assign dynamoTableKeyAttributes += getDynamoDbTableAttribute(tableSortKey, STRING_TYPE)]
-        [/#if]
+    [#local _parentContext =
+        {
+            "Id" : fragment,
+            "Name" : fragment,
+            "Instance" : parentCore.Instance.Id,
+            "Version" : parentCore.Version.Id
+        }
+    ]
+    [#local fragmentId = formatFragmentId(_parentContext)]
 
-        [#assign runIdAttributeName = "runId" ]
-        [#assign runIdAttribute = getDynamoDbTableItem( ":run_id", runId)]
+    [#-- Lookup table name once it has been deployed --]
+    [#if deploymentSubsetRequired("epilogue", false)]
+        [@cfScript
+            mode=listMode
+            content=[
+                " case $\{STACK_OPERATION} in",
+                "   create|update)",
+                "       # Get cli config file",
+                "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
+                "       # Get DynamoDb TableName",
+                "       export tableName=$(get_cloudformation_stack_output" +
+                "       \"" + region + "\" " +
+                "       \"$\{STACK_NAME}\" " +
+                "       \"" + tableId + "\" " +
+                "       || return $?)",
+                "       ;;",
+                " esac"
+            ]
+        /]
+    [/#if]
 
-        [#assign fragment = getOccurrenceFragmentBase(occurrence) ]
+    [#-- Branch setup --]
+    [#list occurrence.Occurrences![] as subOccurrence]
 
-        [#assign _parentContext =
+        [#local core = subOccurrence.Core ]
+        [#local solution = subOccurrence.Configuration.Solution ]
+        [#local resources = subOccurrence.State.Resources ]
+
+        [#local itemId = resources["item"].Id]
+        [#local itemPrimaryKey = resources["item"].PrimaryKey ]
+        [#local itemSecondaryKey = (resources["item"].SecondaryKey)!"" ]
+
+        [#local initCliId = formatId( itemId, "init")]
+        [#local updateCliId = formatId( itemId, "update" )]
+
+        [#local contextLinks = getLinkTargets(subOccurrence)]
+
+        [#local _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
                 "Instance" : parentCore.Instance.Id,
-                "Version" : parentCore.Version.Id
+                "Version" : parentCore.Version.Id,
+                "Environment" : {},
+                "Links" : contextLinks,
+                "DefaultEnvironment" : defaultEnvironment(subOccurrence, contextLinks),
+                "DefaultCoreVariables" : false,
+                "DefaultEnvironmentVariables" : false,
+                "DefaultLinkVariables" : true,
+                "Branch" : formatName(itemPrimaryKey + itemSecondaryKey)
             }
         ]
-        [#assign fragmentId = formatFragmentId(_parentContext)]
 
-        [#-- Lookup table name once it has been deployed --]
-        [#if deploymentSubsetRequired("epilogue", false)]
-            [@cfScript
-                mode=listMode
-                content=[
-                    " case $\{STACK_OPERATION} in",
-                    "   create|update)",
-                    "       # Get cli config file",
-                    "       split_cli_file \"$\{CLI}\" \"$\{tmpdir}\" || return $?",
-                    "       # Get DynamoDb TableName",
-                    "       export tableName=$(get_cloudformation_stack_output" +
-                    "       \"" + region + "\" " +
-                    "       \"$\{STACK_NAME}\" " +
-                    "       \"" + tableId + "\" " +
-                    "       || return $?)",
-                    "       ;;",
-                    " esac"
-                ]
-            /]
-        [/#if]
+        [#-- Add in fragment specifics including override of defaults --]
+        [#local fragmentListMode = "model"]
+        [#include fragmentList?ensure_starts_with("/")]
 
-        [#-- Branch setup --]
-        [#list occurrence.Occurrences![] as subOccurrence]
+        [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context ) ]
+        [#local _context += finalEnvironment ]
 
-            [#assign core = subOccurrence.Core ]
-            [#assign solution = subOccurrence.Configuration.Solution ]
-            [#assign resources = subOccurrence.State.Resources ]
+        [#local _context +=
+            {
+                "Environment" : {
+                                    "configStore" : parentCore.Id
+                                } +
+                                (_context.Environment!{})
 
-            [#assign itemId = resources["item"].Id]
-            [#assign itemPrimaryKey = resources["item"].PrimaryKey ]
-            [#assign itemSecondaryKey = (resources["item"].SecondaryKey)!"" ]
+            }
+        ]
 
-            [#assign initCliId = formatId( itemId, "init")]
-            [#assign updateCliId = formatId( itemId, "update" )]
-
-            [#assign contextLinks = getLinkTargets(subOccurrence)]
-
-            [#assign _context =
-                {
-                    "Id" : fragment,
-                    "Name" : fragment,
-                    "Instance" : parentCore.Instance.Id,
-                    "Version" : parentCore.Version.Id,
-                    "Environment" : {},
-                    "Links" : contextLinks,
-                    "DefaultEnvironment" : defaultEnvironment(subOccurrence, contextLinks),
-                    "DefaultCoreVariables" : false,
-                    "DefaultEnvironmentVariables" : false,
-                    "DefaultLinkVariables" : true,
-                    "Branch" : formatName(itemPrimaryKey + itemSecondaryKey)
-                }
-            ]
-
-            [#-- Add in fragment specifics including override of defaults --]
-            [#assign fragmentListMode = "model"]
-            [#include fragmentList?ensure_starts_with("/")]
-
-            [#assign finalEnvironment = getFinalEnvironment(subOccurrence, _context ) ]
-            [#assign _context += finalEnvironment ]
-
-            [#assign _context +=
-                {
-                    "Environment" : {
-                                        "configStore" : parentCore.Id
-                                    } +
-                                    (_context.Environment!{})
-
-                }
-            ]
-
-            [#if deploymentSubsetRequired("cli", false) ]
-
-                [#assign branchItemKey = getDynamoDbTableItem( tableKey, itemPrimaryKey )]
-
-                [#if parentSolution.SecondaryKey ]
-                    [#assign branchItemKey = mergeObjects(branchItemKey, getDynamoDbTableItem( tableSortKey, itemSecondaryKey) ) ]
-                [/#if]
-
-                [#assign branchUpdateAttribtueValues = runIdAttribute ]
-                [#assign branchUpdateExpression =
-                    [
-                        runIdAttributeName + " = :run_id"
-                    ]
-                ]
-
-                [#list solution.States as id,state ]
-                    [#assign branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + state.Name, state.InitialValue )]
-                    [#assign branchUpdateExpression += [ state.Name + " = if_not_exists(" + state.Name + ", :" + state.Name + ")" ]]
-                [/#list]
-
-                [#list _context.Environment as envKey, envValue ]
-                    [#if envValue?has_content ]
-                        [#assign branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + envKey, envValue )]
-                        [#assign branchUpdateExpression += [ envKey + " = :" + envKey ]]
-                    [/#if]
-                [/#list]
-
-                [@cfCli
-                    id=updateCliId
-                    mode=listMode
-                    command=itemUpdateCommand
-                    content={
-                        "Key" : branchItemKey
-                    } +
-                    attributeIfContent(
-                        "UpdateExpression",
-                        branchUpdateExpression,
-                        "SET " + branchUpdateExpression?join(", ")
-                    ) +
-                    attributeIfContent(
-                        "ExpressionAttributeValues",
-                        branchUpdateAttribtueValues
-                    )
-                /]
-            [/#if]
-
-
-            [#if deploymentSubsetRequired("epilogue", false)]
-                [@cfScript
-                    mode=listMode
-                    content=[
-                        " case $\{STACK_OPERATION} in",
-                        "   create|update)",
-                        "       # Manage Branch Attributes",
-                        "       info \"Creating DynamoDB Item - Table: " + tableId + " - Primary Key: " + itemPrimaryKey + " - Secondary Key: " + itemSecondaryKey "\"",
-                        "       upsert_dynamodb_item" +
-                        "       \"" + region + "\" " +
-                        "       \"$\{tableName}\" " +
-                        "       \"$\{tmpdir}/cli-" + updateCliId + "-" + itemUpdateCommand + ".json\" " +
-                        "       \"$\{STACK_NAME}\" " +
-                        "       || return $?",
-                        "       ;;",
-                        " esac"
-                    ]
-                /]
-            [/#if]
-        [/#list]
-
-        [#-- cleanup old items --]
         [#if deploymentSubsetRequired("cli", false) ]
-            [#assign cleanupFilterExpression = "NOT " + runIdAttributeName + " = :run_id"  ]
-            [#assign cleanupExpressionAttributeValues = runIdAttribute ]
 
-            [#assign projectionExpression = [ "#" + tableKey]  ]
-            [#assign expressionAttributeNames = { "#" + tableKey : tableKey } ]
+            [#local branchItemKey = getDynamoDbTableItem( tableKey, itemPrimaryKey )]
 
             [#if parentSolution.SecondaryKey ]
-                [#assign projectionExpression += [ "#" + tableSortKey ] ]
-                [#assign expressionAttributeNames += { "#" + tableSortKey : tableSortKey } ]
+                [#local branchItemKey = mergeObjects(branchItemKey, getDynamoDbTableItem( tableSortKey, itemSecondaryKey) ) ]
             [/#if]
 
+            [#local branchUpdateAttribtueValues = runIdAttribute ]
+            [#local branchUpdateExpression =
+                [
+                    runIdAttributeName + " = :run_id"
+                ]
+            ]
+
+            [#list solution.States as id,state ]
+                [#local branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + state.Name, state.InitialValue )]
+                [#local branchUpdateExpression += [ state.Name + " = if_not_exists(" + state.Name + ", :" + state.Name + ")" ]]
+            [/#list]
+
+            [#list _context.Environment as envKey, envValue ]
+                [#if envValue?has_content ]
+                    [#local branchUpdateAttribtueValues += getDynamoDbTableItem( ":" + envKey, envValue )]
+                    [#local branchUpdateExpression += [ envKey + " = :" + envKey ]]
+                [/#if]
+            [/#list]
+
             [@cfCli
+                id=updateCliId
                 mode=listMode
-                id=tableId
-                command=tableCleanupCommand
+                command=itemUpdateCommand
                 content={
-                    "FilterExpression" : cleanupFilterExpression,
-                    "ExpressionAttributeValues" : cleanupExpressionAttributeValues,
-                    "ProjectionExpression" : projectionExpression?join(", "),
-                    "ExpressionAttributeNames" : expressionAttributeNames
-                }
+                    "Key" : branchItemKey
+                } +
+                attributeIfContent(
+                    "UpdateExpression",
+                    branchUpdateExpression,
+                    "SET " + branchUpdateExpression?join(", ")
+                ) +
+                attributeIfContent(
+                    "ExpressionAttributeValues",
+                    branchUpdateAttribtueValues
+                )
             /]
         [/#if]
+
 
         [#if deploymentSubsetRequired("epilogue", false)]
             [@cfScript
@@ -213,37 +160,83 @@
                 content=[
                     " case $\{STACK_OPERATION} in",
                     "   create|update)",
-                    "       # Clean up old branch items",
-                    "       info \"Cleaning up old items DynamoDB - Table: " + tableId + "\"",
-                    "       old_items=$(scan_dynamodb_table" +
+                    "       # Manage Branch Attributes",
+                    "       info \"Creating DynamoDB Item - Table: " + tableId + " - Primary Key: " + itemPrimaryKey + " - Secondary Key: " + itemSecondaryKey "\"",
+                    "       upsert_dynamodb_item" +
                     "       \"" + region + "\" " +
                     "       \"$\{tableName}\" " +
-                    "       \"$\{tmpdir}/cli-" + tableId + "-" + tableCleanupCommand + ".json\" " +
-                    "       \"$\{STACK_NAME}\" " +
-                    "       || return $?)",
-                    "       delete_dynamodb_items" +
-                    "       \"" + region + "\" " +
-                    "       \"$\{tableName}\" " +
-                    "       \"$\{old_items}\" " +
+                    "       \"$\{tmpdir}/cli-" + updateCliId + "-" + itemUpdateCommand + ".json\" " +
                     "       \"$\{STACK_NAME}\" " +
                     "       || return $?",
                     "       ;;",
                     " esac"
-                    ]
-            /]
-        [/#if]
-
-        [#if deploymentSubsetRequired(CONFIGSTORE_COMPONENT_TYPE, true) ]
-            [@createDynamoDbTable
-                id=tableId
-                mode=listMode
-                backupEnabled=parentSolution.Table.Backup.Enabled
-                billingMode=parentSolution.Table.Billing
-                writeCapacity=parentSolution.Table.Capacity.Write
-                readCapacity=parentSolution.Table.Capacity.Read
-                attributes=dynamoTableKeyAttributes
-                keys=dynamoTableKeys
+                ]
             /]
         [/#if]
     [/#list]
-[/#if]
+
+    [#-- cleanup old items --]
+    [#if deploymentSubsetRequired("cli", false) ]
+        [#local cleanupFilterExpression = "NOT " + runIdAttributeName + " = :run_id"  ]
+        [#local cleanupExpressionAttributeValues = runIdAttribute ]
+
+        [#local projectionExpression = [ "#" + tableKey]  ]
+        [#local expressionAttributeNames = { "#" + tableKey : tableKey } ]
+
+        [#if parentSolution.SecondaryKey ]
+            [#local projectionExpression += [ "#" + tableSortKey ] ]
+            [#local expressionAttributeNames += { "#" + tableSortKey : tableSortKey } ]
+        [/#if]
+
+        [@cfCli
+            mode=listMode
+            id=tableId
+            command=tableCleanupCommand
+            content={
+                "FilterExpression" : cleanupFilterExpression,
+                "ExpressionAttributeValues" : cleanupExpressionAttributeValues,
+                "ProjectionExpression" : projectionExpression?join(", "),
+                "ExpressionAttributeNames" : expressionAttributeNames
+            }
+        /]
+    [/#if]
+
+    [#if deploymentSubsetRequired("epilogue", false)]
+        [@cfScript
+            mode=listMode
+            content=[
+                " case $\{STACK_OPERATION} in",
+                "   create|update)",
+                "       # Clean up old branch items",
+                "       info \"Cleaning up old items DynamoDB - Table: " + tableId + "\"",
+                "       old_items=$(scan_dynamodb_table" +
+                "       \"" + region + "\" " +
+                "       \"$\{tableName}\" " +
+                "       \"$\{tmpdir}/cli-" + tableId + "-" + tableCleanupCommand + ".json\" " +
+                "       \"$\{STACK_NAME}\" " +
+                "       || return $?)",
+                "       delete_dynamodb_items" +
+                "       \"" + region + "\" " +
+                "       \"$\{tableName}\" " +
+                "       \"$\{old_items}\" " +
+                "       \"$\{STACK_NAME}\" " +
+                "       || return $?",
+                "       ;;",
+                " esac"
+                ]
+        /]
+    [/#if]
+
+    [#if deploymentSubsetRequired(CONFIGSTORE_COMPONENT_TYPE, true) ]
+        [@createDynamoDbTable
+            id=tableId
+            mode=listMode
+            backupEnabled=parentSolution.Table.Backup.Enabled
+            billingMode=parentSolution.Table.Billing
+            writeCapacity=parentSolution.Table.Capacity.Write
+            readCapacity=parentSolution.Table.Capacity.Read
+            attributes=dynamoTableKeyAttributes
+            keys=dynamoTableKeys
+        /]
+    [/#if]
+[/#macro]

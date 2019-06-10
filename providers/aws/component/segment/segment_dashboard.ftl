@@ -1,6 +1,5 @@
-[#-- Dashboard --]
-
-[#if componentType == "dashboard"]
+[#ftl]
+[#macro aws_dashboard_cf_segment occurrence ]
 
     [#if deploymentSubsetRequired("dashboard", true)]
         [@createDashboard
@@ -10,6 +9,6 @@
             components=dashboardComponents
         /]
     [/#if]
-[/#if]
+[/#macro]
 
 
