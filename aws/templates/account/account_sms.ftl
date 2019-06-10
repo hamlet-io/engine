@@ -1,6 +1,14 @@
 [#-- SMS --]
 [#if deploymentUnit?contains("sms") || (allDeploymentUnits!false) ]
     [#assign cloudWatchRoleId = formatAccountRoleId("sms","cloudwatch")]
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["epilogue", "cli"])
+        /]
+    [/#if]
+
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
         [@createRole
             mode=listMode

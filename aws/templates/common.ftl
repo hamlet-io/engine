@@ -833,6 +833,7 @@ behaviour.
         [#if (.vars[stateMacro]!"")?is_directive]
             [@(.vars[stateMacro]) occurrence parentOccurrence result /]
             [#local result = componentState]
+            [@cfDebug listMode {"Macro" : stateMacro, "State": result} false /]
         [#else]
 
             [#switch core.Type!""]
@@ -845,6 +846,12 @@ behaviour.
                             }
                         }
                     ]
+                    [#break]
+                [#default]
+                    [@cfException
+                        mode=listMode
+                        description="No state macro available for type " + core.Type!""
+                        context=stateMacro /]
                     [#break]
 
             [/#switch]

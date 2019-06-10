@@ -1,5 +1,14 @@
 [#ftl]
 [#macro aws_network_cf_segment occurrence ]
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["template"])
+        /]
+        [#return]
+    [/#if]
+
     [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]

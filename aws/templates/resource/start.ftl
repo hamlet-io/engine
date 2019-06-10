@@ -646,8 +646,26 @@
         [@processComponents level /]
     [/#if]
 
-    [#if templateResources?has_content || exceptionResources?has_content
-    || debugResources?has_content]
+    [#if templateScript?has_content]
+      #!/bin/bash
+      #--COT-RequestReference=${requestReference}
+      #--COT-ConfigurationReference=${configurationReference}
+      #--COT-RunId=${runId}
+      [#list templateScript as line]
+          ${line}
+      [/#list]
+    [#elseif templateConfig?has_content || exceptionResources?has_content]
+        [@toJSON templateConfig  +
+            valueIfContent(
+                {
+                    "Exceptions" : exceptionResources
+                },
+                exceptionResources
+            ) /]
+    [#elseif templateCli?has_content]
+        [@toJSON templateCli /]
+    [#elseif templateResources?has_content || exceptionResources?has_content
+            || debugResources?has_content]
       [@toJSON
           {
               "AWSTemplateFormatVersion" : "2010-09-09",
@@ -677,23 +695,5 @@
               exceptionResources
           )
       /]
-    [#elseif templateScript?has_content]
-      #!/bin/bash
-      #--COT-RequestReference=${requestReference}
-      #--COT-ConfigurationReference=${configurationReference}
-      #--COT-RunId=${runId}
-      [#list templateScript as line]
-          ${line}
-      [/#list]
-    [#elseif templateConfig?has_content || exceptionResources?has_content]
-        [@toJSON templateConfig  +
-            valueIfContent(
-                {
-                    "Exceptions" : exceptionResources
-                },
-                exceptionResources
-            ) /]
-    [#elseif templateCli?has_content]
-        [@toJSON templateCli /]
     [/#if]
 [/#macro]

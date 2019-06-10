@@ -2,6 +2,15 @@
 [#macro aws_contentnode_cf_application occurrence ]
     [@cfDebug listMode occurrence false /]
 
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["prologue"])
+        /]
+        [#return]
+    [/#if]
+
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
     [#local resources = occurrence.State.Resources]

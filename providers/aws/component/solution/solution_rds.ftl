@@ -1,7 +1,5 @@
 [#ftl]
 [#macro aws_rds_cf_solution occurrence ]
-    [@cfDebug listMode occurrence false /]
-
     [#if deploymentSubsetRequired("genplan", false)]
         [@cfScript
             mode=listMode
@@ -12,6 +10,8 @@
         /]
         [#return]
     [/#if]
+
+    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]

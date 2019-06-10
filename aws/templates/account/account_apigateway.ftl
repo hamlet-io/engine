@@ -1,6 +1,14 @@
 [#-- API Gateway --]
 [#if deploymentUnit?contains("apigateway") || (allDeploymentUnits!false) ]
     [#assign cloudWatchRoleId = formatAccountRoleId("cloudwatch")]
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(["template"])
+        /]
+    [/#if]
+
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
         [@createRole
             mode=listMode
