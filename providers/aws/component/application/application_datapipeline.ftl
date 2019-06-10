@@ -78,7 +78,7 @@
     [#-- Add in container specifics including override of defaults --]
     [#-- Allows for explicit policy or managed ARN's to be assigned to the user --]
     [#local contextLinks = getLinkTargets(occurrence) ]
-    [#local _context =
+    [#assign _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -100,7 +100,7 @@
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
-    [#local _context += getFinalEnvironment(occurrence, _context) ]
+    [#assign _context += getFinalEnvironment(occurrence, _context) ]
     [#local parameterValues += _context.Environment ]
 
     [#local myParameterValues = {}]

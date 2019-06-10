@@ -83,7 +83,7 @@
 
         [#local contextLinks = getLinkTargets(subOccurrence)]
 
-        [#local _context =
+        [#assign _context =
             {
                 "Id" : fragment,
                 "Name" : fragment,
@@ -104,9 +104,9 @@
         [#include fragmentList?ensure_starts_with("/")]
 
         [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context ) ]
-        [#local _context += finalEnvironment ]
+        [#assign _context += finalEnvironment ]
 
-        [#local _context +=
+        [#assign _context +=
             {
                 "Environment" : {
                                     "configStore" : parentCore.Id

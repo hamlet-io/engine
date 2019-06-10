@@ -19,7 +19,7 @@
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local contextLinks = getLinkTargets(occurrence) ]
-    [#local _context =
+    [#assign _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -39,7 +39,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#local _context += getFinalEnvironment(occurrence, _context) ]
+    [#assign _context += getFinalEnvironment(occurrence, _context) ]
 
     [#if deploymentSubsetRequired("config", false)]
         [@cfConfig

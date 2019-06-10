@@ -94,7 +94,7 @@
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local contextLinks = getLinkTargets(occurrence, links) ]
-    [#local _context =
+    [#assign _context =
         {
             "Id" : fragment,
             "Name" : fragment,
@@ -197,7 +197,7 @@
                         }
                     }]
                 [/#list]
-                [#local _context +=
+                [#assign _context +=
                     {
                         "DataVolumes" :
                             (_context.DataVolumes!{}) +
