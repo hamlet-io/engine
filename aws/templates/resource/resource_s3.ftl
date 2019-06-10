@@ -1,4 +1,61 @@
 [#-- S3 --]
+[#assign AWS_S3_RESOURCE_TYPE = "s3" ]
+[#assign AWS_S3_BUCKET_POLICY_RESOURCE_TYPE="bucketpolicy" ]
+
+[#function formatS3Id ids...]
+    [#return formatResourceId(
+            AWS_S3_RESOURCE_TYPE,
+            ids)]
+[/#function]
+
+[#function formatSegmentS3Id type extensions...]
+    [#return formatSegmentResourceId(
+                AWS_S3_RESOURCE_TYPE,
+                type,
+                extensions)]
+[/#function]
+
+[#function formatOccurrenceS3Id occurrence extensions...]
+    [#return formatComponentResourceId(
+                AWS_S3_RESOURCE_TYPE,
+                occurrence.Core.Tier,
+                occurrence.Core.Component,
+                occurrence,
+                extensions)]
+[/#function]
+
+[#function formatProductS3Id type extensions...]
+    [#return formatProductResourceId(
+                AWS_S3_RESOURCE_TYPE,
+                type,
+                extensions)]
+[/#function]
+
+[#function formatAccountS3Id type extensions...]
+    [#return formatAccountResourceId(
+                AWS_S3_RESOURCE_TYPE,
+                type,
+                extensions)]
+[/#function]
+
+[#function formatBucketPolicyId ids...]
+    [#return formatResourceId(
+                AWS_S3_BUCKET_POLICY_RESOURCE_TYPE,
+                ids)]
+[/#function]
+
+[#function formatDependentBucketPolicyId resourceId extensions...]
+    [#return formatDependentResourceId(
+                AWS_S3_BUCKET_POLICY_RESOURCE_TYPE,
+                resourceId,
+                extensions)]
+[/#function]
+
+[#function formatS3NotificationsQueuePolicyId s3Id queue]
+    [#return formatDependentPolicyId(
+                s3Id,
+                queue)]
+[/#function]
 
 [#function getS3LifecycleExpirationRule days prefix="" enabled=true]
     [#return
@@ -116,8 +173,8 @@
 
 [#function getS3SQSNotification queue event prefix="" suffix="" ]
     [#local filterRules = [] ]
-    [#if prefix?has_content ]   
-        [#local filterRules += 
+    [#if prefix?has_content ]
+        [#local filterRules +=
             [ {
                 "Name" : "prefix",
                 "Value" : prefix
@@ -125,8 +182,8 @@
     [/#if]
 
     [#if suffix?has_content ]
-        [#local filterRules += 
-            [ 
+        [#local filterRules +=
+            [
                 {
                     "Name" : "suffix",
                     "Value" : suffix
@@ -146,7 +203,7 @@
         [#case "restore" ]
             [#local event ="s3:ObjectRestore:*"]
             [#break]
-        [#case "reducedredundancy" ]    
+        [#case "reducedredundancy" ]
             [#local event = "s3:ReducedRedundancyLostObject" ]
             [#break]
     [/#switch]
@@ -156,7 +213,7 @@
             {
                 "Event" : event,
                 "Queue" : getReference(queue, ARN_ATTRIBUTE_TYPE )
-            } + 
+            } +
             attributeIfContent(
                 "Filter",
                 filterRules,
@@ -191,7 +248,7 @@
     [/#if]
 [/#function]
 
-[#function getS3ReplicationConfiguration 
+[#function getS3ReplicationConfiguration
     roleId
     replicationRules
     ]
@@ -203,17 +260,17 @@
     ]
 [/#function]
 
-[#function getS3ReplicationRule 
+[#function getS3ReplicationRule
     destinationBucket
     enabled
     prefix
     encryptReplica=false
 ]
-    [#return 
+    [#return
         {
             "Destination" : {
                 "Bucket" : getArn(destinationBucket)
-            } + 
+            } +
             encryptReplica?then(
                     {
                         "EncryptionConfiguration" : {
@@ -222,7 +279,7 @@
                     },
                     {}
             ),
-            "Prefix" : prefix,    
+            "Prefix" : prefix,
             "Status" : enabled?then(
                 "Enabled",
                 "Disabled"

@@ -12,6 +12,11 @@
 [#include "common.ftl"]
 [#include "swagger.ftl"]
 
+[#-- Include a few key components --]
+[#-- TODO(mfl): Refactor to remove provider dependencies --]
+[@includeComponentConfiguration "baseline" /]
+[@includeComponentConfiguration "ec2" /]
+
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
 [#assign fullNamePrefixes = [] ]
@@ -513,5 +518,4 @@
 [#include "commonSegment.ftl"]
 [#include "commonSolution.ftl"]
 [#include "commonApplication.ftl"]
-
 

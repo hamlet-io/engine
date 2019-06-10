@@ -261,11 +261,11 @@
                 [#case "multiaz"]
                     [#break]
                 [#-- Backwards Compatability for Component renaming --]
-                [#case ALB_COMPONENT_TYPE ]
+                [#case LB_LEGACY_COMPONENT_TYPE ]
                     [#return LB_COMPONENT_TYPE]
                     [#break]
-                [#case "elasticsearch"]
-                    [#return "es"]
+                [#case ES_LEGACY_COMPONENT_TYPE]
+                    [#return ES_COMPONENT_TYPE]
                     [#break]
                 [#default]
                     [#return key?lower_case]
@@ -282,9 +282,14 @@
         [#if key?lower_case == type]
             [#return value]
         [#-- Backwards Compatability for Component renaming --]
-        [#elseif key?lower_case == ALB_COMPONENT_TYPE && type == LB_COMPONENT_TYPE ]
-            [#return value]
-        [/#if]
+        [#else]
+            [#switch key?lower_case]
+                [#case LB_LEGACY_COMPONENT_TYPE]
+                [#case ES_LEGACY_COMPONENT_TYPE]
+                    [#return value]
+                    [#break]
+            [/#switch]
+       [/#if]
     [/#list]
     [#return {} ]
 [/#function]
@@ -848,10 +853,10 @@ behaviour.
                     ]
                     [#break]
                 [#default]
-                    [@cfException
+                    [@cfDebug
                         mode=listMode
-                        description="No state macro available for type " + core.Type!""
-                        context=stateMacro /]
+                        value="State macro " + stateMacro + " not found"
+                        enabled=false /]
                     [#break]
 
             [/#switch]
@@ -1648,6 +1653,7 @@ behaviour.
         [/#list]
 
         [#-- Legacy support for links to lambda without explicit function --]
+        [#-- TODO(mfl): Review legacy support with view to removal --]
         [#if targetOccurrence.Occurrences?has_content &&
                 subComponentId == "" &&
                 (core.Type == LAMBDA_COMPONENT_TYPE) ]

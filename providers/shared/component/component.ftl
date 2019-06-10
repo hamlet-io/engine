@@ -1,4 +1,84 @@
 [#ftl]
+
+[#-- Known component types --]
+
+[#assign APIGATEWAY_COMPONENT_TYPE = "apigateway"]
+[#assign APIGATEWAY_USAGEPLAN_COMPONENT_TYPE = "apiusageplan"]
+[#assign APIGATEWAY_COMPONENT_DOCS_EXTENSION = "docs"]
+
+[#assign BASELINE_COMPONENT_TYPE = "baseline" ]
+[#assign BASELINE_DATA_COMPONENT_TYPE = "baselinedata" ]
+[#assign BASELINE_KEY_COMPONENT_TYPE = "baselinekey" ]
+
+[#assign BASTION_COMPONENT_TYPE = "bastion" ]
+
+[#assign CACHE_COMPONENT_TYPE = "cache" ]
+
+[#assign COMPUTECLUSTER_COMPONENT_TYPE = "computecluster"]
+
+[#assign CONFIGSTORE_COMPONENT_TYPE = "configstore" ]
+[#assign CONFIGSTORE_BRANCH_COMPONENT_TYPE = "configbranch"]
+
+[#assign CONTENTHUB_HUB_COMPONENT_TYPE = "contenthub"]
+[#assign CONTENTHUB_NODE_COMPONENT_TYPE = "contentnode"]
+
+[#assign DATAFEED_COMPONENT_TYPE = "datafeed" ]
+
+[#assign DATAPIPELINE_COMPONENT_TYPE = "datapipeline"]
+
+[#assign DATASET_COMPONENT_TYPE = "dataset"]
+
+[#assign DATAVOLUME_COMPONENT_TYPE = "datavolume" ]
+
+[#assign EC2_COMPONENT_TYPE = "ec2"]
+
+[#assign ECS_COMPONENT_TYPE = "ecs" ]
+[#assign ECS_SERVICE_COMPONENT_TYPE = "service" ]
+[#assign ECS_TASK_COMPONENT_TYPE = "task" ]
+
+[#assign EFS_COMPONENT_TYPE = "efs" ]
+[#assign EFS_MOUNT_COMPONENT_TYPE = "efsMount"]
+
+[#assign ES_COMPONENT_TYPE = "es"]
+[#assign ES_LEGACY_COMPONENT_TYPE = "elasticsearch"]
+
+[#assign NETWORK_GATEWAY_COMPONENT_TYPE = "gateway"]
+[#assign NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE = "gatewaydestination"]
+
+[#assign LAMBDA_COMPONENT_TYPE = "lambda"]
+[#assign LAMBDA_FUNCTION_COMPONENT_TYPE = "function"]
+
+[#assign LB_COMPONENT_TYPE = "lb" ]
+[#assign LB_PORT_COMPONENT_TYPE = "lbport" ]
+[#assign LB_LEGACY_COMPONENT_TYPE = "alb" ]
+
+[#assign MOBILEAPP_COMPONENT_TYPE = "mobileapp"]
+
+[#assign MOBILENOTIFIER_COMPONENT_TYPE = "mobilenotifier" ]
+[#assign MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE = "mobilenotiferplatform" ]
+
+[#assign NETWORK_COMPONENT_TYPE = "network" ]
+[#assign NETWORK_ROUTE_TABLE_COMPONENT_TYPE = "networkroute"]
+[#assign NETWORK_ACL_COMPONENT_TYPE = "networkacl"]
+
+[#assign RDS_COMPONENT_TYPE = "rds" ]
+
+[#assign S3_COMPONENT_TYPE = "s3" ]
+
+[#assign SERVICE_REGISTRY_COMPONENT_TYPE = "serviceregistry" ]
+[#assign SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE = "serviceregistryservice" ]
+
+[#assign SPA_COMPONENT_TYPE = "spa"]
+
+[#assign SQS_COMPONENT_TYPE = "sqs"]
+
+[#assign USER_COMPONENT_TYPE = "user" ]
+
+[#assign USERPOOL_COMPONENT_TYPE = "userpool"]
+[#assign USERPOOL_CLIENT_COMPONENT_TYPE = "userpoolclient" ]
+[#assign USERPOOL_AUTHPROVIDER_COMPONENT_TYPE = "userpoolauthprovider" ]
+
+
 [#assign SHARED_ATTRIBUTES = "shared"]
 
 [#function formatResourceGroupName componentName groupName]
@@ -20,12 +100,38 @@
     [#local possibleFiles += [["shared", "component", type]] ]
     [#list possibleFiles as possibleFile]
         [#local filename = possibleFile?join("/") + ".ftl" ]
-        [@cfDebug listMode "Checking for template " + filename + "..." false /]
+        [@cfDebug listMode!"" "Checking for template " + filename + "..." false /]
         [#if includeTemplate(filename, true)]
-            [@cfDebug listMode "Loaded template " + filename + " for component type " + type false /]
+            [@cfDebug listMode!"" "Loaded template " + filename + " for component type " + type false /]
         [/#if]
     [/#list]
 [/#macro]
+
+[#macro includeServicesConfiguration provider services deploymentFramework]
+    [#list services as service]
+        [#-- aws/services/eip.ftl --]
+        [#local possibleFiles += [[provider, "service", service]] ]
+        [#-- aws/services/eip/cf.ftl --]
+        [#local possibleFiles += [[provider, "service", service, deploymentFramework]] ]
+
+        [#list ["id", "name", "resource"] as level]
+            [#-- aws/services/eip/id.ftl --]
+            [#local possibleFiles += [[provider, "service", service, level]] ]
+            [#-- aws/services/eip/cf/id.ftl --]
+            [#local possibleFiles += [[provider, "service", service, deploymentFramework, level]] ]
+        [/#list]
+    [/#list]
+[/#macro]
+
+[#function getComponentDependencies component]
+    [#-- Handle object or type string --]
+    [#local obj = component ]
+    [#if component?is_string]
+        [#local obj = (componentConfiguration[component])!{} ]
+    [/#if]
+
+    [#return obj.Dependencies![] ]
+[/#function]
 
 [#function getComponentResourceGroups component]
     [#-- Handle object or type string --]
@@ -61,6 +167,13 @@
 [#macro includeComponentConfiguration component ]
     [#-- Ensure the share configuration is loaded --]
     [@includeSharedComponentConfiguration component /]
+
+    [#-- Ensure dependencies loaded --]
+    [#-- TODO(mfl): Not sure if this is neded now that known component types are global --]
+    [#-- Leave for now in case we find it is needed --]
+    [#-- list getComponentDependencies(component) as dependency]
+        [@includeSharedComponentConfiguration dependency /]
+    [/#list --]
 
     [#-- Provider specific processing based on resource groups --]
     [#local resourceGroups = getComponentResourceGroups(component)]
@@ -141,8 +254,9 @@
 
         [#-- Service based hierarchy --]
 
-        [#-- Resource group identifies the provider services it depends on  --]
+        [#-- Resource group identifies the provider services it depends on     --]
         [#-- TODO(mfl): Work out how to determine these from the configuration --]
+        [#--            For now look for a service matching the component      --]
         [#local services = [type] ]
 
         [#-- General hierarchy is provider;service;deploymentFramework;level --]
@@ -166,9 +280,9 @@
     [#-- Attempt to load the additional file --]
     [#list possibleFiles as possibleFile]
         [#local filename = possibleFile?join("/") + ".ftl" ]
-        [@cfDebug listMode "Checking for template " + filename + "..." false /]
+        [@cfDebug listMode!"" "Checking for template " + filename + "..." false /]
         [#if includeTemplate(filename, true)]
-            [@cfDebug listMode "Loaded template " + filename + " for component " + type false /]
+            [@cfDebug listMode!"" "Loaded template " + filename + " for component " + type false /]
         [/#if]
     [/#list]
 [/#macro]
