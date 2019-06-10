@@ -100,7 +100,7 @@
         ]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#local fragmentListMode = "model"]
+        [#assign fragmentListMode = "model"]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context ) ]

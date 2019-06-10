@@ -95,7 +95,7 @@
     ]
 
     [#if solution.Fragment?has_content ]
-        [#local fragmentListMode = "model"]
+        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
