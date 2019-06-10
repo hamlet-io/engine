@@ -2,6 +2,17 @@
 [#macro aws_rds_cf_solution occurrence ]
     [@cfDebug listMode occurrence false /]
 
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript
+            mode=listMode
+            content=
+                getGenerationPlan(
+                    ["prologue", "template", "epilogue"],
+                    ["primary", "replace1", "replace2"])
+        /]
+        [#return]
+    [/#if]
+
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
     [#local resources = occurrence.State.Resources ]
@@ -301,7 +312,7 @@
             outputs={}
         /]
 
-        [#switch alternative ]
+        [#switch alternative!"" ]
             [#case "replace1" ]
                 [#local multiAZ = false]
                 [#local deletionPolicy = "Delete" ]

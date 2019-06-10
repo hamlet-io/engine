@@ -154,7 +154,8 @@ function get_swagger_definition_file() {
   return 0
 }
 
-function process_template() {
+
+function process_template_pass() {
   local level="${1,,}"; shift
   local deployment_unit="${1,,}"; shift
   local deployment_unit_subset="${1,,}"; shift
@@ -167,6 +168,10 @@ function process_template() {
   local request_reference="${1}"; shift
   local configuration_reference="${1}"; shift
   local deployment_mode="${1}"; shift
+  local cf_dir="${1}"; shift
+  local run_id="${1,,}"; shift
+  local pass="${1,,}"; shift
+  local pass_alternative="${1,,}"; shift
 
   # Filename parts
   local level_prefix="${level}-"
@@ -181,7 +186,7 @@ function process_template() {
   local template_composites=("POLICY" "ID" "NAME" "RESOURCE")
 
   # Define the possible passes
-  local pass_list=("pregeneration" "prologue" "template" "epilogue" "cli" "config")
+  local pass_list=("genplan" "depplan" "pregeneration" "prologue" "template" "epilogue" "cli" "config")
 
   # Initialise the components of the pass filenames
   declare -A pass_level_prefix
@@ -192,21 +197,21 @@ function process_template() {
   declare -A pass_region_prefix
   declare -A pass_description
   declare -A pass_suffix
-  declare -A pass_alternatives
 
   # Defaults
-  for pass in "${pass_list[@]}"; do
-    pass_level_prefix["${pass}"]="${level_prefix}"
-    pass_deployment_unit_prefix["${pass}"]="${deployment_unit_prefix}"
-    pass_deployment_unit_subset["${pass}"]="${pass}"
-    pass_deployment_unit_subset_prefix["${pass}"]=""
-    pass_account_prefix["${pass}"]="${account_prefix}"
-    pass_region_prefix["${pass}"]="${region_prefix}"
-    pass_description["${pass}"]="${pass}"
-    pass_alternatives["${pass}"]="primary"
+  for p in "${pass_list[@]}"; do
+    pass_level_prefix["${p}"]="${level_prefix}"
+    pass_deployment_unit_prefix["${p}"]="${deployment_unit_prefix}"
+    pass_deployment_unit_subset["${p}"]="${p}"
+    pass_deployment_unit_subset_prefix["${p}"]=""
+    pass_account_prefix["${p}"]="${account_prefix}"
+    pass_region_prefix["${p}"]="${region_prefix}"
+    pass_description["${p}"]="${p}"
 
   done
+
   pass_suffix=(
+    ["genplan"]="genplan.sh"
     ["pregeneration"]="pregeneration.sh"
     ["prologue"]="prologue.sh"
     ["template"]="template.json"
@@ -219,21 +224,14 @@ function process_template() {
   pass_deployment_unit_subset_prefix["template"]="${deployment_unit_subset:+${deployment_unit_subset}-}"
   pass_description["template"]="cloud formation"
 
-  # Default passes
-  local passes=("pregeneration" "prologue" "template" "epilogue")
-
-  local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
-
   case "${level}" in
     blueprint)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
-      passes=("template")
       template_composites+=("FRAGMENT" )
 
       # Blueprint applies across accounts and regions
-      for pass in "${pass_list[@]}"; do
-        pass_account_prefix["${pass}"]=""
-        pass_region_prefix["${pass}"]=""
+      for p in "${pass_list[@]}"; do
+        pass_account_prefix["${p}"]=""
+        pass_region_prefix["${p}"]=""
       done
 
       pass_level_prefix["template"]="blueprint"
@@ -242,15 +240,12 @@ function process_template() {
       ;;
 
     buildblueprint)
-      # this is expected to run from an automation context
-      cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
-      passes=("template")
       template_composites+=("FRAGMENT" )
 
       # Blueprint applies across accounts and regions
-      for pass in "${pass_list[@]}"; do
-        pass_account_prefix["${pass}"]=""
-        pass_region_prefix["${pass}"]=""
+      for p in "${pass_list[@]}"; do
+        pass_account_prefix["${p}"]=""
+        pass_region_prefix["${p}"]=""
       done
 
       pass_level_prefix["template"]="build_blueprint-"
@@ -259,101 +254,86 @@ function process_template() {
       ;;
 
     account)
-      cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
-      for pass in "${pass_list[@]}"; do pass_region_prefix["${pass}"]="${account_region}-"; done
+      for p in "${pass_list[@]}"; do pass_region_prefix["${p}"]="${account_region}-"; done
       template_composites+=("ACCOUNT")
-      passes=("${passes[@]}" "cli")
 
       # LEGACY: Support stacks created before deployment units added to account level
       [[ ("${DEPLOYMENT_UNIT}" =~ s3) &&
         (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
-          for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]=""; done
+          for p in "${pass_list[@]}"; do pass_deployment_unit_prefix["${p}"]=""; done
       ;;
 
     product)
-      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/shared"
       template_composites+=("PRODUCT")
 
       # LEGACY: Support stacks created before deployment units added to product
       [[ ("${DEPLOYMENT_UNIT}" =~ cmk) &&
         (-f "${cf_dir}/${level_prefix}${region_prefix}template.json") ]] && \
-          for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]=""; done
+          for p in "${pass_list[@]}"; do pass_deployment_unit_prefix["${p}"]=""; done
       ;;
 
     solution)
       template_composites+=("FRAGMENT")
-      passes=("${passes[@]}" "cli")
       if [[ -f "${cf_dir}/solution-${region}-template.json" ]]; then
-        for pass in "${pass_list[@]}"; do
-          pass_deployment_unit_prefix["${pass}"]=""
-          pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace1 replace2"
+        for p in "${pass_list[@]}"; do
+          pass_deployment_unit_prefix["${p}"]=""
         done
       else
-        for pass in "${pass_list[@]}"; do
-          pass_level_prefix["${pass}"]="soln-"
-          pass_alternatives["${pass}"]="${pass_alternatives["${pass}"]} replace1 replace2"
+        for p in "${pass_list[@]}"; do
+          pass_level_prefix["${p}"]="soln-"
         done
       fi
       ;;
 
     segment)
-      for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="seg-"; done
+      for p in "${pass_list[@]}"; do pass_level_prefix["${p}"]="seg-"; done
       template_composites+=("FRAGMENT" )
 
       # LEGACY: Support old formats for existing stacks so they can be updated
       if [[ !("${DEPLOYMENT_UNIT}" =~ cmk|cert|dns ) ]]; then
         if [[ -f "${cf_dir}/cont-${deployment_unit_prefix}${region_prefix}template.json" ]]; then
-          for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="cont-"; done
+          for p in "${pass_list[@]}"; do pass_level_prefix["${p}"]="cont-"; done
         fi
         if [[ -f "${cf_dir}/container-${region}-template.json" ]]; then
-          for pass in "${pass_list[@]}"; do
-            pass_level_prefix["${pass}"]="container-"
-            pass_deployment_unit_prefix["${pass}"]=""
+          for p in "${pass_list[@]}"; do
+            pass_level_prefix["${p}"]="container-"
+            pass_deployment_unit_prefix["${p}"]=""
           done
         fi
         if [[ -f "${cf_dir}/${SEGMENT}-container-template.json" ]]; then
-          for pass in "${pass_list[@]}"; do
-            pass_level_prefix["${pass}"]="${SEGMENT}-container-"
-            pass_deployment_unit_prefix["${pass}"]=""
-            pass_region_prefix["${pass}"]=""
+          for p in "${pass_list[@]}"; do
+            pass_level_prefix["${p}"]="${SEGMENT}-container-"
+            pass_deployment_unit_prefix["${p}"]=""
+            pass_region_prefix["${p}"]=""
           done
         fi
       fi
       # "cmk" now used instead of "key"
       [[ ("${DEPLOYMENT_UNIT}" == "cmk") &&
         (-f "${cf_dir}/${level_prefix}key-${region_prefix}template.json") ]] && \
-          for pass in "${pass_list[@]}"; do pass_deployment_unit_prefix["${pass}"]="key-"; done
+          for p in "${pass_list[@]}"; do pass_deployment_unit_prefix["${p}"]="key-"; done
       ;;
 
     application)
-      for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="app-"; done
+      for p in "${pass_list[@]}"; do pass_level_prefix["${p}"]="app-"; done
       template_composites+=("FRAGMENT" )
-      passes=("${passes[@]}" "cli" "config")
       ;;
 
     multiple)
-      for pass in "${pass_list[@]}"; do pass_level_prefix["${pass}"]="multi-"; done
+      for p in "${pass_list[@]}"; do pass_level_prefix["${p}"]="multi-"; done
       template_composites+=("FRAGMENT")
       ;;
 
     *)
-      fatalCantProceed "\"${LEVEL}\" is not one of the known stack levels."
+      fatalCantProceed "\"${LEVEL}\" is not one of the known stack levels." && return 1
       ;;
   esac
 
-  # Ensure the aws tree for the templates exists
-  [[ ! -d ${cf_dir} ]] && mkdir -p ${cf_dir}
-
   # Args common across all passes
-  args=()
+  local args=()
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
   [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
-
-  # Create a random string to use as the run identifier
-  info "Creating run identifier ...\n"
-  run_id="$(dd bs=128 count=1 if=/dev/urandom  | base64 | env LC_CTYPE=C tr -dc 'a-z0-9' | fold -w 10 | head -n 1)"
-  args+=("-v" "runId=${run_id}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
@@ -373,6 +353,247 @@ function process_template() {
   args+=("-v" "requestReference=${request_reference}")
   args+=("-v" "configurationReference=${configuration_reference}")
   args+=("-v" "deploymentMode=${DEPLOYMENT_MODE}")
+  args+=("-v" "runId=${run_id}")
+
+  # Directory for temporary files
+  local tmp_dir="$(getTopTempDir)"
+
+  # Directory where we gather the results
+  # As any file could change, we need to gather them all
+  # and copy as a set at the end of processing if a change
+  # is detected
+  local results_dir="${tmp_dir}/results"
+
+  # No differences seen so far
+  local differences_detected="false"
+
+  # Determine output file
+  local output_prefix="${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_region_prefix[${pass}]}"
+  local output_prefix_with_account="${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_account_prefix[${pass}]}${pass_region_prefix[${pass}]}"
+
+  [[ -n "${pass_deployment_unit_subset[${pass}]}" ]] && args+=("-v" "deploymentUnitSubset=${pass_deployment_unit_subset[${pass}]}")
+
+  local file_description="${pass_description[${pass}]}"
+  info "Generating ${file_description} file ...\n"
+
+  [[ "${pass_alternative}" == "primary" ]] && pass_alternative=""
+  pass_alternative_prefix=""
+  if [[ -n "${pass_alternative}"]]; then
+    args+=("-v" "alternative=${pass_alternative}")
+    pass_alternative_prefix="${pass_alternative}-"
+  fi
+
+  local output_filename="${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+  if [[ ! -f "${cf_dir}/${output_filename}" ]]; then
+    # Include account prefix
+    local output_filename="${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
+  fi
+  local template_result_file="${tmp_dir}/${output_filename}"
+  local output_file="${cf_dir}/${output_filename}"
+  local result_file="${results_dir}/${output_filename}"
+
+      ${GENERATION_DIR}/freemarker.sh \
+        -d "${template_dir}" \
+        ${GENERATION_PRE_PLUGIN_DIRS:+ -d "${GENERATION_PRE_PLUGIN_DIRS}"} \
+        -d "${GENERATION_BASE_DIR}/providers" \
+        ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"} \
+		    -t "${template}" \
+        -o "${template_result_file}" \
+        "${args[@]}" || return $?
+
+  # Ignore whitespace only files
+  if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -eq 0 ]]; then
+    info "Ignoring empty ${file_description} file ...\n"
+
+    # Remove any previous version
+    [[ -f "${output_file}" ]] && rm "${output_file}"
+
+    return 254
+  fi
+
+  # Check for exception strings in the output
+  grep "COTException:" < "${template_result_file}" > "${template_result_file}-exceptionstrings"
+  if [[ -s "${template_result_file}-exceptionstrings"  ]]; then
+    fatal "Exceptions occurred during template generation. Details follow...\n"
+    case "$(fileExtension "${template_result_file}")" in
+      json)
+        jq --indent 2 '.' < "${template_result_file}-exceptionstrings" >&2
+        ;;
+      *)
+        cat "${template_result_file}-exceptionstrings" >&2
+        ;;
+    esac
+    return 1
+  fi
+
+  case "$(fileExtension "${template_result_file}")" in
+    sh)
+      # Capture the result
+      cat "${template_result_file}" | sed "-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' > "${result_file}"
+      results_list+=("${output_filename}")
+
+      if [[ ! -f "${output_file}" ]]; then
+        # First generation
+        differences_detected="true"
+      else
+
+        # Ignore if only the metadata/timestamps have changed
+        sed_patterns=("-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d')
+        sed_patterns+=("-e" "s/${request_reference}//g")
+        sed_patterns+=("-e" "s/${configuration_reference}//g")
+
+        existing_request_reference="$( grep "#--COT-RequestReference=" "${output_file}" )"
+        [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference#"#--COT-RequestReference="}//g")
+
+        existing_configuration_reference="$( grep "#--COT-ConfigurationReference=" "${output_file}" )"
+        [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference#"#--COT-ConfigurationReference="}//g")
+
+        if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
+          sed_patterns+=("-e" "s/${run_id}//g")
+          existing_run_id="$( grep "#--COT-RunId=" "${output_file}" )"
+          [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id#"#--COT-RunId="}//g")
+        fi
+
+        cat "${template_result_file}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
+        cat "${output_file}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+
+        diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
+          info "No change in ${file_description} detected ...\n" ||
+          differences_detected="true"
+
+      fi
+
+      if [[ "${pass}" == "pregeneration" ]]; then
+        info "Processing pregeneration script ..."
+        [[ "${differences_detected}" == "true" ]] &&
+          . "${result_file}" ||
+          . "${output_file}"
+        assemble_composite_definitions
+      fi
+      ;;
+
+    json)
+      # Detect any exceptions during generation
+      jq -r ".Exceptions | select(.!=null)" < "${template_result_file}" > "${template_result_file}-exceptions"
+      if [[ -s "${template_result_file}-exceptions" ]]; then
+        fatal "Exceptions occurred during template generation. Details follow...\n"
+        cat "${template_result_file}-exceptions" >&2
+        return 1
+      fi
+
+      # Capture the result
+      jq --indent 2 '.' < "${template_result_file}" > "${result_file}"
+      results_list+=("${output_filename}")
+
+      if [[ ! -f "${output_file}" ]]; then
+        # First generation
+        differences_detected="true"
+      else
+
+        # Ignore if only the metadata/timestamps have changed
+        jq_pattern="del(.Metadata)"
+        sed_patterns=("-e" "s/${request_reference}//g")
+        sed_patterns+=("-e" "s/${configuration_reference}//g")
+        sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
+
+        existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
+        [[ -z "${existing_request_reference}" ]] && existing_request_reference="$( jq -r ".REQUEST_REFERENCE | select(.!=null)" < "${output_file}" )"
+        [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
+
+        existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
+        [[ -z "${existing_configuration_reference}" ]] && existing_configuration_reference="$( jq -r ".CONFIGURATION_REFERENCE | select(.!=null)" < "${output_file}" )"
+        [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
+
+        if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
+          sed_patterns+=("-e" "s/${run_id}//g")
+          existing_run_id="$( jq -r ".Metadata.RunId | select(.!=null)" < "${output_file}" )"
+          [[ -z "${existing_run_id}" ]] && existing_run_id="$( jq -r ".RUN_ID | select(.!=null)" < "${output_file}" )"
+          [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id}//g")
+        fi
+
+        cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
+        cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
+
+        diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
+          info "No change in ${file_description} detected ...\n" ||
+          differences_detected="true"
+      fi
+      ;;
+  esac
+
+  # Return the filename and the status of the difference comparison
+  if [[ "${differences_detected}" == "true" ]]; then
+    return 0
+  fi
+
+  return 255
+}
+
+function process_template() {
+  local level="${1,,}"; shift
+  local deployment_unit="${1,,}"; shift
+  local deployment_unit_subset="${1,,}"; shift
+  local account="$1"; shift
+  local account_region="${1,,}"; shift
+  local product_region="${1,,}"; shift
+  local region="${1,,}"; shift
+  local build_deployment_unit="${1,,}"; shift
+  local build_reference="${1}"; shift
+  local request_reference="${1}"; shift
+  local configuration_reference="${1}"; shift
+  local deployment_mode="${1}"; shift
+
+  # Defaults
+  local passes=("pregeneration" "prologue" "template" "epilogue")
+  local template_alternatives=("primary")
+  local cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/${ENVIRONMENT}/${SEGMENT}"
+
+  case "${level}" in
+    blueprint)
+      passes=("template")
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}"
+      ;;
+
+    buildblueprint)
+      passes=("template")
+      # this is expected to run from an automation context
+      cf_dir="${AUTOMATION_DATA_DIR:-${PRODUCT_INFRASTRUCTURE_DIR}/cot/${ENVIRONMENT}/${SEGMENT}}/"
+      ;;
+
+    account)
+      passes=("${passes[@]}" "cli")
+      cf_dir="${ACCOUNT_INFRASTRUCTURE_DIR}/cf/shared"
+      ;;
+
+    product)
+      cf_dir="${PRODUCT_INFRASTRUCTURE_DIR}/cf/shared"
+      ;;
+
+    solution)
+      passes=("${passes[@]}" "cli")
+      ;;
+
+    segment)
+      ;;
+
+    application)
+      passes=("${passes[@]}" "cli" "config")
+      ;;
+
+    multiple)
+      ;;
+
+    *)
+      fatalCantProceed "\"${LEVEL}\" is not one of the known stack levels." && return 1
+      ;;
+  esac
+
+  # Ensure the aws tree for the templates exists
+  [[ ! -d ${cf_dir} ]] && mkdir -p ${cf_dir}
+
+  # Create a random string to use as the run identifier
+  info "Creating run identifier ...\n"
+  run_id="$(dd bs=128 count=1 if=/dev/urandom  | base64 | env LC_CTYPE=C tr -dc 'a-z0-9' | fold -w 10 | head -n 1)"
 
   # Directory for temporary files
   pushTempDir "create_template_XXXXXX"
@@ -383,165 +604,80 @@ function process_template() {
   # and copy as a set at the end of processing if a change
   # is detected
   local differences_detected="false"
+  local results_list=()
   local results_dir="${tmp_dir}/results"
   mkdir -p "${results_dir}"
-  local results_list=()
 
-  # Perform each pass
+  # First see if an execution plan can be generated
+  process_template_pass \
+      "${level}" \
+      "${deployment_unit}" \
+      "${deployment_unit_subset}" \
+      "${account}" \
+      "${account_region}" \
+      "${product_region}" \
+      "${region}" \
+      "${build_deployment_unit}" \
+      "${build_reference}" \
+      "${request_reference}" \
+      "${configuration_reference}" \
+      "${deployment_mode}" \
+      "${cf_dir}" \
+      "${run_id}" \
+      "genplan" \
+      ""
+  local result=$?
+
+  if [[ ( ${result} == 0 ) || ( ${result} == 255 ) ]]; then
+    local execution_plan="${results_dir}/${results_list[0]}"
+    info "Adjusting for generation plan ${execution_plan} ..."
+    willLog "debug" && cat ${execution_plan}
+    . ${execution_plan}
+    passes=("${plan_subsets[@]}")
+    if [[ -n "${plan_alternatives[*]}" ]]; then
+      template_alternatives=("${plan_alternatives[@]}")
+    else
+      template_alternatives=("primary")
+    fi
+  fi
+
+  # Perform each pass/alternative combination
   for pass in "${passes[@]}"; do
+    for pass_alternative in "${template_alternatives[@]}"; do
 
-    # Determine output file
-    local output_prefix="${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_region_prefix[${pass}]}"
-    local output_prefix_with_account="${pass_level_prefix[${pass}]}${pass_deployment_unit_prefix[${pass}]}${pass_deployment_unit_subset_prefix[${pass}]}${pass_account_prefix[${pass}]}${pass_region_prefix[${pass}]}"
+      process_template_pass \
+        "${level}" \
+        "${deployment_unit}" \
+        "${deployment_unit_subset}" \
+        "${account}" \
+        "${account_region}" \
+        "${product_region}" \
+        "${region}" \
+        "${build_deployment_unit}" \
+        "${build_reference}" \
+        "${request_reference}" \
+        "${configuration_reference}" \
+        "${deployment_mode}" \
+        "${cf_dir}" \
+        "${run_id}" \
+        "${pass}" \
+        "${pass_alternative}"
 
-    pass_args=("${args[@]}")
-    [[ -n "${pass_deployment_unit_subset[${pass}]}" ]] && pass_args+=("-v" "deploymentUnitSubset=${pass_deployment_unit_subset[${pass}]}")
-
-    local file_description="${pass_description[${pass}]}"
-    info "Generating ${file_description} file ...\n"
-
-    for pass_alternative in ${pass_alternatives["${pass}"]}; do
-
-      [[ "${pass_alternative}" == "primary" ]] && pass_alternative=""
-      pass_args+=("-v" "alternative=${pass_alternative}")
-      pass_alternative_prefix="${pass_alternative:+${pass_alternative}-}"
-
-      local output_filename="${output_prefix}${pass_alternative_prefix}${pass_suffix[${pass}]}"
-      if [[ ! -f "${cf_dir}/${output_filename}" ]]; then
-        # Include account prefix
-        local output_filename="${output_prefix_with_account}${pass_alternative_prefix}${pass_suffix[${pass}]}"
-      fi
-      local template_result_file="${tmp_dir}/${output_filename}"
-      local output_file="${cf_dir}/${output_filename}"
-      local result_file="${results_dir}/${output_filename}"
-
-      ${GENERATION_DIR}/freemarker.sh \
-        -d "${template_dir}" \
-        ${GENERATION_PRE_PLUGIN_DIRS:+ -d "${GENERATION_PRE_PLUGIN_DIRS}"} \
-        -d "${GENERATION_BASE_DIR}/providers" \
-        ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"} \
-		    -t "${template}" \
-        -o "${template_result_file}" \
-        "${pass_args[@]}" || return $?
-
-      # Ignore whitespace only files
-      if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -eq 0 ]]; then
-        info "Ignoring empty ${file_description} file ...\n"
-
-        # Remove any previous version
-        [[ -f "${output_file}" ]] && rm "${output_file}"
-
-        continue
-      fi
-
-      # Check for exception strings in the output
-      grep "COTException:" < "${template_result_file}" > "${template_result_file}-exceptionstrings"
-      if [[ -s "${template_result_file}-exceptionstrings"  ]]; then
-        fatal "Exceptions occurred during template generation. Details follow...\n"
-        case "$(fileExtension "${template_result_file}")" in
-          json)
-            jq --indent 2 '.' < "${template_result_file}-exceptionstrings" >&2
-            ;;
-          *)
-            cat "${template_result_file}-exceptionstrings" >&2
-            ;;
-        esac
-        return 1
-      fi
-
-      case "$(fileExtension "${template_result_file}")" in
-        sh)
-          # Capture the result
-          cat "${template_result_file}" | sed "-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' > "${result_file}"
-          results_list+=("${output_filename}")
-
-          if [[ ! -f "${output_file}" ]]; then
-            # First generation
-            differences_detected="true"
-          else
-
-            # Ignore if only the metadata/timestamps have changed
-            sed_patterns=("-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d')
-            sed_patterns+=("-e" "s/${request_reference}//g")
-            sed_patterns+=("-e" "s/${configuration_reference}//g")
-
-            existing_request_reference="$( grep "#--COT-RequestReference=" "${output_file}" )"
-            [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference#"#--COT-RequestReference="}//g")
-
-            existing_configuration_reference="$( grep "#--COT-ConfigurationReference=" "${output_file}" )"
-            [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference#"#--COT-ConfigurationReference="}//g")
-
-            if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
-              sed_patterns+=("-e" "s/${run_id}//g")
-              existing_run_id="$( grep "#--COT-RunId=" "${output_file}" )"
-              [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id#"#--COT-RunId="}//g")
-            fi
-
-            cat "${template_result_file}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
-            cat "${output_file}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
-
-            diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
-              info "No change in ${file_description} detected ...\n" ||
-              differences_detected="true"
-
-          fi
-
-          if [[ "${pass}" == "pregeneration" ]]; then
-            info "Processing pregeneration script ..."
-            [[ "${differences_detected}" == "true" ]] &&
-              . "${result_file}" ||
-              . "${output_file}"
-            assemble_composite_definitions
-          fi
+      local result=$?
+      case ${result} in
+        254)
+          # Nothing generated
           ;;
-
-        json)
-          # Detect any exceptions during generation
-          jq -r ".Exceptions | select(.!=null)" < "${template_result_file}" > "${template_result_file}-exceptions"
-          if [[ -s "${template_result_file}-exceptions" ]]; then
-            fatal "Exceptions occurred during template generation. Details follow...\n"
-            cat "${template_result_file}-exceptions" >&2
-            return 1
-          fi
-
-          # Capture the result
-          jq --indent 2 '.' < "${template_result_file}" > "${result_file}"
-          results_list+=("${output_filename}")
-
-          if [[ ! -f "${output_file}" ]]; then
-            # First generation
-            differences_detected="true"
-          else
-
-            # Ignore if only the metadata/timestamps have changed
-            jq_pattern="del(.Metadata)"
-            sed_patterns=("-e" "s/${request_reference}//g")
-            sed_patterns+=("-e" "s/${configuration_reference}//g")
-            sed_patterns+=("-e" "s/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z//g")
-
-            existing_request_reference="$( jq -r ".Metadata.RequestReference | select(.!=null)" < "${output_file}" )"
-            [[ -z "${existing_request_reference}" ]] && existing_request_reference="$( jq -r ".REQUEST_REFERENCE | select(.!=null)" < "${output_file}" )"
-            [[ -n "${existing_request_reference}" ]] && sed_patterns+=("-e" "s/${existing_request_reference}//g")
-
-            existing_configuration_reference="$( jq -r ".Metadata.ConfigurationReference | select(.!=null)" < "${output_file}" )"
-            [[ -z "${existing_configuration_reference}" ]] && existing_configuration_reference="$( jq -r ".CONFIGURATION_REFERENCE | select(.!=null)" < "${output_file}" )"
-            [[ -n "${existing_configuration_reference}" ]] && sed_patterns+=("-e" "s/${existing_configuration_reference}//g")
-
-            if [[ "${TREAT_RUN_ID_DIFFERENCES_AS_SIGNIFICANT}" != "true" ]]; then
-              sed_patterns+=("-e" "s/${run_id}//g")
-              existing_run_id="$( jq -r ".Metadata.RunId | select(.!=null)" < "${output_file}" )"
-              [[ -z "${existing_run_id}" ]] && existing_run_id="$( jq -r ".RUN_ID | select(.!=null)" < "${output_file}" )"
-              [[ -n "${existing_run_id}" ]] && sed_patterns+=("-e" "s/${existing_run_id}//g")
-            fi
-
-            cat "${template_result_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-new"
-            cat "${output_file}" | jq --indent 1 "${jq_pattern}" | sed "${sed_patterns[@]}" > "${template_result_file}-existing"
-
-            diff "${template_result_file}-existing" "${template_result_file}-new" > "${template_result_file}-difference" &&
-              info "No change in ${file_description} detected ...\n" ||
-              differences_detected="true"
-          fi
+        255)
+          # No difference
           ;;
+        0)
+          # At least one difference seen
+          differences_detected="true"
+          ;;
+        *)
+          # Fatal error of some description
+          return ${result}
       esac
     done
   done

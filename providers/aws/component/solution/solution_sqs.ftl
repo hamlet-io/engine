@@ -1,7 +1,13 @@
 [#ftl]
 [#macro aws_sqs_cf_solution occurrence ]
+    [@cfDebug listMode occurrence false /]
+
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@cfScript listMode getGenerationPlan("template") /]
+        [#return]
+    [/#if]
+
     [#if deploymentSubsetRequired("sqs", true)]
-        [@cfDebug listMode occurrence false /]
 
         [#local core = occurrence.Core ]
         [#local solution = occurrence.Configuration.Solution ]
@@ -36,9 +42,9 @@
             dlq=valueIfTrue(dlqId!"", dlqRequired, "")
             dlqReceives=
                 valueIfTrue(
-                  solution.DeadLetterQueue.MaxReceives,
-                  solution.DeadLetterQueue.MaxReceives > 0,
-                  (environmentObject.Operations.DeadLetterQueue.MaxReceives)!3)
+                solution.DeadLetterQueue.MaxReceives,
+                solution.DeadLetterQueue.MaxReceives > 0,
+                (environmentObject.Operations.DeadLetterQueue.MaxReceives)!3)
         /]
 
         [#list solution.Alerts?values as alert ]
