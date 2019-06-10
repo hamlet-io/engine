@@ -145,8 +145,6 @@
         [#local finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
         [#assign _context += finalEnvironment ]
 
-        [@cfDebug listMode _context true /]
-
         [#local roleId = formatDependentRoleId(fnId)]
         [#local managedPolicies =
             (vpcAccess)?then(
