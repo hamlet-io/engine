@@ -45,189 +45,170 @@ object.
 "documentation, the others redirect to the primary."
 ] ]
 
-[#assign componentConfiguration +=
-    {
-        APIGATEWAY_COMPONENT_TYPE : {
-            "Properties" : [
-                {
-                    "Type" : "Description",
-                    "Value" :
-                        [
-                            "Application level API proxy",
-                            ""
-                        ] + apiGatewayDescription
-                },
-                {
-                    "Type" : "Providers",
-                    "Value" : [ "aws" ]
-                },
-                {
-                    "Type" : "ComponentLevel",
-                    "Value" : "application"
-                }
-            ],
-            "Attributes" : [
-                {
-                    "Names" : ["Fragment", "Container"],
-                    "Type" : STRING_TYPE,
-                    "Default" : ""
-                },
-                {
-                    "Names" : "Links",
-                    "Subobjects" : true,
-                    "Children" : linkChildrenConfiguration
-                },
-                {
-                    "Names" : "WAF",
-                    "Children" : wafChildConfiguration
-                },
-                {
-                    "Names" : "EndpointType",
-                    "Type" : STRING_TYPE,
-                    "Values" : ["EDGE", "REGIONAL"],
-                    "Default" : "EDGE"
-                },
-                {
-                    "Names" : "IPAddressGroups",
-                    "Type" : ARRAY_OF_STRING_TYPE,
-                    "Default" : []
-                },
-                {
-                    "Names" : "Authentication",
-                    "Type" : STRING_TYPE,
-                    "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
-                    "Default" : "IP"
-                },
-                {
-                    "Names" : "CloudFront",
-                    "Children" : [
-                        {
-                            "Names" : "AssumeSNI",
-                            "Type" : BOOLEAN_TYPE,
-                            "Default" : true
-                        },
-                        {
-                            "Names" : "EnableLogging",
-                            "Type" : BOOLEAN_TYPE,
-                            "Default" : true
-                        },
-                        {
-                            "Names" : "CountryGroups",
-                            "Type" : ARRAY_OF_STRING_TYPE,
-                            "Default" : []
-                        },
-                        {
-                            "Names" : "CustomHeaders",
-                            "Type" : ARRAY_OF_ANY_TYPE,
-                            "Default" : []
-                        },
-                        {
-                            "Names" : "Mapping",
-                            "Type" : BOOLEAN_TYPE,
-                            "Default" : false
-                        },
-                        {
-                            "Names" : "Compress",
-                            "Type" : BOOLEAN_TYPE,
-                            "Default" : true
-                        }
-                    ]
-                },
-                {
-                    "Names" : "Certificate",
-                    "Children" : certificateChildConfiguration
-                },
-                {
-                    "Names" : "Publish",
-                    "Description" : "Deprecated - Please switch to the publishers configuration",
-                    "Children" : [
-                        {
-                            "Names" : "DnsNamePrefix",
-                            "Type" : STRING_TYPE,
-                            "Default" : "docs"
-                        },
-                        {
-                            "Names" : "IPAddressGroups",
-                            "Type" : ARRAY_OF_STRING_TYPE,
-                            "Default" : []
-                        }
-                    ]
-                },
-                {
-                    "Names" : "Publishers",
-                    "Subobjects" : true,
-                    "Children" : [
-                        {
-                            "Names" : "Links",
-                            "Subobjects" : true,
-                            "Children" : linkChildrenConfiguration
-                        },
-                        {
-                            "Names" : "Path",
-                            "Children" : pathChildConfiguration
-                        }
-                    ]
-                },
-                {
-                    "Names" : "Mapping",
-                    "Children" : [
-                        {
-                            "Names" : "IncludeStage",
-                            "Type" : BOOLEAN_TYPE,
-                            "Default" : true
-                        }
-                    ]
-                },
-                {
-                    "Names" : "Profiles",
-                    "Children" : profileChildConfiguration + [
-                        {
-                            "Names" : "Security",
-                            "Type" : STRING_TYPE,
-                            "Default" : "default"
-                        }
-                    ]
-                },
-                {
-                    "Names" : "Alerts",
-                    "Subobjects" : true,
-                    "Children" : alertChildrenConfiguration
-                },
-                {
-                    "Names" : "LogMetrics",
-                    "Subobjects" : true,
-                    "Children" : logMetricChildrenConfiguration
-                },
-                {
-                    "Names" : "BasePathBehaviour",
-                    "Description" : "How to handle base paths provided in the spec",
-                    "Type" : STRING_TYPE,
-                    "Values" : [ "ignore", "prepend", "split" ],
-                    "Default" : "ignore"
-                }
-            ]
-        },
-        APIGATEWAY_USAGEPLAN_COMPONENT_TYPE : {
-            "Properties" : [
-                {
-                    "Type" : "Description",
-                    "Value" : "provides a metered link between an API gateway and an invoking client"
-                },
-                {
-                    "Type" : "Providers",
-                    "Value" : [ "aws" ]
-                },
-                {
-                    "Type" : "ComponentLevel",
-                    "Value" : "application"
-                }
-            ],
-            "Attributes" : [
+[@addComponent
+    type=APIGATEWAY_COMPONENT_TYPE
+    properties=
+        [
+            {
+                "Type" : "Description",
+                "Value" :
+                    [
+                        "Application level API proxy",
+                        ""
+                    ] + apiGatewayDescription
+            },
+            {
+                "Type" : "Providers",
+                "Value" : [ "aws" ]
+            },
+            {
+                "Type" : "ComponentLevel",
+                "Value" : "application"
+            }
+        ]
+/]
+
+[@addComponentResourceGroup
+    type=APIGATEWAY_COMPONENT_TYPE
+    attributes=
+        [
+            {
+                "Names" : ["Fragment", "Container"],
+                "Type" : STRING_TYPE,
+                "Default" : ""
+            },
             {
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
+            },
+            {
+                "Names" : "WAF",
+                "Children" : wafChildConfiguration
+            },
+            {
+                "Names" : "EndpointType",
+                "Type" : STRING_TYPE,
+                "Values" : ["EDGE", "REGIONAL"],
+                "Default" : "EDGE"
+            },
+            {
+                "Names" : "IPAddressGroups",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
+                "Names" : "Authentication",
+                "Type" : STRING_TYPE,
+                "Values" : ["IP", "SIG4ORIP", "SIG4ANDIP"],
+                "Default" : "IP"
+            },
+            {
+                "Names" : "CloudFront",
+                "Children" : [
+                    {
+                        "Names" : "AssumeSNI",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "EnableLogging",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    },
+                    {
+                        "Names" : "CountryGroups",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : []
+                    },
+                    {
+                        "Names" : "CustomHeaders",
+                        "Type" : ARRAY_OF_ANY_TYPE,
+                        "Default" : []
+                    },
+                    {
+                        "Names" : "Mapping",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : false
+                    },
+                    {
+                        "Names" : "Compress",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    }
+                ]
+            },
+            {
+                "Names" : "Certificate",
+                "Children" : certificateChildConfiguration
+            },
+            {
+                "Names" : "Publish",
+                "Description" : "Deprecated - Please switch to the publishers configuration",
+                "Children" : [
+                    {
+                        "Names" : "DnsNamePrefix",
+                        "Type" : STRING_TYPE,
+                        "Default" : "docs"
+                    },
+                    {
+                        "Names" : "IPAddressGroups",
+                        "Type" : ARRAY_OF_STRING_TYPE,
+                        "Default" : []
+                    }
+                ]
+            },
+            {
+                "Names" : "Publishers",
+                "Subobjects" : true,
+                "Children" : [
+                    {
+                        "Names" : "Links",
+                        "Subobjects" : true,
+                        "Children" : linkChildrenConfiguration
+                    },
+                    {
+                        "Names" : "Path",
+                        "Children" : pathChildConfiguration
+                    }
+                ]
+            },
+            {
+                "Names" : "Mapping",
+                "Children" : [
+                    {
+                        "Names" : "IncludeStage",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
+                    }
+                ]
+            },
+            {
+                "Names" : "Profiles",
+                "Children" : profileChildConfiguration + [
+                    {
+                        "Names" : "Security",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
+            },
+            {
+                "Names" : "Alerts",
+                "Subobjects" : true,
+                "Children" : alertChildrenConfiguration
+            },
+            {
+                "Names" : "LogMetrics",
+                "Subobjects" : true,
+                "Children" : logMetricChildrenConfiguration
+            },
+            {
+                "Names" : "BasePathBehaviour",
+                "Description" : "How to handle base paths provided in the spec",
+                "Type" : STRING_TYPE,
+                "Values" : [ "ignore", "prepend", "split" ],
+                "Default" : "ignore"
             }
         ]
-        }
-    }]
+/]
