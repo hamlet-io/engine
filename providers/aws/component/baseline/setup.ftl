@@ -379,22 +379,23 @@
                     [#local OAIName = subResources["originAccessId"].Name ]
                     [#local legacyKey = false]
 
-                    [#-- legacy OAI lookup --]
-                    [#local opsDataLink = {
-                                "Tier" : "mgmt",
-                                "Component" : "baseline",
-                                "Instance" : "",
-                                "Version" : "",
-                                "DataBucket" : "opsdata"
-                        }]
+                    [#if subCore.SubComponent.Id == "oai" ]
 
-                    [#local opsDataLinkTarget = getLinkTarget({}, opsDataLink )]
+                        [#-- legacy OAI lookup --]
+                        [#local opsDataLink = {
+                                    "Tier" : "mgmt",
+                                    "Component" : "baseline",
+                                    "Instance" : "",
+                                    "Version" : "",
+                                    "DataBucket" : "opsdata"
+                            }]
 
-                    [#if opsDataLinkTarget?has_content ]
-                        [#local opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
-                        [#local legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
+                        [#local opsDataLinkTarget = getLinkTarget({}, opsDataLink )]
 
-                        [#if subCore.SubComponent.Id == "oai" ]
+                        [#if opsDataLinkTarget?has_content ]
+                            [#local opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
+                            [#local legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
+
                             [#if (getExistingReference(legacyOAIId!"", CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
                                 [#local legacyKey = true]
                                 [#local OAIId = legacyOAIId ]
