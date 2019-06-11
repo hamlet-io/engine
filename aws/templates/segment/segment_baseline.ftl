@@ -375,25 +375,28 @@
                         [#assign OAIName = subResources["originAccessId"].Name ]
                         [#assign legacyKey = false]
 
-                        [#-- legacy OAI lookup --]
-                        [#assign opsDataLink = {
-                                    "Tier" : "mgmt",
-                                    "Component" : "baseline",
-                                    "Instance" : "",
-                                    "Version" : "",
-                                    "DataBucket" : "opsdata"
-                            }]
-
-                        [#assign opsDataLinkTarget = getLinkTarget({}, opsDataLink )] 
-
-                        [#assign opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
-                        [#assign legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
-
                         [#if subCore.SubComponent.Id == "oai" ]
-                            [#if (getExistingReference(legacyOAIId!"", CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
-                                [#assign legacyKey = true]   
-                                [#assign OAIId = legacyOAIId ]
-                                [#assign OAIName = formatSegmentFullName()]              
+
+                            [#-- legacy OAI lookup --]
+                            [#assign opsDataLink = {
+                                        "Tier" : "mgmt",
+                                        "Component" : "baseline",
+                                        "Instance" : "",
+                                        "Version" : "",
+                                        "DataBucket" : "opsdata"
+                                }]
+
+                            [#assign opsDataLinkTarget = getLinkTarget({}, opsDataLink )]
+
+                            [#if opsDataLinkTarget?has_content ]
+                                [#assign opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
+                                [#assign legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
+
+                                [#if (getExistingReference(legacyOAIId!"", CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
+                                    [#assign legacyKey = true]
+                                    [#assign OAIId = legacyOAIId ]
+                                    [#assign OAIName = formatSegmentFullName()]
+                                [/#if]
                             [/#if]
                         [/#if]
 
