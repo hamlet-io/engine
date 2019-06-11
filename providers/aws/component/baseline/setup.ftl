@@ -390,14 +390,16 @@
 
                     [#local opsDataLinkTarget = getLinkTarget({}, opsDataLink )]
 
-                    [#local opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
-                    [#local legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
+                    [#if opsDataLinkTarget?has_content ]
+                        [#local opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
+                        [#local legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
 
-                    [#if subCore.SubComponent.Id == "oai" ]
-                        [#if (getExistingReference(legacyOAIId!"", CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
-                            [#local legacyKey = true]
-                            [#local OAIId = legacyOAIId ]
-                            [#local OAIName = formatSegmentFullName()]
+                        [#if subCore.SubComponent.Id == "oai" ]
+                            [#if (getExistingReference(legacyOAIId!"", CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
+                                [#local legacyKey = true]
+                                [#local OAIId = legacyOAIId ]
+                                [#local OAIName = formatSegmentFullName()]
+                            [/#if]
                         [/#if]
                     [/#if]
 
