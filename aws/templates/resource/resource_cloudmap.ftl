@@ -1,12 +1,16 @@
 [#-- Cloud Map Resources --]
 
+[#-- Resources --]
+[#assign AWS_CLOUDMAP_DNS_NAMESPACE_RESOURCE_TYPE = "cloudmapdnsnamespace" ]
+[#assign AWS_CLOUDMAP_SERVICE_RESOURCE_TYPE = "cloudmapservice" ]
+[#assign AWS_CLOUDMAP_INSTANCE_RESOURCE_TYPE = "cloudmapinstance" ]
 
 [#assign CLOUDMAP_DNS_NAMESPACE_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "Attribute" : "Arn"
         }
     }
@@ -17,7 +21,7 @@
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "Attribute" : "Arn"
         }
     }
@@ -39,16 +43,16 @@
     }
 ]
 
-[#macro createCloudMapDNSNamespace 
-    mode id name 
+[#macro createCloudMapDNSNamespace
+    mode id name
     domainName
     public
     vpcId=""
     dependencies=""
 ]
-    
+
     [#if public ]
-        [@cfResource 
+        [@cfResource
             mode=mode
             id=id
             type="AWS::ServiceDiscovery::PublicDnsNamespace"
@@ -61,7 +65,7 @@
             dependencies=dependencies
         /]
     [#else]
-        [@cfResource 
+        [@cfResource
             mode=mode
             id=id
             type="AWS::ServiceDiscovery::PrivateDnsNamespace"
@@ -90,21 +94,21 @@
     [#local dnsRecords = [] ]
 
     [#list recordTypes as recordType ]
-        [#local dnsRecords += 
-            [ 
+        [#local dnsRecords +=
+            [
                 {
                     "TTL" : recordTTL?c,
                     "Type" : recordType?upper_case
                 }
             ]]
     [/#list]
-    
+
     [#switch routingPolicy?upper_case ]
         [#case "ALLATONCE" ]
         [#case "MULTIVALUE" ]
             [#local routingPolicy = "MULTIVALUE" ]
             [#break]
-        
+
         [#case "ONLYONE" ]
         [#case "WEIGHTED" ]
             [#local routingPolicy = "WEIGHTED" ]
@@ -129,7 +133,7 @@
         [/#if]
     [/#if]
 
-    [@cfResource 
+    [@cfResource
         mode=mode
         id=id
         type="AWS::ServiceDiscovery::Service"
@@ -153,7 +157,7 @@
 [/#macro]
 
 [#function getCloudMapInstanceAttribute type value ]
-    [#switch type ] 
+    [#switch type ]
         [#case "alias" ]
             [#local type = "AWS_ALIAS_DNS_NAME" ]
             [#break]
@@ -180,7 +184,7 @@
     [#return { type : value }]
 [/#function]
 
-[#macro createCloudMapInstance 
+[#macro createCloudMapInstance
     mode id
     serviceId
     instanceId
@@ -188,7 +192,7 @@
     dependencies=""
 ]
 
-    [@cfResource 
+    [@cfResource
         mode=mode
         id=id
         type="AWS::ServiceDiscovery::Instance"

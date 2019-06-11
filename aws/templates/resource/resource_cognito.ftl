@@ -1,17 +1,25 @@
 [#-- Cognito User Pool --]
 
+[#-- Resources --]
+[#assign AWS_COGNITO_USERPOOL_RESOURCE_TYPE = "userpool"]
+[#assign AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE = "userpoolclient"]
+[#assign AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE = "identitypool"]
+[#assign AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE = "rolemapping"]
+[#assign AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE = "userpooldomain" ]
+[#assign AWS_COGNITO_USERPOOL_AUTHPROVIDER_RESOURCE_TYPE = "userpoolauthprovider" ]
+
 [#assign USERPOOL_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
-        NAME_ATTRIBUTE_TYPE : { 
+        NAME_ATTRIBUTE_TYPE : {
             "Attribute" : "ProviderName"
         },
-        ARN_ATTRIBUTE_TYPE : { 
+        ARN_ATTRIBUTE_TYPE : {
             "Attribute" : "Arn"
         },
-        URL_ATTRIBUTE_TYPE : { 
+        URL_ATTRIBUTE_TYPE : {
             "Attribute" : "ProviderURL"
         },
         REGION_ATTRIBUTE_TYPE: {
@@ -20,9 +28,9 @@
     }
 ]
 
-[#assign USERPOOL_CLIENT_OUTPUT_MAPPINGS = 
-    { 
-        REFERENCE_ATTRIBUTE_TYPE : { 
+[#assign USERPOOL_CLIENT_OUTPUT_MAPPINGS =
+    {
+        REFERENCE_ATTRIBUTE_TYPE : {
             "UserRef" : true
         }
     }
@@ -30,7 +38,7 @@
 
 [#assign IDENTITYPOOL_OUTPUT_MAPPINGS =
     {
-        REFERENCE_ATTRIBUTE_TYPE : { 
+        REFERENCE_ATTRIBUTE_TYPE : {
             "UseRef" : true
         },
         NAME_ATTRIBUTE_TYPE : {
@@ -48,7 +56,7 @@
 ]
 
 [#function getUserPoolPasswordPolicy length="8" lowercase=true uppercase=true numbers=true symbols=true]
-    [#return 
+    [#return
         {
             "PasswordPolicy" : {
                 "MinimumLength"     : length,
@@ -66,7 +74,7 @@
         {
             "SnsCallerArn" : snsId,
             "ExternalId" : externalId
-        }  
+        }
     ]
 [/#function]
 
@@ -90,26 +98,26 @@
         [#assign autoVerifyArray = autoVerifyArray + [ "email" ] ]
     [/#if]
 
-    [#if phone ] 
+    [#if phone ]
         [#assign autoVerifyArray = autoVerifyArray + [ "phone_number" ]]
     [/#if]
 
-    [#return 
+    [#return
         autoVerifyArray
     ]
 [/#function]
 
 [#function getUserPoolInviteMessageTemplate emailMessage="" emailSubject="" smsMessage="" ]
-    [#return 
-        {} + 
+    [#return
+        {} +
         attributeIfContent(
             "EmailMessage",
             emailMessage
-        ) + 
+        ) +
         attributeIfContent(
             "EmailSubject",
             emailSubject
-        ) + 
+        ) +
         attributeIfContent(
             "SMSMessage",
             smsMessage
@@ -118,11 +126,11 @@
 [/#function]
 
 [#function getUserPoolAdminCreateUserConfig enabled unusedTimeout inviteMessageTemplate={} ]
-    [#return 
+    [#return
         {
             "AllowAdminCreateUserOnly" : enabled,
-            "UnusedAccountValidityDays" : unusedTimeout 
-        }   + 
+            "UnusedAccountValidityDays" : unusedTimeout
+        }   +
             attributeIfContent(
                 "InviteMessageTemplate",
                 inviteMessageTemplate
@@ -144,7 +152,7 @@
     ]
 [/#function]
 
-[#macro createUserPool mode id name 
+[#macro createUserPool mode id name
     mfa
     adminCreatesUser
     unusedTimeout
@@ -156,27 +164,27 @@
     emailInviteMessage=""
     emailInviteSubject=""
     smsAuthenticationMessage=""
-    tier="" 
-    component="" 
-    loginAliases=[] 
+    tier=""
+    component=""
+    loginAliases=[]
     autoVerify=[]
     schema=[]
     smsConfiguration={}
     passwordPolicy={}
-    lambdaTriggers={}  
-    dependencies="" 
+    lambdaTriggers={}
+    dependencies=""
     outputId=""
 ]
 
     [#-- Convert Tag Array to String Map --]
     [#local tagMap={}]
-    [#list tags as tag] 
-        [#local tagMap = tagMap +  
+    [#list tags as tag]
+        [#local tagMap = tagMap +
             { tag.Key, tag.Value }
         ]
     [/#list]
-    
-    [@cfResource 
+
+    [@cfResource
         mode=mode
         id=id
         type="AWS::Cognito::UserPool"
@@ -186,25 +194,25 @@
                 "UserPoolTags" : tagMap,
                 "MfaConfiguration" : mfa?then("ON","OFF"),
                 "AdminCreateUserConfig" : getUserPoolAdminCreateUserConfig(
-                                                adminCreatesUser, 
+                                                adminCreatesUser,
                                                 unusedTimeout,
                                                 getUserPoolInviteMessageTemplate(
                                                     emailInviteMessage,
                                                     emailInviteSubject,
                                                     smsInviteMessage))
-            } + 
+            } +
             attributeIfContent(
                 "Policies",
-                passwordPolicy 
-            ) + 
+                passwordPolicy
+            ) +
             attributeIfContent(
                 "AliasAttributes",
                 loginAliases
-            ) + 
+            ) +
             attributeIfContent(
-                "AutoVerifiedAttributes", 
-                autoVerify                
-            ) + 
+                "AutoVerifiedAttributes",
+                autoVerify
+            ) +
             attributeIfContent(
                 "SmsConfiguration",
                 smsConfiguration
@@ -212,19 +220,19 @@
             attributeIfContent(
                 "Schema",
                 schema
-            ) + 
+            ) +
             attributeIfContent (
                 "EmailVerificationMessage"
                 emailVerificationMessage
-            ) + 
+            ) +
             attributeIfContent (
                 "EmailVerificationSubject",
                 emailVerificationSubject
-             ) + 
-             attributeIfContent ( 
+             ) +
+             attributeIfContent (
                 "SmsVerificationMessage",
                 smsVerificationMessage
-             ) + 
+             ) +
              attributeIfContent(
                  "SmsAuthenticationMessage",
                  smsAuthenticationMessage
@@ -239,17 +247,17 @@
     /]
 [/#macro]
 
-[#macro createUserPoolClient mode id name 
-        userPoolId 
+[#macro createUserPoolClient mode id name
+        userPoolId
         generateSecret=false
         tokenValidity=30
-        tier="" 
-        component="" 
-        dependencies="" 
+        tier=""
+        component=""
+        dependencies=""
         outputId=""
 ]
 
-    [@cfResource 
+    [@cfResource
         mode=mode
         id=id
         type="AWS::Cognito::UserPoolClient"
@@ -275,7 +283,7 @@
     outputId=""
 ]
 
-    [@cfResource 
+    [@cfResource
         mode=mode
         id=id
         type="AWS::Cognito::IdentityPool"
@@ -291,7 +299,7 @@
     /]
 [/#macro]
 
-[#macro createIdentityPoolRoleMapping mode id  
+[#macro createIdentityPoolRoleMapping mode id
     identityPoolId,
     authenticatedRoleArn,
     unauthenticatedRoleArn
@@ -307,7 +315,7 @@
         properties=
             {
                 "IdentityPoolId" : identityPoolId,
-                "Roles" : { 
+                "Roles" : {
                     "authenticated" : authenticatedRoleArn,
                     "unauthenticated" : unauthenticatedRoleArn
                 }

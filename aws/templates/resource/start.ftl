@@ -527,7 +527,13 @@
     [#switch mode]
         [#case "definition"]
             [#if enabled]
-                [#assign debugResources += [value] ]
+                [#assign debugResources +=
+                    [
+                        {
+                            "Timestamp" : .now?iso_utc,
+                            "Value" : value
+                        }
+                    ] ]
             [/#if]
             [#break]
 
