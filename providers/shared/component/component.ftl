@@ -164,16 +164,26 @@
     [#return result]
 [/#function]
 
-[#macro includeComponentConfiguration component ]
+[#macro includeComponentConfiguration component ignore=[] ]
     [#-- Ensure the share configuration is loaded --]
     [@includeSharedComponentConfiguration component /]
 
-    [#-- Ensure dependencies loaded --]
-    [#-- TODO(mfl): Not sure if this is neded now that known component types are global --]
-    [#-- Leave for now in case we find it is needed --]
-    [#-- list getComponentDependencies(component) as dependency]
-        [@includeSharedComponentConfiguration dependency /]
-    [/#list --]
+    [#-- Load static dependencies                                                 --]
+    [#-- In general, these shouldn't be needed as link processing will generally  --]
+    [#-- pick up most dependencies. However, if code uses definitions from a link --]
+    [#-- component type or its resources, then a static dependency may be needed  --]
+    [#-- to avoid errors when code is parsed as part of being included.           --]
+    [#--                                                                          --]
+    [#-- TODO(mfl): reassess this as direct dependency on a resource definitions  --]
+    [#-- is bad as it is assuming the provider of the target                      --]
+    [#list getComponentDependencies(component) as dependency]
+        [#-- Ignore circular references --]
+        [#if !(asArray(ignore)?seq_contains(dependency)) ]
+            [@includeComponentConfiguration
+                component=dependency
+                ignore=(asArray(ignore) + [component]) /]
+        [/#if]
+    [/#list]
 
     [#-- Provider specific processing based on resource groups --]
     [#local resourceGroups = getComponentResourceGroups(component)]
@@ -327,12 +337,13 @@
         )]
 [/#macro]
 
-[#macro addComponent type properties ]
+[#macro addComponent type properties dependencies=[] ]
     [@mergeComponentConfiguration
         type
         {
             "Properties" : asArray(properties)
-        }
+        } +
+        attributeIfContent("Dependencies", dependencies, asArray(dependencies))
     /]
 [/#macro]
 
@@ -359,8 +370,8 @@
     /]
 [/#macro]
 
-[#macro addChildComponent type properties parent childAttribute linkAttributes ]
-    [@addComponent type properties /]
+[#macro addChildComponent type properties parent childAttribute linkAttributes dependencies=[] ]
+    [@addComponent type properties dependencies /]
     [#local children =
         ((componentConfiguration[parent].Components)![]) +
         [
