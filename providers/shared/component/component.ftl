@@ -327,7 +327,7 @@
         )]
 [/#macro]
 
-[#macro addComponentConfiguration type properties=[] ]
+[#macro addComponent type properties ]
     [@mergeComponentConfiguration
         type
         {
@@ -336,8 +336,9 @@
     /]
 [/#macro]
 
-[#macro addComponentResourceGroup type provider="common" resourceGroup="default" attributes=[] ]
-    [@mergeComponentConfiguration
+[#macro addComponentResourceGroup type attributes provider="shared" resourceGroup="default" ]
+    [#-- ready for resource group support --]
+    [#-- @mergeComponentConfiguration
         type
         {
             "ResourceGroups" : {
@@ -348,21 +349,31 @@
                 }
             }
         }
-    /]
-[/#macro]
+    / --]
 
-[#macro addComponentChildren type childType childAttribute linkAttribute ]
-    [#local components =
-        ((componentConfiguration[type].Components)![]) +
-        {
-            "Type" : childType,
-            "Component" : childAttribute,
-            "Link" : linkAttributes
-        } ]
     [@mergeComponentConfiguration
         type
         {
-            "Components" : components
+            "Attributes" : asArray(attributes)
+        }
+    /]
+[/#macro]
+
+[#macro addChildComponent type properties parent childAttribute linkAttributes ]
+    [@addComponent type properties /]
+    [#local children =
+        ((componentConfiguration[parent].Components)![]) +
+        [
+            {
+                "Type" : type,
+                "Component" : childAttribute,
+                "Link" : asArray(linkAttributes)
+            }
+        ] ]
+    [@mergeComponentConfiguration
+        parent
+        {
+            "Components" : children
         }
     /]
 [/#macro]
