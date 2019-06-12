@@ -1581,6 +1581,10 @@ behaviour.
     [/#if]
 
     [#if link.Tier?lower_case == "external"]
+        [#-- If a type is provided, ensure it has been included --]
+        [#if link.Type??]
+            [@includeComponentConfiguration link.Type /]
+        [/#if]
         [#local targetOccurrence =
             {
                 "Core" : {

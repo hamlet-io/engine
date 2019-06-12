@@ -66,7 +66,6 @@ object.
                 "Value" : "application"
             }
         ]
-    dependencies=[USERPOOL_COMPONENT_TYPE]
 /]
 
 [@addComponentResourceGroup
