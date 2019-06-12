@@ -17,6 +17,7 @@
                 "Value" : "application"
             }
         ]
+    dependencies=[APIGATEWAY_COMPONENT_TYPE, APIGATEWAY_USAGEPLAN_COMPONENT_TYPE]
 /]
 
 [@addComponentResourceGroup

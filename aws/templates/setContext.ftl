@@ -17,9 +17,6 @@
 [@includeComponentConfiguration "baseline" /]
 [@includeComponentConfiguration "ec2" /]
 
-[#-- Required for user component to generate api key usage plan --]
-[@includeComponentConfiguration "apigateway" /]
-
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
 [#assign fullNamePrefixes = [] ]
