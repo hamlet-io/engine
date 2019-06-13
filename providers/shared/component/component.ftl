@@ -458,6 +458,10 @@
             "Type" : STRING_TYPE
         },
         {
+            "Names" : [ "Key" ],
+            "Type" : STRING_TYPE
+        },
+        {
             "Names" : [ "Branch" ],
             "Type" : STRING_TYPE
         },
