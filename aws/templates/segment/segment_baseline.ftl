@@ -123,7 +123,7 @@
 
                     [#list subSolution.Links?values as link]
                         [#if link?is_hash]
-                            [#assign linkTarget = getLinkTarget(occurrence, link) ]
+                            [#assign linkTarget = getLinkTarget(occurrence, link, false) ]
 
                             [@cfDebug listMode linkTarget false /]
 
@@ -140,7 +140,7 @@
 
                                 [#case BASELINE_KEY_COMPONENT_TYPE]
                                     [#if linkTargetConfiguration.Solution.Engine == "oai" ]
-                                        [#assign cfAccessCanonicalIds = [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
+                                        [#assign cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
                                     [/#if]
                                     [#break]
                             [/#switch]
@@ -177,7 +177,9 @@
                         [#case "operations" ]
 
                             [#assign legacyOAIId = formatDependentCFAccessId(bucketId)]
-                            [#assign cfAccessCanonicalIds = [ getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]]
+                            [#if getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE)?has_content ]
+                                [#assign cfAccessCanonicalIds += [ getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]]
+                            [/#if]
 
                             [#assign bucketPolicy += 
                                 s3WritePermission(
