@@ -30,43 +30,45 @@
                 {}
             )
         ]
-    [/#if]
+    
+    [#else]
 
-    [#local solution = occurrence.Configuration.Solution]
-    [#local esId = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
-    [#local esHostName = getExistingReference(esId, DNS_ATTRIBUTE_TYPE) ]
+        [#local solution = occurrence.Configuration.Solution]
+        [#local esId = formatResourceId(AWS_ES_RESOURCE_TYPE, core.Id)]
+        [#local esHostName = getExistingReference(esId, DNS_ATTRIBUTE_TYPE) ]
 
-    [#assign componentState =
-        {
-            "Resources" : {
-                "es" : {
-                    "Id" : esId,
-                    "Name" : core.ShortFullName,
-                    "Type" : AWS_ES_RESOURCE_TYPE,
-                    "Monitored" : true
+        [#assign componentState =
+            {
+                "Resources" : {
+                    "es" : {
+                        "Id" : esId,
+                        "Name" : core.ShortFullName,
+                        "Type" : AWS_ES_RESOURCE_TYPE,
+                        "Monitored" : true
+                    },
+                    "servicerole" : {
+                        "Id" : formatDependentRoleId(esId),
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    }
                 },
-                "servicerole" : {
-                    "Id" : formatDependentRoleId(esId),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                }
-            },
-            "Attributes" : {
-                "REGION" : regionId,
-                "AUTH" : solution.Authentication,
-                "FQDN" : esHostName,
-                "URL" : "https://" + esHostName,
-                "KIBANA_URL" : "https://" + esHostName + "/_plugin/kibana/",
-                "PORT" : 443
-            },
-            "Roles" : {
-                "Outbound" : {
-                    "default" : "consume",
-                    "consume" : esConsumePermission(esId),
-                    "datafeed" : esKinesesStreamPermission(esId)
+                "Attributes" : {
+                    "REGION" : regionId,
+                    "AUTH" : solution.Authentication,
+                    "FQDN" : esHostName,
+                    "URL" : "https://" + esHostName,
+                    "KIBANA_URL" : "https://" + esHostName + "/_plugin/kibana/",
+                    "PORT" : 443
                 },
-                "Inbound" : {
+                "Roles" : {
+                    "Outbound" : {
+                        "default" : "consume",
+                        "consume" : esConsumePermission(esId),
+                        "datafeed" : esKinesesStreamPermission(esId)
+                    },
+                    "Inbound" : {
+                    }
                 }
             }
-        }
-    ]
+        ]
+    [/#if]
 [/#macro]
