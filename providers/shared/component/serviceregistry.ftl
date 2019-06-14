@@ -17,16 +17,8 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=SERVICE_REGISTRY_COMPONENT_TYPE
     attributes=
         [
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
-            },
             {
                 "Names" : "Links",
                 "Subobjects" : true,
@@ -56,24 +48,8 @@
                 "Value" : "solution"
             }
         ]
-    parent=SERVICE_REGISTRY_COMPONENT_TYPE
-    childAttribute="RegistryServices"
-    linkAttributes="RegistryService"
-/]
-
-[@addComponentResourceGroup
-    type=SERVICE_REGISTRY_SERVICE_COMPONENT_TYPE
     attributes=
         [
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
-            },
-            {
-                "Names" : "Links",
-                "Subobjects" : true,
-                "Children" : linkChildrenConfiguration
-            },
             {
                 "Names" : "ServiceName",
                 "Description" : "The hostname portion of the DNS record which will identify this service",
@@ -100,4 +76,7 @@
                 "Default" : "OnlyOne"
             }
         ]
+    parent=SERVICE_REGISTRY_COMPONENT_TYPE
+    childAttribute="RegistryServices"
+    linkAttributes="RegistryService"
 /]

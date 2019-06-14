@@ -66,10 +66,6 @@ object.
                 "Value" : "application"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=APIGATEWAY_COMPONENT_TYPE
     attributes=
         [
             {
@@ -185,7 +181,7 @@ object.
             },
             {
                 "Names" : "Profiles",
-                "Children" : profileChildConfiguration + [
+                "Children" : [
                     {
                         "Names" : "Security",
                         "Type" : STRING_TYPE,
@@ -211,4 +207,5 @@ object.
                 "Default" : "ignore"
             }
         ]
+    dependencies=[APIGATEWAY_USAGEPLAN_COMPONENT_TYPE, USERPOOL_COMPONENT_TYPE]
 /]

@@ -2,20 +2,12 @@
 [#include "base.ftl"]
 [#include "engine.ftl"]
 
-[#-- Bootstrap the component inclusion process --]
-[#assign componentBootstrapLoaded = includeTemplate("/shared/component/component.ftl", true) ]
-
 [#include idList]
 [#include nameList]
 [#include policyList]
 [#include resourceList]
 [#include "common.ftl"]
 [#include "swagger.ftl"]
-
-[#-- Include a few key components --]
-[#-- TODO(mfl): Refactor to remove provider dependencies --]
-[@includeComponentConfiguration "baseline" /]
-[@includeComponentConfiguration "ec2" /]
 
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
@@ -215,6 +207,21 @@
         [/#if]
 
     [/#if]
+
+    [#-- Cludge for now to get placement profiles working --]
+    [#assign placementProfiles =
+        mergeObjects(
+            (productObject.PlacementProfiles)!{},
+            (tenantObject.PlacementProfiles)!{}
+        ) ]
+
+    [#-- Bootstrap the component inclusion process --]
+    [#assign componentBootstrapLoaded = includeTemplate("/shared/component/component.ftl", true) ]
+
+    [#-- Include a few key components --]
+    [#-- TODO(mfl): Refactor to remove provider dependencies --]
+    [@includeComponentConfiguration "baseline" /]
+    [@includeComponentConfiguration "ec2" /]
 
     [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
 

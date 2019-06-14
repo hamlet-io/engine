@@ -78,95 +78,294 @@
 [#assign USERPOOL_CLIENT_COMPONENT_TYPE = "userpoolclient" ]
 [#assign USERPOOL_AUTHPROVIDER_COMPONENT_TYPE = "userpoolauthprovider" ]
 
+[#-- Component configuration is extended dynamically by each component type --]
+[#assign componentConfiguration = {} ]
 
+[#-- Resource Groups --]
+[#assign DEFAULT_RESOURCE_GROUP = "default"]
+[#assign DNS_RESOURCE_GROUP = "dns"]
+
+[#-- Attributes are shared across providers, or provider specific --]
 [#assign SHARED_ATTRIBUTES = "shared"]
 
-[#function formatResourceGroupName componentName groupName]
-    [#return formatName(componentName, groupName)]
-[/#function]
-
+[#-- Placements --]
 [#assign PRODUCT_PLACEMENT = "product"]
 [#assign DNS_PLACEMENT = "dns"]
 
-[#-- Lookup shared component definition --]
-[#macro includeSharedComponentConfiguration component ]
-    [#-- Handle object or type string --]
-    [#local type = component ]
-    [#if component?is_hash]
-        [#local type = getComponentType(component) ]
-    [/#if]
-    [#local possibleFiles = [] ]
-    [#local possibleFiles += [["shared", type]] ]
-    [#local possibleFiles += [["shared", "component", type]] ]
-    [#list possibleFiles as possibleFile]
-        [#local filename = possibleFile?join("/") + ".ftl" ]
-        [@cfDebug listMode!"" "Checking for template " + filename + "..." false /]
-        [#if includeTemplate(filename, true)]
-            [@cfDebug listMode!"" "Loaded template " + filename + " for component type " + type false /]
-        [/#if]
-    [/#list]
+[#-- Helper macro - not for general use --]
+[#macro mergeComponentConfiguration type configuration]
+    [#assign componentConfiguration =
+        mergeObjects(
+            componentConfiguration,
+            {
+                type: configuration
+            }
+        )
+    ]
 [/#macro]
 
-[#macro includeServicesConfiguration provider services deploymentFramework]
-    [#list services as service]
-        [#-- aws/services/eip.ftl --]
-        [#local possibleFiles += [[provider, "service", service]] ]
-        [#-- aws/services/eip/cf.ftl --]
-        [#local possibleFiles += [[provider, "service", service, deploymentFramework]] ]
-
-        [#list ["id", "name", "resource"] as level]
-            [#-- aws/services/eip/id.ftl --]
-            [#local possibleFiles += [[provider, "service", service, level]] ]
-            [#-- aws/services/eip/cf/id.ftl --]
-            [#local possibleFiles += [[provider, "service", service, deploymentFramework, level]] ]
-        [/#list]
-    [/#list]
+[#-- Macros to assemble the component configuration --]
+[#macro addComponent type properties attributes dependencies=[] ]
+    [@mergeComponentConfiguration
+        type=type
+        configuration=
+            {
+                "Properties" : asArray(properties)
+            } +
+            attributeIfContent("Dependencies", dependencies, asArray(dependencies))
+    /]
+    [#-- Default resource group --]
+    [@addResourceGroupInformation
+        type=type
+        attributes=attributes
+        provider=SHARED_ATTRIBUTES
+        placement=PRODUCT_PLACEMENT
+    /]
 [/#macro]
 
-[#function getComponentDependencies component]
-    [#-- Handle object or type string --]
-    [#local obj = component ]
-    [#if component?is_string]
-        [#local obj = (componentConfiguration[component])!{} ]
-    [/#if]
+[#macro addChildComponent type properties attributes parent childAttribute linkAttributes dependencies=[] ]
+    [@addComponent
+        type=type
+        properties=properties
+        attributes=attributes
+        dependencies=dependencies
+    /]
 
-    [#return obj.Dependencies![] ]
-[/#function]
+    [#local children =
+        ((componentConfiguration[parent].Components)![]) +
+        [
+            {
+                "Type" : type,
+                "Component" : childAttribute,
+                "Link" : asArray(linkAttributes)
+            }
+        ]
+    ]
+    [@mergeComponentConfiguration
+        type=parent
+        configuration=
+            {
+                "Components" : children
+            }
+    /]
+[/#macro]
 
-[#function getComponentResourceGroups component]
-    [#-- Handle object or type string --]
-    [#local obj = component ]
-    [#if component?is_string]
-        [#local obj = (componentConfiguration[component])!{} ]
-    [/#if]
-
-    [#local result = {} ]
-
-    [#if obj.ResourceGroups??]
-        [#-- explicit resource group definition --]
-        [#local result = obj.ResourceGroups]
-    [#else]
-        [#-- TODO(mfl) Can remove this once all components converted to resource groups --]
-        [#if obj?has_content]
-            [#-- default configuration --]
-            [#local result =
-                {
-                    "default" : {
-                        "Placement" : PRODUCT_PLACEMENT,
-                        "Attributes" : {
-                            SHARED_ATTRIBUTES : obj.Attributes![]
+[#macro addResourceGroupInformation type attributes provider resourceGroup=DEFAULT_RESOURCE_GROUP placement="" services=[] ]
+    [#-- Special processing for profiles --]
+    [#if
+        (provider == SHARED_ATTRIBUTES) &&
+        (resourceGroup == DEFAULT_RESOURCE_GROUP) ]
+        [#local extendedAttributes = [] ]
+        [#local profileAttribute = coreProfileChildConfiguration[0] ]
+        [#list attributes as attribute ]
+            [#if asArray(attribute.Names!attribute.Name)?seq_contains("Profiles")]
+                [#local profileAttribute +=
+                        {
+                            "Children" :
+                                profileAttribute.Children +
+                                attribute.Children
                         }
-                    }
-                } ]
-        [/#if]
+                    ] ]
+            [#else]
+                [#local extendedAttributes += [attribute] ]
+            [/#if]
+        [/#list]
+        [#local extendedAttributes +=
+            [profileAttribute] +
+            coreComponentChildConfiguration ]
     [/#if]
+    [@mergeComponentConfiguration
+        type=type
+        configuration=
+            {
+                "ResourceGroups" : {
+                    resourceGroup : {
+                        "Attributes" : {
+                            provider :
+                                asArray(extendedAttributes!attributes)
+                        } +
+                        attributeIfContent("Placement", placement) +
+                        valueIfContent(
+                            {
+                                "Services" : {
+                                    provider : asArray(services)
+                                }
+                            },
+                            services
+                        )
+                    }
+                }
+            }
+    /]
+[/#macro]
 
-    [#return result]
+[#function getComponentDependencies type]
+    [#return (componentConfiguration[type].Dependencies)![] ]
 [/#function]
 
-[#macro includeComponentConfiguration component ignore=[] ]
+[#function getComponentResourceGroups type]
+    [#return (componentConfiguration[type].ResourceGroups)!{} ]
+[/#function]
+
+[#function getComponentChildren type]
+    [#return (componentConfiguration[type].Components)![] ]
+[/#function]
+
+[#function getResourceGroupPlacement resourceGroup profile]
+    [#return
+        {
+            "Provider" : "aws",
+            "Region" : "ap-southeast-2",
+            "DeploymentFramework" : "cf"
+        } +
+        (profile[resourceGroup.Placement!PRODUCT_PLACEMENT])!{} ]
+[/#function]
+
+[#-- Include files once - ignore if not present --]
+[#macro includeFiles files ]
+    [#list files as file]
+        [#local filename = file?join("/") + ".ftl" ]
+        [@cfDebug
+            mode=listMode!""
+            value="Checking for template " + filename + "..."
+            enabled=false
+        /]
+        [#if includeTemplate(filename, true)]
+            [@cfDebug
+                mode=listMode!""
+                value="Loaded template " + filename
+                enabled=false
+            /]
+        [/#if]
+    [/#list]
+[/#macro]
+
+[#-- Look up shared component definition --]
+[#macro includeSharedComponentConfiguration type ]
+    [@includeFiles
+        files=
+            [
+                ["shared", type],
+                ["shared", "component", type]
+            ]
+    /]
+[/#macro]
+
+[#-- Look up provider service definitions --]
+[#-- General hierarchy is provider;service;deploymentFramework;level --]
+[#macro includeServiceConfiguration provider service deploymentFramework ]
+    [#local files = [] ]
+
+    [#-- Support a variety of layouts depending on user preference --]
+
+    [#-- aws/services/eip.ftl --]
+    [#local files += [[provider, "service", service]] ]
+    [#-- aws/services/eip/eip.ftl --]
+    [#local files += [[provider, "service", service, service]] ]
+    [#-- aws/services/eip/cf.ftl --]
+    [#local files += [[provider, "service", service, deploymentFramework]] ]
+
+    [#list ["id", "name", "policy", "resource"] as level]
+        [#-- aws/services/eip/id.ftl --]
+        [#local files += [[provider, "service", service, level]] ]
+        [#-- aws/services/eip/cf/id.ftl --]
+        [#local files += [[provider, "service", service, deploymentFramework, level]] ]
+    [/#list]
+    [@includeFiles files=files /]
+[/#macro]
+
+[#-- Look up resource group definition --]
+[#-- General hierarchy is provider;component;resourceGroup;deploymentFramework;level --]
+[#macro includeResourceGroupConfiguration component provider resourceGroup deploymentFramework services]
+    [#local files = [] ]
+
+    [#-- Support a variety of layouts depending on user preference --]
+
+    [#-- Provider wide definitions --]
+    [#-- aws/aws.ftl --]
+    [#local files += [[provider, provider]] ]
+    [#-- aws/component/component.ftl --]
+    [#local files += [[provider, "component", "component" ]] ]
+    [#-- aws/resourcegroup/resourcegroup.ftl --]
+    [#local files += [[provider, "resourcegroup", "resourcegroup" ]] ]
+    [#-- aws/service/service.ftl --]
+    [#local files += [[provider, "service", "service" ]] ]
+
+    [#-- Service based hierarchy --]
+
+    [#-- services the resource group depends on     --]
+    [#list services as service]
+        [@includeServiceConfiguration
+            provider=provider
+            service=service
+            deploymentFramework=deploymentFramework
+        /]
+    [/#list]
+
+    [#-- Component based hierarchy --]
+
+    [#-- aws/component/lb.ftl --]
+    [#local files += [[provider, "component", component ]] ]
+    [#-- aws/component/lb/lb.ftl --]
+    [#local files += [[provider, "component", component, component]] ]
+
+    [#-- aws/component/lb/lb-lb.ftl --]
+    [#local files += [[provider, "component", component, resourceGroup]] ]
+    [#-- aws/component/lb/lb-lb/cf.ftl --]
+    [#local files += [[provider, "component", component, resourceGroup, deploymentFramework]] ]
+
+    [#-- Component specific deployment framework definition --]
+    [#-- aws/component/lb/cf.ftl --]
+    [#local files += [[provider, "component", component, deploymentFramework]] ]
+    [#-- aws/component/lb/cf/lb-lb.ftl --]
+    [#local files += [[provider, "component", component, deploymentFramework, resourceGroup]] ]
+
+    [#-- Resource group based hierarchy --]
+
+    [#-- mainly for shared resource groups --]
+    [#if resourceGroup != DEFAULT_RESOURCE_GROUP ]
+        [#-- aws/resourcegroup/lb-lb.ftl --]
+        [#local files += [[provider, "resourcegroup", resourceGroup]] ]
+        [#-- aws/resourcegroup/lb-lb/cf.ftl --]
+        [#local files += [[provider, "resourcegroup", resourceGroup, deploymentFramework]] ]
+    [/#if]
+
+    [#list ["id", "name", "setup", "state"] as level]
+        [#-- aws/component/lb/id.ftl --]
+        [#local files += [[provider, "component", component, level]] ]
+        [#-- aws/component/lb/lb-lb/id.ftl --]
+        [#local files += [[provider, "component", component, resourceGroup, level]] ]
+        [#-- aws/component/lb/lb-lb/cf/id.ftl --]
+        [#local files += [[provider, "component", component, resourceGroup, deploymentFramework, level]] ]
+
+        [#if resourceGroup != DEFAULT_RESOURCE_GROUP ]
+            [#-- aws/resourcegroup/lb-lb/id.ftl --]
+            [#local files += [[provider, "resourcegroup", resourceGroup, level]] ]
+            [#-- aws/resourcegroup/lb-lb/cf/id.ftl --]
+            [#local files += [[provider, "resourcegroup", resourceGroup, deploymentFramework, level]] ]
+        [/#if]
+    [/#list]
+
+    [#-- Legacy naming for transition --]
+    [#-- TODO(mfl): Remove when transition complete --]
+    [#list ["segment", "solution"] as level]
+        [#-- aws/component/segment/segment_lb.ftl --]
+        [#local files += [[provider, "component", level, level + "_" + component]] ]
+    [/#list]
+
+    [@includeFiles files=files /]
+
+[/#macro]
+
+[#macro includeComponentConfiguration component placements={} profile={} ignore=[] ]
+    [#-- Determine the component type --]
+    [#local type = component]
+    [#if component?is_hash]
+        [#local type = getComponentType(component)]
+    [/#if]
+
     [#-- Ensure the share configuration is loaded --]
-    [@includeSharedComponentConfiguration component /]
+    [@includeSharedComponentConfiguration type=type /]
 
     [#-- Load static dependencies                                                 --]
     [#-- In general, these shouldn't be needed as link processing will generally  --]
@@ -176,126 +375,78 @@
     [#--                                                                          --]
     [#-- TODO(mfl): reassess this as direct dependency on a resource definitions  --]
     [#-- is bad as it is assuming the provider of the target                      --]
-    [#list getComponentDependencies(component) as dependency]
+    [#list getComponentDependencies(type) as dependency]
         [#-- Ignore circular references --]
         [#if !(asArray(ignore)?seq_contains(dependency)) ]
             [@includeComponentConfiguration
                 component=dependency
-                ignore=(asArray(ignore) + [component]) /]
+                ignore=(asArray(ignore) + [type])
+            /]
         [/#if]
     [/#list]
 
-    [#-- Provider specific processing based on resource groups --]
-    [#local resourceGroups = getComponentResourceGroups(component)]
-
-    [#local possibleFiles = [] ]
-    [#local type = component]
-    [#if component?is_hash]
-        [#local type = getComponentType(component)]
-    [/#if]
-    [#list resourceGroups as id,value]
-        [#-- Resource Group determines provider and deployment framework --]
-        [#-- TODO(mfl): Work out how to determine these from the configuration --]
-        [#local provider = "aws" ]
-        [#local deploymentFramework = "cf" ]
-
-        [#-- Support a variety of layouts depending on user preference --]
-        [#-- General hierarchy is provider;component;resourceGroup;deploymentFramework;level --]
-
-        [#-- Provider wide definitions --]
-        [#-- aws/aws.ftl --]
-        [#local possibleFiles += [[provider, provider]] ]
-        [#-- aws/component/component.ftl --]
-        [#local possibleFiles += [[provider, "component", "component" ]] ]
-        [#-- aws/resourcegroup/resourcegroup.ftl --]
-        [#local possibleFiles += [[provider, "resourcegroup", "resourcegroup" ]] ]
-        [#-- aws/service/service.ftl --]
-        [#local possibleFiles += [[provider, "service", "service" ]] ]
-
-        [#-- Component based hierarchy --]
-
-        [#-- aws/component/lb.ftl --]
-        [#local possibleFiles += [[provider, "component", type ]] ]
-        [#-- aws/component/lb/lb.ftl --]
-        [#local possibleFiles += [[provider, "component", type, type]] ]
-
-        [#-- aws/component/lb/lb-lb.ftl --]
-        [#local possibleFiles += [[provider, "component", type, id]] ]
-        [#-- aws/component/lb/lb-lb/cf.ftl --]
-        [#local possibleFiles += [[provider, "component", type, id, deploymentFramework]] ]
-
-        [#-- Component specific deployment framework definition --]
-        [#-- aws/component/lb/cf.ftl --]
-        [#local possibleFiles += [[provider, "component", type, deploymentFramework]] ]
-        [#-- aws/component/lb/cf/lb-lb.ftl --]
-        [#local possibleFiles += [[provider, "component", type, deploymentFramework, id]] ]
-
-        [#-- Resource group based hierarchy --]
-
-        [#-- mainly for shared resource groups --]
-        [#if id != "default"]
-            [#-- aws/resourcegroup/lb-lb.ftl --]
-            [#local possibleFiles += [[provider, "resourcegroup", id]] ]
-            [#-- aws/resourcegroup/lb-lb/cf.ftl --]
-            [#local possibleFiles += [[provider, "resourcegroup", id, deploymentFramework]] ]
+    [#list getComponentResourceGroups(type) as key, value]
+        [#local placement={} ]
+        [#if placements?has_content]
+            [#local placement = (placements[key].Placement)!placements[key]!{} ]
         [/#if]
-
-        [#list ["id", "name", "setup", "state"] as level]
-            [#-- aws/component/lb/id.ftl --]
-            [#local possibleFiles += [[provider, "component", type, level]] ]
-            [#-- aws/component/lb/lb-lb/id.ftl --]
-            [#local possibleFiles += [[provider, "component", type, id, level]] ]
-            [#-- aws/component/lb/lb-lb/cf/id.ftl --]
-            [#local possibleFiles += [[provider, "component", type, id, deploymentFramework, level]] ]
-
-            [#-- aws/resourcegroup/lb-lb/id.ftl --]
-            [#local possibleFiles += [[provider, "resourcegroup", id, level]] ]
-            [#-- aws/resourcegroup/lb-lb/cf/id.ftl --]
-            [#local possibleFiles += [[provider, "resourcegroup", id, deploymentFramework, level]] ]
-
-        [/#list]
-
-        [#-- Legacy naming for transition --]
-        [#-- TODO(mfl): Remove when transition complete --]
-        [#list ["segment", "solution", "application"] as level]
-            [#-- aws/component/segment/segment_lb.ftl --]
-            [#local possibleFiles += [[provider, "component", level, level + "_" + type]] ]
-        [/#list]
-
-        [#-- Service based hierarchy --]
-
-        [#-- Resource group identifies the provider services it depends on     --]
-        [#-- TODO(mfl): Work out how to determine these from the configuration --]
-        [#--            For now look for a service matching the component      --]
-        [#local services = [type] ]
-
-        [#-- General hierarchy is provider;service;deploymentFramework;level --]
-
-        [#list services as service]
-            [#-- aws/services/eip.ftl --]
-            [#local possibleFiles += [[provider, "service", service]] ]
-            [#-- aws/services/eip/cf.ftl --]
-            [#local possibleFiles += [[provider, "service", service, deploymentFramework]] ]
-
-            [#list ["id", "name", "resource"] as level]
-                [#-- aws/services/eip/id.ftl --]
-                [#local possibleFiles += [[provider, "service", service, level]] ]
-                [#-- aws/services/eip/cf/id.ftl --]
-                [#local possibleFiles += [[provider, "service", service, deploymentFramework, level]] ]
-            [/#list]
-
-        [/#list]
-    [/#list]
-
-    [#-- Attempt to load the additional file --]
-    [#list possibleFiles as possibleFile]
-        [#local filename = possibleFile?join("/") + ".ftl" ]
-        [@cfDebug listMode!"" "Checking for template " + filename + "..." false /]
-        [#if includeTemplate(filename, true)]
-            [@cfDebug listMode!"" "Loaded template " + filename + " for component " + type false /]
+        [#if !placement?has_content]
+            [#local placement = getResourceGroupPlacement(value, profile)]
         [/#if]
+        [@includeResourceGroupConfiguration
+            component=type
+            provider=placement.Provider
+            resourceGroup=key
+            deploymentFramework=placement.DeploymentFramework
+            services=(value.Services[placement.Provider])![] + [type]
+        /]
     [/#list]
 [/#macro]
+
+[#function invokeComponentMacro occurrence resourceGroup levels=[] parent={} ]
+    [#local placement = (occurrence.State.ResourceGroups[resourceGroup].Placement)!{} ]
+    [#if placement?has_content]
+        [#local macroOptions = [] ]
+            [#list asArray(levels) as level]
+                [#if level?has_content]
+                    [#local macroOptions +=
+                        [
+                            [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework, level],
+                            [placement.Provider, occurrence.Core.Type, placement.DeploymentFramework, level],
+                            [placement.Provider, resourceGroup, placement.DeploymentFramework, level]
+                        ]]
+                [#else]
+                    [#local macroOptions +=
+                        [
+                            [placement.Provider, occurrence.Core.Type, resourceGroup, placement.DeploymentFramework],
+                            [placement.Provider, occurrence.Core.type, placement.DeploymentFramework],
+                            [placement.Provider, resourceGroup, placement.DeploymentFramework]
+                        ]]
+                [/#if]
+            [/#list]
+        [#list macroOptions as macroOption]
+            [#local macro = macroOption?join("_")]
+            [#if (.vars[macro]!"")?is_directive]
+                [#if parent?has_content]
+                    [@(.vars[macro])
+                        occurrence=occurrence
+                        parent=parent /]
+                [#else]
+                    [@(.vars[macro])
+                        occurrence=occurrence /]
+                [/#if]
+                [#return true]
+            [#else]
+                [@cfDebug
+                    mode=listMode
+                    value="Unable to invoke macro " + macro
+                    enabled=false
+                /]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#return false]
+[/#function]
 
 [#macro processComponents level=""]
     [#list tiers as tier]
@@ -304,90 +455,33 @@
                 [#assign componentTemplates = {} ]
                 [#assign dashboardRows = []]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
-                [#local componentMacro =
-                    (["aws", getComponentType(component), "cf"] +
-                    arrayIfContent(level, level))?join("_")]
-                [@cfDebug listMode "Checking " + tier.Id + "/" + component.Id + "..." false /]
                 [#list requiredOccurrences(
                     getOccurrences(tier, component),
                     deploymentUnit,
                     true) as occurrence]
-                    [#if (.vars[componentMacro]!"")?is_directive]
-                        [@cfDebug listMode "Processing " + tier.Id + "/" + component.Id + "..." false /]
-                        [@(.vars[componentMacro]) occurrence /]
-                    [#else]
-                        [@cfDebug listMode "Unable to invoke macro " + componentMacro false /]
-                    [/#if]
+                    [@cfDebug
+                        mode=listMode
+                        value=occurrence
+                        enabled=false
+                    /]
+                    [#list occurrence.State.ResourceGroups as key,value]
+                        [#if invokeComponentMacro(
+                                occurrence,
+                                key,
+                                ["setup", level]) ]
+                            [@cfDebug
+                                mode=listMode
+                                value="Processing " + tier.Id + "/" + component.Id + "/" + key + " ..."
+                                enabled=false
+                            /]
+                        [/#if]
+                    [/#list]
                 [/#list]
             [/#if]
         [/#list]
     [/#list]
 [/#macro]
 
-[#-- Component configuration is extended dynamically by each component type --]
-[#assign componentConfiguration = {} ]
-
-[#macro mergeComponentConfiguration type configuration]
-    [#assign componentConfiguration =
-        mergeObjects(
-            componentConfiguration,
-            {
-                type: configuration
-            }
-        )]
-[/#macro]
-
-[#macro addComponent type properties dependencies=[] ]
-    [@mergeComponentConfiguration
-        type
-        {
-            "Properties" : asArray(properties)
-        } +
-        attributeIfContent("Dependencies", dependencies, asArray(dependencies))
-    /]
-[/#macro]
-
-[#macro addComponentResourceGroup type attributes provider="shared" resourceGroup="default" ]
-    [#-- ready for resource group support --]
-    [#-- @mergeComponentConfiguration
-        type
-        {
-            "ResourceGroups" : {
-                resourceGroup : {
-                    "Attributes" : {
-                        provider : asArray(attributes)
-                    }
-                }
-            }
-        }
-    / --]
-
-    [@mergeComponentConfiguration
-        type
-        {
-            "Attributes" : asArray(attributes)
-        }
-    /]
-[/#macro]
-
-[#macro addChildComponent type properties parent childAttribute linkAttributes dependencies=[] ]
-    [@addComponent type properties dependencies /]
-    [#local children =
-        ((componentConfiguration[parent].Components)![]) +
-        [
-            {
-                "Type" : type,
-                "Component" : childAttribute,
-                "Link" : asArray(linkAttributes)
-            }
-        ] ]
-    [@mergeComponentConfiguration
-        parent
-        {
-            "Components" : children
-        }
-    /]
-[/#macro]
 
 [#assign
     filterChildrenConfiguration = [
@@ -931,13 +1025,6 @@
 
 ]]
 
-[#assign profileChildConfiguration = [
-    {
-        "Names" : "Deployment",
-        "Type" : ARRAY_OF_STRING_TYPE
-    }
-]]
-
 [#assign s3NotificationChildConfiguration = [
     {
         "Names" : "Links",
@@ -1014,3 +1101,34 @@
         ]
     }
 ]]
+
+[#-- Not for general use - framework only --]
+[#assign coreProfileChildConfiguration = [
+    {
+        "Names" : ["Profiles"],
+        "Children" : [
+            {
+                "Names" : "Deployment",
+                "Type" : ARRAY_OF_STRING_TYPE,
+                "Default" : []
+            },
+            {
+                "Names" : "Placement",
+                "Type" : STRING_TYPE,
+                "Default" : ""
+            }
+        ]
+    }
+] ]
+
+[#-- Not for general use - framework only --]
+[#assign coreComponentChildConfiguration = [
+    {
+        "Names" : ["Export"],
+        "Default" : []
+    },
+    {
+        "Names" : ["DeploymentUnits"],
+        "Default" : []
+    }
+] ]

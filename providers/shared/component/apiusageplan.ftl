@@ -17,10 +17,6 @@
                 "Value" : "application"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=APIGATEWAY_USAGEPLAN_COMPONENT_TYPE
     attributes=
         [
             {

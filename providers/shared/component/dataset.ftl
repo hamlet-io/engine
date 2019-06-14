@@ -17,10 +17,6 @@
                 "Value" : "application"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=DATASET_COMPONENT_TYPE
     attributes=
         [
             {

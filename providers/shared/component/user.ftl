@@ -17,11 +17,6 @@
                 "Value" : "application"
             }
         ]
-    dependencies=[APIGATEWAY_COMPONENT_TYPE, APIGATEWAY_USAGEPLAN_COMPONENT_TYPE]
-/]
-
-[@addComponentResourceGroup
-    type=USER_COMPONENT_TYPE
     attributes=
         [
             {
@@ -33,10 +28,6 @@
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
-            },
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
             },
             {
                 "Names" : "GenerateCredentials",
@@ -86,4 +77,5 @@
                 ]
             }
         ]
+    dependencies=[APIGATEWAY_COMPONENT_TYPE]
 /]

@@ -17,20 +17,12 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=EFS_COMPONENT_TYPE
     attributes=
         [
             {
                 "Names" : "Encrypted",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : true
-            },
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
             }
         ]
 /]
@@ -52,13 +44,6 @@
                 "Value" : "solution"
             }
         ]
-    parent=EFS_COMPONENT_TYPE
-    childAttribute="Mounts"
-    linkAttributes="Mount"
-/]
-
-[@addComponentResourceGroup
-    type=EFS_MOUNT_COMPONENT_TYPE
     attributes=
         [
             {
@@ -67,4 +52,7 @@
                 "Mandatory" : true
             }
         ]
+    parent=EFS_COMPONENT_TYPE
+    childAttribute="Mounts"
+    linkAttributes="Mount"
 /]

@@ -17,10 +17,6 @@
                 "Value" : "segment"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=NETWORK_GATEWAY_COMPONENT_TYPE
     attributes=
         [
             {
@@ -60,13 +56,6 @@
                 "Value" : "segment"
             }
         ]
-    parent=NETWORK_GATEWAY_COMPONENT_TYPE
-    childAttribute="Destinations"
-    linkAttributes="Destination"
-/]
-
-[@addComponentResourceGroup
-    type=NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE
     attributes=
         [
             {
@@ -92,4 +81,7 @@
                 "Children" : linkChildrenConfiguration
             }
         ]
+    parent=NETWORK_GATEWAY_COMPONENT_TYPE
+    childAttribute="Destinations"
+    linkAttributes="Destination"
 /]

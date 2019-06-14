@@ -17,10 +17,6 @@
                 "Value" : "application"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=SPA_COMPONENT_TYPE
     attributes=
         [
             {
@@ -192,7 +188,7 @@
             },
             {
                 "Names" : "Profiles",
-                "Children" : profileChildConfiguration + [
+                "Children" : [
                     {
                         "Names" : "Security",
                         "Type" : STRING_TYPE,

@@ -22,10 +22,6 @@
                 "Severity" : "warning"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=LB_COMPONENT_TYPE
     attributes=
         [
             {
@@ -41,7 +37,7 @@
             },
             {
                 "Names" : "Profiles",
-                "Children" : profileChildConfiguration + [
+                "Children" : [
                     {
                         "Names" : "Security",
                         "Type" : STRING_TYPE,
@@ -89,13 +85,6 @@
                 "Value" : "solution"
             }
         ]
-    parent=LB_COMPONENT_TYPE
-    childAttribute="PortMappings"
-    linkAttributes=["PortMapping","Port"]
-/]
-
-[@addComponentResourceGroup
-    type=LB_PORT_COMPONENT_TYPE
     attributes=
         [
             {
@@ -229,4 +218,7 @@
                 ]
             }
         ]
+    parent=LB_COMPONENT_TYPE
+    childAttribute="PortMappings"
+    linkAttributes=["PortMapping","Port"]
 /]

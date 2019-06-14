@@ -27,7 +27,7 @@
     [#local result = [] ]
     [#list asFlattenedArray(occurrences) as occurrence]
         [#-- Ignore if not enabled --]
-        [#if occurrence.Configuration.Solution.Enabled]
+        [#if (occurrence.Configuration.Solution.Enabled)!false]
             [#-- Is the occurrence required --]
             [#if deploymentRequired(occurrence.Configuration.Solution, deploymentUnit, false)]
                 [#local result += [occurrence] ]
@@ -804,71 +804,104 @@ behaviour.
     [#return false]
 [/#function]
 
-[#function getOccurrenceState occurrence parentOccurrence]
-    [#local result =
-        {
-            "Resources" : {},
-            "Attributes" : {
-                "NOATTRIBUTES" : "Attributes not found"
-            }
-        }
-    ]
+[#function getOccurrenceAttributes occurrence]
+    [#local attributes = [] ]
 
-    [#if occurrence?has_content]
-        [#local core = occurrence.Core ]
+    [#list getComponentResourceGroups(occurrence.Core.Type) as key, value]
+        [#local placement = (occurrence.State.ResourceGroups[key].Placement)!{}]
+        [#local attributes +=
+            value.Attributes[SHARED_ATTRIBUTES]![] +
+            value.Attributes[placement.Provider!""]![]]
+    [/#list]
+    [#return attributes]
+[/#function]
+
+[#function getOccurrenceState occurrence parentOccurrence]
+
+    [#local groupState = {} ]
+    [#local attributes = {} ]
+
+    [#-- TODO(mfl) Remove legacyState once all components using access routines --]
+    [#local legacyState = {
+            "Resources" : {},
+            "Roles" : {
+                "Inbound" : {},
+                "Outbound" : {}
+            }
+        } ]
+
+    [#-- Special processing for external links --]
+    [#if (occurrence.Core.External!false) || ((occurrence.Core.Type!"") == "external") ]
         [#local environment =
             occurrence.Configuration.Environment.General +
             occurrence.Configuration.Environment.Sensitive ]
 
-        [#if (core.External!false) || ((core.Type!"") == "external") ]
-            [#local externalAttributes = {} ]
-            [#list environment as name,value]
-                [#local prefix = core.Component.Name?upper_case + "_"]
-                [#if name?starts_with(prefix)]
-                    [#local externalAttributes += { name?remove_beginning(prefix) : value } ]
-                [/#if]
-            [/#list]
-            [#if externalAttributes?has_content]
-                [#local result += { "Attributes" : externalAttributes } ]
+        [#list environment as name,value]
+            [#local prefix = occurrence.Core.Component.Name?upper_case + "_"]
+            [#if name?starts_with(prefix)]
+                [#local attributes += { name?remove_beginning(prefix) : value } ]
             [/#if]
-
-        [/#if]
-
-        [#local stateMacro = ["aws", core.Type!"", "cf", "state"]?join("_")]
-        [#if (.vars[stateMacro]!"")?is_directive]
-            [@(.vars[stateMacro]) occurrence parentOccurrence result /]
-            [#local result = componentState]
-            [@cfDebug listMode {"Macro" : stateMacro, "State": result} false /]
-        [#else]
-
-            [#switch core.Type!""]
-                [#case "external"]
-                    [#local result +=
-                        {
-                            "Roles" : {
-                                "Inbound" : {},
-                                "Outbound" : {}
-                            }
-                        }
-                    ]
-                    [#break]
-                [#default]
-                    [@cfDebug
-                        mode=listMode
-                        value="State macro " + stateMacro + " not found"
-                        enabled=false /]
-                    [#break]
-
-            [/#switch]
-        [/#if]
+        [/#list]
     [/#if]
 
-    [#-- Update resource deployment status --]
-    [#local result +=
-        {
-            "Resources" : getDeploymentState(result.Resources)
-        } ]
-    [#return result ]
+    [#-- Get the state of each resource group --]
+    [#list occurrence.State.ResourceGroups as key, value]
+
+        [#-- Default resource group state --]
+        [#local state =
+            {
+                "Resources" : {},
+                "Roles" : {
+                    "Inbound" : {},
+                    "Outbound" : {}
+                },
+                "Attributes" : {}
+            }
+        ]
+
+        [#-- Attempt to invoke state macro for resource group --]
+        [#if invokeComponentMacro(occurrence, key, "state", parentOccurrence) ]
+            [#local state = mergeObjects(state, componentState) ]
+        [#else]
+            [@cfDebug
+                mode=listMode
+                value="State macro for resource group " + key + " not found"
+                enabled=false
+            /]
+        [/#if]
+
+        [#-- Update resource deployment status --]
+        [#local state +=
+            {
+                "Resources" : getDeploymentState(state.Resources)
+            } ]
+
+        [#-- Accumulate resource group state --]
+        [#local groupState += { key : state } ]
+
+        [#-- Accumulate attributes --]
+        [#local attributes += state.Attributes!{}]
+
+        [#-- Accumulate legacy state --]
+        [#local legacyState = mergeObjects(legacyState, state) ]
+    [/#list]
+
+    [#-- Incorporate into existing state --]
+    [#return
+        mergeObjects(
+            occurrence.State!{},
+            {
+                "ResourceGroups" : groupState,
+                "Attributes" :
+                    contentIfContent(
+                            attributes,
+                            {
+                                "NOATTRIBUTES" : "Attributes not found"
+                            }
+                    )
+            } +
+            removeObjectAttributes(legacyState, "Attributes")
+        ) ]
 [/#function]
 
 [#function asFlattenedSettings object prefix=""]
@@ -1256,24 +1289,6 @@ behaviour.
     ]
 [/#function]
 
-[#function getOccurrenceSolutionAttributes type]
-    [#local configuration = componentConfiguration[type]![] ]
-
-    [#return
-        configuration?is_hash?then(
-            configuration.Attributes![],
-            configuration) ]
-[/#function]
-
-[#function getOccurrenceSubComponents type]
-    [#local configuration = componentConfiguration[type]![] ]
-
-    [#return
-        configuration?is_hash?then(
-            configuration.Components![],
-            []) ]
-[/#function]
-
 [#-- Get the occurrences of versions/instances of a component           --]
 [#-- This function should NOT be called directly - it is for the use of --]
 [#-- other functions in this file                                       --]
@@ -1293,6 +1308,9 @@ behaviour.
         [#local typeObject = component ]
     [/#if]
 
+    [#-- Ensure we know the basic resource group information for the component --]
+    [@includeSharedComponentConfiguration type /]
+
     [#if tier?has_content]
         [#local tierId = getTierId(tier) ]
         [#local tierName = getTierName(tier) ]
@@ -1310,26 +1328,6 @@ behaviour.
         [#local subComponentName = typeObject.Name?split("-") ]
         [#local componentContexts += [typeObject] ]
     [/#if]
-
-    [#-- Ensure we have loaded the component configuration includes --]
-    [@includeComponentConfiguration type /]
-
-    [#local attributes = getOccurrenceSolutionAttributes(type) ]
-    [#local subComponents = getOccurrenceSubComponents(type) ]
-
-    [#-- Add standard attributes --]
-    [#local attributes +=
-        [
-            {
-                "Names" : ["Export"],
-                "Default" : []
-            },
-            {
-                "Names" : ["DeploymentUnits"],
-                "Default" : []
-            }
-        ]
-    ]
 
     [#local occurrences=[] ]
 
@@ -1391,18 +1389,54 @@ behaviour.
                                     "Id" : formatId(subComponentId),
                                     "Name" : formatName(subComponentName)
                                 }
-                            )
+                            ),
+                            "State" : {
+                                "ResourceGroups" : {},
+                                "Attributes" : {}
+                            }
                         }
                     ]
 
-                    [#local occurrenceProfiles = [] ]
-                    [#list occurrenceContexts as occurrenceContext ]
-                        [#if ((occurrenceContext.Profiles.Deployment)![])?has_content ]
-                            [#local occurrenceProfiles = occurrenceContext.Profiles.Deployment ]
-                        [/#if]
+                    [#-- Determine the occurrence deployment and placement profiles based on normal cmdb hierarchy --]
+                    [#local profiles =
+                        getCompositeObject(
+                            coreProfileChildConfiguration,
+                            occurrenceContexts).Profiles ]
+
+                    [#-- Determine placement profile --]
+                    [#local placementProfile = getPlacementProfile(profiles.Placement, segmentQualifiers) ]
+
+                    [#-- Add resource group placements to the occurrence --]
+                    [#list getComponentResourceGroups(type) as key, value]
+                        [#local occurrence =
+                            mergeObjects(
+                                occurrence,
+                                {
+                                    "State" : {
+                                        "ResourceGroups" : {
+                                            key : {
+                                                "Placement" : getResourceGroupPlacement(value, placementProfile)
+                                            }
+                                        }
+                                    }
+                                }
+                            ) ]
                     [/#list]
 
-                    [#local occurrenceContexts += [ (getDeploymentProfile(occurrenceProfiles, deploymentMode)[type])!{} ]]
+                    [#-- Ensure we have loaded the component configuration --]
+                    [@includeComponentConfiguration
+                        component=type
+                        placements=occurrence.State.ResourceGroups /]
+
+                    [#-- Determine the required attributes now the provider specific configuration is in place --]
+                    [#local attributes = getOccurrenceAttributes(occurrence) ]
+
+                    [#-- Apply deployment profile overrides --]
+                    [#local occurrenceContexts +=
+                        [
+                            (getDeploymentProfile(profiles.Deployment, deploymentMode)[type])!{}
+                        ]
+                    ]
 
                     [#local occurrence +=
                         {
@@ -1412,11 +1446,11 @@ behaviour.
                         }
                     ]
 
-                    [#local occurrence +=
-                        {
-                            "Core" :
-                                occurrence.Core +
-                                {
+                    [#local occurrence =
+                        mergeObjects(
+                            occurrence,
+                            {
+                                "Core" : {
                                     "Id" : formatId(occurrence.Core.Extensions.Id),
                                     "TypedId" : formatId(occurrence.Core.Extensions.Id, type),
                                     "Name" : formatName(occurrence.Core.Extensions.Name),
@@ -1432,13 +1466,14 @@ behaviour.
                                     "AbsolutePath" : formatAbsolutePath(occurrence.Core.Extensions.Name),
                                     "FullAbsolutePath" : formatSegmentAbsolutePath(occurrence.Core.Extensions.Name)
                                 }
-                        } ]
+                            }
+                        ) ]
 
-                    [#local occurrence +=
-                        {
-                            "Configuration" :
-                                occurrence.Configuration +
-                                {
+                    [#local occurrence =
+                        mergeObjects(
+                            occurrence,
+                            {
+                                "Configuration" : {
                                     "Settings" : {
                                         "Build" : getOccurrenceBuildSettings(occurrence),
                                         "Account" : getAccountSettings(),
@@ -1447,26 +1482,26 @@ behaviour.
                                             getOccurrenceSensitiveSettings(occurrence)
                                     }
                                 }
-                        } ]
+                            }
+                        ) ]
                     [#-- Some core settings are controlled by product level settings --]
                     [#-- (e.g. file prefixes) so initialise core last                --]
-                    [#local occurrence +=
-                        {
-                            "Configuration" :
-                                occurrence.Configuration +
-                                {
-                                    "Settings" :
-                                        occurrence.Configuration.Settings +
-                                        {
-                                            "Core" : getOccurrenceCoreSettings(occurrence)
-                                        }
+                    [#local occurrence =
+                        mergeObjects(
+                            occurrence,
+                            {
+                                "Configuration" : {
+                                    "Settings" : {
+                                        "Core" : getOccurrenceCoreSettings(occurrence)
+                                    }
                                 }
-                        } ]
-                    [#local occurrence +=
-                        {
-                            "Configuration" :
-                                occurrence.Configuration +
-                                {
+                            }
+                        ) ]
+                    [#local occurrence =
+                        mergeObjects(
+                            occurrence,
+                            {
+                                "Configuration" : {
                                     "Environment" : {
                                         "Build" :
                                             getSettingsAsEnvironment(occurrence.Configuration.Settings.Build),
@@ -1482,14 +1517,16 @@ behaviour.
                                             )
                                     }
                                 }
-                        } ]
+                            }
+                        ) ]
                     [#local occurrence +=
                         {
                             "State" : getOccurrenceState(occurrence, parentOccurrence)
 
                         } ]
                     [#local subOccurrences = [] ]
-                    [#list subComponents as subComponent]
+
+                    [#list getComponentChildren(type) as subComponent]
                         [#-- Subcomponent instances can either be under a Components --]
                         [#-- attribute or directly under the subcomponent object.    --]
                         [#-- To cater for the latter case, any default configuration --]
@@ -1609,6 +1646,10 @@ behaviour.
                 },
                 "Configuration" : {
                     "Environment" : occurrence.Configuration.Environment
+                },
+                "State" : {
+                    "ResourceGroups" : {},
+                    "Attributes" : {}
                 }
             }
         ]
@@ -1642,7 +1683,7 @@ behaviour.
 
         [#-- Check if suboccurrence linking is required --]
         [#-- Support multiple alternatives --]
-        [#local subComponents = getOccurrenceSubComponents(core.Type) ]
+        [#local subComponents = getComponentChildren(core.Type) ]
         [#list subComponents as subComponent]
             [#local linkAttributes = asFlattenedArray(subComponent.Link!"") ]
             [#list linkAttributes as linkAttribute]
@@ -1860,37 +1901,15 @@ behaviour.
 
 [#function getDeploymentProfile occurrenceProfiles deploymentMode ]
 
-    [#local deploymentProfileNames = []]
-
-    [#list asArray(occurrenceProfiles![]) as profileName ]
-        [#if ! deploymentProfileNames?seq_contains(profileName) ]
-            [#local deploymentProfileNames += [ profileName ] ]
-        [/#if]
-    [/#list]
-
-    [#list asArray((environmentObject.Profiles.Deployment)![]) as profileName ]
-        [#if ! deploymentProfileNames?seq_contains(profileName) ]
-            [#local deploymentProfileNames += [ profileName ] ]
-        [/#if]
-    [/#list]
-
-    [#list asArray((productObject.Profiles.Deployment)![]) as profileName ]
-        [#if ! deploymentProfileNames?seq_contains(profileName) ]
-            [#local deploymentProfileNames += [ profileName ] ]
-        [/#if]
-    [/#list]
-
-    [#list asArray((accountObject.Profiles.Deployment)![]) as profileName ]
-        [#if ! deploymentProfileNames?seq_contains(profileName) ]
-            [#local deploymentProfileNames += [ profileName ] ]
-        [/#if]
-    [/#list]
-
-    [#list asArray((tenantObject.Profiles.Deployment)![]) as profileName ]
-        [#if ! deploymentProfileNames?seq_contains(profileName) ]
-            [#local deploymentProfileNames += [ profileName ] ]
-        [/#if]
-    [/#list]
+    [#-- Get the total list of deployment profiles --]
+    [#local deploymentProfileNames =
+        getUniqueArrayElements(
+            occurrenceProfiles,
+            (environmentObject.Profiles.Deployment)![],
+            (productObject.Profiles.Deployment)![],
+            (accountObject.Profiles.Deployment)![],
+            (tenantObject.Profiles.Deployment)![]
+        ) ]
 
     [#local deploymentProfile = {} ]
     [#list deploymentProfileNames as deploymentProfileName ]
@@ -1898,6 +1917,29 @@ behaviour.
     [/#list]
 
     [#return mergeObjects( (deploymentProfile.Modes["*"])!{}, (deploymentProfile.Modes[deploymentMode])!{})  ]
+[/#function]
+
+[#function getPlacementProfile occurrenceProfile qualifiers...]
+    [#local profile = occurrenceProfile]
+    [#if !profile?has_content]
+        [#local profile = (productObject.Profiles.Placement)!""]
+    [/#if]
+    [#if !profile?has_content]
+        [#local profile = (tenantObject.Profiles.Placement)!""]
+    [/#if]
+
+    [#if profile?is_hash]
+        [#list getObjectAndQualifiers(profile, qualifiers) as option]
+            [#if option.Value??]
+                [#local profile = option.Value]
+            [/#if]
+        [/#list]
+    [/#if]
+    [#if profile?is_hash]
+        [#local profile = ""]
+    [/#if]
+
+    [#return placementProfiles[profile]!{} ]
 [/#function]
 
 [#-- Get storage settings --]

@@ -551,6 +551,7 @@
             [#assign exceptionResources +=
                 [
                     {
+                        "Timestamp" : .now?iso_utc,
                         "Description" : description,
                         "Context" : context
                     } +

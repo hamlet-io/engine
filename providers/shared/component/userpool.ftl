@@ -30,10 +30,6 @@
                 "Severity" : "warning"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=USERPOOL_COMPONENT_TYPE
     attributes=
         [
             {
@@ -112,10 +108,6 @@
                 "Children" : linkChildrenConfiguration
             },
             {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
-            },
-            {
                 "Names" : "DefaultClient",
                 "Type" : BOOLEAN_TYPE,
                 "Description" : "Enable default client mode which creates app client for the user pool and aligns with legacy config",
@@ -173,13 +165,6 @@
                 "Value" : "solution"
             }
         ]
-    parent=USERPOOL_COMPONENT_TYPE
-    childAttribute="Clients"
-    linkAttributes="Client"
-/]
-
-[@addComponentResourceGroup
-    type=USERPOOL_CLIENT_COMPONENT_TYPE
     attributes=
         [
             {
@@ -229,6 +214,9 @@
                 "Children" : linkChildrenConfiguration
             }
         ]
+    parent=USERPOOL_COMPONENT_TYPE
+    childAttribute="Clients"
+    linkAttributes="Client"
 /]
 
 [@addChildComponent
@@ -248,13 +236,6 @@
                 "Value" : "solution"
             }
         ]
-    parent=USERPOOL_COMPONENT_TYPE
-    childAttribute="AuthProviders"
-    linkAttributes="AuthProvider"
-/]
-
-[@addComponentResourceGroup
-    type=USERPOOL_AUTHPROVIDER_COMPONENT_TYPE
     attributes=
         [
             {
@@ -305,4 +286,7 @@
                 ]
             }
         ]
+    parent=USERPOOL_COMPONENT_TYPE
+    childAttribute="AuthProviders"
+    linkAttributes="AuthProvider"
 /]
