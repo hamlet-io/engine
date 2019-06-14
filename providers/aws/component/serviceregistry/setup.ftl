@@ -20,7 +20,9 @@
     [#local registryDnsDomain = resources["namespace"].DomainName ]
 
     [#-- Network lookup --]
-    [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
+    [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
+    [#local networkLink = occurrenceNetwork.Link!{} ]
+
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
@@ -30,11 +32,13 @@
 
     [#local networkConfiguration = networkLinkTarget.Configuration.Solution]
     [#local networkResources = networkLinkTarget.State.Resources ]
+
     [#local vpcId = networkResources["vpc"].Id ]
-    [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : tier.Network.RouteTable })]
+
+    [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
     [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
     [#local publicRouteTable = routeTableConfiguration.Public ]
-
+    
     [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
         [@createCloudMapDNSNamespace
             mode=listMode
