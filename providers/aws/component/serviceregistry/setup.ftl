@@ -20,7 +20,7 @@
     [#local registryDnsDomain = resources["namespace"].DomainName ]
 
     [#-- Network lookup --]
-    [#local networkLink = tier.Network.Link!{} ]
+    [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
