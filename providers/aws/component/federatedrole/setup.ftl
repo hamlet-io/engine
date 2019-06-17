@@ -74,13 +74,15 @@
         [/#if]
     [/#list]
 
-    [@createIdentityPool
-        mode=listMode
-        id=identityPoolId
-        name=identityPoolName
-        cognitoIdProviders=federationCognitoProviders
-        allowUnauthenticatedIdentities=solution.AllowUnauthenticatedUsers
-    /]
+    [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
+        [@createIdentityPool
+            mode=listMode
+            id=identityPoolId
+            name=identityPoolName
+            cognitoIdProviders=federationCognitoProviders
+            allowUnauthenticatedIdentities=solution.AllowUnauthenticatedUsers
+        /]
+    [/#if]
 
     [#-- Assignment Management --]
     [#local authenticatedRole= ""]
