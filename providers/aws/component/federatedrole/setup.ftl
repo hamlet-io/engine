@@ -187,7 +187,7 @@
         [#local managedPolicies = _context.ManagedPolicy ]
         [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
-        [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
+        [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
 
             [@createRole
                 mode=listMode
@@ -232,44 +232,43 @@
         [/#if]
     [/#list]
 
-    [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
+    [#if solution.AllowUnauthenticatedUsers && ! unauthenticatedRole?has_content ]
+        [@cfException
+            mode=listMode
+            description="No unauthenicated assignments found"
+            context=solution
+        /]
+    [/#if]
 
-        [#if solution.AllowUnauthenticatedUsers && ! unauthenticatedRole?has_content ]
-            [@cfException
-                mode=listMode
-                description="No unauthenicated assignments found"
-                context=solution
-            /]
-        [/#if]
+    [#if ! authenticatedRole?has_content && ! ruleAssignments ]
+        [@cfException
+            mode=listMode
+            description="No authenticated assignments found"
+            context=solution
+        /]
+    [/#if]
 
-        [#if ! authenticatedRole?has_content && ! ruleAssignments ]
-            [@cfException
-                mode=listMode
-                description="No authenticated assignments found"
-                context=solution
-            /]
-        [/#if]
+    [#list federationProviders as id,federationProvider ]
+        [#if federationProvider?is_hash ]
+            [#if (federationProvider["Rules"]![])?has_content ]
 
-        [#list federationProviders as id,federationProvider ]
-            [#if federationProvider?is_hash ]
-                [#if (federationProvider["Rules"]![])?has_content ]
+                [#local providerRules = [] ]
+                [#list federationProvider["Rules"]?sort_by("Priority") as rule  ]
+                    [#local providerRules += [ rule.Rule ]]
+                [/#list]
 
-                    [#local providerRules = [] ]
-                    [#list federationProvider["Rules"]?sort_by("Priority") as rule  ]
-                        [#local providerRules += [ rule.Rule ]]
-                    [/#list]
-
-                    [#local ruleAssignments += 
-                            getIdentityPoolRoleMapping( 
-                                federationProvider["Provider"],
-                                subSolution.Type,
-                                providerRules,
-                                solution.NoMatchBehaviour
-                            )]
-                [/#if]
+                [#local ruleAssignments += 
+                        getIdentityPoolRoleMapping( 
+                            federationProvider["Provider"],
+                            subSolution.Type,
+                            providerRules,
+                            solution.NoMatchBehaviour
+                        )]
             [/#if]
-        [/#list]
+        [/#if]
+    [/#list]
 
+    [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createIdentityPoolRoleMapping
             mode=listMode
             id=roleMappingId
