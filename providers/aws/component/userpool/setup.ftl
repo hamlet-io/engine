@@ -27,11 +27,6 @@
         [#local userPoolCustomDomainCertArn = resources["customdomain"].CertificateArn]
     [/#if]
 
-    [#local userPoolRoleId             = resources["userpoolrole"].Id]
-
-    [#local identityPoolId             = resources["identitypool"].Id]
-    [#local identityPoolName           = resources["identitypool"].Name]
-
     [#local smsVerification = false]
     [#local userPoolTriggerConfig = {}]
     [#local userPoolManualTriggerConfig = {}]
@@ -316,7 +311,6 @@
                 [/#switch]
 
                 [#local updateUserPoolAuthProvider =  {
-                        "ProviderType" : authProviderEngine,
                         "AttributeMapping" : attributeMappings,
                         "ProviderDetails" : providerDetails
                     } +
@@ -383,7 +377,7 @@
                     [#local linkTarget = getLinkTarget(occurrence,
                                             {
                                                 "Tier" : core.Tier.Id,
-                                                "Component" : core.Component.Id,
+                                                "Component" : core.Component.RawId,
                                                 "AuthProvider" : authProvider
                                             })]
                     [#if linkTarget?has_content ]

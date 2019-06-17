@@ -1359,7 +1359,9 @@ behaviour.
                                 },
                                 "Component" : {
                                     "Id" : componentId,
+                                    "RawId" : component.Id,
                                     "Name" : componentName,
+                                    "RawName" : component.Name,
                                     "Type" : type
                                 },
                                 "Instance" : {

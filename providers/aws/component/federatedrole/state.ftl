@@ -8,7 +8,7 @@
             "Resources" : {
                 "identitypool" : {
                     "Id" : formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id),
-                    "Name" : core.FullName,
+                    "Name" : replaceAlphaNumericOnly(core.FullName, "X"),
                     "Type" : AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE
                 },
                 "rolemapping" : {
