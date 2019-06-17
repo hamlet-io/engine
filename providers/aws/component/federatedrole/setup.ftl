@@ -187,16 +187,14 @@
         [#local managedPolicies = _context.ManagedPolicy ]
         [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
-        [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
+    
+        [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
 
             [@createRole
                 mode=listMode
                 id=roleId
                 federatedServices="cognito-identity.amazonaws.com"
                 condition={
-                    "StringEquals": {
-                        "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-                    },
                     "ForAnyValue:StringLike": {
                         "cognito-identity.amazonaws.com:amr": valueIfTrue(
                                                                 "unauthenticated",
@@ -204,7 +202,14 @@
                                                                 "authenticated"
                         )
                     }
-                }
+                } +
+                attributeIfContent ( 
+                    "StringEquals",
+                    getExistingReference(identityPoolId),
+                    {
+                        "cognito-identity.amazonaws.com:aud": getExistingReference(identityPoolId)
+                    }
+                )
                 managedArns=managedPolicies
             /]
 
@@ -248,6 +253,7 @@
         /]
     [/#if]
 
+
     [#list federationProviders as id,federationProvider ]
         [#if federationProvider?is_hash ]
             [#if (federationProvider["Rules"]![])?has_content ]
@@ -267,7 +273,7 @@
             [/#if]
         [/#if]
     [/#list]
-
+    
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createIdentityPoolRoleMapping
             mode=listMode
