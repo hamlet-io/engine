@@ -374,12 +374,15 @@
                 [#if authProvider?upper_case == "COGNITO" ]
                     [#local identityProviders += [ "COGNITO" ] ]
                 [#else]
-                    [#local linkTarget = getLinkTarget(occurrence,
-                                            {
-                                                "Tier" : core.Tier.Id,
-                                                "Component" : core.Component.RawId,
-                                                "AuthProvider" : authProvider
-                                            })]
+                    [#local linkTarget = getLinkTarget(
+                                                occurrence,
+                                                {
+                                                    "Tier" : core.Tier.Id,
+                                                    "Component" : core.Component.RawId,
+                                                    "AuthProvider" : authProvider
+                                                }, 
+                                                false
+                                            )]
                     [#if linkTarget?has_content ]
                         [#local identityProviders += [ linkTarget.State.Attributes["PROVIDER_NAME"] ]]
                     [/#if]
