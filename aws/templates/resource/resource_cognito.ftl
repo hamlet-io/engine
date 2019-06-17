@@ -138,16 +138,47 @@
     ]
 [/#function]
 
-[#function getIdentityPoolCognitoProvider UserPoolId userPoolClientId serverSideToken=true ]
-
-    [#assign userPoolRef = getReference(UserPoolId, NAME_ATTRIBUTE_TYPE)]
-    [#assign userpoolClientRef = getReference(userPoolClientId )]
+[#function getIdentityPoolCognitoProvider userPool userPoolClient ]
 
     [#return
+        [
+            {
+                "ProviderName" : userPool,
+                "ClientId" : userPoolClient,
+                "ServerSideTokenCheck" : true
+            }
+        ]
+    ]
+[/#function]
+
+
+[#function getIdentityPoolMappingRule priority claim matchType value roleId ]
+    [#return 
+        [
+            {
+                "Priority" : priority,
+                "Rule" :  {
+                    "Claim" : claim,
+                    "MatchType" : matchType,
+                    "RoleARN" : getArn( roleId ),
+                    "Value" : value
+                }
+            }
+
+        ]
+    ]
+[/#function]
+
+[#function getIdentityPoolRoleMapping provider mappingType mappingRules matchBehaviour ]
+    [#return 
         {
-            "ProviderName" : userPoolRef,
-            "ClientId" : userpoolClientRef,
-            "ServerSideTokenCheck" : serverSideToken
+            provider : {
+                "AmbiguousRoleResolution" : matchBehaviour,
+                "RulesConfiguration" : {
+                    "Rules" : mappingRules
+                },
+                "Type" : mappingType
+            }
         }
     ]
 [/#function]
@@ -301,10 +332,9 @@
 
 [#macro createIdentityPoolRoleMapping mode id
     identityPoolId,
-    authenticatedRoleArn,
-    unauthenticatedRoleArn
-    tier=""
-    component=""
+    roleMappings={},
+    authenticatedRoleId="",
+    unauthenticatedRoleId="",
     dependencies=""
     outputId=""
 ]
@@ -314,14 +344,26 @@
         type="AWS::Cognito::IdentityPoolRoleAttachment"
         properties=
             {
-                "IdentityPoolId" : identityPoolId,
-                "Roles" : {
-                    "authenticated" : authenticatedRoleArn,
-                    "unauthenticated" : unauthenticatedRoleArn
-                }
-            }
+                "IdentityPoolId" : getReference(identityPoolId)
+            } + 
+            attributeIfTrue(
+                "Roles",
+                ( authenticatedRoleId?has_content || unauthenticatedRoleId?has_content ),
+                {} + 
+                attributeIfContent(
+                    "authenticated",
+                    getArn(authenticatedRoleId)
+                ) + 
+                attributeIfContent(
+                    "unauthenticated", 
+                    getArn(unauthenticatedRoleId)
+                )
+            ) + 
+            attributeIfContent(
+                "RoleMappings",
+                roleMappings
+            )
         outputId=outputId
         dependencies=dependencies
     /]
 [/#macro]
-

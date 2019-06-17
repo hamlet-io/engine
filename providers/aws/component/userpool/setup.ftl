@@ -31,9 +31,6 @@
 
     [#local identityPoolId             = resources["identitypool"].Id]
     [#local identityPoolName           = resources["identitypool"].Name]
-    [#local identityPoolUnAuthRoleId   = resources["unauthrole"].Id]
-    [#local identityPoolAuthRoleId     = resources["authrole"].Id]
-    [#local identityPoolRoleMappingId  = resources["rolemapping"].Id]
 
     [#local smsVerification = false]
     [#local userPoolTriggerConfig = {}]
@@ -550,65 +547,6 @@
             smsConfiguration=smsConfig
         /]
 
-        [@createIdentityPool
-            mode=listMode
-            component=core.Component
-            tier=core.Tier
-            id=identityPoolId
-            name=identityPoolName
-            cognitoIdProviders=identityPoolProviders
-            allowUnauthenticatedIdentities=solution.AllowUnauthenticatedIds
-        /]
-
-        [@createRole
-            mode=listMode
-            id=identityPoolUnAuthRoleId
-            policies=[
-                getPolicyDocument(
-                    getUserPoolUnAuthPolicy(),
-                    "DefaultUnAuthIdentityRole"
-                )
-            ]
-            federatedServices="cognito-identity.amazonaws.com"
-            condition={
-                "StringEquals": {
-                    "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-                },
-                "ForAnyValue:StringLike": {
-                    "cognito-identity.amazonaws.com:amr": "unauthenticated"
-                }
-            }
-        /]
-
-        [@createRole
-            mode=listMode
-            id=identityPoolAuthRoleId
-            policies=[
-                getPolicyDocument(
-                    getUserPoolAuthPolicy(),
-                    "DefaultAuthIdentityRole"
-                )
-            ]
-            federatedServices="cognito-identity.amazonaws.com"
-            condition={
-                "StringEquals": {
-                    "cognito-identity.amazonaws.com:aud": getReference(identityPoolId)
-                },
-                "ForAnyValue:StringLike": {
-                    "cognito-identity.amazonaws.com:amr": "authenticated"
-                }
-            }
-        /]
-
-        [@createIdentityPoolRoleMapping
-            mode=listMode
-            component=core.Component
-            tier=core.Tier
-            id=identityPoolRoleMappingId
-            identityPoolId=getReference(identityPoolId)
-            authenticatedRoleArn=getReference(identityPoolAuthRoleId, ARN_ATTRIBUTE_TYPE)
-            unauthenticatedRoleArn=getReference(identityPoolUnAuthRoleId, ARN_ATTRIBUTE_TYPE)
-        /]
     [/#if]
     [#-- When using the cli to update a user pool, any properties that are not set in the update are reset to their default value --]
     [#-- So to use the CLI to update the lambda triggers we need to generate all of the custom configuration we use in the CF template and use this as the update --]

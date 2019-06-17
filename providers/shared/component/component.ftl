@@ -78,6 +78,9 @@
 [#assign USERPOOL_CLIENT_COMPONENT_TYPE = "userpoolclient" ]
 [#assign USERPOOL_AUTHPROVIDER_COMPONENT_TYPE = "userpoolauthprovider" ]
 
+[#assign FEDERATEDROLE_COMPONENT_TYPE = "federatedrole" ]
+[#assign FEDERATEDROLE_ASSIGNMENT_COMPONENT_TYPE = "federatedroleassignment" ]
+
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
 
