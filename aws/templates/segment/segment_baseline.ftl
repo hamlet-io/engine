@@ -77,8 +77,8 @@
                 [#assign bucketPolicyId = subResources["bucketpolicy"].Id ]
                 [#assign legacyS3 = subResources["bucket"].LegacyS3 ]
 
-                [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
-                [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]     
+                [#assign legacyOAIId = formatDependentCFAccessId(bucketId)]
+                [#assign legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]     
 
                 [#if ( deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true) && legacyS3 == false ) || 
                     ( deploymentSubsetRequired("s3") && legacyS3 == true) ]
@@ -146,9 +146,9 @@
                             [#case BASELINE_KEY_COMPONENT_TYPE]
                                 [#if linkTargetConfiguration.Solution.Engine == "oai" ]
                                     [#if legacyOAI?has_content && linkTarget.Core.SubComponent.Id = "oai" ]
-                                        [#local cfAccessCanonicalIds += [ legacyOAI ]]
+                                        [#assign cfAccessCanonicalIds += [ legacyOAI ]]
                                     [#else]
-                                        [#local cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]       
+                                        [#assign cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]       
                                     [/#if]
                                 [/#if]
                                 [#break]
