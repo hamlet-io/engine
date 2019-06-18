@@ -77,6 +77,9 @@
                 [#assign bucketPolicyId = subResources["bucketpolicy"].Id ]
                 [#assign legacyS3 = subResources["bucket"].LegacyS3 ]
 
+                [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
+                [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]     
+
                 [#if ( deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true) && legacyS3 == false ) || 
                     ( deploymentSubsetRequired("s3") && legacyS3 == true) ]
 
@@ -138,11 +141,17 @@
 
                             [#switch linkTargetCore.Type]
 
-                                [#case BASELINE_KEY_COMPONENT_TYPE]
-                                    [#if linkTargetConfiguration.Solution.Engine == "oai" ]
-                                        [#assign cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
+                        [#switch linkTargetCore.Type]
+
+                            [#case BASELINE_KEY_COMPONENT_TYPE]
+                                [#if linkTargetConfiguration.Solution.Engine == "oai" ]
+                                    [#if legacyOAI?has_content && linkTarget.Core.SubComponent.Id = "oai" ]
+                                        [#local cfAccessCanonicalIds += [ legacyOAI ]]
+                                    [#else]
+                                        [#local cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]       
                                     [/#if]
-                                    [#break]
+                                [/#if]
+                                [#break]
                             [/#switch]
                         [/#if]
                     [/#list]
@@ -175,11 +184,6 @@
                     [#assign bucketPolicy = []]
                     [#switch subSolution.Role ]
                         [#case "operations" ]
-
-                            [#assign legacyOAIId = formatDependentCFAccessId(bucketId)]
-                            [#if getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE)?has_content ]
-                                [#assign cfAccessCanonicalIds += [ getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]]
-                            [/#if]
 
                             [#assign bucketPolicy += 
                                 s3WritePermission(
