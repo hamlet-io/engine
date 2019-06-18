@@ -526,15 +526,10 @@
 
     [#switch mode]
         [#case "definition"]
-            [#if enabled]
-                [#assign debugResources +=
-                    [
-                        {
-                            "Timestamp" : .now?iso_utc,
-                            "Value" : value
-                        }
-                    ] ]
-            [/#if]
+            [@debug
+                message=value
+                enabled=enabled
+            /]
             [#break]
 
     [/#switch]
@@ -548,21 +543,19 @@
 
     [#switch mode]
         [#case "definition"]
-            [#assign exceptionResources +=
-                [
-                    {
-                        "Timestamp" : .now?iso_utc,
-                        "Description" : description,
-                        "Context" : context
-                    } +
+            [@fatal
+                message=description
+                context=
                     valueIfContent(
                         {
+                            "Context" : context,
                             "Detail" : detail
                         },
-                        detail
+                        detail,
+                        context
                     )
-                ]
-            ]
+                enabled=true
+            /]
             [#break]
 
     [/#switch]
@@ -574,16 +567,12 @@
             context={}
             description=""]
 
-    [#switch mode]
-        [#case "definition"]
-            [@cfException
-                mode
-                function + " precondition failed"
-                context
-                description /]
-            [#break]
-
-    [/#switch]
+    [@cfException
+        mode=mode
+        description=function + " precondition failed"
+        context=context
+        detail=description
+    /]
 [/#macro]
 
 [#macro cfPostconditionFailed
@@ -592,16 +581,12 @@
             context={}
             description=""]
 
-    [#switch mode]
-        [#case "definition"]
-            [@cfException
-                mode
-                function + " postcondition failed"
-                context
-                description /]
-            [#break]
-
-    [/#switch]
+    [@cfException
+        mode=mode
+        description=function + " postcondition failed"
+        context=context
+        detail=description
+    /]
 [/#macro]
 
 [#assign templateScript = [] ]
@@ -609,8 +594,6 @@
 [#macro cfTemplate level include="" ]
     [#-- Resources --]
     [#assign templateResources = {} ]
-    [#assign debugResources = [] ]
-    [#assign exceptionResources = [] ]
     [#assign listMode = "definition"]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
@@ -654,53 +637,36 @@
     [/#if]
 
     [#if templateScript?has_content]
-      #!/bin/bash
-      #--COT-RequestReference=${requestReference}
-      #--COT-ConfigurationReference=${configurationReference}
-      #--COT-RunId=${runId}
-      [#list templateScript as line]
-          ${line}
-      [/#list]
-    [#elseif templateConfig?has_content || exceptionResources?has_content]
-        [@toJSON templateConfig  +
-            valueIfContent(
-                {
-                    "Exceptions" : exceptionResources
-                },
-                exceptionResources
-            ) /]
+        #!/bin/bash
+        #--COT-RequestReference=${requestReference}
+        #--COT-ConfigurationReference=${configurationReference}
+        #--COT-RunId=${runId}
+        [#list templateScript as line]
+            ${line}
+        [/#list]
+        [@logMessagesAsComments /]
+    [#elseif templateConfig?has_content]
+        [@toJSON templateConfig /]
     [#elseif templateCli?has_content]
         [@toJSON templateCli /]
-    [#elseif templateResources?has_content || exceptionResources?has_content
-            || debugResources?has_content]
-      [@toJSON
-          {
-              "AWSTemplateFormatVersion" : "2010-09-09",
-              "Metadata" :
-                  {
-                      "Prepared" : .now?iso_utc,
-                      "RequestReference" : requestReference,
-                      "ConfigurationReference" : configurationReference,
-                      "RunId" : runId
-                  } +
-                  attributeIfContent("CostCentre", accountObject.CostCentre!""),
-              "Resources" : templateResources,
-              "Outputs" :
-                  templateOutputs +
+    [#elseif templateResources?has_content || logMessages?has_content]
+        [@toJSON
+            {
+                "AWSTemplateFormatVersion" : "2010-09-09",
+                "Metadata" :
+                    {
+                        "Prepared" : .now?iso_utc,
+                        "RequestReference" : requestReference,
+                        "ConfigurationReference" : configurationReference,
+                        "RunId" : runId
+                    } +
+                    attributeIfContent("CostCentre", accountObject.CostCentre!""),
+                "Resources" : templateResources,
+                "Outputs" :
+                    templateOutputs +
                     getCFTemplateCoreOutputs()
-          } +
-          valueIfContent(
-              {
-                  "Debug" : debugResources
-              },
-              debugResources
-          ) +
-          valueIfContent(
-              {
-                  "Exceptions" : exceptionResources
-              },
-              exceptionResources
-          )
-      /]
+            } +
+            attributeIfContent("COTMessages", logMessages)
+        /]
     [/#if]
 [/#macro]
