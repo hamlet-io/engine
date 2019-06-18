@@ -210,6 +210,7 @@
 
     [#-- Cludge for now to get placement profiles working --]
     [#assign placementProfiles =
+        (blueprintObject.PlacementProfiles)!{} +
         mergeObjects(
             (productObject.PlacementProfiles)!{},
             (tenantObject.PlacementProfiles)!{}

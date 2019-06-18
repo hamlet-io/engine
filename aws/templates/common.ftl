@@ -1407,7 +1407,7 @@ behaviour.
                     [#local placementProfile = getPlacementProfile(profiles.Placement, segmentQualifiers) ]
 
                     [#-- Add resource group placements to the occurrence --]
-                    [#list getComponentResourceGroups(type) as key, value]
+                    [#list getComponentResourceGroups(type)?keys as key]
                         [#local occurrence =
                             mergeObjects(
                                 occurrence,
@@ -1415,7 +1415,7 @@ behaviour.
                                     "State" : {
                                         "ResourceGroups" : {
                                             key : {
-                                                "Placement" : getResourceGroupPlacement(value, placementProfile)
+                                                "Placement" : getResourceGroupPlacement(key, placementProfile)
                                             }
                                         }
                                     }
@@ -1926,6 +1926,9 @@ behaviour.
     [/#if]
     [#if !profile?has_content]
         [#local profile = (tenantObject.Profiles.Placement)!""]
+    [/#if]
+    [#if !profile?has_content]
+        [#local profile = DEFAULT_PLACEMENT_PROFILE]
     [/#if]
 
     [#if profile?is_hash]

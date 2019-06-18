@@ -88,9 +88,8 @@
 [#-- Attributes are shared across providers, or provider specific --]
 [#assign SHARED_ATTRIBUTES = "shared"]
 
-[#-- Placements --]
-[#assign PRODUCT_PLACEMENT = "product"]
-[#assign DNS_PLACEMENT = "dns"]
+[#-- Placement profiles --]
+[#assign DEFAULT_PLACEMENT_PROFILE = "default"]
 
 [#-- Helper macro - not for general use --]
 [#macro mergeComponentConfiguration type configuration]
@@ -119,7 +118,7 @@
         type=type
         attributes=attributes
         provider=SHARED_ATTRIBUTES
-        placement=PRODUCT_PLACEMENT
+        resourceGroup=DEFAULT_RESOURCE_GROUP
     /]
 [/#macro]
 
@@ -150,7 +149,7 @@
     /]
 [/#macro]
 
-[#macro addResourceGroupInformation type attributes provider resourceGroup=DEFAULT_RESOURCE_GROUP placement="" services=[] ]
+[#macro addResourceGroupInformation type attributes provider resourceGroup services=[] ]
     [#-- Special processing for profiles --]
     [#if
         (provider == SHARED_ATTRIBUTES) &&
@@ -184,7 +183,6 @@
                             provider :
                                 asArray(extendedAttributes!attributes)
                         } +
-                        attributeIfContent("Placement", placement) +
                         valueIfContent(
                             {
                                 "Services" : {
@@ -211,14 +209,8 @@
     [#return (componentConfiguration[type].Components)![] ]
 [/#function]
 
-[#function getResourceGroupPlacement resourceGroup profile]
-    [#return
-        {
-            "Provider" : "aws",
-            "Region" : "ap-southeast-2",
-            "DeploymentFramework" : "cf"
-        } +
-        (profile[resourceGroup.Placement!PRODUCT_PLACEMENT])!{} ]
+[#function getResourceGroupPlacement key profile]
+    [#return profile[key]!{} ]
 [/#function]
 
 [#-- Include files once - ignore if not present --]
@@ -385,13 +377,17 @@
         [/#if]
     [/#list]
 
-    [#list getComponentResourceGroups(type) as key, value]
+    [#list getComponentResourceGroups(type)?keys as key]
         [#local placement={} ]
         [#if placements?has_content]
             [#local placement = (placements[key].Placement)!placements[key]!{} ]
         [/#if]
         [#if !placement?has_content]
-            [#local placement = getResourceGroupPlacement(value, profile)]
+            [#local placement = getResourceGroupPlacement(key, profile)]
+        [/#if]
+        [#-- TODO(mfl) Replace when use of includeComponentConfiguration in setContext is fixed --]
+        [#if !placement?has_content]
+            [#local placement = getResourceGroupPlacement(key, placementProfiles[DEFAULT_PLACEMENT_PROFILE])]
         [/#if]
         [@includeResourceGroupConfiguration
             component=type
