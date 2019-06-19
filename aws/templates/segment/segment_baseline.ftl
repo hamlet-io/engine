@@ -76,10 +76,7 @@
                 [#assign bucketName = subResources["bucket"].Name ]
                 [#assign bucketPolicyId = subResources["bucketpolicy"].Id ]
                 [#assign legacyS3 = subResources["bucket"].LegacyS3 ]
-
-                [#assign legacyOAIId = formatDependentCFAccessId(bucketId)]
-                [#assign legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]     
-
+    
                 [#if ( deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true) && legacyS3 == false ) || 
                     ( deploymentSubsetRequired("s3") && legacyS3 == true) ]
 
@@ -141,17 +138,19 @@
 
                             [#switch linkTargetCore.Type]
 
-                        [#switch linkTargetCore.Type]
+                                [#case BASELINE_KEY_COMPONENT_TYPE]
+                                    [#if linkTargetConfiguration.Solution.Engine == "oai" ]
 
-                            [#case BASELINE_KEY_COMPONENT_TYPE]
-                                [#if linkTargetConfiguration.Solution.Engine == "oai" ]
-                                    [#if legacyOAI?has_content && linkTarget.Core.SubComponent.Id = "oai" ]
-                                        [#assign cfAccessCanonicalIds += [ legacyOAI ]]
-                                    [#else]
-                                        [#assign cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]       
+                                        [#assign legacyOAIId = formatDependentCFAccessId(bucketId)]
+                                        [#assign legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ] 
+                                        
+                                        [#if legacyOAI?has_content && linkTarget.Core.SubComponent.Id = "oai" ]
+                                            [#assign cfAccessCanonicalIds += [ legacyOAI ]]
+                                        [#else]
+                                            [#assign cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]       
+                                        [/#if]
                                     [/#if]
-                                [/#if]
-                                [#break]
+                                    [#break]
                             [/#switch]
                         [/#if]
                     [/#list]
