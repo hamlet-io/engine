@@ -81,9 +81,6 @@
             [#local bucketPolicyId = subResources["bucketpolicy"].Id ]
             [#local legacyS3 = subResources["bucket"].LegacyS3 ]
 
-            [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
-            [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]            
-
             [#if ( deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true) && legacyS3 == false ) ||
                 ( deploymentSubsetRequired("s3") && legacyS3 == true) ]
 
@@ -147,6 +144,11 @@
 
                             [#case BASELINE_KEY_COMPONENT_TYPE]
                                 [#if linkTargetConfiguration.Solution.Engine == "oai" ]
+
+                                    [#-- Backwards compatible support for legacy OAI keys --]
+                                    [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
+                                    [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]  
+
                                     [#if legacyOAI?has_content && linkTarget.Core.SubComponent.Id = "oai" ]
                                         [#local cfAccessCanonicalIds += [ legacyOAI ]]
                                     [#else]
