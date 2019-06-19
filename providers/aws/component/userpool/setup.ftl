@@ -31,7 +31,6 @@
     [#local userPoolTriggerConfig = {}]
     [#local userPoolManualTriggerConfig = {}]
     [#local smsConfig = {}]
-    [#local identityPoolProviders = []]
     [#local authProviders = []]
 
     [#local defaultUserPoolClientRequired = false ]
@@ -361,10 +360,6 @@
 
             [#local userPoolClientId           = subResources["client"].Id]
             [#local userPoolClientName         = subResources["client"].Name]
-            [#local identityPoolProviders      += subSolution.IdentityPoolAccess?then(
-                                                    [getIdentityPoolCognitoProvider( userPoolId, userPoolClientId )],
-                                                    []
-                                                )]
 
             [#local callbackUrls = []]
             [#local logoutUrls = []]
