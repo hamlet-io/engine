@@ -113,10 +113,6 @@
                 "Children" : linkChildrenConfiguration
             },
             {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
-            },
-                        {
                 "Names" : "Permissions",
                 "Children" : [
                     {
