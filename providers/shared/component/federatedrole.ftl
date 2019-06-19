@@ -17,10 +17,6 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=FEDERATEDROLE_COMPONENT_TYPE
     attributes=
         [
             {
@@ -74,10 +70,6 @@
     parent=FEDERATEDROLE_COMPONENT_TYPE
     childAttribute="Assignments"
     linkAttributes="Assignment"
-/]
-
-[@addComponentResourceGroup
-    type=FEDERATEDROLE_ASSIGNMENT_COMPONENT_TYPE
     attributes=
         [
             {
