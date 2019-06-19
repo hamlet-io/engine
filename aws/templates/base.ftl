@@ -466,7 +466,7 @@
 [#----------------------------
 -- Dynamic template loading --
 ------------------------------]
-[#assign includeOnceTemplates = [] ]
+[#assign includeOnceTemplates = {} ]
 
 [#function includeTemplate template includeOnce=false relativeToCaller=false ]
     [#if relativeToCaller]
@@ -474,16 +474,174 @@
     [#else]
         [#local t = template?ensure_starts_with("/")]
     [/#if]
-    [#if includeOnce && includeOnceTemplates?seq_contains(t)]
+    [#if includeOnce && includeOnceTemplates[t]?? ]
         [#return true]
     [/#if]
     [#local templateStatus = .get_optional_template(t)]
     [#if templateStatus.exists]
         [@templateStatus.include /]
         [#if includeOnce]
-            [#assign includeOnceTemplates += [t] ]
+            [#assign includeOnceTemplates += {t:{}} ]
         [/#if]
         [#return true]
     [/#if]
     [#return false]
 [/#function]
+
+[#-- Include multiple files at once - ignore if not present --]
+[#-- If the template is an array, a filename is assembled   --]
+[#macro includeTemplates templates=[] includeOnce=true ]
+    [#list templates as template]
+        [#if template?is_sequence]
+            [#local filename = concatenate(template, "/") + ".ftl"]
+        [#else]
+            [#local filename = template?ensure_ends_with(".ftl")]
+        [/#if]
+        [@debug
+            value="Checking for template " + filename + "..."
+            enabled=false
+        /]
+        [#if includeTemplate(filename, includeOnce)]
+            [@debug
+                value="Loaded template " + filename
+                enabled=false
+            /]
+        [/#if]
+    [/#list]
+[/#macro]
+
+[#-----------
+-- Logging --
+-------------]
+
+[#assign DEBUG_LOG_LEVEL = 0]
+[#assign TRACE_LOG_LEVEL = 1]
+[#assign INFORMATION_LOG_LEVEL=3]
+[#assign WARNING_LOG_LEVEL= 5]
+[#assign ERROR_LOG_LEVEL = 7]
+[#assign FATAL_LOG_LEVEL = 9]
+
+[#assign logLevelDescriptions = [
+    "debug",
+    "trace",
+    "",
+    "info",
+    "",
+    "warn",
+    "",
+    "error",
+    "",
+    "fatal"
+    ] ]
+
+[#assign logMessages = [] ]
+
+[#-- Set LogLevel variable to use a different log level --]
+[#-- Can either be set as a number or as a string       --]
+[#assign currentLogLevel = FATAL_LOG_LEVEL]
+[#if logLevel?has_content]
+    [#if logLevel?is_number]
+        [#assign currentLogLevel = logLevel]
+    [/#if]
+    [#if logLevel?is_string]
+        [#list logLevelDescriptions as value]
+            [#if logLevel?lower_case?starts_with(value)]
+                [#assign currentLogLevel = value?index]
+                [#break]
+            [/#if]
+        [/#list]
+    [/#if]
+[/#if]
+
+[#function getLogLevel ]
+    [#return currentLogLevel]
+[/#function]
+
+[#function setLogLevel level]
+    [#assign currentLogLevel = level]
+    [#return getLogLevel()]
+[/#function]
+
+[#function willLog level ]
+    [#return currentLogLevel <= level ]
+[/#function]
+
+[#macro logMessage severity message context={} enabled=false]
+    [#if enabled && willLog(severity)]
+        [#assign logMessages +=
+            [
+                {
+                    "Timestamp" : .now?string["iso_ms"],
+                    "Severity" : logLevelDescriptions[severity]!"unknown",
+                    "Message" : message
+                } +
+                attributeIfContent("Context", context)
+            ] ]
+    [/#if]
+[/#macro]
+
+[#macro debug message context={} enabled=false]
+    [@logMessage
+        severity=DEBUG_LOG_LEVEL
+        message=message
+        context=context
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro trace message context={} enabled=false]
+    [@logMessage
+        severity=TRACE_LOG_LEVEL
+        message=message
+        context=context
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro info message context={} enabled=false]
+    [@logMessage
+        severity=INFORMATION_LOG_LEVEL
+        message=message
+        context=context
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro warn message context={} enabled=false]
+    [@logMessage
+        severity=WARNING_LOG_LEVEL
+        message=message
+        context=context
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro error message context={} enabled=false]
+    [@logMessage
+        severity=ERROR_LOG_LEVEL
+        message=message
+        context=context
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro fatal message context={} enabled=false]
+    [@logMessage
+        severity=FATAL_LOG_LEVEL
+        message=message
+        context=context
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro logMessagesAsComments lineCommentMarker="#"]
+    [#if logMessages?has_content]
+        ${lineCommentMarker}
+        ${lineCommentMarker} COTMessages
+        ${lineCommentMarker}
+        [#list logMessages as logMessage]
+            ${lineCommentMarker} ${logMessage.Timestamp?right_pad(30)} ${"[" + logMessage.Severity?right_pad(5) + "]"} ${getJSON(logMessage.Message)}
+            [#if logMessage.Context?has_content]....${getJSON(logMessage.Context)}[/#if]
+        [/#list]
+    [/#if]
+[/#macro]

@@ -334,6 +334,7 @@ function process_template_pass() {
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
   [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
+  [[ -n "${GENERATION_LOG_LEVEL}" ]]    && args+=("-v" "logLevel=${GENERATION_LOG_LEVEL}")
 
   # Include the template composites
   # Removal of drive letter (/?/) is specifically for MINGW
@@ -428,6 +429,14 @@ function process_template_pass() {
 
   case "$(fileExtension "${template_result_file}")" in
     sh)
+      # Detect any exceptions during generation
+      grep "\[fatal\]" < "${template_result_file}" > "${template_result_file}-exceptions"
+      if [[ -s "${template_result_file}-exceptions" ]]; then
+        fatal "Exceptions occurred during script generation. Details follow...\n"
+        cat "${template_result_file}-exceptions" >&2
+        return 1
+      fi
+
       # Capture the result
       cat "${template_result_file}" | sed "-e" 's/^ *//; s/ *$//; /^$/d; /^\s*$/d' > "${result_file}"
       results_list+=("${output_filename}")
@@ -474,7 +483,8 @@ function process_template_pass() {
 
     json)
       # Detect any exceptions during generation
-      jq -r ".Exceptions | select(.!=null)" < "${template_result_file}" > "${template_result_file}-exceptions"
+      jq -r ".COTMessages | select(.!=null) | .[] | select(.Severity == \"fatal\")" \
+        < "${template_result_file}" > "${template_result_file}-exceptions"
       if [[ -s "${template_result_file}-exceptions" ]]; then
         fatal "Exceptions occurred during template generation. Details follow...\n"
         cat "${template_result_file}-exceptions" >&2
