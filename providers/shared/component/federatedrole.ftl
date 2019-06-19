@@ -30,10 +30,6 @@
                 "Children" : linkChildrenConfiguration
             },
             {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
-            },
-            {
                 "Names" : "NoMatchBehaviour",
                 "Description" : "When using rule assignements how to behave on no match",
                 "Values" : [ "UseAuthenticated", "Deny" ],
