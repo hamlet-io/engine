@@ -21,6 +21,7 @@
                 },
                 "Attributes" : {
                     "USER_POOL_ARN" : baseState.Attributes["USERPOOL_ARN"],
+                    "USER_POOL_NAME" : baseState.Attributes["USERPOOL_NAME"],
                     "CLIENT" : baseState.Attributes["USERPOOL_CLIENTID" ]!"",
                     "USER_POOL" : baseState.Attributes["USERPOOL_ID"]!"",
                     "IDENTITY_POOL" : baseState.Attributes["USERPOOL_IDENTITYPOOL_ID"]!"",
@@ -45,15 +46,7 @@
         [#local defaultUserPoolClientName = formatSegmentFullName(core.Name)]
         [#local defaultUserPoolClientRequired = solution.DefaultClient ]
 
-        [#local identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
-        [#local identityPoolName = formatSegmentFullName(core.Name)?replace("-","X")]
-
-        [#local identityPoolRoleMappingId = formatDependentResourceId(AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE, identityPoolId)]
-
         [#local userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
-
-        [#local identityPoolUnAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION )]
-        [#local identityPoolAuthRoleId = formatDependentRoleId(identityPoolId,USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION )]
 
         [#local userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
         [#local certificatePresent = isPresent(solution.HostedUI.Certificate) ]
@@ -91,27 +84,6 @@
                         "Id" : userPoolDomainId,
                         "Name" : userPoolDomainName,
                         "Type" : AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE
-                    },
-                    "identitypool" : {
-                        "Id" : identityPoolId,
-                        "Name" : identityPoolName,
-                        "Type" : AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE
-                    },
-                    "userpoolrole" : {
-                        "Id" : userPoolRoleId,
-                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                    },
-                    "unauthrole" : {
-                        "Id" : identityPoolUnAuthRoleId,
-                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                    },
-                    "authrole" : {
-                        "Id" : identityPoolAuthRoleId,
-                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
-                    },
-                    "rolemapping" : {
-                        "Id" : identityPoolRoleMappingId,
-                        "Type" : AWS_COGNITO_IDENTITYPOOL_ROLEMAPPING_RESOURCE_TYPE
                     }
                 } +
                 defaultUserPoolClientRequired?then(
@@ -138,8 +110,8 @@
                 "Attributes" : {
                     "API_AUTHORIZATION_HEADER" : occurrence.Configuration.Solution.AuthorizationHeader,
                     "USER_POOL" : getExistingReference(userPoolId),
+                    "USER_POOL_NAME" : getExistingReference(userPoolId, NAME_ATTRIBUTE_TYPE),
                     "USER_POOL_ARN" : getExistingReference(userPoolId, ARN_ATTRIBUTE_TYPE),
-                    "IDENTITY_POOL" : getExistingReference(identityPoolId),
                     "REGION" : region,
                     "UI_INTERNAL_BASE_URL" : userPoolBaseUrl,
                     "UI_INTERNAL_FQDN" : userPoolFQDN,

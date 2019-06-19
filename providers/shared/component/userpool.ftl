@@ -1,8 +1,5 @@
 [#ftl]
 
-[#assign USERPOOL_COMPONENT_ROLE_UNAUTH_EXTENSTION = "unauth" ]
-[#assign USERPOOL_COMPONENT_ROLE_AUTH_EXTENSTION = "auth" ]
-
 [@addComponent
     type=USERPOOL_COMPONENT_TYPE
     properties=
@@ -61,11 +58,6 @@
                 "Names" : "LoginAliases",
                 "Type" : ARRAY_OF_STRING_TYPE,
                 "Default" : ["email"]
-            },
-            {
-                "Names" : "AllowUnauthenticatedIds",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : false
             },
             {
                 "Names" : "AuthorizationHeader",
@@ -195,12 +187,6 @@
                 "Description" : "Time in days that the refresh token is valid for",
                 "Type" : NUMBER_TYPE,
                 "Default" : 30
-            },
-            {
-                "Names" : "IdentityPoolAccess",
-                "Description" : "Enable the use of the identity pool for this client",
-                "Type" : BOOLEAN_TYPE,
-                "Default" : true
             },
             {
                 "Names" : "AuthProviders",
