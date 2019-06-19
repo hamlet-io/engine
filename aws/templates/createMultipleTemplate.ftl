@@ -1,5 +1,5 @@
 [#ftl]
-[#include "setContext.ftl" ]
+[#include "/setContext.ftl" ]
 
 [#-- Ignore filtering based on deployment unit --]
 [#assign allDeploymentUnits = true]

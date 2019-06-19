@@ -1,5 +1,5 @@
 [#ftl]
-[#include "setContext.ftl" ]
+[#include "/setContext.ftl" ]
 
 [#assign categoryId = "account"]
 

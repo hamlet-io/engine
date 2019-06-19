@@ -217,7 +217,7 @@
         ) ]
 
     [#-- Bootstrap the component inclusion process --]
-    [#assign componentBootstrapLoaded = includeTemplate("/shared/component/component.ftl", true) ]
+    [#assign componentBootstrapLoaded = includeTemplate("/shared/components/component.ftl", true) ]
 
     [#-- Include a few key components --]
     [#-- TODO(mfl): Refactor to remove provider dependencies --]

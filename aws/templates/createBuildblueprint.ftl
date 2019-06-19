@@ -1,5 +1,5 @@
 [#ftl]
-[#include "setContext.ftl" ]
+[#include "/setContext.ftl" ]
 
 [#assign listMode = "buildblueprint"]
 [#assign exceptionResources = []]
@@ -11,12 +11,12 @@
   [#list tiers as tier]
 
     [#list tier.Components!{} as id,component]
-               
+
         [#if component?is_hash]
             [#list requiredOccurrences(
                 getOccurrences(tier, component),
                 deploymentUnit) as occurrence]
-        
+
                 [#local componentType = getComponentType(component)]
 
                 [#local result += {
