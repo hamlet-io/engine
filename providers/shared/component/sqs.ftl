@@ -17,10 +17,6 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=SQS_COMPONENT_TYPE
     attributes=
         [
             {
@@ -52,10 +48,6 @@
             {
                 "Names" : "VisibilityTimeout",
                 "Type" : NUMBER_TYPE
-            },
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
             },
             {
                 "Names" : "Alerts",

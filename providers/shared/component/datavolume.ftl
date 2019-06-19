@@ -17,10 +17,6 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=DATAVOLUME_COMPONENT_TYPE
     attributes=
         [
             {
@@ -49,10 +45,6 @@
                 "Names" : "ProvisionedIops",
                 "Type" : NUMBER_TYPE,
                 "Default" : 100
-            },
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
             },
             {
                 "Names" : "Backup",

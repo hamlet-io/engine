@@ -17,10 +17,6 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=DATAFEED_COMPONENT_TYPE
     attributes=
         [
             {

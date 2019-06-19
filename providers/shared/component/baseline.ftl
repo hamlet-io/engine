@@ -23,10 +23,6 @@
                 "Value" : "segment"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=BASELINE_COMPONENT_TYPE
     attributes=
         [
             {
@@ -64,13 +60,6 @@
                 "Value" : "segment"
             }
         ]
-    parent=BASELINE_COMPONENT_TYPE
-    childAttribute="DataBuckets"
-    linkAttributes="DataBucket"
-/]
-
-[@addComponentResourceGroup
-    type=BASELINE_DATA_COMPONENT_TYPE
     attributes=
         [
             {
@@ -118,6 +107,9 @@
                 "Children" : s3NotificationChildConfiguration
             }
         ]
+    parent=BASELINE_COMPONENT_TYPE
+    childAttribute="DataBuckets"
+    linkAttributes="DataBucket"
 /]
 
 [@addChildComponent
@@ -137,13 +129,6 @@
                 "Value" : "segment"
             }
         ]
-    parent=BASELINE_COMPONENT_TYPE
-    childAttribute="Keys"
-    linkAttributes="Key"
-/]
-
-[@addComponentResourceGroup
-    type=BASELINE_KEY_COMPONENT_TYPE
     attributes=
         [
             {
@@ -158,4 +143,7 @@
                 "Children" : linkChildrenConfiguration
             }
         ]
+    parent=BASELINE_COMPONENT_TYPE
+    childAttribute="Keys"
+    linkAttributes="Key"
 /]

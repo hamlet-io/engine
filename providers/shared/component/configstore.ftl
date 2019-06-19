@@ -17,10 +17,6 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=CONFIGSTORE_COMPONENT_TYPE
     attributes=
         [
             {
@@ -58,13 +54,6 @@
                 "Value" : "solution"
             }
         ]
-    parent=CONFIGSTORE_COMPONENT_TYPE
-    childAttribute="Branches"
-    linkAttributes="Branch"
-/]
-
-[@addComponentResourceGroup
-    type=CONFIGSTORE_BRANCH_COMPONENT_TYPE
     attributes=
         [
             {
@@ -86,4 +75,7 @@
                 ]
             }
         ]
+    parent=CONFIGSTORE_COMPONENT_TYPE
+    childAttribute="Branches"
+    linkAttributes="Branch"
 /]

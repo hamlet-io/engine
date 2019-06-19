@@ -113,10 +113,6 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=ECS_COMPONENT_TYPE
     attributes=
         [
             {
@@ -153,14 +149,14 @@
             },
             {
                 "Names" : "Profiles",
-                "Children" : profileChildConfiguration +
-                                [
-                                    {
-                                        "Names" : "Processor",
-                                        "Type" : STRING_TYPE,
-                                        "Default" : "default"
-                                    }
-                                ]
+                "Children" :
+                    [
+                        {
+                            "Names" : "Processor",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
             },
             {
                 "Names" : "AutoScaling",
@@ -232,13 +228,6 @@
                 "Value" : "application"
             }
         ]
-    parent=ECS_COMPONENT_TYPE
-    childAttribute="Services"
-    linkAttributes="Service"
-/]
-
-[@addComponentResourceGroup
-    type=ECS_SERVICE_COMPONENT_TYPE
     attributes=
         [
             {
@@ -324,12 +313,11 @@
                         "Default" : ""
                     }
                 ]
-            },
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
             }
         ]
+    parent=ECS_COMPONENT_TYPE
+    childAttribute="Services"
+    linkAttributes="Service"
 /]
 
 [@addChildComponent
@@ -349,13 +337,6 @@
                 "Value" : "application"
             }
         ]
-    parent=ECS_COMPONENT_TYPE
-    childAttribute="Tasks"
-    linkAttributes="Task"
-/]
-
-[@addComponentResourceGroup
-    type=ECS_TASK_COMPONENT_TYPE
     attributes=
         [
             {
@@ -426,10 +407,6 @@
                 "Default" : false
             },
             {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
-            },
-            {
                 "Names" : "Schedules",
                 "Subobjects" : true,
                 "Children" : [
@@ -447,4 +424,7 @@
                 ]
             }
         ]
+    parent=ECS_COMPONENT_TYPE
+    childAttribute="Tasks"
+    linkAttributes="Task"
 /]

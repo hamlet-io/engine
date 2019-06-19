@@ -17,10 +17,6 @@
                 "Value" : "application"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=CONTENTHUB_HUB_COMPONENT_TYPE
     attributes=
         [
             {

@@ -17,10 +17,6 @@
                 "Value" : "segment"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=NETWORK_COMPONENT_TYPE
     attributes=
         [
             {
@@ -83,13 +79,6 @@
                 "Value" : "segment"
             }
         ]
-    parent=NETWORK_COMPONENT_TYPE
-    childAttribute="RouteTables"
-    linkAttributes="RouteTable"
-/]
-
-[@addComponentResourceGroup
-    type=NETWORK_ROUTE_TABLE_COMPONENT_TYPE
     attributes=
         [
             {
@@ -102,12 +91,11 @@
                 "Description" : "Does the route table require Public IP internet access",
                 "Type" : BOOLEAN_TYPE,
                 "Default" : false
-            },
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
             }
         ]
+    parent=NETWORK_COMPONENT_TYPE
+    childAttribute="RouteTables"
+    linkAttributes="RouteTable"
 /]
 
 [@addChildComponent
@@ -127,13 +115,6 @@
                 "Value" : "segment"
             }
         ]
-    parent=NETWORK_COMPONENT_TYPE
-    childAttribute="NetworkACLs"
-    linkAttributes="NetworkACL"
-/]
-
-[@addComponentResourceGroup
-    type=NETWORK_ACL_COMPONENT_TYPE
     attributes=
         [
             {
@@ -199,4 +180,7 @@
                 ]
             }
         ]
+    parent=NETWORK_COMPONENT_TYPE
+    childAttribute="NetworkACLs"
+    linkAttributes="NetworkACL"
 /]

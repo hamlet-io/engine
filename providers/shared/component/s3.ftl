@@ -17,10 +17,6 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=S3_COMPONENT_TYPE
     attributes=
         [
             {
@@ -99,10 +95,6 @@
                 "Names" : "CORSBehaviours",
                 "Type" : ARRAY_OF_STRING_TYPE,
                 "Default" : []
-            },
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
             },
             {
                 "Names" : "Replication",

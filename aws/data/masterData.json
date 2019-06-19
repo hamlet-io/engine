@@ -1353,7 +1353,7 @@
                   }
                 },
                 "Links" : {
-                  "cf_key" : { 
+                  "cf_key" : {
                     "Tier" : "mgmt",
                     "Component" : "baseline",
                     "Instance" : "",
@@ -2963,6 +2963,15 @@
             }
           }
         }
+    }
+  },
+  "PlacementProfiles" : {
+    "default" : {
+      "default" : {
+        "Provider" : "aws",
+        "Region" : "ap-southeast-2",
+        "DeploymentFramework" : "cf"
+      }
     }
   },
   "NetworkEndpointGroups" : {

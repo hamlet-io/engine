@@ -17,10 +17,6 @@
                 "Value" : "application"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=DATAPIPELINE_COMPONENT_TYPE
     attributes=
         [
             {
@@ -60,14 +56,14 @@
             },
             {
                 "Names" : "Profiles",
-                "Children" : profileChildConfiguration +
-                                [
-                                    {
-                                        "Names" : "Processor",
-                                        "Type" : STRING_TYPE,
-                                        "Default" : "default"
-                                    }
-                                ]
+                "Children" :
+                    [
+                        {
+                            "Names" : "Processor",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
             }
         ]
 /]

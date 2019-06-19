@@ -17,10 +17,6 @@
                 "Value" : "application"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=LAMBDA_COMPONENT_TYPE
     attributes=
         [
             {
@@ -49,13 +45,6 @@
                 "Value" : "application"
             }
         ]
-    parent=LAMBDA_COMPONENT_TYPE
-    childAttribute="Functions"
-    linkAttributes="Function"
-/]
-
-[@addComponentResourceGroup
-    type=LAMBDA_FUNCTION_COMPONENT_TYPE
     attributes=
         [
             {
@@ -72,10 +61,6 @@
                 "Names" : "Links",
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
-            },
-            {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
             },
             {
                 "Names" : "LogMetrics",
@@ -184,4 +169,7 @@
                 ]
             }
         ]
+    parent=LAMBDA_COMPONENT_TYPE
+    childAttribute="Functions"
+    linkAttributes="Function"
 /]

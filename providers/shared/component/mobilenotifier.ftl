@@ -20,10 +20,6 @@
                 "Value" : "solution"
             }
         ]
-/]
-
-[@addComponentResourceGroup
-    type=MOBILENOTIFIER_COMPONENT_TYPE
     attributes=
         [
             {
@@ -77,13 +73,6 @@
                 "Severity" : "info"
             }
         ]
-    parent=MOBILENOTIFIER_COMPONENT_TYPE
-    childAttribute="Platforms"
-    linkAttributes="Platform"
-/]
-
-[@addComponentResourceGroup
-    type=MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE
     attributes=
         [
             {
@@ -110,10 +99,6 @@
                 "Children" : linkChildrenConfiguration
             },
             {
-                "Names" : "Profiles",
-                "Children" : profileChildConfiguration
-            },
-            {
                 "Names" : "LogMetrics",
                 "Subobjects" : true,
                 "Children" : logMetricChildrenConfiguration
@@ -124,4 +109,7 @@
                 "Children" : alertChildrenConfiguration
             }
         ]
+    parent=MOBILENOTIFIER_COMPONENT_TYPE
+    childAttribute="Platforms"
+    linkAttributes="Platform"
 /]
