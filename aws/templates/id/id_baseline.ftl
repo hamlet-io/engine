@@ -2,6 +2,9 @@
 [#assign LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE = "sshPrivKey" ]
 [#assign AWS_SSH_KEY_PAIR_RESOURCE_TYPE = "sshKeyPair" ]
 
+[#assign AWS_CMK_RESOURCE_TYPE = "cmk" ]
+[#assign AWS_CMK_ALIAS_RESOURCE_TYPE = "cmkalias" ]
+
 [#-- Components --]
 [#assign BASELINE_COMPONENT_TYPE = "baseline" ]
 [#assign BASELINE_DATA_COMPONENT_TYPE = "baselinedata" ]
@@ -264,8 +267,9 @@
     [#switch solution.Engine ]
         [#case "cmk"]
             [#local legacyKey = false]
+
             [#if core.SubComponent.Id == "cmk" &&
-                    getExistingReference(formatSegmentCMKTemplateId())?has_content ]
+                    getExistingReference(formatSegmentCMKId(), "","", "cmk" )?has_content ]
                 [#local cmkId = formatSegmentCMKTemplateId()]
                 [#local cmkName = formatSegmentFullName()]
                 [#local cmkAliasId = formatSegmentCMKAliasId(cmkId)]
@@ -281,7 +285,7 @@
             [#local resources += 
                 {
                     "cmk" : {
-                        "Id" : legacyVpc?then(formatSegmentCMKId(), cmkId),
+                        "Id" : legacyKey?then(formatSegmentCMKId(), cmkId),
                         "ResourceId" : cmkId,
                         "Name" : cmkName,
                         "Type" : AWS_CMK_RESOURCE_TYPE,
@@ -393,3 +397,27 @@
             formatSegmentS3Id("backups")
         )]
 [/#function]    
+
+[#function formatSegmentCMKId ]
+    [#return
+        migrateToResourceId(
+            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE),
+            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE, AWS_CMK_RESOURCE_TYPE)
+        )]
+[/#function]
+
+[#function formatSegmentCMKTemplateId ]
+    [#return 
+        getExistingReference(
+            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE,"cmk"))?has_content?then(
+                AWS_CMK_RESOURCE_TYPE,
+                formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE)
+            )]
+[/#function]
+
+[#function formatSegmentCMKAliasId cmkId]
+    [#return
+      (cmkId == AWS_CMK_RESOURCE_TYPE)?then(
+        formatDependentResourceId("alias", cmkId),
+        formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, cmkId))]
+[/#function]

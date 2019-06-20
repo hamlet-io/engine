@@ -254,7 +254,7 @@
 
                         [#assign legacyCmk = subResources["cmk"].LegacyKey]
                         [#assign cmkId = subResources["cmk"].Id ]
-                        [#assign cmkResourceId = subResources["cmk"].Id]
+                        [#assign cmkResourceId = subResources["cmk"].ResourceId]
                         [#assign cmkName = subResources["cmk"].Name ]
                         [#assign cmkAliasId = subResources["cmkAlias"].Id]
                         [#assign cmkAliasName = subResources["cmkAlias"].Name]
