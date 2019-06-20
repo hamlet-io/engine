@@ -652,7 +652,7 @@
         properties=
             getBlockDevices(storageProfile) +
             {
-                "KeyName" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
+                "KeyName" : getExistingReference(getBaselineKeyId("ssh"), NAME_ATTRIBUTE_TYPE),
                 "InstanceType": processorProfile.Processor,
                 "ImageId" : imageId,
                 "SecurityGroups" :
@@ -853,7 +853,7 @@
         (!(snapshotId?has_content) && encrypted)?then(
             {
                 "Encrypted" : encrypted,
-                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                "KmsKeyId" : getReference(getBaselineKeyId("cmk"), ARN_ATTRIBUTE_TYPE)
             },
             {}
         ) +

@@ -114,7 +114,7 @@
             encrypted,
             {
                 "KMSEncryptionConfig" : {
-                    "AWSKMSKeyARN" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                    "AWSKMSKeyARN" : getReference(getBaselineKeyId("cmk"), ARN_ATTRIBUTE_TYPE)
                 }
             }
         )

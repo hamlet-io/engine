@@ -136,12 +136,8 @@
         [#assign cfSPAOriginId      = resources["cforiginspa"].Id]
         [#assign cfConfigOriginId   = resources["cforiginconfig"].Id]
 
-        [#assign bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, "opsdata" ) ]
-        [#if !getExistingReference(bucketId)?has_content ]
-            [#assign bucketId = formatS3OperationsId() ]
-        [/#if]
-
-        [#assign cfAccess = getExistingReference(formatDependentCFAccessId(bucketId)) ]
+        [#assign bucketId = getBaselineDataBucketId( "opsdata" ) ]
+        [#assign cfAccess = getExistingReference( getBaselineKeyId( "oai" ) ) ]
 
         [#if !cfAccess?has_content]
             [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]

@@ -163,7 +163,7 @@
                             getPolicyDocument(
                                 encrypted?then(
                                     s3EncryptionPermission(
-                                            formatSegmentCMKId(),
+                                            getBaselineKeyId("cmk"),
                                             dataBucket,
                                             dataBucketPrefix,
                                             region

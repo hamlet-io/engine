@@ -132,7 +132,7 @@
         [#assign deletionPolicy = solution.Backup.DeletionPolicy]
         [#assign updateReplacePolicy = solution.Backup.UpdateReplacePolicy]
 
-        [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
+        [#assign segmentKMSKey = getReference(getBaselineKeyId("cmk"), ARN_ATTRIBUTE_TYPE)]
 
         [#assign rdsPreDeploySnapshotId = formatName(
                                             rdsFullName,

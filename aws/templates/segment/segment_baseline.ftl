@@ -376,9 +376,9 @@
 
                     [#case "oai" ]
 
-                        [#assign OAIId = subResources["originAccessId"].Id ]
-                        [#assign OAIName = subResources["originAccessId"].Name ]
-                        [#assign legacyKey = false]
+                        [#assign OAIId      = subResources["originAccessId"].Id ]
+                        [#assign OAIName    = subResources["originAccessId"].Name ]
+                        [#assign legacyKey  = false]
 
                         [#if subCore.SubComponent.Id == "oai" ]
 
@@ -427,20 +427,17 @@
                                             "Cloudfront Origin Access Identity",
                                             {
                                                 OAIId : "$\{oai_id}",
-                                                formatId(OAIId, "canonicalid") : "$\{oai_canonical_id}"
+                                                formatId(OAIId, "canonicalid") : "$\{oai_canonical_id}",
+                                                subResources["originAccessId"].Id : "$\{oai_id}",
+                                                formatId( subResources["originAccessId"].Id, "canonicalid" ) : "$\{oai_canonical_id}"
                                             }
                                         ) +
-                                        valueIfTrue(
-                                            [
-                                                "   info \"Removing old oai pseduo stack output\"",
-                                                "   legacy_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-pseudo-stack.json\"",
-                                                "   if [ -f \"$\{legacy_pseudo_stack_file}\" ]; then",
-                                                "       rm -f \"$\{legacy_pseudo_stack_file}\"",
-                                                "   fi"
-                                            ],
-                                            legacyKey
-                                        ) + 
                                         [
+                                            "info \"Removing old oai pseduo stack output\"",
+                                            "legacy_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-pseudo-stack.json\"",
+                                            "if [ -f \"$\{legacy_pseudo_stack_file}\" ]; then",
+                                            "       rm -f \"$\{legacy_pseudo_stack_file}\"",
+                                            "fi",
                                             "}",
                                             "#",
                                             "case $\{STACK_OPERATION} in",

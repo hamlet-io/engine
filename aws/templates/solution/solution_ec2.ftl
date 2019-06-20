@@ -367,7 +367,7 @@
                                 "IamInstanceProfile" : { "Ref" : ec2InstanceProfileId },
                                 "InstanceInitiatedShutdownBehavior" : "stop",
                                 "InstanceType": processorProfile.Processor,
-                                "KeyName": getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
+                                "KeyName": getExistingReference(getBaselineKeyId("ssh"), NAME_ATTRIBUTE_TYPE),
                                 "Monitoring" : false,
                                 "NetworkInterfaces" : [
                                     {

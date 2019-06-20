@@ -263,6 +263,7 @@
     [#local parentState = parent.State ]
 
     [#local resources = {}]
+    [#local attributes = {}]
 
     [#switch solution.Engine ]
         [#case "cmk"]
@@ -282,10 +283,12 @@
                 [#local cmkAliasName = core.FullName ]
             [/#if]
 
+            [#local cmkOutputId = legacyKey?then(formatSegmentCMKId(), cmkId)]
+
             [#local resources += 
                 {
                     "cmk" : {
-                        "Id" : legacyKey?then(formatSegmentCMKId(), cmkId),
+                        "Id" : cmkOutputId,
                         "ResourceId" : cmkId,
                         "Name" : cmkName,
                         "Type" : AWS_CMK_RESOURCE_TYPE,
@@ -298,6 +301,7 @@
                     }
                 }
             ]
+            [#local attributes += { "KEY_ID" : cmkOutputId }]
 
             [#break]
 
@@ -329,6 +333,8 @@
                     }
                 }
             ]
+
+            [#local attributes += { "KEY_ID" : keyPairId }]
             [#break]
         [#case "oai"]
 
@@ -344,6 +350,7 @@
                     }
                 }
             ]
+            [#local attributes += { "KEY_ID" : OAIId }]
 
             [#break]
         [#default]
@@ -358,8 +365,7 @@
     [#local result =
         {
             "Resources" : resources,
-            "Attributes" : {
-            },
+            "Attributes" : attributes,
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}
@@ -376,6 +382,8 @@
     [#return formatSegmentResourceId(SEED_RESOURCE_TYPE)]
 [/#function]
 
+
+[#-- Baseline Databucket legacy Id formatting --]
 [#function formatS3BaselineId role ]
     [#return formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, role)]
 [/#function]
@@ -397,6 +405,13 @@
             formatSegmentS3Id("backups")
         )]
 [/#function]    
+
+[#--- Baseline Key Legacy Id formatting --]
+[#function formatEC2KeyPairId extensions...]
+    [#return formatSegmentResourceId(
+                AWS_EC2_KEYPAIR_RESOURCE_TYPE,
+                extensions)]
+[/#function]
 
 [#function formatSegmentCMKId ]
     [#return
@@ -420,4 +435,41 @@
       (cmkId == AWS_CMK_RESOURCE_TYPE)?then(
         formatDependentResourceId("alias", cmkId),
         formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, cmkId))]
+[/#function]
+
+[#-- Link based lookups for Baseline SubComponents --]
+[#function getBaselineKeyId engine id="" ]
+    [#assign cmkKeyLink = getLinkTarget( 
+        {}, 
+        {
+            "Tier" : "mgmt",
+            "Component" : "baseline",
+            "Key" : id?has_content?then(
+                        id,
+                        engine
+            ),
+            "Instance" : "",
+            "Version" : ""
+        },
+        false
+    )]
+    [#return cmkKeyLink.State.Attributes["KEY_ID"] ]
+[/#function]
+
+[#function getBaselineDataBucketId role id="" ]
+    [#assign dataBucketLink = getLinkTarget(
+            {},
+            {
+                "Tier" : "mgmt",
+                "Component" : "baseline",
+                "DataBucket" : role?has_content?then(
+                                    id,
+                                    role
+                ),
+                "Instance" : "",
+                "Version" : ""
+            },
+            false
+    )]
+    [#return dataBucketLink.State.Resources["bucket"].Id ]
 [/#function]

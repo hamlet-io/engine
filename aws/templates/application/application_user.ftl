@@ -18,7 +18,7 @@
         [#assign credentialFormats = solution.GenerateCredentials.Formats]
         [#assign userPasswordLength = solution.GenerateCredentials.CharacterLength ]
 
-        [#assign segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
+        [#assign segmentKMSKey = getExistingReference(getBaselineKeyId("cmk"), ARN_ATTRIBUTE_TYPE)]
 
         [#assign passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
             solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),

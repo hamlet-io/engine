@@ -72,11 +72,6 @@
                 port.Port?c)]
 [/#function]
 
-[#function formatEC2KeyPairId extensions...]
-    [#return formatSegmentResourceId(
-                AWS_EC2_KEYPAIR_RESOURCE_TYPE,
-                extensions)]
-[/#function]
 
 [#-- Components --]
 [#assign EC2_COMPONENT_TYPE = "ec2"]

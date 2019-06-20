@@ -95,7 +95,7 @@
         (!(snapshotId?has_content) && encrypted)?then(
             {
                 "StorageEncrypted" : true,
-                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                "KmsKeyId" : getReference(getBaselineKeyId("cmk"), ARN_ATTRIBUTE_TYPE)
             },
             {}
         ) +

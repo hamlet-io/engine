@@ -87,7 +87,7 @@
             attributeIfTrue(
                 "KmsKeyArn",
                 settings.UseSegmentKey!false,
-                getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)) +
+                getReference(getBaselineKeyId("cmk"), ARN_ATTRIBUTE_TYPE)) +
             attributeIfContent(
                 "VpcConfig",
                 securityGroupIds,

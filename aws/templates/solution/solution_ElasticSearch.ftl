@@ -340,7 +340,7 @@
                         solution.Encrypted,
                         {
                             "Enabled" : true,
-                            "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                            "KmsKeyId" : getReference(getBaselineKeyId("cmk"), ARN_ATTRIBUTE_TYPE)
                         }
                     ) +
                     attributeIfContent(

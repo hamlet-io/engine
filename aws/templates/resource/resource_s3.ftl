@@ -217,7 +217,7 @@
             encryptReplica?then(
                     {
                         "EncryptionConfiguration" : {
-                        "ReplicaKmsKeyID" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                        "ReplicaKmsKeyID" : getReference(getBaselineKeyId("cmk"), ARN_ATTRIBUTE_TYPE)
                         }
                     },
                     {}
