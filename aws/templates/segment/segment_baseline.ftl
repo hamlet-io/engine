@@ -284,7 +284,7 @@
                                 mode=listMode
                                 id=cmkAliasId
                                 name=cmkAliasName
-                                cmkId=cmkId
+                                cmkId=cmkResourceId
                             /]
                         [/#if]
                     [#break]
