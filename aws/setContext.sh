@@ -68,11 +68,11 @@ for composite in "${TEMPLATE_COMPOSITES[@]}"; do
         declare -ga "${composite}_array"
 
         # Transitional start fragments
-        for fragment in "${GENERATION_DIR}"/../providers/shared/component/${composite}/start*.ftl; do
+        for fragment in "${GENERATION_DIR}"/../providers/shared/components/${composite}/start*.ftl; do
             addToArray "${composite}_array" "${fragment}"
         done
 
-        for fragment in "${GENERATION_DIR}"/../providers/aws/component/${composite}/start*.ftl; do
+        for fragment in "${GENERATION_DIR}"/../providers/aws/components/${composite}/start*.ftl; do
             $(inArray "${composite}_array" $(fileName "${fragment}")) && continue
             addToArray "${composite}_array" "${fragment}"
         done
@@ -258,11 +258,11 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
         fi
 
         # Transitional fragments
-        for fragment in "${GENERATION_DIR}"/../providers/shared/component/${composite}/${composite}_*.ftl; do
+        for fragment in "${GENERATION_DIR}"/../providers/shared/components/${composite}/${composite}_*.ftl; do
             addToArray "${composite}_array" "${fragment}"
         done
 
-        for fragment in "${GENERATION_DIR}"/../providers/aws/component/${composite}/${composite}_*.ftl; do
+        for fragment in "${GENERATION_DIR}"/../providers/aws/components/${composite}/${composite}_*.ftl; do
             addToArray "${composite}_array" "${fragment}"
         done
 
@@ -274,11 +274,11 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
 
 
         # Transitional end fragments
-        for fragment in "${GENERATION_DIR}"/../providers/shared/component/${composite}/*end.ftl; do
+        for fragment in "${GENERATION_DIR}"/../providers/shared/components/${composite}/*end.ftl; do
             addToArray "${composite}_array" "${fragment}"
         done
 
-        for fragment in "${GENERATION_DIR}"/../providers/shared/component/${composite}/*end.ftl; do
+        for fragment in "${GENERATION_DIR}"/../providers/shared/components/${composite}/*end.ftl; do
             $(inArray "${composite}_array" $(fileName "${fragment}")) && continue
             addToArray "${composite}_array" "${fragment}"
         done

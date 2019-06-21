@@ -216,32 +216,12 @@
     [#return profile[key]!{} ]
 [/#function]
 
-[#-- Include files once - ignore if not present --]
-[#macro includeFiles files ]
-    [#list files as file]
-        [#local filename = file?join("/") + ".ftl" ]
-        [@cfDebug
-            mode=listMode!""
-            value="Checking for template " + filename + "..."
-            enabled=false
-        /]
-        [#if includeTemplate(filename, true)]
-            [@cfDebug
-                mode=listMode!""
-                value="Loaded template " + filename
-                enabled=false
-            /]
-        [/#if]
-    [/#list]
-[/#macro]
-
 [#-- Look up shared component definition --]
 [#macro includeSharedComponentConfiguration type ]
-    [@includeFiles
-        files=
+    [@includeTemplates
+        templates=
             [
-                ["shared", type],
-                ["shared", "component", type]
+                ["shared", "components", type, type]
             ]
     /]
 [/#macro]
@@ -253,20 +233,18 @@
 
     [#-- Support a variety of layouts depending on user preference --]
 
-    [#-- aws/services/eip.ftl --]
-    [#local files += [[provider, "service", service]] ]
     [#-- aws/services/eip/eip.ftl --]
-    [#local files += [[provider, "service", service, service]] ]
+    [#local files += [[provider, "services", service, service]] ]
     [#-- aws/services/eip/cf.ftl --]
-    [#local files += [[provider, "service", service, deploymentFramework]] ]
+    [#local files += [[provider, "services", service, deploymentFramework]] ]
 
     [#list ["id", "name", "policy", "resource"] as level]
         [#-- aws/services/eip/id.ftl --]
-        [#local files += [[provider, "service", service, level]] ]
+        [#local files += [[provider, "services", service, level]] ]
         [#-- aws/services/eip/cf/id.ftl --]
-        [#local files += [[provider, "service", service, deploymentFramework, level]] ]
+        [#local files += [[provider, "services", service, deploymentFramework, level]] ]
     [/#list]
-    [@includeFiles files=files /]
+    [@includeTemplates templates=files /]
 [/#macro]
 
 [#-- Look up resource group definition --]
@@ -279,12 +257,12 @@
     [#-- Provider wide definitions --]
     [#-- aws/aws.ftl --]
     [#local files += [[provider, provider]] ]
-    [#-- aws/component/component.ftl --]
-    [#local files += [[provider, "component", "component" ]] ]
-    [#-- aws/resourcegroup/resourcegroup.ftl --]
-    [#local files += [[provider, "resourcegroup", "resourcegroup" ]] ]
-    [#-- aws/service/service.ftl --]
-    [#local files += [[provider, "service", "service" ]] ]
+    [#-- aws/components/component.ftl --]
+    [#local files += [[provider, "components", "component" ]] ]
+    [#-- aws/resourcegroups/resourcegroup.ftl --]
+    [#local files += [[provider, "resourcegroups", "resourcegroup" ]] ]
+    [#-- aws/services/service.ftl --]
+    [#local files += [[provider, "services", "service" ]] ]
 
     [#-- Service based hierarchy --]
 
@@ -299,56 +277,54 @@
 
     [#-- Component based hierarchy --]
 
-    [#-- aws/component/lb.ftl --]
-    [#local files += [[provider, "component", component ]] ]
-    [#-- aws/component/lb/lb.ftl --]
-    [#local files += [[provider, "component", component, component]] ]
+    [#-- aws/components/lb/lb.ftl --]
+    [#local files += [[provider, "components", component, component]] ]
 
-    [#-- aws/component/lb/lb-lb.ftl --]
-    [#local files += [[provider, "component", component, resourceGroup]] ]
-    [#-- aws/component/lb/lb-lb/cf.ftl --]
-    [#local files += [[provider, "component", component, resourceGroup, deploymentFramework]] ]
+    [#-- aws/components/lb/lb-lb.ftl --]
+    [#local files += [[provider, "components", component, resourceGroup]] ]
+    [#-- aws/components/lb/lb-lb/cf.ftl --]
+    [#local files += [[provider, "components", component, resourceGroup, deploymentFramework]] ]
 
     [#-- Component specific deployment framework definition --]
-    [#-- aws/component/lb/cf.ftl --]
-    [#local files += [[provider, "component", component, deploymentFramework]] ]
-    [#-- aws/component/lb/cf/lb-lb.ftl --]
-    [#local files += [[provider, "component", component, deploymentFramework, resourceGroup]] ]
+    [#-- aws/components/lb/cf.ftl --]
+    [#local files += [[provider, "components", component, deploymentFramework]] ]
+    [#-- aws/components/lb/cf/lb-lb.ftl --]
+    [#local files += [[provider, "components", component, deploymentFramework, resourceGroup]] ]
 
     [#-- Resource group based hierarchy --]
 
     [#-- mainly for shared resource groups --]
     [#if resourceGroup != DEFAULT_RESOURCE_GROUP ]
-        [#-- aws/resourcegroup/lb-lb.ftl --]
-        [#local files += [[provider, "resourcegroup", resourceGroup]] ]
-        [#-- aws/resourcegroup/lb-lb/cf.ftl --]
-        [#local files += [[provider, "resourcegroup", resourceGroup, deploymentFramework]] ]
+        [#-- aws/resourcegroups/lb-lb.ftl --]
+        [#local files += [[provider, "resourcegroups", resourceGroup]] ]
+        [#-- aws/resourcegroups/lb-lb/cf.ftl --]
+        [#local files += [[provider, "resourcegroups", resourceGroup, deploymentFramework]] ]
     [/#if]
 
     [#list ["id", "name", "setup", "state"] as level]
-        [#-- aws/component/lb/id.ftl --]
-        [#local files += [[provider, "component", component, level]] ]
-        [#-- aws/component/lb/lb-lb/id.ftl --]
-        [#local files += [[provider, "component", component, resourceGroup, level]] ]
-        [#-- aws/component/lb/lb-lb/cf/id.ftl --]
-        [#local files += [[provider, "component", component, resourceGroup, deploymentFramework, level]] ]
+        [#-- aws/components/lb/id.ftl --]
+        [#local files += [[provider, "components", component, level]] ]
+        [#-- aws/components/lb/lb-lb/id.ftl --]
+        [#local files += [[provider, "components", component, resourceGroup, level]] ]
+        [#-- aws/components/lb/lb-lb/cf/id.ftl --]
+        [#local files += [[provider, "components", component, resourceGroup, deploymentFramework, level]] ]
 
         [#if resourceGroup != DEFAULT_RESOURCE_GROUP ]
-            [#-- aws/resourcegroup/lb-lb/id.ftl --]
-            [#local files += [[provider, "resourcegroup", resourceGroup, level]] ]
-            [#-- aws/resourcegroup/lb-lb/cf/id.ftl --]
-            [#local files += [[provider, "resourcegroup", resourceGroup, deploymentFramework, level]] ]
+            [#-- aws/resourcegroups/lb-lb/id.ftl --]
+            [#local files += [[provider, "resourcegroups", resourceGroup, level]] ]
+            [#-- aws/resourcegroups/lb-lb/cf/id.ftl --]
+            [#local files += [[provider, "resourcegroups", resourceGroup, deploymentFramework, level]] ]
         [/#if]
     [/#list]
 
     [#-- Legacy naming for transition --]
     [#-- TODO(mfl): Remove when transition complete --]
     [#list ["segment", "solution"] as level]
-        [#-- aws/component/segment/segment_lb.ftl --]
-        [#local files += [[provider, "component", level, level + "_" + component]] ]
+        [#-- aws/components/segment/segment_lb.ftl --]
+        [#local files += [[provider, "components", level, level + "_" + component]] ]
     [/#list]
 
-    [@includeFiles files=files /]
+    [@includeTemplates templates=files /]
 
 [/#macro]
 
@@ -359,7 +335,7 @@
         [#local type = getComponentType(component)]
     [/#if]
 
-    [#-- Ensure the share configuration is loaded --]
+    [#-- Ensure the shared configuration is loaded --]
     [@includeSharedComponentConfiguration type=type /]
 
     [#-- Load static dependencies                                                 --]

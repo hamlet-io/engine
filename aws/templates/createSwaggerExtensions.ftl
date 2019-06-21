@@ -1,6 +1,6 @@
 [#ftl]
-[#include "base.ftl" ]
-[#include "swagger.ftl" ]
+[#include "/base.ftl" ]
+[#include "/swagger.ftl" ]
 
 [#assign swaggerObject = swagger?eval ]
 [#assign integrationsObject = integrations?eval ]

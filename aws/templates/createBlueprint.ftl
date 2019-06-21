@@ -1,24 +1,24 @@
 [#ftl]
-[#include "setContext.ftl" ]
+[#include "/setContext.ftl" ]
 
 [#assign listMode = "blueprint"]
 [#assign allDeploymentUnits = true]
 [#assign deploymentUnit = ""]
 
 [#function getCleanedAttributes attributes ]
-  [#local result={} ] 
+  [#local result={} ]
   [#list attributes as key, value]
-    [#local result += 
+    [#local result +=
       valueIfTrue(
         { key : "***" },
         key?lower_case?contains("password") || key?lower_case?contains("key"),
-        { key: value } ) ]      
+        { key: value } ) ]
   [/#list]
   [#return result]
 [/#function]
 
-[#function getCleanedOccurrence occurrence ] 
-  [#return 
+[#function getCleanedOccurrence occurrence ]
+  [#return
     occurrence + { "State" : occurrence.State + { "Attributes" : getCleanedAttributes(occurrence.State.Attributes) } } ]
 [/#function]
 
@@ -36,8 +36,8 @@
         "Id" : tenantObject.Id,
         "Configuration" : tenantObject,
         "Domains" : domains,
-        "Products" : getProductBlueprint() 
-      } 
+        "Products" : getProductBlueprint()
+      }
     ]
   }]
   [#return result ]
@@ -45,12 +45,12 @@
 
 [#function getProductBlueprint]
   [#local result= [
-      { 
+      {
         "Id" : productObject.Id,
         "Configuration" : productObject,
-        "Environments" : getEnvironmentBlueprint()  
-      } 
-    ]] 
+        "Environments" : getEnvironmentBlueprint()
+      }
+    ]]
     [#return result ]
 [/#function]
 
@@ -72,8 +72,8 @@
         "Configuration" : segmentObject,
         "Account" : accountObject,
         "Solution" : solutionObject,
-        "Tiers" : getTierBlueprint() 
-      } 
+        "Tiers" : getTierBlueprint()
+      }
     ]]
   [#return result ]
 [/#function]
@@ -81,7 +81,7 @@
 [#function getTierBlueprint ]
   [#local result=[] ]
   [#list tiers as tier]
-    [#local result += [ 
+    [#local result += [
         {
             "Id" : tier.Id,
             "Configuration" : {
@@ -109,7 +109,7 @@
       [#local occurrences = getOccurrences(tier, component) ]
       [#local cleanedOccurrences = [] ]
 
-      [#list getOccurrences(tier, component) as occurrence ]        
+      [#list getOccurrences(tier, component) as occurrence ]
           [#local cleanedOccurrences += [ getCleanedOccurrence(occurrence) ] ]
       [/#list]
 

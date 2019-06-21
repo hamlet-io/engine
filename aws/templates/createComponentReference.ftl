@@ -1,5 +1,5 @@
 [#ftl strip_text=true strip_whitespace=true ]
-[#include "setContext.ftl" ]
+[#include "/setContext.ftl" ]
 
 [#assign listMode = "reference"]
 
@@ -23,7 +23,7 @@
     [#local result =  [
         "!!! " + severity
     ]]
-    
+
     [#list content as line ]
         [#local result += [
             "    " + line
@@ -51,7 +51,7 @@
     [#return result]
 [/#function]
 
-[#function getMDHeading heading level=2 newLine=true] 
+[#function getMDHeading heading level=2 newLine=true]
     [#local result = []]
     [#list asArray(heading) as line ]
         [#local result += [
@@ -62,12 +62,12 @@
 [/#function]
 
 [#function getMDCodeBlock content language ]
-    [#local result = 
+    [#local result =
         [
             "\n",
             "```" + language
-        ] + 
-            asArray(content) + 
+        ] +
+            asArray(content) +
         [
             "```",
             "\n"
@@ -113,25 +113,25 @@
     [/#if]
 
     [#if (attribute.Children![])?has_content ]
-    
+
         [#local nameArray = asArray(attribute.Names)]
         [#local name = "[" + nameArray[0] + "](#" + nameArray[0] + ")"  ]
 
-        [#if nameArray?size > 1 ] 
-            [#local name += " (_" + nameArray[1..]?join(", ") + "_)" ] 
-        [/#if]                  
+        [#if nameArray?size > 1 ]
+            [#local name += " (_" + nameArray[1..]?join(", ") + "_)" ]
+        [/#if]
 
-        [#local result += getMDList( 
+        [#local result += getMDList(
                                 name,
                                 false,
                                 headerLevel)]
 
         [#local headerLevel++ ]
         [#list attribute.Children as childAttribute ]
-            [#local result += 
+            [#local result +=
                 getAttributeDetails(childAttribute, headerLevel)]
         [/#list]
-    
+
     [#else]
 
         [#local name = "" ]
@@ -147,20 +147,20 @@
         [#list attribute as key,value ]
 
             [#switch key ]
-                [#case "Names" ]    
+                [#case "Names" ]
                     [#local nameArray = asArray(value)]
-                    
+
                     [#local name += "[" + nameArray[0] + "](#" + nameArray[0] + ")"  ]
 
-                    [#if nameArray?size > 1 ] 
-                        [#local name += " _(" + nameArray[1..]?join(", ") + ")_" ] 
-                    [/#if]                    
+                    [#if nameArray?size > 1 ]
+                        [#local name += " _(" + nameArray[1..]?join(", ") + ")_" ]
+                    [/#if]
                     [#break]
 
                 [#case "Mandatory" ]
                     [#local mandatory = value ]
                     [#break ]
-            
+
                 [#case "Default" ]
                     [#if value?has_content ]
                         [#local default +=  "__" + key + ":__ " + "`" + getMDString(value) + "`"]
@@ -177,7 +177,7 @@
                         [#local type +=  "__" + key + ":__ " + getMDString(value)]
                     [/#if]
                     [#break]
-                
+
                 [#case "Values"]
                     [#local details += [ "__Possible Values:__ `[" + getMDString(value) + "]`" ]]
                     [#break]
@@ -194,10 +194,10 @@
                                     "Optional")]
 
         [#local keydetails = name + " - " +
-                                requiredValue +  
+                                requiredValue +
                                 (type?has_content)?then(
                                         " - " + type,
-                                        "" ) + 
+                                        "" ) +
                                 (default?has_content)?then(
                                         " - " + default,
                                         "") + "  " ]
@@ -267,7 +267,7 @@
                     [#local result += [ line ]]
                     [#local line = ""]
                 [/#if]
-            
+
             [#elseif value?is_sequence ]
                 [#if value?has_content ]
                     [#local line += line?has_content?then("[", ""?left_pad(depth, "\t") + "[" )]
@@ -341,18 +341,18 @@
                 [#local attributeType = attribute.Type!UNKNOWN_TYPE ]
                 [#local value = "<" +  attributeType?is_sequence?then(
                                         attributeType?join(" of "),
-                                        attributeType ) + ">" ] 
+                                        attributeType ) + ">" ]
             [/#if]
             [#local result += {
                 name : value
             }]
         [#else]
-            [#local result += { 
+            [#local result += {
                 attribute : UNKNOWN_TYPE
             }]
         [/#if]
     [/#list]
-    
+
     [#return result]
 [/#function]
 
@@ -361,11 +361,11 @@
     [#list componentSubComponents as subComponent ]
 
         [#local result += {
-            subComponent.Component : { 
+            subComponent.Component : {
                 "example" : "< instance of " + subComponent.Type + ">"
             }
         }]
-        
+
     [/#list]
     [#return result]
 [/#function]
@@ -381,38 +381,38 @@
         [#assign deploymentProperties = [] ]
         [#assign notes = []]
         [#assign subComponents = []]
-        
+
         [#assign attributeJson =
-            [ "\n", "**Component Format**", "\n" ] + 
+            [ "\n", "**Component Format**", "\n" ] +
             getMDCodeBlock(
                 getNonEmptyArray(
                     getMDCodeJSON(
                         {
                             type :  getComponentExample(componentAttributes) +
                                     getComponentSubExample(componentSubComponents)
-                        } 
+                        }
                     )
-                ), 
+                ),
                 "json" )]
 
         [#assign attributes =
             [ "\n", "**Attribute Reference**", "\n"]]
-        
+
         [#list componentProperties as property ]
             [#switch property.Type!"Description" ]
 
                 [#case "Description" ]
-                    [#assign description += 
+                    [#assign description +=
                         asArray(property.Value)]
                     [#break]
 
                 [#case "Providers" ]
-                    [#assign deploymentProperties += 
+                    [#assign deploymentProperties +=
                             [ "**Available Providers** - " + getMDString(property.Value)  ]]
                     [#break]
 
                 [#case "ComponentLevel" ]
-                    [#assign deploymentProperties += 
+                    [#assign deploymentProperties +=
                           [  "**Component Level** - " + getMDString(property.Value) ]]
                     [#break]
 
@@ -431,9 +431,9 @@
         [/#list]
 
         [#list componentSubComponents as subComponent ]
-            [#assign subComponents += 
+            [#assign subComponents +=
                 getMDList( "[" + subComponent.Type + "](#" + getMDString(subComponent.Type) + ")" ) +
-                getMDList( "**Component Attribute** - " + getMDString(subComponent.Component), false, 1  ) + 
+                getMDList( "**Component Attribute** - " + getMDString(subComponent.Component), false, 1  ) +
                 getMDList( "**Link Attribute** - " + getMDString(subComponent.Link) , false, 1)
             ]
         [/#list]
@@ -443,7 +443,7 @@
         [/#if]
 
         [#if deploymentProperties?has_content ]
-            [#assign deploymentProperties = [ "\n", "**Deployment Properties**", "\n" ] + getMDList(deploymentProperties) + [ "\n" ]] 
+            [#assign deploymentProperties = [ "\n", "**Deployment Properties**", "\n" ] + getMDList(deploymentProperties) + [ "\n" ]]
         [/#if]
 
         [#if subComponents?has_content ]
@@ -451,13 +451,13 @@
         [/#if]
 
         [@MDSection
-            title=type?lower_case 
+            title=type?lower_case
             content=
                 description +
                 deploymentProperties +
-                notes + 
-                subComponents + 
-                attributeJson + 
+                notes +
+                subComponents +
+                attributeJson +
                 attributes
         /]
     [/#if]

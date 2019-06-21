@@ -488,7 +488,7 @@
     [#return false]
 [/#function]
 
-[#-- Include multiple files at once - ignore if not present --]
+[#-- Include multiple templates at once - ignore if not present --]
 [#-- If the template is an array, a filename is assembled   --]
 [#macro includeTemplates templates=[] includeOnce=true ]
     [#list templates as template]
@@ -498,12 +498,12 @@
             [#local filename = template?ensure_ends_with(".ftl")]
         [/#if]
         [@debug
-            value="Checking for template " + filename + "..."
+            message="Checking for template " + filename + "..."
             enabled=false
         /]
         [#if includeTemplate(filename, includeOnce)]
             [@debug
-                value="Loaded template " + filename
+                message="Loaded template " + filename
                 enabled=false
             /]
         [/#if]

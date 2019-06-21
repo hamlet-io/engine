@@ -396,6 +396,7 @@ function process_template_pass() {
       ${GENERATION_DIR}/freemarker.sh \
         -d "${template_dir}" \
         ${GENERATION_PRE_PLUGIN_DIRS:+ -d "${GENERATION_PRE_PLUGIN_DIRS}"} \
+        -d "${GENERATION_BASE_DIR}/engine" \
         -d "${GENERATION_BASE_DIR}/providers" \
         ${GENERATION_PLUGIN_DIRS:+ -d "${GENERATION_PLUGIN_DIRS}"} \
 		    -t "${template}" \
