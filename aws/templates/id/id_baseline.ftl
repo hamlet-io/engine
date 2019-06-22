@@ -438,16 +438,13 @@
 [/#function]
 
 [#-- Link based lookups for Baseline SubComponents --]
-[#function getBaselineKeyId engine id="" ]
+[#function getBaselineKeyId id ]
     [#assign cmkKeyLink = getLinkTarget( 
         {}, 
         {
             "Tier" : "mgmt",
             "Component" : "baseline",
-            "Key" : id?has_content?then(
-                        id,
-                        engine
-            ),
+            "Key" : id,
             "Instance" : "",
             "Version" : ""
         },
@@ -456,16 +453,13 @@
     [#return cmkKeyLink.State.Attributes["KEY_ID"] ]
 [/#function]
 
-[#function getBaselineDataBucketId role id="" ]
+[#function getBaselineDataBucketId id ]
     [#assign dataBucketLink = getLinkTarget(
             {},
             {
                 "Tier" : "mgmt",
                 "Component" : "baseline",
-                "DataBucket" : role?has_content?then(
-                                    id,
-                                    role
-                ),
+                "DataBucket" : id,
                 "Instance" : "",
                 "Version" : ""
             },
