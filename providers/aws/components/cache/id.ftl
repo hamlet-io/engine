@@ -1,0 +1,12 @@
+[#ftl]
+[@addResourceGroupInformation
+    type=CACHE_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_ELASTICACHE_SERVICE,
+            AWS_VIRTUAL_PRIVATE_CLOUD_SERVICE
+        ]
+/]

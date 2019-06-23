@@ -1,13 +1,17 @@
 [#ftl]
-[#include "base.ftl"]
 [#include "engine.ftl"]
-
-[#include idList]
-[#include nameList]
-[#include policyList]
-[#include resourceList]
 [#include "common.ftl"]
 [#include "swagger.ftl"]
+
+[#-- Temporary AWS stuff --]
+[#-- TODO(mfl) Remove as part of refactoring setContext --]
+[@includeSharedComponentConfiguration component="baseline" /]
+[@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
+[@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
+[@includeProviderComponentDefinitionConfiguration provider="aws" component="s3" /]
+[@includeProviderComponentConfiguration provider="aws" component="s3" services="s3" /]
+[@includeProviderComponentDefinitionConfiguration provider="aws" component="ec2" /]
+[@includeProviderComponentConfiguration provider="aws" component="ec2" services=["ec2", "vpc"] /]
 
 [#-- Name prefixes --]
 [#assign shortNamePrefixes = [] ]
@@ -216,14 +220,6 @@
             (productObject.PlacementProfiles)!{},
             (tenantObject.PlacementProfiles)!{}
         ) ]
-
-    [#-- Bootstrap the component inclusion process --]
-    [#assign componentBootstrapLoaded = includeTemplate("/shared/components/component.ftl", true) ]
-
-    [#-- Include a few key components --]
-    [#-- TODO(mfl): Refactor to remove provider dependencies --]
-    [@includeComponentConfiguration "baseline" /]
-    [@includeComponentConfiguration "ec2" /]
 
     [#assign segmentSeed = getExistingReference(formatSegmentSeedId()) ]
 

@@ -1,0 +1,24 @@
+[#ftl]
+[@addResourceGroupInformation
+    type=LB_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_ELASTIC_LOAD_BALANCER_SERVICE
+        ]
+/]
+
+[@addResourceGroupInformation
+    type=LB_PORT_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_ELASTIC_LOAD_BALANCER_SERVICE,
+            AWS_VIRTUAL_PRIVATE_CLOUD_SERVICE,
+            AWS_ROUTE53_SERVICE
+        ]
+/]

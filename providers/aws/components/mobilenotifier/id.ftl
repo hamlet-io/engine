@@ -1,0 +1,23 @@
+[#ftl]
+[@addResourceGroupInformation
+    type=MOBILENOTIFIER_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_IDENTITY_SERVICE
+        ]
+/]
+
+[@addResourceGroupInformation
+    type=MOBILENOTIFIER_PLATFORM_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_CLOUDWATCH_SERVICE,
+            AWS_SIMPLE_NOTIFICATION_SERVICE
+        ]
+/]

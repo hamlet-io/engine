@@ -183,7 +183,7 @@ function process_template_pass() {
   local template_dir="${GENERATION_DIR}/templates"
   local template="create${level^}Template.ftl"
   [[ ! -f "${template_dir}/${template}" ]] && template="create${level^}.ftl"
-  local template_composites=("POLICY" "ID" "NAME" "RESOURCE")
+  local template_composites=()
 
   # Define the possible passes
   local pass_list=("genplan" "depplan" "pregeneration" "prologue" "template" "epilogue" "cli" "config")
@@ -410,6 +410,7 @@ function process_template_pass() {
     # Remove any previous version
     [[ -f "${output_file}" ]] && rm "${output_file}"
 
+    # Indicate template should be ignored
     return 254
   fi
 
@@ -532,11 +533,12 @@ function process_template_pass() {
       ;;
   esac
 
-  # Return the filename and the status of the difference comparison
+  # Indicate something changed
   if [[ "${differences_detected}" == "true" ]]; then
     return 0
   fi
 
+  # Indicate no change
   return 255
 }
 

@@ -55,7 +55,7 @@ mkdir -p "${CACHE_DIR}"
 # Generate the list of files constituting the composites based on the contents
 # of the account and product trees
 # The blueprint is handled specially as its logic is different to the others
-TEMPLATE_COMPOSITES=("account" "product" "policy" "fragment" "id" "name" "resource")
+TEMPLATE_COMPOSITES=("account" "product" "fragment")
 
 for composite in "${TEMPLATE_COMPOSITES[@]}"; do
     # Define the composite
@@ -67,25 +67,11 @@ for composite in "${TEMPLATE_COMPOSITES[@]}"; do
         # define the array holding the list of composite fragment filenames
         declare -ga "${composite}_array"
 
-        # Transitional start fragments
-        for fragment in "${GENERATION_DIR}"/../providers/shared/components/${composite}/start*.ftl; do
-            addToArray "${composite}_array" "${fragment}"
-        done
-
-        for fragment in "${GENERATION_DIR}"/../providers/aws/components/${composite}/start*.ftl; do
-            $(inArray "${composite}_array" $(fileName "${fragment}")) && continue
-            addToArray "${composite}_array" "${fragment}"
-        done
-
         # Legacy start fragments
         for fragment in "${GENERATION_DIR}"/templates/${composite}/start*.ftl; do
             $(inArray "${composite}_array" $(fileName "${fragment}")) && continue
             addToArray "${composite}_array" "${fragment}"
         done
-
-        # Generic start fragment
-        $(inArray "${composite}_array" "start.ftl") && continue
-        addToArray "${composite}_array" "${GENERATION_DIR}"/templates/start.ftl
     fi
 done
 
@@ -257,28 +243,8 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
             done
         fi
 
-        # Transitional fragments
-        for fragment in "${GENERATION_DIR}"/../providers/shared/components/${composite}/${composite}_*.ftl; do
-            addToArray "${composite}_array" "${fragment}"
-        done
-
-        for fragment in "${GENERATION_DIR}"/../providers/aws/components/${composite}/${composite}_*.ftl; do
-            addToArray "${composite}_array" "${fragment}"
-        done
-
         # Legacy fragments
         for fragment in ${GENERATION_DIR}/templates/${composite}/${composite}_*.ftl; do
-            $(inArray "${composite}_array" $(fileName "${fragment}")) && continue
-            addToArray "${composite}_array" "${fragment}"
-        done
-
-
-        # Transitional end fragments
-        for fragment in "${GENERATION_DIR}"/../providers/shared/components/${composite}/*end.ftl; do
-            addToArray "${composite}_array" "${fragment}"
-        done
-
-        for fragment in "${GENERATION_DIR}"/../providers/shared/components/${composite}/*end.ftl; do
             $(inArray "${composite}_array" $(fileName "${fragment}")) && continue
             addToArray "${composite}_array" "${fragment}"
         done
@@ -299,7 +265,7 @@ if [[ (("${GENERATION_USE_CACHE}" != "true")  &&
         cat "${composite_array[@]}" > "${CACHE_DIR}/composite_${composite}.ftl"
     done
 
-    for composite in "segment" "solution" "application"; do
+    for composite in "segment" "solution" "application" "id" "name" "policy" "resource"; do
         rm -rf "${CACHE_DIR}/composite_${composite}.ftl"
     done
 fi

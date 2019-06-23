@@ -1,5 +1,5 @@
 [#ftl]
-[#include "/setContext.ftl" ]
+[#include "/bootstrap.ftl" ]
 
 [#-- Special processing --]
 [#switch deploymentUnit]
@@ -21,5 +21,3 @@
 [/#switch]
 
 [@cfTemplate level="segment" /]
-
-

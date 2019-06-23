@@ -1,0 +1,34 @@
+[#ftl]
+[@addResourceGroupInformation
+    type=USERPOOL_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_COGNITO_SERVICE,
+            AWS_CERTIFICATE_MANAGER_SERVICE
+        ]
+/]
+
+[@addResourceGroupInformation
+    type=USERPOOL_AUTHPROVIDER_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_COGNITO_SERVICE
+        ]
+/]
+
+[@addResourceGroupInformation
+    type=USERPOOL_CLIENT_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_COGNITO_SERVICE
+        ]
+/]

@@ -1,61 +1,5 @@
 [#ftl]
 [#assign LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE = "sshPrivKey" ]
-[#assign AWS_SSH_KEY_PAIR_RESOURCE_TYPE = "sshKeyPair" ]
-
-[#function formatSegmentCMKId ]
-    [#return
-        migrateToResourceId(
-            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE),
-            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE, "cmk")
-        )]
-[/#function]
-
-[#function formatSegmentCMKTemplateId ]
-    [#return 
-        getExistingReference(
-            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE,"cmk"))?has_content?then(
-                "cmk",
-                formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE)
-            )]
-[/#function]
-
-[#function formatSegmentCMKAliasId cmkId]
-    [#return
-      (cmkId == "cmk")?then(
-        formatDependentResourceId("alias", cmkId),
-        formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, cmkId))]
-[/#function]
-
-[#--- Baseline Key Legacy Id formatting --]
-[#function formatEC2KeyPairId extensions...]
-    [#return formatSegmentResourceId(
-                AWS_EC2_KEYPAIR_RESOURCE_TYPE,
-                extensions)]
-[/#function]
-
-
-
-[#function formatS3BaselineId role ]
-    [#return formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, role)]
-[/#function]
-
-[#function formatS3OperationsId]
-    [#return
-        migrateToResourceId(
-            formatSegmentS3Id("ops"),
-            formatSegmentS3Id("operations"),
-            formatSegmentS3Id("logs")
-        )]
-[/#function]
-
-[#function formatS3DataId]
-    [#return
-        migrateToResourceId(
-            formatSegmentS3Id("data"),
-            formatSegmentS3Id("application"),
-            formatSegmentS3Id("backups")
-        )]
-[/#function]
 
 [#macro aws_baseline_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
@@ -169,7 +113,7 @@
 
     [#local resources = {}]
     [#local attributes = {
-                "ID" : "COTException: Id missing for subcomponent" 
+                "ID" : "COTException: Id missing for subcomponent"
     }]
 
     [#switch solution.Engine ]

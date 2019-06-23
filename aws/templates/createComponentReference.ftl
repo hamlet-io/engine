@@ -1,5 +1,5 @@
 [#ftl strip_text=true strip_whitespace=true ]
-[#include "/setContext.ftl" ]
+[#include "/bootstrap.ftl" ]
 
 [#assign listMode = "reference"]
 

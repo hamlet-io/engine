@@ -1,0 +1,23 @@
+[#ftl]
+[@addResourceGroupInformation
+    type=NETWORK_GATEWAY_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_ELASTIC_COMPUTE_SERVICE,
+            AWS_VIRTUAL_PRIVATE_CLOUD_SERVICE
+        ]
+/]
+
+[@addResourceGroupInformation
+    type=NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_VIRTUAL_PRIVATE_CLOUD_SERVICE
+        ]
+/]
