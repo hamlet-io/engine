@@ -114,31 +114,6 @@
                                     "Default" : true
                                 }
                             } ]
-
-                        [#if deploymentSubsetRequired("apigateway", true)]
-
-                            [#local policyId = formatDependentPolicyId(
-                                                    apiId,
-                                                    link.Name)]
-
-                            [#local role = (linkTargetResources["authrole"].Id)!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
-                            [#local localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
-
-                            [#if localRoleAccount ]
-                                [#local roleName = (role?split("/"))[1] ]
-
-                                [@cfResource
-                                    mode=listMode
-                                    id=policyId
-                                    type="AWS::IAM::Policy"
-                                    properties=
-                                        getPolicyDocument(asFlattenedArray(roles.Outbound["invoke"]), apiName) +
-                                        {
-                                            "Roles" : [ roleName ]
-                                        }
-                                /]
-                            [/#if]
-                        [/#if]
                     [/#if]
                     [#break]
             [/#switch]
