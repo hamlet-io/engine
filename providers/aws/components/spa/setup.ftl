@@ -144,8 +144,12 @@
         [#local bucketId = formatS3OperationsId() ]
     [/#if]
 
-    [#local cfAccess = getExistingReference(formatDependentCFAccessId(bucketId)) ]
-
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData" ] )]
+    
+    [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]) ]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    
     [#if !cfAccess?has_content]
         [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
         [#return]
@@ -336,7 +340,7 @@
     [/#if]
 [/#macro]
 
-[#macro aws_spa_cf_application occurrence ]
+[#macro aws_spa_cf_application occurrence  ]
     [@cfDebug listMode occurrence false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
@@ -355,6 +359,10 @@
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData"] )]
+    
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    
     [#local contextLinks = getLinkTargets(occurrence) ]
     [#assign _context =
         {

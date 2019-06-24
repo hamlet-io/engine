@@ -6,6 +6,71 @@
     [#return formatSegmentResourceId(SEED_RESOURCE_TYPE)]
 [/#function]
 
+
+[#function getBaselineLinks baselineProfileName baselineComponentNames idsOnly=true  ]
+    [#local baselineProfile = baselineProfiles[baselineProfileName] ]
+
+    [#local baselineLinkTargets = {} ]
+    [#local baselineComponentIds = {} ]
+    
+    [#list baselineProfile as key,value ]
+        [#if baselineComponentNames?seq_contains(key)]
+            [#switch key ]
+                [#case "OpsData" ]
+                [#case "AppData" ]
+                    [#local subComponentType = "DataBucket" ]
+                    [#break]
+
+                [#case "Encryption" ]
+                [#case "SSHKey" ]
+                [#case "CDNOriginKey" ]
+                    [#local subComponentType = "Key" ]
+                    [#break]
+                    
+                [#default]
+                    [@cfException
+                        mode=listMode
+                        description="Unkown baseline subcomponent"
+                        context=key
+                        detail=subComponent
+                    /]
+            [/#switch]
+
+            [#local baselineLink = 
+                {
+                    "Tier" : "mgmt",
+                    "Component" : "baseline",
+                    "Instance" : "",
+                    "Version" : "",
+                    subComponentType : value
+                }   
+            ]
+            [#local baselineLinkTarget = getLinkTarget( {}, baselineLink )]
+            [#if baselineLinkTarget?has_content && (baselineLinkTarget.State.Attributes["ID"])?has_content  ]
+                [#local baselineComponentIds += {
+                    key : baselineLinkTarget.State.Attributes["ID"]!"COTException: ResourceID not found" 
+                }]
+                [#local baselineLinkTargets += {
+                        key : baselineLinkTargets
+                }]
+            [#else]
+                [@cfException
+                    mode=listMode
+                    description="Missing component Id or component not found "
+                    detail=baselineProfile
+                    context=baselineLink
+                /]
+            [/#if]
+        [/#if]
+    [/#list]
+
+    [#if idsOnly ]
+        [#return baselineComponentIds ]
+    [#else]
+        [#return baselineLinkTargets ]
+    [/#if]
+[/#function]
+
 [@addComponent
     type=BASELINE_COMPONENT_TYPE
     properties=

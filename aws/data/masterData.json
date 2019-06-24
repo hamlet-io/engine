@@ -2996,5 +2996,14 @@
     "storage" : {
       "Services" : [ "s3", "dynamodb" ]
     }
+  },
+  "BaselineProfiles" : {
+    "default" : {
+      "OpsData" : "opsdata",
+      "AppData" : "appdata",
+      "Encryption" : "cmk",
+      "SSHKey" : "ssh",
+      "CDNOriginKey" : "oai"
+    }
   }
 }

@@ -72,12 +72,6 @@
                 port.Port?c)]
 [/#function]
 
-[#function formatEC2KeyPairId extensions...]
-    [#return formatSegmentResourceId(
-                AWS_EC2_KEYPAIR_RESOURCE_TYPE,
-                extensions)]
-[/#function]
-
 [#assign AWS_EC2_AUTO_SCALE_GROUP_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {

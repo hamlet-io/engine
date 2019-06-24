@@ -2,6 +2,39 @@
 [#assign LOCAL_SSH_PRIVATE_KEY_RESOURCE_TYPE = "sshPrivKey" ]
 [#assign AWS_SSH_KEY_PAIR_RESOURCE_TYPE = "sshKeyPair" ]
 
+[#function formatSegmentCMKId ]
+    [#return
+        migrateToResourceId(
+            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE),
+            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE, "cmk")
+        )]
+[/#function]
+
+[#function formatSegmentCMKTemplateId ]
+    [#return 
+        getExistingReference(
+            formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE,"cmk"))?has_content?then(
+                "cmk",
+                formatSegmentResourceId(AWS_CMK_RESOURCE_TYPE)
+            )]
+[/#function]
+
+[#function formatSegmentCMKAliasId cmkId]
+    [#return
+      (cmkId == "cmk")?then(
+        formatDependentResourceId("alias", cmkId),
+        formatDependentResourceId(AWS_CMK_ALIAS_RESOURCE_TYPE, cmkId))]
+[/#function]
+
+[#--- Baseline Key Legacy Id formatting --]
+[#function formatEC2KeyPairId extensions...]
+    [#return formatSegmentResourceId(
+                AWS_EC2_KEYPAIR_RESOURCE_TYPE,
+                extensions)]
+[/#function]
+
+
+
 [#function formatS3BaselineId role ]
     [#return formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, role)]
 [/#function]
@@ -117,6 +150,7 @@
                 }
             },
             "Attributes" : {
+                "ID" : bucketId
             },
             "Roles" : {
                 "Inbound" : {},
@@ -134,12 +168,15 @@
     [#local parentState = parent.State ]
 
     [#local resources = {}]
+    [#local attributes = {
+                "ID" : "COTException: Id missing for subcomponent" 
+    }]
 
     [#switch solution.Engine ]
         [#case "cmk"]
             [#local legacyKey = false]
             [#if core.SubComponent.Id == "cmk" &&
-                    getExistingReference(formatSegmentCMKTemplateId())?has_content ]
+                     getExistingReference(formatSegmentCMKId(), "","", "cmk" )?has_content ]
                 [#local cmkId = formatSegmentCMKTemplateId()]
                 [#local cmkName = formatSegmentFullName()]
                 [#local cmkAliasId = formatSegmentCMKAliasId(cmkId)]
@@ -152,10 +189,12 @@
                 [#local cmkAliasName = core.FullName ]
             [/#if]
 
+            [#local cmkOutputId = legacyKey?then(formatSegmentCMKId(), cmkId)]
+
             [#local resources +=
                 {
                     "cmk" : {
-                        "Id" : legacyVpc?then(formatSegmentCMKId(), cmkId),
+                        "Id" : cmkOutputId,
                         "ResourceId" : cmkId,
                         "Name" : cmkName,
                         "Type" : AWS_CMK_RESOURCE_TYPE,
@@ -168,6 +207,7 @@
                     }
                 }
             ]
+            [#local attributes = { "ID" : cmkOutputId }]
 
             [#break]
 
@@ -199,6 +239,8 @@
                     }
                 }
             ]
+
+            [#local attributes = { "ID" : keyPairId } ]
             [#break]
         [#case "oai"]
 
@@ -214,6 +256,11 @@
                     }
                 }
             ]
+            [#local oaiIdAttribute = getExistingReference(OAIId, ALLOCATION_ATTRIBUTE_TYPE)?has_content?then(
+                                                getExistingReference(OAIId,ALLOCATION_ATTRIBUTE_TYPE),
+                                                OAIId
+            )]
+            [#local attributes += { "ID" : oaiIdAttribute } ]
 
             [#break]
         [#default]
@@ -228,8 +275,7 @@
     [#assign componentState =
         {
             "Resources" : resources,
-            "Attributes" : {
-            },
+            "Attributes" : attributes,
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}

@@ -1095,6 +1095,12 @@
                 "Names" : "Placement",
                 "Type" : STRING_TYPE,
                 "Default" : ""
+            },
+            {
+                "Names" : "Baseline",
+                "Description" : "The profile used to lookup standard services provided by the segment baseline",
+                "Type" : STRING_TYPE,
+                "Default" : "default"
             }
         ]
     }
