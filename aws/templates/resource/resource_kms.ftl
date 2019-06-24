@@ -1,5 +1,8 @@
 [#-- KMS --]
 
+[#assign AWS_CMK_RESOURCE_TYPE = "cmk" ]
+[#assign AWS_CMK_ALIAS_RESOURCE_TYPE = "cmkalias" ]
+
 [#assign CMK_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {

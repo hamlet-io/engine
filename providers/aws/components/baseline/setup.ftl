@@ -259,7 +259,7 @@
 
                     [#local legacyCmk = subResources["cmk"].LegacyKey]
                     [#local cmkId = subResources["cmk"].Id ]
-                    [#local cmkResourceId = subResources["cmk"].Id]
+                    [#local cmkResourceId = subResources["cmk"].ResourceId]
                     [#local cmkName = subResources["cmk"].Name ]
                     [#local cmkAliasId = subResources["cmkAlias"].Id]
                     [#local cmkAliasName = subResources["cmkAlias"].Name]
@@ -289,7 +289,7 @@
                             mode=listMode
                             id=cmkAliasId
                             name=cmkAliasName
-                            cmkId=cmkId
+                            cmkId=cmkResourceId
                         /]
                     [/#if]
                 [#break]
@@ -402,7 +402,7 @@
                             [#local opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
                             [#local legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
 
-                            [#if (getExistingReference(legacyOAIId!"", CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
+                            [#if (getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
                                 [#local legacyKey = true]
                                 [#local OAIId = legacyOAIId ]
                                 [#local OAIName = formatSegmentFullName()]
@@ -432,20 +432,16 @@
                                         "Cloudfront Origin Access Identity",
                                         {
                                             OAIId : "$\{oai_id}",
-                                            formatId(OAIId, "canonicalid") : "$\{oai_canonical_id}"
+                                            formatId(OAIId, CANONICAL_ID_ATTRIBUTE_TYPE ) : "$\{oai_canonical_id}",
+                                            formatId(subResources["originAccessId"].Id, ALLOCATION_ATTRIBUTE_TYPE ) : OAIId
                                         }
                                     ) +
-                                    valueIfTrue(
-                                        [
-                                            "   info \"Removing old oai pseduo stack output\"",
-                                            "   legacy_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-pseudo-stack.json\"",
-                                            "   if [ -f \"$\{legacy_pseudo_stack_file}\" ]; then",
-                                            "       rm -f \"$\{legacy_pseudo_stack_file}\"",
-                                            "   fi"
-                                        ],
-                                        legacyKey
-                                    ) +
                                     [
+                                        "   info \"Removing old oai pseduo stack output\"",
+                                        "   legacy_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-pseudo-stack.json\"",
+                                        "   if [ -f \"$\{legacy_pseudo_stack_file}\" ]; then",
+                                        "       rm -f \"$\{legacy_pseudo_stack_file}\"",
+                                        "   fi",
                                         "}",
                                         "#",
                                         "case $\{STACK_OPERATION} in",

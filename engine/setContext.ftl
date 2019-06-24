@@ -42,6 +42,7 @@
 [#assign bootstraps = blueprintObject.Bootstraps ]
 [#assign bootstrapProfiles = blueprintObject.BootstrapProfiles]
 [#assign securityProfiles = blueprintObject.SecurityProfiles ]
+[#assign baselineProfiles = blueprintObject.BaselineProfiles ]
 [#assign logFilters = blueprintObject.LogFilters]
 [#assign networkEndpointGroups = blueprintObject.NetworkEndpointGroups ]
 
