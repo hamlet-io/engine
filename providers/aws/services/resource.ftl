@@ -361,24 +361,12 @@
 [#macro cfOutput mode id value resourceId=""]
     [#switch mode]
         [#case "outputs"]
-            [#local output =
-                {
-                    id : { "Value" : value }
-                }
-            ]
-            [#assign templateOutputs += output]
-            [#if resourceId?has_content && componentTemplates??]
-                [#local resourceOutputs = (componentTemplates[resourceId].Outputs)!{}]
-                [#assign componentTemplates +=
+            [@addToJsonTemplate
+                object=
                     {
-                        resourceId :
-                            ((componentTemplates[resourceId])!{}) +
-                            {
-                                "Outputs" : resourceOutputs + output
-                            }
+                        id : { "Value" : value }
                     }
-                ]
-            [/#if]
+            /]
             [#break]
     [/#switch]
 [/#macro]
@@ -407,36 +395,25 @@
 
     [#switch mode]
         [#case "definition"]
-            [#local definition =
-                {
-                    id :
-                        {
-                            "Type" : type
-                        } +
-                        attributeIfContent("Metadata", metadata) +
-                        attributeIfTrue(
-                            "Properties",
-                            properties?has_content || tags?has_content,
-                            properties + attributeIfContent("Tags", tags)) +
-                        attributeIfContent("DependsOn", localDependencies) +
-                        attributeIfContent("DeletionPolicy", deletionPolicy) +
-                        attributeIfContent("UpdateReplacePolicy", updateReplacePolicy) +
-                        attributeIfContent("UpdatePolicy", updatePolicy) +
-                        attributeIfContent("CreationPolicy", creationPolicy)
-                }
-            ]
-            [#assign templateResources += definition]
-            [#if componentTemplates??]
-                [#assign componentTemplates +=
+            [@addToJsonTemplate
+                object=
                     {
                         id :
-                            ((componentTemplates[id])!{}) +
                             {
-                                "Definition" : definition
-                            }
+                                "Type" : type
+                            } +
+                            attributeIfContent("Metadata", metadata) +
+                            attributeIfTrue(
+                                "Properties",
+                                properties?has_content || tags?has_content,
+                                properties + attributeIfContent("Tags", tags)) +
+                            attributeIfContent("DependsOn", localDependencies) +
+                            attributeIfContent("DeletionPolicy", deletionPolicy) +
+                            attributeIfContent("UpdateReplacePolicy", updateReplacePolicy) +
+                            attributeIfContent("UpdatePolicy", updatePolicy) +
+                            attributeIfContent("CreationPolicy", creationPolicy)
                     }
-                ]
-            [/#if]
+            /]
             [#break]
 
         [#case "outputs"]
@@ -481,7 +458,9 @@
 
     [#switch mode]
         [#case "config"]
-            [#assign templateConfig += content]
+            [@addToJsonTemplate
+                object=content
+            /]
             [#break]
 
     [/#switch]
@@ -494,15 +473,14 @@
     content={}]
     [#switch mode]
         [#case "cli"]
-        [#if content?has_content ]
-            [#assign templateCli +=
-                {
-                    id : {
-                        command : content
+            [@addToJsonTemplate
+                object=
+                    {
+                        id : {
+                            command : content
+                        }
                     }
-                }
-            ]
-        [/#if]
+            /]
         [#break]
     [/#switch]
 [/#macro]
@@ -513,7 +491,9 @@
 
     [#switch mode]
         [#case "script"]
-            [#assign templateScript += content]
+            [@addToTextTemplate
+                lines=content
+            /]
             [#break]
 
     [/#switch]
@@ -589,44 +569,46 @@
     /]
 [/#macro]
 
-[#assign templateScript = [] ]
-
-[#macro cfTemplate level include="" ]
+[#macro cf_template level include="" ]
     [#-- Resources --]
-    [#assign templateResources = {} ]
     [#assign listMode = "definition"]
+    [@initialiseJsonTemplate /]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
         [@processComponents level /]
     [/#if]
+    [#local templateResources = getJsonTemplate() ]
 
     [#-- Outputs --]
-    [#assign templateOutputs={} ]
     [#assign listMode="outputs"]
+    [@initialiseJsonTemplate /]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
         [@processComponents level /]
     [/#if]
+    [#local templateOutputs = getJsonTemplate() ]
 
     [#-- Config --]
-    [#assign templateConfig = {} ]
     [#assign listMode="config"]
+    [@initialiseJsonTemplate /]
     [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
         [@processComponents level /]
     [/#if]
+    [#local templateConfig = getJsonTemplate() ]
 
     [#-- CLI --]
-    [#assign templateCli={} ]
     [#assign listMode="cli"]
-        [#if include?has_content]
+    [@initialiseJsonTemplate /]
+    [#if include?has_content]
         [#include include?ensure_starts_with("/")]
     [#else]
         [@processComponents level /]
     [/#if]
+    [#local templateCli = getJsonTemplate() ]
 
     [#-- Script --]
     [#assign listMode="script"]
@@ -635,20 +617,19 @@
     [#else]
         [@processComponents level /]
     [/#if]
+    [#local templateScript = getTextTemplate() ]
 
     [#if templateScript?has_content]
         #!/bin/bash
         #--COT-RequestReference=${requestReference}
         #--COT-ConfigurationReference=${configurationReference}
         #--COT-RunId=${runId}
-        [#list templateScript as line]
-            ${line}
-        [/#list]
+        [@serialiseTextTemplate /]
         [@logMessagesAsComments /]
     [#elseif templateConfig?has_content]
-        [@toJSON templateConfig /]
+        [@serialiseJsonTemplate  /]
     [#elseif templateCli?has_content]
-        [@toJSON templateCli /]
+        [@serialiseJsonTemplate  /]
     [#elseif templateResources?has_content || logMessages?has_content]
         [@toJSON
             {

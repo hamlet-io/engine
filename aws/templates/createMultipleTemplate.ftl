@@ -13,6 +13,6 @@
         [#break]
 [/#switch]
 
-[@cfTemplate level="segment" /]
-[@cfTemplate level="solution" /]
-[@cfTemplate level="application" /]
+[@cf_template level="segment" /]
+[@cf_template level="solution" /]
+[@cf_template level="application" /]

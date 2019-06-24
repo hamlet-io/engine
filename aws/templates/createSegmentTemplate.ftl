@@ -20,4 +20,4 @@
         [#break]
 [/#switch]
 
-[@cfTemplate level="segment" /]
+[@cf_template level="segment" /]

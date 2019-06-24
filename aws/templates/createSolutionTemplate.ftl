@@ -18,4 +18,4 @@
         [#break]
 [/#switch]
 
-[@cfTemplate level="solution" /]
+[@cf_template level="solution" /]

@@ -36,4 +36,4 @@
 [#-- Product --]
 [#assign rotateKeys = (productObject.RotateKeys)!true]
 
-[@cfTemplate include=productList /]
+[@cf_template include=productList /]

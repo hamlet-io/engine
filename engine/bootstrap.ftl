@@ -7,5 +7,8 @@
 [#include "component.ftl" ]
 [#include "provider.ftl" ]
 
+[#-- Template hanlding --]
+[#include "template.ftl"]
+
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]
