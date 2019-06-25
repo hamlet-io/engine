@@ -120,7 +120,7 @@
                 "Default" : true
             },
             {
-                "Names" : "UseSegmentKey",
+                "Names" : ["Encrypted", "UseSegmentKey"],
                 "Type" : BOOLEAN_TYPE,
                 "Default" : false
             },

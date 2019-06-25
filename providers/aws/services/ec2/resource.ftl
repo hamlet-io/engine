@@ -38,7 +38,7 @@
     } ]
 [/#function]
 
-[#function getInitConfigBootstrap occurrence ignoreErrors=false priority=1 ]
+[#function getInitConfigBootstrap occurrence operationsBucket dataBucket ignoreErrors=false priority=1 ]
     [#local role = (occurrence.Configuration.Settings.Product["Role"].Value)!""]
     [#return
         {
@@ -634,6 +634,7 @@
     publicIP
     configSet
     environmentId
+    keyPairId
     sshFromProxy=sshFromProxySecurityGroup
     enableCfnSignal=false
     dependencies=""
@@ -655,7 +656,7 @@
         properties=
             getBlockDevices(storageProfile) +
             {
-                "KeyName" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
+                "KeyName" : getExistingReference(keyPairId, NAME_ATTRIBUTE_TYPE),
                 "InstanceType": processorProfile.Processor,
                 "ImageId" : imageId,
                 "SecurityGroups" :
@@ -837,9 +838,10 @@
     size
     zone
     volumeType
+    encrypted
+    kmsKeyId
     provisionedIops=0
     snapshotId=""
-    encrypted=false
     dependencies=""
     outputId=""
 ]
@@ -856,7 +858,7 @@
         (!(snapshotId?has_content) && encrypted)?then(
             {
                 "Encrypted" : encrypted,
-                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                "KmsKeyId" : getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
             },
             {}
         ) +

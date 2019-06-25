@@ -33,6 +33,11 @@
     [#local configSetName = bastionType]
     [#local sshInVpc = getExistingReference(bastionSecurityGroupFromId, "", "", "vpc")?has_content ]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+
     [#switch bastionOS ]
         [#case "linux" ]
             [#local imageId = regionObject.AMIs.Centos.EC2]
@@ -76,7 +81,7 @@
 
     [#local configSets =
             getInitConfigDirectories() +
-            getInitConfigBootstrap(occurrence)]
+            getInitConfigBootstrap(occurrence, operationsBucket, dataBucket)]
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
@@ -93,7 +98,7 @@
             "DefaultCoreVariables" : true,
             "DefaultEnvironmentVariables" : true,
             "DefaultLinkVariables" : true,
-            "Policy" : standardPolicies(occurrence),
+            "Policy" : standardPolicies(occurrence, baselineComponentIds),
             "ManagedPolicy" : [],
             "Files" : {},
             "Directories" : {}
@@ -105,7 +110,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#local environmentVariables = getFinalEnvironment(occurrence, _context).Environment ]
+    [#local environmentVariables = getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket).Environment ]
 
     [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +
@@ -265,6 +270,7 @@
                 enableCfnSignal=true
                 environmentId=environmentId
                 sshFromProxy=[]
+                keyPairId=baselineComponentIds["SSHKey"]
             /]
         [/#if]
     [/#if]

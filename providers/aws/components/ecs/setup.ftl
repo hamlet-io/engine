@@ -38,6 +38,12 @@
     [#local logFileProfile = getLogFileProfile(occurrence, "ECS")]
     [#local bootstrapProfile = getBootstrapProfile(occurrence, "ECS")]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+    [#local sshKeyPairId = baselineComponentIds["SSHKey"] ]
+
     [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
     [#local networkLink = occurrenceNetwork.Link!{} ]
 
@@ -96,7 +102,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#local environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#local environmentVariables += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket ).Environment ]
 
     [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +
@@ -330,6 +336,7 @@
             configSet=configSetName
             environmentId=environmentId
             enableCfnSignal=solution.AutoScaling.WaitForSignal
+            keyPairId=sshKeyPairId
         /]
     [/#if]
 [/#macro]
@@ -352,6 +359,10 @@
     [#local ecsId = parentResources["cluster"].Id ]
     [#local ecsSecurityGroupId = parentResources["securityGroup"].Id ]
     [#local ecsServiceRoleId = parentResources["serviceRole"].Id ]
+
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
 
     [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
     [#local networkLink = occurrenceNetwork.Link!{} ]

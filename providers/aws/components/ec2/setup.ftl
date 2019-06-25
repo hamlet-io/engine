@@ -32,6 +32,12 @@
     [#local logFileProfile         = getLogFileProfile(occurrence, "EC2")]
     [#local bootstrapProfile       = getBootstrapProfile(occurrence, "EC2")]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+    [#local sshKeyPairId = baselineComponentIds["SSHKey"] ]
+
     [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
     [#local networkLink = occurrenceNetwork.Link!{} ]
 
@@ -119,7 +125,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#local environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#local environmentVariables += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket ).Environment ]
 
     [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +
@@ -371,7 +377,7 @@
                             "IamInstanceProfile" : { "Ref" : ec2InstanceProfileId },
                             "InstanceInitiatedShutdownBehavior" : "stop",
                             "InstanceType": processorProfile.Processor,
-                            "KeyName": getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
+                            "KeyName": getExistingReference(sshKeyPairId, NAME_ATTRIBUTE_TYPE),
                             "Monitoring" : false,
                             "NetworkInterfaces" : [
                                 {

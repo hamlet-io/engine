@@ -94,6 +94,7 @@
         bufferSize
         roleId
         encrypted
+        kmsKeyId
         loggingConfiguration
     ]
 
@@ -114,7 +115,7 @@
             encrypted,
             {
                 "KMSEncryptionConfig" : {
-                    "AWSKMSKeyARN" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                    "AWSKMSKeyARN" : getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
                 }
             }
         )

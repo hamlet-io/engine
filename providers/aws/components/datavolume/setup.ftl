@@ -18,6 +18,12 @@
     [#local manualSnapshotId = resources["manualSnapshot"].Id]
     [#local manualSnapshotName = getExistingReference(manualSnapshotId, NAME_ATTRIBUTE_TYPE)]
 
+
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption"] )]
+
+    [#local cmkKeyId = baselineComponentIds["Encryption" ]]
+
     [#local backupEnabled = solution.Backup.Enabled ]
     [#if backupEnabled ]
         [#local maintenanceWindowId = resources["maintenanceWindow"].Id ]
@@ -56,6 +62,7 @@
                 size=solution.Size
                 volumeType=solution.VolumeType
                 encrypted=solution.Encrypted
+                kmsKeyId=cmkKeyId
                 provisionedIops=solution.ProvisionedIops
                 zone=resourceZone
                 snapshotId=manualSnapshotName

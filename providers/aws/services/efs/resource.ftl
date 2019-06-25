@@ -29,7 +29,7 @@
     }
 ]
 
-[#macro createEFS mode id name tier component encrypted]
+[#macro createEFS mode id name tier component encrypted kmsKeyId]
     [@cfResource
         mode=mode
         id=id
@@ -42,7 +42,7 @@
             encrypted?then(
                 {
                     "Encrypted" : true,
-                    "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                    "KmsKeyId" : getReference(fkmsKeyId, ARN_ATTRIBUTE_TYPE)
                 },
                 {}
             )

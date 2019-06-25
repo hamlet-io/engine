@@ -33,6 +33,11 @@
     [#local logFileProfile   = getLogFileProfile(occurrence, "ComputeCluster")]
     [#local bootstrapProfile = getBootstrapProfile(occurrence, "ComputeCluster")]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+
     [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
     [#local networkLink = occurrenceNetwork.Link!{} ]
 
@@ -139,7 +144,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#local environmentVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#local environmentVariables += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket ).Environment ]
 
     [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +
@@ -369,6 +374,7 @@
             configSet=configSetName
             enableCfnSignal=(solution.UseInitAsService != true)
             environmentId=environmentId
+            keyPairId=baselineComponentIds["SSHKey"]
         /]
     [/#if]
 [/#macro]

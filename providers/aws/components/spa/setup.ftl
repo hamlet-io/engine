@@ -145,10 +145,11 @@
     [/#if]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData" ] )]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData", "AppData" ] )]
     
     [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]) ]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket       = getExistingReference(baselineComponentIds["AppData"]) ]
     
     [#if !cfAccess?has_content]
         [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
@@ -384,7 +385,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign _context += getFinalEnvironment(occurrence, _context) ]
+    [#assign _context += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket ) ]
 
     [#if deploymentSubsetRequired("config", false)]
         [@cfConfig

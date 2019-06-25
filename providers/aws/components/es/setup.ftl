@@ -23,12 +23,19 @@
     [#local processorProfile = getProcessor(occurrence, "ElasticSearch")]
     [#local master = processorProfile.Master!{}]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local cmkKeyId = baselineComponentIds["Encryption"] ]
+    
     [#local esUpdateCommand = "updateESDomain" ]
 
     [#local esAuthentication = solution.Authentication]
 
     [#local cognitoIntegration = false ]
-    [#local cognitoCliConfig = {} ]
+    [#local cognitoCliConfig = {
+            "Enabled" : false,
+            "RoleArn" : getExistingReference(esServiceRoleId, ARN_ATTRIBUTE_TYPE)
+    } ]
 
     [#local esPolicyStatements = [] ]
 
@@ -199,57 +206,47 @@
                 [#case USERPOOL_COMPONENT_TYPE]
                     [#local cognitoIntegration = true ]
 
-                    [#local cognitoCliConfig =
+                    [#local cognitoCliConfig +=
                         {
-                            "CognitoOptions" : {
-                                "Enabled" : true,
-                                "UserPoolId" : linkTargetAttributes["USER_POOL"],
-                                "IdentityPoolId" : linkTargetAttributes["IDENTITY_POOL"],
-                                "RoleArn" : getExistingReference(esServiceRoleId, ARN_ATTRIBUTE_TYPE)
-                            }
+                            "UserPoolId" : linkTargetAttributes["USER_POOL"]
                         }]
-
-                        [#local policyId = formatDependentPolicyId(
-                                                esId,
-                                                link.Name)]
-
-
-                        [#if deploymentSubsetRequired("es", true)]
-                            [#local role = linkTargetResources["authrole"].Id!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
-                            [#local roleArn = getArn(role) ]
-
-                            [#local localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
-
-                            [#if localRoleAccount ]
-                                [#local roleName = (role?split("/"))[1] ]
-                                [@cfResource
-                                    mode=listMode
-                                    id=policyId
-                                    type="AWS::IAM::Policy"
-                                    properties=
-                                        getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
-                                        {
-                                            "Roles" : [ roleName ]
-                                        }
-                                /]
-                            [/#if]
-                        [/#if]
+                    [#break]
+                [#case FEDERATEDROLE_COMPONENT_TYPE ]
+                    [#local cognitoIntegration = true ]
+                    [#local cognitoCliConfig +=
+                        {
+                            "IdentityPoolId" : getExistingReference(linkTargetResources["identitypool"].Id)
+                        }]
                     [#break]
             [/#switch]
         [/#if]
     [/#list]
 
-    [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(esServiceRoleId)]
-        [#if cognitoIntegration ]
-
+    [#if cognitoIntegration ]
+        [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(esServiceRoleId)]
             [@createRole
-                mode=listMode
-                id=esServiceRoleId
-                trustedServices=["es.amazonaws.com"]
-                managedArns=["arn:aws:iam::aws:policy/AmazonESCognitoAccess"]
-            /]
-
+                    mode=listMode
+                    id=esServiceRoleId
+                    trustedServices=["es.amazonaws.com"]
+                    managedArns=["arn:aws:iam::aws:policy/AmazonESCognitoAccess"]
+                /]
         [/#if]
+
+        [#if (cognitoCliConfig["IdentityPoolId"]!"")?has_content && (cognitoCliConfig["UserPoolId"]!"")?has_content ]
+            [#local cognitoCliConfig += 
+                {
+                    "Enabled" : true
+                }
+            ]
+        [#else]
+            [@cfException
+                mode=listMode
+                description="Incomplete Cognito integration"
+                context=component
+                detail="You must provide a link to both a federated role and a userpool to enabled authentication"
+            /]
+        [/#if]
+
     [/#if]
 
     [#-- In order to permit updates to the security policy, don't name the domain. --]
@@ -341,7 +338,7 @@
                     solution.Encrypted,
                     {
                         "Enabled" : true,
-                        "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                        "KmsKeyId" : getReference(cmkKeyId, ARN_ATTRIBUTE_TYPE)
                     }
                 ) +
                 attributeIfContent(
@@ -357,9 +354,11 @@
     [#if deploymentSubsetRequired("cli", false)]
 
         [#local esCliConfig =
-            valueIfContent(
-                cognitoCliConfig,
-                cognitoCliConfig,
+            valueIfTrue(
+                {
+                    "CognitoOptions" : cognitoCliConfig
+                },
+                cognitoCliConfig.Enabled,
                 {
                     "CognitoOptions" : {
                         "Enabled" : false

@@ -19,6 +19,11 @@
     [#local configFilePath = resources["mobileapp"].ConfigFilePath ]
     [#local configFileName = resources["mobileapp"].ConfigFileName ]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local dataBucket getExistingReference(baselineComponentIds["AppData"])]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local contextLinks = getLinkTargets(occurrence) ]
@@ -42,7 +47,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#local finalAsFileEnvironment = getFinalEnvironment(occurrence, _context, { "Json" : { "Include" : { "Sensitive" : false }}}) ]
+    [#local finalAsFileEnvironment = getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket, { "Json" : { "Include" : { "Sensitive" : false }}}) ]
 
     [#if deploymentSubsetRequired("config", false)]
         [@cfConfig

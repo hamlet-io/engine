@@ -27,6 +27,12 @@
         [#local fnLgId = resources["lg"].Id ]
         [#local fnLgName = resources["lg"].Name ]
 
+        [#-- Baseline component lookup --]
+        [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+        [#local cmkKeyId = baselineComponentIds["Encryption" ]]
+        [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+        [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+
         [#local vpcAccess = solution.VPCAccess ]
         [#if vpcAccess ]
             [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
@@ -67,7 +73,7 @@
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
-                "Policy" : standardPolicies(fn),
+                "Policy" : standardPolicies(fn, baselineComponentIds),
                 "ManagedPolicy" : [],
                 "CodeHash" : solution.FixedCodeVersion.CodeHash
             }
@@ -141,8 +147,8 @@
             }]
         [/#if]
 
-        [#local finalEnvironment = getFinalEnvironment(fn, _context, solution.Environment) ]
-        [#local finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
+        [#local finalEnvironment = getFinalEnvironment(fn, _context, operationsBucket, dataBucket, solution.Environment) ]
+        [#local finalAsFileEnvironment = getFinalEnvironment(fn, _context, operationsBucket, dataBucket, solution.Environment + {"AsFile" : false}) ]
         [#assign _context += finalEnvironment ]
 
         [#local roleId = formatDependentRoleId(fnId)]
@@ -267,7 +273,8 @@
                         "RunTime" : solution.RunTime,
                         "MemorySize" : solution.Memory,
                         "Timeout" : solution.Timeout,
-                        "UseSegmentKey" : solution.UseSegmentKey,
+                        "Encrypted" : solution.Encrypted,
+                        "KMSKeyId" : cmkKeyId,
                         "Name" : fnName,
                         "Description" : fnName
                     }
