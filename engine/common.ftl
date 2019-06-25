@@ -982,9 +982,7 @@ behaviour.
                 "COMPONENT_VERSION" : core.Version.Name,
                 "REQUEST_REFERENCE" : requestReference,
                 "CONFIGURATION_REFERENCE" : configurationReference,
-                "APPDATA_BUCKET" : dataBucket,
                 "APPDATA_PREFIX" : getAppDataFilePrefix(occurrence),
-                "OPSDATA_BUCKET" : operationsBucket,
                 "APPSETTINGS_PREFIX" : getSettingsFilePrefix(occurrence),
                 "CREDENTIALS_PREFIX" : getSettingsFilePrefix(occurrence),
                 "SETTINGS_PREFIX" : getSettingsFilePrefix(occurrence)

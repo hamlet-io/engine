@@ -20,10 +20,13 @@
     [#local apikeyId = resources["apikey"].Id ]
     [#local apikeyName = resources["apikey"].Name]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local cmkKeyId = baselineComponentIds["Encryption"] ]
+    [#local cmkKeyArn = getExistingReference(cmkKeyId, ARN_ATTRIBUTE_TYPE)]
+
     [#local credentialFormats = solution.GenerateCredentials.Formats]
     [#local userPasswordLength = solution.GenerateCredentials.CharacterLength ]
-
-    [#local segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
 
     [#local passwordEncryptionScheme = (solution.GenerateCredentials.EncryptionScheme?has_content)?then(
         solution.GenerateCredentials.EncryptionScheme?ensure_ends_with(":"),
@@ -190,12 +193,12 @@
                     "encrypted_secret_key=\"$(encrypt_kms_string" +
                     " \"" + region + "\" " +
                     " \"$\{access_key_array[1]}\" " +
-                    " \"" + segmentKMSKey + "\" || return $?)\"",
+                    " \"" + cmkKeyArn + "\" || return $?)\"",
                     "smtp_password=\"$(get_iam_smtp_password \"$\{access_key_array[1]}\" )\"",
                     "encrypted_smtp_password=\"$(encrypt_kms_string" +
                     " \"" + region + "\" " +
                     " \"$\{smtp_password}\" " +
-                    " \"" + segmentKMSKey + "\" || return $?)\""
+                    " \"" + cmkKeyArn + "\" || return $?)\""
                 ] +
                 pseudoStackOutputScript(
                     "IAM User AccessKey",
@@ -221,7 +224,7 @@
                     "encrypted_user_password=\"$(encrypt_kms_string" +
                     " \"" + region + "\" " +
                     " \"$\{user_password}\" " +
-                    " \"" + segmentKMSKey + "\" || return $?)\"",
+                    " \"" + cmkKeyArn + "\" || return $?)\"",
                     "info \"Setting User Password... \"",
                     "manage_iam_userpassword" +
                     " \"" + region + "\" " +

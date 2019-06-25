@@ -36,18 +36,14 @@
 
     [#local streamProcessors = []]
 
-    [#local appDataLink = getLinkTarget(occurrence,
-                                {
-                                    "Tier" : "mgmt",
-                                    "Component" : "baseline",
-                                    "Instance" : "",
-                                    "Version" : "",
-                                    "DataBucket" : "appdata"
-                                }
-    )]
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "AppData", "Encryption"] )]
 
-    [#local appdataBucketId = appDataLink.State.Resources["bucket"].Id ]
-    [#local dataBucketPrefix = getAppDataFilePrefix(occurrence) ]
+    [#local dataBucketId        = baselineComponentIds["AppData"]]
+    [#local dataBucket          = getExistingReference(dataBucketId) ]
+    [#local dataBucketPrefix    = getAppDataFilePrefix(occurrence) ]
+
+    [#local cmkKeyId            = baselineComponentIds["Encryption"]]
 
     [#if logging ]
         [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(streamLgId) ]
@@ -166,7 +162,7 @@
                         getPolicyDocument(
                             encrypted?then(
                                 s3EncryptionPermission(
-                                        formatSegmentCMKId(),
+                                        cmkKeyId,
                                         dataBucket,
                                         dataBucketPrefix,
                                         region
@@ -239,12 +235,13 @@
                                                 streamLgBackupName )]
 
         [#local streamS3BackupDestination = getFirehoseStreamS3Destination(
-                                                appdataBucketId,
+                                                dataBucketId,
                                                 dataBucketPrefix,
                                                 solution.Buffering.Interval,
                                                 solution.Buffering.Size,
                                                 streamRoleId,
                                                 encrypted,
+                                                cmkKeyId,
                                                 streamBackupLoggingConfiguration )]
 
 

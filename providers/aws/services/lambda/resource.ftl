@@ -86,8 +86,8 @@
             attributeIfTrue("Timeout", settings.Timeout > 0, settings.Timeout) +
             attributeIfTrue(
                 "KmsKeyArn",
-                settings.UseSegmentKey!false,
-                getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)) +
+                settings.Encrypted!false,
+                getReference(settings.KMSKeyId, ARN_ATTRIBUTE_TYPE)) +
             attributeIfContent(
                 "VpcConfig",
                 securityGroupIds,

@@ -43,6 +43,7 @@
     port
     multiAZ
     encrypted
+    kmsKeyId
     masterUsername
     masterPassword
     databaseName
@@ -95,7 +96,7 @@
         (!(snapshotId?has_content) && encrypted)?then(
             {
                 "StorageEncrypted" : true,
-                "KmsKeyId" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
+                "KmsKeyId" : getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
             },
             {}
         ) +

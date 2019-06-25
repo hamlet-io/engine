@@ -41,6 +41,10 @@
                                             efsSecurityGroupId,
                                             efsPort)]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption"] )]
+    [#local cmkKeyId = baselineComponentIds["Encryption" ]]
+
     [#if deploymentSubsetRequired("efs", true) ]
         [@createSecurityGroup
             mode=listMode
@@ -65,6 +69,7 @@
             name=efsFullName
             component=core.Component
             encrypted=solution.Encrypted
+            kmsKeyId=cmkKeyId
         /]
 
         [#list zones as zone ]

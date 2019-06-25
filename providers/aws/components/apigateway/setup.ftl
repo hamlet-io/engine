@@ -36,6 +36,11 @@
                                                 "config",
                                                 swaggerFileName)]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+
     [#local contextLinks = getLinkTargets(occurrence) ]
     [#assign _context =
         {
@@ -60,7 +65,7 @@
             [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
-    [#local stageVariables += getFinalEnvironment(occurrence, _context).Environment ]
+    [#local stageVariables += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket).Environment ]
 
     [#local cognitoPools = {} ]
 

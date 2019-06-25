@@ -10,10 +10,6 @@
     ]
 [/#function]
 
-[#function credentialsDecryptPermission]
-    [#return cmkDecryptPermission(formatSegmentCMKId())]
-[/#function]
-
 [#function s3EncryptionPermission keyId bucketName bucketPrefix bucketRegion ]
     [#return
         [

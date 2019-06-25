@@ -19,6 +19,11 @@
     [#local tableKey = parentResources["table"].Key ]
     [#local tableSortKey = parentResources["table"].SortKey!"" ]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+
     [#local itemInitCommand = "initItem"]
     [#local itemUpdateCommand = "updateItem" ]
     [#local tableCleanupCommand = "cleanupTable" ]
@@ -103,7 +108,7 @@
         [#assign fragmentListMode = "model"]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context ) ]
+        [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context, operationsBucket, dataBucket ) ]
         [#assign _context += finalEnvironment ]
 
         [#assign _context +=

@@ -18,6 +18,11 @@
     [#local resources = occurrence.State.Resources ]
     [#local attributes = occurrence.State.Attributes ]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local cmkKeyId = baselineComponentIds["Encryption"] ]
+    [#local cmkKeyArn = getReference(cmkKeyId, ARN_ATTRIBUTE_TYPE)]
+
     [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
 
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
@@ -137,8 +142,6 @@
     [#local deletionPolicy = solution.Backup.DeletionPolicy]
     [#local updateReplacePolicy = solution.Backup.UpdateReplacePolicy]
 
-    [#local segmentKMSKey = getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)]
-
     [#local rdsPreDeploySnapshotId = formatName(
                                         rdsFullName,
                                         runId,
@@ -232,7 +235,7 @@
                         "encrypt_snapshot" +
                         " \"" + region + "\" " +
                         " \"" + rdsPreDeploySnapshotId + "\" " +
-                        " \"" + segmentKMSKey + "\" || return $?",
+                        " \"" + cmkKeyArn + "\" || return $?",
                         "}",
                         "convert_plaintext_snapshot || return $?"
                     ],
@@ -400,6 +403,7 @@
                     port=port
                     multiAZ=multiAZ
                     encrypted=solution.Encrypted
+                    kmsKeyId=cmkKeyId
                     masterUsername=rdsUsername
                     masterPassword=rdsPassword
                     databaseName=rdsDatabaseName
@@ -441,7 +445,7 @@
                         "encrypted_master_password=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{master_password}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\"",
+                        " \"" + cmkKeyArn + "\" || return $?)\"",
                         "info \"Setting Master Password... \"",
                         "set_rds_master_password" +
                         " \"" + region + "\" " +
@@ -468,7 +472,7 @@
                         "encrypted_rds_url=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{rds_url}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\""
+                        " \"" + cmkKeyArn + "\" || return $?)\""
                     ] +
                     pseudoStackOutputScript(
                             "RDS Connection URL",
@@ -508,7 +512,7 @@
                         "encrypted_rds_url=\"$(encrypt_kms_string" +
                         " \"" + region + "\" " +
                         " \"$\{rds_url}\" " +
-                        " \"" + segmentKMSKey + "\" || return $?)\""
+                        " \"" + cmkKeyArn + "\" || return $?)\""
                     ] +
                     pseudoStackOutputScript(
                             "RDS Connection URL",

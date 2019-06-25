@@ -207,21 +207,12 @@
     destinationBucket
     enabled
     prefix
-    encryptReplica=false
 ]
     [#return
         {
             "Destination" : {
                 "Bucket" : getArn(destinationBucket)
-            } +
-            encryptReplica?then(
-                    {
-                        "EncryptionConfiguration" : {
-                        "ReplicaKmsKeyID" : getReference(formatSegmentCMKId(), ARN_ATTRIBUTE_TYPE)
-                        }
-                    },
-                    {}
-            ),
+            },
             "Prefix" : prefix,
             "Status" : enabled?then(
                 "Enabled",

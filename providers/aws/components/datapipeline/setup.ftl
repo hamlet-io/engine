@@ -32,6 +32,12 @@
     [#local ec2ProcessorProfile = getProcessor(occurrence, "EC2")]
     [#local emrProcessorProfile = getProcessor(occurrence, "EMR")]
 
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+    [#local sshKeyPairId = baselineComponentIds["SSHKey"] ]
+
     [#local pipelineCreateCommand = "createPipeline"]
 
     [#local networkLink = getOccurrenceNetwork(occurrence).Link!{} ]
@@ -53,7 +59,7 @@
             "_AVAILABILITY_ZONE" : zones[0].AWSZone,
             "_VPC_ID" : getExistingReference(vpcId),
             "_SUBNET_ID" : getSubnets(core.Tier, networkResources)[0],
-            "_SSH_KEY_PAIR" : getExistingReference(formatEC2KeyPairId(), NAME_ATTRIBUTE_TYPE),
+            "_SSH_KEY_PAIR" : getExistingReference(sshKeyPairId, NAME_ATTRIBUTE_TYPE),
             "_INSTANCE_TYPE_EC2" : ec2ProcessorProfile.Processor,
             "_INSTANCE_IMAGE_EC2" : regionObject.AMIs.Centos.EC2,
             "_INSTANCE_TYPE_EMR" : emrProcessorProfile.Processor,
@@ -87,7 +93,7 @@
             "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
             "Environment" : {},
             "Links" : contextLinks,
-            "Policy" : standardPolicies(occurrence),
+            "Policy" : standardPolicies(occurrence, baselineComponentIds),
             "DefaultCoreVariables" : true,
             "DefaultEnvironmentVariables" : true,
             "DefaultLinkVariables" : true
@@ -100,7 +106,7 @@
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
-    [#assign _context += getFinalEnvironment(occurrence, _context) ]
+    [#assign _context += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket) ]
     [#local parameterValues += _context.Environment ]
 
     [#local myParameterValues = {}]

@@ -420,34 +420,34 @@
     ]
 [/#function]
 
-[#function standardPolicies occurrence ]
+[#function standardPolicies occurrence baselineIds ]
     [#local permissions = occurrence.Configuration.Solution.Permissions ]
     [#return
         valueIfTrue(
-            credentialsDecryptPermission(),
+            cmkDecryptPermission(baselineIds["Encryption"]),
             permissions.Decrypt,
             []
         ) +
         valueIfTrue(
-            s3ReadPermission(operationsBucket, getSettingsFilePrefix(occurrence)) +
-            s3ListPermission(operationsBucket, getSettingsFilePrefix(occurrence)),
+            s3ReadPermission(baselineIds["OpsData"], getSettingsFilePrefix(occurrence)) +
+            s3ListPermission(baselineIds["OpsData"], getSettingsFilePrefix(occurrence)),
             permissions.AsFile,
             []
         ) +
         valueIfTrue(
-            s3AllPermission(dataBucket, getAppDataFilePrefix(occurrence)),
+            s3AllPermission(baselineIds["AppData"], getAppDataFilePrefix(occurrence)),
             permissions.AppData,
             []
         ) +
         valueIfTrue(
-            s3AllPermission(dataBucket, getAppDataPublicFilePrefix(occurrence)),
+            s3AllPermission(baselineIds["AppData"], getAppDataPublicFilePrefix(occurrence)),
             permissions.AppPublic && getAppDataPublicFilePrefix(occurrence)?has_content,
             []
         )
     ]
 [/#function]
 
-[#function getFinalEnvironment occurrence context environmentSettings={}]
+[#function getFinalEnvironment occurrence context operationsBucket dataBucket environmentSettings={}]
     [#local asFile = environmentSettings.AsFile!false]
     [#local serialisationConfig = environmentSettings.Json!{}]
 
@@ -456,7 +456,11 @@
             "Environment" :
                 valueIfTrue(
                     getSettingsAsEnvironment(
-                        occurrence.Configuration.Settings.Core,
+                        occurrence.Configuration.Settings.Core + 
+                        {
+                            "APPDATA_BUCKET" : dataBucket,
+                            "OPSDATA_BUCKET" : operationsBucket
+                        },
                         serialisationConfig
                     ),
                     context.DefaultCoreVariables || asFile
@@ -492,6 +496,11 @@
 
     [#local core = task.Core ]
     [#local solution = task.Configuration.Solution ]
+
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(task.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
 
     [#local tier = core.Tier ]
     [#local component = core.Component ]
@@ -699,7 +708,7 @@
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
-                "Policy" : standardPolicies(task),
+                "Policy" : standardPolicies(task, baselineComponentIds),
                 "Privileged" : container.Privileged,
                 "LogMetrics" : container.LogMetrics,
                 "Alerts" : container.Alerts
@@ -764,7 +773,7 @@
         [#assign fragmentId = formatFragmentId(_context)]
         [#include fragmentList]
 
-        [#assign _context += getFinalEnvironment(task, _context) ]
+        [#assign _context += getFinalEnvironment(task, _context, operationsBucket, dataBucket) ]
 
         [#-- validate fargate requirements from container context --]
         [#if solution.Engine == "fargate" ]
