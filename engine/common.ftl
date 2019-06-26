@@ -860,7 +860,7 @@ behaviour.
         ]
 
         [#-- Attempt to invoke state macro for resource group --]
-        [#if invokeComponentMacro(occurrence, key, "state", parentOccurrence) ]
+        [#if invokeStateMacro(occurrence, key, parentOccurrence, state)]
             [#local state = mergeObjects(state, componentState) ]
         [#else]
             [@cfDebug

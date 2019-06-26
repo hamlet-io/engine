@@ -1,0 +1,14 @@
+[#ftl]
+[@addResourceGroupInformation
+    type=SPA_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_CLOUDFRONT_SERVICE,
+            AWS_WEB_APPLICATION_FIREWALL_SERVICE,
+            AWS_BASELINE_PSEUDO_SERVICE,
+            AWS_ROUTE53_SERVICE
+        ]
+/]

@@ -1,8 +1,5 @@
 [#ftl]
 
-[#-- Resources --]
-[#assign AWS_DATA_PIPELINE_RESOURCE_TYPE = "datapipeline"]
-
 [#macro aws_datapipeline_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]

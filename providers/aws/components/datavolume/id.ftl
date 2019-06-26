@@ -1,0 +1,13 @@
+[#ftl]
+[@addResourceGroupInformation
+    type=DATAVOLUME_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_ELASTIC_COMPUTE_SERVICE,
+            AWS_IDENTITY_SERVICE,
+            AWS_SYSTEMS_MANAGER_SERVICE
+        ]
+/]

@@ -1,5 +1,0 @@
-[#-- ECS --]
-
-[#-- Container --]
-
-[#-- Resources --]

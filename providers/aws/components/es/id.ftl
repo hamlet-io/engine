@@ -1,0 +1,13 @@
+[#ftl]
+[@addResourceGroupInformation
+    type=ES_COMPONENT_TYPE
+    attributes=[]
+    provider=AWS_PROVIDER
+    resourceGroup=DEFAULT_RESOURCE_GROUP
+    services=
+        [
+            AWS_ELASTICSEARCH_SERVICE,
+            AWS_IDENTITY_SERVICE,
+            AWS_KINESIS_SERVICE
+        ]
+/]
