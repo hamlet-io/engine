@@ -456,11 +456,7 @@
             "Environment" :
                 valueIfTrue(
                     getSettingsAsEnvironment(
-                        occurrence.Configuration.Settings.Core + 
-                        {
-                            "APPDATA_BUCKET" : dataBucket,
-                            "OPSDATA_BUCKET" : operationsBucket
-                        },
+                        occurrence.Configuration.Settings.Core,
                         serialisationConfig
                     ),
                     context.DefaultCoreVariables || asFile
@@ -498,9 +494,11 @@
     [#local solution = task.Configuration.Solution ]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(task.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+
+    [@cfDebug listMode operationsBucket true /]
 
     [#local tier = core.Tier ]
     [#local component = core.Component ]

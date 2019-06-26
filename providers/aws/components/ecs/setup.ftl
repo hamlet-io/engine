@@ -361,7 +361,7 @@
     [#local ecsServiceRoleId = parentResources["serviceRole"].Id ]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+    [#local baselineComponentIds = getBaselineLinks(parentSolution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
 
     [#local occurrenceNetwork = getOccurrenceNetwork(occurrence) ]
