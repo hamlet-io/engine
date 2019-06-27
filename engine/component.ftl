@@ -219,8 +219,6 @@
     [#list tiers as tier]
         [#list (tier.Components!{})?values as component]
             [#if deploymentRequired(component, deploymentUnit)]
-                [#assign componentTemplates = {} ]
-                [#assign dashboardRows = []]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
                 [#list requiredOccurrences(
                     getOccurrences(tier, component),

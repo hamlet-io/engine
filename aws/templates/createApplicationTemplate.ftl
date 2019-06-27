@@ -25,4 +25,4 @@
 
 [/#switch]
 
-[@cfTemplate level="application" /]
+[@cf_template level="application" /]

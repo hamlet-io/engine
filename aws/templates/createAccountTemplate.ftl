@@ -15,4 +15,4 @@
         [#break]
 [/#switch]
 
-[@cfTemplate include=accountList /]
+[@cf_template include=accountList /]
