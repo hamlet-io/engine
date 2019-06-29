@@ -156,6 +156,10 @@ function get_swagger_definition_file() {
 
 
 function process_template_pass() {
+  local provider="${1,,}"; shift
+  local deployment_framework="${1,,}"; shift
+  local output_type="${1,,}"; shift
+  local output_format="${1,,}"; shift
   local level="${1,,}"; shift
   local deployment_unit="${1,,}"; shift
   local deployment_unit_subset="${1,,}"; shift
@@ -331,6 +335,10 @@ function process_template_pass() {
 
   # Args common across all passes
   local args=()
+  [[ -n "${provider}" ]]               && args+=("-v" "provider=${provider}")
+  [[ -n "${deployment_framework}" ]]   && args+=("-v" "deploymentFramework=${deployment_framework}")
+  [[ -n "${output_type}" ]]            && args+=("-v" "outputType=${output_type}")
+  [[ -n "${output_format}" ]]          && args+=("-v" "outputFormat=${output_format}")
   [[ -n "${deployment_unit}" ]]        && args+=("-v" "deploymentUnit=${deployment_unit}")
   [[ -n "${build_deployment_unit}" ]]  && args+=("-v" "buildDeploymentUnit=${build_deployment_unit}")
   [[ -n "${build_reference}" ]]        && args+=("-v" "buildReference=${build_reference}")
@@ -618,6 +626,10 @@ function process_template() {
 
   # First see if an execution plan can be generated
   process_template_pass \
+      "aws" \
+      "cf" \
+      "script" \
+      "bash" \
       "${level}" \
       "${deployment_unit}" \
       "${deployment_unit_subset}" \
@@ -641,53 +653,51 @@ function process_template() {
     info "Adjusting for generation plan ${execution_plan} ..."
     willLog "debug" && cat ${execution_plan}
     . ${execution_plan}
-    passes=("${plan_subsets[@]}")
-    if [[ -n "${plan_alternatives[*]}" ]]; then
-      template_alternatives=("${plan_alternatives[@]}")
-    else
-      template_alternatives=("primary")
-    fi
+  else
+    # Need execution plan to define template framework and format
+    fatalCantProceed "No execution plan." && return 1
   fi
 
   # Perform each pass/alternative combination
-  for pass in "${passes[@]}"; do
-    for pass_alternative in "${template_alternatives[@]}"; do
+  for step in "${plan_steps[@]}"; do
+    process_template_pass \
+      "${plan_providers[${step}]}" \
+      "${plan_deployment_frameworks[${step}]}" \
+      "${plan_output_types[${step}]}" \
+      "${plan_output_formats[${step}]}" \
+      "${level}" \
+      "${deployment_unit}" \
+      "${deployment_unit_subset}" \
+      "${account}" \
+      "${account_region}" \
+      "${product_region}" \
+      "${region}" \
+      "${build_deployment_unit}" \
+      "${build_reference}" \
+      "${request_reference}" \
+      "${configuration_reference}" \
+      "${deployment_mode}" \
+      "${cf_dir}" \
+      "${run_id}" \
+      "${plan_subsets[${step}]}" \
+      "${plan_alternatives[${step}]}"
 
-      process_template_pass \
-        "${level}" \
-        "${deployment_unit}" \
-        "${deployment_unit_subset}" \
-        "${account}" \
-        "${account_region}" \
-        "${product_region}" \
-        "${region}" \
-        "${build_deployment_unit}" \
-        "${build_reference}" \
-        "${request_reference}" \
-        "${configuration_reference}" \
-        "${deployment_mode}" \
-        "${cf_dir}" \
-        "${run_id}" \
-        "${pass}" \
-        "${pass_alternative}"
-
-      local result=$?
-      case ${result} in
-        254)
-          # Nothing generated
-          ;;
-        255)
-          # No difference
-          ;;
-        0)
-          # At least one difference seen
-          differences_detected="true"
-          ;;
-        *)
-          # Fatal error of some description
-          return ${result}
-      esac
-    done
+    local result=$?
+    case ${result} in
+      254)
+        # Nothing generated
+        ;;
+      255)
+        # No difference
+        ;;
+      0)
+        # At least one difference seen
+        differences_detected="true"
+        ;;
+      *)
+        # Fatal error of some description
+        return ${result}
+    esac
   done
 
   # Copy the set of result file if necessary

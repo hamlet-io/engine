@@ -4,4 +4,3 @@
 
 [#-- Deployment frameworks --]
 [#assign CLOUD_FORMATION_DEPLOYMENT_FRAMEWORK = "cf"]
-

@@ -510,6 +510,20 @@
     [/#list]
 [/#macro]
 
+[#----------------------------
+-- Dynamic macro invocation --
+------------------------------]
+
+[#function getFirstDefinedDirective directives=[] ]
+    [#list asArray(directives) as directive]
+        [#local macro = concatenate(directive, "_")]
+        [#if (.vars[macro]!"")?is_directive]
+            [#return macro]
+        [/#if]
+    [/#list]
+    [#return ""]
+[/#function]
+
 [#-----------
 -- Logging --
 -------------]
@@ -632,16 +646,4 @@
         context=context
         enabled=enabled
     /]
-[/#macro]
-
-[#macro logMessagesAsComments lineCommentMarker="#"]
-    [#if logMessages?has_content]
-        ${lineCommentMarker}
-        ${lineCommentMarker} COTMessages
-        ${lineCommentMarker}
-        [#list logMessages as logMessage]
-            ${lineCommentMarker} ${logMessage.Timestamp?right_pad(30)} ${"[" + logMessage.Severity?right_pad(5) + "]"} ${getJSON(logMessage.Message)}
-            [#if logMessage.Context?has_content]....${getJSON(logMessage.Context)}[/#if]
-        [/#list]
-    [/#if]
 [/#macro]

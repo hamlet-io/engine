@@ -169,26 +169,25 @@
                         ]]
                 [/#if]
             [/#list]
-        [#list macroOptions as macroOption]
-            [#local macro = macroOption?join("_")]
-            [#if (.vars[macro]!"")?is_directive]
-                [#if parent?has_content || baseState?has_content]
-                    [@(.vars[macro])
-                        occurrence=occurrence
-                        parent=parent
-                        baseState=baseState /]
-                [#else]
-                    [@(.vars[macro])
-                        occurrence=occurrence /]
-                [/#if]
-                [#return true]
+        [#local macro = getFirstDefinedDirective(macroOptions)]
+        [#if macro?has_content]
+            [#if parent?has_content || baseState?has_content]
+                [@(.vars[macro])
+                    occurrence=occurrence
+                    parent=parent
+                    baseState=baseState /]
             [#else]
-                [@debug
-                    message="Unable to invoke macro " + macro
-                    enabled=false
-                /]
+                [@(.vars[macro])
+                    occurrence=occurrence /]
             [/#if]
-        [/#list]
+            [#return true]
+        [#else]
+            [@debug
+                message="Unable to invoke any of the macro options"
+                context=macroOptions
+                enabled=false
+            /]
+        [/#if]
     [/#if]
     [#return false]
 [/#function]

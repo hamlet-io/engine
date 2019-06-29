@@ -1,6 +1,8 @@
 [#ftl]
 
-[#-- Processing to include component configuration --]
+[#-- Processing to include provider configuration --]
+
+[#assign SHARED_PROVIDER = "shared"]
 
 [#assign includeOnceConfiguration = {} ]
 
@@ -40,6 +42,28 @@
         [#local templates += [[provider, "resourcegroups", level]] ]
     [/#list]
 
+    [#-- aws/deploymentframeworks/output.ftl --]
+    [#list ["output"] as level]
+        [#local templates += [[provider, "deploymentframeworks", level]] ]
+    [/#list]
+
+    [@includeTemplates templates=templates /]
+[/#macro]
+
+[#macro includeDeploymentFrameworkConfiguration provider deploymentFramework ]
+
+    [#-- Check deployment framework not already seen --]
+    [#if isConfigurationIncluded([provider, deploymentFramework])]
+        [#return]
+    [/#if]
+
+    [#local templates = [] ]
+
+    [#-- aws/deploymentframeworks/cf/output.ftl --]
+    [#list ["output"] as level]
+        [#local templates += [[provider, "deploymentframeworks", deploymentFramework, level]] ]
+    [/#list]
+
     [@includeTemplates templates=templates /]
 [/#macro]
 
@@ -74,9 +98,6 @@
 [/#macro]
 
 [#macro includeProviderComponentDefinitionConfiguration provider component ]
-
-    [#-- Provider configuration --]
-    [@includeProviderConfiguration provider=provider /]
 
     [#local templates = [] ]
 
@@ -126,8 +147,8 @@
 [/#macro]
 
 [#macro includeSharedComponentConfiguration component ]
-    [@includeProviderComponentDefinitionConfiguration "shared" component /]
-    [@includeProviderComponentConfiguration "shared" component /]
+    [@includeProviderComponentDefinitionConfiguration SHARED_PROVIDER component /]
+    [@includeProviderComponentConfiguration SHARED_PROVIDER component /]
 [/#macro]
 
 [#macro includeResourceGroupConfiguration provider component resourceGroup services deploymentFramework]
