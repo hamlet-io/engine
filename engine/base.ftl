@@ -654,3 +654,22 @@
         enabled=enabled
     /]
 [/#macro]
+
+[#macro precondition function context={} detail={} enabled=false]
+    [@fatal
+        message="Precondition failed for " + function
+        context=context
+        detail=detail
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro postcondition function context={} detail={} enabled=false]
+    [@fatal
+        message="Postcondition failed for " + function
+        context=context
+        detail=detail
+        enabled=enabled
+    /]
+[/#macro]
+

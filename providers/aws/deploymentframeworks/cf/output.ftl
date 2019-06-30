@@ -203,32 +203,6 @@
     [/#list]
 [/#macro]
 
-[#macro cfPreconditionFailed
-            mode
-            function
-            context={}
-            description=""]
-
-    [@fatal
-        message=function + " precondition failed"
-        context=context
-        detail=description
-    /]
-[/#macro]
-
-[#macro cfPostconditionFailed
-            mode
-            function
-            context={}
-            description=""]
-
-    [@fatal
-        message=function + " postcondition failed"
-        context=context
-        detail=description
-    /]
-[/#macro]
-
 [#macro cf_output_resource level="" include=""]
 
     [#-- Initialise outputs --]

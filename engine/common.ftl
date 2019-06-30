@@ -241,7 +241,7 @@
 [#-- Get the type for a component --]
 [#function getComponentType component]
     [#if ! (component?is_hash && component.Id?has_content) ]
-        [@cfPreconditionFailed listMode "getComponentType" component /]
+        [@precondition function="getComponentType" context=component /]
         [#return "???"]
     [/#if]
     [#if component.Type?has_content]
@@ -1737,16 +1737,17 @@ behaviour.
         [/#list]
     [/#list]
 
-    [@cfPostconditionFailed
-        listMode
-        "getLinkTarget"
-        {
-            "Occurrence" : occurrence,
-            "Link" : link,
-            "EffectiveInstance" : instanceToMatch,
-            "EffectiveVersion" : versionToMatch
-        }
-        "COTFatal:Link not found" /]
+    [@postcondition
+        function="getLinkTarget"
+        context=
+            {
+                "Occurrence" : occurrence,
+                "Link" : link,
+                "EffectiveInstance" : instanceToMatch,
+                "EffectiveVersion" : versionToMatch
+            }
+        detail="COTFatal:Link not found"
+    /]
     [#return {} ]
 [/#function]
 

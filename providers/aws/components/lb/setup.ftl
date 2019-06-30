@@ -46,7 +46,10 @@
         [#if solution.HealthCheckPort?has_content ]
             [#local healthCheckPort = ports[solution.HealthCheckPort]]
         [#else]
-            [@cfPreconditionFailed listMode "solution_lb" {} "No health check port provided" /]
+            [@precondition
+                function="solution_lb"
+                detail="No health check port provided"
+            /]
         [/#if]
     [/#if]
 

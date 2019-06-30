@@ -146,7 +146,11 @@
     [#local dataBucket       = getExistingReference(baselineComponentIds["AppData"]) ]
 
     [#if !cfAccess?has_content]
-        [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
+        [@precondition
+            function="solution_spa"
+            context=occurrence
+            detail="No CF Access Id found"
+        /]
         [#return]
     [/#if]
 

@@ -49,6 +49,9 @@
             /]
         [/#if]
     [#else]
-        [@cfPreconditionFailed listMode "account_audit" {} "No account seed provided" /]
+        [@precondition
+            function="account_audit"
+            detail="No account seed provided"
+        /]
     [/#if]
 [/#if]

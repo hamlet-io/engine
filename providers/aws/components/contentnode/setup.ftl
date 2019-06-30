@@ -15,7 +15,11 @@
     [#local pathObject = getContentPath(occurrence) ]
 
     [#if ! (solution.Links?has_content)]
-        [@cfPreconditionFailed listMode "contentnode" occurrence "No content hub link configured" /]
+        [@precondition
+            function="contentnode"
+            context=occurrence
+            detail="No content hub link configured"
+        /]
         [#break]
     [/#if]
 

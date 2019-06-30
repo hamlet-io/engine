@@ -148,7 +148,10 @@
             /]
         [/#if]
     [#else]
-        [@cfPreconditionFailed listMode "account_s3" {} "No account seed provided" /]
+        [@precondition
+            function="account_s3"
+            detail="No account seed provided"
+        /]
     [/#if]
 [/#if]
 

@@ -71,7 +71,11 @@
             [#break]
 
         [#default]
-            [@cfPreconditionFailed listMode "solution_rds" occurrence "Unsupported engine provided" /]
+            [@precondition
+                function="solution_rds"
+                context=occurrence
+                detail="Unsupported engine provided"
+            /]
             [#local engineVersion = "unknown" ]
             [#local family = "unknown" ]
             [#local port = "unknown" ]
