@@ -86,9 +86,8 @@
             [#if link?is_hash]
                 [#local linkCount += 1 ]
                 [#if linkCount > 1 ]
-                    [@cfException
-                        mode=listMode
-                        description="A data set can only have one data source"
+                    [@fatal
+                        message="A data set can only have one data source"
                         context=subOccurrence
                     /]
                     [#continue]
@@ -125,7 +124,7 @@
 
                     [#default]
                         [#local attributes += {
-                            "DATASET_ENGINE" : "COTException: DataSet Support not available for " + linkTargetCore.Type
+                            "DATASET_ENGINE" : "COTFatal: DataSet Support not available for " + linkTargetCore.Type
                         }]
                 [/#switch]
             [/#if]

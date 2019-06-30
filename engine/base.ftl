@@ -580,7 +580,7 @@
     [#return currentLogLevel <= level ]
 [/#function]
 
-[#macro logMessage severity message context={} enabled=false]
+[#macro logMessage severity message context={} detail={} enabled=false]
     [#if enabled && willLog(severity)]
         [#assign logMessages +=
             [
@@ -589,61 +589,68 @@
                     "Severity" : logLevelDescriptions[severity]!"unknown",
                     "Message" : message
                 } +
-                attributeIfContent("Context", context)
+                attributeIfContent("Context", context) +
+                attributeIfContent("Detail", detail)
             ] ]
     [/#if]
 [/#macro]
 
-[#macro debug message context={} enabled=false]
+[#macro debug message context={} detail={} enabled=false]
     [@logMessage
         severity=DEBUG_LOG_LEVEL
         message=message
         context=context
+        detail=detail
         enabled=enabled
     /]
 [/#macro]
 
-[#macro trace message context={} enabled=false]
+[#macro trace message context={} detail={} enabled=false]
     [@logMessage
         severity=TRACE_LOG_LEVEL
         message=message
         context=context
+        detail=detail
         enabled=enabled
     /]
 [/#macro]
 
-[#macro info message context={} enabled=false]
+[#macro info message context={} detail={} enabled=false]
     [@logMessage
         severity=INFORMATION_LOG_LEVEL
         message=message
         context=context
+        detail=detail
         enabled=enabled
     /]
 [/#macro]
 
-[#macro warn message context={} enabled=false]
+[#macro warn message context={} detail={} enabled=false]
     [@logMessage
         severity=WARNING_LOG_LEVEL
         message=message
         context=context
+        detail=detail
         enabled=enabled
     /]
 [/#macro]
 
-[#macro error message context={} enabled=false]
+[#macro error message context={} detail={} enabled=false]
     [@logMessage
         severity=ERROR_LOG_LEVEL
         message=message
         context=context
+        detail=detail
         enabled=enabled
     /]
 [/#macro]
 
-[#macro fatal message context={} enabled=false]
+[#macro fatal message context={} detail={} enabled=false]
     [@logMessage
         severity=FATAL_LOG_LEVEL
         message=message
         context=context
+        detail=detail
         enabled=enabled
     /]
 [/#macro]

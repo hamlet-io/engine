@@ -6,10 +6,10 @@
     [#local core = occurrence.Core]
 
     [#if core.External!false ]
-        [#local engine = (baseState.Attributes["ENGINE"])!"COTException: Engine not found" ]
-        [#local repoistory = (baseState.Attributes["REPOSITORY"])!"COTException: Repository not found" ]
-        [#local branch = (baseState.Attributes["BRANCH"])!"COTException: Bracnch not found" ]
-        [#local prefix = (baseState.Attributes["PREFIX"])!"COTException: Prefix not found" ]
+        [#local engine = (baseState.Attributes["ENGINE"])!"COTFatal: Engine not found" ]
+        [#local repoistory = (baseState.Attributes["REPOSITORY"])!"COTFatal: Repository not found" ]
+        [#local branch = (baseState.Attributes["BRANCH"])!"COTFatal: Bracnch not found" ]
+        [#local prefix = (baseState.Attributes["PREFIX"])!"COTFatal: Prefix not found" ]
 
         [#assign componentState =
             baseState +

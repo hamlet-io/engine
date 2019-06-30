@@ -133,9 +133,8 @@
                         [#case  "replicadestination" ]
                             [#local replicationEnabled = true]
                             [#if linkTargetAttributes["REGION"] == regionId ]
-                                [@cfException
-                                    mode=listMode
-                                    description="Replication buckets must be in different regions"
+                                [@fatal
+                                    dmessageescription="Replication buckets must be in different regions"
                                     context=
                                         {
                                             "SourceBucket" : regionId,
@@ -148,18 +147,16 @@
 
                             [#if !replicationBucket?has_content ]
                                 [#if !linkTargetAttributes["ARN"]?has_content ]
-                                    [@cfException
-                                        mode=listMode
-                                        description="Replication destination must be deployed before source"
+                                    [@fatal
+                                        message="Replication destination must be deployed before source"
                                         context=
                                             linkTarget
                                     /]
                                 [/#if]
                                 [#local replicationBucket = linkTargetAttributes["ARN"]]
                             [#else]
-                                [@cfException
-                                    mode=listMode
-                                    description="Only one replication destination is supported"
+                                [@fatal
+                                    message="Only one replication destination is supported"
                                     context=links
                                 /]
                             [/#if]

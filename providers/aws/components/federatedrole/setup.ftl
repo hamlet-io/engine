@@ -117,9 +117,8 @@
                 [#if ! authenticatedRole?has_content ]
                     [#local authenticatedRole = roleId ]
                 [#else]
-                    [@cfException
-                        mode=listMode
-                        description="Only one assignment of this type is possible"
+                    [@fatal
+                        message="Only one assignment of this type is possible"
                         context=
                             {
                                 "Type" : subSolution.Type,
@@ -133,9 +132,8 @@
                 [#if ! unauthenticatedRole?has_content ]
                     [#local unauthenticatedRole = roleId ]
                 [#else]
-                    [@cfException
-                        mode=listMode
-                        description="Only one assignment of this type is possible"
+                    [@fatal
+                        message="Only one assignment of this type is possible"
                         context=
                             {
                                 "Type" : subSolution.Type,
@@ -234,17 +232,15 @@
     [/#list]
 
     [#if solution.AllowUnauthenticatedUsers && ! unauthenticatedRole?has_content ]
-        [@cfException
-            mode=listMode
-            description="No unauthenicated assignments found"
+        [@fatal
+            message="No unauthenicated assignments found"
             context=solution
         /]
     [/#if]
 
     [#if ! authenticatedRole?has_content && ! ruleAssignments ]
-        [@cfException
-            mode=listMode
-            description="No authenticated assignments found"
+        [@fatal
+            message="No authenticated assignments found"
             context=solution
         /]
     [/#if]

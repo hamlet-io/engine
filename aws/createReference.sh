@@ -182,7 +182,7 @@ function process_template() {
 
     ${GENERATION_DIR}/freemarker.sh \
       -d "${template_dir}" -t "${template}" -o "${template_result_file}" "${pass_args[@]}" || return $?
-    
+
     # Ignore whitespace only files
     if [[ $(tr -d " \t\n\r\f" < "${template_result_file}" | wc -m) -eq 0 ]]; then
       info "Ignoring empty ${file_description} file ...\n"
@@ -194,7 +194,7 @@ function process_template() {
     fi
 
     # Check for exception strings in the output
-    grep "COTException:" < "${template_result_file}" > "${template_result_file}-exceptionstrings"
+    grep "COTFatal:" < "${template_result_file}" > "${template_result_file}-exceptionstrings"
     if [[ -s "${template_result_file}-exceptionstrings"  ]]; then
       fatal "Exceptions occurred during template generation. Details follow...\n"
       case "$(fileExtension "${template_result_file}")" in
@@ -214,7 +214,7 @@ function process_template() {
         if [[ ! -d "${output_dir}" ]]; then
           mkdir -p "${output_dir}"
         fi
-    
+
         mkdir -p "${dockerstagedir}/in/"
         mkdir -p "${dockerstagedir}/out/"
 
@@ -224,11 +224,11 @@ function process_template() {
           -v "${dockerstagedir}/in:/app/indir" \
           -v "${dockerstagedir}/out:/app/outdir" \
           codeontap/utilities \
-            remark "/app/indir/${template_result_filename}" -o "/app/outdir/${template_result_filename}" 
+            remark "/app/indir/${template_result_filename}" -o "/app/outdir/${template_result_filename}"
 
-        if [[ -f "${dockerstagedir}/out/${template_result_filename}" ]]; then 
+        if [[ -f "${dockerstagedir}/out/${template_result_filename}" ]]; then
           cp "${dockerstagedir}/out/${template_result_filename}" "${output_file}"
-        else 
+        else
           fatal "Could not find result file"
           return 1
         fi
@@ -246,7 +246,7 @@ function main() {
 
   pushTempDir "create_template_XXXXXX"
   tmp_dir="$(getTopTempDir)"
-  
+
   info "Starting work on ${REFERENCE_TYPE} Reference"
 
   process_template \

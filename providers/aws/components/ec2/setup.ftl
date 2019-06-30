@@ -40,7 +40,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -73,9 +73,8 @@
         [#if port.LB.Configured]
             [#local lbLink = getLBLink(occurrence, port)]
             [#if isDuplicateLink(links, lbLink) ]
-                [@cfException
-                    mode=listMode
-                    description="Duplicate Link Name"
+                [@fatal
+                    message="Duplicate Link Name"
                     context=links
                     detail=lbLink /]
                 [#continue]

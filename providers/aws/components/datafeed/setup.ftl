@@ -195,9 +195,8 @@
         [#local streamDependencies = []]
 
         [#if !streamProcessors?has_content && solution.LogWatchers?has_content ]
-            [@cfException
-                mode=listMode
-                description="Lambda stream processor required for CloudwatchLogs"
+            [@fatal
+                message="Lambda stream processor required for CloudwatchLogs"
                 detail="Add the lambda as a link to this feed"
                 context=occurrence
             /]
@@ -269,9 +268,8 @@
                 [#break]
 
             [#default]
-                [@cfException
-                    mode=listMode
-                    description="Invalid stream destination or destination not found"
+                [@fatal
+                    message="Invalid stream destination or destination not found"
                     detail="Supported Destinations - ES"
                     context=occurrence
                 /]

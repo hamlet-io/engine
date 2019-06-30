@@ -229,7 +229,7 @@
     [#if legacyVpc ]
         [#assign vpc = getExistingReference(formatVPCId())]
         [#-- Make sure the baseline component has been added to existing deployments --]
-        [#assign segmentSeed = segmentSeed!"COTException: baseline component not deployed - Please run a deployment of the baseline component" ]
+        [#assign segmentSeed = segmentSeed!"COTFatal: baseline component not deployed - Please run a deployment of the baseline component" ]
     [/#if]
 
     [#assign network = segmentObject.Network!segmentObject ]
@@ -463,7 +463,7 @@
                 [#else]
                     [#local occurrenceTier = getTier(occurrence.Core.Tier.Id) ]
                     [#local network = getLinkTarget(occurrence, occurrenceTier.Network.Link, false )]
-                    [#local networkCIDR = (network.Configuration.Solution.Address.CIDR)!"COTException: local network configuration not found" ]
+                    [#local networkCIDR = (network.Configuration.Solution.Address.CIDR)!"COTFatal: local network configuration not found" ]
                 [/#if]
 
                 [#return
@@ -481,9 +481,8 @@
                         "CIDR" : []
                     }]
 
-                [@cfException
-                    mode=listMode
-                    description="Local network details required"
+                [@fatal
+                    message="Local network details required"
                     context=group
                     detail="To use the localnet IP Address group please provide the occurrence of the item using it"
                 /]
@@ -494,9 +493,8 @@
             [#if (ipAddressGroups[groupId]!{})?has_content ]
                 [#return ipAddressGroups[groupId] ]
             [#else]
-                [@cfException
-                    mode=listMode
-                    description="Unknown IP address group"
+                [@fatal
+                    message="Unknown IP address group"
                     context=group /]
                 [#-- Treat missing group as open --]
                 [#return

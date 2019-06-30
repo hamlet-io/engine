@@ -126,10 +126,10 @@
             [#local networkACLId = tierNetwork.NetworkACL!"" ]
 
             [#if !networkLink?has_content || !routeTableId?has_content || !networkACLId?has_content ]
-                [@cfException
-                    listMode
-                    "Tier Network configuration incomplete",
-                    tierNetwork +
+                [@fatal
+                    message="Tier Network configuration incomplete"
+                    context=
+                        tierNetwork +
                         {
                             "Link" : networkLink,
                             "RouteTable" : routeTableId,
@@ -273,7 +273,10 @@
                         [#local returnPort = ports[ruleConfig.Destination.Port]]
 
                     [#else]
-                        [@cfException listMode "Invalid network ACL either source or destination must be configured as _local to define direction" port /]
+                        [@fatal
+                            message="Invalid network ACL either source or destination must be configured as _local to define direction"
+                            context=port
+                        /]
                     [/#if]
 
                     [#list forwardIpAddresses![] as ipAddress ]

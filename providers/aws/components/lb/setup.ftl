@@ -23,7 +23,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -339,9 +339,8 @@
             [#if link?is_hash]
                 [#local linkCount += 1 ]
                 [#if linkCount > 1 ]
-                    [@cfException
-                        mode=listMode
-                        description="A port mapping can only have a maximum of one link"
+                    [@fatal
+                        message="A port mapping can only have a maximum of one link"
                         context=subOccurrence
                     /]
                     [#continue]
@@ -371,10 +370,10 @@
                         [#local userPoolSessionCookieName = solution.Authentication.SessionCookieName ]
                         [#local userPoolSessionTimeout = solution.Authentication.SessionTimeout ]
 
-                        [#local userPoolDomain = linkTargetAttributes["UI_FQDN"]!"COTException: Userpool FQDN not found" ]
-                        [#local userPoolArn = linkTargetAttributes["USER_POOL_ARN"]!"COTException: Userpool ARN not found" ]
-                        [#local userPoolClientId = linkTargetAttributes["CLIENT"]!"COTException: Userpool client id not found"  ]
-                        [#local userPoolOauthScope = linkTargetAttributes["LB_OAUTH_SCOPE"]!"COTException: Userpool OAuth scope not found"  ]
+                        [#local userPoolDomain = linkTargetAttributes["UI_FQDN"]!"COTFatal: Userpool FQDN not found" ]
+                        [#local userPoolArn = linkTargetAttributes["USER_POOL_ARN"]!"COTFatal: Userpool ARN not found" ]
+                        [#local userPoolClientId = linkTargetAttributes["CLIENT"]!"COTFatal: Userpool client id not found"  ]
+                        [#local userPoolOauthScope = linkTargetAttributes["LB_OAUTH_SCOPE"]!"COTFatal: Userpool OAuth scope not found"  ]
 
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application" ]
                             [@createListenerRule
@@ -625,9 +624,8 @@
     [/#switch]
 
     [#if InvalidProtocol ]
-            [@cfException
-                mode=listMode
-                description="Invalid protocol found for engine type"
+            [@fatal
+                message="Invalid protocol found for engine type"
                 context=
                     {
                         "LB" : lbName,

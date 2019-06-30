@@ -203,31 +203,14 @@
     [/#list]
 [/#macro]
 
-[#macro cfException mode description context={} detail="" ]
-    [@fatal
-        message=description
-        context=
-            valueIfContent(
-                {
-                    "Context" : context,
-                    "Detail" : detail
-                },
-                detail,
-                context
-            )
-        enabled=true
-    /]
-[/#macro]
-
 [#macro cfPreconditionFailed
             mode
             function
             context={}
             description=""]
 
-    [@cfException
-        mode=mode
-        description=function + " precondition failed"
+    [@fatal
+        message=function + " precondition failed"
         context=context
         detail=description
     /]
@@ -239,9 +222,8 @@
             context={}
             description=""]
 
-    [@cfException
-        mode=mode
-        description=function + " postcondition failed"
+    [@fatal
+        message=function + " postcondition failed"
         context=context
         detail=description
     /]

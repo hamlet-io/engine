@@ -47,7 +47,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -362,7 +362,7 @@
 
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -399,9 +399,8 @@
         [#local executionRoleId = ""]
 
         [#if engine == "fargate" && networkMode != "awsvpc" ]
-            [@cfException
-                mode=listMode
-                description="Fargate containers only support the awsvpc network mode"
+            [@fatal
+                message="Fargate containers only support the awsvpc network mode"
                 context=
                     {
                         "Description" : "Fargate containers only support the awsvpc network mode",
@@ -460,9 +459,8 @@
                         [#if networkMode == "bridge" || engine != "fargate" ]
                             [#local networkLinks += [ container.Name ] ]
                         [#else]
-                            [@cfException
-                                mode=listMode
-                                description="Network links only avaialble on bridge mode and ec2 engine"
+                            [@fatal
+                                message="Network links only avaialble on bridge mode and ec2 engine"
                                 context=
                                     {
                                         "Description" : "Container links are only available in bridge mode and ec2 engine",
@@ -516,9 +514,8 @@
 
                                         [#case "classic"]
                                             [#if networkMode == "awsvpc" ]
-                                                [@cfException
-                                                    mode=listMode
-                                                    description="Network mode not compatible with LB"
+                                                [@fatal
+                                                    message="Network mode not compatible with LB"
                                                     context=
                                                         {
                                                             "Description" : "The current container network mode is not compatible with this load balancer engine",
@@ -611,11 +608,11 @@
                                     [/#if]
 
                                     [#if serviceRecordTypes?seq_contains("A") && networkMode != "awsvpc" ]
-                                        [@cfException listMode "A record registration only availalbe on awsvpc network Type" link /]
+                                        [@fatal message="A record registration only availalbe on awsvpc network Type" context=link /]
                                     [/#if]
 
                                     [#if serviceRecordTypes?seq_contains("AAAA") ]
-                                        [@cfException listMode "AAAA Service record are not supported" link /]
+                                        [@fatal message="AAAA Service record are not supported" context=link /]
                                     [/#if]
 
                                     [#local serviceRegistries +=

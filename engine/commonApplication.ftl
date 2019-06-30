@@ -10,7 +10,7 @@
             contentIfContent(
                 getOccurrenceSettingValue(
                     occurrence, ["Registries", type, "Registry"], true),
-                "COTException: Unknown registry of type " + type
+                "COTFatal: Unknown registry of type " + type
             )
         ) ]
 [/#function]
@@ -113,7 +113,7 @@
         [#if ignoreIfNotDefined]
             [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
         [#else]
-            [#local result = addVariableToContext(result, name, "COTException: No attributes found for link " + link) ]
+            [#local result = addVariableToContext(result, name, "COTFatal: No attributes found for link " + link) ]
         [/#if]
     [/#if]
     [#return result]
@@ -172,7 +172,7 @@
         [#if value?is_string]
             [#local name = value]
         [#else]
-            [#return valueIfTrue(true, asBoolean, "COTException: Value for " + key + " must be a string or hash") ]
+            [#return valueIfTrue(true, asBoolean, "COTFatal: Value for " + key + " must be a string or hash") ]
         [/#if]
     [/#if]
     [#return
@@ -180,7 +180,7 @@
             true,
             asBoolean,
             _context.DefaultEnvironment[formatSettingName(name)]!
-                "COTException: Variable " + name + " not found"
+                "COTFatal: Variable " + name + " not found"
         ) ]
 [/#function]
 
@@ -252,7 +252,7 @@
         [#local volumeName = _context.DataVolumes[volumeLinkId].Name ]
         [#local volumeEngine = _context.DataVolumes[volumeLinkId].Engine ]
     [#else]
-        [#local volumeName = name!"COTException: Volume Name or VolumeLinkId not provided" ]
+        [#local volumeName = name!"COTFatal: Volume Name or VolumeLinkId not provided" ]
         [#local volumeEngine = "local"]
     [/#if]
 
@@ -271,7 +271,7 @@
                     (_context.Volumes!{}) +
                     {
                         volumeName : {
-                            "ContainerPath" : containerPath!"COTException : Container Path Not provided",
+                            "ContainerPath" : containerPath!"COTFatal : Container Path Not provided",
                             "HostPath" : hostPath,
                             "ReadOnly" : readOnly,
                             "PersistVolume" : persist?is_string?then(
@@ -536,9 +536,8 @@
                 [#local lbLink = getLBLink( task, port )]
 
                 [#if isDuplicateLink(containerLinks, lbLink) ]
-                    [@cfException
-                        mode=listMode
-                        description="Duplicate Link Name"
+                    [@fatal
+                        message="Duplicate Link Name"
                         context=containerLinks
                         detail=lbLink /]
                     [#continue]
@@ -567,9 +566,8 @@
                 [#local RegistryLink = getRegistryLink(task, port)]
 
                 [#if isDuplicateLink(containerLinks, RegistryLink) ]
-                    [@cfException
-                        mode=listMode
-                        description="Duplicate Link Name"
+                    [@fatal
+                        message="Duplicate Link Name"
                         context=containerLinks
                         detail=RegistryLink /]
                     [#continue]
@@ -602,9 +600,8 @@
                         }]]
                     [/#list]
                 [#else]
-                    [@cfException
-                        mode=listMode
-                        description="Port IP Address Groups not supported for port configuration"
+                    [@fatal
+                        message="Port IP Address Groups not supported for port configuration"
                         context=container
                         detail=port /]
                     [#continue]
@@ -622,9 +619,8 @@
             ) ]
 
         [#if logDriver != "awslogs" && solution.Engine == "fargate" ]
-            [@cfException
-                mode=listMode
-                description="The fargate engine only supports the awslogs logging driver"
+            [@fatal
+                message="The fargate engine only supports the awslogs logging driver"
                 context=solution
                 /]
             [#break]
@@ -653,7 +649,7 @@
                     valueIfTrue(
                         ecs.State.Resources["lg"].Id!"",
                         ecs.Configuration.Solution.ClusterLogGroup,
-                        "COTException: Logs type is awslogs but no group defined"
+                        "COTFatal: Logs type is awslogs but no group defined"
                     )
                 )
             ) ]
@@ -753,9 +749,8 @@
                     [#assign dataVolumeEngine = linkTargetAttributes["ENGINE"] ]
 
                     [#if ! ( ecs.Configuration.Solution.VolumeDrivers?seq_contains(dataVolumeEngine)) ]
-                            [@cfException
-                                mode=listMode
-                                description="Volume driver for this data volume not configured for ECS Cluster"
+                            [@fatal
+                                message="Volume driver for this data volume not configured for ECS Cluster"
                                 context=ecs.Configuration.Solution.VolumeDrivers
                                 detail=ecs /]
                     [/#if]
@@ -820,9 +815,8 @@
             [/#list]
 
             [#if fargateInvalidConfig ]
-                [@cfException
-                    mode=listMode
-                    description="Invalid Fargate configuration"
+                [@fatal
+                    message="Invalid Fargate configuration"
                     context=
                         {
                             "Description" : "Fargate containers only support the awsvpc network mode",

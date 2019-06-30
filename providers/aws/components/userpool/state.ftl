@@ -4,7 +4,7 @@
     [#local core = occurrence.Core]
 
     [#if core.External!false]
-        [#local id = baseState.Attributes["USERPOOL_ARN"]!"COTException: External Userpool ARN Not configured" ]
+        [#local id = baseState.Attributes["USERPOOL_ARN"]!"COTFatal: External Userpool ARN Not configured" ]
         [#local FQDN = ((baseState.Attributes["USERPOOL_BASE_URL"])!"")?remove_beginning("https://")?remove_ending("/")]
         [#assign componentState =
             baseState +
@@ -68,7 +68,7 @@
             [#local certificateId = formatDomainCertificateId(certificateObject, userPoolDomainName)]
             [#local certificateArn = (getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1" )?has_content)?then(
                                             getExistingReference(certificateId, ARN_ATTRIBUTE_TYPE, "us-east-1" ),
-                                            "COTException: ACM Certificate required in us-east-1"
+                                            "COTFatal: ACM Certificate required in us-east-1"
                                     )]
         [/#if]
 

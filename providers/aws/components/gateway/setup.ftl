@@ -17,9 +17,9 @@
     [#local networkLink = occurrenceNetwork.Link!{} ]
 
     [#if !networkLink?has_content ]
-        [@cfException
-            listMode
-            "Tier Network configuration incomplete",
+        [@fatal
+            message="Tier Network configuration incomplete"
+            context=
                 {
                     "networkTier" : occurrenceNetwork,
                     "Link" : networkLink
@@ -30,7 +30,7 @@
 
         [#local networkLinkTarget = getLinkTarget(occurrence, networkLink, false) ]
         [#if ! networkLinkTarget?has_content ]
-            [@cfException listMode "Network could not be found" networkLink /]
+            [@fatal message="Network could not be found" context=networkLink /]
             [#return]
         [/#if]
 
@@ -239,9 +239,8 @@
                                                         /]
                                                     [/#list]
                                                 [#else]
-                                                    [@cfException
-                                                        mode=listMode
-                                                        description="Cannot add internet gateway to private route table. Route table must be public"
+                                                    [@fatal
+                                                        message="Cannot add internet gateway to private route table. Route table must be public"
                                                         context={ "Gateway" : subOccurrence, "RouteTable" :  link }
                                                     /]
                                                 [/#if]

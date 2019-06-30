@@ -135,9 +135,8 @@
 
     [#local apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
     [#if (!(wafAclResources?has_content)) && (!(apiPolicyCidr?has_content)) ]
-        [@cfException
-            mode=listMode
-            description="No IP Address Groups provided for API Gateway"
+        [@fatal
+            message="No IP Address Groups provided for API Gateway"
             context=occurrence
         /]
         [#return]
@@ -681,9 +680,8 @@
         [#else]
             [#local swaggerIntegrations = getOccurrenceSettingValue(occurrence, [["apigw"], ["Integrations"]], true) ]
             [#if !swaggerIntegrations?has_content]
-                [@cfException
-                    mode=listMode
-                    description="API Gateway integration definitions not found"
+                [@fatal
+                    message="API Gateway integration definitions not found"
                     context=occurrence
                 /]
                 [#local swaggerIntegrations = {} ]
@@ -726,9 +724,8 @@
 
             [#else]
                 [#local extendedSwaggerDefinition = {} ]
-                [@cfException
-                    mode=listMode
-                    description="API Gateway integration definitions should be a hash"
+                [@fatal
+                    message="API Gateway integration definitions should be a hash"
                     context={ "Integrations" : swaggerIntegrations}
                 /]
             [/#if]

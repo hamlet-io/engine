@@ -35,7 +35,7 @@
 
             [#local networkLinkTarget = getLinkTarget(fn, networkLink ) ]
             [#if ! networkLinkTarget?has_content ]
-                [@cfException listMode "Network could not be found" networkLink /]
+                [@fatal message="Network could not be found" context=networkLink /]
                 [#return]
             [/#if]
 
@@ -217,9 +217,8 @@
                 [#local codeHash = _context.CodeHash!solution.FixedCodeVersion.CodeHash ]
 
                 [#if !(core.Version?has_content)]
-                    [@cfException
-                        mode=listMode
-                        description="A version must be defined for Fixed Code Version deployments"
+                    [@fatal
+                        message="A version must be defined for Fixed Code Version deployments"
                         context=core
                     /]
                 [/#if]
@@ -293,9 +292,8 @@
             [#if deploymentType == "EDGE" ]
 
                 [#if !isPresent(solution.FixedCodeVersion) ]
-                    [@cfException
-                        mode=listMode
-                        description="EDGE based deployments must be deployed as Fixed code version deployments"
+                    [@fatal
+                        message="EDGE based deployments must be deployed as Fixed code version deployments"
                         context=_context
                         detail="Lambda@Edge deployments are based on a snapshot of lambda code and a specific codeontap version is requried "
                     /]

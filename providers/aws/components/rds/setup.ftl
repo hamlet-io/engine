@@ -25,7 +25,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -49,7 +49,7 @@
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
             [#else]
-                [@cfException listMode "Unknown Port" port /]
+                [@fatal message="Unknown Port" context=port /]
             [/#if]
             [#break]
 
@@ -66,7 +66,7 @@
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
             [#else]
-                [@cfException listMode "Unknown Port" port /]
+                [@fatal message="Unknown Port" context=port /]
             [/#if]
             [#break]
 
@@ -158,9 +158,8 @@
 
     [#if solution.AlwaysCreateFromSnapshot ]
         [#if !rdsManualSnapshot?has_content ]
-            [@cfException
-                mode=listMode
-                description="Snapshot must be provided to create this database"
+            [@fatal
+                message="Snapshot must be provided to create this database"
                 context=occurrence
                 detail="Please provie a manual snapshot or a link to an RDS data set"
             /]

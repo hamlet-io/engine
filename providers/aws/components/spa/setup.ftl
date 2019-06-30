@@ -91,9 +91,8 @@
                     ]
                 }]
         [#else]
-            [@cfException
-                mode=listMode
-                description="Could not find cfredirect component"
+            [@fatal
+                message="Could not find cfredirect component"
                 context=cfRedirectLink
             /]
         [/#if]
@@ -122,11 +121,10 @@
                                             eventHandler.Action,
                                             eventHandlerResources["version"].Id) ]
         [#else]
-            [@cfException
-                    mode=listMode
-                    description="Invalid Event Handler Component - Must be Lambda - EDGE"
-                    context=occurrence
-                /]
+            [@fatal
+                description="Invalid Event Handler Component - Must be Lambda - EDGE"
+                context=occurrence
+            /]
         [/#if]
     [/#list]
 

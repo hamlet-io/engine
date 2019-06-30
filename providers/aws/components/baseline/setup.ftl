@@ -17,9 +17,8 @@
             core.Version.Id == "" &&
             core.Instance.Id == "" ) ]
 
-        [@cfException
-            mode=listMode
-            description="The baseline component can only be deployed once as an unversioned component"
+        [@fatal
+            message="The baseline component can only be deployed once as an unversioned component"
             context=core
         /]
         [#return ]

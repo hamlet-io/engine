@@ -15,7 +15,7 @@
 
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -40,7 +40,7 @@
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
             [#else]
-                [@cfException listMode "Unknown Port" port /]
+                [@fatal message="Unknown Port" context=port /]
             [/#if]
             [#break]
 
@@ -58,7 +58,7 @@
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
             [#else]
-                [@cfException listMode "Unknown Port" port /]
+                [@fatal message="Unknown Port" context=port /]
             [/#if]
             [#break]
 

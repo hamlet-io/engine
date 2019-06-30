@@ -422,8 +422,8 @@ function process_template_pass() {
     return 254
   fi
 
-  # Check for exception strings in the output
-  grep "COTException:" < "${template_result_file}" > "${template_result_file}-exceptionstrings"
+  # Check for fatal strings in the output
+  grep "COTFatal:" < "${template_result_file}" > "${template_result_file}-exceptionstrings"
   if [[ -s "${template_result_file}-exceptionstrings"  ]]; then
     fatal "Exceptions occurred during template generation. Details follow...\n"
     case "$(fileExtension "${template_result_file}")" in

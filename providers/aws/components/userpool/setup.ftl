@@ -75,9 +75,8 @@
 
     [#if ((solution.MFA) || ( solution.VerifyPhone))]
         [#if ! (solution.Schema["phone_number"]!"")?has_content ]
-            [@cfException
-                mode=listMode
-                description="Schema Attribute required: phone_number - Add Schema listed in detail"
+            [@fatal
+                message="Schema Attribute required: phone_number - Add Schema listed in detail"
                 context=schema
                 detail={
                     "phone_number" : {
@@ -94,9 +93,8 @@
 
     [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
         [#if ! (solution.Schema["email"]!"")?has_content ]
-            [@cfException
-                mode=listMode
-                description="Schema Attribute required: email - Add Schema listed in detail"
+            [@fatal
+                message="Schema Attribute required: email - Add Schema listed in detail"
                 context=schema
                 detail={
                     "email" : {
@@ -475,9 +473,8 @@
     [/#list]
 
     [#if defaultUserPoolClientRequired && ! defaultUserPoolClientConfigured ]
-            [@cfException
-                mode=listMode
-                description="A default userpool client is required"
+            [@fatal
+                message="A default userpool client is required"
                 context=solution
                 detail={
                     "ActionOptions" : {

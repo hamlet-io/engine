@@ -77,9 +77,8 @@
                 [#break]
 
             [#default]
-                [@cfException
-                    mode=listMode
-                    description="Unkown Engine"
+                [@fatal
+                    message="Unkown Engine"
                     context=component
                     detail=engine /]
         [/#switch]
@@ -89,9 +88,8 @@
                 [#local isPlatformApp = true]
                 [#local hasPlatformApp = true]
                 [#if !platformAppCredential?has_content || !platformAppPrincipal?has_content ]
-                    [@cfException
-                        mode=listMode
-                        description="Missing Credentials - Requires both Credential and Principal"
+                    [@fatal
+                        message="Missing Credentials - Requires both Credential and Principal"
                         context=component
                         detail={
                             "Credential" : platformAppCredential!"",
@@ -104,9 +102,8 @@
                 [#local isPlatformApp = true]
                 [#local hasPlatformApp = true]
                 [#if !platformAppPrincipal?has_content ]
-                    [@cfException
-                        mode=listMode
-                        description="Missing Credential - Requires Principal"
+                    [@fatal
+                        message="Missing Credential - Requires Principal"
                         context=component
                         detail={
                             "Principal" : platformAppPrincipal!""
