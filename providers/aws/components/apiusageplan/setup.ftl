@@ -50,7 +50,6 @@
 
     [#if deploymentSubsetRequired("apiusageplan", true)]
         [@createAPIUsagePlan
-            mode=listMode
             id=planId
             name=planName
             stages=stages

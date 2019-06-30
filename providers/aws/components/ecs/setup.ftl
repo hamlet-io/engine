@@ -95,7 +95,6 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
@@ -116,7 +115,6 @@
         [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
         [@createRole
-            mode=listMode
             id=ecsRoleId
             trustedServices=["ec2.amazonaws.com" ]
             managedArns=
@@ -151,7 +149,6 @@
         /]
 
         [@createRole
-            mode=listMode
             id=ecsServiceRoleId
             trustedServices=["ecs.amazonaws.com" ]
             managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
@@ -163,14 +160,12 @@
             deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(ecsLogGroupId)]
         [@createLogGroup
-            mode=listMode
             id=ecsLogGroupId
             name=ecsLogGroupName /]
     [/#if]
 
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(ecsInstanceLogGroupId) ]
         [@createLogGroup
-            mode=listMode
             id=ecsInstanceLogGroupId
             name=ecsInstanceLogGroupName /]
     [/#if]
@@ -203,7 +198,6 @@
         [/#list]
 
         [@createComponentSecurityGroup
-            mode=listMode
             occurrence=occurrence
             vpcId=vpcId
         /]
@@ -211,7 +205,6 @@
         [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
             [@createLogMetric
-                mode=listMode
                 id=logMetric.Id
                 name=logMetric.Name
                 logGroup=logMetric.LogGroupName
@@ -233,7 +226,6 @@
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -268,13 +260,9 @@
             [/#if]
         [/#if]
 
-        [@createECSCluster
-            mode=listMode
-            id=ecsId
-        /]
+        [@createECSCluster id=ecsId /]
 
         [@cfResource
-            mode=listMode
             id=ecsInstanceProfileId
             type="AWS::IAM::InstanceProfile"
             properties=
@@ -289,7 +277,6 @@
         [#if fixedIP]
             [#list 1..maxSize as index]
                 [@createEIP
-                    mode=listMode
                     id=formatComponentEIPId(core.Tier, core.Component, index)
                 /]
                 [#local allocationIds +=
@@ -306,7 +293,6 @@
         [/#if]
 
         [@createEc2AutoScaleGroup
-            mode=listMode
             id=ecsAutoScaleGroupId
             tier=core.Tier
             configSetName=configSetName
@@ -321,7 +307,6 @@
         /]
 
         [@createEC2LaunchConfig
-            mode=listMode
             id=ecsLaunchConfigId
             processorProfile=processorProfile
             storageProfile=storageProfile
@@ -434,7 +419,6 @@
 
             [#if deploymentSubsetRequired("ecs", true)]
                 [@createSecurityGroup
-                    mode=listMode
                     id=ecsSecurityGroupId
                     name=ecsSecurityGroupName
                     occurrence=occurrence
@@ -549,7 +533,6 @@
                             [#list securityGroupCIDRs as cidr ]
 
                                 [@createSecurityGroupIngress
-                                    mode=listMode
                                     id=
                                         formatContainerSecurityGroupIngressId(
                                             ecsSecurityGroupId,
@@ -568,7 +551,6 @@
 
                             [#list sourceSecurityGroupIds as group ]
                                 [@createSecurityGroupIngress
-                                    mode=listMode
                                     id=
                                         formatContainerSecurityGroupIngressId(
                                             ecsSecurityGroupId,
@@ -631,7 +613,6 @@
                     [#if container.IngressRules?has_content ]
                         [#list container.IngressRules as ingressRule ]
                             [@createSecurityGroupIngress
-                                    mode=listMode
                                     id=formatContainerSecurityGroupIngressId(
                                             ecsSecurityGroupId,
                                             container,
@@ -656,7 +637,6 @@
                 [/#if]
 
                 [@createECSService
-                    mode=listMode
                     id=serviceId
                     ecsId=ecsId
                     engine=engine
@@ -688,7 +668,6 @@
                     [#if container.Policy?has_content]
                         [#local policyId = formatDependentPolicyId(taskId, container.Id) ]
                         [@createPolicy
-                            mode=listMode
                             id=policyId
                             name=container.Name
                             statements=container.Policy
@@ -702,7 +681,6 @@
                     [#if linkPolicies?has_content]
                         [#local policyId = formatDependentPolicyId(taskId, container.Id, "links")]
                         [@createPolicy
-                            mode=listMode
                             id=policyId
                             name="links"
                             statements=linkPolicies
@@ -713,7 +691,6 @@
                 [/#list]
 
                 [@createRole
-                    mode=listMode
                     id=roleId
                     trustedServices=["ecs-tasks.amazonaws.com"]
                     managedArns=managedPolicy
@@ -726,7 +703,6 @@
             [#local executionRoleId = resources["executionRole"].Id]
             [#if deploymentSubsetRequired("iam", true ) && isPartOfCurrentDeploymentUnit(executionRoleId) ]
                 [@createRole
-                    mode=listMode
                     id=executionRoleId
                     trustedServices=[
                         "ecs-tasks.amazonaws.com"
@@ -743,7 +719,6 @@
 
                 [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(scheduleTaskRoleId)]
                     [@createRole
-                        mode=listMode
                         id=scheduleTaskRoleId
                         trustedServices=["events.amazonaws.com"]
                         policies=[
@@ -891,7 +866,6 @@
                     [#else]
                         [#if deploymentSubsetRequired("ecs", true) ]
                             [@createScheduleEventRule
-                                mode=listMode
                                 id=scheduleRuleId
                                 enabled=scheduleEnabled
                                 scheduleExpression=schedule.Expression
@@ -910,7 +884,6 @@
                 [#local lgName = resources["lg"].Name]
                 [#if isPartOfCurrentDeploymentUnit(lgId) ]
                     [@createLogGroup
-                        mode=listMode
                         id=lgId
                         name=lgName /]
                 [/#if]
@@ -920,7 +893,6 @@
                     [#local lgId = container.LogGroup.Id ]
                     [#if isPartOfCurrentDeploymentUnit(lgId) ]
                         [@createLogGroup
-                            mode=listMode
                             id=lgId
                             name=container.LogGroup.Name /]
                     [/#if]
@@ -966,7 +938,6 @@
             [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                 [@createLogMetric
-                    mode=listMode
                     id=logMetric.Id
                     name=logMetric.Name
                     logGroup=logMetric.LogGroupName
@@ -986,7 +957,6 @@
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -1013,7 +983,6 @@
             [/#list]
 
             [@createECSTask
-                mode=listMode
                 id=taskId
                 name=taskName
                 engine=engine
@@ -1031,7 +1000,6 @@
 
             [#-- Pick any extra macros in the container fragments --]
             [#list (solution.Containers!{})?values as container]
-                [#assign fragmentListMode = listMode]
                 [#local fragmentId = formatFragmentId(container, occurrence)]
                 [#include fragmentList?ensure_starts_with("/")]
             [/#list]

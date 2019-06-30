@@ -135,7 +135,6 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
@@ -154,7 +153,6 @@
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(computeClusterRoleId)]
         [@createRole
-            mode=listMode
             id=computeClusterRoleId
             trustedServices=["ec2.amazonaws.com" ]
             policies=
@@ -252,7 +250,6 @@
             [#list securityGroupCIDRs as cidr ]
 
                 [@createSecurityGroupIngress
-                    mode=listMode
                     id=
                         formatDependentSecurityGroupIngressId(
                             computeClusterSecurityGroupId,
@@ -268,7 +265,6 @@
 
             [#list sourceSecurityGroupIds as group ]
                 [@createSecurityGroupIngress
-                    mode=listMode
                     id=
                         formatDependentSecurityGroupIngressId(
                             computeClusterSecurityGroupId,
@@ -287,7 +283,6 @@
 
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(computeClusterLogGroupId) ]
         [@createLogGroup
-            mode=listMode
             id=computeClusterLogGroupId
             name=computeClusterLogGroupName /]
     [/#if]
@@ -301,7 +296,6 @@
     [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
 
         [@createSecurityGroup
-            mode=listMode
             occurrence=occurrence
             id=computeClusterSecurityGroupId
             name=computeClusterSecurityGroupName
@@ -309,7 +303,6 @@
 
         [#list ingressRules as rule ]
             [@createSecurityGroupIngress
-                    mode=listMode
                     id=formatDependentSecurityGroupIngressId(
                         computeClusterSecurityGroupId,
                         rule.Port)
@@ -319,7 +312,6 @@
         [/#list]
 
         [@cfResource
-            mode=listMode
             id=computeClusterInstanceProfileId
             type="AWS::IAM::InstanceProfile"
             properties=
@@ -336,7 +328,6 @@
                                     }]
 
         [@createEc2AutoScaleGroup
-            mode=listMode
             id=computeClusterAutoScaleGroupId
             tier=core.Tier
             configSetName=configSetName
@@ -357,7 +348,6 @@
         )]
 
         [@createEC2LaunchConfig
-            mode=listMode
             id=computeClusterLaunchConfigId
             processorProfile=processorProfile
             storageProfile=storageProfile

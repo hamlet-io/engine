@@ -244,7 +244,6 @@
             isPartOfCurrentDeploymentUnit(userPoolId)]
 
                 [@createRole
-                    mode=listMode
                     id=userPoolRoleId
                     trustedServices=["cognito-idp.amazonaws.com"]
                     policies=
@@ -416,7 +415,6 @@
 
             [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
                 [@createUserPoolClient
-                    mode=listMode
                     component=core.Component
                     tier=core.Tier
                     id=userPoolClientId
@@ -497,7 +495,6 @@
 
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createUserPool
-            mode=listMode
             component=core.Component
             tier=core.Tier
             id=userPoolId

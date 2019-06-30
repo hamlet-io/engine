@@ -52,7 +52,6 @@
 
         [#if deploymentSubsetRequired(DATAVOLUME_COMPONENT_TYPE, true)]
             [@createEBSVolume
-                mode=listMode
                 id=volumeId
                 tags=volumeTags
                 size=solution.Size
@@ -70,7 +69,6 @@
                 [#local snapshotCreateTaskName = zoneResources["taskCreateSnapshot"].Name ]
 
                 [@createSSMMaintenanceWindowTask
-                    mode=listMode
                     id=snapshotCreateTaskId
                     name=snapshotCreateTaskName
                     targets=ssmWindowTargets
@@ -92,7 +90,6 @@
                 [#local snapshotDeleteTaskName = zoneResources["taskDeleteSnapshot"].Name ]
 
                 [@createSSMMaintenanceWindowTask
-                    mode=listMode
                     id=snapshotDeleteTaskId
                     name=snapshotDeleteTaskName
                     targets=ssmWindowTargets
@@ -123,7 +120,6 @@
                                             "",
                                             false)]
         [@createSSMMaintenanceWindow
-            mode=listMode
             id=maintenanceWindowId
             name=maintenanceWindowName
             schedule=solution.Backup.Schedule
@@ -134,7 +130,6 @@
         /]
 
         [@createSSMMaintenanceWindowTarget
-            mode=listMode
             id=windowTargetId
             name=windowTargetName
             windowId=maintenanceWindowId
@@ -147,7 +142,6 @@
         [#if backupEnabled ]
             [#if isPartOfCurrentDeploymentUnit(maintenanceServiceRoleId) ]
                 [@createRole
-                    mode=listMode
                     id=maintenanceServiceRoleId
                     trustedServices=[
                         "ec2.amazonaws.com",
@@ -158,7 +152,6 @@
 
                 [#local policyId = formatDependentPolicyId(maintenanceServiceRoleId, "passRole")]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name="passRole"
                     statements=iamPassRolePermission(
@@ -174,7 +167,6 @@
             [/#if]
             [#if isPartOfCurrentDeploymentUnit(maintenanceLambdaRoleId) ]
                 [@createRole
-                    mode=listMode
                     id=maintenanceLambdaRoleId
                     trustedServices=[
                             "lambda.amazonaws.com"

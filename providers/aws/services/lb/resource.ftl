@@ -386,7 +386,7 @@
     /]
 [/#macro]
 
-[#macro createClassicLB mode id name shortName tier component
+[#macro createClassicLB id name shortName tier component
             listeners
             healthCheck
             securityGroups
@@ -400,7 +400,6 @@
             bucket=""
             dependencies="" ]
         [@cfResource
-        mode=listMode
         id=id
         type="AWS::ElasticLoadBalancing::LoadBalancer"
         properties=

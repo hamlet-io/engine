@@ -95,7 +95,6 @@
                                     [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
                                     [#case APIGATEWAY_COMPONENT_TYPE ]
                                         [@createLambdaPermission
-                                            mode=listMode
                                             id=formatLambdaPermissionId(fn, "link", linkName)
                                             targetId=fnId
                                             source=linkTargetRoles.Inbound["invoke"]
@@ -114,7 +113,6 @@
                                     [#case SQS_COMPONENT_TYPE ]
                                         [#if linkTargetAttributes["ARN"]?has_content ]
                                             [@createLambdaEventSource
-                                                mode=listMode
                                                 id=formatLambdaEventSourceId(fn, "link", linkName)
                                                 targetId=fnId
                                                 source=linkTargetAttributes["ARN"]
@@ -131,7 +129,6 @@
         [/#if]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
 
@@ -162,7 +159,6 @@
             [#-- Create a role under which the function will run and attach required policies --]
             [#-- The role is mandatory though there may be no policies attached to it --]
             [@createRole
-                mode=listMode
                 id=roleId
                 trustedServices=[
                     "lambda.amazonaws.com"
@@ -180,7 +176,6 @@
             [#if _context.Policy?has_content]
                 [#local policyId = formatDependentPolicyId(fnId)]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name=_context.Name
                     statements=_context.Policy
@@ -191,7 +186,6 @@
             [#if linkPolicies?has_content]
                 [#local policyId = formatDependentPolicyId(fnId, "links")]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name="links"
                     statements=linkPolicies
@@ -206,7 +200,6 @@
                 isPartOfCurrentDeploymentUnit(fnLgId) ]
 
             [@createLogGroup
-                mode=listMode
                 id=fnLgId
                 name=fnLgName /]
         [/#if]
@@ -224,7 +217,6 @@
                 [/#if]
 
                 [@createLambdaVersion
-                    mode=listMode
                     id=versionId
                     targetId=fnId
                     codeHash=_context.CodeHash!""
@@ -235,7 +227,6 @@
             [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
             [#if vpcAccess ]
                 [@createDependentSecurityGroup
-                    mode=listMode
                     resourceId=fnId
                     resourceName=formatName("lambda", fnName)
                     occurrence=occurrence
@@ -246,7 +237,6 @@
                 [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                     [@createLogMetric
-                        mode=listMode
                         id=logMetric.Id
                         name=logMetric.Name
                         logGroup=logMetric.LogGroupName
@@ -260,7 +250,6 @@
             [/#if]
 
             [@createLambdaFunction
-                mode=listMode
                 id=fnId
                 settings=_context +
                     {
@@ -300,7 +289,6 @@
                 [/#if]
 
                 [@createLambdaPermission
-                    mode=listMode
                     id=formatLambdaPermissionId(fn, "replication")
                     action="lambda:GetFunction"
                     targetId=versionId
@@ -323,7 +311,6 @@
                 }]
 
                 [@createScheduleEventRule
-                    mode=listMode
                     id=scheduleRuleId
                     enabled=schedule.Enabled
                     scheduleExpression=schedule.Expression
@@ -332,7 +319,6 @@
                 /]
 
                 [@createLambdaPermission
-                    mode=listMode
                     id=formatLambdaPermissionId(fn, "schedule", schedule.Id)
                     targetId=fnId
                     sourcePrincipal="events.amazonaws.com"
@@ -361,7 +347,6 @@
                         [#if logGroupArn?has_content ]
 
                             [@createLambdaPermission
-                                mode=listMode
                                 id=formatLambdaPermissionId(fn, "logwatch", logWatcherLink.Id, logGroupId?index)
                                 targetId=fnId
                                 source={
@@ -372,7 +357,6 @@
                             /]
 
                             [@createLogSubscription
-                                mode=listMode
                                 id=formatDependentLogSubscriptionId(fnId, logWatcherLink.Id, logGroupId?index)
                                 logGroupName=getExistingReference(logGroupId)
                                 filter=logFilter
@@ -393,7 +377,6 @@
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName

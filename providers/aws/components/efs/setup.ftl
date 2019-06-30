@@ -43,7 +43,6 @@
 
     [#if deploymentSubsetRequired("efs", true) ]
         [@createSecurityGroup
-            mode=listMode
             id=efsSecurityGroupId
             name=efsSecurityGroupName
             occurrence=occurrence
@@ -51,7 +50,6 @@
         /]
 
         [@createSecurityGroupIngress
-            mode=listMode
             id=efsSecurityGroupIngressId
             port=efsPort
             cidr="0.0.0.0/0"
@@ -59,7 +57,6 @@
         /]
 
         [@createEFS
-            mode=listMode
             tier=core.Tier
             id=efsId
             name=efsFullName
@@ -71,7 +68,6 @@
         [#list zones as zone ]
             [#local zoneEfsMountTargetId   = zoneResources[zone.Id]["efsMountTarget"].Id]
             [@createEFSMountTarget
-                mode=listMode
                 id=zoneEfsMountTargetId
                 subnet=getSubnets(core.Tier, networkResources, zone.Id, true, false)
                 efsId=efsId

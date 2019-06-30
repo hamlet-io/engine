@@ -52,10 +52,7 @@
                 [#if deploymentSubsetRequired("eip", true) &&
                         isPartOfCurrentDeploymentUnit(eipId)]
 
-                    [@createEIP
-                        mode=listMode
-                        id=eipId
-                    /]
+                    [@createEIP id=eipId /]
 
                 [/#if]
             [/#if]
@@ -78,7 +75,6 @@
                                                 false)]
                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                         [@createNATGateway
-                            mode=listMode
                             id=natGatewayId
                             subnetId=subnetId
                             eipId=eipId
@@ -98,12 +94,10 @@
 
                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                         [@createIGW
-                            mode=listMode
                             id=IGWId
                             name=IGWName
                         /]
                         [@createIGWAttachment
-                            mode=listMode
                             id=IGWAttachementId
                             vpcId=vpcId
                             igwId=IGWId
@@ -129,7 +123,6 @@
 
                 [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                     [@createSecurityGroup
-                        mode=listMode
                         id=securityGroupId
                         name=securityGroupName
                         occurrence=occurrence
@@ -139,7 +132,6 @@
                     [#list sourceCidrs as cidr ]
 
                         [@createSecurityGroupIngress
-                            mode=listMode
                             id=
                                 formatDependentSecurityGroupIngressId(
                                     securityGroupId,
@@ -207,7 +199,6 @@
                                             [/#if]
                                             [#list cidrs as cidr ]
                                                 [@createRoute
-                                                    mode=listMode
                                                     id=formatRouteId(zoneRouteTableId, core.Id, cidr?index)
                                                     routeTableId=zoneRouteTableId
                                                     route=
@@ -226,7 +217,6 @@
                                                 [#if publicRouteTable ]
                                                     [#list cidrs as cidr ]
                                                         [@createRoute
-                                                            mode=listMode
                                                             id=formatRouteId(zoneRouteTableId, core.Id, cidr?index)
                                                             routeTableId=zoneRouteTableId
                                                             route=
@@ -268,7 +258,6 @@
                                 [/#if]
                             [/#list]
                             [@createVPCEndpoint
-                                mode=listMode
                                 id=zoneVpcEndpoint.Id
                                 vpcId=vpcId
                                 service=zoneVpcEndpoint.ServiceName

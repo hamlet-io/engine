@@ -1,7 +1,6 @@
 [#ftl]
 [#include "/bootstrap.ftl" ]
 
-[#assign listMode = "buildblueprint"]
 [#assign exceptionResources = []]
 [#assign debugResources = []]
 

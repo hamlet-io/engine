@@ -41,16 +41,14 @@
 [#-- Fragment List Macros --]
 
 [#macro Attributes name="" image="" version="" essential=true]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context +=
-            {
-                "Essential" : essential
-            } +
-            attributeIfContent("Name", name) +
-            attributeIfContent("Image", image) +
-            attributeIfContent("ImageVersion", version)
-        ]
-    [/#if]
+    [#assign _context +=
+        {
+            "Essential" : essential
+        } +
+        attributeIfContent("Name", name) +
+        attributeIfContent("Image", image) +
+        attributeIfContent("ImageVersion", version)
+    ]
 [/#macro]
 
 [#macro lambdaAttributes
@@ -59,20 +57,18 @@
         zipFile=""
         codeHash=""  ]
 
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context += {
-                "S3Bucket" : imageBucket,
-                "S3Prefix" : imagePrefix,
-                "ZipFile" : {
-                    "Fn::Join" : [
-                        "\n",
-                        asArray(zipFile)
-                    ]
-                },
-                "CodeHash" : codeHash
-            }
-        ]
-    [/#if]
+    [#assign _context += {
+            "S3Bucket" : imageBucket,
+            "S3Prefix" : imagePrefix,
+            "ZipFile" : {
+                "Fn::Join" : [
+                    "\n",
+                    asArray(zipFile)
+                ]
+            },
+            "CodeHash" : codeHash
+        }
+    ]
 [/#macro]
 
 [#function addVariableToContext context name value]
@@ -88,9 +84,7 @@
 [/#function]
 
 [#macro Variable name value]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context = addVariableToContext(_context, name, value) ]
-    [/#if]
+    [#assign _context = addVariableToContext(_context, name, value) ]
 [/#macro]
 
 [#function getLinkResourceId link alias]
@@ -130,34 +124,27 @@
 [/#function]
 
 [#macro Link name link="" attributes=[] rawName=false ignoreIfNotDefined=false]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context =
-            addLinkVariablesToContext(
-                _context,
-                name,
-                contentIfContent(link, name),
-                attributes,
-                rawName,
-                ignoreIfNotDefined) ]
-    [/#if]
+    [#assign _context =
+        addLinkVariablesToContext(
+            _context,
+            name,
+            contentIfContent(link, name),
+            attributes,
+            rawName,
+            ignoreIfNotDefined) ]
+
 [/#macro]
 
 [#macro DefaultLinkVariables enabled=true ]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context += { "DefaultLinkVariables" : enabled } ]
-    [/#if]
+    [#assign _context += { "DefaultLinkVariables" : enabled } ]
 [/#macro]
 
 [#macro DefaultCoreVariables enabled=true ]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context += { "DefaultCoreVariables" : enabled } ]
-    [/#if]
+    [#assign _context += { "DefaultCoreVariables" : enabled } ]
 [/#macro]
 
 [#macro DefaultEnvironmentVariables enabled=true ]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context += { "DefaultEnvironmentVariables" : enabled } ]
-    [/#if]
+    [#assign _context += { "DefaultEnvironmentVariables" : enabled } ]
 [/#macro]
 
 [#function getFragmentSettingValue key value asBoolean=false]
@@ -217,17 +204,15 @@
 [/#macro]
 
 [#macro Host name value]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context +=
-            {
-                "Hosts" : (_context.Hosts!{}) + { name : value }
-            }
-        ]
-    [/#if]
+    [#assign _context +=
+        {
+            "Hosts" : (_context.Hosts!{}) + { name : value }
+        }
+    ]
 [/#macro]
 
 [#macro Hosts hosts]
-    [#if ((fragmentListMode!"") == "model") && hosts?is_hash]
+    [#if hosts?is_hash]
         [#assign _context +=
             {
                 "Hosts" : (_context.Hosts!{}) + hosts
@@ -237,13 +222,11 @@
 [/#macro]
 
 [#macro WorkingDirectory workingDirectory ]
-        [#if ((fragmentListMode!"") == "model")]
-        [#assign _context +=
-            {
-                "WorkingDirectory" : workingDirectory
-            }
-        ]
-    [/#if]
+    [#assign _context +=
+        {
+            "WorkingDirectory" : workingDirectory
+        }
+    ]
 [/#macro]
 
 [#macro Volume name="" containerPath="" hostPath="" readOnly=false persist=false volumeLinkId="" driverOpts={} autoProvision=false ]
@@ -264,31 +247,29 @@
             [#local volumeDriver = "local" ]
     [/#switch]
 
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context +=
-            {
-                "Volumes" :
-                    (_context.Volumes!{}) +
-                    {
-                        volumeName : {
-                            "ContainerPath" : containerPath!"COTFatal : Container Path Not provided",
-                            "HostPath" : hostPath,
-                            "ReadOnly" : readOnly,
-                            "PersistVolume" : persist?is_string?then(
-                                                persist?boolean,
-                                                persist),
-                            "Driver" : volumeDriver,
-                            "DriverOptions" : driverOpts,
-                            "AutoProvision" : autoProvision
-                        }
+    [#assign _context +=
+        {
+            "Volumes" :
+                (_context.Volumes!{}) +
+                {
+                    volumeName : {
+                        "ContainerPath" : containerPath!"COTFatal : Container Path Not provided",
+                        "HostPath" : hostPath,
+                        "ReadOnly" : readOnly,
+                        "PersistVolume" : persist?is_string?then(
+                                            persist?boolean,
+                                            persist),
+                        "Driver" : volumeDriver,
+                        "DriverOptions" : driverOpts,
+                        "AutoProvision" : autoProvision
                     }
-            }
-        ]
-    [/#if]
+                }
+        }
+    ]
 [/#macro]
 
 [#macro Volumes volumes]
-    [#if ((fragmentListMode!"") == "model") && volumes?is_hash]
+    [#if volumes?is_hash]
         [#assign _context +=
             {
                 "Volumes" : (_context.Volumes!{}) + volumes
@@ -298,115 +279,97 @@
 [/#macro]
 
 [#macro EntryPoint entrypoint ]
-    [#if ((fragmentListMode!"") == "model") ]
-        [#assign _context +=
-            {
-                "EntryPoint" : asArray(entrypoint)
-            }
-        ]
-    [/#if]
+    [#assign _context +=
+        {
+            "EntryPoint" : asArray(entrypoint)
+        }
+    ]
 [/#macro]
 
 [#macro Command command ]
-    [#if ((fragmentListMode!"") == "model") ]
-        [#assign _context +=
-            {
-                "Command" : asArray(command)
-            }
-        ]
-    [/#if]
+    [#assign _context +=
+        {
+            "Command" : asArray(command)
+        }
+    ]
 [/#macro]
 
 [#macro Policy statements...]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context +=
-            {
-                "Policy" : (_context.Policy![]) + asFlattenedArray(statements)
-            }
-        ]
-    [/#if]
+    [#assign _context +=
+        {
+            "Policy" : (_context.Policy![]) + asFlattenedArray(statements)
+        }
+    ]
 [/#macro]
 
 [#macro ManagedPolicy arns...]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context +=
-            {
-                "ManagedPolicy" : (_context.ManagedPolicy![]) + asFlattenedArray(arns)
-            }
-        ]
-    [/#if]
+    [#assign _context +=
+        {
+            "ManagedPolicy" : (_context.ManagedPolicy![]) + asFlattenedArray(arns)
+        }
+    ]
 [/#macro]
 
 [#-- Compute instance fragment macros --]
 [#macro File path mode="644" owner="root" group="root" content=[] ]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context +=
-            {
-                "Files" : (_context.Files!{}) + {
-                    path : {
-                        "mode" : mode,
-                        "owner" : owner,
-                        "group" : group,
-                        "content" : content
-                    }
+    [#assign _context +=
+        {
+            "Files" : (_context.Files!{}) + {
+                path : {
+                    "mode" : mode,
+                    "owner" : owner,
+                    "group" : group,
+                    "content" : content
                 }
-            }]
-    [/#if]
+            }
+        }]
 [/#macro]
 
 [#macro Directory path mode="755" owner="root" group="root" ]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context +=
-            {
-                "Directories" : (_context.Directories!{}) + {
-                    path : {
-                        "mode" : mode,
-                        "owner" : owner,
-                        "group" : group
-                    }
+    [#assign _context +=
+        {
+            "Directories" : (_context.Directories!{}) + {
+                path : {
+                    "mode" : mode,
+                    "owner" : owner,
+                    "group" : group
                 }
-            }]
-    [/#if]
+            }
+        }]
 [/#macro]
 
 [#macro DataVolumeMount volumeLinkId deviceId mountPath ]
-    [#if (fragmentListMode!"") == "model"]
-        [#assign _context +=
-            {
-                "VolumeMounts" :
-                    (_context.VolumeMounts!{}) +
-                    {
-                        volumeLinkId : {
-                            "DeviceId" : deviceId,
-                            "MountPath" : mountPath
-                        }
+    [#assign _context +=
+        {
+            "VolumeMounts" :
+                (_context.VolumeMounts!{}) +
+                {
+                    volumeLinkId : {
+                        "DeviceId" : deviceId,
+                        "MountPath" : mountPath
                     }
-            }]
-    [/#if]
+                }
+        }]
 [/#macro]
 
 [#-- CloudFront Specific Fragment Macros --]
 [#macro cfCustomHeader name value ]
-    [#if (fragmentListMode!"") == "model" ]
-        [#assign _context +=
-            {
-                "CustomOriginHeaders" : (_context.CustomOriginHeaders![]) + [
-                    getCFHTTPHeader(
-                        name,
-                        value )
-                ]
-            }]
-    [/#if]
+    [#assign _context +=
+        {
+            "CustomOriginHeaders" : (_context.CustomOriginHeaders![]) + [
+                getCFHTTPHeader(
+                    name,
+                    value )
+            ]
+        }]
 [/#macro]
 
 [#macro cfForwardHeaders names... ]
-    [#if (fragmentListMode!"") == "model" ]
-        [#assign _context +=
-            {
-                "ForwardHeaders" : (_context.ForwardHeaders![]) +
-                                        asArray(names)
-            }]
-    [/#if]
+    [#assign _context +=
+        {
+            "ForwardHeaders" : (_context.ForwardHeaders![]) +
+                                    asArray(names)
+        }]
 [/#macro]
 
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
@@ -771,7 +734,6 @@
         [/#list]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
         [#assign fragmentId = formatFragmentId(_context)]
         [#include fragmentList]
 

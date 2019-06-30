@@ -100,7 +100,6 @@
         ]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context, operationsBucket, dataBucket ) ]
@@ -235,7 +234,6 @@
     [#if deploymentSubsetRequired(CONFIGSTORE_COMPONENT_TYPE, true) ]
         [@createDynamoDbTable
             id=tableId
-            mode=listMode
             backupEnabled=parentSolution.Table.Backup.Enabled
             billingMode=parentSolution.Table.Billing
             writeCapacity=parentSolution.Table.Capacity.Write

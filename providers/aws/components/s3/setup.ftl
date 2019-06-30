@@ -64,7 +64,6 @@
                     s3Id,
                     sqsId) ]
             [@createSQSPolicy
-                    mode=listMode
                     id=sqsPolicyId
                     queues=sqsId
                     statements=sqsS3WritePermission(sqsId, s3Name)
@@ -208,7 +207,6 @@
 
         [#if rolePolicies?has_content ]
             [@createRole
-                mode=listMode
                 id=roleId
                 trustedServices=["s3.amazonaws.com"]
                 policies=rolePolicies
@@ -221,7 +219,6 @@
         [#if policyStatements?has_content ]
             [#local bucketPolicyId = resources["bucketpolicy"].Id ]
             [@createBucketPolicy
-                mode=listMode
                 id=bucketPolicyId
                 bucket=s3Name
                 statements=policyStatements
@@ -230,7 +227,6 @@
         [/#if]
 
         [@createS3Bucket
-            mode=listMode
             id=s3Id
             name=s3Name
             tier=core.Tier

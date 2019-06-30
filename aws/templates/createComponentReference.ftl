@@ -1,8 +1,6 @@
 [#ftl strip_text=true strip_whitespace=true ]
 [#include "/bootstrap.ftl" ]
 
-[#assign listMode = "reference"]
-
 [#assign referenceTemplate = [] ]
 
 [#macro MDSection

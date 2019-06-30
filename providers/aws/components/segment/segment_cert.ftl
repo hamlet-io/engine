@@ -11,7 +11,6 @@
         [#local certificateId = formatCertificateId(segmentDomainCertificateId)]
 
         [@createCertificate
-            mode=listMode
             id="certificate"
             domain=formatDomainName("*",segmentDomain)
             validationDomain=(domains.Validation)!""

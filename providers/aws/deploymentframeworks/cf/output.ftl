@@ -133,7 +133,6 @@
 [/#macro]
 
 [#macro cfResource
-            mode
             id
             type
             properties={}

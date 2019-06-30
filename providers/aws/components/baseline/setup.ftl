@@ -55,7 +55,6 @@
         [#local topicId = resources["segmentSNSTopic"].Id ]
         [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
             [@createSegmentSNSTopic
-                mode=listMode
                 id=topicId
             /]
         [/#if]
@@ -160,7 +159,6 @@
                             bucketId,
                             sqsId) ]
                     [@createSQSPolicy
-                            mode=listMode
                             id=sqsPolicyId
                             queues=sqsId
                             statements=sqsS3WritePermission(sqsId, bucketName)
@@ -169,7 +167,6 @@
                 [/#list]
 
                 [@createS3Bucket
-                    mode=listMode
                     id=bucketId
                     name=bucketName
                     versioning=subSolution.Versioning
@@ -235,7 +232,6 @@
 
                 [#if bucketPolicy?has_content ]
                     [@createBucketPolicy
-                        mode=listMode
                         id=bucketPolicyId
                         bucket=bucketName
                         statements=bucketPolicy
@@ -263,7 +259,6 @@
                         ( deploymentSubsetRequired("cmk") && legacyCmk == true) ]
 
                         [@createCMK
-                            mode=listMode
                             id=cmkResourceId
                             description=cmkName
                             statements=
@@ -280,7 +275,6 @@
                         /]
 
                         [@createCMKAlias
-                            mode=listMode
                             id=cmkAliasId
                             name=cmkAliasName
                             cmkId=cmkResourceId
@@ -460,7 +454,6 @@
                     [#else]
                         [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
                             [@createCFOriginAccessIdentity
-                                mode=listMode
                                 id=OAIId
                                 name=OAIName
                             /]

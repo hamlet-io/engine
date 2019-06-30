@@ -72,7 +72,6 @@
 
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createIdentityPool
-            mode=listMode
             id=identityPoolId
             name=identityPoolName
             cognitoIdProviders=federationCognitoProviders
@@ -175,7 +174,6 @@
         [/#switch]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#local managedPolicies = _context.ManagedPolicy ]
@@ -185,7 +183,6 @@
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
 
             [@createRole
-                mode=listMode
                 id=roleId
                 federatedServices="cognito-identity.amazonaws.com"
                 condition={
@@ -210,7 +207,6 @@
             [#if _context.Policy?has_content]
                 [#local policyId = formatDependentPolicyId(subCore.Id)]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name=_context.Name
                     statements=_context.Policy
@@ -221,7 +217,6 @@
             [#if linkPolicies?has_content]
                 [#local policyId = formatDependentPolicyId(subCore.Id, "links")]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name="links"
                     statements=linkPolicies
@@ -268,7 +263,6 @@
 
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createIdentityPoolRoleMapping
-            mode=listMode
             id=roleMappingId
             identityPoolId=identityPoolId
             roleMappings=ruleAssignments

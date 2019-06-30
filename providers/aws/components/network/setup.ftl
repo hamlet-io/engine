@@ -29,7 +29,6 @@
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
             [@createRole
-                mode=listMode
                 id=flowLogsRoleId
                 trustedServices=["vpc-flow-logs.amazonaws.com"]
                 policies=
@@ -44,7 +43,6 @@
         [#if deploymentSubsetRequired("lg", true) &&
                 isPartOfCurrentDeploymentUnit(flowLogsAllLogGroupId)]
             [@createVPCLogGroup
-                mode=listMode
                 id=flowLogsAllLogGroupId
                 name=flowLogsAllLogGroupName
                 retention=((segmentObject.Operations.FlowLogs.Expiration) !
@@ -56,7 +54,6 @@
 
         [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
             [@createVPCFlowLog
-                mode=listMode
                 id=flowLogsAllId
                 vpcId=vpcResourceId
                 roleId=flowLogsRoleId
@@ -71,7 +68,6 @@
         [#local topicId = resources["legacySnsTopic"].Id ]
         [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
             [@createSegmentSNSTopic
-                mode=listMode
                 id=topicId
             /]
         [/#if]
@@ -79,7 +75,6 @@
 
     [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
         [@createVPC
-            mode=listMode
             id=vpcId
             resourceId=vpcResourceId
             name=vpcName
@@ -98,13 +93,11 @@
 
         [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
             [@createIGW
-                mode=listMode
                 id=legacyIGWId
                 resourceId=legacyIGWResourceId
                 name=legacyIGWName
             /]
             [@createIGWAttachment
-                mode=listMode
                 id=legacyIGWAttachmentId
                 vpcId=vpcResourceId
                 igwId=legacyIGWResourceId
@@ -159,7 +152,6 @@
 
                         [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                             [@createSubnet
-                                mode=listMode
                                 id=subnetId
                                 name=subnetName
                                 vpcId=vpcResourceId
@@ -169,13 +161,11 @@
                                 private=routeTable.Private!false
                             /]
                             [@createRouteTableAssociation
-                                mode=listMode
                                 id=routeTableAssociationId
                                 subnetId=subnetId
                                 routeTableId=routeTableId
                             /]
                             [@createNetworkACLAssociation
-                                mode=listMode
                                 id=networkACLAssociationId
                                 subnetId=subnetId
                                 networkACLId=networkACLId
@@ -208,7 +198,6 @@
 
                     [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                         [@createRouteTable
-                            mode=listMode
                             id=routeTableId
                             name=routeTableName
                             vpcId=vpcResourceId
@@ -218,7 +207,6 @@
                         [#if (zoneRouteTableResources["legacyIGWRoute"].Id!{})?has_content ]
                             [#local legacyIGWRouteId =  zoneRouteTableResources["legacyIGWRoute"].Id ]
                             [@createRoute
-                                mode=listMode
                                 id=legacyIGWRouteId
                                 routeTableId=routeTableId
                                 route=
@@ -244,7 +232,6 @@
 
             [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                 [@createNetworkACL
-                    mode=listMode
                     id=networkACLId
                     name=networkACLName
                     vpcId=vpcResourceId
@@ -287,7 +274,6 @@
                                 "CIDRBlock" : ipAddress
                             }]
                         [@createNetworkACLEntry
-                            mode=listMode
                             id=formatId(ruleId,direction,ruleOrder)
                             networkACLId=networkACLId
                             outbound=(direction=="outbound")
@@ -309,7 +295,6 @@
                                 }]
 
                             [@createNetworkACLEntry
-                                mode=listMode
                                 id=formatId(ruleId,direction,ruleOrder)
                                 networkACLId=networkACLId
                                 outbound=(direction=="outbound")

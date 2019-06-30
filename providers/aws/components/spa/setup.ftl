@@ -32,7 +32,6 @@
     ]
 
     [#-- Add in container specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
@@ -253,7 +252,6 @@
         [/#if]
 
         [@createCFDistribution
-            mode=listMode
             id=cfId
             aliases=
                 (isPresent(solution.Certificate))?then(
@@ -304,7 +302,6 @@
 
         [#if wafPresent ]
             [@createWAFAclFromSecurityProfile
-                mode=listMode
                 id=wafAclId
                 name=wafAclName
                 metric=wafAclName
@@ -374,7 +371,6 @@
     ]
 
     [#-- Add in container specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 

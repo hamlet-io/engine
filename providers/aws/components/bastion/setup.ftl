@@ -103,7 +103,6 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
@@ -122,7 +121,6 @@
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(bastionRoleId)]
             [@createRole
-                mode=listMode
                 id=bastionRoleId
                 trustedServices=["ec2.amazonaws.com" ]
                 policies=
@@ -152,7 +150,6 @@
             [#if deploymentSubsetRequired("eip", true) &&
                     isPartOfCurrentDeploymentUnit(bastionEIPId)]
                 [@createEIP
-                    mode=listMode
                     id=bastionEIPId
                 /]
             [/#if]
@@ -168,7 +165,6 @@
         [#if deploymentSubsetRequired("lg", true) &&
                 isPartOfCurrentDeploymentUnit(bastionLgId) ]
             [@createLogGroup
-                mode=listMode
                 id=bastionLgId
                 name=bastionLgName /]
         [/#if]
@@ -181,7 +177,6 @@
 
         [#if deploymentSubsetRequired("bastion", true)]
             [@createSecurityGroup
-                mode=listMode
                 id=bastionSecurityGroupToId
                 name=bastionSecurityGroupToName
                 occurrence=occurrence
@@ -204,7 +199,6 @@
             /]
 
             [@createSecurityGroup
-                mode=listMode
                 id=bastionSecurityGroupFromId
                 name=bastionSecurityGroupFromName
                 tier="all"
@@ -221,7 +215,6 @@
             /]
 
             [@cfResource
-                mode=listMode
                 id=bastionInstanceProfileId
                 type="AWS::IAM::InstanceProfile"
                 properties=
@@ -240,7 +233,6 @@
                     true)]
 
             [@createEc2AutoScaleGroup
-                mode=listMode
                 id=bastionAutoScaleGroupId
                 tier=core.Tier
                 configSetName=configSetName
@@ -254,7 +246,6 @@
             /]
 
             [@createEC2LaunchConfig
-                mode=listMode
                 id=bastionLaunchConfigId
                 processorProfile=processorProfile
                 storageProfile=storageProfile

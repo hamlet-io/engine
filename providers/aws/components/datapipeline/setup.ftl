@@ -97,7 +97,6 @@
     ]
 
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
@@ -123,7 +122,6 @@
         [#-- The role is mandatory though there may be no policies attached to it --]
         [#if isPartOfCurrentDeploymentUnit(pipelineRoleId) ]
             [@createRole
-                mode=listMode
                 id=pipelineRoleId
                 name=pipelineRoleName
                 trustedServices=[
@@ -136,7 +134,6 @@
 
         [#if isPartOfCurrentDeploymentUnit(resourceRoleId) ]
             [@createRole
-                mode=listMode
                 id=resourceRoleId
                 name=resourceRoleName
                 trustedServices=[
@@ -148,7 +145,6 @@
             [#if _context.Policy?has_content]
                 [#local policyId = formatDependentPolicyId(pipelineId)]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name=_context.Name
                     statements=_context.Policy
@@ -161,7 +157,6 @@
             [#if linkPolicies?has_content]
                 [#local policyId = formatDependentPolicyId(pipelineId, "links")]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name="links"
                     statements=linkPolicies
@@ -177,7 +172,6 @@
 
 
         [@cfResource
-                mode=listMode
                 id=resourceInstanceProfileId
                 type="AWS::IAM::InstanceProfile"
                 properties=
@@ -190,7 +184,6 @@
             /]
 
         [@createSecurityGroup
-            mode=listMode
             id=securityGroupId
             name=securityGroupName
             occurrence=occurrence
@@ -198,7 +191,6 @@
         /]
 
         [@createSecurityGroupIngress
-            mode=listMode
             id=formatDependentSecurityGroupIngressId(
                 securityGroupId,
                 "local")

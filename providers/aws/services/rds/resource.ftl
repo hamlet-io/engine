@@ -35,7 +35,7 @@
     }
 ]
 
-[#macro createRDSInstance mode id name
+[#macro createRDSInstance id name
     engine
     engineVersion
     processor
@@ -63,7 +63,6 @@
     updateReplacePolicy="Snapshot"
 ]
     [@cfResource
-    mode=listMode
     id=id
     type="AWS::RDS::DBInstance"
     deletionPolicy=deletionPolicy

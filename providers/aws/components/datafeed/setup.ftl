@@ -44,12 +44,10 @@
     [#if logging ]
         [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(streamLgId) ]
             [@createLogGroup
-                mode=listMode
                 id=streamLgId
                 name=streamLgName /]
 
             [@createLogStream
-                mode=listMode
                 id=streamLgStreamId
                 name=streamLgStreamName
                 logGroup=streamLgName
@@ -57,7 +55,6 @@
             /]
 
             [@createLogStream
-                mode=listMode
                 id=streamLgBackupId
                 name=streamLgBackupName
                 logGroup=streamLgName
@@ -90,7 +87,6 @@
 
                     [#if deploymentSubsetRequired(DATAFEED_COMPONENT_TYPE, true)]
                         [@createLogSubscription
-                            mode=listMode
                             id=formatDependentLogSubscriptionId(streamId, logWatcherLink.Id, logGroupId?index)
                             logGroupName=getExistingReference(logGroupId)
                             filter=logFilter
@@ -150,7 +146,6 @@
         [#if isPartOfCurrentDeploymentUnit(streamRoleId)]
 
             [@createRole
-                mode=listMode
                 id=streamRoleId
                 trustedServices=[ "firehose.amazonaws.com" ]
                 policies=
@@ -183,7 +178,6 @@
                 isPartOfCurrentDeploymentUnit(streamSubscriptionRoleId)]
 
             [@createRole
-                mode=listMode
                 id=streamSubscriptionRoleId
                 trustedServices=[ formatDomainName("logs", regionId, "amazonaws.com") ]
             /]
@@ -204,7 +198,6 @@
 
         [#if solution.LogWatchers?has_content ]
             [@createPolicy
-                mode=listMode
                 id=streamSubscriptionPolicyId
                 name="local"
                 statements=
@@ -259,7 +252,6 @@
                                                 streamProcessors)]
 
                 [@createFirehoseStream
-                    mode=listMode
                     id=streamId
                     name=streamName
                     destination=streamESDestination

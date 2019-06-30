@@ -22,7 +22,7 @@
     [#-- Baseline component lookup --]
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
     [#local cmkKeyId = baselineComponentIds["Encryption"] ]
-    
+
     [#local esUpdateCommand = "updateESDomain" ]
 
     [#local esAuthentication = solution.Authentication]
@@ -211,6 +211,34 @@
                         {
                             "IdentityPoolId" : getExistingReference(linkTargetResources["identitypool"].Id)
                         }]
+<<<<<<< HEAD
+=======
+
+                        [#local policyId = formatDependentPolicyId(
+                                                esId,
+                                                link.Name)]
+
+
+                        [#if deploymentSubsetRequired("es", true)]
+                            [#local role = linkTargetResources["authrole"].Id!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
+                            [#local roleArn = getArn(role) ]
+
+                            [#local localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
+
+                            [#if localRoleAccount ]
+                                [#local roleName = (role?split("/"))[1] ]
+                                [@cfResource
+                                    id=policyId
+                                    type="AWS::IAM::Policy"
+                                    properties=
+                                        getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
+                                        {
+                                            "Roles" : [ roleName ]
+                                        }
+                                /]
+                            [/#if]
+                        [/#if]
+>>>>>>> <refactor> Remove mode
                     [#break]
             [/#switch]
         [/#if]
@@ -219,7 +247,6 @@
     [#if cognitoIntegration ]
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(esServiceRoleId)]
             [@createRole
-                    mode=listMode
                     id=esServiceRoleId
                     trustedServices=["es.amazonaws.com"]
                     managedArns=["arn:aws:iam::aws:policy/AmazonESCognitoAccess"]
@@ -227,15 +254,14 @@
         [/#if]
 
         [#if (cognitoCliConfig["IdentityPoolId"]!"")?has_content && (cognitoCliConfig["UserPoolId"]!"")?has_content ]
-            [#local cognitoCliConfig += 
+            [#local cognitoCliConfig +=
                 {
                     "Enabled" : true
                 }
             ]
         [#else]
-            [@cfException
-                mode=listMode
-                description="Incomplete Cognito integration"
+            [@fatal
+                message="Incomplete Cognito integration"
                 context=component
                 detail="You must provide a link to both a federated role and a userpool to enabled authentication"
             /]
@@ -258,7 +284,6 @@
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -285,7 +310,6 @@
         [/#list]
 
         [@cfResource
-            mode=listMode
             id=esId
             type="AWS::Elasticsearch::Domain"
             properties=

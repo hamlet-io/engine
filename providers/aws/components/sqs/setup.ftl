@@ -22,7 +22,6 @@
             [#local dlqId = resources["dlq"].Id ]
             [#local dlqName = resources["dlq"].Name ]
             [@createSQSQueue
-                mode=listMode
                 id=dlqId
                 name=dlqName
                 retention=1209600
@@ -31,7 +30,6 @@
         [/#if]
 
         [@createSQSQueue
-            mode=listMode
             id=sqsId
             name=sqsName
             delay=solution.DelaySeconds
@@ -55,7 +53,6 @@
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName

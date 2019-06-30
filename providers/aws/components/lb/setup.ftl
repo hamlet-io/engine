@@ -90,7 +90,6 @@
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -144,7 +143,6 @@
                         [#local cloudMapInstanceId = formatDependentResourceId(
                                                             AWS_CLOUDMAP_INSTANCE_RESOURCE_TYPE, lbId, registryServiceId)]
                         [@createCloudMapInstance
-                            mode=listMode
                             id=cloudMapInstanceId
                             serviceId=registryServiceId
                             instanceId=core.ShortName
@@ -261,7 +259,6 @@
 
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createListenerRule
-                            mode=listMode
                             id=rule.Id
                             listenerId=listenerId
                             actions=getListenerRuleRedirectAction(
@@ -288,7 +285,6 @@
 
                 [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                     [@createListenerRule
-                        mode=listMode
                         id=listenerRuleId
                         listenerId=listenerId
                         actions=getListenerRuleRedirectAction(
@@ -314,7 +310,6 @@
                 [#local fixedStatusCode = getOccurrenceSettingValue(subOccurrence, ["Fixed", "StatusCode"], true) ]
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createListenerRule
-                            mode=listMode
                             id=listenerRuleId
                             listenerId=listenerId
                             actions=getListenerRuleFixedAction(
@@ -380,7 +375,6 @@
 
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application" ]
                             [@createListenerRule
-                                mode=listMode
                                 id=listenerRuleId
                                 listenerId=listenerId
                                 actions=getListenerRuleAuthCognitoAction(
@@ -405,7 +399,6 @@
                         [#local listenerForwardRule = false ]
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application"  ]
                             [@createListenerRule
-                                mode=listMode
                                 id=listenerRuleId
                                 listenerId=listenerId
                                 actions=getListenerRuleRedirectAction(
@@ -432,7 +425,6 @@
                 [#if firstMappingForPort &&
                     deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                     [@createSecurityGroup
-                        mode=listMode
                         id=securityGroupId
                         name=securityGroupName
                         occurrence=occurrence
@@ -476,7 +468,6 @@
                 [#if listenerForwardRule ]
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                             [@createListenerRule
-                                mode=listMode
                                 id=listenerRuleId
                                 listenerId=listenerId
                                 actions=getListenerRuleForwardAction(targetGroupId)
@@ -498,7 +489,6 @@
                     [#local lbSecurityGroupIds += [securityGroupId] ]
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createALBListener
-                            mode=listMode
                             id=listenerId
                             port=sourcePort
                             albId=lbId
@@ -508,7 +498,6 @@
                         /]
 
                         [@createTargetGroup
-                            mode=listMode
                             id=defaultTargetGroupId
                             name=defaultTargetGroupName
                             tier=core.Tier
@@ -526,7 +515,6 @@
                     deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
 
                     [@createTargetGroup
-                        mode=listMode
                         id=targetGroupId
                         name=targetGroupName
                         tier=core.Tier
@@ -644,7 +632,6 @@
 
             [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                 [@createALB
-                    mode=listMode
                     id=lbId
                     name=lbName
                     shortName=lbShortName
@@ -673,7 +660,6 @@
 
             [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                 [@createClassicLB
-                    mode=listMode
                     id=lbId
                     name=lbName
                     shortName=lbShortName

@@ -1,7 +1,6 @@
 [#ftl]
 [#include "/bootstrap.ftl" ]
 
-[#assign listMode = "blueprint"]
 [#assign allDeploymentUnits = true]
 [#assign deploymentUnit = ""]
 

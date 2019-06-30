@@ -17,7 +17,6 @@
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(consoleRoleId)]
         [@createRole
-            mode=listMode
             id=consoleRoleId
             trustedServices=["ssm.amazonaws.com" ]
             policies=
@@ -32,7 +31,6 @@
     [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(consoleLgId)]
         [@createLogGroup
-            mode=listMode
             id=consoleLgId
             name=consoleLgName /]
     [/#if]

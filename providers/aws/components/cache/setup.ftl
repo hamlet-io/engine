@@ -98,7 +98,6 @@
     [#if deploymentSubsetRequired("cache", true)]
 
         [@createDependentSecurityGroup
-            mode=listMode
             resourceId=cacheId
             resourceName=cacheFullName
             occurrence=occurrence
@@ -106,7 +105,6 @@
         /]
 
         [@createSecurityGroupIngress
-            mode=listMode
             id=cacheSecurityGroupIngressId
             port=port
             cidr="0.0.0.0/0"
@@ -114,7 +112,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=cacheSubnetGroupId
             type="AWS::ElastiCache::SubnetGroup"
             properties=
@@ -126,7 +123,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=cacheParameterGroupId
             type="AWS::ElastiCache::ParameterGroup"
             properties=
@@ -151,7 +147,6 @@
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -178,7 +173,6 @@
             [/#list]
 
             [@cfResource
-                mode=listMode
                 id=cacheId
                 type="AWS::ElastiCache::CacheCluster"
                 properties=

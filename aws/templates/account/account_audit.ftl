@@ -21,7 +21,6 @@
             [#assign sqsNotifications = []]
 
             [@cfResource
-                mode=listMode
                 id=formatAccountS3Id("audit")
                 type="AWS::S3::Bucket"
                 properties=

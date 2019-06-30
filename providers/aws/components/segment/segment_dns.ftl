@@ -9,7 +9,6 @@
 
     [#if deploymentSubsetRequired("dns", true)]
         [@cfResource
-            mode=listMode
             id=formatSegmentDNSZoneId()
             type="AWS::Route53::HostedZone"
             properties=

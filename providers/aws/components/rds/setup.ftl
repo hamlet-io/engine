@@ -255,7 +255,6 @@
     [#if deploymentSubsetRequired("rds", true)]
 
         [@createDependentComponentSecurityGroup
-            mode=listMode
             occurrence=occurrence
             resourceId=rdsId
             resourceName=rdsFullName
@@ -263,7 +262,6 @@
         /]
 
         [@createSecurityGroupIngress
-            mode=listMode
             id=rdsSecurityGroupIngressId
             port=port
             cidr="0.0.0.0/0"
@@ -271,7 +269,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=rdsSubnetGroupId
             type="AWS::RDS::DBSubnetGroup"
             properties=
@@ -284,7 +281,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=rdsParameterGroupId
             type="AWS::RDS::DBParameterGroup"
             properties=
@@ -298,7 +294,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=rdsOptionGroupId
             type="AWS::RDS::OptionGroup"
             deletionPolicy="Retain"
@@ -365,7 +360,6 @@
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -392,7 +386,6 @@
             [/#list]
 
             [@createRDSInstance
-                    mode=listMode
                     id=rdsId
                     name=rdsFullName
                     engine=engine

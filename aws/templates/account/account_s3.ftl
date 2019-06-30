@@ -22,7 +22,6 @@
                 [#assign bucketPolicyId = formatResourceId(AWS_S3_BUCKET_POLICY_RESOURCE_TYPE, bucket ) ]
 
                 [@createS3Bucket
-                    mode=listMode
                     id=bucketId
                     name=bucketName
                     outputId=formatAccountS3Id(bucket)
@@ -56,7 +55,6 @@
 
                     [#if policyStatements?has_content ]
                         [@createBucketPolicy
-                            mode=listMode
                             id=bucketPolicyId
                             bucket=bucketName
                             statements=policyStatements

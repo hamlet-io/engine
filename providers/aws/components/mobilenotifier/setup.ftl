@@ -117,12 +117,10 @@
 
             [#if engine != MOBILENOTIFIER_SMS_ENGINE]
                 [@createLogGroup
-                    mode=listMode
                     id=lgId
                     name=lgName /]
 
                 [@createLogGroup
-                    mode=listMode
                     id=lgFailureId
                     name=lgFailureName /]
             [/#if]
@@ -134,7 +132,6 @@
             [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                 [@createLogMetric
-                    mode=listMode
                     id=logMetric.Id
                     name=logMetric.Name
                     logGroup=logMetric.LogGroupName
@@ -156,7 +153,6 @@
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -269,7 +265,6 @@
             && isPartOfCurrentDeploymentUnit(roleId)]
 
             [@createRole
-                mode=listMode
                 id=roleId
                 trustedServices=["sns.amazonaws.com" ]
                 policies=

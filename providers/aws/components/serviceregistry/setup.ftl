@@ -37,7 +37,6 @@
 
     [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
         [@createCloudMapDNSNamespace
-            mode=listMode
             id=registryId
             name=registryName
             domainName=registryDnsDomain
@@ -58,7 +57,6 @@
 
         [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
             [@createCloudMapService
-                mode=listMode
                 id=serviceId
                 name=serviceName
                 namespaceId=registryId

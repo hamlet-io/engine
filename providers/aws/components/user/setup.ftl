@@ -66,7 +66,6 @@
     ]
 
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
@@ -92,7 +91,6 @@
         [#if _context.Policy?has_content]
             [#local policyId = formatDependentPolicyId(userId)]
             [@createPolicy
-                mode=listMode
                 id=policyId
                 name=_context.Name
                 statements=_context.Policy
@@ -105,7 +103,6 @@
         [#if linkPolicies?has_content]
             [#local policyId = formatDependentPolicyId(userId, "links")]
             [@createPolicy
-                mode=listMode
                 id=policyId
                 name="links"
                 statements=linkPolicies
@@ -114,7 +111,6 @@
         [/#if]
 
         [@cfResource
-            mode=listMode
             id=userId
             type="AWS::IAM::User"
             properties=
@@ -146,7 +142,6 @@
                     [#case APIGATEWAY_USAGEPLAN_COMPONENT_TYPE ]
                         [#if isLinkTargetActive(linkTarget) ]
                             [@createAPIUsagePlanMember
-                                mode=listMode
                                 id=formatDependentResourceId(AWS_APIGATEWAY_USAGEPLAN_MEMBER_RESOURCE_TYPE, apikeyId, link.Id)
                                 planId=linkTargetResources["apiusageplan"].Id
                                 apikeyId=apikeyId
@@ -159,7 +154,6 @@
         [/#list]
         [#if apikeyNeeded ]
             [@createAPIKey
-                mode=listMode
                 id=apikeyId
                 name=apikeyName
             /]

@@ -17,7 +17,6 @@
         [/#list]
 
         [@createRole
-            mode=listMode
             id=automationRoleId
             name="codeontap-automation"
             trustedAccounts=accessAccounts
@@ -27,7 +26,6 @@
                 ]
         /]
         [@createRole
-            mode=listMode
             id=administratorRoleId
             name="codeontap-administrator"
             trustedAccounts=accessAccounts
@@ -38,7 +36,6 @@
             multiFactor=true
         /]
         [@createRole
-            mode=listMode
             id=viewerRoleId
             name="codeontap-viewer"
             trustedAccounts=accessAccounts

@@ -7,7 +7,6 @@
 
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
         [@createRole
-            mode=listMode
             id=cloudWatchRoleId
             trustedServices=["sns.amazonaws.com"]
             policies=
@@ -23,12 +22,10 @@
     [#assign lgFailureId = formatMobileNotifierLogGroupId(MOBILENOTIFIER_SMS_ENGINE, "", true) ]
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(lgId) ]
         [@createLogGroup
-            mode=listMode
             id=lgId
             name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", false) /]
 
         [@createLogGroup
-            mode=listMode
             id=lgFailureId
             name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", true) /]
     [/#if]

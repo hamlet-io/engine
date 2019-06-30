@@ -116,7 +116,6 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
@@ -215,7 +214,6 @@
             [#list securityGroupCIDRs as cidr ]
 
                 [@createSecurityGroupIngress
-                    mode=listMode
                     id=
                         formatDependentSecurityGroupIngressId(
                             ec2SecurityGroupId,
@@ -231,7 +229,6 @@
 
             [#list sourceSecurityGroupIds as group ]
                 [@createSecurityGroupIngress
-                    mode=listMode
                     id=
                         formatDependentSecurityGroupIngressId(
                             ec2SecurityGroupId,
@@ -252,7 +249,6 @@
         [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
         [@createRole
-            mode=listMode
             id=ec2RoleId
             trustedServices=["ec2.amazonaws.com" ]
             managedArns=
@@ -287,7 +283,6 @@
 
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(ec2LogGroupId) ]
         [@createLogGroup
-            mode=listMode
             id=ec2LogGroupId
             name=ec2LogGroupName /]
     [/#if]
@@ -301,7 +296,6 @@
     [#if deploymentSubsetRequired("ec2", true)]
 
         [@createSecurityGroup
-            mode=listMode
             id=ec2SecurityGroupId
             name=ec2SecurityGroupName
             occurrence=occurrence
@@ -309,7 +303,6 @@
             vpcId=vpcId /]
 
         [@cfResource
-            mode=listMode
             id=ec2InstanceProfileId
             type="AWS::IAM::InstanceProfile"
             properties=
@@ -343,7 +336,6 @@
                         [#local zoneVolume = (dataVolume[zone.Id].VolumeId)!"" ]
                         [#if zoneVolume?has_content ]
                             [@createEBSVolumeAttachment
-                                mode=listMode
                                 id=formatDependentResourceId(AWS_EC2_EBS_ATTACHMENT_RESOURCE_TYPE,zoneEc2InstanceId,mountId)
                                 device=volumeMount.DeviceId
                                 instanceId=zoneEc2InstanceId
@@ -360,7 +352,6 @@
                 [/#list]
 
                 [@cfResource
-                    mode=listMode
                     id=zoneEc2InstanceId
                     type="AWS::EC2::Instance"
                     metadata=getInitConfig(configSetName, configSets )
@@ -418,7 +409,6 @@
                 /]
 
                 [@cfResource
-                    mode=listMode
                     id=zoneEc2ENIId
                     type="AWS::EC2::NetworkInterface"
                     properties=
@@ -443,13 +433,11 @@
 
                 [#if fixedIP]
                     [@createEIP
-                        mode=listMode
                         id=zoneEc2EIPId
                         dependencies=[zoneEc2ENIId]
                     /]
 
                     [@cfResource
-                        mode=listMode
                         id=zoneEc2EIPAssociationId
                         type="AWS::EC2::EIPAssociation"
                         properties=

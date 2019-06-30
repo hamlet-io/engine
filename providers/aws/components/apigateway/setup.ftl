@@ -56,9 +56,8 @@
 
     [#-- Add in fragment specifics including override of defaults --]
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
-            [#include fragmentList?ensure_starts_with("/")]
+        [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
     [#local stageVariables += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket).Environment ]
@@ -234,7 +233,6 @@
     [#local accessLgName = resources["accesslg"].Name]
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(accessLgId) ]
         [@createLogGroup
-            mode=listMode
             id=accessLgId
             name=accessLgName /]
     [/#if]
@@ -242,7 +240,6 @@
     [#if deploymentSubsetRequired("apigateway", true)]
         [#-- Assume extended swagger specification is in the ops bucket --]
         [@cfResource
-            mode=listMode
             id=apiId
             type="AWS::ApiGateway::RestApi"
             properties=
@@ -272,7 +269,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=deployId
             type="AWS::ApiGateway::Deployment"
             properties=
@@ -284,7 +280,6 @@
             dependencies=apiId
         /]
         [@cfResource
-            mode=listMode
             id=stageId
             type="AWS::ApiGateway::Stage"
             properties=
@@ -313,7 +308,6 @@
         [#-- Create a WAF ACL if required --]
         [#if wafAclResources?has_content ]
             [@createWAFAclFromSecurityProfile
-                mode=listMode
                 id=wafAclResources.acl.Id
                 name=wafAclResources.acl.Name
                 metric=wafAclResources.acl.Name
@@ -325,7 +319,6 @@
             [#if !cfResources?has_content]
                 [#-- Attach to API Gateway if no CloudFront distribution --]
                 [@createWAFAclAssociation
-                    mode=listMode
                     id=wafAclResources.association.Id
                     wafaclId=wafAclResources.acl.Id
                     endpointId=
@@ -391,7 +384,6 @@
                 [/#list]
             [/#if]
             [@createCFDistribution
-                mode=listMode
                 id=cfResources["distribution"].Id
                 dependencies=stageId
                 aliases=cfResources["distribution"].Fqdns![]
@@ -418,7 +410,6 @@
                 wafAclId=(wafAclResources.acl.Id)!""
             /]
             [@createAPIUsagePlan
-                mode=listMode
                 id=cfResources["usageplan"].Id
                 name=cfResources["usageplan"].Name
                 stages=[
@@ -433,7 +424,6 @@
 
         [#list customDomainResources as key,value]
             [@cfResource
-                mode=listMode
                 id=value["domain"].Id
                 type="AWS::ApiGateway::DomainName"
                 properties=
@@ -458,7 +448,6 @@
                 dependencies=apiId
             /]
             [@cfResource
-                mode=listMode
                 id=value["basepathmapping"].Id
                 type="AWS::ApiGateway::BasePathMapping"
                 properties=
@@ -482,7 +471,6 @@
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -511,7 +499,6 @@
         [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
             [@createLogMetric
-                mode=listMode
                 id=logMetric.Id
                 name=logMetric.Name
                 logGroup=logMetric.LogGroupName
@@ -702,7 +689,6 @@
                     [#if deploymentSubsetRequired("iam", false)  &&
                         isPartOfCurrentDeploymentUnit(swaggerRoleId)]
                         [@createRole
-                            mode=listMode
                             id=swaggerRoleId
                             trustedServices="apigateway.amazonaws.com"
                             policies=policies

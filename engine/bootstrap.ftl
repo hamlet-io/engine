@@ -1,8 +1,5 @@
 [#ftl]
 
-[#-- Remove once calls to cf macros have mode removed --]
-[#assign listMode = "definition"]
-
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 

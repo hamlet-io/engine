@@ -13,13 +13,11 @@
             [#assign cidrs = getGroupCIDRs(group.Id, false) ]
             [#if cidrs?has_content]
                 [@createWAFIPSetCondition
-                    listMode,
                     ipSetId,
                     ipSetName,
                     expandCIDR([8, 16..32], cidrs)
                 /]
                 [@createWAFRule
-                    listMode,
                     ipRuleId,
                     ipSetName,
                     ipSetName,
