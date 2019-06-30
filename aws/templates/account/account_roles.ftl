@@ -1,11 +1,7 @@
 [#-- Account level roles --]
 [#if deploymentUnit?contains("roles")  || (allDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
     [/#if]
 
     [#if deploymentSubsetRequired("roles", true)]

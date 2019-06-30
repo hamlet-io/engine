@@ -14,7 +14,7 @@
     [#case "lg"]
         [#if (deploymentUnitSubset!"") == "genplan"]
             [@initialiseDefaultScriptOutput format=outputFormat /]
-            [@addToDefaultScriptOutput getGenerationPlan("template") /]
+            [@addDefaultGenerationPlan subsets="template" /]
         [#else]
             [#if !(deploymentUnitSubset?has_content)]
                 [#assign allDeploymentUnits = true]

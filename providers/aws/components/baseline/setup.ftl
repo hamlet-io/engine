@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_baseline_cf_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -36,8 +32,7 @@
         [#local segmentSeedValue = resources["segmentSeed"].Value]
 
         [#if deploymentSubsetRequired("prologue", false)]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                 [
                     "case $\{STACK_OPERATION} in",
@@ -100,7 +95,7 @@
                         [#list notification.Links?values as link]
                             [#if link?is_hash]
                                 [#local linkTarget = getLinkTarget(subOccurrence, link, false) ]
-                                [@cfDebug listMode linkTarget false /]
+                                [@debug message="Link Target" context=linkTarget enabled=false /]
                                 [#if !linkTarget?has_content]
                                     [#continue]
                                 [/#if]
@@ -129,7 +124,7 @@
                     [#if link?is_hash]
                         [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
-                        [@cfDebug listMode linkTarget false /]
+                        [@debug message="Link Target" context=linkTarget enabled=false /]
 
                         [#if !linkTarget?has_content]
                             [#continue]
@@ -147,12 +142,12 @@
 
                                     [#-- Backwards compatible support for legacy OAI keys --]
                                     [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
-                                    [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]  
+                                    [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]
 
                                     [#if legacyOAI?has_content && linkTarget.Core.SubComponent.Id = "oai" ]
                                         [#local cfAccessCanonicalIds += [ legacyOAI ]]
                                     [#else]
-                                        [#local cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]       
+                                        [#local cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
                                     [/#if]
                                 [/#if]
                                 [#break]
@@ -306,8 +301,7 @@
 
                     [#if deploymentSubsetRequired("epilogue", false)]
                         [#-- Make sure SSH credentials are in place --]
-                        [@cfScript
-                            mode=listMode
+                        [@addToDefaultBashScriptOutput
                             content=
                             [
                                 "function manage_ssh_credentials() {"
@@ -419,8 +413,7 @@
 
                     [#if legacyKey ]
                         [#if deploymentSubsetRequired("epilogue", false) ]
-                            [@cfScript
-                                mode=listMode
+                            [@addToDefaultBashScriptOutput
                                 content=
                                     [
                                         "function manage_oai_credentials() {"

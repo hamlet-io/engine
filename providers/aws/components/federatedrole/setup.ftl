@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_federatedrole_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -17,9 +13,9 @@
 
     [#local identityPoolId = resources["identitypool"].Id ]
     [#local identityPoolName = resources["identitypool"].Name ]
-    
+
     [#local roleMappingId = resources["rolemapping"].Id ]
-    
+
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
     [#local _parentContext =
         {
@@ -38,7 +34,7 @@
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget( occurrence, link ) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -56,19 +52,19 @@
                     [#local userPoolName = linkTargetAttributes["USER_POOL_NAME"] ]
                     [#local userPoolClient = linkTargetAttributes["CLIENT"] ]
 
-                    [#local federationProviders +=  
+                    [#local federationProviders +=
                                 {
-                                    id : { 
+                                    id : {
                                         "Provider" : concatenate( [ userPoolName, userPoolClient], ":" ),
                                         "Rules" : []
                                     }
                                 }]
 
-                    [#local federationCognitoProviders += 
-                                getIdentityPoolCognitoProvider( 
+                    [#local federationCognitoProviders +=
+                                getIdentityPoolCognitoProvider(
                                     userPoolName,
                                     userPoolClient
-                                )]  
+                                )]
                     [#break]
             [/#switch]
         [/#if]
@@ -151,7 +147,7 @@
 
             [#case "Rule" ]
 
-                [#local mappingRule = getIdentityPoolMappingRule( 
+                [#local mappingRule = getIdentityPoolMappingRule(
                                             (subSolution.Rule.Priority + subOccurrence?counter),
                                             subSolution.Rule.Claim,
                                             subSolution.Rule.MatchType,
@@ -161,22 +157,22 @@
 
                 [#list subSolution.Rule.Providers as provider ]
                     [#local federationProvider = federationProviders[ provider ]]
-                    [#if federationProvider?has_content]  
-                    
+                    [#if federationProvider?has_content]
+
                         [#local federationProviderRules = federationProvider["Rules"] + mappingRule ]
 
-                        
-                        [#local federationProviders = mergeObjects( federationProviders, 
+
+                        [#local federationProviders = mergeObjects( federationProviders,
                                                             {
                                                                 provider : {
-                                                                    "Rules" : federationProviderRules 
+                                                                    "Rules" : federationProviderRules
                                                                 }
                                                             }
-                        
+
                         )]
                     [/#if]
                 [/#list]
-                    
+
                 [#break]
         [/#switch]
 
@@ -187,7 +183,7 @@
         [#local managedPolicies = _context.ManagedPolicy ]
         [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
-    
+
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
 
             [@createRole
@@ -203,7 +199,7 @@
                         )
                     }
                 } +
-                attributeIfContent ( 
+                attributeIfContent (
                     "StringEquals",
                     getExistingReference(identityPoolId),
                     {
@@ -263,8 +259,8 @@
                     [#local providerRules += [ rule.Rule ]]
                 [/#list]
 
-                [#local ruleAssignments += 
-                        getIdentityPoolRoleMapping( 
+                [#local ruleAssignments +=
+                        getIdentityPoolRoleMapping(
                             federationProvider["Provider"],
                             subSolution.Type,
                             providerRules,
@@ -273,7 +269,7 @@
             [/#if]
         [/#if]
     [/#list]
-    
+
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createIdentityPoolRoleMapping
             mode=listMode

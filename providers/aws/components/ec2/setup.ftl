@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_ec2_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -140,7 +136,7 @@
     [#list links as linkId,link]
         [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-        [@cfDebug listMode linkTarget false /]
+        [@debug message="Link Target" context=linkTarget enabled=false /]
 
         [#if !linkTarget?has_content]
             [#continue]

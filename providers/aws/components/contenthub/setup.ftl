@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_contenthub_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue"])
-        /]
+        [@addDefaultGenerationPlan subsets="prologue"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution ]
@@ -19,8 +15,7 @@
     [#local contentHubPrefix = solution.Prefix ]
 
     [#if deploymentSubsetRequired("prologue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=[
                     "info \"Creating Contenthub Pseudo Stack\""
                 ] +

@@ -2318,6 +2318,10 @@ behaviour.
     [#return [] ]
 [/#function]
 
+[#macro addDefaultGenerationPlan subsets=[] alternatives=["primary"]  ]
+    [@addToDefaultScriptOutput content=getGenerationPlan(subsets, alternatives) /]
+[/#macro]
+
 [#function syncFilesToBucketScript filesArrayName region bucket prefix]
     [#return
         [

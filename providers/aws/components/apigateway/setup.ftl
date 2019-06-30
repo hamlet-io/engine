@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_apigateway_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["pregeneration", "prologue", "template", "epilogue", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["pregeneration", "prologue", "template", "epilogue", "config"] /]
         [#return]
     [/#if]
 
@@ -73,7 +69,7 @@
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -482,7 +478,7 @@
             [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
-                [@cfDebug listMode monitoredResource false /]
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
@@ -537,8 +533,7 @@
         [#if deploymentSubsetRequired("prologue", false)  ]
             [#-- Clear out bucket content if deleting api gateway so buckets will delete --]
             [#if getExistingReference(bucketId)?has_content ]
-                [@cfScript
-                    mode=listMode
+                [@addToDefaultBashScriptOutput
                     content=
                         [
                             "clear_bucket_files=()"
@@ -552,8 +547,7 @@
                 /]
             [/#if]
 
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                     [
                         "error \" API Docs publishing has been deprecated \"",
@@ -567,8 +561,7 @@
     [#-- Send API Specification to an external publisher --]
     [#if solution.Publishers?has_content ]
         [#if deploymentSubsetRequired("epilogue", false ) ]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                 [
                     "case $\{STACK_OPERATION} in",
@@ -608,8 +601,7 @@
                     [#case CONTENTHUB_HUB_COMPONENT_TYPE ]
                     [#case "external"]
                         [#if deploymentSubsetRequired("epilogue", false ) ]
-                            [@cfScript
-                                mode=listMode
+                            [@addToDefaultBashScriptOutput
                                 content=
                                 [
                                     "case $\{STACK_OPERATION} in",
@@ -636,8 +628,7 @@
     [#if getExistingReference(legacyId)?has_content && deploymentSubsetRequired("prologue", false) ]
         [#-- Remove legacy docs bucket id - it will likely be recreated with new id format --]
         [#-- which uses bucket name --]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 [
                     "clear_bucket_files=()"
@@ -658,8 +649,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("pregeneration", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getBuildScript(
                     "swaggerFiles",
@@ -746,18 +736,14 @@
 
         [#if extendedSwaggerDefinition?has_content]
             [#if deploymentSubsetRequired("config", false)]
-                [@cfConfig
-                    mode=listMode
-                    content=extendedSwaggerDefinition
-                /]
+                [@addToDefaultJsonOutput content=extendedSwaggerDefinition /]
             [/#if]
         [/#if]
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
         [#-- Copy the final swagger definition to the ops bucket --]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getLocalFileScript(
                     "configFiles",

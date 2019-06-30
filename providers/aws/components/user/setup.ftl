@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_user_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
         [#return]
     [/#if]
 
@@ -76,8 +72,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
             [
                 "case $\{STACK_OPERATION} in",
@@ -139,7 +134,7 @@
             [#if link?is_hash]
                 [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
-                [@cfDebug listMode linkTarget false /]
+                [@debug message="Link Target" context=linkTarget enabled=false /]
 
                 [#if !linkTarget?has_content]
                     [#continue]
@@ -174,8 +169,7 @@
     [#if deploymentSubsetRequired("epilogue", false)]
 
         [#local credentialsPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-credentials-pseudo-stack.json\"" ]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
             [
                 "case $\{STACK_OPERATION} in",

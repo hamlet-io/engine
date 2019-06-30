@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_computecluster_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
 
@@ -197,7 +193,7 @@
     [#list links?values as link]
         [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-        [@cfDebug listMode linkTarget false /]
+        [@debug message="Link Target" context=linkTarget enabled=false /]
 
         [#if !linkTarget?has_content]
             [#continue]

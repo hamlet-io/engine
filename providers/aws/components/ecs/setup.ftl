@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_ecs_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -232,7 +228,7 @@
             [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
-                [@cfDebug listMode monitoredResource false /]
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
@@ -343,14 +339,10 @@
 [/#macro]
 
 [#macro aws_ecs_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
         [#return]
     [/#if]
 
@@ -390,7 +382,7 @@
             occurrence.Occurrences![],
             deploymentUnit) as subOccurrence]
 
-        [@cfDebug listMode subOccurrence false /]
+        [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
 
         [#local core = subOccurrence.Core ]
         [#local solution = subOccurrence.Configuration.Solution ]
@@ -484,7 +476,7 @@
                         [#if portMapping.LoadBalancer?has_content]
                             [#local loadBalancer = portMapping.LoadBalancer]
                             [#local link = container.Links[loadBalancer.Link] ]
-                            [@cfDebug listMode link false /]
+                            [@debug message="Link" context=link enabled=false /]
                             [#local linkCore = link.Core ]
                             [#local linkResources = link.State.Resources ]
                             [#local linkConfiguration = link.Configuration.Solution ]
@@ -599,7 +591,7 @@
                         [#if portMapping.ServiceRegistry?has_content]
                             [#local serviceRegistry = portMapping.ServiceRegistry]
                             [#local link = container.Links[serviceRegistry.Link] ]
-                            [@cfDebug listMode link false /]
+                            [@debug message="Link" context=link enabled=false /]
                             [#local linkCore = link.Core ]
                             [#local linkResources = link.State.Resources ]
                             [#local linkConfiguration = link.Configuration.Solution ]
@@ -829,15 +821,13 @@
                         [#local targetCommand = "updateTargetRule" ]
 
                         [#if deploymentSubsetRequired("cli", false) ]
-                            [@cfCli
-                                mode=listMode
+                            [@addCliToDefaultJsonOutput
                                 id=ruleCliId
                                 command=ruleCommand
                                 content=eventRuleCliConfig
                             /]
 
-                            [@cfCli
-                                mode=listMode
+                            [@addCliToDefaultJsonOutput
                                 id=targetCliId
                                 command=targetCommand
                                 content=eventTargetCliConfig
@@ -856,8 +846,7 @@
                                 "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
                             }]
 
-                            [@cfScript
-                                mode=listMode
+                            [@addToDefaultBashScriptOutput
                                 content=
                                     [
                                         " case $\{STACK_OPERATION} in",
@@ -885,8 +874,7 @@
                         [/#if]
 
                         [#if deploymentSubsetRequired("prologue", false)]
-                            [@cfScript
-                                mode=listMode
+                            [@addToDefaultBashScriptOutput
                                 content=
                                     [
                                         " case $\{STACK_OPERATION} in",
@@ -1057,9 +1045,8 @@
             [#-- Copy any asFiles needed by the task --]
             [#local asFiles = getAsFileSettings(subOccurrence.Configuration.Settings.Product) ]
             [#if asFiles?has_content]
-                [@cfDebug listMode asFiles false /]
-                [@cfScript
-                    mode=listMode
+                [@debug message="AsFiles" context=asFiles enabled=false /]
+                [@addToDefaultBashScriptOutput
                     content=
                         findAsFilesScript("filesToSync", asFiles) +
                         syncFilesToBucketScript(

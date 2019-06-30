@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_es_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template", "epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["template", "epilogue", "cli"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -191,7 +187,7 @@
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -259,7 +255,7 @@
             [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
-                [@cfDebug listMode monitoredResource false /]
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
@@ -366,8 +362,7 @@
                 }
             )]
 
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=esId
             command=esUpdateCommand
             content=esCliConfig
@@ -376,8 +371,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content= (getExistingReference(esId)?has_content)?then(
                     [
                         "case $\{STACK_OPERATION} in",

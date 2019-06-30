@@ -84,20 +84,20 @@
 [/#macro]
 
 [#-- If multiple formats supported, ignore the ones not needed for current format --]
-[#macro addToDefaultBashOutput lines=[] ]
+[#macro addToDefaultBashScriptOutput content=[] ]
     [#if isDefaultBashOutput(DEFAULT_OUTPUT_SCRIPT_TYPE)]
-        [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=lines /]
+        [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=content /]
     [/#if]
 [/#macro]
 
-[#macro addToDefaultPSOutput lines=[] ]
+[#macro addToDefaultPSScriptOutput content=[] ]
     [#if isDefaultPSOutput(DEFAULT_OUTPUT_SCRIPT_TYPE)]
-        [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=lines /]
+        [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=content /]
     [/#if]
 [/#macro]
 
-[#macro addToDefaultScriptOutput lines=[] ]
-    [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=lines /]
+[#macro addToDefaultScriptOutput content=[] ]
+    [@addToTextOutput name=DEFAULT_OUTPUT_SCRIPT_TYPE lines=content /]
 [/#macro]
 
 [#-- DEFAULT_OUTPUT_JSON_TYPE --]

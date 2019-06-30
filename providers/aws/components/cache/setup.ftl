@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_cache_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -146,7 +142,7 @@
                 [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
-                    [@cfDebug listMode monitoredResource false /]
+                    [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]

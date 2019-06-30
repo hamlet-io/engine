@@ -1,17 +1,14 @@
 [#ftl]
 [#macro aws_rds_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(
-                    ["prologue", "template", "epilogue"],
-                    ["primary", "replace1", "replace2"])
+        [@addDefaultGenerationPlan
+            subsets=["prologue", "template", "epilogue"]
+            alternatives=["primary", "replace1", "replace2"]
         /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -184,8 +181,7 @@
     [#local processorProfile = getProcessor(occurrence, "RDS")]
 
     [#if deploymentSubsetRequired("prologue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
             [
                 "case $\{STACK_OPERATION} in",
@@ -361,7 +357,7 @@
                 [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
-                    [@cfDebug listMode monitoredResource false /]
+                    [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
@@ -428,8 +424,7 @@
 
             [#local passwordPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
             [#local urlPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                 [
                     "case $\{STACK_OPERATION} in",

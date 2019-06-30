@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_spa_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template", "epilogue"])
-        /]
+        [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local resources = occurrence.State.Resources]
@@ -108,7 +104,7 @@
 
         [#local eventHandlerTarget = getLinkTarget(occurrence, eventHandler) ]
 
-        [@cfDebug listMode eventHandlerTarget false /]
+        [@debug message="Event message handler" context=eventHandlerTarget enabled=false /]
 
         [#if !eventHandlerTarget?has_content]
             [#continue]
@@ -146,11 +142,11 @@
 
     [#-- Baseline component lookup --]
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData", "AppData" ] )]
-    
+
     [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]) ]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket       = getExistingReference(baselineComponentIds["AppData"]) ]
-    
+
     [#if !cfAccess?has_content]
         [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
         [#return]
@@ -316,8 +312,7 @@
         [/#if]
     [/#if]
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=(getExistingReference(cfId)?has_content)?then(
                 [
                     "case $\{STACK_OPERATION} in",
@@ -342,14 +337,10 @@
 [/#macro]
 
 [#macro aws_spa_cf_application occurrence  ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "config"] /]
         [#return]
     [/#if]
 
@@ -361,9 +352,9 @@
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData"] )]
-    
+
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
-    
+
     [#local contextLinks = getLinkTargets(occurrence) ]
     [#assign _context =
         {
@@ -388,15 +379,13 @@
     [#assign _context += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket ) ]
 
     [#if deploymentSubsetRequired("config", false)]
-        [@cfConfig
-            mode=listMode
+        [@addToDefaultJsonOutput
             content={ "RUN_ID" : runId } + _context.Environment
         /]
     [/#if]
     [#if deploymentSubsetRequired("prologue", false)]
 
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getBuildScript(
                     "spaFiles",
@@ -432,8 +421,7 @@
 
         [#local cfId = resources["cf"].Id]
 
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=(getExistingReference(cfId)?has_content)?then(
                 [
                     "case $\{STACK_OPERATION} in",

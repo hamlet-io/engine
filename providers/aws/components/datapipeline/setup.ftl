@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_datapipeline_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue", "cli", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli", "config"] /]
         [#return]
     [/#if]
 
@@ -118,12 +114,7 @@
     [/#list]
 
     [#if deploymentSubsetRequired("config", false)]
-        [@cfConfig
-            mode=listMode
-            content={
-                "values" : myParameterValues
-            }
-        /]
+        [@addToDefaultJsonOutput content={ "values" : myParameterValues } /]
     [/#if]
 
     [#if deploymentSubsetRequired("iam", true)  ]
@@ -243,8 +234,7 @@
             "tags" : cliTags
         }]
 
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=pipelineId
             command=pipelineCreateCommand
             content=pipelineCreateCliConfig
@@ -255,9 +245,8 @@
         [#-- Copy any asFiles needed by the task --]
         [#local asFiles = getAsFileSettings(settings.Product) ]
         [#if asFiles?has_content]
-            [@cfDebug listMode asFiles false /]
-            [@cfScript
-                mode=listMode
+            [@debug message="Asfiles" context=asFiles enabled=false /]
+            [@addToDefaultBashScriptOutput
                 content=
                     findAsFilesScript("filesToSync", asFiles) +
                     syncFilesToBucketScript(
@@ -270,8 +259,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false) ]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getBuildScript(
                     "pipelineFiles",

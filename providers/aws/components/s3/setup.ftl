@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_s3_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -36,7 +32,7 @@
             [#list notification.Links?values as link]
                 [#if link?is_hash]
                     [#local linkTarget = getLinkTarget(occurrence, link, false) ]
-                    [@cfDebug listMode linkTarget false /]
+                    [@debug message="Link Target" context=linkTarget enabled=false /]
                     [#if !linkTarget?has_content]
                         [#continue]
                     [/#if]
@@ -120,7 +116,7 @@
 
             [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]

@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_mobilenotifier_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -158,7 +154,7 @@
                 [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
-                    [@cfDebug listMode monitoredResource false /]
+                    [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
@@ -200,8 +196,7 @@
                         platformAppCredential,
                         platformAppPrincipal )]
 
-                [@cfCli
-                    mode=listMode
+                [@addCliToDefaultJsonOutput
                     id=platformAppAttributesCliId
                     command=platformAppAttributesCommand
                     content=platformAppAttributes
@@ -211,8 +206,7 @@
 
             [#if deploymentSubsetRequired( "epilogue", false) ]
 
-                [@cfScript
-                    mode=listMode
+                [@addToDefaultBashScriptOutput
                     content=
                         [
                             "# Platform: " + core.SubComponent.Name,
@@ -256,8 +250,7 @@
 
     [#if hasPlatformApp ]
         [#if deploymentSubsetRequired( "prologue", false) ]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                     [
                         "# Mobile Notifier Cleanup",

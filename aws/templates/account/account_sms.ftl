@@ -2,11 +2,7 @@
 [#if deploymentUnit?contains("sms") || (allDeploymentUnits!false) ]
     [#assign cloudWatchRoleId = formatAccountRoleId("sms","cloudwatch")]
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["epilogue", "cli"] /]
     [/#if]
 
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
@@ -55,8 +51,7 @@
                 getSetting(smsSettings, ["SMS", "DEFAULT", "TYPE"], true).Value,
                 "Transactional"
             ) ]
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=smsResourceId
             command=smsCliCommand
             content=
@@ -86,8 +81,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false) ]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 [
                     "case $\{STACK_OPERATION} in",

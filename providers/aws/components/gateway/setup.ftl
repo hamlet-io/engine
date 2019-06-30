@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_gateway_cf_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local gwCore = occurrence.Core ]
     [#local gwSolution = occurrence.Configuration.Solution ]
@@ -160,7 +156,7 @@
 
         [#list occurrence.Occurrences![] as subOccurrence]
 
-            [@cfDebug listMode subOccurrence false /]
+            [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
 
             [#local core = subOccurrence.Core ]
             [#local solution = subOccurrence.Configuration.Solution ]
@@ -177,7 +173,7 @@
 
                     [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-                    [@cfDebug listMode linkTarget false /]
+                    [@debug message="Link Target" context=linkTarget enabled=false /]
 
                     [#if !linkTarget?has_content]
                         [#continue]

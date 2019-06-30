@@ -96,7 +96,7 @@
 
                 [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-                [@cfDebug listMode linkTarget false /]
+                [@debug message="Link Target" context=linkTarget enabled=false /]
 
                 [#if !linkTarget?has_content]
                     [#continue]

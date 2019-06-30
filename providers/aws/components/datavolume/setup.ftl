@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_datavolume_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template", "epilogue"])
-        /]
+        [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -194,8 +190,7 @@
         [/#if]
     [/#if]
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
             [
                 "case $\{STACK_OPERATION} in",

@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_network_cf_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -197,7 +193,7 @@
         [#local solution = subOccurrence.Configuration.Solution ]
         [#local resources = subOccurrence.State.Resources ]
 
-        [@cfDebug listMode subOccurrence false /]
+        [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
 
         [#if core.Type == NETWORK_ROUTE_TABLE_COMPONENT_TYPE]
 

@@ -4,11 +4,7 @@
     [#if accountObject.Seed?has_content]
 
         [#if deploymentSubsetRequired("genplan", false)]
-            [@cfScript
-                mode=listMode
-                content=
-                    getGenerationPlan(["template"])
-            /]
+            [@addDefaultGenerationPlan subsets="template" /]
         [/#if]
 
         [#if deploymentSubsetRequired("audit", true)]

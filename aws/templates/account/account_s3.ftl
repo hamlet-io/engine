@@ -2,11 +2,7 @@
 [#if deploymentUnit?contains("s3") || (allDeploymentUnits!false) ]
     [#if accountObject.Seed?has_content]
         [#if deploymentSubsetRequired("genplan", false)]
-            [@cfScript
-                mode=listMode
-                content=
-                    getGenerationPlan(["template", "epilogue"])
-            /]
+            [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
         [/#if]
 
         [#if deploymentSubsetRequired("s3", true)]
@@ -121,8 +117,7 @@
             [/#list]
 
             [#-- Make sure code bucket is up to date and registires initialised --]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                     [
                         "function sync_code_bucket() {"

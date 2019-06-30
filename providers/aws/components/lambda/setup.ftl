@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_lambda_cf_application occurrence ]
-    [@cfDebug listMode occurrence false  /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "config"] /]
         [#return]
     [/#if]
 
@@ -426,18 +422,14 @@
             [/#list]
         [/#if]
         [#if solution.Environment.AsFile && deploymentSubsetRequired("config", false)]
-            [@cfConfig
-                mode=listMode
-                content=finalAsFileEnvironment.Environment
-            /]
+            [@addToDefaultJsonOutput content=finalAsFileEnvironment.Environment /]
         [/#if]
         [#if deploymentSubsetRequired("prologue", false)]
             [#-- Copy any asFiles needed by the task --]
             [#local asFiles = getAsFileSettings(fn.Configuration.Settings.Product) ]
             [#if asFiles?has_content]
-                [@cfDebug listMode asFiles false /]
-                [@cfScript
-                    mode=listMode
+                [@debug message="Asfiles" context=asFiles enabled=false /]
+                [@addToDefaultBashScriptOutput
                     content=
                         findAsFilesScript("filesToSync", asFiles) +
                         syncFilesToBucketScript(
@@ -448,8 +440,7 @@
                         ) /]
             [/#if]
             [#if solution.Environment.AsFile]
-                [@cfScript
-                    mode=listMode
+                [@addToDefaultBashScriptOutput
                     content=
                         getLocalFileScript(
                             "configFiles",
@@ -466,8 +457,7 @@
                             )
                         ) /]
             [/#if]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=(vpcAccess)?then(
                     [
                         "case $\{STACK_OPERATION} in",
