@@ -88,6 +88,14 @@
                 [#local bucketDependencies = [] ]
                 [#local cfAccessCanonicalIds = [] ]
 
+                [#-- Backwards compatible support for legacy OAI keys --]
+                [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
+                [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]
+
+                [#if legacyOAI?has_content] 
+                    [#local cfAccessCanonicalIds += [ legacyOAI ]]
+                [/#if]
+
                 [#list subSolution.Notifications!{} as id,notification ]
                     [#if notification?is_hash]
                         [#list notification.Links?values as link]
@@ -137,16 +145,7 @@
 
                             [#case BASELINE_KEY_COMPONENT_TYPE]
                                 [#if linkTargetConfiguration.Solution.Engine == "oai" ]
-
-                                    [#-- Backwards compatible support for legacy OAI keys --]
-                                    [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
-                                    [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]
-
-                                    [#if legacyOAI?has_content && linkTarget.Core.SubComponent.Id = "oai" ]
-                                        [#local cfAccessCanonicalIds += [ legacyOAI ]]
-                                    [#else]
-                                        [#local cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
-                                    [/#if]
+                                    [#local cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
                                 [/#if]
                                 [#break]
                         [/#switch]
@@ -395,13 +394,19 @@
                         [#if opsDataLinkTarget?has_content ]
                             [#local opsDataBucketId = opsDataLinkTarget.State.Resources["bucket"].Id ]
                             [#local legacyOAIId = formatDependentCFAccessId(opsDataBucketId)]
+                            [#local legacyOAIName = formatSegmentFullName()]
 
                             [#if (getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE))?has_content ]
                                 [#local legacyKey = true]
-                                [#local OAIId = legacyOAIId ]
-                                [#local OAIName = formatSegmentFullName()]
                             [/#if]
                         [/#if]
+                    [/#if]
+
+                    [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
+                        [@createCFOriginAccessIdentity
+                            id=OAIId
+                            name=OAIName
+                        /]
                     [/#if]
 
                     [#if legacyKey ]
@@ -409,53 +414,22 @@
                             [@addToDefaultBashScriptOutput
                                 content=
                                     [
-                                        "function manage_oai_credentials() {"
-                                        "  info \"Checking OAI credentials ...\"",
-                                        "  #",
-                                        "  local oai_file=\"$(getTopTempDir)/oai.json\"",
-                                        "  update_oai_credentials" + " " +
-                                            "\"" + regionId + "\" " +
-                                            "\"" + OAIName + "\" " +
-                                            "\"$\{oai_file}\" || return $?",
-                                        "  #",
-                                        "  oai_id=$(jq -r \".Id\" < \"$\{oai_file}\") || return $?",
-                                        "  oai_canonical_id=$(jq -r \".S3CanonicalUserId\" < \"$\{oai_file}\") || return $?"
-                                    ] +
-                                    pseudoStackOutputScript(
-                                        "Cloudfront Origin Access Identity",
-                                        {
-                                            OAIId : "$\{oai_id}",
-                                            formatId(OAIId, CANONICAL_ID_ATTRIBUTE_TYPE ) : "$\{oai_canonical_id}",
-                                            formatId(subResources["originAccessId"].Id, ALLOCATION_ATTRIBUTE_TYPE ) : OAIId
-                                        }
-                                    ) +
-                                    [
-                                        "   info \"Removing old oai pseduo stack output\"",
-                                        "   legacy_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-pseudo-stack.json\"",
-                                        "   if [ -f \"$\{legacy_pseudo_stack_file}\" ]; then",
-                                        "       rm -f \"$\{legacy_pseudo_stack_file}\"",
-                                        "   fi",
-                                        "}",
-                                        "#",
                                         "case $\{STACK_OPERATION} in",
                                         "  delete)",
                                         "  delete_oai_credentials" + " " +
                                             "\"" + regionId + "\" " +
-                                            "\"" + formatSegmentFullName() + "\" || return $?",
+                                            "\"" + legacyOAIName + "\" || return $?",
                                         "  rm -f \"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-pseudo-stack.json\"",
                                         "    ;;",
                                         "  create|update)",
-                                        "    manage_oai_credentials || return $?",
+                                        "    info \"Removing old oai pseduo stack output\"",
+                                        "    legacy_pseudo_stack_file=\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE/\"-baseline-\"/\"-cmk-\"}\")-pseudo-stack.json\"",
+                                        "    if [ -f \"$\{legacy_pseudo_stack_file}\" ]; then",
+                                        "       rm -f \"$\{legacy_pseudo_stack_file}\"",
+                                        "    fi",
                                         "    ;;",
                                         " esac"
                                     ]
-                            /]
-                        [/#if]
-                    [#else]
-                        [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
-                            [@createCFOriginAccessIdentity
-                                id=OAIId
-                                name=OAIName
                             /]
                         [/#if]
                     [/#if]
