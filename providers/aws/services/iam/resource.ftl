@@ -32,34 +32,6 @@
     /]
 [/#macro]
 
-[#macro createSQSPolicy id queues statements dependencies=[] ]
-    [@cfResource
-        id=id
-        type="AWS::SQS::QueuePolicy"
-        properties=
-            {
-                "Queues" : getReferences(queues, URL_ATTRIBUTE_TYPE)
-            } +
-            getPolicyDocument(statements)
-        outputs={}
-        dependencies=dependencies
-    /]
-[/#macro]
-
-[#macro createBucketPolicy id bucket statements dependencies=[] ]
-    [@cfResource
-        id=id
-        type="AWS::S3::BucketPolicy"
-        properties=
-            {
-                "Bucket" : (getExistingReference(bucket)?has_content)?then(getExistingReference(bucket),bucket)
-            } +
-            getPolicyDocument(statements)
-        outputs={}
-        dependencies=dependencies
-    /]
-[/#macro]
-
 [#assign ROLE_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {

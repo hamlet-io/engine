@@ -1588,7 +1588,7 @@ behaviour.
 
 [/#function]
 
-[#function getLinkTarget occurrence link activeOnly=true]
+[#function getLinkTarget occurrence link activeOnly=true activeRequired=false]
 
     [#local instanceToMatch = link.Instance!occurrence.Core.Instance.Id ]
     [#local versionToMatch = link.Version!occurrence.Core.Version.Id ]
@@ -1717,7 +1717,21 @@ behaviour.
             [@debug message="Link matched target" enabled=false /]
 
             [#-- Determine if deployed --]
-            [#if activeOnly && !isOccurrenceDeployed(targetSubOccurrence) ]
+            [#if ( activeOnly || activeRequired ) && !isOccurrenceDeployed(targetSubOccurrence) ]
+                [#if activeRequired ]
+                    [@postcondition
+                        function="getLinkTarget"
+                        context=
+                            {
+                                "Occurrence" : occurrence,
+                                "Link" : link,
+                                "EffectiveInstance" : instanceToMatch,
+                                "EffectiveVersion" : versionToMatch
+                            }
+                        detail="COTFatal:Link target not active/deployed"
+                        enabled=true
+                    /]
+                [/#if]
                 [#return {} ]
             [/#if]
 
@@ -1751,11 +1765,11 @@ behaviour.
     [#return {} ]
 [/#function]
 
-[#function getLinkTargets occurrence links={} activeOnly=true]
+[#function getLinkTargets occurrence links={} activeOnly=true activeRequired=false ]
     [#local result={} ]
     [#list (valueIfContent(links, links, occurrence.Configuration.Solution.Links!{}))?values as link]
         [#if link?is_hash]
-            [#local linkTarget = getLinkTarget(occurrence, link, activeOnly) ]
+            [#local linkTarget = getLinkTarget(occurrence, link, activeOnly, activeRequired) ]
             [#local result +=
                 valueIfContent(
                     {

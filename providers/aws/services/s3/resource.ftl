@@ -356,4 +356,16 @@
     /]
 [/#macro]
 
-
+[#macro createBucketPolicy id bucket statements dependencies=[] ]
+    [@cfResource
+        id=id
+        type="AWS::S3::BucketPolicy"
+        properties=
+            {
+                "Bucket" : (getExistingReference(bucket)?has_content)?then(getExistingReference(bucket),bucket)
+            } +
+            getPolicyDocument(statements)
+        outputs={}
+        dependencies=dependencies
+    /]
+[/#macro]
