@@ -46,14 +46,13 @@
             ]
             [#local baselineLinkTarget = getLinkTarget( {}, baselineLink, true, true )]
             [#local baselineComponentId = (baselineLinkTarget.State.Attributes["ID"])!"" ]
-            
+
             [#if ! baselineComponentId?has_content ]
-                [@fatal 
+                [@fatal
                     message="Baseline component not found or not deployed"
                     detail={
                         key: value
                     }
-                    enabled=true
                 /]
             [/#if]
 

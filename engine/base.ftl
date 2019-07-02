@@ -524,14 +524,34 @@
     [#return ""]
 [/#function]
 
+[#--------------------------
+-- Date/time manipulation --
+----------------------------]
+
+[#function datetimeAsString datetime ms=true utc=false]
+    [#local format = "iso"]
+    [#if utc]
+        [#local format += "_utc"]
+    [/#if]
+    [#if ms]
+        [#local format += "_ms"]
+    [/#if]
+    [#return datetime?string[format]]
+[/#function]
+
+[#function duration end start ]
+    [#return (end?long - start?long)]
+[/#function]
+
 [#-----------
 -- Logging --
 -------------]
 
 [#assign DEBUG_LOG_LEVEL = 0]
 [#assign TRACE_LOG_LEVEL = 1]
-[#assign INFORMATION_LOG_LEVEL=3]
-[#assign WARNING_LOG_LEVEL= 5]
+[#assign INFORMATION_LOG_LEVEL = 3]
+[#assign TIMING_LOG_LEVEL = 4]
+[#assign WARNING_LOG_LEVEL = 5]
 [#assign ERROR_LOG_LEVEL = 7]
 [#assign FATAL_LOG_LEVEL = 9]
 
@@ -540,7 +560,7 @@
     "trace",
     "",
     "info",
-    "",
+    "timing",
     "warn",
     "",
     "error",
@@ -585,7 +605,7 @@
         [#assign logMessages +=
             [
                 {
-                    "Timestamp" : .now?string["iso_ms"],
+                    "Timestamp" : datetimeAsString(.now),
                     "Severity" : logLevelDescriptions[severity]!"unknown",
                     "Message" : message
                 } +
@@ -595,7 +615,7 @@
     [/#if]
 [/#macro]
 
-[#macro debug message context={} detail={} enabled=false]
+[#macro debug message context={} detail={} enabled=true]
     [@logMessage
         severity=DEBUG_LOG_LEVEL
         message=message
@@ -605,7 +625,7 @@
     /]
 [/#macro]
 
-[#macro trace message context={} detail={} enabled=false]
+[#macro trace message context={} detail={} enabled=true]
     [@logMessage
         severity=TRACE_LOG_LEVEL
         message=message
@@ -615,7 +635,7 @@
     /]
 [/#macro]
 
-[#macro info message context={} detail={} enabled=false]
+[#macro info message context={} detail={} enabled=true]
     [@logMessage
         severity=INFORMATION_LOG_LEVEL
         message=message
@@ -625,7 +645,17 @@
     /]
 [/#macro]
 
-[#macro warn message context={} detail={} enabled=false]
+[#macro timing message context={} detail={} enabled=true]
+    [@logMessage
+        severity=TIMING_LOG_LEVEL
+        message=message
+        context=context
+        detail=detail
+        enabled=enabled
+    /]
+[/#macro]
+
+[#macro warn message context={} detail={} enabled=true]
     [@logMessage
         severity=WARNING_LOG_LEVEL
         message=message
@@ -635,7 +665,7 @@
     /]
 [/#macro]
 
-[#macro error message context={} detail={} enabled=false]
+[#macro error message context={} detail={} enabled=true]
     [@logMessage
         severity=ERROR_LOG_LEVEL
         message=message
@@ -645,7 +675,7 @@
     /]
 [/#macro]
 
-[#macro fatal message context={} detail={} enabled=false]
+[#macro fatal message context={} detail={} enabled=true]
     [@logMessage
         severity=FATAL_LOG_LEVEL
         message=message
@@ -655,7 +685,7 @@
     /]
 [/#macro]
 
-[#macro precondition function context={} detail={} enabled=false]
+[#macro precondition function context={} detail={} enabled=true]
     [@fatal
         message="Precondition failed for " + function
         context=context
@@ -664,7 +694,7 @@
     /]
 [/#macro]
 
-[#macro postcondition function context={} detail={} enabled=false]
+[#macro postcondition function context={} detail={} enabled=true]
     [@fatal
         message="Postcondition failed for " + function
         context=context
