@@ -44,21 +44,25 @@
                     subComponentType : value
                 }
             ]
-            [#local baselineLinkTarget = getLinkTarget( {}, baselineLink )]
-            [#if baselineLinkTarget?has_content && (baselineLinkTarget.State.Attributes["ID"])?has_content  ]
-                [#local baselineComponentIds += {
-                    key : baselineLinkTarget.State.Attributes["ID"]!"COTFatal: ResourceID not found"
-                }]
-                [#local baselineLinkTargets += {
-                        key : baselineLinkTargets
-                }]
-            [#else]
-                [@fatal
+            [#local baselineLinkTarget = getLinkTarget( {}, baselineLink, true, true )]
+            [#local baselineComponentId = (baselineLinkTarget.State.Attributes["ID"])!"" ]
+            
+            [#if ! baselineComponentId?has_content ]
+                [@fatal 
                     message="Baseline component not found or not deployed"
-                    detail=baselineProfile
-                    context=baselineLink
+                    detail={
+                        key: value
+                    }
+                    enabled=true
                 /]
             [/#if]
+
+            [#local baselineComponentIds += {
+                key : baselineComponentId
+            }]
+            [#local baselineLinkTargets += {
+                    key : baselineLinkTarget
+            }]
         [/#if]
     [/#list]
 
