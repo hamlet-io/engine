@@ -99,7 +99,7 @@
 
     [#local configSets =
             getInitConfigDirectories() +
-            getInitConfigBootstrap(occurrence) ]
+            getInitConfigBootstrap(occurrence, operationsBucket, dataBucket) ]
 
     [#local scriptsPath =
             formatRelativePath(
