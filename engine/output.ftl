@@ -66,7 +66,7 @@
             ] ]
         [#list messages as message]
             [#local timestamp = message.Timestamp?right_pad(30) ]
-            [#local severity = "[" + message.Severity?right_pad(5) + "]" ]
+            [#local severity = "[" + message.Severity?right_pad(6) + "]" ]
             [#local comments += [[timestamp, severity, getJSON(message.Message)]?join(" ")] ]
             [#if message.Context?has_content]
                 [#local comments += [" ...." + getJSON(message.Context)] ]

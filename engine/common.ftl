@@ -1279,6 +1279,8 @@ behaviour.
     ]
 [/#function]
 
+[#assign occurrencesCache = {}]
+
 [#-- Get the occurrences of versions/instances of a component           --]
 [#-- This function should NOT be called directly - it is for the use of --]
 [#-- other functions in this file                                       --]
@@ -1317,6 +1319,12 @@ behaviour.
         [#local subComponentId = typeObject.Id?split("-") ]
         [#local subComponentName = typeObject.Name?split("-") ]
         [#local componentContexts += [typeObject] ]
+    [/#if]
+
+    [#-- Have we already seen this occurrence --]
+    [#local cacheIndex = formatId(tierId, componentId, subComponentId)]
+    [#if occurrencesCache[cacheIndex]?has_content]
+        [#return occurrencesCache[cacheIndex]]
     [/#if]
 
     [#local occurrences=[] ]
@@ -1572,6 +1580,7 @@ behaviour.
         [/#if]
     [/#list]
 
+    [#assign occurrencesCache += {cacheIndex : occurrences}]
     [#return occurrences ]
 [/#function]
 
