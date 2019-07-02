@@ -1765,11 +1765,11 @@ behaviour.
     [#return {} ]
 [/#function]
 
-[#function getLinkTargets occurrence links={} activeOnly=true]
+[#function getLinkTargets occurrence links={} activeOnly=true activeRequired=false ]
     [#local result={} ]
     [#list (valueIfContent(links, links, occurrence.Configuration.Solution.Links!{}))?values as link]
         [#if link?is_hash]
-            [#local linkTarget = getLinkTarget(occurrence, link, activeOnly) ]
+            [#local linkTarget = getLinkTarget(occurrence, link, activeOnly, activeRequired) ]
             [#local result +=
                 valueIfContent(
                     {
