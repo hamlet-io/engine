@@ -863,9 +863,8 @@ behaviour.
         [#if invokeStateMacro(occurrence, key, parentOccurrence, state)]
             [#local state = mergeObjects(state, componentState) ]
         [#else]
-            [@cfDebug
-                mode=listMode
-                value="State macro for resource group " + key + " not found"
+            [@debug
+                message="State macro for resource group " + key + " not found"
                 enabled=false
             /]
         [/#if]
@@ -942,9 +941,8 @@ behaviour.
             [#if value?has_content]
                 [#list alternatives as alternative]
                     [#local alternativeKey = formatName(root, prefix, alternative.Key) ]
-                    [@cfDebug
-                        mode=listMode
-                        value=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey
+                    [@debug
+                        message=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey
                         enabled=false
                     /]
                     [#if
@@ -952,9 +950,8 @@ behaviour.
                             ((alternative.Match == "exact") && (alternativeKey == matchKey)) ||
                             ((alternative.Match == "partial") && (alternativeKey?starts_with(matchKey)))
                         ) ]
-                        [@cfDebug
-                            mode=listMode
-                            value=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey + " successful"
+                        [@debug
+                            message=alternative.Match + " comparison of " + matchKey + " to " + alternativeKey + " successful"
                             enabled=false
                         /]
                         [#local contexts += [value] ]
@@ -1602,16 +1599,16 @@ behaviour.
     [#local instanceToMatch = link.Instance!occurrence.Core.Instance.Id ]
     [#local versionToMatch = link.Version!occurrence.Core.Version.Id ]
 
-    [@cfDebug
-        listMode
-        {
-            "Text" : "Getting link Target",
-            "Occurrence" : occurrence,
-            "Link" : link,
-            "EffectiveInstance" : instanceToMatch,
-            "EffectiveVersion" : versionToMatch
-        }
-        false
+    [@debug
+        message="Getting link Target"
+        context=
+            {
+                "Occurrence" : occurrence,
+                "Link" : link,
+                "EffectiveInstance" : instanceToMatch,
+                "EffectiveVersion" : versionToMatch
+            }
+        enabled=false
     /]
     [#if ! (link.Enabled)!true ]
         [#return {} ]
@@ -1667,13 +1664,10 @@ behaviour.
                 getTier(link.Tier),
                 getComponent(link.Tier, link.Component)) as targetOccurrence]
 
-        [@cfDebug
-            listMode
-            {
-                "Text" : "Possible link target",
-                "Occurrence" : targetOccurrence
-            }
-            false
+        [@debug
+            message="Possible link target"
+            context=targetOccurrence
+            enabled=false
         /]
 
         [#local core = targetOccurrence.Core ]
@@ -1726,7 +1720,7 @@ behaviour.
                 [#continue]
             [/#if]
 
-            [@cfDebug listMode "Link matched target" false /]
+            [@debug message="Link matched target" enabled=false /]
 
             [#-- Determine if deployed --]
             [#if activeOnly && !isOccurrenceDeployed(targetSubOccurrence) ]
@@ -2198,7 +2192,7 @@ behaviour.
         attributeIfTrue("Version",  port.LB.Version??, port.LB.Version!"") +
         attributeIfContent("PortMapping",  portMapping)
     ]
-    [@cfDebug listMode { targetLinkName : targetLink } false /]
+    [@debug message=targetLinkName context=targetLink enabled=false /]
 
     [#return { targetLinkName : targetLink } ]
 [/#function]
@@ -2230,7 +2224,7 @@ behaviour.
         attributeIfTrue("Version",  port.Registry.Version??, port.Registry.Version!"") +
         attributeIfContent("RegistryService",  registryService)
     ]
-    [@cfDebug listMode { targetLinkName : targetLink } false /]
+    [@debug message=targetLinkName context=targetLink enabled=false /]
 
     [#return { targetLinkName : targetLink } ]
 [/#function]
@@ -2249,13 +2243,79 @@ behaviour.
 
 [#-- Plan/Prologue/epilogue script creation --]
 
-[#function getGenerationPlan subsets=[] alternatives=[] ]
-    [#return
-        [
-            "local plan_subsets=(" + asArray(subsets)?join(" ") + ")"
-            "local plan_alternatives=(" + asArray(alternatives)?join(" ") + ")"
-        ]
-    ]
+[#function getGenerationPlan subsets=[] alternatives=["primary"]  ]
+
+    [#local outputFormat = getOutputFormat(DEFAULT_OUTPUT_SCRIPT_TYPE) ]
+    [#local step_names = [] ]
+    [#local steps= {} ]
+
+    [#list asArray(subsets) as subset]
+        [#list asArray(alternatives) as alternative]
+            [#local step =
+                {
+                    "Subset" : subset,
+                    "Alternative" : alternative,
+                    "Provider" : provider,
+                    "DeploymentFramework" : deploymentFramework
+                }]
+            [#switch subset]
+                [#case "genplan"]
+                [#case "depplan"]
+                [#case "pregeneration"]
+                [#case "prologue"]
+                [#case "epilogue"]
+                    [#local step +=
+                        {
+                            "OutputType" : DEFAULT_OUTPUT_SCRIPT_TYPE,
+                            "OutputFormat" : outputFormat
+                        }]
+                    [#break]
+                [#case "template"]
+                    [#local step +=
+                        {
+                            "OutputType" : AWS_OUTPUT_RESOURCE_TYPE,
+                            "OutputFormat" : ""
+                        }]
+                    [#break]
+                [#case "cli"]
+                [#case "config"]
+                    [#local step +=
+                        {
+                            "OutputType" : DEFAULT_OUTPUT_JSON_TYPE,
+                            "OutputFormat" : ""
+                        }]
+                    [#break]
+            [/#switch]
+            [#local step_name = subset + "-" + alternative]
+            [#local step_names += [step_name] ]
+            [#local steps += {step_name : step}]
+        [/#list]
+    [/#list]
+    [#if outputFormat == DEFAULT_OUTPUT_BASH_FORMAT]
+        [#local result =
+            [
+                "local plan_steps=(" + step_names?join(" ") + ")"
+                "declare -A plan_subsets",
+                "declare -A plan_alternatives",
+                "declare -A plan_providers",
+                "declare -A plan_deployment_frameworks",
+                "declare -A plan_output_types",
+                "declare -A plan_output_formats"
+            ] ]
+        [#list step_names as step_name]
+            [#local result +=
+                [
+                    "plan_subsets[\"${step_name}\"]=\"${steps[step_name].Subset}\"",
+                    "plan_alternatives[\"${step_name}\"]=\"${steps[step_name].Alternative}\"",
+                    "plan_providers[\"${step_name}\"]=\"${steps[step_name].Provider}\"",
+                    "plan_deployment_frameworks[\"${step_name}\"]=\"${steps[step_name].DeploymentFramework}\"",
+                    "plan_output_types[\"${step_name}\"]=\"${steps[step_name].OutputType}\"",
+                    "plan_output_formats[\"${step_name}\"]=\"${steps[step_name].OutputFormat}\""
+                ] ]
+        [/#list]
+        [#return result]
+    [/#if]
+    [#return [] ]
 [/#function]
 
 [#function syncFilesToBucketScript filesArrayName region bucket prefix]

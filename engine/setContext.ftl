@@ -5,6 +5,8 @@
 
 [#-- Temporary AWS stuff --]
 [#-- TODO(mfl) Remove as part of refactoring setContext --]
+[@includeProviderConfiguration provider=SHARED_PROVIDER /]
+[@includeProviderConfiguration provider="aws" /]
 [@includeSharedComponentConfiguration component="baseline" /]
 [@includeProviderComponentDefinitionConfiguration provider="aws" component="baseline" /]
 [@includeProviderComponentConfiguration provider="aws" component="baseline" services="baseline" /]
