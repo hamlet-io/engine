@@ -37,6 +37,7 @@
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
+    [#local sshKeyPairId = baselineComponentIds["SSHKey"]]
 
     [#switch bastionOS ]
         [#case "linux" ]
@@ -270,7 +271,7 @@
                 enableCfnSignal=true
                 environmentId=environmentId
                 sshFromProxy=[]
-                keyPairId=baselineComponentIds["SSHKey"]
+                keyPairId=sshKeyPairId
             /]
         [/#if]
     [/#if]

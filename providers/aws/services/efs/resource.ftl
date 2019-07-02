@@ -42,7 +42,7 @@
             encrypted?then(
                 {
                     "Encrypted" : true,
-                    "KmsKeyId" : getReference(fkmsKeyId, ARN_ATTRIBUTE_TYPE)
+                    "KmsKeyId" : getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
                 },
                 {}
             )

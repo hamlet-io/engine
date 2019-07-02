@@ -447,13 +447,22 @@
     ]
 [/#function]
 
-[#function getFinalEnvironment occurrence context operationsBucket dataBucket environmentSettings={}]
+[#function getFinalEnvironment occurrence context operationsBucket dataBucket="" environmentSettings={}]
     [#local asFile = environmentSettings.AsFile!false]
     [#local serialisationConfig = environmentSettings.Json!{}]
 
     [#return
         {
             "Environment" :
+                {
+                    "OPSDATA_BUCKET" : operationsBucket
+                } +
+                valueIfContent(
+                    {
+                        "APPDATA_BUCKET" : dataBucket
+                    },
+                    dataBucket
+                ) + 
                 valueIfTrue(
                     getSettingsAsEnvironment(
                         occurrence.Configuration.Settings.Core,
