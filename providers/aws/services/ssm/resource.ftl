@@ -22,9 +22,8 @@
     }
 ]
 
-[#macro createSSMDocument mode id content tags documentType="" dependencies="" ]
+[#macro createSSMDocument id content tags documentType="" dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::SSM::Document"
         properties=
@@ -38,7 +37,7 @@
     /]
 [/#macro]
 
-[#macro createSSMMaintenanceWindow mode id
+[#macro createSSMMaintenanceWindow id
     name
     schedule
     durationHours
@@ -48,7 +47,6 @@
     dependencies=""
 ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::SSM::MaintenanceWindow"
         properties=
@@ -67,14 +65,13 @@
 [/#macro]
 
 
-[#macro createSSMMaintenanceWindowTarget mode id
+[#macro createSSMMaintenanceWindowTarget id
     name
     windowId
     targets
     dependencies=""
 ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::SSM::MaintenanceWindowTarget"
         properties=
@@ -124,7 +121,7 @@
     [#return targets]
 [/#function]
 
-[#macro createSSMMaintenanceWindowTask mode id
+[#macro createSSMMaintenanceWindowTask id
     name
     targets
     serviceRoleId
@@ -140,7 +137,6 @@
 
     [#local taskType = taskType?upper_case ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::SSM::MaintenanceWindowTask"
         properties=

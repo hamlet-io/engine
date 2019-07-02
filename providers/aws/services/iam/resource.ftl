@@ -19,9 +19,8 @@
     ]
 [/#function]
 
-[#macro createPolicy mode id name statements roles="" users="" groups="" dependencies=[] ]
+[#macro createPolicy id name statements roles="" users="" groups="" dependencies=[] ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::IAM::Policy"
         properties=
@@ -33,9 +32,8 @@
     /]
 [/#macro]
 
-[#macro createSQSPolicy mode id queues statements dependencies=[] ]
+[#macro createSQSPolicy id queues statements dependencies=[] ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::SQS::QueuePolicy"
         properties=
@@ -48,9 +46,8 @@
     /]
 [/#macro]
 
-[#macro createBucketPolicy mode id bucket statements dependencies=[] ]
+[#macro createBucketPolicy id bucket statements dependencies=[] ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::S3::BucketPolicy"
         properties=
@@ -83,7 +80,6 @@
 ]
 
 [#macro createRole
-            mode
             id
             trustedServices=[]
             federatedServices=[]
@@ -106,7 +102,6 @@
     [/#list]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::IAM::Role"
         properties=

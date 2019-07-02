@@ -75,31 +75,26 @@
     [#return rules]
 [/#function]
 
-[#macro createSecurityGroupIngress mode id port cidr groupId]
+[#macro createSecurityGroupIngress id port cidr groupId]
     [#local cidrs = asArray(cidr) ]
     [#list cidrs as cidrBlock]
-        [#switch mode]
-            [#case "definition"]
-                [@cfResource
-                    mode=mode
-                    id=
-                        formatId(
-                            id,
-                            (cidrs?size > 1)?then(
-                                cidrBlock?index,
-                                ""
-                            )
-                        )
-                    type="AWS::EC2::SecurityGroupIngress"
-                    properties=
-                        getSecurityGroupIngressRules(port, cidrBlock, groupId)[0]
-                /]
-            [#break]
-        [/#switch]
+        [@cfResource
+            id=
+                formatId(
+                    id,
+                    (cidrs?size > 1)?then(
+                        cidrBlock?index,
+                        ""
+                    )
+                )
+            type="AWS::EC2::SecurityGroupIngress"
+            properties=
+                getSecurityGroupIngressRules(port, cidrBlock, groupId)[0]
+        /]
     [/#list]
 [/#macro]
 
-[#macro createSecurityGroup mode id name vpcId tier={} component={} occurrence={} description="" ingressRules=[] ]
+[#macro createSecurityGroup id name vpcId tier={} component={} occurrence={} description="" ingressRules=[] ]
     [#local nonemptyIngressRules = [] ]
     [#list asFlattenedArray(ingressRules) as ingressRule]
         [#if ingressRule.CIDR?has_content]
@@ -125,7 +120,6 @@
     ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::SecurityGroup"
         properties=properties
@@ -138,7 +132,6 @@
 [/#macro]
 
 [#macro createDependentSecurityGroup
-            mode
             resourceId
             resourceName
             vpcId
@@ -147,7 +140,6 @@
             occurrence={}
             ingressRules=[]]
     [@createSecurityGroup
-        mode=mode
         id=formatDependentSecurityGroupId(resourceId)
         name=resourceName
         vpcId=vpcId
@@ -160,13 +152,11 @@
 [/#macro]
 
 [#macro createComponentSecurityGroup
-            mode
             occurrence
             vpcId=vpcId
             extensions=""
             ingressRules=[] ]
     [@createSecurityGroup
-        mode=mode
         id=formatComponentSecurityGroupId(
             occurrence.Core.Tier,
             occurrence.Core.Component,
@@ -182,7 +172,6 @@
 [/#macro]
 
 [#macro createDependentComponentSecurityGroup
-            mode
             resourceId
             resourceName
             occurrence
@@ -195,14 +184,12 @@
                         extensions)]
     [#if getExistingReference(legacyId)?has_content]
         [@createComponentSecurityGroup
-            mode=mode
             vpcId=vpcId
             occurrence=occurrence
             extensions=extensions
             ingressRules=ingressRules /]
     [#else]
         [@createDependentSecurityGroup
-            mode=mode
             resourceId=resourceId
             resourceName=resourceName
             occurrence=occurrence
@@ -212,7 +199,6 @@
 [/#macro]
 
 [#macro createFlowLog
-            mode
             id
             roleId
             logGroupName
@@ -220,7 +206,6 @@
             resourceType
             trafficType]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::FlowLog"
         properties=
@@ -235,7 +220,6 @@
 [/#macro]
 
 [#macro createVPC
-            mode
             id
             name
             cidr
@@ -243,7 +227,6 @@
             dnsHostnames
             resourceId=""]
     [@cfResource
-        mode=mode
         id=(resourceId?has_content)?then(
                             resourceId,
                             id)
@@ -260,12 +243,10 @@
 [/#macro]
 
 [#macro createIGW
-            mode
             id
             name
             resourceId=""]
     [@cfResource
-        mode=mode
         id=(resourceId?has_content)?then(
                             resourceId,
                             id)
@@ -276,12 +257,10 @@
 [/#macro]
 
 [#macro createIGWAttachment
-            mode
             id
             vpcId
             igwId]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::VPCGatewayAttachment"
         properties=
@@ -313,11 +292,9 @@
 ]
 
 [#macro createEIP
-            mode
             id
             dependencies=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::EIP"
         properties=
@@ -330,13 +307,11 @@
 [/#macro]
 
 [#macro createNATGateway
-            mode,
             id,
             tags,
             subnetId,
             eipId]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::NatGateway"
         properties=
@@ -350,13 +325,11 @@
 [/#macro]
 
 [#macro createRouteTable
-            mode,
             id,
             name,
             vpcId,
             zone=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::RouteTable"
         properties=
@@ -368,7 +341,6 @@
 [/#macro]
 
 [#macro createRoute
-            mode,
             id,
             routeTableId,
             route
@@ -407,7 +379,6 @@
 
     [/#switch]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::Route"
         properties=properties
@@ -417,12 +388,10 @@
 [/#macro]
 
 [#macro createNetworkACL
-            mode,
             id,
             name,
             vpcId]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::NetworkAcl"
         properties=
@@ -435,7 +404,6 @@
 [/#macro]
 
 [#macro createNetworkACLEntry
-            mode,
             id,
             networkACLId,
             outbound,
@@ -504,7 +472,6 @@
             [#break]
     [/#switch]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::NetworkAclEntry"
         properties=
@@ -521,7 +488,6 @@
 [/#macro]
 
 [#macro createSubnet
-            mode,
             id,
             name,
             vpcId,
@@ -541,7 +507,6 @@
         )
     ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::Subnet"
         properties=
@@ -557,13 +522,11 @@
 [/#macro]
 
 [#macro createRouteTableAssociation
-            mode,
             id,
             subnetId,
             routeTableId]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::SubnetRouteTableAssociation"
         properties=
@@ -576,13 +539,11 @@
 [/#macro]
 
 [#macro createNetworkACLAssociation
-            mode,
             id,
             subnetId,
             networkACLId]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::SubnetNetworkAclAssociation"
         properties=
@@ -595,7 +556,6 @@
 [/#macro]
 
 [#macro createVPCEndpoint
-            mode,
             id,
             vpcId,
             service,
@@ -608,7 +568,6 @@
 ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::VPCEndpoint"
         properties=

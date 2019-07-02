@@ -624,7 +624,7 @@
     ]
 [/#function]
 
-[#macro createEC2LaunchConfig mode id
+[#macro createEC2LaunchConfig id
     processorProfile
     storageProfile
     securityGroupId
@@ -650,7 +650,6 @@
     [/#if]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::AutoScaling::LaunchConfiguration"
         properties=
@@ -708,7 +707,7 @@
     /]
 [/#macro]
 
-[#macro createEc2AutoScaleGroup mode id
+[#macro createEc2AutoScaleGroup id
     tier
     configSetName
     configSets
@@ -759,7 +758,6 @@
     [/#if]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::AutoScaling::AutoScalingGroup"
         metadata=getInitConfig(configSetName, configSets )
@@ -833,7 +831,7 @@
     /]
 [/#macro]
 
-[#macro createEBSVolume mode id
+[#macro createEBSVolume id
     tags
     size
     zone
@@ -847,7 +845,6 @@
 ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::Volume"
         properties={
@@ -881,13 +878,12 @@
     /]
 [/#macro]
 
-[#macro createEBSVolumeAttachment mode id
+[#macro createEBSVolumeAttachment id
     device
     instanceId
     volumeId
 ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EC2::VolumeAttachment"
         properties={

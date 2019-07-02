@@ -104,7 +104,7 @@
     ]
 [/#function]
 
-[#macro createDynamoDbTable mode id
+[#macro createDynamoDbTable id
         backupEnabled
         billingMode
         attributes
@@ -127,7 +127,6 @@
     [/#switch]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::DynamoDB::Table"
         properties=

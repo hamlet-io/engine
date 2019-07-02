@@ -29,9 +29,8 @@
     }
 ]
 
-[#macro createEFS mode id name tier component encrypted kmsKeyId]
+[#macro createEFS id name tier component encrypted kmsKeyId]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EFS::FileSystem"
         properties=
@@ -50,9 +49,8 @@
     /]
 [/#macro]
 
-[#macro createEFSMountTarget mode id efsId subnet securityGroups dependencies="" ]
+[#macro createEFSMountTarget id efsId subnet securityGroups dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::EFS::MountTarget"
         properties=

@@ -39,7 +39,7 @@
 ]
 
 [#macro createCloudMapDNSNamespace
-    mode id name
+    id name
     domainName
     public
     vpcId=""
@@ -48,7 +48,6 @@
 
     [#if public ]
         [@cfResource
-            mode=mode
             id=id
             type="AWS::ServiceDiscovery::PublicDnsNamespace"
             properties=
@@ -61,7 +60,6 @@
         /]
     [#else]
         [@cfResource
-            mode=mode
             id=id
             type="AWS::ServiceDiscovery::PrivateDnsNamespace"
             properties=
@@ -77,7 +75,7 @@
 [/#macro]
 
 [#macro createCloudMapService
-    mode id name
+    id name
     namespaceId
     hostName
     routingPolicy
@@ -127,7 +125,6 @@
     [/#if]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ServiceDiscovery::Service"
         properties=
@@ -177,7 +174,7 @@
 [/#function]
 
 [#macro createCloudMapInstance
-    mode id
+    id
     serviceId
     instanceId
     instanceAttributes
@@ -185,7 +182,6 @@
 ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ServiceDiscovery::Instance"
         properties=

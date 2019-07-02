@@ -306,7 +306,7 @@
     ]
 [/#function]
 
-[#macro createCFDistribution mode id dependencies=""
+[#macro createCFDistribution id dependencies=""
     aliases=[]
     cacheBehaviours=[]
     certificate={}
@@ -323,8 +323,7 @@
     wafAclId=""
 ]
     [@cfResource
-        mode=mode
-        id=id
+       id=id
         type="AWS::CloudFront::Distribution"
         properties=
             {
@@ -351,9 +350,8 @@
     /]
 [/#macro]
 
-[#macro createCFOriginAccessIdentity mode id name dependencies="" ]
+[#macro createCFOriginAccessIdentity id name dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::CloudFront::CloudFrontOriginAccessIdentity"
         properties=

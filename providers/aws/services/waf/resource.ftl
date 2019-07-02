@@ -160,7 +160,7 @@
 
 
 [#-- Capture similarity between conditions --]
-[#macro createWAFCondition mode id name type filters=[] valueSet={} regional=false]
+[#macro createWAFCondition id name type filters=[] valueSet={} regional=false]
     [#if (WAFConditions[type].ResourceType)?has_content]
         [#local result = [] ]
         [#list asArray(filters) as filter]
@@ -184,7 +184,6 @@
         [/#list]
 
         [@cfResource
-            mode=mode
             id=id
             type=formatWAFResourceType(WAFConditions[type].ResourceType, regional)
             properties=
@@ -196,9 +195,8 @@
     [/#if]
 [/#macro]
 
-[#macro createWAFByteMatchSetCondition mode id name matches=[] valueSet={} regional=false]
+[#macro createWAFByteMatchSetCondition id name matches=[] valueSet={} regional=false]
     [@createWAFCondition
-        mode=mode
         id=id
         name=name
         type=AWS_WAF_BYTE_MATCH_CONDITION_TYPE
@@ -207,11 +205,10 @@
         regional=regional /]
 [/#macro]
 
-[#macro createWAFIPSetCondition mode id name cidr=[] regional=false]
+[#macro createWAFIPSetCondition id name cidr=[] regional=false]
     [#local filters = [{"Targets" : "ips"}] ]
     [#local valueSet = {"ips" : asFlattenedArray(cidr) } ]
     [@createWAFCondition
-        mode=mode
         id=id
         name=name
         type=AWS_WAF_IP_MATCH_CONDITION_TYPE
@@ -220,9 +217,8 @@
         regional=regional /]
 [/#macro]
 
-[#macro createWAFSizeConstraintCondition mode id name constraints=[] valueSet={} regional=false]
+[#macro createWAFSizeConstraintCondition id name constraints=[] valueSet={} regional=false]
     [@createWAFCondition
-        mode=mode
         id=id
         name=name
         type=AWS_WAF_SIZE_CONSTRAINT_CONDITION_TYPE
@@ -231,9 +227,8 @@
         regional=regional /]
 [/#macro]
 
-[#macro createWAFSqlInjectionMatchSetCondition mode id name matches=[] valueSet={} regional=false]
+[#macro createWAFSqlInjectionMatchSetCondition id name matches=[] valueSet={} regional=false]
     [@createWAFCondition
-        mode=mode
         id=id
         name=name
         type=AWS_WAF_SQL_INJECTION_MATCH_CONDITION_TYPE
@@ -242,9 +237,8 @@
         regional=regional /]
 [/#macro]
 
-[#macro createWAFXssMatchSetCondition mode id name matches=[] valueSet={} regional=false]
+[#macro createWAFXssMatchSetCondition id name matches=[] valueSet={} regional=false]
     [@createWAFCondition
-        mode=mode
         id=id
         name=name
         type=AWS_WAF_XSS_MATCH_CONDITION_TYPE
@@ -253,7 +247,7 @@
         regional=regional /]
 [/#macro]
 
-[#macro createWAFRule mode id name metric conditions=[] valueSet={} regional=false]
+[#macro createWAFRule id name metric conditions=[] valueSet={} regional=false]
     [#local predicates = [] ]
     [#list asArray(conditions) as condition]
         [#local conditionId = condition.Id!""]
@@ -268,7 +262,6 @@
         [#if condition.Filters?has_content]
             [#-- Condition to be created with the rule --]
             [@createWAFCondition
-                mode=mode
                 id=conditionId
                 name=conditionName
                 type=condition.Type
@@ -288,7 +281,6 @@
     [/#list]
 
     [@cfResource
-        mode=mode
         id=id
         type=formatWAFResourceType("Rule", regional)
         properties=
@@ -303,7 +295,7 @@
 [#-- Rules are grouped into bands. Bands are sorted into ascending alphabetic --]
 [#-- order, with rules within a band ordered based on occurrence in the rules --]
 [#-- array. Rules without a band are put into the default band.               --]
-[#macro createWAFAcl mode id name metric defaultAction rules=[] valueSet={} regional=false bandDefault="default" ]
+[#macro createWAFAcl id name metric defaultAction rules=[] valueSet={} regional=false bandDefault="default" ]
     [#-- Determine the bands --]
     [#local bands = [] ]
     [#list asArray(rules) as rule]
@@ -336,7 +328,6 @@
             [/#if]
             [#if rule.Conditions?has_content]
                 [@createWAFRule
-                    mode=mode
                     id=ruleId
                     name=ruleName
                     metric=ruleMetric
@@ -360,7 +351,6 @@
     [/#list]
 
     [@cfResource
-        mode=mode
         id=id
         type=formatWAFResourceType("WebACL", regional)
         properties=
@@ -409,7 +399,7 @@
     [#return result]
 [/#function]
 
-[#macro createWAFAclFromSecurityProfile mode id name metric wafSolution securityProfile occurrence={} regional=false]
+[#macro createWAFAclFromSecurityProfile id name metric wafSolution securityProfile occurrence={} regional=false]
     [#if wafSolution.OWASP]
         [#local wafProfile = blueprintObject.WAFProfiles[securityProfile.WAFProfile!""]!{} ]
     [#else]
@@ -436,7 +426,6 @@
 
     [#local rules=getWAFProfileRules(wafProfile, blueprintObject.WAFRuleGroups, blueprintObject.WAFRules, blueprintObject.WAFConditions) ]
     [@createWAFAcl
-        mode=mode
         id=id
         name=name
         metric=metric
@@ -448,9 +437,8 @@
 [/#macro]
 
 [#-- Associations are only relevant for regional endpoints --]
-[#macro createWAFAclAssociation mode id wafaclId endpointId ]
+[#macro createWAFAclAssociation id wafaclId endpointId ]
     [@cfResource
-        mode=mode
         id=id
         type=formatWAFResourceType("WebACLAssociation", true)
         properties=

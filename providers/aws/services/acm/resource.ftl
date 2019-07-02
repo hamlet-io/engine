@@ -17,10 +17,9 @@
     }
 ]
 
-[#macro createCertificate mode id domain validationDomain="" outputId=""]
+[#macro createCertificate id domain validationDomain="" outputId=""]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::CertificateManager::Certificate"
         properties=

@@ -70,16 +70,15 @@
     }
 ]
 
-[#macro createECSCluster mode id ]
+[#macro createECSCluster id ]
         [@cfResource
-            mode=mode
             id=id
             type="AWS::ECS::Cluster"
             outputs=ECS_OUTPUT_MAPPINGS
         /]
 [/#macro]
 
-[#macro createECSTask mode id
+[#macro createECSTask id
     name
     containers
     engine
@@ -245,7 +244,6 @@
     ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ECS::TaskDefinition"
         properties=taskProperties
@@ -254,7 +252,7 @@
     /]
 [/#macro]
 
-[#macro createECSService mode id
+[#macro createECSService id
             ecsId
             desiredCount
             taskId
@@ -269,7 +267,6 @@
     ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ECS::Service"
         properties=

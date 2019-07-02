@@ -35,9 +35,8 @@
     }
 ]
 
-[#macro createSQSQueue mode id name delay="" maximumSize="" retention="" receiveWait="" visibilityTimout="" dlq="" dlqReceives=1 dependencies=""]
+[#macro createSQSQueue id name delay="" maximumSize="" retention="" receiveWait="" visibilityTimout="" dlq="" dlqReceives=1 dependencies=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::SQS::Queue"
         properties=
