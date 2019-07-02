@@ -65,7 +65,7 @@
     [#local configSetName = occurrence.Core.Type]
     [#local configSets =
             getInitConfigDirectories() +
-            getInitConfigBootstrap(occurrence) +
+            getInitConfigBootstrap(occurrence, operationsBucket, dataBucket) +
             getInitConfigPuppet() ]
 
     [#local efsMountPoints = {}]

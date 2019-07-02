@@ -40,6 +40,7 @@
 
     [#-- Baseline component lookup --]
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
     [#local sshKeyPairId = baselineComponentIds["SSHKey"] ]
@@ -70,7 +71,7 @@
     [#local configSetName = occurrence.Core.Type]
     [#local configSets =
             getInitConfigDirectories() +
-            getInitConfigBootstrap(occurrence) +
+            getInitConfigBootstrap(occurrence, operationsBucket, dataBucket) +
             getInitConfigECSAgent(ecsId, defaultLogDriver, solution.DockerUsers, solution.VolumeDrivers ) ]
 
     [#local efsMountPoints = {}]

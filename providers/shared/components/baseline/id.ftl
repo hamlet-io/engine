@@ -56,7 +56,7 @@
             [#else]
                 [@cfException
                     mode=listMode
-                    description="Missing component Id or component not found "
+                    description="Baseline component not found or not deployed"
                     detail=baselineProfile
                     context=baselineLink
                 /]

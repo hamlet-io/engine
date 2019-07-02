@@ -339,7 +339,14 @@
                                 "  fi",
                                 "  #"
                             ] +
-                            pseudoStackOutputScript("SSH Key Pair", { formatId(ec2KeyPairId, "name") : "$\{key_pair_name}"}, "keypair") +
+                            pseudoStackOutputScript(
+                                "SSH Key Pair", 
+                                { 
+                                    ec2KeyPairId : "$\{key_pair_name}", 
+                                    formatId(ec2KeyPairId, "name") : "$\{key_pair_name}"
+                                }, 
+                                "keypair"
+                            ) +
                             valueIfTrue(
                                 [
                                     "   info \"Removing old ssh pseduo stack output\"",
