@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_apiusageplan_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
 
@@ -26,7 +22,7 @@
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content ]
                 [#continue]
@@ -54,7 +50,6 @@
 
     [#if deploymentSubsetRequired("apiusageplan", true)]
         [@createAPIUsagePlan
-            mode=listMode
             id=planId
             name=planName
             stages=stages

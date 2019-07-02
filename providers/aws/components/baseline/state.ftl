@@ -113,7 +113,7 @@
 
     [#local resources = {}]
     [#local attributes = {
-                "ID" : "COTException: Id missing for subcomponent"
+                "ID" : "COTFatal: Id missing for subcomponent"
     }]
 
     [#switch solution.Engine ]
@@ -208,9 +208,8 @@
 
             [#break]
         [#default]
-            [@cfException
-                mode=listMode
-                description="Unsupported Key Type"
+            [@fatal
+                message="Unsupported Key Type"
                 detail=solution.Engine
                 context=occurrence
             /]

@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_cache_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -19,7 +15,7 @@
 
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -44,7 +40,7 @@
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
             [#else]
-                [@cfException listMode "Unknown Port" port /]
+                [@fatal message="Unknown Port" context=port /]
             [/#if]
             [#break]
 
@@ -62,12 +58,16 @@
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
             [#else]
-                [@cfException listMode "Unknown Port" port /]
+                [@fatal message="Unknown Port" context=port /]
             [/#if]
             [#break]
 
         [#default]
-            [@cfPreconditionFailed listMode "solution_cache" occurrence "Unsupported engine provided" /]
+            [@precondition
+                function="solution_cache"
+                context=occurrence
+                detail="Unsupported engine provided"
+            /]
             [#local engineVersion = "unknown" ]
             [#local family = "unknown" ]
             [#local port = "unknown" ]
@@ -98,7 +98,6 @@
     [#if deploymentSubsetRequired("cache", true)]
 
         [@createDependentSecurityGroup
-            mode=listMode
             resourceId=cacheId
             resourceName=cacheFullName
             occurrence=occurrence
@@ -106,7 +105,6 @@
         /]
 
         [@createSecurityGroupIngress
-            mode=listMode
             id=cacheSecurityGroupIngressId
             port=port
             cidr="0.0.0.0/0"
@@ -114,7 +112,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=cacheSubnetGroupId
             type="AWS::ElastiCache::SubnetGroup"
             properties=
@@ -126,7 +123,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=cacheParameterGroupId
             type="AWS::ElastiCache::ParameterGroup"
             properties=
@@ -146,12 +142,11 @@
                 [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
-                    [@cfDebug listMode monitoredResource false /]
+                    [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -178,7 +173,6 @@
             [/#list]
 
             [@cfResource
-                mode=listMode
                 id=cacheId
                 type="AWS::ElastiCache::CacheCluster"
                 properties=

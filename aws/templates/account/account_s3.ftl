@@ -2,11 +2,7 @@
 [#if deploymentUnit?contains("s3") || (allDeploymentUnits!false) ]
     [#if accountObject.Seed?has_content]
         [#if deploymentSubsetRequired("genplan", false)]
-            [@cfScript
-                mode=listMode
-                content=
-                    getGenerationPlan(["template", "epilogue"])
-            /]
+            [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
         [/#if]
 
         [#if deploymentSubsetRequired("s3", true)]
@@ -26,7 +22,6 @@
                 [#assign bucketPolicyId = formatResourceId(AWS_S3_BUCKET_POLICY_RESOURCE_TYPE, bucket ) ]
 
                 [@createS3Bucket
-                    mode=listMode
                     id=bucketId
                     name=bucketName
                     outputId=formatAccountS3Id(bucket)
@@ -60,7 +55,6 @@
 
                     [#if policyStatements?has_content ]
                         [@createBucketPolicy
-                            mode=listMode
                             id=bucketPolicyId
                             bucket=bucketName
                             statements=policyStatements
@@ -121,8 +115,7 @@
             [/#list]
 
             [#-- Make sure code bucket is up to date and registires initialised --]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                     [
                         "function sync_code_bucket() {"
@@ -153,7 +146,10 @@
             /]
         [/#if]
     [#else]
-        [@cfPreconditionFailed listMode "account_s3" {} "No account seed provided" /]
+        [@precondition
+            function="account_s3"
+            detail="No account seed provided"
+        /]
     [/#if]
 [/#if]
 

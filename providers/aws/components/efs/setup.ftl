@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_efs_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -21,7 +17,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -47,7 +43,6 @@
 
     [#if deploymentSubsetRequired("efs", true) ]
         [@createSecurityGroup
-            mode=listMode
             id=efsSecurityGroupId
             name=efsSecurityGroupName
             occurrence=occurrence
@@ -55,7 +50,6 @@
         /]
 
         [@createSecurityGroupIngress
-            mode=listMode
             id=efsSecurityGroupIngressId
             port=efsPort
             cidr="0.0.0.0/0"
@@ -63,7 +57,6 @@
         /]
 
         [@createEFS
-            mode=listMode
             tier=core.Tier
             id=efsId
             name=efsFullName
@@ -75,7 +68,6 @@
         [#list zones as zone ]
             [#local zoneEfsMountTargetId   = zoneResources[zone.Id]["efsMountTarget"].Id]
             [@createEFSMountTarget
-                mode=listMode
                 id=zoneEfsMountTargetId
                 subnet=getSubnets(core.Tier, networkResources, zone.Id, true, false)
                 efsId=efsId

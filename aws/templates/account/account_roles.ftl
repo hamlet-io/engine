@@ -1,11 +1,7 @@
 [#-- Account level roles --]
 [#if deploymentUnit?contains("roles")  || (allDeploymentUnits!false) ]
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
     [/#if]
 
     [#if deploymentSubsetRequired("roles", true)]
@@ -21,7 +17,6 @@
         [/#list]
 
         [@createRole
-            mode=listMode
             id=automationRoleId
             name="codeontap-automation"
             trustedAccounts=accessAccounts
@@ -31,7 +26,6 @@
                 ]
         /]
         [@createRole
-            mode=listMode
             id=administratorRoleId
             name="codeontap-administrator"
             trustedAccounts=accessAccounts
@@ -42,7 +36,6 @@
             multiFactor=true
         /]
         [@createRole
-            mode=listMode
             id=viewerRoleId
             name="codeontap-viewer"
             trustedAccounts=accessAccounts

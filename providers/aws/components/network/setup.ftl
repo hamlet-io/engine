@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_network_cf_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -33,7 +29,6 @@
         [#if deploymentSubsetRequired("iam", true) &&
                 isPartOfCurrentDeploymentUnit(flowLogsRoleId)]
             [@createRole
-                mode=listMode
                 id=flowLogsRoleId
                 trustedServices=["vpc-flow-logs.amazonaws.com"]
                 policies=
@@ -48,7 +43,6 @@
         [#if deploymentSubsetRequired("lg", true) &&
                 isPartOfCurrentDeploymentUnit(flowLogsAllLogGroupId)]
             [@createVPCLogGroup
-                mode=listMode
                 id=flowLogsAllLogGroupId
                 name=flowLogsAllLogGroupName
                 retention=((segmentObject.Operations.FlowLogs.Expiration) !
@@ -60,7 +54,6 @@
 
         [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
             [@createVPCFlowLog
-                mode=listMode
                 id=flowLogsAllId
                 vpcId=vpcResourceId
                 roleId=flowLogsRoleId
@@ -75,7 +68,6 @@
         [#local topicId = resources["legacySnsTopic"].Id ]
         [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
             [@createSegmentSNSTopic
-                mode=listMode
                 id=topicId
             /]
         [/#if]
@@ -83,7 +75,6 @@
 
     [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
         [@createVPC
-            mode=listMode
             id=vpcId
             resourceId=vpcResourceId
             name=vpcName
@@ -102,13 +93,11 @@
 
         [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
             [@createIGW
-                mode=listMode
                 id=legacyIGWId
                 resourceId=legacyIGWResourceId
                 name=legacyIGWName
             /]
             [@createIGWAttachment
-                mode=listMode
                 id=legacyIGWAttachmentId
                 vpcId=vpcResourceId
                 igwId=legacyIGWResourceId
@@ -130,10 +119,10 @@
             [#local networkACLId = tierNetwork.NetworkACL!"" ]
 
             [#if !networkLink?has_content || !routeTableId?has_content || !networkACLId?has_content ]
-                [@cfException
-                    listMode
-                    "Tier Network configuration incomplete",
-                    tierNetwork +
+                [@fatal
+                    message="Tier Network configuration incomplete"
+                    context=
+                        tierNetwork +
                         {
                             "Link" : networkLink,
                             "RouteTable" : routeTableId,
@@ -163,7 +152,6 @@
 
                         [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                             [@createSubnet
-                                mode=listMode
                                 id=subnetId
                                 name=subnetName
                                 vpcId=vpcResourceId
@@ -173,13 +161,11 @@
                                 private=routeTable.Private!false
                             /]
                             [@createRouteTableAssociation
-                                mode=listMode
                                 id=routeTableAssociationId
                                 subnetId=subnetId
                                 routeTableId=routeTableId
                             /]
                             [@createNetworkACLAssociation
-                                mode=listMode
                                 id=networkACLAssociationId
                                 subnetId=subnetId
                                 networkACLId=networkACLId
@@ -197,7 +183,7 @@
         [#local solution = subOccurrence.Configuration.Solution ]
         [#local resources = subOccurrence.State.Resources ]
 
-        [@cfDebug listMode subOccurrence false /]
+        [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
 
         [#if core.Type == NETWORK_ROUTE_TABLE_COMPONENT_TYPE]
 
@@ -212,7 +198,6 @@
 
                     [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                         [@createRouteTable
-                            mode=listMode
                             id=routeTableId
                             name=routeTableName
                             vpcId=vpcResourceId
@@ -222,7 +207,6 @@
                         [#if (zoneRouteTableResources["legacyIGWRoute"].Id!{})?has_content ]
                             [#local legacyIGWRouteId =  zoneRouteTableResources["legacyIGWRoute"].Id ]
                             [@createRoute
-                                mode=listMode
                                 id=legacyIGWRouteId
                                 routeTableId=routeTableId
                                 route=
@@ -248,7 +232,6 @@
 
             [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
                 [@createNetworkACL
-                    mode=listMode
                     id=networkACLId
                     name=networkACLName
                     vpcId=vpcResourceId
@@ -277,7 +260,10 @@
                         [#local returnPort = ports[ruleConfig.Destination.Port]]
 
                     [#else]
-                        [@cfException listMode "Invalid network ACL either source or destination must be configured as _local to define direction" port /]
+                        [@fatal
+                            message="Invalid network ACL either source or destination must be configured as _local to define direction"
+                            context=port
+                        /]
                     [/#if]
 
                     [#list forwardIpAddresses![] as ipAddress ]
@@ -288,7 +274,6 @@
                                 "CIDRBlock" : ipAddress
                             }]
                         [@createNetworkACLEntry
-                            mode=listMode
                             id=formatId(ruleId,direction,ruleOrder)
                             networkACLId=networkACLId
                             outbound=(direction=="outbound")
@@ -310,7 +295,6 @@
                                 }]
 
                             [@createNetworkACLEntry
-                                mode=listMode
                                 id=formatId(ruleId,direction,ruleOrder)
                                 networkACLId=networkACLId
                                 outbound=(direction=="outbound")

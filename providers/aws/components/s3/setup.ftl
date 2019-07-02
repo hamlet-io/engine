@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_s3_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -36,7 +32,7 @@
             [#list notification.Links?values as link]
                 [#if link?is_hash]
                     [#local linkTarget = getLinkTarget(occurrence, link, false) ]
-                    [@cfDebug listMode linkTarget false /]
+                    [@debug message="Link Target" context=linkTarget enabled=false /]
                     [#if !linkTarget?has_content]
                         [#continue]
                     [/#if]
@@ -68,7 +64,6 @@
                     s3Id,
                     sqsId) ]
             [@createSQSPolicy
-                    mode=listMode
                     id=sqsPolicyId
                     queues=sqsId
                     statements=sqsS3WritePermission(sqsId, s3Name)
@@ -120,7 +115,7 @@
 
             [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -137,9 +132,8 @@
                         [#case  "replicadestination" ]
                             [#local replicationEnabled = true]
                             [#if linkTargetAttributes["REGION"] == regionId ]
-                                [@cfException
-                                    mode=listMode
-                                    description="Replication buckets must be in different regions"
+                                [@fatal
+                                    dmessageescription="Replication buckets must be in different regions"
                                     context=
                                         {
                                             "SourceBucket" : regionId,
@@ -152,18 +146,16 @@
 
                             [#if !replicationBucket?has_content ]
                                 [#if !linkTargetAttributes["ARN"]?has_content ]
-                                    [@cfException
-                                        mode=listMode
-                                        description="Replication destination must be deployed before source"
+                                    [@fatal
+                                        message="Replication destination must be deployed before source"
                                         context=
                                             linkTarget
                                     /]
                                 [/#if]
                                 [#local replicationBucket = linkTargetAttributes["ARN"]]
                             [#else]
-                                [@cfException
-                                    mode=listMode
-                                    description="Only one replication destination is supported"
+                                [@fatal
+                                    message="Only one replication destination is supported"
                                     context=links
                                 /]
                             [/#if]
@@ -215,7 +207,6 @@
 
         [#if rolePolicies?has_content ]
             [@createRole
-                mode=listMode
                 id=roleId
                 trustedServices=["s3.amazonaws.com"]
                 policies=rolePolicies
@@ -228,7 +219,6 @@
         [#if policyStatements?has_content ]
             [#local bucketPolicyId = resources["bucketpolicy"].Id ]
             [@createBucketPolicy
-                mode=listMode
                 id=bucketPolicyId
                 bucket=s3Name
                 statements=policyStatements
@@ -237,7 +227,6 @@
         [/#if]
 
         [@createS3Bucket
-            mode=listMode
             id=s3Id
             name=s3Name
             tier=core.Tier

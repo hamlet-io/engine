@@ -12,7 +12,7 @@
 
     [#local baselineLinkTargets = {} ]
     [#local baselineComponentIds = {} ]
-    
+
     [#list baselineProfile as key,value ]
         [#if baselineComponentNames?seq_contains(key)]
             [#switch key ]
@@ -26,37 +26,35 @@
                 [#case "CDNOriginKey" ]
                     [#local subComponentType = "Key" ]
                     [#break]
-                    
+
                 [#default]
-                    [@cfException
-                        mode=listMode
-                        description="Unkown baseline subcomponent"
+                    [@fatal
+                        message="Unkown baseline subcomponent"
                         context=key
                         detail=subComponent
                     /]
             [/#switch]
 
-            [#local baselineLink = 
+            [#local baselineLink =
                 {
                     "Tier" : "mgmt",
                     "Component" : "baseline",
                     "Instance" : "",
                     "Version" : "",
                     subComponentType : value
-                }   
+                }
             ]
             [#local baselineLinkTarget = getLinkTarget( {}, baselineLink )]
             [#if baselineLinkTarget?has_content && (baselineLinkTarget.State.Attributes["ID"])?has_content  ]
                 [#local baselineComponentIds += {
-                    key : baselineLinkTarget.State.Attributes["ID"]!"COTException: ResourceID not found" 
+                    key : baselineLinkTarget.State.Attributes["ID"]!"COTFatal: ResourceID not found"
                 }]
                 [#local baselineLinkTargets += {
                         key : baselineLinkTargets
                 }]
             [#else]
-                [@cfException
-                    mode=listMode
-                    description="Baseline component not found or not deployed"
+                [@fatal
+                    message="Baseline component not found or not deployed"
                     detail=baselineProfile
                     context=baselineLink
                 /]

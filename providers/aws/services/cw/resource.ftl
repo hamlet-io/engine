@@ -30,9 +30,8 @@
     }
 ]
 
-[#macro createLogGroup mode id name retention=0]
+[#macro createLogGroup id name retention=0]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Logs::LogGroup"
         properties=
@@ -45,9 +44,8 @@
     /]
 [/#macro]
 
-[#macro createLogStream mode id name logGroup dependencies="" ]
+[#macro createLogStream id name logGroup dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Logs::LogStream"
         properties=
@@ -59,9 +57,8 @@
     /]
 [/#macro]
 
-[#macro createLogMetric mode id name logGroup filter namespace value dependencies=""]
+[#macro createLogMetric id name logGroup filter namespace value dependencies=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Logs::MetricFilter"
         properties=
@@ -80,10 +77,9 @@
     /]
 [/#macro]
 
-[#macro createLogSubscription mode id logGroupName filter destination role="" dependencies=""  ]
+[#macro createLogSubscription id logGroupName filter destination role="" dependencies=""  ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Logs::SubscriptionFilter"
         properties=
@@ -113,7 +109,7 @@
     }
 ]
 
-[#macro createDashboard mode id name components ]
+[#macro createDashboard id name components ]
 
     [#local dashboardWidgets = [] ]
     [#local defaultTitleHeight = 1]
@@ -247,7 +243,6 @@
     [/#list]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::CloudWatch::Dashboard"
         properties=
@@ -264,7 +259,7 @@
     /]
 [/#macro]
 
-[#macro createCountAlarm mode id
+[#macro createCountAlarm id
             severity
             resourceName
             alertName
@@ -282,7 +277,6 @@
             reportOK=false
             dependencies=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::CloudWatch::Alarm"
         properties=
@@ -333,7 +327,7 @@
         AWS_EVENT_RULE_RESOURCE_TYPE : EVENT_RULE_OUTPUT_MAPPINGS
     }
 ]
-[#macro createScheduleEventRule mode id
+[#macro createScheduleEventRule id
         enabled
         scheduleExpression
         targetParameters

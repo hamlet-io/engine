@@ -58,9 +58,8 @@
         AWS_LAMBDA_EVENT_SOURCE_TYPE : LAMBDA_EVENT_SOURCE_MAPPINGS
     }
 ]
-[#macro createLambdaFunction mode id settings roleId securityGroupIds=[] subnetIds=[] dependencies=""]
+[#macro createLambdaFunction id settings roleId securityGroupIds=[] subnetIds=[] dependencies=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Lambda::Function"
         properties=
@@ -100,13 +99,12 @@
     /]
 [/#macro]
 
-[#macro createLambdaVersion mode id
+[#macro createLambdaVersion id
             targetId
             codeHash=""
             description=""
             dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Lambda::Version"
         properties=
@@ -126,9 +124,8 @@
     /]
 [/#macro]
 
-[#macro createLambdaPermission mode id targetId action="lambda:InvokeFunction" source={} sourcePrincipal="" sourceId="" dependencies=""]
+[#macro createLambdaPermission id targetId action="lambda:InvokeFunction" source={} sourcePrincipal="" sourceId="" dependencies=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Lambda::Permission"
         properties=
@@ -149,10 +146,9 @@
     /]
 [/#macro]
 
-[#macro createLambdaEventSource mode id targetId source enabled=true batchSize="" startingPosition="" dependencies=""]
+[#macro createLambdaEventSource id targetId source enabled=true batchSize="" startingPosition="" dependencies=""]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Lambda::EventSourceMapping"
         properties=

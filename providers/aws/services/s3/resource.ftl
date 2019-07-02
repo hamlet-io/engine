@@ -261,7 +261,7 @@
     }
 ]
 
-[#macro createS3Bucket mode id name tier="" component=""
+[#macro createS3Bucket id name tier="" component=""
                         lifecycleRules=[]
                         sqsNotifications=[]
                         versioning=false
@@ -304,7 +304,6 @@
     [/#list]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::S3::Bucket"
         properties=

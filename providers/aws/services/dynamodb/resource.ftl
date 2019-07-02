@@ -51,10 +51,10 @@
 
         [#default]
             [#return "" ]
-            [@COTException
-            mode=listMode
-            description="Invalid Attribute type"
-            context={ "Name" : name, "Type" : type } /]
+            [@fatal
+                message="Invalid Attribute type"
+                context={ "Name" : name, "Type" : type }
+            /]
     [/#switch]
 [/#function]
 
@@ -78,10 +78,10 @@
             [#break]
 
         [#default]
-            [@COTException
-                mode=listMode
-                description="Invalid Key type"
-                context={ "Name" : name, "Type" : type } /]
+            [@fatal
+                message="Invalid Key type"
+                context={ "Name" : name, "Type" : type }
+            /]
     [/#switch]
 
     [#return
@@ -104,7 +104,7 @@
     ]
 [/#function]
 
-[#macro createDynamoDbTable mode id
+[#macro createDynamoDbTable id
         backupEnabled
         billingMode
         attributes
@@ -127,7 +127,6 @@
     [/#switch]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::DynamoDB::Table"
         properties=

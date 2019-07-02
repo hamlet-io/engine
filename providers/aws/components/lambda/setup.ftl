@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_lambda_cf_application occurrence ]
-    [@cfDebug listMode occurrence false  /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "config"] /]
         [#return]
     [/#if]
 
@@ -39,7 +35,7 @@
 
             [#local networkLinkTarget = getLinkTarget(fn, networkLink ) ]
             [#if ! networkLinkTarget?has_content ]
-                [@cfException listMode "Network could not be found" networkLink /]
+                [@fatal message="Network could not be found" context=networkLink /]
                 [#return]
             [/#if]
 
@@ -99,7 +95,6 @@
                                     [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
                                     [#case APIGATEWAY_COMPONENT_TYPE ]
                                         [@createLambdaPermission
-                                            mode=listMode
                                             id=formatLambdaPermissionId(fn, "link", linkName)
                                             targetId=fnId
                                             source=linkTargetRoles.Inbound["invoke"]
@@ -118,7 +113,6 @@
                                     [#case SQS_COMPONENT_TYPE ]
                                         [#if linkTargetAttributes["ARN"]?has_content ]
                                             [@createLambdaEventSource
-                                                mode=listMode
                                                 id=formatLambdaEventSourceId(fn, "link", linkName)
                                                 targetId=fnId
                                                 source=linkTargetAttributes["ARN"]
@@ -135,7 +129,6 @@
         [/#if]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
 
@@ -166,7 +159,6 @@
             [#-- Create a role under which the function will run and attach required policies --]
             [#-- The role is mandatory though there may be no policies attached to it --]
             [@createRole
-                mode=listMode
                 id=roleId
                 trustedServices=[
                     "lambda.amazonaws.com"
@@ -184,7 +176,6 @@
             [#if _context.Policy?has_content]
                 [#local policyId = formatDependentPolicyId(fnId)]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name=_context.Name
                     statements=_context.Policy
@@ -195,7 +186,6 @@
             [#if linkPolicies?has_content]
                 [#local policyId = formatDependentPolicyId(fnId, "links")]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name="links"
                     statements=linkPolicies
@@ -210,7 +200,6 @@
                 isPartOfCurrentDeploymentUnit(fnLgId) ]
 
             [@createLogGroup
-                mode=listMode
                 id=fnLgId
                 name=fnLgName /]
         [/#if]
@@ -221,15 +210,13 @@
                 [#local codeHash = _context.CodeHash!solution.FixedCodeVersion.CodeHash ]
 
                 [#if !(core.Version?has_content)]
-                    [@cfException
-                        mode=listMode
-                        description="A version must be defined for Fixed Code Version deployments"
+                    [@fatal
+                        message="A version must be defined for Fixed Code Version deployments"
                         context=core
                     /]
                 [/#if]
 
                 [@createLambdaVersion
-                    mode=listMode
                     id=versionId
                     targetId=fnId
                     codeHash=_context.CodeHash!""
@@ -240,7 +227,6 @@
             [#-- VPC config uses an ENI so needs an SG - create one without restriction --]
             [#if vpcAccess ]
                 [@createDependentSecurityGroup
-                    mode=listMode
                     resourceId=fnId
                     resourceName=formatName("lambda", fnName)
                     occurrence=occurrence
@@ -251,7 +237,6 @@
                 [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                     [@createLogMetric
-                        mode=listMode
                         id=logMetric.Id
                         name=logMetric.Name
                         logGroup=logMetric.LogGroupName
@@ -265,7 +250,6 @@
             [/#if]
 
             [@createLambdaFunction
-                mode=listMode
                 id=fnId
                 settings=_context +
                     {
@@ -297,16 +281,14 @@
             [#if deploymentType == "EDGE" ]
 
                 [#if !isPresent(solution.FixedCodeVersion) ]
-                    [@cfException
-                        mode=listMode
-                        description="EDGE based deployments must be deployed as Fixed code version deployments"
+                    [@fatal
+                        message="EDGE based deployments must be deployed as Fixed code version deployments"
                         context=_context
                         detail="Lambda@Edge deployments are based on a snapshot of lambda code and a specific codeontap version is requried "
                     /]
                 [/#if]
 
                 [@createLambdaPermission
-                    mode=listMode
                     id=formatLambdaPermissionId(fn, "replication")
                     action="lambda:GetFunction"
                     targetId=versionId
@@ -329,7 +311,6 @@
                 }]
 
                 [@createScheduleEventRule
-                    mode=listMode
                     id=scheduleRuleId
                     enabled=schedule.Enabled
                     scheduleExpression=schedule.Expression
@@ -338,7 +319,6 @@
                 /]
 
                 [@createLambdaPermission
-                    mode=listMode
                     id=formatLambdaPermissionId(fn, "schedule", schedule.Id)
                     targetId=fnId
                     sourcePrincipal="events.amazonaws.com"
@@ -367,7 +347,6 @@
                         [#if logGroupArn?has_content ]
 
                             [@createLambdaPermission
-                                mode=listMode
                                 id=formatLambdaPermissionId(fn, "logwatch", logWatcherLink.Id, logGroupId?index)
                                 targetId=fnId
                                 source={
@@ -378,7 +357,6 @@
                             /]
 
                             [@createLogSubscription
-                                mode=listMode
                                 id=formatDependentLogSubscriptionId(fnId, logWatcherLink.Id, logGroupId?index)
                                 logGroupName=getExistingReference(logGroupId)
                                 filter=logFilter
@@ -399,7 +377,6 @@
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -426,18 +403,14 @@
             [/#list]
         [/#if]
         [#if solution.Environment.AsFile && deploymentSubsetRequired("config", false)]
-            [@cfConfig
-                mode=listMode
-                content=finalAsFileEnvironment.Environment
-            /]
+            [@addToDefaultJsonOutput content=finalAsFileEnvironment.Environment /]
         [/#if]
         [#if deploymentSubsetRequired("prologue", false)]
             [#-- Copy any asFiles needed by the task --]
             [#local asFiles = getAsFileSettings(fn.Configuration.Settings.Product) ]
             [#if asFiles?has_content]
-                [@cfDebug listMode asFiles false /]
-                [@cfScript
-                    mode=listMode
+                [@debug message="Asfiles" context=asFiles enabled=false /]
+                [@addToDefaultBashScriptOutput
                     content=
                         findAsFilesScript("filesToSync", asFiles) +
                         syncFilesToBucketScript(
@@ -448,8 +421,7 @@
                         ) /]
             [/#if]
             [#if solution.Environment.AsFile]
-                [@cfScript
-                    mode=listMode
+                [@addToDefaultBashScriptOutput
                     content=
                         getLocalFileScript(
                             "configFiles",
@@ -466,8 +438,7 @@
                             )
                         ) /]
             [/#if]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=(vpcAccess)?then(
                     [
                         "case $\{STACK_OPERATION} in",

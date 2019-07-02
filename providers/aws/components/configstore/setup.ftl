@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_configstore_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template", "epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["template", "epilogue", "cli"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local parentCore = occurrence.Core]
     [#local parentSolution = occurrence.Configuration.Solution]
@@ -53,8 +49,7 @@
 
     [#-- Lookup table name once it has been deployed --]
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=[
                 " case $\{STACK_OPERATION} in",
                 "   create|update)",
@@ -105,7 +100,6 @@
         ]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context, operationsBucket, dataBucket ) ]
@@ -148,9 +142,8 @@
                 [/#if]
             [/#list]
 
-            [@cfCli
+            [@addCliToDefaultJsonOutput
                 id=updateCliId
-                mode=listMode
                 command=itemUpdateCommand
                 content={
                     "Key" : branchItemKey
@@ -169,8 +162,7 @@
 
 
         [#if deploymentSubsetRequired("epilogue", false)]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=[
                     " case $\{STACK_OPERATION} in",
                     "   create|update)",
@@ -202,8 +194,7 @@
             [#local expressionAttributeNames += { "#" + tableSortKey : tableSortKey } ]
         [/#if]
 
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=tableId
             command=tableCleanupCommand
             content={
@@ -216,8 +207,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=[
                 " case $\{STACK_OPERATION} in",
                 "   create|update)",
@@ -244,7 +234,6 @@
     [#if deploymentSubsetRequired(CONFIGSTORE_COMPONENT_TYPE, true) ]
         [@createDynamoDbTable
             id=tableId
-            mode=listMode
             backupEnabled=parentSolution.Table.Backup.Enabled
             billingMode=parentSolution.Table.Billing
             writeCapacity=parentSolution.Table.Capacity.Write

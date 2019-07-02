@@ -4,7 +4,7 @@
     [#local core = occurrence.Core]
 
     [#if core.External!false]
-        [#local esId = baseState.Attributes["ES_DOMAIN_ARN"]!"COTException: Could not find ARN" ]
+        [#local esId = baseState.Attributes["ES_DOMAIN_ARN"]!"COTFatal: Could not find ARN" ]
         [#assign componentState =
             baseState +
             valueIfContent(
@@ -30,7 +30,7 @@
                 {}
             )
         ]
-    
+
     [#else]
 
         [#local solution = occurrence.Configuration.Solution]

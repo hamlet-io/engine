@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_userpool_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -79,9 +75,8 @@
 
     [#if ((solution.MFA) || ( solution.VerifyPhone))]
         [#if ! (solution.Schema["phone_number"]!"")?has_content ]
-            [@cfException
-                mode=listMode
-                description="Schema Attribute required: phone_number - Add Schema listed in detail"
+            [@fatal
+                message="Schema Attribute required: phone_number - Add Schema listed in detail"
                 context=schema
                 detail={
                     "phone_number" : {
@@ -98,9 +93,8 @@
 
     [#if solution.VerifyEmail || ( solution.LoginAliases.seq_contains("email"))]
         [#if ! (solution.Schema["email"]!"")?has_content ]
-            [@cfException
-                mode=listMode
-                description="Schema Attribute required: email - Add Schema listed in detail"
+            [@fatal
+                message="Schema Attribute required: email - Add Schema listed in detail"
                 context=schema
                 detail={
                     "email" : {
@@ -115,7 +109,7 @@
     [#list solution.Links?values as link]
         [#local linkTarget = getLinkTarget(occurrence, link)]
 
-        [@cfDebug listMode linkTarget false /]
+        [@debug message="Link Target" context=linkTarget enabled=false /]
 
         [#if !linkTarget?has_content]
             [#continue]
@@ -227,8 +221,7 @@
 
     [#-- Initialise epilogue script with common parameters --]
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=[
                 " case $\{STACK_OPERATION} in",
                 "   create|update)",
@@ -251,7 +244,6 @@
             isPartOfCurrentDeploymentUnit(userPoolId)]
 
                 [@createRole
-                    mode=listMode
                     id=userPoolRoleId
                     trustedServices=["cognito-idp.amazonaws.com"]
                     policies=
@@ -323,8 +315,7 @@
                     )
                 ]
 
-                [@cfCli
-                    mode=listMode
+                [@addCliToDefaultJsonOutput
                     id=authProviderId
                     command=userPoolAuthProviderUpdateCommand
                     content=updateUserPoolAuthProvider
@@ -375,7 +366,7 @@
                                                     "Tier" : core.Tier.Id,
                                                     "Component" : core.Component.RawId,
                                                     "AuthProvider" : authProvider
-                                                }, 
+                                                },
                                                 false
                                             )]
                     [#if linkTarget?has_content ]
@@ -387,7 +378,7 @@
             [#list subSolution.Links?values as link]
                 [#local linkTarget = getLinkTarget(subOccurrence, link)]
 
-                [@cfDebug listMode linkTarget false /]
+                [@debug message="Link Target" context=linkTarget enabled=false /]
 
                 [#if !linkTarget?has_content]
                     [#continue]
@@ -424,7 +415,6 @@
 
             [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
                 [@createUserPoolClient
-                    mode=listMode
                     component=core.Component
                     tier=core.Tier
                     id=userPoolClientId
@@ -446,8 +436,7 @@
                     }
                 ]
 
-                [@cfCli
-                    mode=listMode
+                [@addCliToDefaultJsonOutput
                     id=userPoolClientId
                     command=userPoolClientUpdateCommand
                     content=updateUserPoolClient
@@ -482,9 +471,8 @@
     [/#list]
 
     [#if defaultUserPoolClientRequired && ! defaultUserPoolClientConfigured ]
-            [@cfException
-                mode=listMode
-                description="A default userpool client is required"
+            [@fatal
+                message="A default userpool client is required"
                 context=solution
                 detail={
                     "ActionOptions" : {
@@ -507,7 +495,6 @@
 
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createUserPool
-            mode=listMode
             component=core.Component
             tier=core.Tier
             id=userPoolId
@@ -548,8 +535,7 @@
             "Domain" : userPoolHostName
         }]
 
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=userPoolDomainId
             command=userPoolDomainCommand
             content=userPoolDomain
@@ -564,8 +550,7 @@
                 }
             }]
 
-            [@cfCli
-                mode=listMode
+            [@addCliToDefaultJsonOutput
                 id=userPoolCustomDomainId
                 command=userPoolDomainCommand
                 content=userPoolCustomDomain
@@ -624,8 +609,7 @@
         )]
 
         [#if userPoolManualTriggerConfig?has_content ]
-            [@cfCli
-                mode=listMode
+            [@addCliToDefaultJsonOutput
                 id=userPoolId
                 command=userPoolUpdateCommand
                 content=userpoolConfig
@@ -634,8 +618,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=(getExistingReference(userPoolId)?has_content)?then(
                 [
                     " # Get cli config file",
@@ -679,8 +662,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 [
                     "case $\{STACK_OPERATION} in",

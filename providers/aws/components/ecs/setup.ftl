@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_ecs_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -51,7 +47,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -99,7 +95,6 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
@@ -120,7 +115,6 @@
         [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
         [@createRole
-            mode=listMode
             id=ecsRoleId
             trustedServices=["ec2.amazonaws.com" ]
             managedArns=
@@ -155,7 +149,6 @@
         /]
 
         [@createRole
-            mode=listMode
             id=ecsServiceRoleId
             trustedServices=["ecs.amazonaws.com" ]
             managedArns=["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"]
@@ -167,14 +160,12 @@
             deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(ecsLogGroupId)]
         [@createLogGroup
-            mode=listMode
             id=ecsLogGroupId
             name=ecsLogGroupName /]
     [/#if]
 
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(ecsInstanceLogGroupId) ]
         [@createLogGroup
-            mode=listMode
             id=ecsInstanceLogGroupId
             name=ecsInstanceLogGroupName /]
     [/#if]
@@ -207,7 +198,6 @@
         [/#list]
 
         [@createComponentSecurityGroup
-            mode=listMode
             occurrence=occurrence
             vpcId=vpcId
         /]
@@ -215,7 +205,6 @@
         [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
             [@createLogMetric
-                mode=listMode
                 id=logMetric.Id
                 name=logMetric.Name
                 logGroup=logMetric.LogGroupName
@@ -232,12 +221,11 @@
             [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
-                [@cfDebug listMode monitoredResource false /]
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -272,13 +260,9 @@
             [/#if]
         [/#if]
 
-        [@createECSCluster
-            mode=listMode
-            id=ecsId
-        /]
+        [@createECSCluster id=ecsId /]
 
         [@cfResource
-            mode=listMode
             id=ecsInstanceProfileId
             type="AWS::IAM::InstanceProfile"
             properties=
@@ -293,7 +277,6 @@
         [#if fixedIP]
             [#list 1..maxSize as index]
                 [@createEIP
-                    mode=listMode
                     id=formatComponentEIPId(core.Tier, core.Component, index)
                 /]
                 [#local allocationIds +=
@@ -310,7 +293,6 @@
         [/#if]
 
         [@createEc2AutoScaleGroup
-            mode=listMode
             id=ecsAutoScaleGroupId
             tier=core.Tier
             configSetName=configSetName
@@ -325,7 +307,6 @@
         /]
 
         [@createEC2LaunchConfig
-            mode=listMode
             id=ecsLaunchConfigId
             processorProfile=processorProfile
             storageProfile=storageProfile
@@ -343,14 +324,10 @@
 [/#macro]
 
 [#macro aws_ecs_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
         [#return]
     [/#if]
 
@@ -370,7 +347,7 @@
 
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -390,7 +367,7 @@
             occurrence.Occurrences![],
             deploymentUnit) as subOccurrence]
 
-        [@cfDebug listMode subOccurrence false /]
+        [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
 
         [#local core = subOccurrence.Core ]
         [#local solution = subOccurrence.Configuration.Solution ]
@@ -407,9 +384,8 @@
         [#local executionRoleId = ""]
 
         [#if engine == "fargate" && networkMode != "awsvpc" ]
-            [@cfException
-                mode=listMode
-                description="Fargate containers only support the awsvpc network mode"
+            [@fatal
+                message="Fargate containers only support the awsvpc network mode"
                 context=
                     {
                         "Description" : "Fargate containers only support the awsvpc network mode",
@@ -443,7 +419,6 @@
 
             [#if deploymentSubsetRequired("ecs", true)]
                 [@createSecurityGroup
-                    mode=listMode
                     id=ecsSecurityGroupId
                     name=ecsSecurityGroupName
                     occurrence=occurrence
@@ -468,9 +443,8 @@
                         [#if networkMode == "bridge" || engine != "fargate" ]
                             [#local networkLinks += [ container.Name ] ]
                         [#else]
-                            [@cfException
-                                mode=listMode
-                                description="Network links only avaialble on bridge mode and ec2 engine"
+                            [@fatal
+                                message="Network links only avaialble on bridge mode and ec2 engine"
                                 context=
                                     {
                                         "Description" : "Container links are only available in bridge mode and ec2 engine",
@@ -484,7 +458,7 @@
                         [#if portMapping.LoadBalancer?has_content]
                             [#local loadBalancer = portMapping.LoadBalancer]
                             [#local link = container.Links[loadBalancer.Link] ]
-                            [@cfDebug listMode link false /]
+                            [@debug message="Link" context=link enabled=false /]
                             [#local linkCore = link.Core ]
                             [#local linkResources = link.State.Resources ]
                             [#local linkConfiguration = link.Configuration.Solution ]
@@ -524,9 +498,8 @@
 
                                         [#case "classic"]
                                             [#if networkMode == "awsvpc" ]
-                                                [@cfException
-                                                    mode=listMode
-                                                    description="Network mode not compatible with LB"
+                                                [@fatal
+                                                    message="Network mode not compatible with LB"
                                                     context=
                                                         {
                                                             "Description" : "The current container network mode is not compatible with this load balancer engine",
@@ -560,7 +533,6 @@
                             [#list securityGroupCIDRs as cidr ]
 
                                 [@createSecurityGroupIngress
-                                    mode=listMode
                                     id=
                                         formatContainerSecurityGroupIngressId(
                                             ecsSecurityGroupId,
@@ -579,7 +551,6 @@
 
                             [#list sourceSecurityGroupIds as group ]
                                 [@createSecurityGroupIngress
-                                    mode=listMode
                                     id=
                                         formatContainerSecurityGroupIngressId(
                                             ecsSecurityGroupId,
@@ -599,7 +570,7 @@
                         [#if portMapping.ServiceRegistry?has_content]
                             [#local serviceRegistry = portMapping.ServiceRegistry]
                             [#local link = container.Links[serviceRegistry.Link] ]
-                            [@cfDebug listMode link false /]
+                            [@debug message="Link" context=link enabled=false /]
                             [#local linkCore = link.Core ]
                             [#local linkResources = link.State.Resources ]
                             [#local linkConfiguration = link.Configuration.Solution ]
@@ -619,11 +590,11 @@
                                     [/#if]
 
                                     [#if serviceRecordTypes?seq_contains("A") && networkMode != "awsvpc" ]
-                                        [@cfException listMode "A record registration only availalbe on awsvpc network Type" link /]
+                                        [@fatal message="A record registration only availalbe on awsvpc network Type" context=link /]
                                     [/#if]
 
                                     [#if serviceRecordTypes?seq_contains("AAAA") ]
-                                        [@cfException listMode "AAAA Service record are not supported" link /]
+                                        [@fatal message="AAAA Service record are not supported" context=link /]
                                     [/#if]
 
                                     [#local serviceRegistries +=
@@ -642,7 +613,6 @@
                     [#if container.IngressRules?has_content ]
                         [#list container.IngressRules as ingressRule ]
                             [@createSecurityGroupIngress
-                                    mode=listMode
                                     id=formatContainerSecurityGroupIngressId(
                                             ecsSecurityGroupId,
                                             container,
@@ -667,7 +637,6 @@
                 [/#if]
 
                 [@createECSService
-                    mode=listMode
                     id=serviceId
                     ecsId=ecsId
                     engine=engine
@@ -699,7 +668,6 @@
                     [#if container.Policy?has_content]
                         [#local policyId = formatDependentPolicyId(taskId, container.Id) ]
                         [@createPolicy
-                            mode=listMode
                             id=policyId
                             name=container.Name
                             statements=container.Policy
@@ -713,7 +681,6 @@
                     [#if linkPolicies?has_content]
                         [#local policyId = formatDependentPolicyId(taskId, container.Id, "links")]
                         [@createPolicy
-                            mode=listMode
                             id=policyId
                             name="links"
                             statements=linkPolicies
@@ -724,7 +691,6 @@
                 [/#list]
 
                 [@createRole
-                    mode=listMode
                     id=roleId
                     trustedServices=["ecs-tasks.amazonaws.com"]
                     managedArns=managedPolicy
@@ -737,7 +703,6 @@
             [#local executionRoleId = resources["executionRole"].Id]
             [#if deploymentSubsetRequired("iam", true ) && isPartOfCurrentDeploymentUnit(executionRoleId) ]
                 [@createRole
-                    mode=listMode
                     id=executionRoleId
                     trustedServices=[
                         "ecs-tasks.amazonaws.com"
@@ -754,7 +719,6 @@
 
                 [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(scheduleTaskRoleId)]
                     [@createRole
-                        mode=listMode
                         id=scheduleTaskRoleId
                         trustedServices=["events.amazonaws.com"]
                         policies=[
@@ -829,15 +793,13 @@
                         [#local targetCommand = "updateTargetRule" ]
 
                         [#if deploymentSubsetRequired("cli", false) ]
-                            [@cfCli
-                                mode=listMode
+                            [@addCliToDefaultJsonOutput
                                 id=ruleCliId
                                 command=ruleCommand
                                 content=eventRuleCliConfig
                             /]
 
-                            [@cfCli
-                                mode=listMode
+                            [@addCliToDefaultJsonOutput
                                 id=targetCliId
                                 command=targetCommand
                                 content=eventTargetCliConfig
@@ -856,8 +818,7 @@
                                 "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
                             }]
 
-                            [@cfScript
-                                mode=listMode
+                            [@addToDefaultBashScriptOutput
                                 content=
                                     [
                                         " case $\{STACK_OPERATION} in",
@@ -885,8 +846,7 @@
                         [/#if]
 
                         [#if deploymentSubsetRequired("prologue", false)]
-                            [@cfScript
-                                mode=listMode
+                            [@addToDefaultBashScriptOutput
                                 content=
                                     [
                                         " case $\{STACK_OPERATION} in",
@@ -906,7 +866,6 @@
                     [#else]
                         [#if deploymentSubsetRequired("ecs", true) ]
                             [@createScheduleEventRule
-                                mode=listMode
                                 id=scheduleRuleId
                                 enabled=scheduleEnabled
                                 scheduleExpression=schedule.Expression
@@ -925,7 +884,6 @@
                 [#local lgName = resources["lg"].Name]
                 [#if isPartOfCurrentDeploymentUnit(lgId) ]
                     [@createLogGroup
-                        mode=listMode
                         id=lgId
                         name=lgName /]
                 [/#if]
@@ -935,7 +893,6 @@
                     [#local lgId = container.LogGroup.Id ]
                     [#if isPartOfCurrentDeploymentUnit(lgId) ]
                         [@createLogGroup
-                            mode=listMode
                             id=lgId
                             name=container.LogGroup.Name /]
                     [/#if]
@@ -981,7 +938,6 @@
             [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                 [@createLogMetric
-                    mode=listMode
                     id=logMetric.Id
                     name=logMetric.Name
                     logGroup=logMetric.LogGroupName
@@ -1001,7 +957,6 @@
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -1028,7 +983,6 @@
             [/#list]
 
             [@createECSTask
-                mode=listMode
                 id=taskId
                 name=taskName
                 engine=engine
@@ -1046,7 +1000,6 @@
 
             [#-- Pick any extra macros in the container fragments --]
             [#list (solution.Containers!{})?values as container]
-                [#assign fragmentListMode = listMode]
                 [#local fragmentId = formatFragmentId(container, occurrence)]
                 [#include fragmentList?ensure_starts_with("/")]
             [/#list]
@@ -1057,9 +1010,8 @@
             [#-- Copy any asFiles needed by the task --]
             [#local asFiles = getAsFileSettings(subOccurrence.Configuration.Settings.Product) ]
             [#if asFiles?has_content]
-                [@cfDebug listMode asFiles false /]
-                [@cfScript
-                    mode=listMode
+                [@debug message="AsFiles" context=asFiles enabled=false /]
+                [@addToDefaultBashScriptOutput
                     content=
                         findAsFilesScript("filesToSync", asFiles) +
                         syncFilesToBucketScript(

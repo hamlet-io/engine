@@ -57,9 +57,8 @@
     ]
 [/#function]
 
-[#macro createAPIKey mode id name enabled=true distinctId=false description="" dependencies="" ]
+[#macro createAPIKey id name enabled=true distinctId=false description="" dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ApiGateway::ApiKey"
         properties=
@@ -88,9 +87,8 @@
     }
 ]
 
-[#macro createAPIUsagePlan mode id name stages=[] dependencies="" ]
+[#macro createAPIUsagePlan id name stages=[] dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ApiGateway::UsagePlan"
         properties=
@@ -103,9 +101,8 @@
     /]
 [/#macro]
 
-[#macro createAPIUsagePlanMember mode id planId apikeyId dependencies="" ]
+[#macro createAPIUsagePlanMember id planId apikeyId dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ApiGateway::UsagePlanKey"
         properties=

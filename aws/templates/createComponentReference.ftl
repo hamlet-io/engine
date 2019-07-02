@@ -1,8 +1,6 @@
 [#ftl strip_text=true strip_whitespace=true ]
 [#include "/bootstrap.ftl" ]
 
-[#assign listMode = "reference"]
-
 [#assign referenceTemplate = [] ]
 
 [#macro MDSection
@@ -324,7 +322,7 @@
     [#local result = {}]
     [#list componentAttributes as attribute ]
         [#if attribute?is_hash ]
-            [#local attributeName = attribute.Names!"COTException: Attribute does not have a name" ]
+            [#local attributeName = attribute.Names!"COTFatal: Attribute does not have a name" ]
             [#local name = attributeName?is_sequence?then(
                                 attributeName[0],
                                 attributeName

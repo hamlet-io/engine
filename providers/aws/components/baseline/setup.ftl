@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_baseline_cf_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -21,9 +17,8 @@
             core.Version.Id == "" &&
             core.Instance.Id == "" ) ]
 
-        [@cfException
-            mode=listMode
-            description="The baseline component can only be deployed once as an unversioned component"
+        [@fatal
+            message="The baseline component can only be deployed once as an unversioned component"
             context=core
         /]
         [#return ]
@@ -36,8 +31,7 @@
         [#local segmentSeedValue = resources["segmentSeed"].Value]
 
         [#if deploymentSubsetRequired("prologue", false)]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                 [
                     "case $\{STACK_OPERATION} in",
@@ -61,7 +55,6 @@
         [#local topicId = resources["segmentSNSTopic"].Id ]
         [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
             [@createSegmentSNSTopic
-                mode=listMode
                 id=topicId
             /]
         [/#if]
@@ -100,7 +93,7 @@
                         [#list notification.Links?values as link]
                             [#if link?is_hash]
                                 [#local linkTarget = getLinkTarget(subOccurrence, link, false) ]
-                                [@cfDebug listMode linkTarget false /]
+                                [@debug message="Link Target" context=linkTarget enabled=false /]
                                 [#if !linkTarget?has_content]
                                     [#continue]
                                 [/#if]
@@ -129,7 +122,7 @@
                     [#if link?is_hash]
                         [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
-                        [@cfDebug listMode linkTarget false /]
+                        [@debug message="Link Target" context=linkTarget enabled=false /]
 
                         [#if !linkTarget?has_content]
                             [#continue]
@@ -147,12 +140,12 @@
 
                                     [#-- Backwards compatible support for legacy OAI keys --]
                                     [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
-                                    [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]  
+                                    [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]
 
                                     [#if legacyOAI?has_content && linkTarget.Core.SubComponent.Id = "oai" ]
                                         [#local cfAccessCanonicalIds += [ legacyOAI ]]
                                     [#else]
-                                        [#local cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]       
+                                        [#local cfAccessCanonicalIds += [ getReference( (linkTargetResources["originAccessId"].Id), CANONICAL_ID_ATTRIBUTE_TYPE )] ]
                                     [/#if]
                                 [/#if]
                                 [#break]
@@ -166,7 +159,6 @@
                             bucketId,
                             sqsId) ]
                     [@createSQSPolicy
-                            mode=listMode
                             id=sqsPolicyId
                             queues=sqsId
                             statements=sqsS3WritePermission(sqsId, bucketName)
@@ -175,7 +167,6 @@
                 [/#list]
 
                 [@createS3Bucket
-                    mode=listMode
                     id=bucketId
                     name=bucketName
                     versioning=subSolution.Versioning
@@ -241,7 +232,6 @@
 
                 [#if bucketPolicy?has_content ]
                     [@createBucketPolicy
-                        mode=listMode
                         id=bucketPolicyId
                         bucket=bucketName
                         statements=bucketPolicy
@@ -269,7 +259,6 @@
                         ( deploymentSubsetRequired("cmk") && legacyCmk == true) ]
 
                         [@createCMK
-                            mode=listMode
                             id=cmkResourceId
                             description=cmkName
                             statements=
@@ -286,7 +275,6 @@
                         /]
 
                         [@createCMKAlias
-                            mode=listMode
                             id=cmkAliasId
                             name=cmkAliasName
                             cmkId=cmkResourceId
@@ -306,8 +294,7 @@
 
                     [#if deploymentSubsetRequired("epilogue", false)]
                         [#-- Make sure SSH credentials are in place --]
-                        [@cfScript
-                            mode=listMode
+                        [@addToDefaultBashScriptOutput
                             content=
                             [
                                 "function manage_ssh_credentials() {"
@@ -419,8 +406,7 @@
 
                     [#if legacyKey ]
                         [#if deploymentSubsetRequired("epilogue", false) ]
-                            [@cfScript
-                                mode=listMode
+                            [@addToDefaultBashScriptOutput
                                 content=
                                     [
                                         "function manage_oai_credentials() {"
@@ -468,7 +454,6 @@
                     [#else]
                         [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
                             [@createCFOriginAccessIdentity
-                                mode=listMode
                                 id=OAIId
                                 name=OAIName
                             /]

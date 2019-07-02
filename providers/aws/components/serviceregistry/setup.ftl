@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_serviceregistry_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -26,7 +22,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -38,10 +34,9 @@
     [#local routeTableLinkTarget = getLinkTarget(occurrence, networkLink + { "RouteTable" : occurrenceNetwork.RouteTable })]
     [#local routeTableConfiguration = routeTableLinkTarget.Configuration.Solution ]
     [#local publicRouteTable = routeTableConfiguration.Public ]
-    
+
     [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
         [@createCloudMapDNSNamespace
-            mode=listMode
             id=registryId
             name=registryName
             domainName=registryDnsDomain
@@ -62,7 +57,6 @@
 
         [#if deploymentSubsetRequired(SERVICE_REGISTRY_COMPONENT_TYPE, true) ]
             [@createCloudMapService
-                mode=listMode
                 id=serviceId
                 name=serviceName
                 namespaceId=registryId

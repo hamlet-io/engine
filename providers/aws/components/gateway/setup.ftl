@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_gateway_cf_segment occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local gwCore = occurrence.Core ]
     [#local gwSolution = occurrence.Configuration.Solution ]
@@ -21,9 +17,9 @@
     [#local networkLink = occurrenceNetwork.Link!{} ]
 
     [#if !networkLink?has_content ]
-        [@cfException
-            listMode
-            "Tier Network configuration incomplete",
+        [@fatal
+            message="Tier Network configuration incomplete"
+            context=
                 {
                     "networkTier" : occurrenceNetwork,
                     "Link" : networkLink
@@ -34,7 +30,7 @@
 
         [#local networkLinkTarget = getLinkTarget(occurrence, networkLink, false) ]
         [#if ! networkLinkTarget?has_content ]
-            [@cfException listMode "Network could not be found" networkLink /]
+            [@fatal message="Network could not be found" context=networkLink /]
             [#return]
         [/#if]
 
@@ -56,10 +52,7 @@
                 [#if deploymentSubsetRequired("eip", true) &&
                         isPartOfCurrentDeploymentUnit(eipId)]
 
-                    [@createEIP
-                        mode=listMode
-                        id=eipId
-                    /]
+                    [@createEIP id=eipId /]
 
                 [/#if]
             [/#if]
@@ -82,7 +75,6 @@
                                                 false)]
                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                         [@createNATGateway
-                            mode=listMode
                             id=natGatewayId
                             subnetId=subnetId
                             eipId=eipId
@@ -102,12 +94,10 @@
 
                     [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                         [@createIGW
-                            mode=listMode
                             id=IGWId
                             name=IGWName
                         /]
                         [@createIGWAttachment
-                            mode=listMode
                             id=IGWAttachementId
                             vpcId=vpcId
                             igwId=IGWId
@@ -133,7 +123,6 @@
 
                 [#if deploymentSubsetRequired(NETWORK_GATEWAY_COMPONENT_TYPE, true)]
                     [@createSecurityGroup
-                        mode=listMode
                         id=securityGroupId
                         name=securityGroupName
                         occurrence=occurrence
@@ -143,7 +132,6 @@
                     [#list sourceCidrs as cidr ]
 
                         [@createSecurityGroupIngress
-                            mode=listMode
                             id=
                                 formatDependentSecurityGroupIngressId(
                                     securityGroupId,
@@ -160,7 +148,7 @@
 
         [#list occurrence.Occurrences![] as subOccurrence]
 
-            [@cfDebug listMode subOccurrence false /]
+            [@debug message="Suboccurrence" context=subOccurrence enabled=false /]
 
             [#local core = subOccurrence.Core ]
             [#local solution = subOccurrence.Configuration.Solution ]
@@ -177,7 +165,7 @@
 
                     [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-                    [@cfDebug listMode linkTarget false /]
+                    [@debug message="Link Target" context=linkTarget enabled=false /]
 
                     [#if !linkTarget?has_content]
                         [#continue]
@@ -211,7 +199,6 @@
                                             [/#if]
                                             [#list cidrs as cidr ]
                                                 [@createRoute
-                                                    mode=listMode
                                                     id=formatRouteId(zoneRouteTableId, core.Id, cidr?index)
                                                     routeTableId=zoneRouteTableId
                                                     route=
@@ -230,7 +217,6 @@
                                                 [#if publicRouteTable ]
                                                     [#list cidrs as cidr ]
                                                         [@createRoute
-                                                            mode=listMode
                                                             id=formatRouteId(zoneRouteTableId, core.Id, cidr?index)
                                                             routeTableId=zoneRouteTableId
                                                             route=
@@ -243,9 +229,8 @@
                                                         /]
                                                     [/#list]
                                                 [#else]
-                                                    [@cfException
-                                                        mode=listMode
-                                                        description="Cannot add internet gateway to private route table. Route table must be public"
+                                                    [@fatal
+                                                        message="Cannot add internet gateway to private route table. Route table must be public"
                                                         context={ "Gateway" : subOccurrence, "RouteTable" :  link }
                                                     /]
                                                 [/#if]
@@ -273,7 +258,6 @@
                                 [/#if]
                             [/#list]
                             [@createVPCEndpoint
-                                mode=listMode
                                 id=zoneVpcEndpoint.Id
                                 vpcId=vpcId
                                 service=zoneVpcEndpoint.ServiceName

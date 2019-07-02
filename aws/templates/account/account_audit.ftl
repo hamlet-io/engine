@@ -4,11 +4,7 @@
     [#if accountObject.Seed?has_content]
 
         [#if deploymentSubsetRequired("genplan", false)]
-            [@cfScript
-                mode=listMode
-                content=
-                    getGenerationPlan(["template"])
-            /]
+            [@addDefaultGenerationPlan subsets="template" /]
         [/#if]
 
         [#if deploymentSubsetRequired("audit", true)]
@@ -25,7 +21,6 @@
             [#assign sqsNotifications = []]
 
             [@cfResource
-                mode=listMode
                 id=formatAccountS3Id("audit")
                 type="AWS::S3::Bucket"
                 properties=
@@ -53,6 +48,9 @@
             /]
         [/#if]
     [#else]
-        [@cfPreconditionFailed listMode "account_audit" {} "No account seed provided" /]
+        [@precondition
+            function="account_audit"
+            detail="No account seed provided"
+        /]
     [/#if]
 [/#if]

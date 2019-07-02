@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_contentnode_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue"])
-        /]
+        [@addDefaultGenerationPlan subsets="prologue"] /]
         [#return]
     [/#if]
 
@@ -19,7 +15,11 @@
     [#local pathObject = getContentPath(occurrence) ]
 
     [#if ! (solution.Links?has_content)]
-        [@cfPreconditionFailed listMode "contentnode" occurrence "No content hub link configured" /]
+        [@precondition
+            function="contentnode"
+            context=occurrence
+            detail="No content hub link configured"
+        /]
         [#break]
     [/#if]
 
@@ -27,7 +27,7 @@
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -41,8 +41,7 @@
                 [#case "external"]
                 [#case "contenthub"]
                     [#if deploymentSubsetRequired("prologue", false)]
-                        [@cfScript
-                            mode=listMode
+                        [@addToDefaultBashScriptOutput
                             content=
                             [
                                 "function get_contentnode_file() {",

@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_sqs_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#if deploymentSubsetRequired("sqs", true)]
 
@@ -26,7 +22,6 @@
             [#local dlqId = resources["dlq"].Id ]
             [#local dlqName = resources["dlq"].Name ]
             [@createSQSQueue
-                mode=listMode
                 id=dlqId
                 name=dlqName
                 retention=1209600
@@ -35,7 +30,6 @@
         [/#if]
 
         [@createSQSQueue
-            mode=listMode
             id=sqsId
             name=sqsName
             delay=solution.DelaySeconds
@@ -59,7 +53,6 @@
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName

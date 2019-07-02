@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_computecluster_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
 
@@ -44,7 +40,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -77,9 +73,8 @@
         [#if port.LB.Configured]
             [#local lbLink = getLBLink(occurrence, port)]
             [#if isDuplicateLink(links, lbLink) ]
-                [@cfException
-                    mode=listMode
-                    description="Duplicate Link Name"
+                [@fatal
+                    message="Duplicate Link Name"
                     context=links
                     detail=lbLink /]
                 [#continue]
@@ -140,7 +135,6 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
@@ -159,7 +153,6 @@
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(computeClusterRoleId)]
         [@createRole
-            mode=listMode
             id=computeClusterRoleId
             trustedServices=["ec2.amazonaws.com" ]
             policies=
@@ -197,7 +190,7 @@
     [#list links?values as link]
         [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-        [@cfDebug listMode linkTarget false /]
+        [@debug message="Link Target" context=linkTarget enabled=false /]
 
         [#if !linkTarget?has_content]
             [#continue]
@@ -257,7 +250,6 @@
             [#list securityGroupCIDRs as cidr ]
 
                 [@createSecurityGroupIngress
-                    mode=listMode
                     id=
                         formatDependentSecurityGroupIngressId(
                             computeClusterSecurityGroupId,
@@ -273,7 +265,6 @@
 
             [#list sourceSecurityGroupIds as group ]
                 [@createSecurityGroupIngress
-                    mode=listMode
                     id=
                         formatDependentSecurityGroupIngressId(
                             computeClusterSecurityGroupId,
@@ -292,7 +283,6 @@
 
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(computeClusterLogGroupId) ]
         [@createLogGroup
-            mode=listMode
             id=computeClusterLogGroupId
             name=computeClusterLogGroupName /]
     [/#if]
@@ -306,7 +296,6 @@
     [#if deploymentSubsetRequired(COMPUTECLUSTER_COMPONENT_TYPE, true)]
 
         [@createSecurityGroup
-            mode=listMode
             occurrence=occurrence
             id=computeClusterSecurityGroupId
             name=computeClusterSecurityGroupName
@@ -314,7 +303,6 @@
 
         [#list ingressRules as rule ]
             [@createSecurityGroupIngress
-                    mode=listMode
                     id=formatDependentSecurityGroupIngressId(
                         computeClusterSecurityGroupId,
                         rule.Port)
@@ -324,7 +312,6 @@
         [/#list]
 
         [@cfResource
-            mode=listMode
             id=computeClusterInstanceProfileId
             type="AWS::IAM::InstanceProfile"
             properties=
@@ -341,7 +328,6 @@
                                     }]
 
         [@createEc2AutoScaleGroup
-            mode=listMode
             id=computeClusterAutoScaleGroupId
             tier=core.Tier
             configSetName=configSetName
@@ -362,7 +348,6 @@
         )]
 
         [@createEC2LaunchConfig
-            mode=listMode
             id=computeClusterLaunchConfigId
             processorProfile=processorProfile
             storageProfile=storageProfile

@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_datapipeline_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue", "cli", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli", "config"] /]
         [#return]
     [/#if]
 
@@ -45,7 +41,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -101,7 +97,6 @@
     ]
 
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
@@ -118,12 +113,7 @@
     [/#list]
 
     [#if deploymentSubsetRequired("config", false)]
-        [@cfConfig
-            mode=listMode
-            content={
-                "values" : myParameterValues
-            }
-        /]
+        [@addToDefaultJsonOutput content={ "values" : myParameterValues } /]
     [/#if]
 
     [#if deploymentSubsetRequired("iam", true)  ]
@@ -132,7 +122,6 @@
         [#-- The role is mandatory though there may be no policies attached to it --]
         [#if isPartOfCurrentDeploymentUnit(pipelineRoleId) ]
             [@createRole
-                mode=listMode
                 id=pipelineRoleId
                 name=pipelineRoleName
                 trustedServices=[
@@ -145,7 +134,6 @@
 
         [#if isPartOfCurrentDeploymentUnit(resourceRoleId) ]
             [@createRole
-                mode=listMode
                 id=resourceRoleId
                 name=resourceRoleName
                 trustedServices=[
@@ -157,7 +145,6 @@
             [#if _context.Policy?has_content]
                 [#local policyId = formatDependentPolicyId(pipelineId)]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name=_context.Name
                     statements=_context.Policy
@@ -170,7 +157,6 @@
             [#if linkPolicies?has_content]
                 [#local policyId = formatDependentPolicyId(pipelineId, "links")]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name="links"
                     statements=linkPolicies
@@ -186,7 +172,6 @@
 
 
         [@cfResource
-                mode=listMode
                 id=resourceInstanceProfileId
                 type="AWS::IAM::InstanceProfile"
                 properties=
@@ -199,7 +184,6 @@
             /]
 
         [@createSecurityGroup
-            mode=listMode
             id=securityGroupId
             name=securityGroupName
             occurrence=occurrence
@@ -207,7 +191,6 @@
         /]
 
         [@createSecurityGroupIngress
-            mode=listMode
             id=formatDependentSecurityGroupIngressId(
                 securityGroupId,
                 "local")
@@ -243,8 +226,7 @@
             "tags" : cliTags
         }]
 
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=pipelineId
             command=pipelineCreateCommand
             content=pipelineCreateCliConfig
@@ -255,9 +237,8 @@
         [#-- Copy any asFiles needed by the task --]
         [#local asFiles = getAsFileSettings(settings.Product) ]
         [#if asFiles?has_content]
-            [@cfDebug listMode asFiles false /]
-            [@cfScript
-                mode=listMode
+            [@debug message="Asfiles" context=asFiles enabled=false /]
+            [@addToDefaultBashScriptOutput
                 content=
                     findAsFilesScript("filesToSync", asFiles) +
                     syncFilesToBucketScript(
@@ -270,8 +251,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false) ]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getBuildScript(
                     "pipelineFiles",

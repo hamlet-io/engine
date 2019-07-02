@@ -1,17 +1,14 @@
 [#ftl]
 [#macro aws_rds_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(
-                    ["prologue", "template", "epilogue"],
-                    ["primary", "replace1", "replace2"])
+        [@addDefaultGenerationPlan
+            subsets=["prologue", "template", "epilogue"]
+            alternatives=["primary", "replace1", "replace2"]
         /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -28,7 +25,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -52,7 +49,7 @@
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
             [#else]
-                [@cfException listMode "Unknown Port" port /]
+                [@fatal message="Unknown Port" context=port /]
             [/#if]
             [#break]
 
@@ -69,12 +66,16 @@
             [#if (ports[port].Port)?has_content]
                 [#local port = ports[port].Port ]
             [#else]
-                [@cfException listMode "Unknown Port" port /]
+                [@fatal message="Unknown Port" context=port /]
             [/#if]
             [#break]
 
         [#default]
-            [@cfPreconditionFailed listMode "solution_rds" occurrence "Unsupported engine provided" /]
+            [@precondition
+                function="solution_rds"
+                context=occurrence
+                detail="Unsupported engine provided"
+            /]
             [#local engineVersion = "unknown" ]
             [#local family = "unknown" ]
             [#local port = "unknown" ]
@@ -161,9 +162,8 @@
 
     [#if solution.AlwaysCreateFromSnapshot ]
         [#if !rdsManualSnapshot?has_content ]
-            [@cfException
-                mode=listMode
-                description="Snapshot must be provided to create this database"
+            [@fatal
+                message="Snapshot must be provided to create this database"
                 context=occurrence
                 detail="Please provie a manual snapshot or a link to an RDS data set"
             /]
@@ -184,8 +184,7 @@
     [#local processorProfile = getProcessor(occurrence, "RDS")]
 
     [#if deploymentSubsetRequired("prologue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
             [
                 "case $\{STACK_OPERATION} in",
@@ -256,7 +255,6 @@
     [#if deploymentSubsetRequired("rds", true)]
 
         [@createDependentComponentSecurityGroup
-            mode=listMode
             occurrence=occurrence
             resourceId=rdsId
             resourceName=rdsFullName
@@ -264,7 +262,6 @@
         /]
 
         [@createSecurityGroupIngress
-            mode=listMode
             id=rdsSecurityGroupIngressId
             port=port
             cidr="0.0.0.0/0"
@@ -272,7 +269,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=rdsSubnetGroupId
             type="AWS::RDS::DBSubnetGroup"
             properties=
@@ -285,7 +281,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=rdsParameterGroupId
             type="AWS::RDS::DBParameterGroup"
             properties=
@@ -299,7 +294,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=rdsOptionGroupId
             type="AWS::RDS::OptionGroup"
             deletionPolicy="Retain"
@@ -361,12 +355,11 @@
                 [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
-                    [@cfDebug listMode monitoredResource false /]
+                    [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -393,7 +386,6 @@
             [/#list]
 
             [@createRDSInstance
-                    mode=listMode
                     id=rdsId
                     name=rdsFullName
                     engine=engine
@@ -428,8 +420,7 @@
 
             [#local passwordPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-password-pseudo-stack.json\"" ]
             [#local urlPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-url-pseudo-stack.json\""]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                 [
                     "case $\{STACK_OPERATION} in",

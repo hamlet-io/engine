@@ -1,11 +1,7 @@
 [#if deploymentUnit?contains("console") || (allDeploymentUnits!false) ]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["epilogue", "cli"] /]
     [/#if]
 
     [#assign consoleLgId = formatLogGroupId( "console" )]
@@ -21,7 +17,6 @@
     [#if deploymentSubsetRequired("iam", true) &&
             isPartOfCurrentDeploymentUnit(consoleRoleId)]
         [@createRole
-            mode=listMode
             id=consoleRoleId
             trustedServices=["ssm.amazonaws.com" ]
             policies=
@@ -36,7 +31,6 @@
     [#if deploymentSubsetRequired("lg", true) &&
             isPartOfCurrentDeploymentUnit(consoleLgId)]
         [@createLogGroup
-            mode=listMode
             id=consoleLgId
             name=consoleLgName /]
     [/#if]
@@ -46,8 +40,7 @@
     [#-- Need to run the unit twice or use an IAM unit so the role can be included in the CLI --]
     [#if deploymentSubsetRequired("cli", false) ]
 
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=consoleResourceId
             command=consoleCliCommand
             content=
@@ -63,8 +56,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false) ]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 [
                     "case $\{STACK_OPERATION} in",

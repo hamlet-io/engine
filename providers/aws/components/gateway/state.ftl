@@ -83,9 +83,8 @@
             [#break]
 
         [#default]
-            @cfException
-                mode=listMode
-                description="Unkown Engine Type"
+            @fatal
+                message="Unkown Engine Type"
                 context=occurrence.Configuration.Solution
             /]
     [/#switch]
@@ -154,9 +153,8 @@
             [#break]
 
         [#default]
-            [@cfException
-                mode=listMode
-                description="Unkown Engine Type"
+            [@fatal
+                message="Unkown Engine Type"
                 context=occurrence.Configuration.Solution
             /]
     [/#switch]

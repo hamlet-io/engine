@@ -2,16 +2,11 @@
 [#if deploymentUnit?contains("sms") || (allDeploymentUnits!false) ]
     [#assign cloudWatchRoleId = formatAccountRoleId("sms","cloudwatch")]
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["epilogue", "cli"] /]
     [/#if]
 
     [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(cloudWatchRoleId)]
         [@createRole
-            mode=listMode
             id=cloudWatchRoleId
             trustedServices=["sns.amazonaws.com"]
             policies=
@@ -27,12 +22,10 @@
     [#assign lgFailureId = formatMobileNotifierLogGroupId(MOBILENOTIFIER_SMS_ENGINE, "", true) ]
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(lgId) ]
         [@createLogGroup
-            mode=listMode
             id=lgId
             name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", false) /]
 
         [@createLogGroup
-            mode=listMode
             id=lgFailureId
             name=formatMobileNotifierLogGroupName(MOBILENOTIFIER_SMS_ENGINE, "", true) /]
     [/#if]
@@ -55,8 +48,7 @@
                 getSetting(smsSettings, ["SMS", "DEFAULT", "TYPE"], true).Value,
                 "Transactional"
             ) ]
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=smsResourceId
             command=smsCliCommand
             content=
@@ -86,8 +78,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false) ]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 [
                     "case $\{STACK_OPERATION} in",

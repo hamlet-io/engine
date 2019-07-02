@@ -2,9 +2,8 @@
 
 [#-- Macros --]
 
-[#macro createVPCFlowLog mode id vpcId roleId logGroupName trafficType]
-    [@createFlowLog 
-        mode,
+[#macro createVPCFlowLog id vpcId roleId logGroupName trafficType]
+    [@createFlowLog
         id,
         roleId,
         logGroupName,
@@ -13,10 +12,9 @@
         trafficType /]
 [/#macro]
 
-[#macro createVPCLogGroup mode id name retention ]
+[#macro createVPCLogGroup id name retention ]
     [#if isPartOfCurrentDeploymentUnit(id)]
-        [@createLogGroup 
-            mode
+        [@createLogGroup
             id
             name
             retention /]
@@ -27,9 +25,8 @@
     [#return formatSegmentFullName()]
 [/#function]
 
-[#macro createSegmentCountLogMetric mode id name logGroup filter dependencies=""]
-    [@createLogMetric 
-        mode,
+[#macro createSegmentCountLogMetric id name logGroup filter dependencies=""]
+    [@createLogMetric
         id,
         name,
         logGroup,

@@ -133,7 +133,6 @@
 [/#macro]
 
 [#macro cfResource
-            mode
             id
             type
             properties={}
@@ -201,70 +200,6 @@
             /]
         [/#if]
     [/#list]
-[/#macro]
-
-[#macro cfConfig mode content={} ]
-    [@addToDefaultJsonOutput content=content /]
-[/#macro]
-
-[#macro cfCli mode id command content={} ]
-    [@addCliToDefaultJsonOutput
-        id=id
-        command=command
-        content=content
-    /]
-[/#macro]
-
-[#macro cfScript mode content=[] ]
-    [@addToDefaultBashOutput lines=content /]
-[/#macro]
-
-[#macro cfDebug mode value enabled=true]
-    [@debug message=value enabled=enabled /]
-[/#macro]
-
-[#macro cfException mode description context={} detail="" ]
-    [@fatal
-        message=description
-        context=
-            valueIfContent(
-                {
-                    "Context" : context,
-                    "Detail" : detail
-                },
-                detail,
-                context
-            )
-        enabled=true
-    /]
-[/#macro]
-
-[#macro cfPreconditionFailed
-            mode
-            function
-            context={}
-            description=""]
-
-    [@cfException
-        mode=mode
-        description=function + " precondition failed"
-        context=context
-        detail=description
-    /]
-[/#macro]
-
-[#macro cfPostconditionFailed
-            mode
-            function
-            context={}
-            description=""]
-
-    [@cfException
-        mode=mode
-        description=function + " postcondition failed"
-        context=context
-        detail=description
-    /]
 [/#macro]
 
 [#macro cf_output_resource level="" include=""]

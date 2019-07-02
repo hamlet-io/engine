@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_mobileapp_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "config"] /]
         [#return]
     [/#if]
 
@@ -43,26 +39,21 @@
     ]
 
     [#-- Add in fragment specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
     [#local finalAsFileEnvironment = getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket, { "Json" : { "Include" : { "Sensitive" : false }}}) ]
 
     [#if deploymentSubsetRequired("config", false)]
-        [@cfConfig
-            mode=listMode
-            content=finalAsFileEnvironment.Environment
-        /]
+        [@addToDefaultJsonOutput content=finalAsFileEnvironment.Environment /]
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
         [#-- Copy any asFiles needed by the task --]
         [#local asFiles = getAsFileSettings(occurrence.Configuration.Settings.Product) ]
         [#if asFiles?has_content]
-            [@cfDebug listMode asFiles false /]
-            [@cfScript
-                mode=listMode
+            [@debug message="Asfiles" context=asFiles enabled=false /]
+            [@addToDefaultBashScriptOutput
                 content=
                     findAsFilesScript("filesToSync", asFiles) +
                     syncFilesToBucketScript(
@@ -73,8 +64,7 @@
                     ) /]
         [/#if]
 
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getLocalFileScript(
                     "configFiles",

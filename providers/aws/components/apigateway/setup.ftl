@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_apigateway_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["pregeneration", "prologue", "template", "epilogue", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["pregeneration", "prologue", "template", "epilogue", "config"] /]
         [#return]
     [/#if]
 
@@ -60,9 +56,8 @@
 
     [#-- Add in fragment specifics including override of defaults --]
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
-            [#include fragmentList?ensure_starts_with("/")]
+        [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
     [#local stageVariables += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket).Environment ]
@@ -73,7 +68,7 @@
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -139,9 +134,8 @@
 
     [#local apiPolicyCidr          = getGroupCIDRs(solution.IPAddressGroups) ]
     [#if (!(wafAclResources?has_content)) && (!(apiPolicyCidr?has_content)) ]
-        [@cfException
-            mode=listMode
-            description="No IP Address Groups provided for API Gateway"
+        [@fatal
+            message="No IP Address Groups provided for API Gateway"
             context=occurrence
         /]
         [#return]
@@ -239,7 +233,6 @@
     [#local accessLgName = resources["accesslg"].Name]
     [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(accessLgId) ]
         [@createLogGroup
-            mode=listMode
             id=accessLgId
             name=accessLgName /]
     [/#if]
@@ -247,7 +240,6 @@
     [#if deploymentSubsetRequired("apigateway", true)]
         [#-- Assume extended swagger specification is in the ops bucket --]
         [@cfResource
-            mode=listMode
             id=apiId
             type="AWS::ApiGateway::RestApi"
             properties=
@@ -277,7 +269,6 @@
         /]
 
         [@cfResource
-            mode=listMode
             id=deployId
             type="AWS::ApiGateway::Deployment"
             properties=
@@ -289,7 +280,6 @@
             dependencies=apiId
         /]
         [@cfResource
-            mode=listMode
             id=stageId
             type="AWS::ApiGateway::Stage"
             properties=
@@ -318,7 +308,6 @@
         [#-- Create a WAF ACL if required --]
         [#if wafAclResources?has_content ]
             [@createWAFAclFromSecurityProfile
-                mode=listMode
                 id=wafAclResources.acl.Id
                 name=wafAclResources.acl.Name
                 metric=wafAclResources.acl.Name
@@ -330,7 +319,6 @@
             [#if !cfResources?has_content]
                 [#-- Attach to API Gateway if no CloudFront distribution --]
                 [@createWAFAclAssociation
-                    mode=listMode
                     id=wafAclResources.association.Id
                     wafaclId=wafAclResources.acl.Id
                     endpointId=
@@ -396,7 +384,6 @@
                 [/#list]
             [/#if]
             [@createCFDistribution
-                mode=listMode
                 id=cfResources["distribution"].Id
                 dependencies=stageId
                 aliases=cfResources["distribution"].Fqdns![]
@@ -423,7 +410,6 @@
                 wafAclId=(wafAclResources.acl.Id)!""
             /]
             [@createAPIUsagePlan
-                mode=listMode
                 id=cfResources["usageplan"].Id
                 name=cfResources["usageplan"].Name
                 stages=[
@@ -438,7 +424,6 @@
 
         [#list customDomainResources as key,value]
             [@cfResource
-                mode=listMode
                 id=value["domain"].Id
                 type="AWS::ApiGateway::DomainName"
                 properties=
@@ -463,7 +448,6 @@
                 dependencies=apiId
             /]
             [@cfResource
-                mode=listMode
                 id=value["basepathmapping"].Id
                 type="AWS::ApiGateway::BasePathMapping"
                 properties=
@@ -482,12 +466,11 @@
             [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
-                [@cfDebug listMode monitoredResource false /]
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -516,7 +499,6 @@
         [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
             [@createLogMetric
-                mode=listMode
                 id=logMetric.Id
                 name=logMetric.Name
                 logGroup=logMetric.LogGroupName
@@ -537,8 +519,7 @@
         [#if deploymentSubsetRequired("prologue", false)  ]
             [#-- Clear out bucket content if deleting api gateway so buckets will delete --]
             [#if getExistingReference(bucketId)?has_content ]
-                [@cfScript
-                    mode=listMode
+                [@addToDefaultBashScriptOutput
                     content=
                         [
                             "clear_bucket_files=()"
@@ -552,8 +533,7 @@
                 /]
             [/#if]
 
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                     [
                         "error \" API Docs publishing has been deprecated \"",
@@ -567,8 +547,7 @@
     [#-- Send API Specification to an external publisher --]
     [#if solution.Publishers?has_content ]
         [#if deploymentSubsetRequired("epilogue", false ) ]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                 [
                     "case $\{STACK_OPERATION} in",
@@ -608,8 +587,7 @@
                     [#case CONTENTHUB_HUB_COMPONENT_TYPE ]
                     [#case "external"]
                         [#if deploymentSubsetRequired("epilogue", false ) ]
-                            [@cfScript
-                                mode=listMode
+                            [@addToDefaultBashScriptOutput
                                 content=
                                 [
                                     "case $\{STACK_OPERATION} in",
@@ -636,8 +614,7 @@
     [#if getExistingReference(legacyId)?has_content && deploymentSubsetRequired("prologue", false) ]
         [#-- Remove legacy docs bucket id - it will likely be recreated with new id format --]
         [#-- which uses bucket name --]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 [
                     "clear_bucket_files=()"
@@ -658,8 +635,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("pregeneration", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getBuildScript(
                     "swaggerFiles",
@@ -691,9 +667,8 @@
         [#else]
             [#local swaggerIntegrations = getOccurrenceSettingValue(occurrence, [["apigw"], ["Integrations"]], true) ]
             [#if !swaggerIntegrations?has_content]
-                [@cfException
-                    mode=listMode
-                    description="API Gateway integration definitions not found"
+                [@fatal
+                    message="API Gateway integration definitions not found"
                     context=occurrence
                 /]
                 [#local swaggerIntegrations = {} ]
@@ -714,7 +689,6 @@
                     [#if deploymentSubsetRequired("iam", false)  &&
                         isPartOfCurrentDeploymentUnit(swaggerRoleId)]
                         [@createRole
-                            mode=listMode
                             id=swaggerRoleId
                             trustedServices="apigateway.amazonaws.com"
                             policies=policies
@@ -736,9 +710,8 @@
 
             [#else]
                 [#local extendedSwaggerDefinition = {} ]
-                [@cfException
-                    mode=listMode
-                    description="API Gateway integration definitions should be a hash"
+                [@fatal
+                    message="API Gateway integration definitions should be a hash"
                     context={ "Integrations" : swaggerIntegrations}
                 /]
             [/#if]
@@ -746,18 +719,14 @@
 
         [#if extendedSwaggerDefinition?has_content]
             [#if deploymentSubsetRequired("config", false)]
-                [@cfConfig
-                    mode=listMode
-                    content=extendedSwaggerDefinition
-                /]
+                [@addToDefaultJsonOutput content=extendedSwaggerDefinition /]
             [/#if]
         [/#if]
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
         [#-- Copy the final swagger definition to the ops bucket --]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getLocalFileScript(
                     "configFiles",

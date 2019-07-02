@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_es_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template", "epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["template", "epilogue", "cli"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -26,7 +22,7 @@
     [#-- Baseline component lookup --]
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
     [#local cmkKeyId = baselineComponentIds["Encryption"] ]
-    
+
     [#local esUpdateCommand = "updateESDomain" ]
 
     [#local esAuthentication = solution.Authentication]
@@ -44,18 +40,16 @@
     [#local esCIDRs = getGroupCIDRs(solution.IPAddressGroups) ]
 
     [#if !esCIDRs?has_content && !(esAuthentication == "SIG4ORIP") ]
-        [@cfException
-            mode=listMode
-            description="No IP Policy Found"
+        [@fatal
+            message="No IP Policy Found"
             context=component
             detail="You must provide an IPAddressGroups list, for access from anywhere use the global IP Address Group"
         /]
     [/#if]
 
     [#if esCIDRs?seq_contains("0.0.0.0/0") && esAuthentication == "SIG4ORIP" ]
-        [@cfException
-            mode=listMode
-            description="Invalid Authentication Config"
+        [@fatal
+            message="Invalid Authentication Config"
             context=component
             detail="Using a global IP Address with SIG4ORIP will remove SIG4 Auth. If this is intented change to IP authentication"
         /]
@@ -191,7 +185,7 @@
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -217,6 +211,34 @@
                         {
                             "IdentityPoolId" : getExistingReference(linkTargetResources["identitypool"].Id)
                         }]
+<<<<<<< HEAD
+=======
+
+                        [#local policyId = formatDependentPolicyId(
+                                                esId,
+                                                link.Name)]
+
+
+                        [#if deploymentSubsetRequired("es", true)]
+                            [#local role = linkTargetResources["authrole"].Id!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
+                            [#local roleArn = getArn(role) ]
+
+                            [#local localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
+
+                            [#if localRoleAccount ]
+                                [#local roleName = (role?split("/"))[1] ]
+                                [@cfResource
+                                    id=policyId
+                                    type="AWS::IAM::Policy"
+                                    properties=
+                                        getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
+                                        {
+                                            "Roles" : [ roleName ]
+                                        }
+                                /]
+                            [/#if]
+                        [/#if]
+>>>>>>> <refactor> Remove mode
                     [#break]
             [/#switch]
         [/#if]
@@ -225,7 +247,6 @@
     [#if cognitoIntegration ]
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(esServiceRoleId)]
             [@createRole
-                    mode=listMode
                     id=esServiceRoleId
                     trustedServices=["es.amazonaws.com"]
                     managedArns=["arn:aws:iam::aws:policy/AmazonESCognitoAccess"]
@@ -233,15 +254,14 @@
         [/#if]
 
         [#if (cognitoCliConfig["IdentityPoolId"]!"")?has_content && (cognitoCliConfig["UserPoolId"]!"")?has_content ]
-            [#local cognitoCliConfig += 
+            [#local cognitoCliConfig +=
                 {
                     "Enabled" : true
                 }
             ]
         [#else]
-            [@cfException
-                mode=listMode
-                description="Incomplete Cognito integration"
+            [@fatal
+                message="Incomplete Cognito integration"
                 context=component
                 detail="You must provide a link to both a federated role and a userpool to enabled authentication"
             /]
@@ -259,12 +279,11 @@
             [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
-                [@cfDebug listMode monitoredResource false /]
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -291,7 +310,6 @@
         [/#list]
 
         [@cfResource
-            mode=listMode
             id=esId
             type="AWS::Elasticsearch::Domain"
             properties=
@@ -366,8 +384,7 @@
                 }
             )]
 
-        [@cfCli
-            mode=listMode
+        [@addCliToDefaultJsonOutput
             id=esId
             command=esUpdateCommand
             content=esCliConfig
@@ -376,8 +393,7 @@
     [/#if]
 
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content= (getExistingReference(esId)?has_content)?then(
                     [
                         "case $\{STACK_OPERATION} in",

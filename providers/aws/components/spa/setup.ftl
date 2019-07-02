@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_spa_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template", "epilogue"])
-        /]
+        [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local resources = occurrence.State.Resources]
@@ -36,7 +32,6 @@
     ]
 
     [#-- Add in container specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
@@ -95,9 +90,8 @@
                     ]
                 }]
         [#else]
-            [@cfException
-                mode=listMode
-                description="Could not find cfredirect component"
+            [@fatal
+                message="Could not find cfredirect component"
                 context=cfRedirectLink
             /]
         [/#if]
@@ -108,7 +102,7 @@
 
         [#local eventHandlerTarget = getLinkTarget(occurrence, eventHandler) ]
 
-        [@cfDebug listMode eventHandlerTarget false /]
+        [@debug message="Event message handler" context=eventHandlerTarget enabled=false /]
 
         [#if !eventHandlerTarget?has_content]
             [#continue]
@@ -126,11 +120,10 @@
                                             eventHandler.Action,
                                             eventHandlerResources["version"].Id) ]
         [#else]
-            [@cfException
-                    mode=listMode
-                    description="Invalid Event Handler Component - Must be Lambda - EDGE"
-                    context=occurrence
-                /]
+            [@fatal
+                description="Invalid Event Handler Component - Must be Lambda - EDGE"
+                context=occurrence
+            /]
         [/#if]
     [/#list]
 
@@ -146,13 +139,17 @@
 
     [#-- Baseline component lookup --]
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData", "AppData" ] )]
-    
+
     [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]) ]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket       = getExistingReference(baselineComponentIds["AppData"]) ]
-    
+
     [#if !cfAccess?has_content]
-        [@cfPreconditionFailed listMode "solution_spa" occurrence "No CF Access Id found" /]
+        [@precondition
+            function="solution_spa"
+            context=occurrence
+            detail="No CF Access Id found"
+        /]
         [#return]
     [/#if]
 
@@ -255,7 +252,6 @@
         [/#if]
 
         [@createCFDistribution
-            mode=listMode
             id=cfId
             aliases=
                 (isPresent(solution.Certificate))?then(
@@ -306,7 +302,6 @@
 
         [#if wafPresent ]
             [@createWAFAclFromSecurityProfile
-                mode=listMode
                 id=wafAclId
                 name=wafAclName
                 metric=wafAclName
@@ -316,8 +311,7 @@
         [/#if]
     [/#if]
     [#if deploymentSubsetRequired("epilogue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=(getExistingReference(cfId)?has_content)?then(
                 [
                     "case $\{STACK_OPERATION} in",
@@ -342,14 +336,10 @@
 [/#macro]
 
 [#macro aws_spa_cf_application occurrence  ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "config"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "config"] /]
         [#return]
     [/#if]
 
@@ -361,9 +351,9 @@
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData"] )]
-    
+
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
-    
+
     [#local contextLinks = getLinkTargets(occurrence) ]
     [#assign _context =
         {
@@ -381,22 +371,19 @@
     ]
 
     [#-- Add in container specifics including override of defaults --]
-    [#assign fragmentListMode = "model"]
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
     [#assign _context += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket ) ]
 
     [#if deploymentSubsetRequired("config", false)]
-        [@cfConfig
-            mode=listMode
+        [@addToDefaultJsonOutput
             content={ "RUN_ID" : runId } + _context.Environment
         /]
     [/#if]
     [#if deploymentSubsetRequired("prologue", false)]
 
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 getBuildScript(
                     "spaFiles",
@@ -432,8 +419,7 @@
 
         [#local cfId = resources["cf"].Id]
 
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=(getExistingReference(cfId)?has_content)?then(
                 [
                     "case $\{STACK_OPERATION} in",

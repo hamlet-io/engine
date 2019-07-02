@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_datafeed_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -48,12 +44,10 @@
     [#if logging ]
         [#if deploymentSubsetRequired("lg", true) && isPartOfCurrentDeploymentUnit(streamLgId) ]
             [@createLogGroup
-                mode=listMode
                 id=streamLgId
                 name=streamLgName /]
 
             [@createLogStream
-                mode=listMode
                 id=streamLgStreamId
                 name=streamLgStreamName
                 logGroup=streamLgName
@@ -61,7 +55,6 @@
             /]
 
             [@createLogStream
-                mode=listMode
                 id=streamLgBackupId
                 name=streamLgBackupName
                 logGroup=streamLgName
@@ -94,7 +87,6 @@
 
                     [#if deploymentSubsetRequired(DATAFEED_COMPONENT_TYPE, true)]
                         [@createLogSubscription
-                            mode=listMode
                             id=formatDependentLogSubscriptionId(streamId, logWatcherLink.Id, logGroupId?index)
                             logGroupName=getExistingReference(logGroupId)
                             filter=logFilter
@@ -154,7 +146,6 @@
         [#if isPartOfCurrentDeploymentUnit(streamRoleId)]
 
             [@createRole
-                mode=listMode
                 id=streamRoleId
                 trustedServices=[ "firehose.amazonaws.com" ]
                 policies=
@@ -187,7 +178,6 @@
                 isPartOfCurrentDeploymentUnit(streamSubscriptionRoleId)]
 
             [@createRole
-                mode=listMode
                 id=streamSubscriptionRoleId
                 trustedServices=[ formatDomainName("logs", regionId, "amazonaws.com") ]
             /]
@@ -199,9 +189,8 @@
         [#local streamDependencies = []]
 
         [#if !streamProcessors?has_content && solution.LogWatchers?has_content ]
-            [@cfException
-                mode=listMode
-                description="Lambda stream processor required for CloudwatchLogs"
+            [@fatal
+                message="Lambda stream processor required for CloudwatchLogs"
                 detail="Add the lambda as a link to this feed"
                 context=occurrence
             /]
@@ -209,7 +198,6 @@
 
         [#if solution.LogWatchers?has_content ]
             [@createPolicy
-                mode=listMode
                 id=streamSubscriptionPolicyId
                 name="local"
                 statements=
@@ -264,7 +252,6 @@
                                                 streamProcessors)]
 
                 [@createFirehoseStream
-                    mode=listMode
                     id=streamId
                     name=streamName
                     destination=streamESDestination
@@ -273,9 +260,8 @@
                 [#break]
 
             [#default]
-                [@cfException
-                    mode=listMode
-                    description="Invalid stream destination or destination not found"
+                [@fatal
+                    message="Invalid stream destination or destination not found"
                     detail="Supported Destinations - ES"
                     context=occurrence
                 /]

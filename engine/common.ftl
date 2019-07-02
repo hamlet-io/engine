@@ -241,7 +241,7 @@
 [#-- Get the type for a component --]
 [#function getComponentType component]
     [#if ! (component?is_hash && component.Id?has_content) ]
-        [@cfPreconditionFailed listMode "getComponentType" component /]
+        [@precondition function="getComponentType" context=component /]
         [#return "???"]
     [/#if]
     [#if component.Type?has_content]
@@ -432,9 +432,8 @@ behaviour.
             [#if attribute?is_hash ]
                 [#local names = attribute.Names!"COT:Missing" ]
                 [#if (names?is_string) && (names == "COT:Missing") ]
-                    [@cfException
-                        mode=listMode
-                        description="Attribute must have a \"Names\" attribute"
+                    [@fatal
+                        message="Attribute must have a \"Names\" attribute"
                         context=attribute
                     /]
                 [/#if]
@@ -516,9 +515,8 @@ behaviour.
             [#if attribute.Mandatory &&
                     ( !(providedName?has_content) ) &&
                     candidates?has_content ]
-                [@cfException
-                    mode=listMode
-                    description="Mandatory attribute missing"
+                [@fatal
+                    message="Mandatory attribute missing"
                     context=
                         {
                             "ExpectedNames" : attribute.Names,
@@ -555,9 +553,8 @@ behaviour.
                                   [/#if]
                               [/#list]
                             [#else]
-                              [@cfException
-                                mode=listMode
-                                description="Child content is not a hash"
+                              [@fatal
+                                message="Child content is not a hash"
                                 context=childObject /]
                             [/#if]
                         [/#list]
@@ -612,9 +609,8 @@ behaviour.
                     [#-- Perform type conversion and type checking --]
                     [#local providedValue = asType(providedValue, attribute.Types) ]
                     [#if !isOfType(providedValue, attribute.Types) ]
-                        [@cfException
-                          mode=listMode
-                          description="Attribute is not of the correct type"
+                        [@fatal
+                          message="Attribute is not of the correct type"
                           context=
                             {
                                 "Name" : providedName,
@@ -626,9 +622,8 @@ behaviour.
                         [#if attribute.Values?has_content]
                             [#list asArray(providedValue) as value]
                                 [#if !(attribute.Values?seq_contains(value)) ]
-                                    [@cfException
-                                      mode=listMode
-                                      description="Attribute value is not one of the expected values"
+                                    [@fatal
+                                      message="Attribute value is not one of the expected values"
                                       context=
                                         {
                                             "Name" : providedName,
@@ -1163,7 +1158,7 @@ behaviour.
             valueIfTrue(
                 {"Value" : ""},
                 emptyIfNotProvided,
-                {"Value" : "COTException: Setting not provided"}
+                {"Value" : "COTFatal: Setting not provided"}
             )
         ) ]
 [/#function]
@@ -1192,7 +1187,7 @@ behaviour.
             valueIfTrue(
                 "",
                 emptyIfNotProvided,
-                "COTException: Build reference not found"
+                "COTFatal: Build reference not found"
             )
         ) ]
 [/#function]
@@ -1204,7 +1199,7 @@ behaviour.
             valueIfTrue(
                 "",
                 emptyIfNotProvided,
-                "COTException: Build unit not found"
+                "COTFatal: Build unit not found"
             )
         ) ]
 [/#function]
@@ -1271,7 +1266,7 @@ behaviour.
                 [#continue]
             [/#if]
         [#else]
-            [#local result += { key, "COTException:Internal error - setting is not a hash" } ]
+            [#local result += { key, "COTFatal:Internal error - setting is not a hash" } ]
         [/#if]
     [/#list]
     [#return result ]
@@ -1536,9 +1531,8 @@ behaviour.
                                 (typeObject[subComponent.Component])!{}
                             ]
                         [#else]
-                            [@cfException
-                              mode=listMode
-                              description="Subcomponent " + subComponent.Component + " content is not a hash"
+                            [@fatal
+                              message="Subcomponent " + subComponent.Component + " content is not a hash"
                               context=typeObject[subComponent.Component] /]
                         [/#if]
 
@@ -1743,16 +1737,17 @@ behaviour.
         [/#list]
     [/#list]
 
-    [@cfPostconditionFailed
-        listMode
-        "getLinkTarget"
-        {
-            "Occurrence" : occurrence,
-            "Link" : link,
-            "EffectiveInstance" : instanceToMatch,
-            "EffectiveVersion" : versionToMatch
-        }
-        "COTException:Link not found" /]
+    [@postcondition
+        function="getLinkTarget"
+        context=
+            {
+                "Occurrence" : occurrence,
+                "Link" : link,
+                "EffectiveInstance" : instanceToMatch,
+                "EffectiveVersion" : versionToMatch
+            }
+        detail="COTFatal:Link not found"
+    /]
     [#return {} ]
 [/#function]
 
@@ -2318,6 +2313,10 @@ behaviour.
     [#return [] ]
 [/#function]
 
+[#macro addDefaultGenerationPlan subsets=[] alternatives=["primary"]  ]
+    [@addToDefaultScriptOutput content=getGenerationPlan(subsets, alternatives) /]
+[/#macro]
+
 [#function syncFilesToBucketScript filesArrayName region bucket prefix]
     [#return
         [
@@ -2505,9 +2504,8 @@ behaviour.
 
         [#return occurrenceDimensions]
     [#else]
-        [@cfException
-            mode=listMode
-            description="Dimensions not mapped for this resource"
+        [@fatal
+            message="Dimensions not mapped for this resource"
             context=resource.Type
         /]
     [/#if]
@@ -2527,9 +2525,8 @@ behaviour.
                 [#return resourceTypeNameSpace]
         [/#switch]
     [#else]
-        [@cfException
-            mode=listMode
-            description="Namespace not mapped for this resource"
+        [@fatal
+            message="Namespace not mapped for this resource"
             context=resource.Type
         /]
     [/#if]

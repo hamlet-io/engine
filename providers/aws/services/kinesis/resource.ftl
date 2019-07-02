@@ -31,9 +31,8 @@
 ]
 
 
-[#macro createFirehoseStream mode id name destination dependencies="" ]
+[#macro createFirehoseStream id name destination dependencies="" ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::KinesisFirehose::DeliveryStream"
         properties=

@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_federatedrole_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["template"])
-        /]
+        [@addDefaultGenerationPlan subsets="template" /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -17,9 +13,9 @@
 
     [#local identityPoolId = resources["identitypool"].Id ]
     [#local identityPoolName = resources["identitypool"].Name ]
-    
+
     [#local roleMappingId = resources["rolemapping"].Id ]
-    
+
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
     [#local _parentContext =
         {
@@ -38,7 +34,7 @@
         [#if link?is_hash]
             [#local linkTarget = getLinkTarget( occurrence, link ) ]
 
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -56,19 +52,19 @@
                     [#local userPoolName = linkTargetAttributes["USER_POOL_NAME"] ]
                     [#local userPoolClient = linkTargetAttributes["CLIENT"] ]
 
-                    [#local federationProviders +=  
+                    [#local federationProviders +=
                                 {
-                                    id : { 
+                                    id : {
                                         "Provider" : concatenate( [ userPoolName, userPoolClient], ":" ),
                                         "Rules" : []
                                     }
                                 }]
 
-                    [#local federationCognitoProviders += 
-                                getIdentityPoolCognitoProvider( 
+                    [#local federationCognitoProviders +=
+                                getIdentityPoolCognitoProvider(
                                     userPoolName,
                                     userPoolClient
-                                )]  
+                                )]
                     [#break]
             [/#switch]
         [/#if]
@@ -76,7 +72,6 @@
 
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createIdentityPool
-            mode=listMode
             id=identityPoolId
             name=identityPoolName
             cognitoIdProviders=federationCognitoProviders
@@ -121,9 +116,8 @@
                 [#if ! authenticatedRole?has_content ]
                     [#local authenticatedRole = roleId ]
                 [#else]
-                    [@cfException
-                        mode=listMode
-                        description="Only one assignment of this type is possible"
+                    [@fatal
+                        message="Only one assignment of this type is possible"
                         context=
                             {
                                 "Type" : subSolution.Type,
@@ -137,9 +131,8 @@
                 [#if ! unauthenticatedRole?has_content ]
                     [#local unauthenticatedRole = roleId ]
                 [#else]
-                    [@cfException
-                        mode=listMode
-                        description="Only one assignment of this type is possible"
+                    [@fatal
+                        message="Only one assignment of this type is possible"
                         context=
                             {
                                 "Type" : subSolution.Type,
@@ -151,7 +144,7 @@
 
             [#case "Rule" ]
 
-                [#local mappingRule = getIdentityPoolMappingRule( 
+                [#local mappingRule = getIdentityPoolMappingRule(
                                             (subSolution.Rule.Priority + subOccurrence?counter),
                                             subSolution.Rule.Claim,
                                             subSolution.Rule.MatchType,
@@ -161,37 +154,35 @@
 
                 [#list subSolution.Rule.Providers as provider ]
                     [#local federationProvider = federationProviders[ provider ]]
-                    [#if federationProvider?has_content]  
-                    
+                    [#if federationProvider?has_content]
+
                         [#local federationProviderRules = federationProvider["Rules"] + mappingRule ]
 
-                        
-                        [#local federationProviders = mergeObjects( federationProviders, 
+
+                        [#local federationProviders = mergeObjects( federationProviders,
                                                             {
                                                                 provider : {
-                                                                    "Rules" : federationProviderRules 
+                                                                    "Rules" : federationProviderRules
                                                                 }
                                                             }
-                        
+
                         )]
                     [/#if]
                 [/#list]
-                    
+
                 [#break]
         [/#switch]
 
         [#-- Add in fragment specifics including override of defaults --]
-        [#assign fragmentListMode = "model"]
         [#include fragmentList?ensure_starts_with("/")]
 
         [#local managedPolicies = _context.ManagedPolicy ]
         [#local linkPolicies = getLinkTargetsOutboundRoles(_context.Links) ]
 
-    
+
         [#if deploymentSubsetRequired("iam", true) && isPartOfCurrentDeploymentUnit(roleId)]
 
             [@createRole
-                mode=listMode
                 id=roleId
                 federatedServices="cognito-identity.amazonaws.com"
                 condition={
@@ -203,7 +194,7 @@
                         )
                     }
                 } +
-                attributeIfContent ( 
+                attributeIfContent (
                     "StringEquals",
                     getExistingReference(identityPoolId),
                     {
@@ -216,7 +207,6 @@
             [#if _context.Policy?has_content]
                 [#local policyId = formatDependentPolicyId(subCore.Id)]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name=_context.Name
                     statements=_context.Policy
@@ -227,7 +217,6 @@
             [#if linkPolicies?has_content]
                 [#local policyId = formatDependentPolicyId(subCore.Id, "links")]
                 [@createPolicy
-                    mode=listMode
                     id=policyId
                     name="links"
                     statements=linkPolicies
@@ -238,17 +227,15 @@
     [/#list]
 
     [#if solution.AllowUnauthenticatedUsers && ! unauthenticatedRole?has_content ]
-        [@cfException
-            mode=listMode
-            description="No unauthenicated assignments found"
+        [@fatal
+            message="No unauthenicated assignments found"
             context=solution
         /]
     [/#if]
 
     [#if ! authenticatedRole?has_content && ! ruleAssignments ]
-        [@cfException
-            mode=listMode
-            description="No authenticated assignments found"
+        [@fatal
+            message="No authenticated assignments found"
             context=solution
         /]
     [/#if]
@@ -263,8 +250,8 @@
                     [#local providerRules += [ rule.Rule ]]
                 [/#list]
 
-                [#local ruleAssignments += 
-                        getIdentityPoolRoleMapping( 
+                [#local ruleAssignments +=
+                        getIdentityPoolRoleMapping(
                             federationProvider["Provider"],
                             subSolution.Type,
                             providerRules,
@@ -273,10 +260,9 @@
             [/#if]
         [/#if]
     [/#list]
-    
+
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createIdentityPoolRoleMapping
-            mode=listMode
             id=roleMappingId
             identityPoolId=identityPoolId
             roleMappings=ruleAssignments

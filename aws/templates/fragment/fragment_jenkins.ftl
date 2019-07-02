@@ -2,14 +2,14 @@
 [#case "_jenkins"]
 
     [@Attributes image="jenkins-master" /]
-   
+
     [#assign settings = _context.DefaultEnvironment]
 
     [#assign pingInterval = (settings["AGENT_PING_INTERVAL"])!"300" ]
     [#assign pingTimeout = (settings["AGENT_PING_TIMEOUT"])!"30"]
     [#assign timeZone = (settings["TIMEZONE"])!"UTC" ]
-    
-    [#assign javaStandardOpts = [ 
+
+    [#assign javaStandardOpts = [
                 "-Dorg.apache.commons.jelly.tags.fmt.timeZone=${timeZone}",
                 "-Duser.timezone=${timeZone}",
                 "-XX:+UnlockExperimentalVMOptions",
@@ -34,7 +34,7 @@
         }
     /]
 
-    [@AltSettings 
+    [@AltSettings
         {
             "JENKINS_URL" : "JENKINSLB_URL"
         }/]
@@ -43,9 +43,8 @@
     [#switch settings["JENKINSENV_SECURITYREALM"]!""]
         [#case "local"]
             [#if !(settings["JENKINSENV_USER"]?has_content && settings["JENKINSENV_PASS"]?has_content) ]
-                [@cfException
-                    mode=listMode
-                    description="Login Details not provided"
+                [@fatal
+                    message="Login Details not provided"
                     context=component
                     detail={
                         "JenkinsEnv" : {
@@ -58,9 +57,8 @@
             [#break]
         [#case "github"]
             [#if !(settings["GITHUBAUTH_CLIENTID"]?has_content && settings["GITHUBAUTH_SECRET"]?has_content && settings["GITHUBAUTH_ADMIN"]?has_content) ]
-                [@cfException
-                    mode=listMode
-                    description="Github oAuth Credentials not provided"
+                [@fatal
+                    message="Github oAuth Credentials not provided"
                     context=component
                     detail={
                         "GithubAuth" : {
@@ -77,11 +75,10 @@
             [#break]
 
         [#default]
-            [@cfException
-                mode=listMode
-                description="Security Realm Not Configured"
+            [@fatal
+                message="Security Realm Not Configured"
                 context=component
-                detail={ 
+                detail={
                     "JenkinsEnv" : {
                         "SecurityRealm" : "local|github"
                     }
@@ -91,10 +88,10 @@
 
     [#if settings["JENKINSHOMEVOLUME"]?has_content ]
         [@Volume "jenkinsdata" "/var/jenkins_home" settings["JENKINSHOMEVOLUME"] /]
-    [/#if]   
+    [/#if]
 
     [#if settings["CODEONTAPVOLUME"]?has_content ]
         [@Volume "codeontap" "/var/opt/codeontap/" settings["CODEONTAPVOLUME"] /]
-    [/#if]  
+    [/#if]
 
     [#break]

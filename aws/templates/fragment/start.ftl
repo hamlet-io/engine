@@ -1,3 +1,3 @@
 [#ftl]
-[@cfDebug listMode fragmentId false /]
+[@debug message="Fragment Id" context=fragmentId enabled=false /]
 [#switch fragmentId]

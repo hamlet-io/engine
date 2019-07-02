@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_lb_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
@@ -27,7 +23,7 @@
     [#local networkLinkTarget = getLinkTarget(occurrence, networkLink ) ]
 
     [#if ! networkLinkTarget?has_content ]
-        [@cfException listMode "Network could not be found" networkLink /]
+        [@fatal message="Network could not be found" context=networkLink /]
         [#return]
     [/#if]
 
@@ -50,7 +46,10 @@
         [#if solution.HealthCheckPort?has_content ]
             [#local healthCheckPort = ports[solution.HealthCheckPort]]
         [#else]
-            [@cfPreconditionFailed listMode "solution_lb" {} "No health check port provided" /]
+            [@precondition
+                function="solution_lb"
+                detail="No health check port provided"
+            /]
         [/#if]
     [/#if]
 
@@ -86,12 +85,11 @@
             [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
             [#list monitoredResources as name,monitoredResource ]
 
-                [@cfDebug listMode monitoredResource false /]
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                 [#switch alert.Comparison ]
                     [#case "Threshold" ]
                         [@createCountAlarm
-                            mode=listMode
                             id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                             severity=alert.Severity
                             resourceName=core.FullName
@@ -123,7 +121,7 @@
         [#if link?is_hash]
 
             [#local linkTarget = getLinkTarget(occurrence, link) ]
-            [@cfDebug listMode linkTarget false /]
+            [@debug message="Link Target" context=linkTarget enabled=false /]
 
             [#if !linkTarget?has_content]
                 [#continue]
@@ -145,7 +143,6 @@
                         [#local cloudMapInstanceId = formatDependentResourceId(
                                                             AWS_CLOUDMAP_INSTANCE_RESOURCE_TYPE, lbId, registryServiceId)]
                         [@createCloudMapInstance
-                            mode=listMode
                             id=cloudMapInstanceId
                             serviceId=registryServiceId
                             instanceId=core.ShortName
@@ -262,7 +259,6 @@
 
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createListenerRule
-                            mode=listMode
                             id=rule.Id
                             listenerId=listenerId
                             actions=getListenerRuleRedirectAction(
@@ -289,7 +285,6 @@
 
                 [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                     [@createListenerRule
-                        mode=listMode
                         id=listenerRuleId
                         listenerId=listenerId
                         actions=getListenerRuleRedirectAction(
@@ -315,7 +310,6 @@
                 [#local fixedStatusCode = getOccurrenceSettingValue(subOccurrence, ["Fixed", "StatusCode"], true) ]
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createListenerRule
-                            mode=listMode
                             id=listenerRuleId
                             listenerId=listenerId
                             actions=getListenerRuleFixedAction(
@@ -343,9 +337,8 @@
             [#if link?is_hash]
                 [#local linkCount += 1 ]
                 [#if linkCount > 1 ]
-                    [@cfException
-                        mode=listMode
-                        description="A port mapping can only have a maximum of one link"
+                    [@fatal
+                        message="A port mapping can only have a maximum of one link"
                         context=subOccurrence
                     /]
                     [#continue]
@@ -353,7 +346,7 @@
 
                 [#local linkTarget = getLinkTarget(occurrence, link) ]
 
-                [@cfDebug listMode linkTarget false /]
+                [@debug message="Link Target" context=linkTarget enabled=false /]
 
                 [#if !linkTarget?has_content]
                     [#continue]
@@ -375,14 +368,13 @@
                         [#local userPoolSessionCookieName = solution.Authentication.SessionCookieName ]
                         [#local userPoolSessionTimeout = solution.Authentication.SessionTimeout ]
 
-                        [#local userPoolDomain = linkTargetAttributes["UI_FQDN"]!"COTException: Userpool FQDN not found" ]
-                        [#local userPoolArn = linkTargetAttributes["USER_POOL_ARN"]!"COTException: Userpool ARN not found" ]
-                        [#local userPoolClientId = linkTargetAttributes["CLIENT"]!"COTException: Userpool client id not found"  ]
-                        [#local userPoolOauthScope = linkTargetAttributes["LB_OAUTH_SCOPE"]!"COTException: Userpool OAuth scope not found"  ]
+                        [#local userPoolDomain = linkTargetAttributes["UI_FQDN"]!"COTFatal: Userpool FQDN not found" ]
+                        [#local userPoolArn = linkTargetAttributes["USER_POOL_ARN"]!"COTFatal: Userpool ARN not found" ]
+                        [#local userPoolClientId = linkTargetAttributes["CLIENT"]!"COTFatal: Userpool client id not found"  ]
+                        [#local userPoolOauthScope = linkTargetAttributes["LB_OAUTH_SCOPE"]!"COTFatal: Userpool OAuth scope not found"  ]
 
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application" ]
                             [@createListenerRule
-                                mode=listMode
                                 id=listenerRuleId
                                 listenerId=listenerId
                                 actions=getListenerRuleAuthCognitoAction(
@@ -407,7 +399,6 @@
                         [#local listenerForwardRule = false ]
                         [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) && engine == "application"  ]
                             [@createListenerRule
-                                mode=listMode
                                 id=listenerRuleId
                                 listenerId=listenerId
                                 actions=getListenerRuleRedirectAction(
@@ -434,7 +425,6 @@
                 [#if firstMappingForPort &&
                     deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                     [@createSecurityGroup
-                        mode=listMode
                         id=securityGroupId
                         name=securityGroupName
                         occurrence=occurrence
@@ -478,7 +468,6 @@
                 [#if listenerForwardRule ]
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                             [@createListenerRule
-                                mode=listMode
                                 id=listenerRuleId
                                 listenerId=listenerId
                                 actions=getListenerRuleForwardAction(targetGroupId)
@@ -500,7 +489,6 @@
                     [#local lbSecurityGroupIds += [securityGroupId] ]
                     [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                         [@createALBListener
-                            mode=listMode
                             id=listenerId
                             port=sourcePort
                             albId=lbId
@@ -510,7 +498,6 @@
                         /]
 
                         [@createTargetGroup
-                            mode=listMode
                             id=defaultTargetGroupId
                             name=defaultTargetGroupName
                             tier=core.Tier
@@ -528,7 +515,6 @@
                     deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
 
                     [@createTargetGroup
-                        mode=listMode
                         id=targetGroupId
                         name=targetGroupName
                         tier=core.Tier
@@ -591,8 +577,7 @@
 
     [#if deploymentSubsetRequired("prologue", false) && !cliCleanUpRequired ]
 
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
                 [
                     "case $\{STACK_OPERATION} in",
@@ -630,9 +615,8 @@
     [/#switch]
 
     [#if InvalidProtocol ]
-            [@cfException
-                mode=listMode
-                description="Invalid protocol found for engine type"
+            [@fatal
+                message="Invalid protocol found for engine type"
                 context=
                     {
                         "LB" : lbName,
@@ -648,7 +632,6 @@
 
             [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                 [@createALB
-                    mode=listMode
                     id=lbId
                     name=lbName
                     shortName=lbShortName
@@ -677,7 +660,6 @@
 
             [#if deploymentSubsetRequired(LB_COMPONENT_TYPE, true) ]
                 [@createClassicLB
-                    mode=listMode
                     id=lbId
                     name=lbName
                     shortName=lbShortName

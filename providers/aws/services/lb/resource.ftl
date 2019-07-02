@@ -96,7 +96,6 @@
 ]
 
 [#macro createALB
-    mode
     id
     name
     shortName
@@ -149,7 +148,6 @@
     ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ElasticLoadBalancingV2::LoadBalancer"
         properties=
@@ -175,10 +173,9 @@
     /]
 [/#macro]
 
-[#macro createALBListener mode id port albId defaultTargetGroupId certificateId="" sslPolicy="" ]
+[#macro createALBListener id port albId defaultTargetGroupId certificateId="" sslPolicy="" ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ElasticLoadBalancingV2::Listener"
         properties=
@@ -207,7 +204,7 @@
     /]
 [/#macro]
 
-[#macro createTargetGroup mode id name tier component destination attributes vpcId targetType=""]
+[#macro createTargetGroup id name tier component destination attributes vpcId targetType=""]
 
     [#local healthCheckProtocol = ((destination.HealthCheck.Protocol)!destination.Protocol)?upper_case]
 
@@ -226,7 +223,6 @@
     [/#list]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ElasticLoadBalancingV2::TargetGroup"
         properties=
@@ -369,9 +365,8 @@
     ]
 [/#function]
 
-[#macro createListenerRule mode id listenerId actions=[] conditions=[] priority=100 dependencies=""]
+[#macro createListenerRule id listenerId actions=[] conditions=[] priority=100 dependencies=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ElasticLoadBalancingV2::ListenerRule"
         properties=
@@ -386,7 +381,7 @@
     /]
 [/#macro]
 
-[#macro createClassicLB mode id name shortName tier component
+[#macro createClassicLB id name shortName tier component
             listeners
             healthCheck
             securityGroups
@@ -400,7 +395,6 @@
             bucket=""
             dependencies="" ]
         [@cfResource
-        mode=listMode
         id=id
         type="AWS::ElasticLoadBalancing::LoadBalancer"
         properties=

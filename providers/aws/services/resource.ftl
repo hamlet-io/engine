@@ -209,7 +209,7 @@
             [#else]
                 [#return
                     {
-                        "Mapping" : "COTException: Unknown Resource Type",
+                        "Mapping" : "COTFatal: Unknown Resource Type",
                         "ResourceId" : resourceId,
                         "ResourceType" : resourceType
                     }

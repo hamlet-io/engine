@@ -1,8 +1,7 @@
 [#ftl]
 
-[#macro createSNSSubscription mode topicId endPoint protocol extensions...]
+[#macro createSNSSubscription topicId endPoint protocol extensions...]
     [@cfResource
-        mode=mode
         id=formatDependentSNSSubscriptionId(topicId, extensions)
         type="AWS::SNS::Subscription"
         properties=
@@ -49,9 +48,8 @@
     }
 ]
 
-[#macro createSNSTopic mode id displayName topicName=""]
+[#macro createSNSTopic id displayName topicName=""]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::SNS::Topic"
         properties=
@@ -68,12 +66,12 @@
     /]
 [/#macro]
 
-[#macro createSegmentSNSTopic mode id extensions...]
-    [@createSNSTopic mode, id, formatSegmentFullName(extensions) /]
+[#macro createSegmentSNSTopic id extensions...]
+    [@createSNSTopic id, formatSegmentFullName(extensions) /]
 [/#macro]
 
-[#macro createProductSNSTopic mode id extensions...]
-    [@createSNSTopic mode, id, formatName(productName, extensions) /]
+[#macro createProductSNSTopic id extensions...]
+    [@createSNSTopic id, formatName(productName, extensions) /]
 [/#macro]
 
 

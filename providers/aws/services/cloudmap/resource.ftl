@@ -39,7 +39,7 @@
 ]
 
 [#macro createCloudMapDNSNamespace
-    mode id name
+    id name
     domainName
     public
     vpcId=""
@@ -48,7 +48,6 @@
 
     [#if public ]
         [@cfResource
-            mode=mode
             id=id
             type="AWS::ServiceDiscovery::PublicDnsNamespace"
             properties=
@@ -61,7 +60,6 @@
         /]
     [#else]
         [@cfResource
-            mode=mode
             id=id
             type="AWS::ServiceDiscovery::PrivateDnsNamespace"
             properties=
@@ -77,7 +75,7 @@
 [/#macro]
 
 [#macro createCloudMapService
-    mode id name
+    id name
     namespaceId
     hostName
     routingPolicy
@@ -112,24 +110,21 @@
 
     [#if recordTypes?seq_contains("CNAME") ]
         [#if !(routingPolicy == "WEIGHTED") ]
-           [@cfException
-                mode=listMode
-                description="CNAME records are only supported for WEIGHTED Routing policy"
+           [@fatal
+                message="CNAME records are only supported for WEIGHTED Routing policy"
                 context=occurrence
             /]
         [/#if]
 
         [#if recordTypes?size > 1 ]
-            [@cfException
-                mode=listMode
-                description="CNAME record types can not be used with other record types"
+            [@fatal
+                message="CNAME record types can not be used with other record types"
                 context=occurrence
             /]
         [/#if]
     [/#if]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ServiceDiscovery::Service"
         properties=
@@ -169,9 +164,8 @@
             [#local type = "AWS_INSTANCE_PORT" ]
             [#break]
         [#default]
-            [@cfException
-                mode=listMode
-                description="invalid attribute type"
+            [@fatal
+                message="invalid attribute type"
                 context=type
             /]
     [/#switch]
@@ -180,7 +174,7 @@
 [/#function]
 
 [#macro createCloudMapInstance
-    mode id
+    id
     serviceId
     instanceId
     instanceAttributes
@@ -188,7 +182,6 @@
 ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::ServiceDiscovery::Instance"
         properties=

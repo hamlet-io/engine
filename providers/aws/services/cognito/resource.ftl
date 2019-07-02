@@ -175,7 +175,7 @@
     ]
 [/#function]
 
-[#macro createUserPool mode id name
+[#macro createUserPool id name
     mfa
     adminCreatesUser
     unusedTimeout
@@ -208,7 +208,6 @@
     [/#list]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Cognito::UserPool"
         properties=
@@ -270,7 +269,7 @@
     /]
 [/#macro]
 
-[#macro createUserPoolClient mode id name
+[#macro createUserPoolClient id name
         userPoolId
         generateSecret=false
         tokenValidity=30
@@ -281,7 +280,6 @@
 ]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Cognito::UserPoolClient"
         properties=
@@ -297,7 +295,7 @@
     /]
 [/#macro]
 
-[#macro createIdentityPool mode id name
+[#macro createIdentityPool id name
     cognitoIdProviders
     allowUnauthenticatedIdentities=false
     tier=""
@@ -307,8 +305,7 @@
 ]
 
     [@cfResource
-        mode=mode
-        id=id
+       id=id
         type="AWS::Cognito::IdentityPool"
         properties=
             {
@@ -322,7 +319,7 @@
     /]
 [/#macro]
 
-[#macro createIdentityPoolRoleMapping mode id
+[#macro createIdentityPoolRoleMapping id
     identityPoolId,
     roleMappings={},
     authenticatedRoleId="",
@@ -331,7 +328,6 @@
     outputId=""
 ]
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Cognito::IdentityPoolRoleAttachment"
         properties=

@@ -1,13 +1,9 @@
 [#ftl]
 [#macro aws_user_cf_application occurrence ]
-    [@cfDebug listMode occurrence false /]
+    [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue"] /]
         [#return]
     [/#if]
 
@@ -70,14 +66,12 @@
     ]
 
     [#if solution.Fragment?has_content ]
-        [#assign fragmentListMode = "model"]
         [#local fragmentId = formatFragmentId(_context)]
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
             [
                 "case $\{STACK_OPERATION} in",
@@ -97,7 +91,6 @@
         [#if _context.Policy?has_content]
             [#local policyId = formatDependentPolicyId(userId)]
             [@createPolicy
-                mode=listMode
                 id=policyId
                 name=_context.Name
                 statements=_context.Policy
@@ -110,7 +103,6 @@
         [#if linkPolicies?has_content]
             [#local policyId = formatDependentPolicyId(userId, "links")]
             [@createPolicy
-                mode=listMode
                 id=policyId
                 name="links"
                 statements=linkPolicies
@@ -119,7 +111,6 @@
         [/#if]
 
         [@cfResource
-            mode=listMode
             id=userId
             type="AWS::IAM::User"
             properties=
@@ -139,7 +130,7 @@
             [#if link?is_hash]
                 [#local linkTarget = getLinkTarget(occurrence, link, false) ]
 
-                [@cfDebug listMode linkTarget false /]
+                [@debug message="Link Target" context=linkTarget enabled=false /]
 
                 [#if !linkTarget?has_content]
                     [#continue]
@@ -151,7 +142,6 @@
                     [#case APIGATEWAY_USAGEPLAN_COMPONENT_TYPE ]
                         [#if isLinkTargetActive(linkTarget) ]
                             [@createAPIUsagePlanMember
-                                mode=listMode
                                 id=formatDependentResourceId(AWS_APIGATEWAY_USAGEPLAN_MEMBER_RESOURCE_TYPE, apikeyId, link.Id)
                                 planId=linkTargetResources["apiusageplan"].Id
                                 apikeyId=apikeyId
@@ -164,7 +154,6 @@
         [/#list]
         [#if apikeyNeeded ]
             [@createAPIKey
-                mode=listMode
                 id=apikeyId
                 name=apikeyName
             /]
@@ -174,8 +163,7 @@
     [#if deploymentSubsetRequired("epilogue", false)]
 
         [#local credentialsPseudoStackFile = "\"$\{CF_DIR}/$(fileBase \"$\{BASH_SOURCE}\")-credentials-pseudo-stack.json\"" ]
-        [@cfScript
-            mode=listMode
+        [@addToDefaultBashScriptOutput
             content=
             [
                 "case $\{STACK_OPERATION} in",

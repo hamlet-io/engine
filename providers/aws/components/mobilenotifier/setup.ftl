@@ -1,15 +1,11 @@
 [#ftl]
 [#macro aws_mobilenotifier_cf_solution occurrence ]
+    [@debug message="Entering" context=occurrence enabled=false /]
+
     [#if deploymentSubsetRequired("genplan", false)]
-        [@cfScript
-            mode=listMode
-            content=
-                getGenerationPlan(["prologue", "template", "epilogue", "cli"])
-        /]
+        [@addDefaultGenerationPlan subsets=["prologue", "template", "epilogue", "cli"] /]
         [#return]
     [/#if]
-
-    [@cfDebug listMode occurrence false /]
 
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
@@ -81,9 +77,8 @@
                 [#break]
 
             [#default]
-                [@cfException
-                    mode=listMode
-                    description="Unkown Engine"
+                [@fatal
+                    message="Unkown Engine"
                     context=component
                     detail=engine /]
         [/#switch]
@@ -93,9 +88,8 @@
                 [#local isPlatformApp = true]
                 [#local hasPlatformApp = true]
                 [#if !platformAppCredential?has_content || !platformAppPrincipal?has_content ]
-                    [@cfException
-                        mode=listMode
-                        description="Missing Credentials - Requires both Credential and Principal"
+                    [@fatal
+                        message="Missing Credentials - Requires both Credential and Principal"
                         context=component
                         detail={
                             "Credential" : platformAppCredential!"",
@@ -108,9 +102,8 @@
                 [#local isPlatformApp = true]
                 [#local hasPlatformApp = true]
                 [#if !platformAppPrincipal?has_content ]
-                    [@cfException
-                        mode=listMode
-                        description="Missing Credential - Requires Principal"
+                    [@fatal
+                        message="Missing Credential - Requires Principal"
                         context=component
                         detail={
                             "Principal" : platformAppPrincipal!""
@@ -124,12 +117,10 @@
 
             [#if engine != MOBILENOTIFIER_SMS_ENGINE]
                 [@createLogGroup
-                    mode=listMode
                     id=lgId
                     name=lgName /]
 
                 [@createLogGroup
-                    mode=listMode
                     id=lgFailureId
                     name=lgFailureName /]
             [/#if]
@@ -141,7 +132,6 @@
             [#list resources.logMetrics!{} as logMetricName,logMetric ]
 
                 [@createLogMetric
-                    mode=listMode
                     id=logMetric.Id
                     name=logMetric.Name
                     logGroup=logMetric.LogGroupName
@@ -158,12 +148,11 @@
                 [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
                 [#list monitoredResources as name,monitoredResource ]
 
-                    [@cfDebug listMode monitoredResource false /]
+                    [@debug message="Monitored resource" context=monitoredResource enabled=false /]
 
                     [#switch alert.Comparison ]
                         [#case "Threshold" ]
                             [@createCountAlarm
-                                mode=listMode
                                 id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
                                 severity=alert.Severity
                                 resourceName=core.FullName
@@ -200,8 +189,7 @@
                         platformAppCredential,
                         platformAppPrincipal )]
 
-                [@cfCli
-                    mode=listMode
+                [@addCliToDefaultJsonOutput
                     id=platformAppAttributesCliId
                     command=platformAppAttributesCommand
                     content=platformAppAttributes
@@ -211,8 +199,7 @@
 
             [#if deploymentSubsetRequired( "epilogue", false) ]
 
-                [@cfScript
-                    mode=listMode
+                [@addToDefaultBashScriptOutput
                     content=
                         [
                             "# Platform: " + core.SubComponent.Name,
@@ -256,8 +243,7 @@
 
     [#if hasPlatformApp ]
         [#if deploymentSubsetRequired( "prologue", false) ]
-            [@cfScript
-                mode=listMode
+            [@addToDefaultBashScriptOutput
                 content=
                     [
                         "# Mobile Notifier Cleanup",
@@ -279,7 +265,6 @@
             && isPartOfCurrentDeploymentUnit(roleId)]
 
             [@createRole
-                mode=listMode
                 id=roleId
                 trustedServices=["sns.amazonaws.com" ]
                 policies=
