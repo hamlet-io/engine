@@ -252,7 +252,8 @@
             {
                 "Names" : "IDPIdentifiers",
                 "Type" : ARRAY_OF_STRING_TYPE,
-                "Description" : "A list of identifiers that can be used to automatically pick the IDP - E.g. email domain"
+                "Description" : "A list of identifiers that can be used to automatically pick the IDP - E.g. email domain",
+                "Default" : []
             },
             {
                 "Names" : "SAML",

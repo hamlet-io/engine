@@ -7,7 +7,9 @@
     services=
         [
             AWS_COGNITO_SERVICE,
-            AWS_CERTIFICATE_MANAGER_SERVICE
+            AWS_CERTIFICATE_MANAGER_SERVICE,
+            AWS_IDENTITY_SERVICE,
+            AWS_ROUTE53_SERVICE
         ]
 /]
 
