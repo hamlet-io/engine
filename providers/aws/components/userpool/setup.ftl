@@ -303,16 +303,9 @@
 
                 [#local updateUserPoolAuthProvider =  {
                         "AttributeMapping" : attributeMappings,
-                        "ProviderDetails" : providerDetails
-                    } +
-                    attributeIfContent(
-                        "AttributeMapping",
-                        attributeMappings
-                    ) +
-                    attributeIfContent(
-                        "IdpIdentifiers",
-                        subSolution.IDPIdentifiers
-                    )
+                        "ProviderDetails" : providerDetails,
+                        "IdpIdentifiers" : subSolution.IDPIdentifiers
+                    }
                 ]
 
                 [@addCliToDefaultJsonOutput
