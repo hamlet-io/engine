@@ -211,34 +211,6 @@
                         {
                             "IdentityPoolId" : getExistingReference(linkTargetResources["identitypool"].Id)
                         }]
-<<<<<<< HEAD
-=======
-
-                        [#local policyId = formatDependentPolicyId(
-                                                esId,
-                                                link.Name)]
-
-
-                        [#if deploymentSubsetRequired("es", true)]
-                            [#local role = linkTargetResources["authrole"].Id!linkTargetAttributes["AUTH_USERROLE_ARN"] ]
-                            [#local roleArn = getArn(role) ]
-
-                            [#local localRoleAccount = role?contains( ":" + accountObject.AWSId + ":" ) ]
-
-                            [#if localRoleAccount ]
-                                [#local roleName = (role?split("/"))[1] ]
-                                [@cfResource
-                                    id=policyId
-                                    type="AWS::IAM::Policy"
-                                    properties=
-                                        getPolicyDocument(asFlattenedArray(roles.Outbound["consume"]), esName) +
-                                        {
-                                            "Roles" : [ roleName ]
-                                        }
-                                /]
-                            [/#if]
-                        [/#if]
->>>>>>> <refactor> Remove mode
                     [#break]
             [/#switch]
         [/#if]
