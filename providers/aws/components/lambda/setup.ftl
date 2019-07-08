@@ -94,6 +94,8 @@
                                     [#case USERPOOL_COMPONENT_TYPE ]
                                     [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
                                     [#case APIGATEWAY_COMPONENT_TYPE ]
+                                    [#case TOPIC_COMPONENT_TYPE]
+                                    [#case S3_COMPONENT_TYPE ]
                                         [@createLambdaPermission
                                             id=formatLambdaPermissionId(fn, "link", linkName)
                                             targetId=fnId
@@ -117,6 +119,16 @@
                                                 targetId=fnId
                                                 source=linkTargetAttributes["ARN"]
                                                 batchSize=1
+                                            /]
+                                        [/#if]
+                                        [#break]
+                                    [#case TOPIC_COMPONENT_TYPE ]
+                                        [#if linkTargetAttributes["ARN"]?has_content ]
+                                            [@createSNSSubscription 
+                                                id=formatDependentSNSSubscriptionId(fn, "link", linkName)
+                                                topicId=linkTargetResources["topic"].Id 
+                                                endpoint=getReference(fnId, ARN_ATTRIBUTE_TYPE)
+                                                protocol="lambda"
                                             /]
                                         [/#if]
                                         [#break]
