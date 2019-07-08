@@ -23,9 +23,9 @@
     [#local replicationConfiguration = {} ]
     [#local replicationBucket = ""]
 
-    [#local sqsNotifications = [] ]
-    [#local sqsNotificationIds = [] ]
     [#local dependencies = [] ]
+
+    [#local notifications = []]
 
     [#list solution.Notifications as id,notification ]
         [#if notification?is_hash]
@@ -39,38 +39,83 @@
 
                     [#local linkTargetResources = linkTarget.State.Resources ]
 
-                    [#switch linkTarget.Core.Type]
-                        [#case AWS_SQS_RESOURCE_TYPE ]
-                            [#if isLinkTargetActive(linkTarget) ]
-                                [#local sqsId = linkTargetResources["queue"].Id ]
-                                [#local sqsNotificationIds = [ sqsId ]]
-                                [#list notification.Events as event ]
-                                    [#local sqsNotifications +=
-                                            getS3SQSNotification(sqsId, event, notification.Prefix, notification.Suffix) ]
-                                [/#list]
+                    [#if isLinkTargetActive(linkTarget) ]
 
-                            [/#if]
-                            [#break]
-                    [/#switch]
+                        [#local resourceId = "" ]
+                        [#local resourceType = ""]
+
+                        [#switch linkTarget.Core.Type]
+                            [#case SQS_COMPONENT_TYPE ]
+                                [#local resourceId = linkTargetResources["queue"].Id ]
+                                [#local resourceType = linkTargetResources["queue"].Type ]
+
+                                [#local policyId =
+                                    formatS3NotificationPolicyId(
+                                        s3Id,
+                                        resourceId) ]
+
+                                [#local dependencies += [policyId] ]
+
+                                [#if deploymentSubsetRequired("s3", true)]
+                                    [@createSQSPolicy
+                                        id=policyId
+                                        queues=resourceId
+                                        statements=sqsS3WritePermission(resourceId, s3Name)
+                                    /]
+                                [/#if]
+
+                                [#break]
+
+                            [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
+                                [#local resourceId = linkTargetResources["lambda"].Id ]
+                                [#local resourceType = linkTargetResources["lambda"].Type ]
+
+                                [#local policyId =
+                                    formatS3NotificationPolicyId(
+                                        s3Id,
+                                        resourceId) ]
+                                
+                                [#local dependencies += [policyId] ]
+
+                                [#if deploymentSubsetRequired("s3", true)]
+                                    [@createLambdaPermission
+                                        id=policyId
+                                        targetId=resourceId
+                                        sourceId=s3Id
+                                        sourcePrincipal="s3.amazonaws.com"
+                                    /]
+                                [/#if]
+
+                                [#break]
+
+                            [#case TOPIC_COMPONENT_TYPE]
+                                [#local resourceId = linkTargetResources["topic"].Id ]
+                                [#local resourceType = linkTargetResources["topic"].Type ]
+                                [#local policyId =
+                                    formatS3NotificationPolicyId(
+                                        s3Id,
+                                        resourceId) ]
+                                        
+                                [#local dependencies += [ policyId ]]
+
+                                [#if deploymentSubsetRequired("s3", true )]
+                                    [@createSNSPolicy
+                                        id=policyId
+                                        topics=resourceId
+                                        statements=snsS3WritePermission(resourceId, s3Name)
+                                    /]
+                                [/#if]
+                        [/#switch]
+
+                        [#list notification.Events as event ]
+                            [#local notifications += 
+                                    getS3Notification(resourceId, resourceType, event, notification.Prefix, notification.Suffix) ]     
+                        [/#list]
+                    [/#if]
                 [/#if]
             [/#list]
         [/#if]
     [/#list]
-
-    [#if deploymentSubsetRequired("s3", true)]
-        [#list sqsNotificationIds as sqsId ]
-            [#local sqsPolicyId =
-                formatS3NotificationsQueuePolicyId(
-                    s3Id,
-                    sqsId) ]
-            [@createSQSPolicy
-                    id=sqsPolicyId
-                    queues=sqsId
-                    statements=sqsS3WritePermission(sqsId, s3Name)
-                /]
-            [#local dependencies += [sqsPolicyId] ]
-        [/#list]
-    [/#if]
 
     [#local policyStatements = [] ]
 
@@ -236,7 +281,7 @@
                         getS3LifecycleRule(solution.Lifecycle.Expiration!operationsExpiration, solution.Lifecycle.Offline!operationsOffline),
                         []
                 )
-            sqsNotifications=sqsNotifications
+            notifications=notifications
             websiteConfiguration=
                 (isPresent(solution.Website))?then(
                     getS3WebsiteConfiguration(solution.Website.Index, solution.Website.Error),
