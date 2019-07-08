@@ -48,7 +48,12 @@
                 "REGION" : getExistingReference(id, REGION_ATTRIBUTE_TYPE)
             },
             "Roles" : {
-                "Inbound" : {},
+                "Inbound" : {
+                    "invoke" : {
+                        "Principal" : "s3.amazonaws.com",
+                        "SourceArn" : getReference(id, ARN_ATTRIBUTE_TYPE)
+                    }
+                },
                 "Outbound" : {
                     "all" : s3AllPermission(id),
                     "produce" : s3ProducePermission(id),
