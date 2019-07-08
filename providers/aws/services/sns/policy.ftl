@@ -51,6 +51,20 @@
     ]
 [/#function]
 
+
+[#function snsS3WritePermission id bucketName="" ]
+    [#return
+        getSqsStatement(
+            "sns:Publish",
+            id,
+            "*",
+            {
+                "ArnLike" : {
+                    "aws:sourceArn" : "arn:aws:s3:*:*:${bucketName}"
+                }
+            })]
+[/#function]
+
 [#function snsPublishPlatformApplication platformAppName engine topic_prefix ]
     [#return
         [
