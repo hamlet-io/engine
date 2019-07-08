@@ -114,7 +114,8 @@
     ]
 [/#function]
 
-[#function getS3SQSNotification queue event prefix="" suffix="" ]
+[#function getS3Notification destId destResourceType event prefix="" suffix="" ]
+
     [#local filterRules = [] ]
     [#if prefix?has_content ]
         [#local filterRules +=
@@ -151,21 +152,50 @@
             [#break]
     [/#switch]
 
-    [#return
+    [#local collectionKey = ""]
+    [#local destKey = ""]
+
+    [#switch destResourceType ]
+        [#case AWS_SQS_RESOURCE_TYPE ]
+            [#local destKey = "Queue" ]
+            [#local collectionKey = "QueueConfigurations" ]
+            [#break]
+        
+        [#case AWS_SNS_TOPIC_RESOURCE_TYPE ]
+            [#local destKey = "Topic" ]
+            [#local collectionKey = "TopicConfigurations" ]
+            [#break]
+        
+        [#case AWS_LAMBDA_FUNCTION_RESOURCE_TYPE ]
+            [#local destKey = "Function" ]
+            [#local collectionKey = "LambdaConfigurations"]
+            [#break]
+        
+        [#default]
+            [@fatal 
+                message="Unsupported destination resource type"
+                context={ "Id" : destId, "Type" : destResourceType }
+            /]
+    [/#switch]
+
+    [#return   
         [
             {
-                "Event" : event,
-                "Queue" : getReference(queue, ARN_ATTRIBUTE_TYPE )
-            } +
-            attributeIfContent(
-                "Filter",
-                filterRules,
-                {
-                    "S3Key" :{
-                        "Rules" : filterRules
-                    }
-                }
-            )
+                "Type" : collectionKey,
+                "Notification" : {
+                        "Event" : event,
+                        destKey : getReference(destId, ARN_ATTRIBUTE_TYPE )
+                    } +
+                    attributeIfContent(
+                        "Filter",
+                        filterRules,
+                        {
+                            "S3Key" :{
+                                "Rules" : filterRules
+                            }
+                        }
+                    )
+            }
         ]
     ]
 [/#function]
@@ -263,7 +293,7 @@
 
 [#macro createS3Bucket id name tier="" component=""
                         lifecycleRules=[]
-                        sqsNotifications=[]
+                        notifications=[]
                         versioning=false
                         websiteConfiguration={}
                         replicationConfiguration={}
@@ -303,6 +333,17 @@
         [/#if]
     [/#list]
 
+    [#local notificationRules = {}]
+    [#list notifications as notification ]
+        [#local notificationType = notification.Type ]
+        [#local notificationTypeRules = notificationRules[ notificationType ]![]]
+        
+        [#local notificationRules = notificationRules + 
+            {
+                notificationType : notificationTypeRules + [ notification["Notification"] ]
+            }]
+    [/#list]
+
     [@cfResource
         id=id
         type="AWS::S3::Bucket"
@@ -318,10 +359,8 @@
                 }) +
             attributeIfContent(
                 "NotificationConfiguration",
-                sqsNotifications,
-                {
-                    "QueueConfigurations" : sqsNotifications
-                }) +
+                notificationRules
+            ) +
             attributeIfContent(
                 "WebsiteConfiguration",
                 websiteConfiguration

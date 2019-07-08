@@ -52,9 +52,9 @@
                 extensions)]
 [/#function]
 
-[#function formatS3NotificationsQueuePolicyId s3Id queue]
+[#function formatS3NotificationPolicyId bucketId destinationId]
     [#return formatDependentPolicyId(
-                s3Id,
-                queue)]
+                bucketId,
+                destinationId)]
 [/#function]
 
