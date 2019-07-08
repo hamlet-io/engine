@@ -74,6 +74,9 @@
 
 [#assign SQS_COMPONENT_TYPE = "sqs"]
 
+[#assign TOPIC_COMPONENT_TYPE = "topic"]
+[#assign TOPIC_SUBSCRIPTION_COMPONENT_TYPE = "topicsubscription" ] 
+
 [#assign USER_COMPONENT_TYPE = "user" ]
 
 [#assign USERPOOL_COMPONENT_TYPE = "userpool"]
@@ -644,7 +647,7 @@
         "Names" : "Events",
         "Type" : ARRAY_OF_STRING_TYPE,
         "Default" : [ "create" ],
-        "Values" : [ "create", "remove", "restore", "reducedredundancy" ]
+        "Values" : [ "create", "delete", "restore", "reducedredundancy" ]
     }
 ]]
 

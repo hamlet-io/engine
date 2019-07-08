@@ -1,18 +1,5 @@
 [#ftl]
 
-[#macro createSNSSubscription topicId endPoint protocol extensions...]
-    [@cfResource
-        id=formatDependentSNSSubscriptionId(topicId, extensions)
-        type="AWS::SNS::Subscription"
-        properties=
-            {
-                "Endpoint" : endPoint,
-                "Protocol" : protocol,
-                "TopicArn" : getReference(topicId)
-            }
-    /]
-[/#macro]
-
 [#assign SNS_TOPIC_OUTPUT_MAPPINGS =
     {
         REFERENCE_ATTRIBUTE_TYPE : {
@@ -48,30 +35,67 @@
     }
 ]
 
-[#macro createSNSTopic id displayName topicName=""]
+[#macro createSNSTopic id name encrypted=false kmsKeyId="" fixedName=false dependencies=[]]
     [@cfResource
         id=id
         type="AWS::SNS::Topic"
         properties=
             {
-                    "DisplayName" : displayName
+                "DisplayName" : name
             } +
-            topicName?has_content?then(
-                {
-                    "TopicName" : topicName
-                },
-                {}
+            attributeIfTrue(
+                "TopicName",
+                fixedName,
+                name
+            ) + 
+            attributeIfTrue(
+                "KmsMasterKeyId",
+                encrypted,
+                getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
             )
         outputs=SNS_TOPIC_OUTPUT_MAPPINGS
+        dependencies=[]
     /]
 [/#macro]
 
-[#macro createSegmentSNSTopic id extensions...]
-    [@createSNSTopic id, formatSegmentFullName(extensions) /]
+[#macro createSNSSubscription id topicId endpoint protocol rawMessageDelivery=false deliveryPolicy={} dependencies=[] ]
+    [@cfResource
+        id=id
+        type="AWS::SNS::Subscription"
+        properties=
+            {
+                "Endpoint" : endpoint,
+                "Protocol" : protocol,
+                "TopicArn" : getReference(topicId, ARN_ATTRIBUTE_TYPE),
+                "RawMessageDelivery" : rawMessageDelivery
+            } + 
+            attributeIfContent(
+                "DeliveryPolicy",
+                deliveryPolicy
+            )
+        dependencies=dependencies
+    /]
 [/#macro]
 
-[#macro createProductSNSTopic id extensions...]
-    [@createSNSTopic id, formatName(productName, extensions) /]
+[#macro createSegmentSNSTopic id]
+    [@createSNSTopic 
+        id=id
+        name=formatSegmentFullName() 
+    /]
+[/#macro]
+
+[#macro createSNSPolicy id topics statements dependencies=[] ]
+    [@cfResource
+        id=id
+        type="AWS::SNS::TopicPolicy"
+        properties=
+            {
+                "Topics" : getReferences(topics, ARN_ATTRIBUTE_TYPE)
+            } +
+            getPolicyDocument(statements)
+        outputs={}
+        dependencies=dependencies
+    /]
 [/#macro]
 
 
@@ -94,4 +118,34 @@
                 principal
             )
             }]
+[/#function]
+
+[#function getSNSDeliveryPolicy deliveryPolicyConfig ]
+
+    [#return {
+        "healthyRetryPolicy": {
+            "backoffFunction" : deliveryPolicyConfig.BackOffMode,
+            "numRetries" :  deliveryPolicyConfig.RetryAttempts
+        } + 
+        attributeIfContent(
+            "minDelayTarget",
+            deliveryPolicyConfig.MinimumDelay!""
+        ) +
+        attributeIfContent(
+            "maxDelayTarget",
+            deliveryPolicyConfig.MaximumDelay!""
+        ) +
+        attributeIfContent(
+            "numMinDelayRetries",
+            deliveryPolicyConfig.AttemptsBeforeBackOff!""
+        ) + 
+        attributeIfContent(
+            "numMaxDelayRetries",
+            deliveryPolicyConfig.AttemptsAfterBackOff!""
+        ) + 
+        attributeIfContent(
+            "numNoDelayRetries",
+            deliveryPolicyConfig.numNoDelayRetries!""
+        )
+    }]
 [/#function]

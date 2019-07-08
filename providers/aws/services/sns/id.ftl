@@ -24,11 +24,6 @@
                 extensions)]
 [/#function]
 
-[#function formatProductSNSTopicId extensions...]
-    [#return formatProductResourceId(
-                AWS_SNS_TOPIC_RESOURCE_TYPE,
-                extensions)]
-[/#function]
 
 [#function formatDependentSNSSubscriptionId resourceId extensions...]
     [#return formatDependentResourceId(
