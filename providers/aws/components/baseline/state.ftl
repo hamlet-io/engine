@@ -24,16 +24,7 @@
                     "Value" : segmentSeedValue,
                     "Type" : SEED_RESOURCE_TYPE
                 }
-            } +
-            (!legacyVpc)?then(
-                {
-                    "segmentSNSTopic" : {
-                        "Id" : formatSegmentSNSTopicId(),
-                        "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE
-                    }
-                },
-                {}
-            ),
+            },
             "Attributes" : {
                 "SEED_SEGMENT" : segmentSeedValue
             },
@@ -56,8 +47,8 @@
     [#local role = solution.Role]
     [#local legacyS3 = false]
 
-    [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, core.SubComponent.Id ) ]
-    [#local bucketName = formatSegmentBucketName( segmentSeed, core.SubComponent.Id )]]
+    [#local bucketId = formatOccurrenceS3Id( occurrence) ]
+    [#local bucketName = formatOccurrenceBucketName( occurrence )]]
 
     [#switch core.SubComponent.Id ]
         [#case "appdata" ]

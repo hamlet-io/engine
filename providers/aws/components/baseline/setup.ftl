@@ -50,15 +50,11 @@
         [/#if]
     [/#if]
 
-    [#-- Monitoring Topic --]
-    [#if (resources["segmentSNSTopic"]!{})?has_content ]
-        [#local topicId = resources["segmentSNSTopic"].Id ]
-        [#if deploymentSubsetRequired(BASELINE_COMPONENT_TYPE, true)]
-            [@createSegmentSNSTopic
-                id=topicId
-            /]
-        [/#if]
-    [/#if]
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption" ], true, false, false )]
+    [#local cmkKeyId = baselineComponentIds["Encryption" ]]
+
+    [@debug message={ "KeyId" : cmkKeyId } enabled=true /]
 
     [#-- Subcomponents --]
     [#list occurrence.Occurrences![] as subOccurrence]
@@ -83,8 +79,7 @@
                         getS3LifecycleRule(lifecycle.Expiration, lifecycle.Offline, lifecycle.Prefix)]
                 [/#list]
 
-                [#local sqsNotifications = [] ]
-                [#local sqsNotificationIds = [] ]
+                [#local notifications = [] ]
                 [#local bucketDependencies = [] ]
                 [#local cfAccessCanonicalIds = [] ]
 
@@ -96,7 +91,7 @@
                     [#local cfAccessCanonicalIds += [ legacyOAI ]]
                 [/#if]
 
-                [#list subSolution.Notifications!{} as id,notification ]
+                [#list subSolution.Notifications as id,notification ]
                     [#if notification?is_hash]
                         [#list notification.Links?values as link]
                             [#if link?is_hash]
@@ -108,19 +103,79 @@
 
                                 [#local linkTargetResources = linkTarget.State.Resources ]
 
-                                [#switch linkTarget.Core.Type]
-                                    [#case SQS_COMPONENT_TYPE ]
-                                        [#if isLinkTargetActive(linkTarget) ]
-                                            [#local sqsId = linkTargetResources["queue"].Id ]
-                                            [#local sqsNotificationIds = [ sqsId ]]
-                                            [#list notification.Events as event ]
-                                                [#local sqsNotifications +=
-                                                        getS3SQSNotification(sqsId, event, notification.Prefix, notification.Suffix) ]
-                                            [/#list]
+                                [#if isLinkTargetActive(linkTarget) ]
 
-                                        [/#if]
-                                        [#break]
-                                [/#switch]
+                                    [#local resourceId = "" ]
+                                    [#local resourceType = ""]
+
+                                    [#switch linkTarget.Core.Type]
+                                        [#case SQS_COMPONENT_TYPE ]
+                                            [#local resourceId = linkTargetResources["queue"].Id ]
+                                            [#local resourceType = linkTargetResources["queue"].Type ]
+
+                                            [#local policyId =
+                                                formatS3NotificationPolicyId(
+                                                    bucketId,
+                                                    resourceId) ]
+
+                                            [#local bucketDependencies += [policyId] ]
+
+                                            [#if deploymentSubsetRequired("s3", true)]
+                                                [@createSQSPolicy
+                                                    id=policyId
+                                                    queues=resourceId
+                                                    statements=sqsS3WritePermission(resourceId, bucketName)
+                                                /]
+                                            [/#if]
+
+                                            [#break]
+
+                                        [#case LAMBDA_FUNCTION_COMPONENT_TYPE ]
+                                            [#local resourceId = linkTargetResources["lambda"].Id ]
+                                            [#local resourceType = linkTargetResources["lambda"].Type ]
+
+                                            [#local policyId =
+                                                formatS3NotificationPolicyId(
+                                                    bucketId,
+                                                    resourceId) ]
+                                            
+                                            [#local bucketDependencies += [policyId] ]
+
+                                            [#if deploymentSubsetRequired("s3", true)]
+                                                [@createLambdaPermission
+                                                    id=policyId
+                                                    targetId=resourceId
+                                                    sourceId=bucketId
+                                                    sourcePrincipal="s3.amazonaws.com"
+                                                /]
+                                            [/#if]
+
+                                            [#break]
+
+                                        [#case TOPIC_COMPONENT_TYPE]
+                                            [#local resourceId = linkTargetResources["topic"].Id ]
+                                            [#local resourceType = linkTargetResources["topic"].Type ]
+                                            [#local policyId =
+                                                formatS3NotificationPolicyId(
+                                                    bucketId,
+                                                    resourceId) ]
+                                                    
+                                            [#local bucketDependencies += [ policyId ]]
+
+                                            [#if deploymentSubsetRequired("s3", true )]
+                                                [@createSNSPolicy
+                                                    id=policyId
+                                                    topics=resourceId
+                                                    statements=snsS3WritePermission(resourceId, bucketName)
+                                                /]
+                                            [/#if]
+                                    [/#switch]
+
+                                    [#list notification.Events as event ]
+                                        [#local notifications += 
+                                                getS3Notification(resourceId, resourceType, event, notification.Prefix, notification.Suffix) ]     
+                                    [/#list]
+                                [/#if]
                             [/#if]
                         [/#list]
                     [/#if]
@@ -152,25 +207,12 @@
                     [/#if]
                 [/#list]
 
-                [#list sqsNotificationIds as sqsId ]
-                    [#local sqsPolicyId =
-                        formatS3NotificationsQueuePolicyId(
-                            bucketId,
-                            sqsId) ]
-                    [@createSQSPolicy
-                            id=sqsPolicyId
-                            queues=sqsId
-                            statements=sqsS3WritePermission(sqsId, bucketName)
-                        /]
-                    [#local bucketDependencies += [sqsPolicyId] ]
-                [/#list]
-
                 [@createS3Bucket
                     id=bucketId
                     name=bucketName
                     versioning=subSolution.Versioning
                     lifecycleRules=lifecycleRules
-                    sqsNotifications=sqsNotifications
+                    notifications=notifications
                     dependencies=bucketDependencies
                 /]
 
@@ -319,7 +361,7 @@
                                 "    [[ -f \"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + ".plaintext\" ]] && ",
                                 "      { encrypt_file" + " " +
                                         "\"" + regionId + "\"" + " " +
-                                        "segment" + " " +
+                                        "\"" + cmkKeyId + "\"" + " " +
                                         "\"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + ".plaintext\"" + " " +
                                         "\"$\{SEGMENT_OPERATIONS_DIR}/" + localKeyPairPrivateKey + "\" || return $?; }",
                                 "  fi",
@@ -341,7 +383,8 @@
                                     "       rm -f \"$\{legacy_pseudo_stack_file}\"",
                                     "   fi"
                                 ],
-                                legacyKey
+                                legacyKey,
+                                []
                             ) +
                             [
                                 "  #",

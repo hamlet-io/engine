@@ -1429,7 +1429,7 @@ function create_pki_credentials() {
         (! -f "${dir}/.aws-${account}-${region}-ssh-crt.pem") &&
         (! -f "${dir}/.aws-${account}-${region}-ssh-prv.pem") ]]; then
       openssl genrsa -out "${dir}/${privatekeyname}.plaintext" 2048 || return $?
-      openssl rsa -in "${dir}/${privatekeyname}.plaintext" -pubout > "${dir}/${publickeyname}.pem" || return $?
+      openssl rsa -in "${dir}/${privatekeyname}.plaintext" -pubout > "${dir}/${publickeyname}" || return $?
   fi
 
   if [[ ! -f "${dir}/.gitignore" ]]; then
