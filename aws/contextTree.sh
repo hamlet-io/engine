@@ -432,13 +432,13 @@ function getCmk() {
 
 function encrypt_file() {
   local region="$1"; shift
-  local level="$1"; shift
+  local key_id="$1"; shift
   local input_file="$1"; shift
   local output_file="$1"; shift
 
   pushTempDir "${FUNCNAME[0]}_XXXXXX"
   local tmp_dir="$(getTopTempDir)"
-  local cmk=$(getCmk "${level}")
+  local cmk=$(getCompositeStackOutput "${COMPOSITE_STACK_OUTPUTS}" "${key_id}")
   local return_status
 
   cp "${input_file}" "${tmp_dir}/encrypt_file"
