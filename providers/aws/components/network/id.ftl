@@ -8,7 +8,6 @@
         [
             AWS_CLOUDWATCH_SERVICE,
             AWS_IDENTITY_SERVICE,
-            AWS_SIMPLE_NOTIFICATION_SERVICE,
             AWS_VIRTUAL_PRIVATE_CLOUD_SERVICE
         ]
 /]

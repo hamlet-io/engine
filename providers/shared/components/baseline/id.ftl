@@ -7,7 +7,7 @@
 [/#function]
 
 
-[#function getBaselineLinks baselineProfileName baselineComponentNames idsOnly=true  ]
+[#function getBaselineLinks baselineProfileName baselineComponentNames idsOnly=true activeOnly=true activeRequired=true  ]
     [#local baselineProfile = baselineProfiles[baselineProfileName] ]
 
     [#local baselineLinkTargets = {} ]
@@ -44,7 +44,7 @@
                     subComponentType : value
                 }
             ]
-            [#local baselineLinkTarget = getLinkTarget( {}, baselineLink, true, true )]
+            [#local baselineLinkTarget = getLinkTarget( {}, baselineLink, activeOnly, activeRequired )]
             [#local baselineComponentId = (baselineLinkTarget.State.Attributes["ID"])!"" ]
 
             [#if ! baselineComponentId?has_content ]

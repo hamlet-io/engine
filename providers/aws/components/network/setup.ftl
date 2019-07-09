@@ -64,15 +64,6 @@
 
     [/#if]
 
-    [#if (resources["legacySnsTopic"]!{})?has_content ]
-        [#local topicId = resources["legacySnsTopic"].Id ]
-        [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
-            [@createSegmentSNSTopic
-                id=topicId
-            /]
-        [/#if]
-    [/#if]
-
     [#if deploymentSubsetRequired(NETWORK_COMPONENT_TYPE, true)]
         [@createVPC
             id=vpcId

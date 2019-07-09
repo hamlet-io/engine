@@ -66,23 +66,21 @@
             {
                 "Endpoint" : endpoint,
                 "Protocol" : protocol,
-                "TopicArn" : getReference(topicId, ARN_ATTRIBUTE_TYPE),
-                "RawMessageDelivery" : rawMessageDelivery
+                "TopicArn" : getReference(topicId, ARN_ATTRIBUTE_TYPE)
             } + 
             attributeIfContent(
                 "DeliveryPolicy",
                 deliveryPolicy
+            ) + 
+            attributeIfTrue(
+                "RawMessageDelivery",
+                ( protocol == "sqs" || protocol == "http" || protocol = "https" ),
+                rawMessageDelivery
             )
         dependencies=dependencies
     /]
 [/#macro]
 
-[#macro createSegmentSNSTopic id]
-    [@createSNSTopic 
-        id=id
-        name=formatSegmentFullName() 
-    /]
-[/#macro]
 
 [#macro createSNSPolicy id topics statements dependencies=[] ]
     [@cfResource

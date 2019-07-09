@@ -3005,5 +3005,18 @@
       "SSHKey" : "ssh",
       "CDNOriginKey" : "oai"
     }
+  },
+  "AlertRules" : {
+    "All" : { 
+      "Severity" : "info",
+      "Destinations" : {
+        "Links" : {}
+      } 
+    }
+  },
+  "AlertProfiles" : {
+    "default" : {
+      "Rules" : [ "All" ]
+    }
   }
 }

@@ -167,6 +167,17 @@
                         "Default" : ""
                     }
                 ]
+            },
+            {
+                "Names" : "Profiles",
+                "Children" :
+                    [
+                        {
+                            "Names" : "Alert",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
             }
         ]
     parent=LAMBDA_COMPONENT_TYPE

@@ -66,12 +66,6 @@
                 "Subobjects" : true,
                 "Children" : linkChildrenConfiguration
             },
-            {
-                "Names" : "Protocol",
-                "Description" : "The protocol to use when delivering a message to an external link",
-                "Values" : [ "http", "https", "email", "email-json", "sms" ],
-                "Default" : "https"
-            },
             {          
                 "Names" : "DeliveryPolicy",
                 "Children" : [
