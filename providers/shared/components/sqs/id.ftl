@@ -53,6 +53,17 @@
                 "Names" : "Alerts",
                 "Subobjects" : true,
                 "Children" : alertChildrenConfiguration
+            },
+            {
+                "Names" : "Profiles",
+                "Children" :
+                    [
+                        {
+                            "Names" : "Alert",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
             }
         ]
 /]

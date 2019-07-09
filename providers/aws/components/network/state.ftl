@@ -12,7 +12,6 @@
         [#local legacyIGWId = formatVPCIGWTemplateId() ]
         [#local legacyIGWName = formatIGWName() ]
         [#local legacyIGWAttachmentId = formatId(AWS_VPC_IGW_ATTACHMENT_TYPE) ]
-        [#local legacySegmentTopicId = formatSegmentSNSTopicId() ]
     [#else]
         [#local vpcId = formatResourceId(AWS_VPC_RESOURCE_TYPE, core.Id)]
         [#local vpcName = core.FullName ]
@@ -118,10 +117,6 @@
             ) +
             legacyVpc?then(
                 {
-                    "legacySnsTopic" : {
-                        "Id" : legacySegmentTopicId,
-                        "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE
-                    },
                     "legacyIGW" : {
                         "Id" : legacyVpc?then(formatVPCIGWId(), legacyIGWId),
                         "ResourceId" : legacyIGWId,

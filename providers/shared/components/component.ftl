@@ -271,7 +271,8 @@
         {
             "Names" : "Severity",
             "Type" : STRING_TYPE,
-            "Default" : "Info"
+            "Values" : [ "debug", "info", "warn", "error", "fatal"]
+            "Default" : "info"
         },
         {
             "Names" : "Namespace",

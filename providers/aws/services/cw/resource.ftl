@@ -281,8 +281,6 @@
         type="AWS::CloudWatch::Alarm"
         properties=
             {
-                "ActionsEnabled" : true,
-                "AlarmActions" : actions,
                 "AlarmDescription" : description?has_content?then(description,name),
                 "AlarmName" : severity?upper_case + "-" + resourceName + "-" + alertName,
                 "ComparisonOperator" : operator,
@@ -296,7 +294,14 @@
                 "Unit" : "Count"
             } +
             attributeIfContent("Dimensions", dimensions) +
-            attributeIfTrue("OKActions", reportOK, actions)
+            attributeIfTrue("OKActions", reportOK, actions) + 
+            valueIfContent(
+                {
+                    "ActionsEnabled" : true,
+                    "AlarmActions" : actions
+                },
+                actions
+            )
         dependencies=dependencies
     /]
 [/#macro]
@@ -353,3 +358,77 @@
         dependencies=dependencies
     /]
 [/#macro]
+
+
+[#function getCWAlertActions occurrence alertProfile alertSeverity ]
+    [#local alertActions = [] ]
+    [#local profileDetails = blueprintObject.AlertProfiles[alertProfile]!{} ]
+    
+    [#local alertRules = []]
+    [#list profileDetails.Rules!{} as profileRule]
+        [#local alertRules += [ blueprintObject.AlertRules[profileRule]!{} ]]
+    [/#list]
+
+    [#local alertSeverityDescriptions = [
+        "debug",
+        "info",
+        "warn",
+        "error",
+        "fatal"
+    ]]
+
+    [#list alertSeverityDescriptions as value]
+        [#if alertSeverity?lower_case?starts_with(value)]
+            [#assign alertSeverityLevel = value?index]
+            [#break]
+        [/#if]
+    [/#list]
+
+    [#list alertRules as rule ] 
+
+        [#list alertSeverityDescriptions as value]
+            [#if rule.Severity?lower_case?starts_with(value)]
+                [#assign ruleSeverityLevel = value?index]
+                [#break]
+            [/#if]
+        [/#list]
+
+        [@debug message={ "alert" : alertSeverityLevel, "rule" : ruleSeverityLevel } enabled=true /]
+        [#if alertSeverityLevel < ruleSeverityLevel ]
+            [#continue]
+        [/#if]
+
+        [@debug message="Rule" context=rule enabled=true /]
+        [#list rule.Destinations.Links?values as link ]
+            
+            [#if link?is_hash]
+                [#local linkTarget = getLinkTarget(occurrence, link ) ]
+
+                [@debug message="Link Target" context=linkTarget enabled=false /]
+
+                [#if !linkTarget?has_content]
+                    [#continue]
+                [/#if]
+
+                [#local linkTargetCore = linkTarget.Core ]
+                [#local linkTargetAttributes = linkTarget.State.Attributes ]
+                
+                [#switch linkTargetCore.Type]
+                    [#case TOPIC_COMPONENT_TYPE]
+                        [#local alertActions += [ linkTargetAttributes["ARN"] ] ]
+                        [#break]
+                    
+                    [#default] 
+                        [@fatal
+                            message="Unsupported alert action component"
+                            detail="This component type is not supported as a cloudwatch alert destination"
+                            context=link
+                        /]
+                [/#switch]
+
+            [/#if]
+        [/#list]
+    [/#list]
+
+    [#return alertActions ]
+[/#function]

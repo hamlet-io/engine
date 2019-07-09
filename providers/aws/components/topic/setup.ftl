@@ -22,9 +22,9 @@
         [@createSNSTopic 
             id=topicId 
             name=topicName 
-            encrypted=parentSolution.Encrypted
+            encrypted=solution.Encrypted
             kmsKeyId=cmkKeyId
-            fixedName=parentSolution.FixedName
+            fixedName=solution.FixedName
         /]
     [/#if]
 
@@ -44,9 +44,7 @@
                             severity=alert.Severity
                             resourceName=core.FullName
                             alertName=alert.Name
-                            actions=[
-                                getReference(formatSegmentSNSTopicId())
-                            ]
+                            actions=getCWAlertActions(occurrence, solution.Profiles.Alert, alert.Severity )
                             metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
                             namespace=getResourceMetricNamespace(monitoredResource.Type)
                             description=alert.Description!alert.Name
@@ -78,7 +76,6 @@
                 [#local subscriptionId = resources["subscription"].Id ]
 
                 [#local links = solution.Links ]
-                [#local protocol = solution.Protocol]
 
                 [#list links as linkId,link]
                 
@@ -131,10 +128,10 @@
 
                     [#if deploymentSubsetRequired(TOPIC_COMPONENT_TYPE, true)]
                         [@createSNSSubscription 
-                            id=subscriptionId
+                            id=formatId(subscriptionId, link.Id)
                             topicId=topicId 
                             endpoint=endpoint
-                            protocol=solution.Protocol
+                            protocol=protocol
                             rawMessageDelivery=solution.RawMessageDelivery 
                             deliveryPolicy=deliveryPolicy
                         /]

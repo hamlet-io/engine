@@ -151,9 +151,7 @@
                                 severity=alert.Severity
                                 resourceName=core.FullName
                                 alertName=alert.Name
-                                actions=[
-                                    getReference(formatSegmentSNSTopicId())
-                                ]
+                                actions=actions=getCWAlertActions(occurrence, solution.Profiles.Alert, alert.Severity )
                                 metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
                                 namespace=getResourceMetricNamespace(monitoredResource.Type)
                                 description=alert.Description!alert.Name

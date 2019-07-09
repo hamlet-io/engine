@@ -19,6 +19,7 @@
         [
             AWS_ELASTIC_LOAD_BALANCER_SERVICE,
             AWS_VIRTUAL_PRIVATE_CLOUD_SERVICE,
-            AWS_ROUTE53_SERVICE
+            AWS_ROUTE53_SERVICE,
+            AWS_CERTIFICATE_MANAGER_SERVICE
         ]
 /]

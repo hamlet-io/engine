@@ -93,6 +93,17 @@
             "Type" : ARRAY_OF_STRING_TYPE,
             "Default" : []
         }
+        {
+            "Names" : "Profiles",
+            "Children" :
+                [                      
+                    {
+                        "Names" : "Alert",
+                        "Type" : STRING_TYPE,
+                        "Default" : "default"
+                    }
+                ]
+        }
     ]
 ]
 
@@ -153,6 +164,11 @@
                     [
                         {
                             "Names" : "Processor",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        },                        
+                        {
+                            "Names" : "Alert",
                             "Type" : STRING_TYPE,
                             "Default" : "default"
                         }
@@ -313,6 +329,17 @@
                         "Default" : ""
                     }
                 ]
+            },
+            {
+                "Names" : "Profiles",
+                "Children" :
+                    [                    
+                        {
+                            "Names" : "Alert",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
             }
         ]
     parent=ECS_COMPONENT_TYPE
@@ -422,6 +449,17 @@
                         "Default" : 1
                     }
                 ]
+            },
+            {
+                "Names" : "Profiles",
+                "Children" :
+                    [                     
+                        {
+                            "Names" : "Alert",
+                            "Type" : STRING_TYPE,
+                            "Default" : "default"
+                        }
+                    ]
             }
         ]
     parent=ECS_COMPONENT_TYPE

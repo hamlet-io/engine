@@ -105,11 +105,6 @@
                 "Children" : linkChildrenConfiguration
             },
             {
-                "Names" : "Alerts",
-                "Subobjects" : true,
-                "Children" : alertChildrenConfiguration
-            },
-            {
                 "Names" : "LogWatchers",
                 "Subobjects" : true,
                 "Children" : logWatcherChildrenConfiguration
