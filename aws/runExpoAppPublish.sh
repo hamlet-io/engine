@@ -246,6 +246,19 @@ function main() {
   jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.extra.build_reference=env.BUILD_REFERENCE | .expo.ios.buildNumber=env.BUILD_NUMBER | .expo.extra= .expo.extra + $envConfig[]' <  "./app.json" > "${tmpdir}/environment-app.json"  
   mv "${tmpdir}/environment-app.json" "./app.json"
 
+  ## Optional app.json overrides 
+  IOS_DIST_BUNDLE_ID="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.IOS_DIST_BUNDLE_ID' < "${BUILD_BLUEPRINT}" )"
+  if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then 
+    jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.ios.bundleIdentifier=env.IOS_DIST_BUNDLE_ID' <  "./app.json" > "${tmpdir}/ios-bundle-app.json"  
+    mv "${tmpdir}/ios-bundle-app.json" "./app.json"
+  fi
+
+  ANDROID_BUNDLE_ID="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.ANDOIRD_BUNDLE_ID' < "${BUILD_BLUEPRINT}" )"
+  if [[ "${ANDROID_BUNDLE_ID}" != "null" && -n "${ANDROID_BUNDLE_ID}" ]]; then 
+    jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.android.package=env.ANDROID_BUNDLE_ID' <  "./app.json" > "${tmpdir}/android-bundle-app.json"  
+    mv "${tmpdir}/android-bundle-app.json" "./app.json"
+  fi
+
   # Create a build for the SDK
   info "Creating an OTA for this version of the SDK"
   expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
