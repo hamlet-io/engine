@@ -12,7 +12,8 @@
                 "topic" : {
                     "Id" : topicId,
                     "Name" : core.FullName,
-                    "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE
+                    "Type" : AWS_SNS_TOPIC_RESOURCE_TYPE,
+                    "Monitored" : true
                 }
             },
             "Attributes" : {
@@ -26,7 +27,10 @@
                         "SourceArn" : getReference(topicId,ARN_ATTRIBUTE_TYPE)
                     }
                 },
-                "Outbound" : {}
+                "Outbound" : {
+                    "default" : "publish",
+                    "publish" : snsPublishPermission(topicId)
+                }
             }
         }
     ]

@@ -7,15 +7,15 @@
         [#return]
     [/#if]
 
-    [#local parentCore = occurrence.Core]
-    [#local parentSolution = occurrence.Configuration.Solution]
-    [#local parentResources = occurrence.State.Resources]
+    [#local core = occurrence.Core]
+    [#local solution = occurrence.Configuration.Solution]
+    [#local resources = occurrence.State.Resources]
 
-    [#local topicId = parentResources["topic"].Id ]
-    [#local topicName = parentResources["topic"].Name ]
+    [#local topicId = resources["topic"].Id ]
+    [#local topicName = resources["topic"].Name ]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(parentSolution.Profiles.Baseline, [ "Encryption" ] )]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption" ] )]
     [#local cmkKeyId = baselineComponentIds["Encryption"] ]
 
     [#if deploymentSubsetRequired(TOPIC_COMPONENT_TYPE, true)]
@@ -26,6 +26,44 @@
             kmsKeyId=cmkKeyId
             fixedName=parentSolution.FixedName
         /]
+    [/#if]
+
+        [#-- LB level Alerts --]
+    [#if deploymentSubsetRequired(TOPIC_COMPONENT_TYPE) ]
+        [#list solution.Alerts?values as alert ]
+
+            [#local monitoredResources = getMonitoredResources(resources, alert.Resource)]
+            [#list monitoredResources as name,monitoredResource ]
+
+                [@debug message="Monitored resource" context=monitoredResource enabled=false /]
+
+                [#switch alert.Comparison ]
+                    [#case "Threshold" ]
+                        [@createCountAlarm
+                            id=formatDependentAlarmId(monitoredResource.Id, alert.Id )
+                            severity=alert.Severity
+                            resourceName=core.FullName
+                            alertName=alert.Name
+                            actions=[
+                                getReference(formatSegmentSNSTopicId())
+                            ]
+                            metric=getMetricName(alert.Metric, monitoredResource.Type, core.ShortFullName)
+                            namespace=getResourceMetricNamespace(monitoredResource.Type)
+                            description=alert.Description!alert.Name
+                            threshold=alert.Threshold
+                            statistic=alert.Statistic
+                            evaluationPeriods=alert.Periods
+                            period=alert.Time
+                            operator=alert.Operator
+                            reportOK=alert.ReportOk
+                            missingData=alert.MissingData
+                            dimensions=getResourceMetricDimensions(monitoredResource, resources)
+                            dependencies=monitoredResource.Id
+                        /]
+                    [#break]
+                [/#switch]
+            [/#list]
+        [/#list]
     [/#if]
 
     [#list occurrence.Occurrences![] as subOccurrence]
