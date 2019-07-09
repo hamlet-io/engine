@@ -29,6 +29,11 @@
                 "Type" : BOOLEAN_TYPE,
                 "Description" : "Applies a fixed name to the topic instead of a randomly generated one",
                 "Default" : false
+            },
+            {
+                "Names" : "Alerts",
+                "Subobjects" : true,
+                "Children" : alertChildrenConfiguration
             }
         ]
 /]
