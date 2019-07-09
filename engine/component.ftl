@@ -1,6 +1,6 @@
 [#ftl]
 
-[#-- Core processing of components --]
+[#-- Core processing of tiers/components --]
 
 [#-- Component configuration is extended dynamically by each component type --]
 [#assign componentConfiguration = {} ]
@@ -144,6 +144,10 @@
     [#return (componentConfiguration[type].Components)![] ]
 [/#function]
 
+[#function getComponentChildLinkAttributes child]
+    [#return asArray(child.Link![]) ]
+[/#function]
+
 [#function getResourceGroupPlacement key profile]
     [#return profile[key]!{} ]
 [/#function]
@@ -267,3 +271,143 @@
             }
         /]
 [/#macro]
+
+[#-- Tiers --]
+
+[#-- Get a tier --]
+[#assign tiers = [] ]
+[#function getTier tier]
+    [#if tier?is_hash]
+        [#local tierId = (tier.Id)!"" ]
+    [#else]
+        [#local tierId = tier ]
+    [/#if]
+
+    [#-- Special processing for the "all" tier --]
+    [#if tierId == "all"]
+        [#return
+          {
+              "Id" : "all",
+              "Name" : "all"
+          } ]
+    [/#if]
+
+    [#list tiers as knownTier]
+        [#if knownTier.Id == tierId]
+            [#return knownTier]
+        [/#if]
+    [/#list]
+    [#return {} ]
+[/#function]
+
+[#function getTierNetwork tier]
+    [#return (getTier(tier).Network)!{}]
+[/#function]
+
+[#-- Get the id for a tier --]
+[#function getTierId tier]
+    [#return getTier(tier).Id!""]
+[/#function]
+
+[#-- Get the name for a tier --]
+[#function getTierName tier]
+    [#return getTier(tier).Name!""]
+[/#function]
+
+[#-- Get the id for a component --]
+[#function getComponentId component]
+    [#if component?is_hash]
+        [#return component.Id?split("-")[0]]
+    [#else]
+        [#return component?split("-")[0]]
+    [/#if]
+[/#function]
+
+[#-- Get the name for a component --]
+[#function getComponentName component]
+    [#if component?is_hash]
+        [#return component.Name?split("-")[0]]
+    [#else]
+        [#return component?split("-")[0]]
+    [/#if]
+[/#function]
+
+[#-- Get the type for a component --]
+[#function getComponentType component]
+    [#if ! (component?is_hash && component.Id?has_content) ]
+        [@precondition function="getComponentType" context=component /]
+        [#return "???"]
+    [/#if]
+    [#if component.Type?has_content]
+        [#return component.Type]
+    [/#if]
+    [#local idParts = component.Id?split("-")]
+    [#if idParts[1]?has_content]
+        [#return idParts[1]?lower_case]
+    [#else]
+        [#list component?keys as key]
+            [#switch key?lower_case]
+                [#case "id"]
+                [#case "name"]
+                [#case "title"]
+                [#case "description"]
+                [#case "deploymentunits"]
+                [#case "multiaz"]
+                    [#break]
+                [#-- Backwards Compatability for Component renaming --]
+                [#case LB_LEGACY_COMPONENT_TYPE ]
+                    [#return LB_COMPONENT_TYPE]
+                    [#break]
+                [#case ES_LEGACY_COMPONENT_TYPE]
+                    [#return ES_COMPONENT_TYPE]
+                    [#break]
+                [#default]
+                    [#return key?lower_case]
+                    [#break]
+            [/#switch]
+        [/#list]
+    [/#if]
+[/#function]
+
+[#-- Get the type object for a component --]
+[#function getComponentTypeObject component]
+    [#local type = getComponentType(component) ]
+    [#list component as key,value]
+        [#if key?lower_case == type]
+            [#return value]
+        [#-- Backwards Compatability for Component renaming --]
+        [#else]
+            [#switch key?lower_case]
+                [#case LB_LEGACY_COMPONENT_TYPE]
+                [#case ES_LEGACY_COMPONENT_TYPE]
+                    [#return value]
+                    [#break]
+            [/#switch]
+       [/#if]
+    [/#list]
+    [#return {} ]
+[/#function]
+
+[#-- Get a component within a tier --]
+[#function getComponent tierId componentId type=""]
+    [#list ((getTier(tierId).Components)!{})?values as component]
+        [#if
+            component?is_hash &&
+            (
+                (component.Id == componentId) ||
+                (
+                  type?has_content &&
+                  (getComponentId(component) == componentId) &&
+                  (getComponentType(component) == type)
+                )
+            ) ]
+            [#return
+                component +
+                {
+                    "Type" : getComponentType(component),
+                    "Tier" : tierId
+                }]
+        [/#if]
+    [/#list]
+    [#return {} ]
+[/#function]
