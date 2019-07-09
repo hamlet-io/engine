@@ -22,8 +22,6 @@
 [#assign segmentQualifiers = [] ]
 
 [#-- Standard inputs --]
-[#assign blueprintObject = blueprint?eval]
-
 [#assign settingsObject = settings?eval ]
 
 [#assign stackOutputsList =
@@ -33,7 +31,8 @@
     definitions?has_content?then(definitions?eval, {}) ]
 
 [#-- Reference data --]
-[#assign regions = blueprintObject.Regions]
+[#assign blueprintObject = mergeObjects(getMasterData(AWS_PROVIDER), blueprint?eval) ]
+[#assign regions = blueprintObject.Regions ]
 [#assign environments = blueprintObject.Environments]
 [#assign categories = blueprintObject.Categories]
 [#assign storage = blueprintObject.Storage]
@@ -56,17 +55,14 @@
 [#if region?has_content]
     [#assign regionId = region]
     [#assign regionObject = regions[regionId] ]
-    [#assign regionName = regionObject.Name]
 [/#if]
 [#if accountRegion?has_content]
     [#assign accountRegionId = accountRegion]
     [#assign accountRegionObject = regions[accountRegionId] ]
-    [#assign accountRegionName = accountRegionObject.Name]
 [/#if]
 [#if productRegion?has_content]
     [#assign productRegionId = productRegion]
     [#assign productRegionObject = regions[productRegionId] ]
-    [#assign productRegionName = productRegionObject.Name]
 [/#if]
 
 [#-- Tenants --]

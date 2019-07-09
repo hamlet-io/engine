@@ -181,7 +181,6 @@ if [[ (("${GENERATION_USE_CACHE}" != "true") &&
 
     debug "BLUEPRINT=${blueprint_array[*]}"
     if [[ ! $(arrayIsEmpty "blueprint_array") ]]; then
-        addToArrayHead "blueprint_array" "${GENERATION_MASTER_DATA_DIR:-${GENERATION_DIR}/data}"/masterData.json
         ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${blueprint_array[@]}"
     else
         echo "{}" > "${COMPOSITE_BLUEPRINT}"
