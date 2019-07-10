@@ -1,9 +1,6 @@
 [#ftl]
 [#include "/bootstrap.ftl" ]
 
-[#assign exceptionResources = []]
-[#assign debugResources = []]
-
 [#function getComponentBuildBlueprint ]
   [#local result={} ]
 
@@ -30,27 +27,29 @@
                         } +
                         attributeIfContent("CostCentre", accountObject.CostCentre!""),
                     "Occurrence" : occurrence
-                    } +
-                    valueIfContent(
-                        {
-                            "Debug" : debugResources
-                        },
-                        debugResources
-                    ) +
-                    valueIfContent(
-                        {
-                            "Exceptions" : exceptionResources
-                        },
-                        exceptionResources
-                    )
+                    }
                 ]
             [/#list]
         [/#if]
     [/#list]
   [/#list]
-  [#return result ]
+  [#return result]
 [/#function]
 
-[#if deploymentSubsetRequired("buildblueprint", true)]
-    [@toJSON getComponentBuildBlueprint() /]
+[#-- Redefine the core processing macro --]
+[#macro processComponents level]
+  [#if (deploymentUnitSubset!"") == "config" ]
+    [@addToDefaultJsonOutput content=getComponentBuildBlueprint() /]
+  [/#if]
+[/#macro]
+
+[#if (deploymentUnitSubset!"") == "genplan" ]
+  [@initialiseDefaultScriptOutput format=outputFormat /]
+  [@addDefaultGenerationPlan subsets="config" /]
 [/#if]
+
+[@generateOutput
+  deploymentFramework=deploymentFramework
+  type=outputType
+  format=outputFormat
+/]

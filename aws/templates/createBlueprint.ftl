@@ -36,7 +36,7 @@
       }
     ]
   }]
-  [#return result ]
+[#return result]
 [/#function]
 
 [#function getProductBlueprint]
