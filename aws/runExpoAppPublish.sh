@@ -11,6 +11,7 @@ DEFAULT_BINARY_EXPIRATION="1210000"
 DEFAULT_RUN_SETUP="false"
 DEFAULT_FORCE_BINARY_BUILD="false"
 DEFAULT_QR_BUILD_FORMATS="ios,android"
+DEFAULT_BINARY_BUILD_PROCESS="turtle"
 
 tmpdir="$(getTempDir "cote_inf_XXX")"
 
@@ -129,6 +130,7 @@ function options() {
     BINARY_EXPIRATION="${BINARY_EXPIRATION:-$DEFAULT_BINARY_EXPIRATION}"
     FORCE_BINARY_BUILD="${FORCE_BINARY_BUILD:-$DEFAULT_FORCE_BINARY_BUILD}"
     QR_BUILD_FORMATS="${QR_BUILD_FORMATS:-$DEFAULT_QR_BUILD_FORMATS}"
+    BINARY_BUILD_PROCESS="${BINARY_BUILD_PROCESS:-$DEFAULT_BINARY_BUILD_PROCESS}"
 }
 
 
@@ -243,7 +245,7 @@ function main() {
 
   # Update the app.json with build context information - Also ensure we always have a unique IOS build number
   # filter out the credentials used for the build process
-  jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.extra.build_reference=env.BUILD_REFERENCE | .expo.ios.buildNumber=env.BUILD_NUMBER | .expo.extra= .expo.extra + $envConfig[]' <  "./app.json" > "${tmpdir}/environment-app.json"  
+  jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.releaseChannel=env.RELEASE_CHANNEL| .expo.extra.build_reference=env.BUILD_REFERENCE | .expo.ios.buildNumber=env.BUILD_NUMBER | .expo.extra= .expo.extra + $envConfig[]' <  "./app.json" > "${tmpdir}/environment-app.json"  
   mv "${tmpdir}/environment-app.json" "./app.json"
 
   ## Optional app.json overrides 
@@ -292,10 +294,10 @@ function main() {
             ANDROID_KEYSTORE_ALIAS="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.ANDROID_KEYSTORE_ALIAS' < "${BUILD_BLUEPRINT}" )"
 
             ANDROID_KEYSTORE_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.ANDROID_KEYSTORE_PASSWORD' < "${BUILD_BLUEPRINT}" )"
-            ANDROID_KEYSTORE_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${ANDROID_KEYSTORE_PASSWORD#"base64:"}")"
+            export ANDROID_KEYSTORE_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${ANDROID_KEYSTORE_PASSWORD#"base64:"}")"
             
             ANDROID_KEY_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.ANDROID_KEY_PASSWORD' < "${BUILD_BLUEPRINT}" )"
-            ANDROID_KEY_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${ANDROID_KEY_PASSWORD#"base64:"}")"
+            export ANDROID_KEY_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${ANDROID_KEY_PASSWORD#"base64:"}")"
 
             ANDROID_KEYSTORE_FILE="${OPS_PATH}/android_keystore.jks"
 
@@ -303,13 +305,13 @@ function main() {
             ;;
         "ios")
             BINARY_FILE_EXTENSION="ipa"
-            IOS_DIST_APPLE_ID="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.IOS_DIST_APPLE_ID' < "${BUILD_BLUEPRINT}" )"
+            export IOS_DIST_APPLE_ID="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.IOS_DIST_APPLE_ID' < "${BUILD_BLUEPRINT}" )"
 
             IOS_DIST_P12_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.IOS_DIST_P12_PASSWORD' < "${BUILD_BLUEPRINT}" )"
             export EXPO_IOS_DIST_P12_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${IOS_DIST_P12_PASSWORD#"base64:"}")"
             
-            IOS_DIST_PROVISIONING_PROFILE="${OPS_PATH}/ios_profile.mobileprovision"
-            IOS_DIST_P12_FILE="${OPS_PATH}/ios_distribution.p12"
+            export IOS_DIST_PROVISIONING_PROFILE="${OPS_PATH}/ios_profile.mobileprovision"
+            export IOS_DIST_P12_FILE="${OPS_PATH}/ios_distribution.p12"
 
             TURTLE_EXTRA_BUILD_ARGS="${TURTLE_EXTRA_BUILD_ARGS} --team-id ${IOS_DIST_APPLE_ID} --dist-p12-path ${IOS_DIST_P12_FILE} --provisioning-profile-path ${IOS_DIST_PROVISIONING_PROFILE}"
             ;;
@@ -321,22 +323,45 @@ function main() {
       if [[ "${BUILD_BINARY}" == "true" ]]; then 
 
         info "Building App Binary for ${build_format}"
+
         EXPO_BINARY_FILE_NAME="${BINARY_FILE_PREFIX}-${EXPO_APP_VERSION}-${BUILD_NUMBER}.${BINARY_FILE_EXTENSION}"
         EXPO_BINARY_FILE_PATH="${BINARY_PATH}/${EXPO_BINARY_FILE_NAME}"
 
-        # Setup Turtle
-        turtle setup:"${build_format}" --sdk-version "${EXPO_SDK_VERSION}" || return $?
+        case "${BINARY_BUILD_PROCESS}" in
+            "turtle")
+                echo "Using turtle to build the binary image"
 
-        # Build using turtle
-        turtle build:"${build_format}" --public-url "${PUBLIC_URL}/${build_format}-index.json" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${SRC_PATH}" || return $?
+                # Setup Turtle
+                turtle setup:"${build_format}" --sdk-version "${EXPO_SDK_VERSION}" || return $?
 
-        if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
+                # Build using turtle
+                turtle build:"${build_format}" --public-url "${PUBLIC_URL}/${build_format}-index.json" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${SRC_PATH}" || return $?
 
-            aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${BINARY_FILE_PREFIX}*" "${BINARY_PATH}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
-            EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" )"
-            DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<p><strong>${build_format}</strong> <a href="${EXPO_BINARY_PRESIGNED_URL}">${build_format} - ${EXPO_APP_VERSION} - ${BUILD_NUMBER}</a>" 
+                if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
+                    aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${BINARY_FILE_PREFIX}*" "${BINARY_PATH}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
+                    EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" )"
+                    DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<p><strong>${build_format}</strong> <a href="${EXPO_BINARY_PRESIGNED_URL}">${build_format} - ${EXPO_APP_VERSION} - ${BUILD_NUMBER}</a>" 
+                fi
+                ;;
 
-        fi
+            "fastlane")
+                echo "Using fastlane to build the binary image"
+
+                FASTLANE_KEYCHAIN_PATH="${OPS_PATH}/${BUILD_NUMBER}.keychain"
+                FASTLANE_KEYCHAIN_NAME="${BUILD_NUMBER}"
+
+                fastlane run create_keychain name:"${FASTLANE_KEYCHAIN_NAME}" path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" 
+                fastlane run install_provisioning_profile path:"${IOS_DIST_PROVISIONING_PROFILE}"
+                fastlane run import_certificate certificate_path:"${IOS_DIST_P12_FILE}" certificate_password:"${EXPO_IOS_DIST_P12_PASSWORD}" keychain_name:"${FASTLANE_KEYCHAIN_NAME}" keychain_path:"$(pwd)" log_output:"true" 
+                
+                fastlane run cocoapods podfile:"./CustomPodfile"
+                fastlane run build_ios_app output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}"
+                
+                fastlane run clean_build_artifacts
+                fastlane run delete_keychain name:"${FASTLANE_KEYCHAIN_NAME}"
+                
+                ;;
+        
       else 
         info "Skipping build of app binary for ${build_format}"
       fi
