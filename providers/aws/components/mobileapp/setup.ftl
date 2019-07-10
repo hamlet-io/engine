@@ -17,7 +17,7 @@
 
     [#-- Baseline component lookup --]
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
-    [#local dataBucket getExistingReference(baselineComponentIds["AppData"])]
+    [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
