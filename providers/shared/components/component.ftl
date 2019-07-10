@@ -271,7 +271,7 @@
         {
             "Names" : "Severity",
             "Type" : STRING_TYPE,
-            "Values" : [ "debug", "info", "warn", "error", "fatal"]
+            "Values" : [ "debug", "info", "warn", "error", "fatal"],
             "Default" : "info"
         },
         {
