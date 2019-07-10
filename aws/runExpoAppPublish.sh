@@ -361,7 +361,7 @@ function main() {
                 fastlane run delete_keychain name:"${FASTLANE_KEYCHAIN_NAME}"
                 
                 ;;
-        
+        esac
       else 
         info "Skipping build of app binary for ${build_format}"
       fi
