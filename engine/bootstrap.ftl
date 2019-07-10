@@ -3,12 +3,17 @@
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 
-[#-- Provider handling --]
+[#-- Component handling --]
 [#include "component.ftl" ]
+[#include "setting.ftl" ]
+[#include "occurrence.ftl" ]
+[#include "link.ftl" ]
+
+[#-- Provider handling --]
 [#include "provider.ftl" ]
 
 [#-- Output handling --]
-[#include "output.ftl"]
+[#include "output.ftl" ]
 
 [#-- Set the context for templates processing --]
 [#include "setContext.ftl" ]
@@ -32,4 +37,3 @@
         /]
     [/#if]
 [/#if]
-
