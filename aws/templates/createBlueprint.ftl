@@ -1,9 +1,6 @@
 [#ftl]
 [#include "/bootstrap.ftl" ]
 
-[#assign allDeploymentUnits = true]
-[#assign deploymentUnit = ""]
-
 [#function getCleanedAttributes attributes ]
   [#local result={} ]
   [#list attributes as key, value]
@@ -39,7 +36,7 @@
       }
     ]
   }]
-  [#return result ]
+[#return result]
 [/#function]
 
 [#function getProductBlueprint]
@@ -124,9 +121,23 @@
   [#return  result ]
 [/#function]
 
-[#if deploymentSubsetRequired("blueprint", true)]
-  [@toJSON getTenantBlueprint() /]
+[#-- Redefine the core processing macro --]
+[#macro processComponents level]
+  [#if (deploymentUnitSubset!"") == "config" ]
+    [@addToDefaultJsonOutput content=getTenantBlueprint() /]
+  [/#if]
+[/#macro]
+
+[#if (deploymentUnitSubset!"") == "genplan" ]
+  [@initialiseDefaultScriptOutput format=outputFormat /]
+  [@addDefaultGenerationPlan subsets="config" /]
+[#else]
+  [#assign allDeploymentUnits = true]
+  [#assign deploymentUnit = ""]
 [/#if]
 
-
-
+[@generateOutput
+  deploymentFramework=deploymentFramework
+  type=outputType
+  format=outputFormat
+/]

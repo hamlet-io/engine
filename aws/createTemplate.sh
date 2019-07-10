@@ -238,9 +238,9 @@ function process_template_pass() {
         pass_region_prefix["${p}"]=""
       done
 
-      pass_level_prefix["template"]="blueprint"
-      pass_description["template"]="blueprint"
-      pass_suffix["template"]=".json"
+      pass_level_prefix["config"]="blueprint"
+      pass_description["config"]="blueprint"
+      pass_suffix["config"]=".json"
       ;;
 
     buildblueprint)
@@ -252,9 +252,9 @@ function process_template_pass() {
         pass_region_prefix["${p}"]=""
       done
 
-      pass_level_prefix["template"]="build_blueprint-"
-      pass_description["template"]="buildblueprint"
-      pass_suffix["template"]=".json"
+      pass_level_prefix["config"]="build_blueprint-"
+      pass_description["config"]="buildblueprint"
+      pass_suffix["config"]=".json"
       ;;
 
     account)
