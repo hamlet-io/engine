@@ -957,6 +957,19 @@
         "_apache-5xx": {
           "Pattern": "[ip, id, user, timestamp, request, status_code=5*, size]"
         }
+      },
+      "AlertRules" : {
+        "All" : {
+          "Severity" : "info",
+          "Destinations" : {
+            "Links" : {}
+          }
+        }
+      },
+      "AlertProfiles" : {
+        "default" : {
+          "Rules" : [ "All" ]
+        }
       }
     }
 /]
