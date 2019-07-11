@@ -186,7 +186,7 @@
             [/#if]
             [#return true]
         [#else]
-            [@fatal
+            [@debug
                 message="Unable to invoke any of the macro options"
                 context=macroOptions
             /]
