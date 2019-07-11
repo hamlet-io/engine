@@ -41,9 +41,7 @@
         attributes +
         defaultEnvironment(occurrence, {})
     ]
-
-    [#local buildConfig += attributes ]
-
+    
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local contextLinks = getLinkTargets(occurrence) ]
