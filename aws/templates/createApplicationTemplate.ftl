@@ -30,5 +30,5 @@
     deploymentFramework=deploymentFramework
     type=outputType
     format=outputFormat
-    level="segment"
+    level="application"
 /]
