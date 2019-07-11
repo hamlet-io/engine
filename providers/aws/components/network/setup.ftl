@@ -42,7 +42,7 @@
 
         [#if deploymentSubsetRequired("lg", true) &&
                 isPartOfCurrentDeploymentUnit(flowLogsAllLogGroupId)]
-            [@createVPCLogGroup
+            [@createLogGroup
                 id=flowLogsAllLogGroupId
                 name=flowLogsAllLogGroupName
                 retention=((segmentObject.Operations.FlowLogs.Expiration) !

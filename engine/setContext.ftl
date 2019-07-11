@@ -510,7 +510,5 @@
 
 [#-- Level utility support --]
 
-[#include "commonSegment.ftl"]
-[#include "commonSolution.ftl"]
 [#include "commonApplication.ftl"]
 
