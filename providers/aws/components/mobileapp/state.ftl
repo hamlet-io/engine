@@ -13,18 +13,17 @@
     [#local otaPrefix = ""]
     [#local otaURL = ""]
 
-    [#local releaseChannel = getOccurrenceSettingValue(occurrence, "RELEASE_CHANNEL", true)?has_content?then(
-            getOccurrenceSettingValue(occurrence, "RELEASE_CHANNEL", true),
-            environmentName
-    )]
+    [#local releaseChannel = 
+        getOccurrenceSettingValue(occurrence, "RELEASE_CHANNEL", true)?has_content?then(
+                getOccurrenceSettingValue(occurrence, "RELEASE_CHANNEL", true),
+                environmentName
+            )
+    ]
+    [#-- Baseline component lookup --]
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData" ] )]
 
-    [#local codeSrcBucket = getRegistryEndPoint("scripts", occurrence)]
-    [#local codeSrcPrefix = formatRelativePath(
-                                getRegistryPrefix("scripts", occurrence),
-                                    productName,
-                                    getOccurrenceBuildUnit(occurrence),
-                                    getOccurrenceBuildReference(occurrence))]
-
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+    
     [#local configFilePath = formatRelativePath(
                                 getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
                                 "config" )]
@@ -71,16 +70,15 @@
             },
             "Attributes" : {
                 "ENGINE" : solution.Engine,
-                "APP_BUILD_FORMATS" : solution.BuildFormats?join(","),
                 "RELEASE_CHANNEL" : releaseChannel,
-                "CODE_SRC_BUCKET" : codeSrcBucket,
-                "CODE_SRC_PREFIX" : codeSrcPrefix,
                 "OTA_ARTEFACT_BUCKET" : otaBucket,
                 "OTA_ARTEFACT_PREFIX" : otaPrefix,
                 "OTA_ARTEFACT_URL" : otaURL,
+                "CONFIG_BUCKET" : operationsBucket,
                 "CONFIG_FILE" : formatRelativePath(
                                     configFilePath,
-                                    configFileName)
+                                    configFileName
+                                )
             }
         }
     ]

@@ -158,29 +158,36 @@ function main() {
       return 255
   fi
 
-  # The source of the prepared code repository zip
-  SRC_BUCKET="$( jq -r '.Occurrence.State.Attributes.CODE_SRC_BUCKET' < "${BUILD_BLUEPRINT}" )"
-  SRC_PREFIX="$( jq -r '.Occurrence.State.Attributes.CODE_SRC_PREFIX' < "${BUILD_BLUEPRINT}" )"
+  # get config file 
+  CONFIG_BUCKET="$( jq -r '.Occurrence.State.Attributes.CONFIG_BUCKET' < "${BUILD_BLUEPRINT}" )"
+  CONFIG_KEY="$( jq -r '.Occurrence.State.Attributes.CONFIG_FILE' < "${BUILD_BLUEPRINT}" )"
+  CONFIG_FILE="${OPS_PATH}/config.json"
+
+  info "Gettting configuration file from s3://${CONFIG_BUCKET}/${CONFIG_KEY}"
+  aws --region "${AWS_REGION}" s3 cp "s3://${CONFIG_BUCKET}/${CONFIG_KEY}" "${CONFIG_FILE}" || return $?
 
   # Operations data - Credentials, config etc.
-  OPSDATA_BUCKET="$( jq -r '.Occurrence.Configuration.Settings.Core.OPSDATA_BUCKET.Value' < "${BUILD_BLUEPRINT}" )"
-  CREDENTIALS_PREFIX="$( jq -r '.Occurrence.Configuration.Settings.Core.CREDENTIALS_PREFIX.Value' < "${BUILD_BLUEPRINT}" )"
-  CONFIG_FILE="$( jq -r '.Occurrence.State.Attributes.CONFIG_FILE' < "${BUILD_BLUEPRINT}" )"
+  OPSDATA_BUCKET="$( jq -r '.BuildConfig.OPSDATA_BUCKET' < "${CONFIG_FILE}" )"
+  CREDENTIALS_PREFIX="$( jq -r '.BuildConfig.CREDENTIALS_PREFIX' < "${CONFIG_FILE}" )"
 
-  APPDATA_BUCKET="$( jq -r '.Occurrence.Configuration.Settings.Core.APPDATA_BUCKET.Value' < "${BUILD_BLUEPRINT}" )"
-  EXPO_APPDATA_PREFIX="$( jq -r '.Occurrence.Configuration.Settings.Core.APPDATA_PREFIX.Value' < "${BUILD_BLUEPRINT}" )"
+  # The source of the prepared code repository zip
+  SRC_BUCKET="$( jq -r '.BuildConfig.CODE_SRC_BUCKET' < "${CONFIG_FILE}" )"
+  SRC_PREFIX="$( jq -r '.BuildConfig.CODE_SRC_PREFIX' < "${CONFIG_FILE}" )"
+
+  APPDATA_BUCKET="$( jq -r '.BuildConfig.APPDATA_BUCKET' < "${CONFIG_FILE}" )"
+  EXPO_APPDATA_PREFIX="$( jq -r '.BuildConfig.APPDATA_PREFIX' < "${CONFIG_FILE}" )"
 
   # Where the public artefacts will be published to
-  PUBLIC_BUCKET="$( jq -r '.Occurrence.State.Attributes.OTA_ARTEFACT_BUCKET' <"${BUILD_BLUEPRINT}" )"
-  PUBLIC_PREFIX="$( jq -r '.Occurrence.State.Attributes.OTA_ARTEFACT_PREFIX' <"${BUILD_BLUEPRINT}" )"
-  PUBLIC_URL="$( jq -r '.Occurrence.State.Attributes.OTA_ARTEFACT_URL' <"${BUILD_BLUEPRINT}" )"
+  PUBLIC_BUCKET="$( jq -r '.BuildConfig.OTA_ARTEFACT_BUCKET' < "${CONFIG_FILE}" )"
+  PUBLIC_PREFIX="$( jq -r '.BuildConfig.OTA_ARTEFACT_PREFIX' < "${CONFIG_FILE}" )"
+  PUBLIC_URL="$( jq -r '.BuildConfig.OTA_ARTEFACT_URL' < "${CONFIG_FILE}" )"
 
-  BUILD_FORMAT_LIST="$( jq -r '.Occurrence.State.Attributes.APP_BUILD_FORMATS' <"${BUILD_BLUEPRINT}" )"
+  BUILD_FORMAT_LIST="$( jq -r '.BuildConfig.APP_BUILD_FORMATS' < "${CONFIG_FILE}" )"
   arrayFromList BUILD_FORMATS "${BUILD_FORMAT_LIST}"
 
-  BUILD_REFERENCE="$( jq -r '.Occurrence.Configuration.Settings.Build.BUILD_REFERENCE.Value' <"${BUILD_BLUEPRINT}" )"
+  BUILD_REFERENCE="$( jq -r '.BuildConfig.BUILD_REFERENCE' <"${CONFIG_FILE}" )"
   BUILD_NUMBER="$(date +"%Y%m%d.1%H%M%S")"
-  RELEASE_CHANNEL="$( jq -r '.Occurrence.State.Attributes.RELEASE_CHANNEL' <"${BUILD_BLUEPRINT}" )"
+  RELEASE_CHANNEL="$( jq -r '.BuildConfig.RELEASE_CHANNEL' <"${CONFIG_FILE}" )"
 
   arrayFromList EXPO_QR_BUILD_FORMATS "${QR_BUILD_FORMATS}"
 
@@ -213,10 +220,6 @@ function main() {
   aws --region "${AWS_REGION}" s3 sync "s3://${OPSDATA_BUCKET}/${CREDENTIALS_PREFIX}" "${OPS_PATH}" || return $?
   find "${OPS_PATH}" -name \*.kms -exec decrypt_kms_file "${AWS_REGION}" "{}" \;
 
-  # get config file 
-  info "Gettting configuration file from s3://${OPSDATA_BUCKET}/${CONFIG_FILE}"
-  aws --region "${AWS_REGION}" s3 cp "s3://${OPSDATA_BUCKET}/${CONFIG_FILE}" "${OPS_PATH}/config.json" || return $?
-
   # get the version of the expo SDK which is required 
   EXPO_SDK_VERSION="$(jq -r '.expo.sdkVersion' < ./app.json)"
   EXPO_APP_VERSION="$(jq -r '.expo.version' < ./app.json)"
@@ -245,19 +248,19 @@ function main() {
 
   # Update the app.json with build context information - Also ensure we always have a unique IOS build number
   # filter out the credentials used for the build process
-  jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.releaseChannel=env.RELEASE_CHANNEL| .expo.extra.build_reference=env.BUILD_REFERENCE | .expo.ios.buildNumber=env.BUILD_NUMBER | .expo.extra= .expo.extra + $envConfig[]' <  "./app.json" > "${tmpdir}/environment-app.json"  
+  jq --slurpfile envConfig "${CONFIG_FILE}" '.expo.releaseChannel=env.RELEASE_CHANNEL| .expo.extra.build_reference=env.BUILD_REFERENCE | .expo.ios.buildNumber=env.BUILD_NUMBER | .expo.extra= .expo.extra + $envConfig.AppConfig[]' <  "./app.json" > "${tmpdir}/environment-app.json"  
   mv "${tmpdir}/environment-app.json" "./app.json"
 
   ## Optional app.json overrides 
-  IOS_DIST_BUNDLE_ID="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.IOS_DIST_BUNDLE_ID' < "${BUILD_BLUEPRINT}" )"
+  IOS_DIST_BUNDLE_ID="$( jq -r '.BuildConfig.IOS_DIST_BUNDLE_ID' < "${CONFIG_FILE}" )"
   if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then 
-    jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.ios.bundleIdentifier=env.IOS_DIST_BUNDLE_ID' <  "./app.json" > "${tmpdir}/ios-bundle-app.json"  
+    jq --slurpfile envConfig "${CONFIG_FILE}" '.expo.ios.bundleIdentifier=env.IOS_DIST_BUNDLE_ID' <  "./app.json" > "${tmpdir}/ios-bundle-app.json"  
     mv "${tmpdir}/ios-bundle-app.json" "./app.json"
   fi
 
-  ANDROID_BUNDLE_ID="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.ANDOIRD_BUNDLE_ID' < "${BUILD_BLUEPRINT}" )"
+  ANDROID_BUNDLE_ID="$( jq -r '.BuildConfig.ANDROIRD_BUNDLE_ID' < "${CONFIG_FILE}" )"
   if [[ "${ANDROID_BUNDLE_ID}" != "null" && -n "${ANDROID_BUNDLE_ID}" ]]; then 
-    jq --slurpfile envConfig "${OPS_PATH}/config.json" '.expo.android.package=env.ANDROID_BUNDLE_ID' <  "./app.json" > "${tmpdir}/android-bundle-app.json"  
+    jq --slurpfile envConfig "${CONFIG_FILE}" '.expo.android.package=env.ANDROID_BUNDLE_ID' <  "./app.json" > "${tmpdir}/android-bundle-app.json"  
     mv "${tmpdir}/android-bundle-app.json" "./app.json"
   fi
 
@@ -291,12 +294,12 @@ function main() {
       case "${build_format}" in
         "android")
             BINARY_FILE_EXTENSION="apk"
-            ANDROID_KEYSTORE_ALIAS="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.ANDROID_KEYSTORE_ALIAS' < "${BUILD_BLUEPRINT}" )"
+            ANDROID_KEYSTORE_ALIAS="$( jq -r '.BuildConfig.ANDROID_KEYSTORE_ALIAS' < "${CONFIG_FILE}" )"
 
-            ANDROID_KEYSTORE_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.ANDROID_KEYSTORE_PASSWORD' < "${BUILD_BLUEPRINT}" )"
+            ANDROID_KEYSTORE_PASSWORD="$( jq -r '.BuildConfig.ANDROID_KEYSTORE_PASSWORD' < "${CONFIG_FILE}" )"
             export ANDROID_KEYSTORE_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${ANDROID_KEYSTORE_PASSWORD#"base64:"}")"
             
-            ANDROID_KEY_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.ANDROID_KEY_PASSWORD' < "${BUILD_BLUEPRINT}" )"
+            ANDROID_KEY_PASSWORD="$( jq -r '.BuildConfig.ANDROID_KEY_PASSWORD' < "${CONFIG_FILE}" )"
             export ANDROID_KEY_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${ANDROID_KEY_PASSWORD#"base64:"}")"
 
             ANDROID_KEYSTORE_FILE="${OPS_PATH}/android_keystore.jks"
@@ -305,9 +308,9 @@ function main() {
             ;;
         "ios")
             BINARY_FILE_EXTENSION="ipa"
-            export IOS_DIST_APPLE_ID="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.IOS_DIST_APPLE_ID' < "${BUILD_BLUEPRINT}" )"
+            export IOS_DIST_APPLE_ID="$( jq -r '.BuildConfig.IOS_DIST_APPLE_ID' < "${CONFIG_FILE}" )"
 
-            IOS_DIST_P12_PASSWORD="$( jq -r '.Occurrence.Configuration.Environment.Sensitive.IOS_DIST_P12_PASSWORD' < "${BUILD_BLUEPRINT}" )"
+            IOS_DIST_P12_PASSWORD="$( jq -r '.BuildConfig.IOS_DIST_P12_PASSWORD' < "${CONFIG_FILE}" )"
             export EXPO_IOS_DIST_P12_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${IOS_DIST_P12_PASSWORD#"base64:"}")"
             
             export IOS_DIST_PROVISIONING_PROFILE="${OPS_PATH}/ios_profile.mobileprovision"
