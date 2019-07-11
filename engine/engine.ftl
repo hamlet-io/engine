@@ -258,63 +258,6 @@ can use it during processing to differentiate object instances.
 --]
 
 
-[#-- Filters
-
-A filter consists of one or more values for each of one or more filter attributes.
-Filter comparison is a core mechanism by which processing of the CMDB is controlled.
-
-When filters need to be compared, a "MatchBehaviour" attribute controls the
-algorithm used. Algorithms are defined in terms of a "contextFilter" and a
-"matchFilter".
-
-The "any" behaviour requires that at least one value of the Any attribute of the
-matchFilter needs to match one value in any of the attributes of the contextFilter.
-
-The "onetoone" behaviour requires that a value of each attribute of the matchFilter
-must match a value of the same named attribute in the contextFilter, or
-the attribute must be absent from the contextFilter.
-
-One way to think of filters is in terms of Venn Diagrams. Each filter
-defines/matches a set of configuration entities and if the intersection of the
-sets is not empty based on the MatchBehaviour, then the filters match.
-
-A similar logic is applied for links, where the link filter needs to define a
-set containing a single, "component" configuration entity.
---]
-
-[#assign FILTER_ANY_MATCH_BEHAVIOUR = "any"]
-[#assign FILTER_ONETOONE_MATCH_BEHAVIOUR = "onetoone"]
-
-[#function filterMatch contextFilter matchFilter matchBehaviour]
-
-    [#switch matchBehaviour]
-        [#case FILTER_ANY_MATCH_BEHAVIOUR]
-            [#if !(matchFilter.Any??)]
-                [#return true]
-            [/#if]
-            [#list contextFilter as key, value]
-                [#if getArrayIntersection(value, matchFilter.Any)?has_content]
-                    [#return true]
-                [/#if]
-            [/#list]
-            [#break]
-
-        [#case FILTER_ONETOONE_MATCH_BEHAVIOUR]
-            [#list matchFilter as key,value]
-                [#if !(contextFilter.key??)]
-                    [#continue]
-                [/#if]
-                [#if !getArrayIntersection(contextFilter.key,value)?has_content]
-                    [#return false]
-                [/#if]
-            [/#list]
-            [#return true]
-            [#break]
-    [/#switch]
-    [#return false]
-[/#function]
-
-
 [#-- Configuration items
 
 The CMDB is represented in memory as a hierarchy of "contexts". To create this
@@ -400,7 +343,7 @@ A context thus logically contains
 5) the (possibly empty) list of subcontexts
 --]
 
-[#function createContext currentContext stream]
+[#function createContextFromStream currentContext stream]
     [#local context =
         mergeObjects(
             {
@@ -716,31 +659,3 @@ vertical variation, while qualifiers provide horizontal variation.
 [#function overrideContext context]
     [#return inheritFromParentContext({}, context)]
 [/#function]
-
-[#-- Object Hierarchies
-
-Configuration objects are organised into hierarchies.
-
-Organisation - Root -> Aggregators -> Integrators -> Tenants -> Work Areas
-Account      - Pods -> Accounts
-Product      - Products -> Environments -> Segments
-Solution     - Solutions -> Tiers -> Components -> SubComponents
-
-The hierarchies are created through composition via type labels. For
-example, an Integrator can have multiple tenants, which might be represented
-in the CMDB as
-
-{
-  "Tenants" : ["tenanta", "tenantb"]
-}
-
-Linkages between hierarchies are created in the same way. So, for example,
-the products and pods of a tenant might be represented as
-
-{
-  "Products" : ["product1", "product2"],
-  "Pods" : ["dns", "nonproduction", "production"]
-}
---]
-
-

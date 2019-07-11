@@ -84,6 +84,8 @@
     [#local unauthenticatedRole = ""]
     [#local ruleAssignments = {} ]
 
+    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+
     [#list occurrence.Occurrences![] as subOccurrence]
 
         [#local subCore = subOccurrence.Core ]
@@ -105,7 +107,7 @@
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
                 "Links" : contextLinks,
-                "Policy" : standardPolicies(subOccurrence),
+                "Policy" : standardPolicies(subOccurrence, baselineComponentIds),
                 "ManagedPolicy" : [],
                 "Assignment" : subCore.SubComponent.Id
             }
