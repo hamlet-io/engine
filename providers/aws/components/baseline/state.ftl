@@ -52,7 +52,9 @@
 
     [#switch core.SubComponent.Id ]
         [#case "appdata" ]
+            [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, core.SubComponent.Id ) ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "data") ]
+            
             [#if getExistingReference(formatS3DataId())?has_content ]
                 [#local bucketId = formatS3DataId() ]
                 [#local legacyS3 = true ]
@@ -60,7 +62,9 @@
             [#break]
 
         [#case "opsdata" ]
+            [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, core.SubComponent.Id ) ]
             [#local bucketName = formatSegmentBucketName(segmentSeed, "ops") ]
+            
             [#if getExistingReference(formatS3OperationsId())?has_content ]
                 [#local bucketId = formatS3OperationsId() ]
                 [#local legacyS3 = true]

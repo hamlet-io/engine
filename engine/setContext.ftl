@@ -249,18 +249,6 @@
 
     [#assign consoleOnly = (segmentObject.ConsoleOnly)!false]
 
-    [#-- 
-    [#assign operationsBucket =
-        firstContent(
-            getExistingReference(formatS3OperationsId()),
-            formatSegmentBucketName(segmentSeed, "ops"))]
-
-    [#assign dataBucket =
-        firstContent(
-            getExistingReference(formatS3DataId()),
-            formatSegmentBucketName(segmentSeed, "data"))]
-    --]
-
     [#assign operationsExpiration =
         (segmentObject.Operations.Expiration)!
         (environmentObject.Operations.Expiration)!""]
