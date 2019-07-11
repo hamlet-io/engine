@@ -15,15 +15,15 @@
 
     [#list baselineProfile as key,value ]
         [#if baselineComponentNames?seq_contains(key)]
-            [#switch key ]
-                [#case "OpsData" ]
-                [#case "AppData" ]
+            [#switch key?lower_case ]
+                [#case "opsdata" ]
+                [#case "appdata" ]
                     [#local subComponentType = "DataBucket" ]
                     [#break]
 
-                [#case "Encryption" ]
-                [#case "SSHKey" ]
-                [#case "CDNOriginKey" ]
+                [#case "encryption" ]
+                [#case "sshkey" ]
+                [#case "cdnoriginkey" ]
                     [#local subComponentType = "Key" ]
                     [#break]
 
