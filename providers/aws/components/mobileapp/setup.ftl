@@ -10,15 +10,39 @@
     [#local core = occurrence.Core ]
     [#local solution = occurrence.Configuration.Solution ]
     [#local resources = occurrence.State.Resources ]
-
-    [#local mobileAppId = resources["mobileapp"].Id]
-    [#local configFilePath = resources["mobileapp"].ConfigFilePath ]
-    [#local configFileName = resources["mobileapp"].ConfigFileName ]
+    [#local attributes = occurrence.State.Attributes ]
 
     [#-- Baseline component lookup --]
     [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+
+    [#local mobileAppId = resources["mobileapp"].Id]
+    [#local configFilePath = resources["mobileapp"].ConfigFilePath ]
+    [#local configFileName = resources["mobileapp"].ConfigFileName ]
+
+    [#local codeSrcBucket = getRegistryEndPoint("scripts", occurrence)]
+    [#local codeSrcPrefix = formatRelativePath(
+                                getRegistryPrefix("scripts", occurrence),
+                                    productName,
+                                    getOccurrenceBuildUnit(occurrence),
+                                    getOccurrenceBuildReference(occurrence))]
+
+    [#local buildConfig = 
+        {
+            "RUN_ID"            : runId, 
+            "CODE_SRC_BUCKET"   : codeSrcBucket,
+            "CODE_SRC_PREFIX"   : codeSrcPrefix,
+            "APP_BUILD_FORMATS" : solution.BuildFormats?join(","),
+            "BUILD_REFERENCE"   : getOccurrenceBuildReference(occurrence),
+            "OPSDATA_BUCKET"    : operationsBucket,
+            "APPDATA_BUCKET"    : dataBucket
+        } + 
+        attributes +
+        defaultEnvironment(occurrence, {})
+    ]
+
+    [#local buildConfig += attributes ]
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
@@ -42,10 +66,27 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#local finalAsFileEnvironment = getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket, { "Json" : { "Include" : { "Sensitive" : false }}}) ]
-
+    [#local finalEnvironment = getFinalEnvironment(
+            occurrence, 
+            _context, 
+            operationsBucket, 
+            dataBucket, 
+            { 
+                "Json" : { 
+                    "Include" : { 
+                        "Sensitive" : false 
+                    }
+                }
+            }
+    )]
+    
     [#if deploymentSubsetRequired("config", false)]
-        [@addToDefaultJsonOutput content=finalAsFileEnvironment.Environment /]
+        [@addToDefaultJsonOutput 
+            content={
+                "BuildConfig" : buildConfig,
+                "AppConfig" : finalEnvironment.Environment 
+            }
+        /]
     [/#if]
 
     [#if deploymentSubsetRequired("prologue", false)]
