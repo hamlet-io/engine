@@ -294,7 +294,7 @@
                 "Unit" : "Count"
             } +
             attributeIfContent("Dimensions", dimensions) +
-            attributeIfTrue("OKActions", reportOK, actions) + 
+            attributeIfTrue("OKActions", reportOK, actions) +
             valueIfContent(
                 {
                     "ActionsEnabled" : true,
@@ -363,7 +363,7 @@
 [#function getCWAlertActions occurrence alertProfile alertSeverity ]
     [#local alertActions = [] ]
     [#local profileDetails = blueprintObject.AlertProfiles[alertProfile]!{} ]
-    
+
     [#local alertRules = []]
     [#list profileDetails.Rules!{} as profileRule]
         [#local alertRules += [ blueprintObject.AlertRules[profileRule]!{} ]]
@@ -384,7 +384,7 @@
         [/#if]
     [/#list]
 
-    [#list alertRules as rule ] 
+    [#list alertRules as rule ]
 
         [#list alertSeverityDescriptions as value]
             [#if rule.Severity?lower_case?starts_with(value)]
@@ -400,7 +400,7 @@
 
         [@debug message="Rule" context=rule enabled=true /]
         [#list rule.Destinations.Links?values as link ]
-            
+
             [#if link?is_hash]
                 [#local linkTarget = getLinkTarget(occurrence, link ) ]
 
@@ -412,13 +412,13 @@
 
                 [#local linkTargetCore = linkTarget.Core ]
                 [#local linkTargetAttributes = linkTarget.State.Attributes ]
-                
+
                 [#switch linkTargetCore.Type]
                     [#case TOPIC_COMPONENT_TYPE]
                         [#local alertActions += [ linkTargetAttributes["ARN"] ] ]
                         [#break]
-                    
-                    [#default] 
+
+                    [#default]
                         [@fatal
                             message="Unsupported alert action component"
                             detail="This component type is not supported as a cloudwatch alert destination"

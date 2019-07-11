@@ -219,6 +219,16 @@
     /]
 [/#macro]
 
+[#macro createVPCFlowLog id vpcId roleId logGroupName trafficType]
+    [@createFlowLog
+        id,
+        roleId,
+        logGroupName,
+        vpcId,
+        "VPC",
+        trafficType /]
+[/#macro]
+
 [#macro createVPC
             id
             name

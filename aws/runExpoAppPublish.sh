@@ -158,6 +158,17 @@ function main() {
       return 255
   fi
 
+  # Make sure we are in the build source directory
+  BINARY_PATH="${AUTOMATION_DATA_DIR}/binary"
+  SRC_PATH="${AUTOMATION_DATA_DIR}/src"
+  OPS_PATH="${AUTOMATION_DATA_DIR}/ops"
+  REPORTS_PATH="${AUTOMATION_DATA_DIR}/reports"
+
+  mkdir -p "${BINARY_PATH}"
+  mkdir -p "${SRC_PATH}"
+  mkdir -p "${OPS_PATH}"
+  mkdir -p "${REPORTS_PATH}"
+
   # get config file 
   CONFIG_BUCKET="$( jq -r '.Occurrence.State.Attributes.CONFIG_BUCKET' < "${BUILD_BLUEPRINT}" )"
   CONFIG_KEY="$( jq -r '.Occurrence.State.Attributes.CONFIG_FILE' < "${BUILD_BLUEPRINT}" )"
@@ -192,17 +203,6 @@ function main() {
   arrayFromList EXPO_QR_BUILD_FORMATS "${QR_BUILD_FORMATS}"
 
   BUILD_BINARY="false"
-
-  # Make sure we are in the build source directory
-  BINARY_PATH="${AUTOMATION_DATA_DIR}/binary"
-  SRC_PATH="${AUTOMATION_DATA_DIR}/src"
-  OPS_PATH="${AUTOMATION_DATA_DIR}/ops"
-  REPORTS_PATH="${AUTOMATION_DATA_DIR}/reports"
-
-  mkdir -p "${BINARY_PATH}"
-  mkdir -p "${SRC_PATH}"
-  mkdir -p "${OPS_PATH}"
-  mkdir -p "${REPORTS_PATH}"
 
   TURTLE_EXTRA_BUILD_ARGS="--release-channel ${RELEASE_CHANNEL}"
 
@@ -248,19 +248,19 @@ function main() {
 
   # Update the app.json with build context information - Also ensure we always have a unique IOS build number
   # filter out the credentials used for the build process
-  jq --slurpfile envConfig "${CONFIG_FILE}" '.expo.releaseChannel=env.RELEASE_CHANNEL| .expo.extra.build_reference=env.BUILD_REFERENCE | .expo.ios.buildNumber=env.BUILD_NUMBER | .expo.extra= .expo.extra + $envConfig.AppConfig[]' <  "./app.json" > "${tmpdir}/environment-app.json"  
+  jq --slurpfile envConfig "${CONFIG_FILE}" --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg BUILD_REFERENCE "${BUILD_REFERENCE}" --arg BUILD_NUMBER "${BUILD_NUMBER}" '.expo.releaseChannel=$RELEASE_CHANNEL | .expo.extra.build_reference=$BUILD_REFERENCE | .expo.ios.buildNumber=$BUILD_NUMBER | .expo.extra=.expo.extra + $envConfig[]["AppConfig"]' <  "./app.json" > "${tmpdir}/environment-app.json"  
   mv "${tmpdir}/environment-app.json" "./app.json"
 
   ## Optional app.json overrides 
   IOS_DIST_BUNDLE_ID="$( jq -r '.BuildConfig.IOS_DIST_BUNDLE_ID' < "${CONFIG_FILE}" )"
   if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then 
-    jq --slurpfile envConfig "${CONFIG_FILE}" '.expo.ios.bundleIdentifier=env.IOS_DIST_BUNDLE_ID' <  "./app.json" > "${tmpdir}/ios-bundle-app.json"  
+    jq --arg IOS_DIST_BUNDLE_ID "${IOS_DIST_BUNDLE_ID}" '.expo.ios.bundleIdentifier=$IOS_DIST_BUNDLE_ID' <  "./app.json" > "${tmpdir}/ios-bundle-app.json"  
     mv "${tmpdir}/ios-bundle-app.json" "./app.json"
   fi
 
   ANDROID_BUNDLE_ID="$( jq -r '.BuildConfig.ANDROIRD_BUNDLE_ID' < "${CONFIG_FILE}" )"
   if [[ "${ANDROID_BUNDLE_ID}" != "null" && -n "${ANDROID_BUNDLE_ID}" ]]; then 
-    jq --slurpfile envConfig "${CONFIG_FILE}" '.expo.android.package=env.ANDROID_BUNDLE_ID' <  "./app.json" > "${tmpdir}/android-bundle-app.json"  
+    jq --arg ANDROID_BUNDLE_ID "${ANDROID_BUNDLE_ID}" '.expo.android.package=$ANDROID_BUNDLE_ID' <  "./app.json" > "${tmpdir}/android-bundle-app.json"  
     mv "${tmpdir}/android-bundle-app.json" "./app.json"
   fi
 
