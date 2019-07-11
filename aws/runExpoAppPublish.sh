@@ -338,7 +338,7 @@ function main() {
                 turtle setup:"${build_format}" --sdk-version "${EXPO_SDK_VERSION}" || return $?
 
                 # Build using turtle
-                turtle build:"${build_format}" --public-url "${PUBLIC_URL}/${build_format}-index.json" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${SRC_PATH}" || return $?
+                turtle build:"${build_format}" --public-url "${PUBLIC_URL}/packages/${EXPO_SDK_VERSION}/${build_format}-index.json" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${SRC_PATH}" || return $?
 
                 if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
                     aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${BINARY_FILE_PREFIX}*" "${BINARY_PATH}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
