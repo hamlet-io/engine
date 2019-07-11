@@ -440,7 +440,7 @@ function process_template_pass() {
   case "$(fileExtension "${template_result_file}")" in
     sh)
       # Detect any exceptions during generation
-      grep "\[fatal\]" < "${template_result_file}" > "${template_result_file}-exceptions"
+      grep "\[fatal \]" < "${template_result_file}" > "${template_result_file}-exceptions"
       if [[ -s "${template_result_file}-exceptions" ]]; then
         fatal "Exceptions occurred during script generation. Details follow...\n"
         cat "${template_result_file}-exceptions" >&2

@@ -186,10 +186,9 @@
             [/#if]
             [#return true]
         [#else]
-            [@debug
+            [@fatal
                 message="Unable to invoke any of the macro options"
                 context=macroOptions
-                enabled=false
             /]
         [/#if]
     [/#if]
