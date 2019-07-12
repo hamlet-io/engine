@@ -17,7 +17,8 @@
     [#local apikeyName = resources["apikey"].Name]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local cmkKeyId = baselineComponentIds["Encryption"] ]
     [#local cmkKeyArn = getExistingReference(cmkKeyId, ARN_ATTRIBUTE_TYPE)]
 
@@ -55,7 +56,7 @@
             "Name" : fragment,
             "Instance" : core.Instance.Id,
             "Version" : core.Version.Id,
-            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks, baselineLinks),
             "Environment" : {},
             "Links" : contextLinks,
             "DefaultCoreVariables" : false,

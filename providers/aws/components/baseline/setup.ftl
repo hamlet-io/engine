@@ -51,7 +51,9 @@
     [/#if]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption" ], true, false, false )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption" ], true, false, false )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
+    
     [#local cmkKeyId = baselineComponentIds["Encryption" ]]
 
     [@debug message={ "KeyId" : cmkKeyId } enabled=true /]

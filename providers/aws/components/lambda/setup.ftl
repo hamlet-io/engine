@@ -24,7 +24,9 @@
         [#local fnLgName = resources["lg"].Name ]
 
         [#-- Baseline component lookup --]
-        [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+        [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+        [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
+
         [#local cmkKeyId = baselineComponentIds["Encryption" ]]
         [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
         [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
@@ -55,7 +57,7 @@
                 "Name" : fragment,
                 "Instance" : core.Instance.Id,
                 "Version" : core.Version.Id,
-                "DefaultEnvironment" : defaultEnvironment(fn, contextLinks),
+                "DefaultEnvironment" : defaultEnvironment(fn, contextLinks, baselineLinks),
                 "Environment" : {},
                 "S3Bucket" : getRegistryEndPoint("lambda", occurrence),
                 "S3Key" :
@@ -66,9 +68,11 @@
                         "lambda.zip"
                     ),
                 "Links" : contextLinks,
+                "BaselineLinks" : baselineLinks,
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
                 "DefaultLinkVariables" : true,
+                "DefaultBaselineVariables" : true,
                 "Policy" : standardPolicies(fn, baselineComponentIds),
                 "ManagedPolicy" : [],
                 "CodeHash" : solution.FixedCodeVersion.CodeHash
@@ -152,8 +156,8 @@
             }]
         [/#if]
 
-        [#local finalEnvironment = getFinalEnvironment(fn, _context, operationsBucket, dataBucket, solution.Environment) ]
-        [#local finalAsFileEnvironment = getFinalEnvironment(fn, _context, operationsBucket, dataBucket, solution.Environment + {"AsFile" : false}) ]
+        [#local finalEnvironment = getFinalEnvironment(fn, _context, solution.Environment) ]
+        [#local finalAsFileEnvironment = getFinalEnvironment(fn, _context, solution.Environment + {"AsFile" : false}) ]
         [#assign _context += finalEnvironment ]
 
         [#local roleId = formatDependentRoleId(fnId)]

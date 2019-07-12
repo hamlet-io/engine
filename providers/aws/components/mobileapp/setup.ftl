@@ -13,7 +13,8 @@
     [#local attributes = occurrence.State.Attributes ]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
 
@@ -34,12 +35,10 @@
             "CODE_SRC_BUCKET"   : codeSrcBucket,
             "CODE_SRC_PREFIX"   : codeSrcPrefix,
             "APP_BUILD_FORMATS" : solution.BuildFormats?join(","),
-            "BUILD_REFERENCE"   : getOccurrenceBuildReference(occurrence),
-            "OPSDATA_BUCKET"    : operationsBucket,
-            "APPDATA_BUCKET"    : dataBucket
+            "BUILD_REFERENCE"   : getOccurrenceBuildReference(occurrence)
         } + 
         attributes +
-        defaultEnvironment(occurrence, {})
+        defaultEnvironment(occurrence, {}, baselineLinks)
     ]
     
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
@@ -51,12 +50,14 @@
             "Name" : fragment,
             "Instance" : core.Instance.Id,
             "Version" : core.Version.Id,
-            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks, baselineLinks),
             "Environment" : {},
             "Links" : contextLinks,
+            "BaselineLinks" : baselineLinks,
             "DefaultCoreVariables" : false,
             "DefaultEnvironmentVariables" : true,
-            "DefaultLinkVariables" : false
+            "DefaultLinkVariables" : false,
+            "DefaultBaselineVariables" : true
         }
     ]
 
@@ -66,9 +67,7 @@
 
     [#local finalEnvironment = getFinalEnvironment(
             occurrence, 
-            _context, 
-            operationsBucket, 
-            dataBucket, 
+            _context,
             { 
                 "Json" : { 
                     "Include" : { 
