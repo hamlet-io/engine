@@ -6,12 +6,47 @@
     [#return formatSegmentResourceId(SEED_RESOURCE_TYPE)]
 [/#function]
 
+[#function getBaselineComponentIds links ]
+    [#local ids = {}]
+    [#list links as linkName, linkTarget ]
+        [#local linkTargetCore = linkTarget.Core ]
+        [#local linkTargetSolution = linkTarget.Configuration.Solution ]
+        [#local linkTargetResources = linkTarget.State.Resources ]
 
-[#function getBaselineLinks baselineProfileName baselineComponentNames idsOnly=true activeOnly=true activeRequired=true  ]
+        [#switch linkTargetCore.Type]
+            [#case BASELINE_DATA_COMPONENT_TYPE ]
+                [#local ids += { linkName, linkTargetResources["bucket"].Id }]
+                [#break]
+
+            [#case BASELINE_KEY_COMPONENT_TYPE ]
+                [#switch linkTargetSolution.Engine ]
+                    [#case "cmk" ]
+                        [#local ids += { linkName, linkTargetResources["cmk"].Id }]
+                        [#break]
+                    [#case "ssh" ]
+                        [#local ids += { linkName, linkTargetResources["ec2KeyPair"].Id }]
+                        [#break]
+                    [#case "oai"]
+                        [#local id += { linkName, linkTargetResources["originAccessId"].Id }]
+                        [#break]
+                [/#switch]
+                [#break]
+            
+            [#default]
+                [@fatal
+                    message="Unkown baseline subcomponent"
+                    context=key
+                    detail=subComponent
+                /]
+        [/#switch]
+    [/#list]
+    [#return ids ]
+[/#function]
+
+[#function getBaselineLinks baselineProfileName baselineComponentNames activeOnly=true activeRequired=true  ]
     [#local baselineProfile = baselineProfiles[baselineProfileName] ]
 
     [#local baselineLinkTargets = {} ]
-    [#local baselineComponentIds = {} ]
 
     [#list baselineProfile as key,value ]
         [#if baselineComponentNames?seq_contains(key)]
@@ -45,31 +80,14 @@
                 }
             ]
             [#local baselineLinkTarget = getLinkTarget( {}, baselineLink, activeOnly, activeRequired )]
-            [#local baselineComponentId = (baselineLinkTarget.State.Attributes["ID"])!"" ]
 
-            [#if ! baselineComponentId?has_content ]
-                [@fatal
-                    message="Baseline component not found or not deployed"
-                    detail={
-                        key: value
-                    }
-                /]
-            [/#if]
-
-            [#local baselineComponentIds += {
-                key : baselineComponentId
-            }]
             [#local baselineLinkTargets += {
                     key : baselineLinkTarget
             }]
         [/#if]
     [/#list]
 
-    [#if idsOnly ]
-        [#return baselineComponentIds ]
-    [#else]
-        [#return baselineLinkTargets ]
-    [/#if]
+    [#return baselineLinkTargets ]
 [/#function]
 
 [@addComponent

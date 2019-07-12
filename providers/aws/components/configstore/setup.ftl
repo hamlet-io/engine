@@ -16,7 +16,8 @@
     [#local tableSortKey = parentResources["table"].SortKey!"" ]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
 
@@ -91,10 +92,12 @@
                 "Version" : parentCore.Version.Id,
                 "Environment" : {},
                 "Links" : contextLinks,
-                "DefaultEnvironment" : defaultEnvironment(subOccurrence, contextLinks),
+                "BaselineLinks" : baselineLinks,
+                "DefaultEnvironment" : defaultEnvironment(subOccurrence, contextLinks, baselineLinks),
                 "DefaultCoreVariables" : false,
                 "DefaultEnvironmentVariables" : false,
                 "DefaultLinkVariables" : true,
+                "DefaultBaselineVariables" : false,
                 "Branch" : formatName(itemPrimaryKey + itemSecondaryKey)
             }
         ]
@@ -102,7 +105,7 @@
         [#-- Add in fragment specifics including override of defaults --]
         [#include fragmentList?ensure_starts_with("/")]
 
-        [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context, operationsBucket, dataBucket ) ]
+        [#local finalEnvironment = getFinalEnvironment(subOccurrence, _context ) ]
         [#assign _context += finalEnvironment ]
 
         [#assign _context +=

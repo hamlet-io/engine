@@ -84,7 +84,8 @@
     [#local unauthenticatedRole = ""]
     [#local ruleAssignments = {} ]
 
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#list occurrence.Occurrences![] as subOccurrence]
 

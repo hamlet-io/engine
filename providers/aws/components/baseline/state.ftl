@@ -89,7 +89,7 @@
                 }
             },
             "Attributes" : {
-                "ID" : bucketId
+                "BUCKET" : getExistingReference(bucketId)
             },
             "Roles" : {
                 "Inbound" : {},
@@ -107,9 +107,6 @@
     [#local parentState = parent.State ]
 
     [#local resources = {}]
-    [#local attributes = {
-                "ID" : "COTFatal: Id missing for subcomponent"
-    }]
 
     [#switch solution.Engine ]
         [#case "cmk"]
@@ -146,7 +143,6 @@
                     }
                 }
             ]
-            [#local attributes = { "ID" : cmkOutputId }]
 
             [#break]
 
@@ -179,7 +175,6 @@
                 }
             ]
 
-            [#local attributes = { "ID" : keyPairId } ]
             [#break]
         [#case "oai"]
 
@@ -195,12 +190,6 @@
                     }
                 }
             ]
-            [#local oaiIdAttribute = getExistingReference(OAIId, ALLOCATION_ATTRIBUTE_TYPE)?has_content?then(
-                                                getExistingReference(OAIId,ALLOCATION_ATTRIBUTE_TYPE),
-                                                OAIId
-            )]
-            [#local attributes += { "ID" : oaiIdAttribute } ]
-
             [#break]
         [#default]
             [@fatal
@@ -213,7 +202,7 @@
     [#assign componentState =
         {
             "Resources" : resources,
-            "Attributes" : attributes,
+            "Attributes" : {},
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}

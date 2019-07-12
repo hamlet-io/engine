@@ -33,7 +33,8 @@
                                                 swaggerFileName)]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
 
@@ -44,10 +45,12 @@
             "Name" : fragment,
             "Instance" : core.Instance.Id,
             "Version" : core.Version.Id,
-            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks, baselineLinks),
             "Environment" : {},
             "Links" : contextLinks,
+            "BaselineLinks" : baselineLinks,
             "DefaultCoreVariables" : false,
+            "DefaultBaselineVariables" : false,
             "DefaultEnvironmentVariables" : false,
             "DefaultLinkVariables" : false,
             "Policy" : []
@@ -60,7 +63,7 @@
         [#include fragmentList?ensure_starts_with("/")]
     [/#if]
 
-    [#local stageVariables += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket).Environment ]
+    [#local stageVariables += getFinalEnvironment(occurrence, _context ).Environment ]
 
     [#local cognitoPools = {} ]
 

@@ -16,7 +16,8 @@
 
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption"] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption"] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local cmkKeyId = baselineComponentIds["Encryption" ]]
 

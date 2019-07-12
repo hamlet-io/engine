@@ -91,7 +91,7 @@
     [#return (_context.Links[link].State.Resources[alias].Id)!"" ]
 [/#function]
 
-[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false]
+[#function addLinkVariablesToContext context name link attributes rawName=false ignoreIfNotDefined=false requireLinkAttributes=true ]
     [#local result = context ]
     [#local linkAttributes = (context.Links[link].State.Attributes)!{} ]
     [#local attributeList = valueIfContent(asArray(attributes), attributes, linkAttributes?keys) ]
@@ -104,10 +104,12 @@
                     (linkAttributes[attribute?upper_case])!"") ]
         [/#list]
     [#else]
-        [#if ignoreIfNotDefined]
-            [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
-        [#else]
-            [#local result = addVariableToContext(result, name, "COTFatal: No attributes found for link " + link) ]
+        [#if requireLinkAttributes ]
+            [#if ignoreIfNotDefined]
+                [#local result = addVariableToContext(result, name, "Ignoring link " + link) ]
+            [#else]
+                [#local result = addVariableToContext(result, name, "COTFatal: No attributes found for link " + link) ]
+            [/#if]
         [/#if]
     [/#if]
     [#return result]
@@ -118,6 +120,16 @@
     [#list links as name,value]
         [#if (value.Direction != "inbound") || includeInbound]
             [#local result = addLinkVariablesToContext(result, name, name, [], false) ]
+        [/#if]
+    [/#list]
+    [#return result.Environment]
+[/#function]
+
+[#function getDefaultBaselineVariables links ]
+    [#local result = {"Links" : links, "Environment": {} }]
+    [#list links as name,value]
+        [#if (value.Direction != "inbound") || includeInbound]
+            [#local result = addLinkVariablesToContext(result, name, name, [], false, false, false) ]
         [/#if]
     [/#list]
     [#return result.Environment]
@@ -137,6 +149,10 @@
 
 [#macro DefaultLinkVariables enabled=true ]
     [#assign _context += { "DefaultLinkVariables" : enabled } ]
+[/#macro]
+
+[#macro DefaultBaselineVariables enabled=true ]
+    [#assign _context += { "DefaultBaselineVariables" : enabled } ]
 [/#macro]
 
 [#macro DefaultCoreVariables enabled=true ]
@@ -374,12 +390,13 @@
 
 [#assign ECS_DEFAULT_MEMORY_LIMIT_MULTIPLIER=1.5 ]
 
-[#function defaultEnvironment occurrence links]
+[#function defaultEnvironment occurrence links baselineLinks]
     [#return
         occurrence.Configuration.Environment.General +
         occurrence.Configuration.Environment.Build +
         occurrence.Configuration.Environment.Sensitive +
-        getDefaultLinkVariables(links, true)
+        getDefaultLinkVariables(links, true) + 
+        getDefaultBaselineVariables(baselineLinks)
     ]
 [/#function]
 
@@ -410,22 +427,14 @@
     ]
 [/#function]
 
-[#function getFinalEnvironment occurrence context operationsBucket dataBucket="" environmentSettings={}]
+[#function getFinalEnvironment occurrence context environmentSettings={}]
     [#local asFile = environmentSettings.AsFile!false]
     [#local serialisationConfig = environmentSettings.Json!{}]
 
+    [#local operationsBucket = context.BaselineLinks["OpsData"].State.Attributes["BUCKET"]!"COTFatal: asFile configured but could not find opsBucket"  ]
     [#return
         {
             "Environment" :
-                {
-                    "OPSDATA_BUCKET" : operationsBucket
-                } +
-                valueIfContent(
-                    {
-                        "APPDATA_BUCKET" : dataBucket
-                    },
-                    dataBucket
-                ) + 
                 valueIfTrue(
                     getSettingsAsEnvironment(
                         occurrence.Configuration.Settings.Core,
@@ -455,6 +464,10 @@
                         getDefaultLinkVariables(context.Links),
                         context.DefaultLinkVariables
                     ) +
+                    valueIfTrue(
+                        getDefaultBaselineVariables(context.BaselineLinks),
+                        context.DefaultBaselineVariables
+                    ) +
                     context.Environment
                 )
         } ]
@@ -466,7 +479,9 @@
     [#local solution = task.Configuration.Solution ]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
+
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
 
@@ -663,7 +678,7 @@
                 "Mode" : getContainerMode(container),
                 "LogDriver" : logDriver,
                 "LogOptions" : logOptions,
-                "DefaultEnvironment" : defaultEnvironment(task, contextLinks),
+                "DefaultEnvironment" : defaultEnvironment(task, contextLinks, baselineLinks),
                 "Environment" :
                     {
                         "APP_RUN_MODE" : getContainerMode(container),
@@ -671,8 +686,10 @@
                         "AWS_DEFAULT_REGION" : regionId
                     },
                 "Links" : contextLinks,
+                "BaselineLinks" : baselineLinks,
                 "DefaultCoreVariables" : true,
                 "DefaultEnvironmentVariables" : true,
+                "DefaultBaselineVariables" : true,
                 "DefaultLinkVariables" : true,
                 "Policy" : standardPolicies(task, baselineComponentIds),
                 "Privileged" : container.Privileged,
@@ -737,7 +754,7 @@
         [#assign fragmentId = formatFragmentId(_context)]
         [#include fragmentList]
 
-        [#assign _context += getFinalEnvironment(task, _context, operationsBucket, dataBucket) ]
+        [#assign _context += getFinalEnvironment(task, _context) ]
 
         [#-- validate fargate requirements from container context --]
         [#if solution.Engine == "fargate" ]

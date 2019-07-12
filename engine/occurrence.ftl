@@ -259,13 +259,7 @@
             occurrence.State!{},
             {
                 "ResourceGroups" : groupState,
-                "Attributes" :
-                    contentIfContent(
-                            attributes,
-                            {
-                                "NOATTRIBUTES" : "Attributes not found"
-                            }
-                    )
+                "Attributes" : attributes
             } +
             removeObjectAttributes(legacyState, "Attributes")
         ) ]

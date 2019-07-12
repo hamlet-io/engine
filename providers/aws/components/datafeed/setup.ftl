@@ -33,7 +33,8 @@
     [#local streamProcessors = []]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "AppData", "Encryption"] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "AppData", "Encryption"] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local dataBucketId        = baselineComponentIds["AppData"]]
     [#local dataBucket          = getExistingReference(dataBucketId) ]

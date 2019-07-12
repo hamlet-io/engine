@@ -20,7 +20,8 @@
             )
     ]
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     

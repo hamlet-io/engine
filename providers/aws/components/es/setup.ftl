@@ -20,7 +20,8 @@
     [#local master = processorProfile.Master!{}]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local cmkKeyId = baselineComponentIds["Encryption"] ]
 
     [#local esUpdateCommand = "updateESDomain" ]

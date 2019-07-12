@@ -30,7 +30,8 @@
     [#local bootstrapProfile = getBootstrapProfile(occurrence, "ComputeCluster")]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
 
@@ -121,12 +122,14 @@
             "Name" : fragment,
             "Instance" : core.Instance.Id,
             "Version" : core.Version.Id,
-            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks, baselineLinks),
             "Environment" : {},
             "Links" : contextLinks,
+            "BaselineLinks" : baselineLinks,
             "DefaultCoreVariables" : true,
             "DefaultEnvironmentVariables" : true,
             "DefaultLinkVariables" : true,
+            "DefaultBaselineVariables" : true,
             "Policy" : [],
             "ManagedPolicy" : [],
             "Files" : {},
@@ -138,7 +141,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#local environmentVariables += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket ).Environment ]
+    [#local environmentVariables += getFinalEnvironment(occurrence, _context ).Environment ]
 
     [#local configSets +=
         getInitConfigEnvFacts(environmentVariables, false) +

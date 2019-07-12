@@ -20,7 +20,7 @@
             "Name" : fragment,
             "Instance" : core.Instance.Id,
             "Version" : core.Version.Id,
-            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks, baselineLinks),
             "Environment" : {},
             "Links" : contextLinks,
             "DefaultCoreVariables" : false,
@@ -138,7 +138,8 @@
     [/#if]
 
     [#-- Baseline component lookup --]
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData", "AppData" ] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData", "AppData" ] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]) ]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
@@ -350,7 +351,8 @@
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#local baselineComponentIds = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData"] )]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData"] )]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
 
@@ -361,12 +363,14 @@
             "Name" : fragment,
             "Instance" : core.Instance.Id,
             "Version" : core.Version.Id,
-            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks),
+            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks, baselineLinks),
             "Environment" : {},
             "Links" : contextLinks,
+            "BaselineLinks" : baselineLinks,
             "DefaultCoreVariables" : false,
             "DefaultEnvironmentVariables" : false,
-            "DefaultLinkVariables" : false
+            "DefaultLinkVariables" : false,
+            "DefaultBaselineVariables" : false
         }
     ]
 
@@ -374,7 +378,7 @@
     [#local fragmentId = formatFragmentId(_context)]
     [#include fragmentList?ensure_starts_with("/")]
 
-    [#assign _context += getFinalEnvironment(occurrence, _context, operationsBucket, dataBucket ) ]
+    [#assign _context += getFinalEnvironment(occurrence, _context) ]
 
     [#if deploymentSubsetRequired("config", false)]
         [@addToDefaultJsonOutput
