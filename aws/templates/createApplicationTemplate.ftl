@@ -23,6 +23,13 @@
             [/#if]
         [/#if]
         [#break]
+    [#case "model"]
+        [#if (deploymentUnitSubset!"") == "genplan"]
+            [@initialiseDefaultScriptOutput format=outputFormat /]
+            [@addDefaultGenerationPlan subsets="config" /]
+        [#else]
+            [#assign outputType = "model"]
+        [/#if]
 
 [/#switch]
 

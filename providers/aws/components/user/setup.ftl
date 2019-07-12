@@ -61,7 +61,7 @@
             "DefaultCoreVariables" : false,
             "DefaultEnvironmentVariables" : false,
             "DefaultLinkVariables" : false,
-            "Policy" : standardPolicies(occurrence)
+            "Policy" : standardPolicies(occurrence, baselineComponentIds)
         }
     ]
 

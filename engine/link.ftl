@@ -6,8 +6,8 @@
 
 [#function getLinkTarget occurrence link activeOnly=true activeRequired=false]
 
-    [#local instanceToMatch = link.Instance!getOccurrenceInstance(occurrence).Id ]
-    [#local versionToMatch = link.Version!getOccurrenceVersion(occurrence).Id ]
+    [#local instanceToMatch = link.Instance!(getOccurrenceInstance(occurrence).Id) ]
+    [#local versionToMatch = link.Version!(getOccurrenceVersion(occurrence).Id) ]
 
     [@debug
         message="Getting link Target"
@@ -92,7 +92,7 @@
             [#-- If occurrences do not match, overrides can be added --]
             [#-- to the link.                                       --]
             [#if (getOccurrenceInstance(targetSubOccurrence).Id != instanceToMatch) ||
-                (getOccurrenceInstance(targetSubOccurrence).Id != versionToMatch) ]
+                (getOccurrenceVersion(targetSubOccurrence).Id != versionToMatch) ]
                 [#continue]
             [/#if]
 

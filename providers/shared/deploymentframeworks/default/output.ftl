@@ -7,6 +7,7 @@
 [#-- Default output types --]
 [#assign DEFAULT_OUTPUT_SCRIPT_TYPE = "script"]
 [#assign DEFAULT_OUTPUT_JSON_TYPE = "json"]
+[#assign DEFAULT_OUTPUT_MODEL_TYPE = "model"]
 
 [#-- Script output --]
 
@@ -129,4 +130,11 @@
                 }
             }
     /]
+[/#macro]
+
+[#-- DEFAULT_OUTPUT_MODEL_TYPE --]
+[#macro default_output_model level include]
+    [@initialiseJsonOutput name=DEFAULT_OUTPUT_JSON_TYPE /]
+    [@addToDefaultJsonOutput content=rootContext /]
+    [@serialiseOutput name=DEFAULT_OUTPUT_JSON_TYPE /]
 [/#macro]

@@ -4,6 +4,7 @@
 [#include "base.ftl" ]
 
 [#-- Component handling --]
+[#include "context.ftl" ]
 [#include "component.ftl" ]
 [#include "setting.ftl" ]
 [#include "occurrence.ftl" ]
