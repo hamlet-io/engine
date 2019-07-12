@@ -345,7 +345,6 @@
     [/#if]
 
     [@cfResource
-        mode=mode
         id=id
         type="AWS::Events::Rule"
         properties=
