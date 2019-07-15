@@ -1110,16 +1110,22 @@
                 "Role": "operations",
                 "Lifecycles": {
                   "awslogs": {
+                    "Id" : "awslogs",
+                    "Name" : "awslogs",
                     "Prefix": "AWSLogs",
                     "Expiration": "_operations",
                     "Offline": "_operations"
                   },
                   "cloudfront": {
+                    "Id" : "cloudfront",
+                    "Name" : "cloudfront",
                     "Prefix": "CLOUDFRONTLogs",
                     "Expiration": "_operations",
                     "Offline": "_operations"
                   },
                   "docker": {
+                    "Id" : "docker",
+                    "Name" : "docker",
                     "Prefix": "DOCKERLogs",
                     "Expiration": "_operations",
                     "Offline": "_operations"
@@ -1127,6 +1133,8 @@
                 },
                 "Links": {
                   "cf_key": {
+                    "Id" : "cf_key",
+                    "Name" : "cf_key",
                     "Tier": "mgmt",
                     "Component": "baseline",
                     "Instance": "",
@@ -1141,6 +1149,8 @@
                 "Role": "appdata",
                 "Lifecycles": {
                   "global": {
+                    "Id" : "global",
+                    "Name" : "global",
                     "Expiration": "_data",
                     "Offline": "_data"
                   }
