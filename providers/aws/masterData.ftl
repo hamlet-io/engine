@@ -1355,8 +1355,12 @@
           "Lambda": {
             "Instances": {
               "default": {
+                "Id" : "default",
+                "Name" : "default",
                 "Versions": {
                   "v1": {
+                    "Id" : "v1",
+                    "Name" : "v1",
                     "DeploymentUnits": [
                       "cfredirect-v1"
                     ],
