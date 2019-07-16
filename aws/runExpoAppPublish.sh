@@ -73,6 +73,7 @@ where
 (o) -s RUN_SETUP              run setup installation to prepare
 (o) -t BINARY_EXPIRATION      how long presigned urls are active for once created ( seconds )
 (o) -f FORCE_BINARY_BUILD     force the build of binary images
+(o) -b BINARY_BUILD_PROCESS   sets the build process to create the binary
 (q) -q QR_BUILD_FORMATS       specify the formats you would like to generate QR urls for
 
 (m) mandatory, (o) optional, (d) deprecated
@@ -83,6 +84,7 @@ BUILD_FORMATS = ${DEFAULT_BUILD_FORMATS}
 BINARY_EXPIRATION = ${DEFAULT_BINARY_EXPIRATION}
 RUN_SETUP = ${DEFAULT_RUN_SETUP}
 QR_BUILD_FORMATS = ${DEFAULT_QR_BUILD_FORMATS}
+BINARY_BUILD_PROCESS = ${DEFAULT_BINARY_BUILD_PROCESS}
 
 NOTES:
 RELEASE_CHANNEL default is environment
@@ -94,8 +96,11 @@ EOF
 function options() { 
 
     # Parse options
-    while getopts ":fhsq:t:u:" opt; do
+    while getopts ":bfhsq:t:u:" opt; do
         case $opt in
+            b)
+                BINARY_BUILD_PROCESS="${OPTARG}"
+                ;;
             f)
                 FORCE_BINARY_BUILD="true"
                 ;;
@@ -223,6 +228,7 @@ function main() {
   # get the version of the expo SDK which is required 
   EXPO_SDK_VERSION="$(jq -r '.expo.sdkVersion' < ./app.json)"
   EXPO_APP_VERSION="$(jq -r '.expo.version' < ./app.json)"
+  EXPO_PROJECT_SLUG="$(jq -r '.expo.slug' < ./app.json)" 
   EXPO_CURRENT_APP_VERSION="${EXPO_APP_VERSION}"
 
   # Determine Binary Build status
@@ -315,7 +321,9 @@ function main() {
             
             export IOS_DIST_PROVISIONING_PROFILE="${OPS_PATH}/ios_profile.mobileprovision"
             export IOS_DIST_P12_FILE="${OPS_PATH}/ios_distribution.p12"
-
+            export IOS_DIST_CER_FILE="${OPS_PATH}/ios_distribtion.cer"
+            cp "${IOS_DIST_P12_FILE}" "${IOS_DIST_CER_FILE}"
+            
             TURTLE_EXTRA_BUILD_ARGS="${TURTLE_EXTRA_BUILD_ARGS} --team-id ${IOS_DIST_APPLE_ID} --dist-p12-path ${IOS_DIST_P12_FILE} --provisioning-profile-path ${IOS_DIST_PROVISIONING_PROFILE}"
             ;;
         "*")
@@ -329,6 +337,7 @@ function main() {
 
         EXPO_BINARY_FILE_NAME="${BINARY_FILE_PREFIX}-${EXPO_APP_VERSION}-${BUILD_NUMBER}.${BINARY_FILE_EXTENSION}"
         EXPO_BINARY_FILE_PATH="${BINARY_PATH}/${EXPO_BINARY_FILE_NAME}"
+        EXPO_MANIFEST_URL="${PUBLIC_URL}/packages/${EXPO_SDK_VERSION}/${build_format}-index.json"
 
         case "${BINARY_BUILD_PROCESS}" in
             "turtle")
@@ -338,13 +347,7 @@ function main() {
                 turtle setup:"${build_format}" --sdk-version "${EXPO_SDK_VERSION}" || return $?
 
                 # Build using turtle
-                turtle build:"${build_format}" --public-url "${PUBLIC_URL}/packages/${EXPO_SDK_VERSION}/${build_format}-index.json" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${SRC_PATH}" || return $?
-
-                if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
-                    aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${BINARY_FILE_PREFIX}*" "${BINARY_PATH}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
-                    EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" )"
-                    DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<p><strong>${build_format}</strong> <a href="${EXPO_BINARY_PRESIGNED_URL}">${build_format} - ${EXPO_APP_VERSION} - ${BUILD_NUMBER}</a>" 
-                fi
+                turtle build:"${build_format}" --public-url "${EXPO_MANIFEST_URL}" --output "${EXPO_BINARY_FILE_PATH}" ${TURTLE_EXTRA_BUILD_ARGS} "${SRC_PATH}" || return $?
                 ;;
 
             "fastlane")
@@ -352,19 +355,50 @@ function main() {
 
                 FASTLANE_KEYCHAIN_PATH="${OPS_PATH}/${BUILD_NUMBER}.keychain"
                 FASTLANE_KEYCHAIN_NAME="${BUILD_NUMBER}"
+                FASTLANE_IOS_PROJECT_FILE="ios/${EXPO_PROJECT_SLUG}.xcodeproj"
+                FASTLANE_IOS_WORKSPACE_FILE="ios/${EXPO_PROJECT_SLUG}.xcworkspace"
+                FASTLANE_IOS_PODFILE="ios/Podfile"
 
-                fastlane run create_keychain name:"${FASTLANE_KEYCHAIN_NAME}" path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" 
+                # Keychain setup
+                fastlane run create_keychain path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" 
+
+                # codesigning setup 
                 fastlane run install_provisioning_profile path:"${IOS_DIST_PROVISIONING_PROFILE}"
-                fastlane run import_certificate certificate_path:"${IOS_DIST_P12_FILE}" certificate_password:"${EXPO_IOS_DIST_P12_PASSWORD}" keychain_name:"${FASTLANE_KEYCHAIN_NAME}" keychain_path:"$(pwd)" log_output:"true" 
-                
-                fastlane run cocoapods podfile:"./CustomPodfile"
-                fastlane run build_ios_app output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}"
-                
+                fastlane run automatic_code_signing use_automatic_signing:false path:"${FASTLANE_IOS_PROJECT_FILE}" team_id:"${IOS_DIST_APPLE_ID}" code_sign_identity:"iPhone Distribution"
+                fastlane run update_project_provisioning xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}" profile:"${IOS_DIST_PROVISIONING_PROFILE}"
+                fastlane run import_certificate certificate_path:"${IOS_DIST_CER_FILE}" certificate_password:"${EXPO_IOS_DIST_P12_PASSWORD}" keychain_path:"${FASTLANE_KEYCHAIN_PATH}" keychain_password:"${FASTLANE_KEYCHAIN_NAME}" log_output:"true" 
+
+                # Update build details
+                fastlane action increment_build_number build_number:"${BUILD_NUMBER}" xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}"
+                if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then 
+                    fastlane action update_app_identifier app_identifier:"${IOS_DIST_BUNDLE_ID}" xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}"
+                fi
+
+                # Update Expo Details 
+                cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app-manifest.json"
+                cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-"* "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app.bundle"
+
+                jq --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg MANIFEST_URL "${EXPO_MANIFEST_URL}" '.manifestUrl=$MANIFEST_URL | .releaseChannel=$RELEASE_CHANNEL' <  "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json" > "${tmpdir}/EXShell.json"  
+                mv "${tmpdir}/EXShell.json" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json"
+
+                fastlane run set_info_plist_value path:"${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:manifestUrl value:"${EXPO_MANIFEST_URL}"
+                fastlane run set_info_plist_value path:"${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:releaseChannel value:"${RELEASE_CHANNEL}"
+
+                # Build App
+                fastlane run cocoapods podfile:"${FASTLANE_IOS_PODFILE}"
+                fastlane run build_ios_app workspace:"${FASTLANE_IOS_WORKSPACE_FILE}" output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}" export_method:"app-store"
+
+                # Cleanup
+                fastlane run delete_keychain path:"${FASTLANE_KEYCHAIN_PATH}"
                 fastlane run clean_build_artifacts
-                fastlane run delete_keychain name:"${FASTLANE_KEYCHAIN_NAME}"
-                
                 ;;
         esac
+
+        if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
+            aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${BINARY_FILE_PREFIX}*" "${BINARY_PATH}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
+            EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" )"
+            DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<p><strong>${build_format}</strong> <a href="${EXPO_BINARY_PRESIGNED_URL}">${build_format} - ${EXPO_APP_VERSION} - ${BUILD_NUMBER}</a>" 
+        fi
       else 
         info "Skipping build of app binary for ${build_format}"
       fi
