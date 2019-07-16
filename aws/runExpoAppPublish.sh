@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
+trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1} && fastlane run clean_build_artifacts' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_DIR}/common.sh"
 
 #Defaults
@@ -12,6 +12,9 @@ DEFAULT_RUN_SETUP="false"
 DEFAULT_FORCE_BINARY_BUILD="false"
 DEFAULT_QR_BUILD_FORMATS="ios,android"
 DEFAULT_BINARY_BUILD_PROCESS="turtle"
+
+FASTLANE_SKIP_UPDATE_CHECK="true"
+FASTLANE_HIDE_CHANGELOG="true"
 
 tmpdir="$(getTempDir "cote_inf_XXX")"
 
@@ -360,16 +363,16 @@ function main() {
                 FASTLANE_IOS_PODFILE="ios/Podfile"
 
                 # Keychain setup
-                fastlane run create_keychain path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" 
+                fastlane run create_keychain path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" || return $?
 
                 # codesigning setup 
-                fastlane run install_provisioning_profile path:"${IOS_DIST_PROVISIONING_PROFILE}"
-                fastlane run automatic_code_signing use_automatic_signing:false path:"${FASTLANE_IOS_PROJECT_FILE}" team_id:"${IOS_DIST_APPLE_ID}" code_sign_identity:"iPhone Distribution"
-                fastlane run update_project_provisioning xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}" profile:"${IOS_DIST_PROVISIONING_PROFILE}"
-                fastlane run import_certificate certificate_path:"${IOS_DIST_CER_FILE}" certificate_password:"${EXPO_IOS_DIST_P12_PASSWORD}" keychain_path:"${FASTLANE_KEYCHAIN_PATH}" keychain_password:"${FASTLANE_KEYCHAIN_NAME}" log_output:"true" 
+                fastlane run install_provisioning_profile path:"${IOS_DIST_PROVISIONING_PROFILE}" || return $?
+                fastlane run automatic_code_signing use_automatic_signing:false path:"${FASTLANE_IOS_PROJECT_FILE}" team_id:"${IOS_DIST_APPLE_ID}" code_sign_identity:"iPhone Distribution" || return $?
+                fastlane run update_project_provisioning xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}" profile:"${IOS_DIST_PROVISIONING_PROFILE}" || return $?
+                fastlane run import_certificate certificate_path:"${IOS_DIST_CER_FILE}" certificate_password:"${EXPO_IOS_DIST_P12_PASSWORD}" keychain_path:"${FASTLANE_KEYCHAIN_PATH}" keychain_password:"${FASTLANE_KEYCHAIN_NAME}" log_output:"true" || return $?
 
                 # Update build details
-                fastlane action increment_build_number build_number:"${BUILD_NUMBER}" xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}"
+                fastlane action increment_build_number build_number:"${BUILD_NUMBER}" xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}" || return $?
                 if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then 
                     fastlane action update_app_identifier app_identifier:"${IOS_DIST_BUNDLE_ID}" xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}"
                 fi
@@ -385,8 +388,8 @@ function main() {
                 fastlane run set_info_plist_value path:"${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:releaseChannel value:"${RELEASE_CHANNEL}"
 
                 # Build App
-                fastlane run cocoapods podfile:"${FASTLANE_IOS_PODFILE}"
-                fastlane run build_ios_app workspace:"${FASTLANE_IOS_WORKSPACE_FILE}" output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}" export_method:"app-store"
+                fastlane run cocoapods podfile:"${FASTLANE_IOS_PODFILE}" || return $?
+                fastlane run build_ios_app workspace:"${FASTLANE_IOS_WORKSPACE_FILE}" output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}" export_method:"app-store" || return $?
 
                 # Cleanup
                 fastlane run delete_keychain path:"${FASTLANE_KEYCHAIN_PATH}"
