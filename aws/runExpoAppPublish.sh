@@ -13,8 +13,8 @@ DEFAULT_FORCE_BINARY_BUILD="false"
 DEFAULT_QR_BUILD_FORMATS="ios,android"
 DEFAULT_BINARY_BUILD_PROCESS="turtle"
 
-FASTLANE_SKIP_UPDATE_CHECK="true"
-FASTLANE_HIDE_CHANGELOG="true"
+export FASTLANE_SKIP_UPDATE_CHECK="true"
+export FASTLANE_HIDE_CHANGELOG="true"
 
 tmpdir="$(getTempDir "cote_inf_XXX")"
 
@@ -362,6 +362,7 @@ function main() {
                 FASTLANE_IOS_WORKSPACE_FILE="ios/${EXPO_PROJECT_SLUG}.xcworkspace"
                 FASTLANE_IOS_PODFILE="ios/Podfile"
 
+
                 # Keychain setup
                 fastlane run create_keychain path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" || return $?
 
@@ -371,21 +372,23 @@ function main() {
                 fastlane run update_project_provisioning xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}" profile:"${IOS_DIST_PROVISIONING_PROFILE}" || return $?
                 fastlane run import_certificate certificate_path:"${IOS_DIST_CER_FILE}" certificate_password:"${EXPO_IOS_DIST_P12_PASSWORD}" keychain_path:"${FASTLANE_KEYCHAIN_PATH}" keychain_password:"${FASTLANE_KEYCHAIN_NAME}" log_output:"true" || return $?
 
-                # Update build details
-                fastlane action increment_build_number build_number:"${BUILD_NUMBER}" xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}" || return $?
+                # Update App details
+                fastlane run set_info_plist_value path:"ios/${EXPO_PROJECT_SLUG}/Supporting/Info.plist" key:CFBundleVersion value:"${BUILD_NUMBER}" || return $?
                 if [[ "${IOS_DIST_BUNDLE_ID}" != "null" && -n "${IOS_DIST_BUNDLE_ID}" ]]; then 
-                    fastlane action update_app_identifier app_identifier:"${IOS_DIST_BUNDLE_ID}" xcodeproj:"${FASTLANE_IOS_PROJECT_FILE}"
+                    cd "${SRC_PATH}/ios"
+                    fastlane run update_app_identifier app_identifier:"${IOS_DIST_BUNDLE_ID}" xcodeproj:"${EXPO_PROJECT_SLUG}.xcodeproj" plist_path:"${EXPO_PROJECT_SLUG}/Supporting/Info.plist" || return $?
+                    cd "${SRC_PATH}"
                 fi
 
                 # Update Expo Details 
                 cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app-manifest.json"
                 cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-"* "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app.bundle"
 
-                jq --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg MANIFEST_URL "${EXPO_MANIFEST_URL}" '.manifestUrl=$MANIFEST_URL | .releaseChannel=$RELEASE_CHANNEL' <  "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json" > "${tmpdir}/EXShell.json"  
-                mv "${tmpdir}/EXShell.json" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json"
+                jq --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg MANIFEST_URL "${EXPO_MANIFEST_URL}" '.manifestUrl=$MANIFEST_URL | .releaseChannel=$RELEASE_CHANNEL' <  "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json" > "${tmpdir}/EXShell.json"  
+                mv "${tmpdir}/EXShell.json" "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json"
 
-                fastlane run set_info_plist_value path:"${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:manifestUrl value:"${EXPO_MANIFEST_URL}"
-                fastlane run set_info_plist_value path:"${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:releaseChannel value:"${RELEASE_CHANNEL}"
+                fastlane run set_info_plist_value path:"ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:manifestUrl value:"${EXPO_MANIFEST_URL}" || return $?
+                fastlane run set_info_plist_value path:"ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:releaseChannel value:"${RELEASE_CHANNEL}" || return $?
 
                 # Build App
                 fastlane run cocoapods podfile:"${FASTLANE_IOS_PODFILE}" || return $?
