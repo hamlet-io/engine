@@ -5,8 +5,8 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 . "${GENERATION_DIR}/common.sh"
 
 # Defaults
-DELAY_DEFAULT=30
-CHECKONLY_DEFAULT="false"
+DEFAULT_PIPELINE_STATUS="false"
+DEFAULT_PIPELINE_ALLOW_CONCURRENT="false"
 
 function usage() {
     cat <<EOF
@@ -17,102 +17,128 @@ Usage: $(basename $0) -t TIER -i COMPONENT -x INSTANCE -y VERSION
 
 where
 
-    -h                  shows this text
-(m) -i COMPONENT        is the name of the component in the solution where the task is defined
-(m) -t TIER             is the name of the tier in the solution where the task is defined
-(o) -x INSTANCE         is the instance of the task to be run
-(o) -y VERSION          is the version of the task to be run
-(o) -c CHECKONLY        check the running status of a pipelie
+    -h                              shows this text
+(m) -i COMPONENT                    is the name of the component in the solution where the task is defined
+(m) -t TIER                         is the name of the tier in the solution where the task is defined
+(o) -x INSTANCE                     is the instance of the task to be run
+(o) -y VERSION                      is the version of the task to be run
+(o) -s PIPELINE_STATUS              check the running status of a pipelie
+(o) -c PIPELINE_ALLOW_CONCURRENT    activate the pipeline if another one is running
 
 (m) mandatory, (o) optional, (d) deprecated
 
 DEFAULTS:
 
+PIPELINE_STATUS=${DEFAULT_PIPELINE_STATUS}
+PIPELINE_ALLOW_CONCURRENT=${DEFAULT_PIPELINE_ALLOW_CONCURRENT}
 
 NOTES:
 
 1. This will activate the pipeline and leave it running
 2. Pipelines take a long time so it is better to provide status via other means
 
-
 EOF
     exit
 }
 
+function options() { 
+    # Parse options
+    while getopts ":c:s:p:hi:t:x:y:" opt; do
+        case $opt in
+            s)
+                PIPELINE_STATUS="true"
+                ;;
+            c)
+                PIPELINE_ALLOW_CONCURRENT="true"
+                ;;
+            h)
+                usage
+                ;;
+            i)
+                COMPONENT="${OPTARG}"
+                ;;
+            t)
+                TIER="${OPTARG}"
+                ;;
+            x)  
+                INSTANCE="${OPTARG}"
+                ;;
+            y)  
+                VERSION="${OPTARG}"
+                ;;
+            \?)
+                fatalOption
+                ;;
+            :)
+                fatalOptionArgument
+                ;;
+        esac
+    done
+}
 
-# Parse options
-while getopts ":c:hi:t:x:y:" opt; do
-    case $opt in
-        c)
-            CHECKONLY="true"
-            ;;
-        h)
-            usage
-            ;;
-        i)
-            COMPONENT="${OPTARG}"
-            ;;
-        t)
-            TIER="${OPTARG}"
-            ;;
-        x)  
-            INSTANCE="${OPTARG}"
-            ;;
-        y)  
-            VERSION="${OPTARG}"
-            ;;
-        \?)
-            fatalOption
-            ;;
-        :)
-            fatalOptionArgument
-            ;;
-    esac
-done
 
-#Set Default
-CHECKONLY=${CHECKONLY:-${CHECKONLY_DEFAULT}}
+function main() {
 
-RESULT=0 
+    options "$@" || return $?
 
-# Ensure mandatory arguments have been provided
-[[ -z "${COMPONENT}" || -z "${TIER}" ]] && fatalMandatory
+    #Set Defaults
+    PIPELINE_STATUS="${PIPELINE_STATUS:-${DEFAULT_PIPELINE_STATUS}}"
+    PIPELINE_ALLOW_CONCURRENT="${PIPELINE_ALLOW_CONCURRENT:-${DEFAULT_PIPELINE_ALLOW_CONCURRENT}}"
 
-# Set up the context
-. "${GENERATION_DIR}/setContext.sh"
+    # Ensure mandatory arguments have been provided
+    [[ -z "${COMPONENT}" || -z "${TIER}" ]] && fatalMandatory
 
-# Ensure we are in the right place
-checkInSegmentDirectory
+    # Set up the context
+    . "${GENERATION_DIR}/setContext.sh"
 
-PIPELINE_NAME="${PRODUCT}-${ENVIRONMENT}"
+    # Ensure we are in the right place
+    checkInSegmentDirectory
 
-if [[ -n "${SEGMENT}" && "${SEGMENT}" != "default" ]]; then
-    PIPELINE_NAME="${PIPELINE_NAME}-${SEGMENT}"
-fi
+    PIPELINE_NAME="${PRODUCT}-${ENVIRONMENT}"
 
-PIPELINE_NAME="${PIPELINE_NAME}-${TIER}-${COMPONENT}"
-
-# Add Instance and Version to pipeline name
-if [[ -n "${INSTANCE}" && "${INSTANCE}" != "default" ]]; then
-    PIPELINE_NAME="${PIPELINE_NAME}-${INSTANCE}"
-fi 
-
-if [[ -n "${VERSION}" ]]; then
-    PIPELINE_NAME="${PIPELINE_NAME}-${VERSION}"
-fi
-
-# Find the pipeline
-PIPELINE_ID="$(aws --region ${REGION} datapipeline list-pipelines --query "pipelineIdList[?name==\`${PIPELINE_NAME}\`].id" --output text)"
-
-if [[ -n "${PIPELINE_ID}" ]]; then
-    if [[ "${CHECKONLY}" == "false" || "${CHECKONLY}" -eq false ]]; then 
-        aws --region ${REGION} datapipeline activate-pipeline --pipeline-id "${PIPELINE_ID}" || error "Pipeline Could not be activated"; exit $?
+    if [[ -n "${SEGMENT}" && "${SEGMENT}" != "default" ]]; then
+        PIPELINE_NAME="${PIPELINE_NAME}-${SEGMENT}"
     fi
 
-    info "Pipeline runs for the last day"
-    aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" \
-    --query  "reverse(sort_by(@, &'@actualStartTime'))" \
-    --output json
-else 
-    error "Pipeline could ${PIPELINE_NAME} could not be found"; exit 128
-fi 
+    PIPELINE_NAME="${PIPELINE_NAME}-${TIER}-${COMPONENT}"
+
+    # Add Instance and Version to pipeline name
+    if [[ -n "${INSTANCE}" && "${INSTANCE}" != "default" ]]; then
+        PIPELINE_NAME="${PIPELINE_NAME}-${INSTANCE}"
+    fi 
+
+    if [[ -n "${VERSION}" ]]; then
+        PIPELINE_NAME="${PIPELINE_NAME}-${VERSION}"
+    fi
+
+    # Find the pipeline
+    PIPELINE_ID="$(aws --region ${REGION} datapipeline list-pipelines --query "pipelineIdList[?name==\`${PIPELINE_NAME}\`].id" --output text || return $?)"
+
+    if [[ -n "${PIPELINE_ID}" ]]; then 
+        PIPELINE_STATE="$(aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" --query "reverse(sort_by(@, &'@actualStartTime'))" --output json || return $?)"
+        ACTIVE_JOBS="$(echo "${PIPELINE_STATE}" | jq -r '[ .[] | select( ."@status" == "RUNNING" or ."@status" == "ACTIVATING" or ."@status" == "DEACTIVATING" or ."@status" == "PENDING" or ."@status" == "SCHEDULED" or ."@status" == "SHUTTING_DOWN" or ."@status" == "WAITING_FOR_RUNNER" or ."@status" == "WAITING_ON_DEPENDENCIES" or ."@status" ==  "VALIDATING" )]')"
+
+        if [[ "${PIPELINE_STATUS}" == "false" && ( "${PIPELINE_ALLOW_CONCURRENT}" == "true" && "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" == "0" ) ]]; then 
+            info "Activating pipeline ${PIPELINE_NAME} - ${PIPELINE_ID}"
+            aws --region ${REGION} datapipeline activate-pipeline --pipeline-id "${PIPELINE_ID}" || return $?
+        fi
+
+        PIPELINE_STATE="$(aws --region ${REGION} datapipeline list-runs --pipeline-id "${PIPELINE_ID}" --start-interval "$(date --utc +%FT%TZ --date="1 day ago"),$(date --utc +%FT%TZ)" --query "reverse(sort_by(@, &'@actualStartTime'))" --output json || return $?)"
+        ACTIVE_JOBS="$(echo "${PIPELINE_STATE}" | jq -r '[ .[] | select( ."@status" == "RUNNING" or ."@status" == "ACTIVATING" or ."@status" == "DEACTIVATING" or ."@status" == "PENDING" or ."@status" == "SCHEDULED" or ."@status" == "SHUTTING_DOWN" or ."@status" == "WAITING_FOR_RUNNER" or ."@status" == "WAITING_ON_DEPENDENCIES" or ."@status" ==  "VALIDATING" )]')"
+
+        if [[  "$( echo "${ACTIVE_JOBS}" | jq -r '. | length' )" -gt "0" ]]; then 
+            info "Active pipeline jobs for ${PIPELINE_NAME} - ${PIPELINE_ID}"
+            echo "${ACTIVE_JOBS}" | jq '.'
+        else
+            info "No Active pipeline jobs for ${PIPELINE_NAME} - ${PIPELINE_ID}"
+        fi
+    else
+        fatal "Pipline with name ${PIPELINE_NAME} not found"
+        return 255
+    fi
+
+    # All good
+    return 0
+}
+
+main "$@" || exit $?
