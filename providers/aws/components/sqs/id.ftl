@@ -6,6 +6,7 @@
     resourceGroup=DEFAULT_RESOURCE_GROUP
     services=
         [
-            AWS_SIMPLE_QUEUEING_SERVICE
+            AWS_SIMPLE_QUEUEING_SERVICE,
+            AWS_CLOUDWATCH_SERVICE
         ]
 /]
