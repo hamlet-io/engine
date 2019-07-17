@@ -210,9 +210,7 @@
     [#local macroOptions =
         [
             [deploymentFramework, "output", type, format],
-            [deploymentFramework, "output", type],
-            [DEFAULT_DEPLOYMENT_FRAMEWORK, "output", type, format],
-            [DEFAULT_DEPLOYMENT_FRAMEWORK, "output", type]
+            [DEFAULT_DEPLOYMENT_FRAMEWORK, "output", type, format]
         ] ]
 
     [#local macro = getFirstDefinedDirective(macroOptions) ]
@@ -222,7 +220,7 @@
     [#else]
         [@debug
             message="Unable to invoke output macro"
-            context=templateOptions
+            context=macroOptions
             enabled=false
         /]
     [/#if]

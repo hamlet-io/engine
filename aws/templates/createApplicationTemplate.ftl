@@ -1,4 +1,8 @@
 [#ftl]
+[#if (deploymentUnit == "model")  &&
+    (!((deploymentUnitSubset!"") == "genplan"))]
+    [#assign deploymentFrameworkModel = ""]
+[/#if]
 [#include "/bootstrap.ftl" ]
 
 [#-- Special processing --]

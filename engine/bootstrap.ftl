@@ -1,5 +1,9 @@
 [#ftl]
 
+[#if !deploymentFrameworkModel??]
+    [#assign deploymentFrameworkModel = "legacy"]
+[/#if]
+
 [#-- Core helper routines --]
 [#include "base.ftl" ]
 
@@ -7,8 +11,6 @@
 [#include "context.ftl" ]
 [#include "component.ftl" ]
 [#include "setting.ftl" ]
-[#include "occurrence.ftl" ]
-[#include "link.ftl" ]
 
 [#-- Provider handling --]
 [#include "provider.ftl" ]
@@ -38,3 +40,14 @@
         /]
     [/#if]
 [/#if]
+
+[#-- Populate the model to be used --]
+[#assign model =
+    invokeDynamicFunction(
+        [
+            [deploymentFramework, "model", deploymentFrameworkModel!""],
+            [DEFAULT_DEPLOYMENT_FRAMEWORK, "model", deploymentFrameworkModel!""]
+        ],
+        []
+    ) ]
+

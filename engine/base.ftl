@@ -510,19 +510,49 @@
     [/#list]
 [/#macro]
 
-[#----------------------------
--- Dynamic macro invocation --
-------------------------------]
+[#--------------------------------
+-- Dynamic directive invocation --
+----------------------------------]
 
 [#function getFirstDefinedDirective directives=[] ]
     [#list asArray(directives) as directive]
-        [#local macro = concatenate(directive, "_")]
-        [#if (.vars[macro]!"")?is_directive]
-            [#return macro]
+        [#local name = concatenate(directive, "_")]
+        [#if (.vars[name]!"")?is_directive]
+            [#return name]
         [/#if]
     [/#list]
     [#return ""]
 [/#function]
+
+[#function invokeDynamicFunction options args...]
+
+    [#local fn = getFirstDefinedDirective(options) ]
+
+    [#if fn?has_content]
+        [#return (.vars[fn])(args) ]
+    [#else]
+        [@debug
+            message="Unable to invoke function"
+            context=options
+            enabled=true
+        /]
+    [/#if]
+    [#return {} ]
+[/#function]
+
+[#macro invokeDynamicMacro options args...]
+    [#local macro = getFirstDefinedDirective(options) ]
+
+    [#if macro?has_content]
+        [@(.vars[macro]) args /]
+    [#else]
+        [@debug
+            message="Unable to invoke macro"
+            context=options
+            enabled=false
+        /]
+    [/#if]
+[/#macro]
 
 [#--------------------------
 -- Date/time manipulation --

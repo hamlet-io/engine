@@ -144,6 +144,22 @@
     [#return (componentConfiguration[type].Components)![] ]
 [/#function]
 
+[#function getComponentChildrenAttributes type]
+    [#local result = [] ]
+    [#list (componentConfiguration[type].Components)![] as child]
+        [#local result += [child.Component]]
+    [/#list]
+    [#return result]
+[/#function]
+
+[#function getComponentChildType child]
+    [#return child.Type ]
+[/#function]
+
+[#function getComponentChildAttribute child]
+    [#return child.Component ]
+[/#function]
+
 [#function getComponentChildLinkAttributes child]
     [#return asArray(child.Link![]) ]
 [/#function]
@@ -217,60 +233,6 @@
             baseState
         ) ]
 [/#function]
-
-[#macro processComponents level=""]
-    [#local start = .now]
-    [@timing message="Starting component processing ..." /]
-    [#list tiers as tier]
-        [#list (tier.Components!{})?values as component]
-            [#if deploymentRequired(component, deploymentUnit)]
-                [#assign multiAZ = component.MultiAZ!solnMultiAZ]
-                [#local occurrenceStart = .now]
-                [#list requiredOccurrences(
-                    getOccurrences(tier, component),
-                    deploymentUnit,
-                    true) as occurrence]
-                    [#local occurrenceEnd = .now]
-                    [@timing
-                        message= "Got " + tier.Id + "/" + component.Id + " occurrences ..."
-                        context=
-                            {
-                                "Elapsed" : (duration(occurrenceEnd, start)/1000)?string["0.000"],
-                                "Duration" : (duration(occurrenceEnd, occurrenceStart)/1000)?string["0.000"]
-                            }
-                    /]
-
-                    [@debug message=occurrence enabled=false /]
-
-                    [#list occurrence.State.ResourceGroups as key,value]
-                        [#if invokeSetupMacro(occurrence, key, ["setup", level]) ]
-                            [@debug
-                                message="Processing " + key + " ..."
-                                enabled=false
-                            /]
-                        [/#if]
-                    [/#list]
-                    [#local processingEnd = .now]
-                    [@timing
-                        message="Processed " + tier.Id + "/" + component.Id + "."
-                        context=
-                            {
-                                "Elapsed"  : (duration(processingEnd, start)/1000)?string["0.000"],
-                                "Duration" : (duration(processingEnd, occurrenceEnd)/1000)?string["0.000"]
-                            }
-                    /]
-                [/#list]
-            [/#if]
-        [/#list]
-    [/#list]
-    [@timing
-        message="Finished component processing."
-        context=
-            {
-                "Elapsed"  : (duration(.now, start)/1000)?string["0.000"]
-            }
-        /]
-[/#macro]
 
 [#-- Tiers --]
 
@@ -370,22 +332,28 @@
 [/#function]
 
 [#-- Get the type object for a component --]
-[#function getComponentTypeObject component]
+[#function getComponentTypeObjectAttribute component]
     [#local type = getComponentType(component) ]
     [#list component as key,value]
         [#if key?lower_case == type]
-            [#return value]
+            [#return key]
         [#-- Backwards Compatability for Component renaming --]
         [#else]
             [#switch key?lower_case]
                 [#case LB_LEGACY_COMPONENT_TYPE]
                 [#case ES_LEGACY_COMPONENT_TYPE]
-                    [#return value]
+                    [#return key]
                     [#break]
             [/#switch]
        [/#if]
     [/#list]
-    [#return {} ]
+    [#return "" ]
+[/#function]
+
+[#-- Get the type object for a component --]
+[#function getComponentTypeObject component]
+    [#local typeObject = component[getComponentTypeObjectAttribute(component)]!{} ]
+    [#return valueIfTrue(typeObject, typeObject?is_hash) ]
 [/#function]
 
 [#-- Get a component within a tier --]
