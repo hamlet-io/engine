@@ -434,19 +434,26 @@ behaviour.
                             [#local attributeResult +=
                                 {
                                   subobjectKey :
-                                      getCompositeObject(
-                                          [
-                                              {
-                                                  "Names" : "Id",
-                                                  "Mandatory" : true
-                                              },
-                                              {
-                                                  "Names" : "Name",
-                                                  "Mandatory" : true
-                                              }
-                                          ] +
-                                          attribute.Children,
-                                          subobjectValues)
+                                        getCompositeObject(
+                                            [
+                                                {
+                                                    "Names" : "Id",
+                                                    "Mandatory" : true
+                                                },
+                                                {
+                                                    "Names" : "Name",
+                                                    "Mandatory" : true
+                                                }
+                                            ] +
+                                            attribute.Children,
+                                            [
+                                                {
+                                                    "Id" : subobjectKey,
+                                                    "Name" : subobjectKey
+                                                }
+                                            ] +
+                                            subobjectValues
+                                        )
                                 }
                             ]
                         [/#list]
