@@ -30,6 +30,9 @@
 
 [#assign DATAVOLUME_COMPONENT_TYPE = "datavolume" ]
 
+[#assign DB_COMPONENT_TYPE = "db" ]
+[#assign DB_LEGACY_COMPONENT_TYPE = "rds" ]
+
 [#assign EC2_COMPONENT_TYPE = "ec2"]
 
 [#assign ECS_COMPONENT_TYPE = "ecs" ]
@@ -63,8 +66,6 @@
 [#assign NETWORK_GATEWAY_DESTINATION_COMPONENT_TYPE = "gatewaydestination"]
 [#assign NETWORK_ROUTE_TABLE_COMPONENT_TYPE = "networkroute"]
 
-[#assign RDS_COMPONENT_TYPE = "rds" ]
-
 [#assign S3_COMPONENT_TYPE = "s3" ]
 
 [#assign SERVICE_REGISTRY_COMPONENT_TYPE = "serviceregistry" ]
@@ -75,7 +76,7 @@
 [#assign SQS_COMPONENT_TYPE = "sqs"]
 
 [#assign TOPIC_COMPONENT_TYPE = "topic"]
-[#assign TOPIC_SUBSCRIPTION_COMPONENT_TYPE = "topicsubscription" ] 
+[#assign TOPIC_SUBSCRIPTION_COMPONENT_TYPE = "topicsubscription" ]
 
 [#assign USER_COMPONENT_TYPE = "user" ]
 

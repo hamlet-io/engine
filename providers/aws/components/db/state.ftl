@@ -1,6 +1,6 @@
 [#ftl]
 
-[#macro aws_rds_cf_state occurrence parent={} baseState={}  ]
+[#macro aws_db_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 

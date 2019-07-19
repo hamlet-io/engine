@@ -1,5 +1,5 @@
 [#ftl]
-[#macro aws_rds_cf_solution occurrence ]
+[#macro aws_db_cf_solution occurrence ]
     [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
