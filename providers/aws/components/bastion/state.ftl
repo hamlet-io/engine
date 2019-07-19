@@ -36,7 +36,8 @@
                 "lg" : {
                     "Id" : formatLogGroupId(core.Id),
                     "Name" : core.FullAbsolutePath,
-                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "launchConfig" : {
 
