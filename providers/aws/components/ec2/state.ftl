@@ -46,7 +46,8 @@
                 },
                 "ec2Role" : {
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "lg" : {
                     "Id" : formatLogGroupId(core.Id),

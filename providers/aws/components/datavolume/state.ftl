@@ -65,11 +65,13 @@
                     },
                     "maintenanceServiceRole" : {
                         "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, "service", core.Id  ),
-                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
                     },
                     "maintenanceLambdaRole" : {
                         "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, "lambda", core.Id ),
-                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
                     }
                 },
                 {}
