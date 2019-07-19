@@ -135,6 +135,10 @@
 [#-- DEFAULT_OUTPUT_MODEL_TYPE --]
 [#macro default_output_model level include]
     [@initialiseJsonOutput name=DEFAULT_OUTPUT_JSON_TYPE /]
-    [@addToDefaultJsonOutput content=rootContext /]
+    [@addToDefaultJsonOutput
+        content=
+            model +
+            attributeIfContent("COTMessages", logMessages)
+    /]
     [@serialiseOutput name=DEFAULT_OUTPUT_JSON_TYPE /]
 [/#macro]

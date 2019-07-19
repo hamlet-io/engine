@@ -45,7 +45,7 @@
     [/#list]
 
     [#-- aws/deploymentframeworks/output.ftl --]
-    [#list ["output"] as level]
+    [#list ["output", "model"] as level]
         [#local templates += [[provider, "deploymentframeworks", level]] ]
     [/#list]
 
@@ -62,7 +62,7 @@
     [#local templates = [] ]
 
     [#-- aws/deploymentframeworks/cf/output.ftl --]
-    [#list ["output"] as level]
+    [#list ["output", "model"] as level]
         [#local templates += [[provider, "deploymentframeworks", deploymentFramework, level]] ]
     [/#list]
 
