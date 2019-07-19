@@ -128,9 +128,9 @@
                                         [#break]
                                     [#case TOPIC_COMPONENT_TYPE ]
                                         [#if linkTargetAttributes["ARN"]?has_content ]
-                                            [@createSNSSubscription 
+                                            [@createSNSSubscription
                                                 id=formatDependentSNSSubscriptionId(fn, "link", linkName)
-                                                topicId=linkTargetResources["topic"].Id 
+                                                topicId=linkTargetResources["topic"].Id
                                                 endpoint=getReference(fnId, ARN_ATTRIBUTE_TYPE)
                                                 protocol="lambda"
                                             /]

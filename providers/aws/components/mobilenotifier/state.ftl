@@ -82,12 +82,14 @@
                 "lg" : {
                     "Id" : lgId,
                     "Name" : lgName,
-                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "lgfailure" : {
                     "Id" : lgFailureId,
                     "Name" : lgFailureName,
-                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 }
             } +
             attributeIfContent("logMetrics", logMetrics),

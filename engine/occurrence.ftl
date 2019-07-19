@@ -780,7 +780,7 @@
         [#if resources?has_content ]
             [#list resources as alias,resource]
                 [#if resource.Id?has_content]
-                    [#if resource.Deployed]
+                    [#if resource.Deployed && resource.IncludeInDeploymentState!true]
                         [#return true]
                     [/#if]
                 [#else]

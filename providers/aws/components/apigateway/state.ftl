@@ -331,12 +331,14 @@ created in either case.
                 "lg" : {
                     "Id" : lgId,
                     "Name" : lgName,
-                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "accesslg" : {
                     "Id" : accessLgId,
                     "Name" : accessLgName,
-                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                    "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 }
             } +
             attributeIfContent("logMetrics", logMetrics) +
