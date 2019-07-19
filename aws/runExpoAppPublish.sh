@@ -319,6 +319,10 @@ function main() {
             BINARY_FILE_EXTENSION="ipa"
             export IOS_DIST_APPLE_ID="$( jq -r '.BuildConfig.IOS_DIST_APPLE_ID' < "${CONFIG_FILE}" )"
 
+            export IOS_TESTFLIGHT_USERNAME="$(jq -r '.BuildConfig.IOS_TESTFLIGHT_USERNAME' < "${CONFIG_FILE}")"
+            IOS_TESTFLIGHT_PASSWORD="$(jq -r '.BuildConfig.IOS_TESTFLIGHT_PASSWORD' < "${CONFIG_FILE}")"
+            export IOS_TESTFLIGHT_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${IOS_TESTFLIGHT_PASSWORD#"base64:"}")"
+
             IOS_DIST_P12_PASSWORD="$( jq -r '.BuildConfig.IOS_DIST_P12_PASSWORD' < "${CONFIG_FILE}" )"
             export EXPO_IOS_DIST_P12_PASSWORD="$( decrypt_kms_string "${AWS_REGION}" "${IOS_DIST_P12_PASSWORD#"base64:"}")"
             
@@ -368,9 +372,14 @@ function main() {
                     cd "${SRC_PATH}"
                 fi
 
-                # Update Expo Details 
-                cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app-manifest.json"
-                cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-"* "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app.bundle"
+                # Update Expo Details and seed with latest expo expot bundles
+                BINARY_BUNDLE_FILE="${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app-manifest.json"
+                cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" "${BINARY_BUNDLE_FILE}"
+
+                # Get the bundle file name from the manifest
+                BUNDLE_URL="$( jq -r '.bundleUrl' < "${BINARY_BUNDLE_FILE}")"
+                BUNDLE_FILE_NAME="$( basename "${BUNDLE_URL}")"  
+                cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/${BUNDLE_FILE_NAME}" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app.bundle"
 
                 jq --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg MANIFEST_URL "${EXPO_MANIFEST_URL}" '.manifestUrl=$MANIFEST_URL | .releaseChannel=$RELEASE_CHANNEL' <  "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json" > "${tmpdir}/EXShell.json"  
                 mv "${tmpdir}/EXShell.json" "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json"
@@ -378,10 +387,10 @@ function main() {
                 fastlane run set_info_plist_value path:"ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:manifestUrl value:"${EXPO_MANIFEST_URL}" || return $?
                 fastlane run set_info_plist_value path:"ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.plist" key:releaseChannel value:"${RELEASE_CHANNEL}" || return $?
 
-                # Keychain setup
-                fastlane run create_keychain path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" timeout:1800 || return $?
+                # Keychain setup - Creates a temporary keychain 
+                fastlane run create_keychain path:"${FASTLANE_KEYCHAIN_PATH}" password:"${FASTLANE_KEYCHAIN_NAME}" add_to_search_list:"true" unlock:"true" timeout:3600 || return $?
 
-                # codesigning setup 
+                # codesigning setup
                 fastlane run import_certificate certificate_path:"${OPS_PATH}/ios_distribution.p12" certificate_password:"${EXPO_IOS_DIST_P12_PASSWORD}" keychain_path:"${FASTLANE_KEYCHAIN_PATH}" keychain_password:"${FASTLANE_KEYCHAIN_NAME}" log_output:"true" || return $?
                 CODESIGN_IDENTITY="$( security find-certificate -c "iPhone Distribution" -p "${FASTLANE_KEYCHAIN_PATH}"  |  openssl x509 -noout -subject -nameopt multiline | grep commonName | sed -n 's/ *commonName *= //p' )"
 
@@ -394,15 +403,26 @@ function main() {
                 fastlane run build_ios_app workspace:"${FASTLANE_IOS_WORKSPACE_FILE}" output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}" export_method:"app-store" codesigning_identity:"${CODESIGN_IDENTITY}" || return $?
 
                 # Cleanup
-                fastlane run delete_keychain path:"${FASTLANE_KEYCHAIN_PATH}"
+                fastlane run delete_keychain keychain_path:"${FASTLANE_KEYCHAIN_PATH}"
                 fastlane run clean_build_artifacts
                 ;;
         esac
+
 
         if [[ -f "${EXPO_BINARY_FILE_PATH}" ]]; then 
             aws --region "${AWS_REGION}" s3 sync --exclude "*" --include "${BINARY_FILE_PREFIX}*" "${BINARY_PATH}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/" || return $?
             EXPO_BINARY_PRESIGNED_URL="$(aws --region "${AWS_REGION}" s3 presign --expires-in "${BINARY_EXPIRATION}" "s3://${APPDATA_BUCKET}/${EXPO_APPDATA_PREFIX}/${EXPO_BINARY_FILE_NAME}" )"
             DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<p><strong>${build_format}</strong> <a href="${EXPO_BINARY_PRESIGNED_URL}">${build_format} - ${EXPO_APP_VERSION} - ${BUILD_NUMBER}</a>" 
+
+            if [[ "${SUBMIT_BINARY}" == "true" && -n "${IOS_TESTFLIGHT_USERNAME}" ]]; then 
+                case "${build_format}" in
+                    "ios")
+                        info "Submitting IOS binary to testflight"
+                        export FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="${IOS_TESTFLIGHT_PASSWORD}"
+                        fastlane run upload_to_testflight skip_waiting_for_build_process:true apple_id:"${IOS_DIST_APPLE_ID}" ipa:"${EXPO_BINARY_FILE_PATH}" username:"${IOS_TESTFLIGHT_USERNAME}" || return $?
+                    ;;
+                esac
+            fi 
         fi
       else 
         info "Skipping build of app binary for ${build_format}"
