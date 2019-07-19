@@ -22,7 +22,8 @@
                 },
                 "role" : {
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id ),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "instanceProfile" : {
                     "Id" : formatResourceId( AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE, core.Id ),

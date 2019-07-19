@@ -27,7 +27,8 @@
                 },
                 "role" : {
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id ),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 }
             } +
             publicAccessEnabled?then(

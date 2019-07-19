@@ -48,7 +48,8 @@
                     },
                     "servicerole" : {
                         "Id" : formatDependentRoleId(esId),
-                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
                     }
                 },
                 "Attributes" : {

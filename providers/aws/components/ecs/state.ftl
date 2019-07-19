@@ -69,11 +69,13 @@
                 },
                 "role" : {
                     "Id" : formatComponentRoleId(core.Tier, core.Component),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "serviceRole" : {
                     "Id" : formatComponentRoleId(core.Tier, core.Component, "service"),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "instanceProfile" : {
                     "Id" : formatEC2InstanceProfileId(core.Tier, core.Component),
@@ -168,7 +170,8 @@
                 solution.UseTaskRole,
                 {
                     "Id" : formatDependentRoleId(taskId),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 }
             ) +
             attributeIfTrue(
@@ -184,7 +187,8 @@
                 solution.Engine == "fargate",
                 {
                     "Id" : formatDependentRoleId(taskId, "execution"),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 }
             ),
             "Attributes" : {
@@ -256,7 +260,8 @@
                 solution.UseTaskRole,
                 {
                     "Id" : taskRoleId,
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 }
             ) +
             attributeIfContent(
@@ -264,7 +269,8 @@
                 solution.Schedules,
                 {
                     "Id" : formatDependentRoleId(taskId, "schedule"),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 }
             ) +
             attributeIfTrue(
@@ -280,7 +286,8 @@
                 solution.Engine == "fargate",
                 {
                     "Id" : formatDependentRoleId(taskId, "execution"),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 }
             ),
             "Attributes" : {

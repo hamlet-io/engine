@@ -21,12 +21,14 @@
                 "pipelineRole" : {
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "pipeline" ),
                     "Name" : formatName(core.FullName, "pipeline"),
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "resourceRole" : {
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id, "resource" ),
                     "Name" : resourceRoleName,
-                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                    "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                    "IncludeInDeploymentState" : false
                 },
                 "resourceInstanceProfile" : {
                     "Id" : formatResourceId( AWS_EC2_INSTANCE_PROFILE_RESOURCE_TYPE, core.Id ),

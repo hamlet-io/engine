@@ -101,12 +101,14 @@
                 { "flowlogs" : {
                     "flowLogRole" : {
                         "Id" : formatDependentRoleId(vpcId),
-                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
                     },
                     "flowLogLg" : {
                         "Id" : formatDependentLogGroupId(vpcId, "all"),
                         "Name" : flowLogLgName,
-                        "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE
+                        "Type" : AWS_CLOUDWATCH_LOG_GROUP_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
                     },
                     "flowLog" : {
                         "Id" : flowLogId,
