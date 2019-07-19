@@ -10,6 +10,7 @@ DEFAULT_TURTLE_VERSION="0.8.7"
 DEFAULT_BINARY_EXPIRATION="1210000"
 DEFAULT_RUN_SETUP="false"
 DEFAULT_FORCE_BINARY_BUILD="false"
+DEFAULT_SUBMIT_BINARY="false"
 DEFAULT_QR_BUILD_FORMATS="ios,android"
 DEFAULT_BINARY_BUILD_PROCESS="turtle"
 
@@ -76,6 +77,7 @@ where
 (o) -s RUN_SETUP              run setup installation to prepare
 (o) -t BINARY_EXPIRATION      how long presigned urls are active for once created ( seconds )
 (o) -f FORCE_BINARY_BUILD     force the build of binary images
+(o) -m SUBMIT_BINARY          submit the binary for testing
 (o) -b BINARY_BUILD_PROCESS   sets the build process to create the binary
 (q) -q QR_BUILD_FORMATS       specify the formats you would like to generate QR urls for
 
@@ -86,6 +88,7 @@ BINARY_EXPIRATION = ${DEFAULT_BINARY_EXPIRATION}
 BUILD_FORMATS = ${DEFAULT_BUILD_FORMATS}
 BINARY_EXPIRATION = ${DEFAULT_BINARY_EXPIRATION}
 RUN_SETUP = ${DEFAULT_RUN_SETUP}
+SUBMIT_BINARY = ${DEFAULT_SUBMIT_BINARY}
 QR_BUILD_FORMATS = ${DEFAULT_QR_BUILD_FORMATS}
 BINARY_BUILD_PROCESS = ${DEFAULT_BINARY_BUILD_PROCESS}
 
@@ -99,7 +102,7 @@ EOF
 function options() { 
 
     # Parse options
-    while getopts ":bfhsq:t:u:" opt; do
+    while getopts ":bfhmsq:t:u:" opt; do
         case $opt in
             b)
                 BINARY_BUILD_PROCESS="${OPTARG}"
@@ -109,6 +112,9 @@ function options() {
                 ;;
             h)
                 usage
+                ;;
+            m)
+                SUBMIT_BINARY="true"
                 ;;
             u)
                 DEPLOYMENT_UNIT="${OPTARG}"
@@ -137,6 +143,7 @@ function options() {
     EXPO_VERSION="${EXPO_VERSION:-$DEFAULT_EXPO_VERSION}"
     BINARY_EXPIRATION="${BINARY_EXPIRATION:-$DEFAULT_BINARY_EXPIRATION}"
     FORCE_BINARY_BUILD="${FORCE_BINARY_BUILD:-$DEFAULT_FORCE_BINARY_BUILD}"
+    SUBMIT_BINARY="${SUBMIT_BINARY:-DEFAULT_SUBMIT_BINARY}"
     QR_BUILD_FORMATS="${QR_BUILD_FORMATS:-$DEFAULT_QR_BUILD_FORMATS}"
     BINARY_BUILD_PROCESS="${BINARY_BUILD_PROCESS:-$DEFAULT_BINARY_BUILD_PROCESS}"
 }
