@@ -13,6 +13,13 @@
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
+    [#-- Baseline component lookup --]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData", "AppData" ])]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
+    [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]!"") ]
+    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]!"") ]
+    [#local dataBucket       = getExistingReference(baselineComponentIds["AppData"]!"") ]
+
     [#local contextLinks = getLinkTargets(occurrence) ]
     [#assign _context =
         {
@@ -136,14 +143,6 @@
     [#if !getExistingReference(bucketId)?has_content ]
         [#local bucketId = formatS3OperationsId() ]
     [/#if]
-
-    [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData", "AppData" ] )]
-    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
-
-    [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]) ]
-    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
-    [#local dataBucket       = getExistingReference(baselineComponentIds["AppData"]) ]
 
     [#if !cfAccess?has_content]
         [@precondition
