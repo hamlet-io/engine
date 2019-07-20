@@ -35,7 +35,7 @@
                         [#local ids += { linkName, linkTargetResources["ec2KeyPair"].Id }]
                         [#break]
                     [#case "oai"]
-                        [#local id += { linkName, linkTargetResources["originAccessId"].Id }]
+                        [#local ids += { linkName, linkTargetResources["originAccessId"].Id }]
                         [#break]
                 [/#switch]
                 [#break]
