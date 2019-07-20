@@ -14,6 +14,8 @@
     [#local userPoolId                 = resources["userpool"].Id]
     [#local userPoolName               = resources["userpool"].Name]
 
+    [#local userPoolRoleId             = resources["role"].Id]
+
     [#local userPoolDomainId           = resources["domain"].Id]
     [#local userPoolHostName           = resources["domain"].Name]
     [#local customDomainRequired       = ((resources["customdomain"].Id)!"")?has_content ]

@@ -46,8 +46,6 @@
         [#local defaultUserPoolClientName = formatSegmentFullName(core.Name)]
         [#local defaultUserPoolClientRequired = solution.DefaultClient ]
 
-        [#local userPoolRoleId = formatComponentRoleId(core.Tier, core.Component)]
-
         [#local userPoolDomainId = formatResourceId(AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE, core.Id)]
         [#local certificatePresent = isPresent(solution.HostedUI.Certificate) ]
         [#local userPoolDomainName = formatName("auth", core.ShortFullName, segmentSeed)]
@@ -84,6 +82,11 @@
                         "Id" : userPoolDomainId,
                         "Name" : userPoolDomainName,
                         "Type" : AWS_COGNITO_USERPOOL_DOMAIN_RESOURCE_TYPE
+                    },
+                    "role" : {
+                        "Id" : formatComponentRoleId(core.Tier, core.Component),
+                        "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
+                        "IncludeInDeploymentState" : false
                     }
                 } +
                 defaultUserPoolClientRequired?then(
