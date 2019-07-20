@@ -243,7 +243,7 @@
 
     [#if ((solution.MFA) || ( solution.VerifyPhone))]
         [#if (deploymentSubsetRequired("iam", true) || deploymentSubsetRequired("userpool", true)) &&
-            isPartOfCurrentDeploymentUnit(userPoolId)]
+            isPartOfCurrentDeploymentUnit(userPoolRoleId)]
 
                 [@createRole
                     id=userPoolRoleId
