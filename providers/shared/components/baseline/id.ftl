@@ -9,6 +9,14 @@
 [#function getBaselineComponentIds links ]
     [#local ids = {}]
     [#list links as linkName, linkTarget ]
+        [#if !linkTarget?has_content]
+            [@precondition
+                function="getBaselineComponentIds"
+                context=links
+                detail="Link " + linkName + " has no target"
+            /]
+            [#continue]
+        [/#if]
         [#local linkTargetCore = linkTarget.Core ]
         [#local linkTargetSolution = linkTarget.Configuration.Solution ]
         [#local linkTargetResources = linkTarget.State.Resources ]
@@ -31,12 +39,11 @@
                         [#break]
                 [/#switch]
                 [#break]
-            
+
             [#default]
                 [@fatal
                     message="Unkown baseline subcomponent"
-                    context=key
-                    detail=subComponent
+                    context=linkTarget
                 /]
         [/#switch]
     [/#list]
@@ -81,9 +88,12 @@
             ]
             [#local baselineLinkTarget = getLinkTarget( {}, baselineLink, activeOnly, activeRequired )]
 
-            [#local baselineLinkTargets += {
-                    key : baselineLinkTarget
-            }]
+            [#-- Skip missing targets --]
+            [#if baselineLinkTarget?has_content]
+                [#local baselineLinkTargets += {
+                        key : baselineLinkTarget
+                    } ]
+            [/#if]
         [/#if]
     [/#list]
 
