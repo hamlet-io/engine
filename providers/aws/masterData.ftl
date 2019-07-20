@@ -9,14 +9,14 @@
       "Locality": "Tokyo",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "ap-northeast-1a"
         },
         "c": {
-          "Id" : "c",
+          "Id": "c",
           "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
@@ -30,7 +30,7 @@
         "Centos": {
           "NAT": "ami-00d29e4cb217ae06b",
           "EC2": "ami-04b2d1589ab1d972c",
-          "ECS": "ami-0e1aa8c2e9d719f58"
+          "ECS": "ami-084d4626fec6f3ca3"
         }
       }
     },
@@ -39,14 +39,14 @@
       "Locality": "Seoul",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "ap-northeast-2a"
         },
         "c": {
-          "Id" : "c",
+          "Id": "c",
           "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
@@ -60,7 +60,7 @@
         "Centos": {
           "NAT": "ami-0d98591cbf9ef1ffd",
           "EC2": "ami-0be3e6f84d3b968cd",
-          "ECS": "ami-0765a9b4036f26f32"
+          "ECS": "ami-03c5d1f1ba6ec1b7d"
         }
       }
     },
@@ -69,14 +69,14 @@
       "Locality": "Mumbai",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "ap-south-1a"
         },
         "b": {
-          "Id" : "b",
+          "Id": "b",
           "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
@@ -90,7 +90,7 @@
         "Centos": {
           "NAT": "ami-00b3aa8a93dd09c13",
           "EC2": "ami-0b99c7725b9484f9e",
-          "ECS": "ami-09155a5dc3c532de1"
+          "ECS": "ami-09f6bc049f323302c"
         }
       }
     },
@@ -99,7 +99,7 @@
       "Locality": "Singapore",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
@@ -107,7 +107,7 @@
           "AWSZone": "ap-southeast-1a"
         },
         "b": {
-          "Id" : "b",
+          "Id": "b",
           "Name": "b",
           "Title": "Zone B",
           "Description": "Singapore Zone B",
@@ -122,7 +122,7 @@
         "Centos": {
           "NAT": "ami-01514bb1776d5c018",
           "EC2": "ami-0fb6b6f9e81056553",
-          "ECS": "ami-0309369aa9694281c"
+          "ECS": "ami-01813416d767d88db"
         }
       }
     },
@@ -131,7 +131,7 @@
       "Locality": "Sydney",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
@@ -525,7 +525,7 @@
         "Centos": {
           "NAT": "ami-062c04ec46aecd204",
           "EC2": "ami-075caa3491def750b",
-          "ECS": "ami-0c2963a1e04bd8a00"
+          "ECS": "ami-07fcafbb9f3a4f7db"
         }
       }
     },
@@ -537,7 +537,6 @@
           "Id": "a",
           "Name": "a",
           "Title": "Zone A",
-          "Name": "a",
           "Description": "Zone A",
           "AWSZone": "ca-central-1a"
         },
@@ -556,7 +555,7 @@
         "Centos": {
           "NAT": "ami-0b32354309da5bba5",
           "EC2": "ami-0a67d15f2858e33cb",
-          "ECS": "ami-00d5c6d1f8349edd1"
+          "ECS": "ami-011742239f8f42f46"
         }
       }
     },
@@ -615,7 +614,7 @@
         "Centos": {
           "NAT": "ami-06a5303d47fbd8c60",
           "EC2": "ami-026d3b3672c6e7b66",
-          "ECS": "ami-0c0c01a7a42f41c0c"
+          "ECS": "ami-0bceb1887b6b37130"
         }
       }
     },
@@ -652,7 +651,7 @@
         "Centos": {
           "NAT": "ami-024107e3e3217a248",
           "EC2": "ami-0862aabda3fb488b5",
-          "ECS": "ami-03d739ab8755ab020"
+          "ECS": "ami-02b9d5ef54d57fb7d"
         }
       }
     },
@@ -661,14 +660,14 @@
       "Locality": "London",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "eu-west-2a"
         },
         "b": {
-          "Id" : "b",
+          "Id": "b",
           "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
@@ -682,7 +681,7 @@
         "Centos": {
           "NAT": "ami-0ca65a55561666293",
           "EC2": "ami-0bdfa1adc3878cd23",
-          "ECS": "ami-0959f069afa43696a"
+          "ECS": "ami-0f49b2a9014635082"
         }
       }
     },
@@ -691,14 +690,14 @@
       "Locality": "Paris",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "eu-west-3a"
         },
         "b": {
-          "Id" : "b",
+          "Id": "b",
           "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
@@ -712,7 +711,7 @@
         "Centos": {
           "NAT": "ami-0641e4dfc1427f114",
           "EC2": "ami-05b93cd5a1b552734",
-          "ECS": "ami-025da470c90f48af8"
+          "ECS": "ami-0db8d6e7dcf3cb362"
         }
       }
     },
@@ -721,21 +720,21 @@
       "Locality": "Sao Paulo",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "sa-east-1a"
         },
         "b": {
-          "Id" : "b",
+          "Id": "b",
           "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "sa-east-1b"
         },
         "c": {
-          "Id" : "c",
+          "Id": "c",
           "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
@@ -749,7 +748,7 @@
         "Centos": {
           "NAT": "ami-057f5d52ff7ae75ae",
           "EC2": "ami-0bb96001cf2299257",
-          "ECS": "ami-01c4f4ee99cf38e79"
+          "ECS": "ami-0ad0be326813dda96"
         }
       }
     },
@@ -793,7 +792,7 @@
         "Centos": {
           "NAT": "ami-00a9d4a05375b2763",
           "EC2": "ami-035b3c7efe6d061d5",
-          "ECS": "ami-0d09143c6fc181fe3"
+          "ECS": "ami-0c09d65d2051ada93"
         }
       }
     },
@@ -802,21 +801,21 @@
       "Locality": "Ohio",
       "Zones": {
         "a": {
-          "Id" : "a",
+          "Id": "a",
           "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "us-east-2a"
         },
         "b": {
-          "Id" : "b",
+          "Id": "b",
           "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "us-east-2b"
         },
         "c": {
-          "Id" : "c",
+          "Id": "c",
           "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
@@ -830,7 +829,7 @@
         "Centos": {
           "NAT": "ami-00d1f8201864cc10c",
           "EC2": "ami-02f706d959cedf892",
-          "ECS": "ami-0eba5aab4550a443a"
+          "ECS": "ami-0151b45908571e14c"
         }
       }
     },
@@ -889,7 +888,7 @@
         "Centos": {
           "NAT": "ami-097ad469381034fa2",
           "EC2": "ami-0fcdcdb074d2bac5f",
-          "ECS": "ami-00303cd65a37d033b"
+          "ECS": "ami-0b4f28359911d5896"
         }
       }
     },
@@ -926,7 +925,7 @@
         "Centos": {
           "NAT": "ami-0b840e8a1ce4cdf15",
           "EC2": "ami-0f2176987ee50226e",
-          "ECS": "ami-084799b9fb64c149e"
+          "ECS": "ami-077368b501184adb9"
         }
       }
     },
@@ -963,7 +962,7 @@
         "Centos": {
           "NAT": "ami-28d15f56",
           "EC2": "ami-8c169ef2",
-          "ECS": "ami-01d37f0c18610fdc6"
+          "ECS": "ami-0d7012b0cae33c045"
         }
       }
     }
@@ -1105,27 +1104,19 @@
           "baseline": {
             "DataBuckets": {
               "opsdata": {
-                "Id": "opsdata",
-                "Name": "opsdata",
                 "Role": "operations",
                 "Lifecycles": {
                   "awslogs": {
-                    "Id" : "awslogs",
-                    "Name" : "awslogs",
                     "Prefix": "AWSLogs",
                     "Expiration": "_operations",
                     "Offline": "_operations"
                   },
                   "cloudfront": {
-                    "Id" : "cloudfront",
-                    "Name" : "cloudfront",
                     "Prefix": "CLOUDFRONTLogs",
                     "Expiration": "_operations",
                     "Offline": "_operations"
                   },
                   "docker": {
-                    "Id" : "docker",
-                    "Name" : "docker",
                     "Prefix": "DOCKERLogs",
                     "Expiration": "_operations",
                     "Offline": "_operations"
@@ -1133,8 +1124,6 @@
                 },
                 "Links": {
                   "cf_key": {
-                    "Id" : "cf_key",
-                    "Name" : "cf_key",
                     "Tier": "mgmt",
                     "Component": "baseline",
                     "Instance": "",
@@ -1144,13 +1133,9 @@
                 }
               },
               "appdata": {
-                "Id": "appdata",
-                "Name": "appdata",
                 "Role": "appdata",
                 "Lifecycles": {
                   "global": {
-                    "Id" : "global",
-                    "Name" : "global",
                     "Expiration": "_data",
                     "Offline": "_data"
                   }
@@ -1159,18 +1144,12 @@
             },
             "Keys": {
               "ssh": {
-                "Id": "ssh",
-                "Name": "ssh",
                 "Engine": "ssh"
               },
               "cmk": {
-                "Id": "cmk",
-                "Name": "cmk",
                 "Engine": "cmk"
               },
               "oai": {
-                "Id": "oai",
-                "Name": "oai",
                 "Engine": "oai"
               }
             }
@@ -1202,23 +1181,23 @@
           "network": {
             "RouteTables": {
               "internal": {
-                "Id" : "internal",
-                "Name" : "internal"
+                "Id": "internal",
+                "Name": "internal"
               },
               "external": {
-                "Id" : "external",
-                "Name" : "external",
+                "Id": "external",
+                "Name": "external",
                 "Public": true
               }
             },
             "NetworkACLs": {
               "open": {
-                "Id" : "open",
-                "Name" : "open",
+                "Id": "open",
+                "Name": "open",
                 "Rules": {
                   "in": {
-                    "Id" : "in",
-                    "Name" : "in",
+                    "Id": "in",
+                    "Name": "in",
                     "Priority": 200,
                     "Action": "allow",
                     "Source": {
@@ -1235,8 +1214,8 @@
                     "ReturnTraffic": false
                   },
                   "out": {
-                    "Id" : "out",
-                    "Name" : "out",
+                    "Id": "out",
+                    "Name": "out",
                     "Priority": 200,
                     "Action": "allow",
                     "Source": {
@@ -1267,8 +1246,8 @@
             "Engine": "igw",
             "Destinations": {
               "default": {
-                "Id" : "default",
-                "Name" : "default",
+                "Id": "default",
+                "Name": "default",
                 "IPAddressGroups": "_global",
                 "Links": {
                   "external": {
@@ -1293,8 +1272,8 @@
             "Engine": "natgw",
             "Destinations": {
               "default": {
-                "Id" : "default",
-                "Name" : "default",
+                "Id": "default",
+                "Name": "default",
                 "IPAddressGroups": "_global",
                 "Links": {
                   "internal": {
@@ -1319,8 +1298,8 @@
             "Engine": "vpcendpoint",
             "Destinations": {
               "default": {
-                "Id" : "default",
-                "Name" : "default",
+                "Id": "default",
+                "Name": "default",
                 "NetworkEndpointGroups": [
                   "storage",
                   "logs"
@@ -1355,12 +1334,12 @@
           "Lambda": {
             "Instances": {
               "default": {
-                "Id" : "default",
-                "Name" : "default",
+                "Id": "default",
+                "Name": "default",
                 "Versions": {
                   "v1": {
-                    "Id" : "v1",
-                    "Name" : "v1",
+                    "Id": "v1",
+                    "Name": "v1",
                     "DeploymentUnits": [
                       "cfredirect-v1"
                     ],
@@ -1377,8 +1356,8 @@
             "FixedCodeVersion": {},
             "Functions": {
               "cfredirect": {
-                "Id" : "cfredirect",
-                "Name" : "cfredirect",
+                "Id": "cfredirect",
+                "Name": "cfredirect",
                 "Handler": "index.handler",
                 "VPCAccess": false,
                 "Permissions": {
