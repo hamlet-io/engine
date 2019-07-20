@@ -746,7 +746,11 @@
                                 [#local
                                     subOccurrences +=
                                         internalGetOccurrences(
-                                            subComponentInstance,
+                                            {
+                                                "Id" : key,
+                                                "Name" : key
+                                            } +
+                                                subComponentInstance,
                                             {},
                                             occurrence,
                                             occurrenceContexts +
