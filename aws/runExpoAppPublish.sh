@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 [[ -n "${GENERATION_DEBUG}" ]] && set ${GENERATION_DEBUG}
-trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1} && fastlane run clean_build_artifacts' EXIT SIGHUP SIGINT SIGTERM
+trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGINT SIGTERM
 . "${GENERATION_DIR}/common.sh"
 
 #Defaults
@@ -167,11 +167,6 @@ function main() {
   . "${GENERATION_DIR}/createBuildblueprint.sh" -u "${DEPLOYMENT_UNIT}" 
 
   BUILD_BLUEPRINT="${AUTOMATION_DATA_DIR}/build_blueprint-${DEPLOYMENT_UNIT}-.json"
-
-  if [[ "${DEPLOYMENT_UNIT_TYPE}" -ne "mobileapp" ]]; then 
-      fatal "Component type is not a mobile app function"
-      return 255
-  fi
 
   # Make sure we are in the build source directory
   BINARY_PATH="${AUTOMATION_DATA_DIR}/binary"
@@ -411,7 +406,6 @@ function main() {
 
                 # Cleanup
                 fastlane run delete_keychain keychain_path:"${FASTLANE_KEYCHAIN_PATH}"
-                fastlane run clean_build_artifacts
                 ;;
         esac
 
@@ -426,7 +420,7 @@ function main() {
                     "ios")
                         info "Submitting IOS binary to testflight"
                         export FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="${IOS_TESTFLIGHT_PASSWORD}"
-                        fastlane run upload_to_testflight skip_waiting_for_build_process:true apple_id:"${IOS_DIST_APPLE_ID}" ipa:"${EXPO_BINARY_FILE_PATH}" username:"${IOS_TESTFLIGHT_USERNAME}" || return $?
+                        fastlane run upload_to_testflight skip_waiting_for_build_processing:true apple_id:"${IOS_DIST_APPLE_ID}" ipa:"${EXPO_BINARY_FILE_PATH}" username:"${IOS_TESTFLIGHT_USERNAME}" || return $?
                     ;;
                 esac
             fi 
