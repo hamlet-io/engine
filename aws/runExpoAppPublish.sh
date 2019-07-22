@@ -291,6 +291,18 @@ function main() {
   # Create a build for the SDK
   info "Creating an OTA for this version of the SDK"
   expo export --dump-sourcemap --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
+
+  EXPO_ID_OVERRIDE="$( jq -r '.BuildConfig.EXPO_ID_OVERRIDE' )"
+  if [[ "${EXPO_ID_OVERRIDE}" != "null" && -n "${EXPO_ID_OVERRIDE}" ]]; then
+
+    jq --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '.id=$EXPO_ID_OVERRIDE' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" > "${tmpdir}/ios-expo-override.json"
+    mv "${tmpdir}/ios-expo-override.json" "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json"
+
+    jq --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '.id=$EXPO_ID_OVERRIDE' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json" > "${tmpdir}/android-expo-override.json"
+    mv "${tmpdir}/android-expo-override.json" "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json"
+
+  fi
+
   if [[ "${DISABLE_OTA}" == "false" ]]; then 
     info "Copying OTA to CDN"
     aws --region "${AWS_REGION}" s3 sync --delete "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" || return $?
@@ -305,6 +317,17 @@ function main() {
     # Create master export 
     info "Creating master OTA artefact with Extra Dirs: ${EXPO_EXPORT_MERGE_ARGUMENTS}"
     expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/master/" ${EXPO_EXPORT_MERGE_ARGUMENTS}  || return $?
+
+    if [[ "${EXPO_ID_OVERRIDE}" != "null" && -n "${EXPO_ID_OVERRIDE}" ]]; then
+
+        jq --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '[ .[] | .id=$EXPO_ID_OVERRIDE ]' < "${SRC_PATH}/app/dist/master/ios-index.json" > "${tmpdir}/ios-master-expo-override.json"
+        mv "${tmpdir}/ios-master-expo-override.json" "${SRC_PATH}/app/dist/master/ios-index.json"
+
+        jq --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '[ .[] | .id=$EXPO_ID_OVERRIDE ]' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-master-expo-override.json"
+        mv "${tmpdir}/android-master-expo-override.json" "${SRC_PATH}/app/dist/master/android-index.json"
+
+    fi
+
     aws --region "${AWS_REGION}" s3 sync "${SRC_PATH}/app/dist/master/" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}" || return $? 
   fi
 
