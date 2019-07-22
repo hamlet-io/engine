@@ -287,7 +287,7 @@ function main() {
   # Create a build for the SDK
   info "Creating an OTA for this version of the SDK"
   expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
-  if [[ "${DISABLE_OTA}" == "true" ]]; then 
+  if [[ "${DISABLE_OTA}" == "false" ]]; then 
     info "Copying OTA to CDN"
     aws --region "${AWS_REGION}" s3 sync --delete "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" || return $?
 
@@ -394,7 +394,7 @@ function main() {
 
                 # Get the bundle file name from the manifest
                 BUNDLE_URL="$( jq -r '.bundleUrl' < "${BINARY_BUNDLE_FILE}")"
-                BUNDLE_FILE_NAME="$( basename "${BUNDLE_URL}")"
+                BUNDLE_FILE_NAME="$( basename "${BUNDLE_URL}")"  
 
                 if [[ "${DISABLE_OTA}" == "false" ]]; then
                     cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/bundles/${BUNDLE_FILE_NAME}" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app.bundle"
