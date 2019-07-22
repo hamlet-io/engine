@@ -1,7 +1,7 @@
 [#ftl]
 
 [@addComponent
-    type=RDS_COMPONENT_TYPE
+    type=DB_COMPONENT_TYPE
     properties=
         [
             {

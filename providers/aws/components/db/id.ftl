@@ -1,6 +1,6 @@
 [#ftl]
 [@addResourceGroupInformation
-    type=RDS_COMPONENT_TYPE
+    type=DB_COMPONENT_TYPE
     attributes=[]
     provider=AWS_PROVIDER
     resourceGroup=DEFAULT_RESOURCE_GROUP
