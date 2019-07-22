@@ -8,9 +8,12 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 DEFAULT_EXPO_VERSION="2.21.2"
 DEFAULT_TURTLE_VERSION="0.8.7"
 DEFAULT_BINARY_EXPIRATION="1210000"
+
 DEFAULT_RUN_SETUP="false"
 DEFAULT_FORCE_BINARY_BUILD="false"
 DEFAULT_SUBMIT_BINARY="false"
+DEFAULT_DISABLE_OTA="false"
+
 DEFAULT_QR_BUILD_FORMATS="ios,android"
 DEFAULT_BINARY_BUILD_PROCESS="turtle"
 
@@ -78,6 +81,7 @@ where
 (o) -t BINARY_EXPIRATION      how long presigned urls are active for once created ( seconds )
 (o) -f FORCE_BINARY_BUILD     force the build of binary images
 (o) -m SUBMIT_BINARY          submit the binary for testing
+(o) -o DISABLE_OTA            don't publish the OTA to the CDN
 (o) -b BINARY_BUILD_PROCESS   sets the build process to create the binary
 (q) -q QR_BUILD_FORMATS       specify the formats you would like to generate QR urls for
 
@@ -89,6 +93,7 @@ BUILD_FORMATS = ${DEFAULT_BUILD_FORMATS}
 BINARY_EXPIRATION = ${DEFAULT_BINARY_EXPIRATION}
 RUN_SETUP = ${DEFAULT_RUN_SETUP}
 SUBMIT_BINARY = ${DEFAULT_SUBMIT_BINARY}
+DISABLE_OTA  = ${DEPLOY_OTA}
 QR_BUILD_FORMATS = ${DEFAULT_QR_BUILD_FORMATS}
 BINARY_BUILD_PROCESS = ${DEFAULT_BINARY_BUILD_PROCESS}
 
@@ -115,6 +120,9 @@ function options() {
                 ;;
             m)
                 SUBMIT_BINARY="true"
+                ;;
+            o)
+                DISABLE_OTA="true"
                 ;;
             u)
                 DEPLOYMENT_UNIT="${OPTARG}"
@@ -146,6 +154,7 @@ function options() {
     SUBMIT_BINARY="${SUBMIT_BINARY:-DEFAULT_SUBMIT_BINARY}"
     QR_BUILD_FORMATS="${QR_BUILD_FORMATS:-$DEFAULT_QR_BUILD_FORMATS}"
     BINARY_BUILD_PROCESS="${BINARY_BUILD_PROCESS:-$DEFAULT_BINARY_BUILD_PROCESS}"
+    DISABLE_OTA="${DISABLE_OTA:-${DEFAULT_DISABLE_OTA}}"
 }
 
 
@@ -278,26 +287,28 @@ function main() {
   # Create a build for the SDK
   info "Creating an OTA for this version of the SDK"
   expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
-  aws --region "${AWS_REGION}" s3 sync --delete "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" || return $?
+  if [[ "${DISABLE_OTA}" == "true" ]]; then 
+    info "Copying OTA to CDN"
+    aws --region "${AWS_REGION}" s3 sync --delete "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" || return $?
 
-  # Merge all existing SDK packages into a master distribution
-  aws --region "${AWS_REGION}" s3 cp --recursive --exclude "${EXPO_SDK_VERSION}/*" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/" "${SRC_PATH}/app/dist/packages/"
-  EXPO_EXPORT_MERGE_ARGUMENTS=""
-  for dir in ${SRC_PATH}/app/dist/packages/*/ ; do
-    EXPO_EXPORT_MERGE_ARGUMENTS="${EXPO_EXPORT_MERGE_ARGUMENTS} --merge-src-dir "${dir}""
-  done
+    # Merge all existing SDK packages into a master distribution
+    aws --region "${AWS_REGION}" s3 cp --recursive --exclude "${EXPO_SDK_VERSION}/*" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/" "${SRC_PATH}/app/dist/packages/"
+    EXPO_EXPORT_MERGE_ARGUMENTS=""
+    for dir in ${SRC_PATH}/app/dist/packages/*/ ; do
+        EXPO_EXPORT_MERGE_ARGUMENTS="${EXPO_EXPORT_MERGE_ARGUMENTS} --merge-src-dir "${dir}""
+    done
 
-  # Create master export 
-  info "Creating master OTA artefact with Extra Dirs: ${EXPO_EXPORT_MERGE_ARGUMENTS}"
-  expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/master/" ${EXPO_EXPORT_MERGE_ARGUMENTS}  || return $?
-  aws --region "${AWS_REGION}" s3 sync "${SRC_PATH}/app/dist/master/" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}" || return $? 
-
-  DETAILED_HTML_QR_MESSAGE="<h4>Expo Client App QR Codes</h4> <p>Use these codes to load the app through the Expo Client</p>"
-
-  DETAILED_HTML_BINARY_MESSAGE="<h4>Expo Binary Builds</h4>"
-  if [[ "${BUILD_BINARY}" == "false" ]]; then 
-    DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE} <p> No binary builds were generated for this publish </p>"
+    # Create master export 
+    info "Creating master OTA artefact with Extra Dirs: ${EXPO_EXPORT_MERGE_ARGUMENTS}"
+    expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/master/" ${EXPO_EXPORT_MERGE_ARGUMENTS}  || return $?
+    aws --region "${AWS_REGION}" s3 sync "${SRC_PATH}/app/dist/master/" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}" || return $? 
   fi
+
+   DETAILED_HTML_QR_MESSAGE="<h4>Expo Client App QR Codes</h4> <p>Use these codes to load the app through the Expo Client</p>"
+   DETAILED_HTML_BINARY_MESSAGE="<h4>Expo Binary Builds</h4>"
+   if [[ "${BUILD_BINARY}" == "false" ]]; then 
+     DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE} <p> No binary builds were generated for this publish </p>"
+   fi
 
   for build_format in "${BUILD_FORMATS[@]}"; do
 
@@ -417,9 +428,17 @@ function main() {
             if [[ "${SUBMIT_BINARY}" == "true" && -n "${IOS_TESTFLIGHT_USERNAME}" ]]; then 
                 case "${build_format}" in
                     "ios")
+
+                        # Ensure mandatory arguments have been provided
+                        if [[ -z "${IOS_TESTFLIGHT_USERNAME}" || -z "${IOS_TESTFLIGHT_PASSWORD}" || "${IOS_DIST_APP_ID}" ]]; then 
+                            fatal "TestFlight details not found please provide IOS_TESTFLIGHT_USERNAME, IOS_TESTFLIGHT_PASSWORD and IOS_DIST_APP_ID"
+                            return 255
+                        fi
+
                         info "Submitting IOS binary to testflight"
                         export FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="${IOS_TESTFLIGHT_PASSWORD}"
                         fastlane run upload_to_testflight skip_waiting_for_build_processing:true apple_id:"${IOS_DIST_APP_ID}" ipa:"${EXPO_BINARY_FILE_PATH}" username:"${IOS_TESTFLIGHT_USERNAME}" || return $?
+                        DETAILED_HTML_BINARY_MESSAGE="${DETAILED_HTML_BINARY_MESSAGE}<strong> Submitted to TestFlight</strong>"
                     ;;
                 esac
             fi 
@@ -449,7 +468,11 @@ function main() {
   aws --region "${AWS_REGION}" s3 sync "${REPORTS_PATH}/" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/reports/" || return $?
 
   if [[ "${BUILD_BINARY}" == "true" ]]; then 
-    DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
+    if [[ "${SUBMIT_BINARY}" == "true"]]; then 
+        DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* - *SUBMITTED TO APP TESTING* -  More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
+    else
+        DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
+    fi
   else
     DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
   fi 
