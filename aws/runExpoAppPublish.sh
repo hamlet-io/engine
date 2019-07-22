@@ -473,7 +473,7 @@ function main() {
   aws --region "${AWS_REGION}" s3 sync "${REPORTS_PATH}/" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/reports/" || return $?
 
   if [[ "${BUILD_BINARY}" == "true" ]]; then 
-    if [[ "${SUBMIT_BINARY}" == "true"]]; then 
+    if [[ "${SUBMIT_BINARY}" == "true" ]]; then 
         DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* - *SUBMITTED TO APP TESTING* -  More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
     else
         DETAIL_MESSAGE="${DETAIL_MESSAGE} *Expo Publish Complete* - *NEW BINARIES CREATED* -  More details available <${PUBLIC_URL}/reports/build-report.html|Here>"
