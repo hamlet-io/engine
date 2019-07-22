@@ -320,6 +320,7 @@ function main() {
         "ios")
             BINARY_FILE_EXTENSION="ipa"
             export IOS_DIST_APPLE_ID="$( jq -r '.BuildConfig.IOS_DIST_APPLE_ID' < "${CONFIG_FILE}" )"
+            export IOS_DIST_APP_ID="$( jq -r '.BuildConfig.IOS_DIST_APP_ID' < "${CONFIG_FILE}" )"
 
             export IOS_TESTFLIGHT_USERNAME="$(jq -r '.BuildConfig.IOS_TESTFLIGHT_USERNAME' < "${CONFIG_FILE}")"
             IOS_TESTFLIGHT_PASSWORD="$(jq -r '.BuildConfig.IOS_TESTFLIGHT_PASSWORD' < "${CONFIG_FILE}")"
@@ -418,7 +419,7 @@ function main() {
                     "ios")
                         info "Submitting IOS binary to testflight"
                         export FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="${IOS_TESTFLIGHT_PASSWORD}"
-                        fastlane run upload_to_testflight skip_waiting_for_build_processing:true apple_id:"${IOS_DIST_APPLE_ID}" ipa:"${EXPO_BINARY_FILE_PATH}" username:"${IOS_TESTFLIGHT_USERNAME}" || return $?
+                        fastlane run upload_to_testflight skip_waiting_for_build_processing:true apple_id:"${IOS_DIST_APP_ID}" ipa:"${EXPO_BINARY_FILE_PATH}" username:"${IOS_TESTFLIGHT_USERNAME}" || return $?
                     ;;
                 esac
             fi 
