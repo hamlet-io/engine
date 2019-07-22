@@ -435,7 +435,7 @@ function main() {
                     "ios")
 
                         # Ensure mandatory arguments have been provided
-                        if [[ -z "${IOS_TESTFLIGHT_USERNAME}" || -z "${IOS_TESTFLIGHT_PASSWORD}" || "${IOS_DIST_APP_ID}" ]]; then 
+                        if [[ -z "${IOS_TESTFLIGHT_USERNAME}" || -z "${IOS_TESTFLIGHT_PASSWORD}" || -z "${IOS_DIST_APP_ID}" ]]; then 
                             fatal "TestFlight details not found please provide IOS_TESTFLIGHT_USERNAME, IOS_TESTFLIGHT_PASSWORD and IOS_DIST_APP_ID"
                             return 255
                         fi
