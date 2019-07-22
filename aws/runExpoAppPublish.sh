@@ -381,7 +381,7 @@ function main() {
                 # Get the bundle file name from the manifest
                 BUNDLE_URL="$( jq -r '.bundleUrl' < "${BINARY_BUNDLE_FILE}")"
                 BUNDLE_FILE_NAME="$( basename "${BUNDLE_URL}")"  
-                cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/${BUNDLE_FILE_NAME}" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app.bundle"
+                cp "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/bundles/${BUNDLE_FILE_NAME}" "${SRC_PATH}/ios/${EXPO_PROJECT_SLUG}/Supporting/shell-app.bundle"
 
                 jq --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg MANIFEST_URL "${EXPO_MANIFEST_URL}" '.manifestUrl=$MANIFEST_URL | .releaseChannel=$RELEASE_CHANNEL' <  "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json" > "${tmpdir}/EXShell.json"  
                 mv "${tmpdir}/EXShell.json" "ios/${EXPO_PROJECT_SLUG}/Supporting/EXShell.json"
@@ -404,8 +404,6 @@ function main() {
                 fastlane run cocoapods podfile:"${FASTLANE_IOS_PODFILE}" || return $?
                 fastlane run build_ios_app workspace:"${FASTLANE_IOS_WORKSPACE_FILE}" output_directory:"${BINARY_PATH}" output_name:"${EXPO_BINARY_FILE_NAME}" export_method:"app-store" codesigning_identity:"${CODESIGN_IDENTITY}" || return $?
 
-                # Cleanup
-                fastlane run delete_keychain keychain_path:"${FASTLANE_KEYCHAIN_PATH}"
                 ;;
         esac
 
@@ -433,7 +431,7 @@ function main() {
 
   for qr_build_format in "${EXPO_QR_BUILD_FORMATS[@]}"; do 
 
-       #Generate EXPO QR Code 
+      #Generate EXPO QR Code 
       EXPO_QR_FILE_PREFIX="${qr_build_format}"
       EXPO_QR_FILE_NAME="${EXPO_QR_FILE_PREFIX}-qr.png"
       EXPO_QR_FILE_PATH="${REPORTS_PATH}/${EXPO_QR_FILE_NAME}"
