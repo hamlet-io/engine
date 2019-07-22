@@ -259,12 +259,16 @@ function main() {
 
     if [[ -f "${AUTOMATION_DATA_DIR}/current-app-manifest.json" ]]; then 
         EXPO_CURRENT_APP_VERSION="$(jq -r '.version' < "${AUTOMATION_DATA_DIR}/current-app-manifest.json" )"
+        EXPO_CURRENT_APP_REVISION_ID="$(jq -r '.revisionId' < "${AUTOMATION_DATA_DIR}/current-app-manifest.json" )"
     fi 
   fi
 
   if [[ -z "${EXPO_CURRENT_SDK_BUILD}" || "${FORCE_BINARY_BUILD}" == "true" || "${EXPO_CURRENT_APP_VERSION}" != "${EXPO_APP_VERSION}" ]]; then 
     BUILD_BINARY="true"
   fi
+
+  # variable for sentry source map upload
+  [[ -n "${EXPO_CURRENT_APP_VERSION}" ]] && echo "SENTRY_RELEASE_NAME=${EXPO_CURRENT_APP_VERSION}-r.${EXPO_CURRENT_APP_REVISION_ID}" >> ${AUTOMATION_DATA_DIR}/chain.properties
 
   # Update the app.json with build context information - Also ensure we always have a unique IOS build number
   # filter out the credentials used for the build process
@@ -286,7 +290,7 @@ function main() {
 
   # Create a build for the SDK
   info "Creating an OTA for this version of the SDK"
-  expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
+  expo export --dump-sourcemap --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
   if [[ "${DISABLE_OTA}" == "false" ]]; then 
     info "Copying OTA to CDN"
     aws --region "${AWS_REGION}" s3 sync --delete "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" || return $?
@@ -303,6 +307,10 @@ function main() {
     expo export --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/master/" ${EXPO_EXPORT_MERGE_ARGUMENTS}  || return $?
     aws --region "${AWS_REGION}" s3 sync "${SRC_PATH}/app/dist/master/" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}" || return $? 
   fi
+
+  # variable for sentry source map uploads
+  SENTRY_SOURCE_MAP_S3_URL="s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}"
+  [[ -n "${SENTRY_SOURCE_MAP_S3_URL}" ]] && echo "SENTRY_SOURCE_MAP_S3_URL=${SENTRY_SOURCE_MAP_S3_URL}" >> ${AUTOMATION_DATA_DIR}/chain.properties
 
    DETAILED_HTML_QR_MESSAGE="<h4>Expo Client App QR Codes</h4> <p>Use these codes to load the app through the Expo Client</p>"
    DETAILED_HTML_BINARY_MESSAGE="<h4>Expo Binary Builds</h4>"
