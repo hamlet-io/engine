@@ -848,7 +848,7 @@ behaviour.
     [#if primaryNotSeen && (result?size > 0) ]
         [#local forcedResult = [ result[0] + { "Role" : DOMAIN_ROLE_PRIMARY } ] ]
         [#if (result?size > 1) ]
-            [#local forceResult += result[1..] ]
+            [#local forcedResult += result[1..] ]
         [/#if]
         [#local result = forcedResult]
     [/#if]

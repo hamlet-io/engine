@@ -8,9 +8,11 @@
     [#local cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
 
     [#if isPresent(solution.Certificate) ]
-            [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
-            [#local hostName = getHostName(certificateObject, occurrence) ]
-            [#local fqdn = formatDomainName(hostName, certificateObject.Domains[0].Name)]
+        [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]
+        [#local hostName = getHostName(certificateObject, occurrence) ]
+        [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
+        [#local fqdn = formatDomainName(hostName, primaryDomainObject)]
+
     [#else]
             [#local fqdn = getExistingReference(cfId,DNS_ATTRIBUTE_TYPE)]
     [/#if]
