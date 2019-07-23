@@ -139,17 +139,16 @@ if [[ (-z "${KEYID}") && (-n "${ALIAS}") ]]; then
     KEYID="alias/${ALIAS}"
 fi
 if [[ "segment" =~ ${LOCATION} ]]; then
-    KEYID=$(getCmk "segment")
+    if [[ -z "${KEYID}"  ]]; then 
+        KEYID=$(getCmk "segment")
+    fi
     if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${SEGMENT_OPERATIONS_DIR}/${CRYPTO_FILE}"); fi
     FILES+=("${SEGMENT_OPERATIONS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
 fi
-if [[ "product" =~ ${LOCATION} ]]; then
-    KEYID=$(getCmk "product")
-    if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${PRODUCT_OPERATIONS_DIR}/${CRYPTO_FILE}"); fi
-    FILES+=("${PRODUCT_OPERATIONS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
-fi
 if [[ "account" =~ ${LOCATION} ]]; then
-    KEYID=$(getCmk "account")
+    if [[ -z "${KEYID}"  ]]; then 
+        KEYID=$(getCmk "account")
+    fi
     if [[ -n "${CRYPTO_FILE}" ]]; then FILES+=("${ACCOUNT_OPERATIONS_DIR}/${CRYPTO_FILENAME_DEFAULT}"); fi
     FILES+=("${ACCOUNT_OPERATIONS_DIR}/${CRYPTO_FILENAME_DEFAULT}")
 fi
