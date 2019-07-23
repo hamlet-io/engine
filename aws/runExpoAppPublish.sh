@@ -268,11 +268,17 @@ function main() {
   fi
 
   # variable for sentry source map upload
-  [[ -n "${EXPO_CURRENT_APP_VERSION}" ]] && echo "SENTRY_RELEASE_NAME=${EXPO_CURRENT_APP_VERSION}-r.${EXPO_CURRENT_APP_REVISION_ID}" >> ${AUTOMATION_DATA_DIR}/chain.properties
+  SENTRY_RELEASE_NAME="${EXPO_CURRENT_APP_VERSION}-r.${BUILD_NUMBER}"
+  SENTRY_SOURCE_MAP_S3_URL="s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}"
+  echo "SENTRY_SOURCE_MAP_S3_URL=${SENTRY_SOURCE_MAP_S3_URL}" >> ${AUTOMATION_DATA_DIR}/chain.properties
+  echo "SENTRY_RELEASE_NAME=${SENTRY_RELEASE_NAME}" >> ${AUTOMATION_DATA_DIR}/chain.properties
+  echo "SENTRY_URL_PREFIX=${PUBLIC_PREFIX}" >> ${AUTOMATION_DATA_DIR}/chain.properties
 
   # Update the app.json with build context information - Also ensure we always have a unique IOS build number
   # filter out the credentials used for the build process
-  jq --slurpfile envConfig "${CONFIG_FILE}" --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg BUILD_REFERENCE "${BUILD_REFERENCE}" --arg BUILD_NUMBER "${BUILD_NUMBER}" '.expo.releaseChannel=$RELEASE_CHANNEL | .expo.extra.build_reference=$BUILD_REFERENCE | .expo.ios.buildNumber=$BUILD_NUMBER | .expo.extra=.expo.extra + $envConfig[]["AppConfig"]' <  "./app.json" > "${tmpdir}/environment-app.json"  
+  jq --slurpfile envConfig "${CONFIG_FILE}" --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg BUILD_REFERENCE "${BUILD_REFERENCE}" \
+    --arg BUILD_NUMBER "${BUILD_NUMBER}" --arg REVISION_ID "${SENTRY_RELEASE_NAME}"\
+    '.expo.releaseChannel=$RELEASE_CHANNEL | .expo.extra.build_reference=$BUILD_REFERENCE | .revisionId=$REVISION_ID | .expo.ios.buildNumber=$BUILD_NUMBER | .expo.extra=.expo.extra + $envConfig[]["AppConfig"]' <  "./app.json" > "${tmpdir}/environment-app.json"
   mv "${tmpdir}/environment-app.json" "./app.json"
 
   ## Optional app.json overrides 
@@ -303,7 +309,7 @@ function main() {
 
   fi
 
-  if [[ "${DISABLE_OTA}" == "false" ]]; then 
+  if [[ "${DISABLE_OTA}" == "false" ]]; then
     info "Copying OTA to CDN"
     aws --region "${AWS_REGION}" s3 sync --delete "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" || return $?
 
@@ -330,10 +336,6 @@ function main() {
 
     aws --region "${AWS_REGION}" s3 sync "${SRC_PATH}/app/dist/master/" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}" || return $? 
   fi
-
-  # variable for sentry source map uploads
-  SENTRY_SOURCE_MAP_S3_URL="s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}"
-  [[ -n "${SENTRY_SOURCE_MAP_S3_URL}" ]] && echo "SENTRY_SOURCE_MAP_S3_URL=${SENTRY_SOURCE_MAP_S3_URL}" >> ${AUTOMATION_DATA_DIR}/chain.properties
 
    DETAILED_HTML_QR_MESSAGE="<h4>Expo Client App QR Codes</h4> <p>Use these codes to load the app through the Expo Client</p>"
    DETAILED_HTML_BINARY_MESSAGE="<h4>Expo Binary Builds</h4>"

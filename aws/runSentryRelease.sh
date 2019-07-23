@@ -7,6 +7,7 @@ trap '. ${GENERATION_DIR}/cleanupContext.sh; exit ${RESULT:-1}' EXIT SIGHUP SIGI
 #Defaults
 DEFAULT_SENTRY_CLI_VERSION="1.46.0"
 DEFAULT_RUN_SETUP="false"
+DEFAULT_SENTRY_URL_PREFIX="~/"
 
 # Get the generation context so we can run template generation
 . "${GENERATION_DIR}/setContext.sh"
@@ -32,8 +33,9 @@ where
 
     -h                              shows this text
 (m) -m SENTRY_SOURCE_MAP_S3_URL     s3 link to sourcemap files
-(o) -s RUN_SETUP              		run setup installation to prepare
+(o) -p SENTRY_URL_PREFIX                prefix for sourcemap files
 (m) -r SENTRY_RELEASE_NAME          sentry release name
+(o) -s RUN_SETUP              		run setup installation to prepare
 
 (m) mandatory, (o) optional, (d) deprecated
 
@@ -48,13 +50,16 @@ EOF
 function options() { 
 
     # Parse options
-    while getopts ":hm:r:s" opt; do
+    while getopts ":hm:p:r:s" opt; do
         case $opt in
             h)
                 usage
                 ;;
             m)
                 SENTRY_SOURCE_MAP_S3_URL="${OPTARG}"
+                ;;
+            p)
+                SENTRY_URL_PREFIX="${OPTARG}"
                 ;;
             r)
                 SENTRY_RELEASE_NAME="${OPTARG}"
@@ -74,6 +79,7 @@ function options() {
     #Defaults
     RUN_SETUP="${RUN_SETUP:-DEFAULT_RUN_SETUP}"
     SENTRY_CLI_VERSION="${SENTRY_CLI_VERSION:-$DEFAULT_SENTRY_CLI_VERSION}"
+    SENTRY_URL_PREFIX="${SENTRY_URL_PREFIX:-$DEFAULT_SENTRY_CLI_VERSION}"
 
 }
 
@@ -97,7 +103,7 @@ function main() {
   aws --region "${AWS_REGION}" s3 cp --recursive "${SENTRY_SOURCE_MAP_S3_URL}" "${SOURCE_MAP_PATH}" || return $?
 
   # TODO: Check if a release with a specified name exists. Create one if needed.
-  sentry-cli releases files "${SENTRY_RELEASE_NAME}" upload-sourcemaps "${SOURCE_MAP_PATH}" --rewrite || return $?
+  sentry-cli releases files "${SENTRY_RELEASE_NAME}" upload-sourcemaps "${SOURCE_MAP_PATH}" --rewrite --url-prefix "${SENTRY_URL_PREFIX}"
 
   DETAIL_MESSAGE="${DETAIL_MESSAGE} Source map files uploaded for the release ${SENTRY_RELEASE_NAME}."
 
