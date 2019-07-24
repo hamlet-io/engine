@@ -92,8 +92,7 @@
         [/#list]
     [/#list]
 
-    [#local hibernate = solution.Hibernate.Enabled  &&
-        (getExistingReference(cacheId)?has_content) ]
+    [#local hibernate = solution.Hibernate.Enabled && isOccurrenceDeployed(occurrence)]
 
     [#if deploymentSubsetRequired("cache", true)]
 

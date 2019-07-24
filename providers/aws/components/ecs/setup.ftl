@@ -26,8 +26,7 @@
     [#local defaultLogDriver = solution.LogDriver ]
     [#local fixedIP = solution.FixedIP ]
 
-    [#local hibernate = solution.Hibernate.Enabled &&
-                            getExistingReference(ecsId)?has_content ]
+    [#local hibernate = solution.Hibernate.Enabled && isOccurrenceDeployed(occurrence)]
 
     [#local processorProfile = getProcessor(occurrence, "ECS")]
     [#local storageProfile = getStorage(occurrence, "ECS")]
