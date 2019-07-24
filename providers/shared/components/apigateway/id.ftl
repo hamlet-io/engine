@@ -166,6 +166,12 @@ object.
                     {
                         "Names" : "Path",
                         "Children" : pathChildConfiguration
+                    },
+                    {
+                        "Names" : "UsePathInName",
+                        "Description" : "Name the Swagger Spec file using the path",
+                        "Type" : BOOLEAN_TYPE,
+                        "Default" : true
                     }
                 ]
             },
