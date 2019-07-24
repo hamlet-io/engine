@@ -577,9 +577,16 @@
 
         [#list solution.Publishers as id,publisher ]
 
-            [#local publisherPath = getContentPath( occurrence, publisher.Path )]
             [#local publisherLinks = getLinkTargets(occurrence, publisher.Links )]
 
+            [#local publisherPath = getContentPath( occurrence, publisher.Path )]
+            [#if publisher.UsePathInName ]
+                [#local fileName = formatName( publisherPath, "swagger.json") ]
+                [#local publisherPath = "" ]
+            [#else]
+                [#local fileName = "swagger.json" ]
+            [/#if]
+            
             [#list publisherLinks as publisherLinkId, publisherLinkTarget ]
                 [#local publisherLinkTargetCore = publisherLinkTarget.Core ]
                 [#local publisherLinkTargetAttributes = publisherLinkTarget.State.Attributes ]
@@ -592,12 +599,13 @@
                                 [
                                     "case $\{STACK_OPERATION} in",
                                     "  create|update)",
-                                    "info \"Sending API Specification to " + id + "-" + publisherLinkId + "\"",
-                                    "  copy_contentnode_file \"$\{tmpdir}/dist/swagger.json\" " +
+                                    "info \"Sending API Specification to " + id + "-" + publisherLinkTargetCore.FullName + "\"",
+                                    " cp \"$\{tmpdir}/dist/swagger.json\" \"$\{tmpdir}/dist/" + fileName + "\" ",
+                                    "  copy_contentnode_file \"$\{tmpdir}/dist/" + fileName + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.ENGINE + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.REPOSITORY + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.PREFIX + "\" " +
-                                    "\"" +    publisherPath + "\" " +
+                                    "\""  +    publisherPath + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.BRANCH + "\" || return $? ",
                                     "       ;;",
                                     " esac"
