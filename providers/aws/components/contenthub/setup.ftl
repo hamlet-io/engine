@@ -22,10 +22,11 @@
                 pseudoStackOutputScript(
                     "Content Hub Deployment",
                     {
-                        formatId(contentHubId, "engine") : solution.Engine,
-                        formatId(contentHubId, "repository") : solution.Repository,
-                        formatId(contentHubId, "prefix") : contentHubPrefix,
-                        formatId(contentHubId, "branch") : solution.Branch
+                        formatId(contentHubId)                  : contentHubId,
+                        formatId(contentHubId, "engine")        : solution.Engine,
+                        formatId(contentHubId, "repository")    : solution.Repository,
+                        formatId(contentHubId, "prefix")        : contentHubPrefix,
+                        formatId(contentHubId, "branch")        : solution.Branch
                     }
                 )
         /]
