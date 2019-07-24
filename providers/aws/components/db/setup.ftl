@@ -115,8 +115,7 @@
         [#local rdsPassword = attributes.PASSWORD ]
     [/#if]
 
-    [#local hibernate = solution.Hibernate.Enabled  &&
-            (getExistingReference(rdsId)?has_content) ]
+    [#local hibernate = solution.Hibernate.Enabled && isOccurrenceDeployed(occurrence)]
 
     [#local hibernateStartUpMode = solution.Hibernate.StartUpMode ]
 
