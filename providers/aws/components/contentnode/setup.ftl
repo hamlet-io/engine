@@ -3,7 +3,7 @@
     [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets="prologue"] /]
+        [@addDefaultGenerationPlan subsets="prologue" /]
         [#return]
     [/#if]
 
