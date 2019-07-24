@@ -485,8 +485,6 @@
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
 
-    [@cfDebug listMode operationsBucket true /]
-
     [#local tier = core.Tier ]
     [#local component = core.Component ]
 
