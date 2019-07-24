@@ -921,7 +921,7 @@ function copy_contentnode_file() {
                 rm -rf "${hubpath}" || return $?
               fi 
               mkdir -p "${hubpath}"
-              cp -R "${contentnodedir}/" "${hubpath}" || return $?
+              cp -R ${contentnodedir}/* ${hubpath} || return $?
             else
               fatal "Hub path not defined"
               return 1
