@@ -272,13 +272,15 @@ function main() {
   SENTRY_SOURCE_MAP_S3_URL="s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}"
   echo "SENTRY_SOURCE_MAP_S3_URL=${SENTRY_SOURCE_MAP_S3_URL}" >> ${AUTOMATION_DATA_DIR}/chain.properties
   echo "SENTRY_RELEASE_NAME=${SENTRY_RELEASE_NAME}" >> ${AUTOMATION_DATA_DIR}/chain.properties
-  echo "SENTRY_URL_PREFIX=${PUBLIC_PREFIX}" >> ${AUTOMATION_DATA_DIR}/chain.properties
+  echo "SENTRY_URL_PREFIX=~/${PUBLIC_PREFIX}" >> ${AUTOMATION_DATA_DIR}/chain.properties
 
   # Update the app.json with build context information - Also ensure we always have a unique IOS build number
   # filter out the credentials used for the build process
-  jq --slurpfile envConfig "${CONFIG_FILE}" --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" --arg BUILD_REFERENCE "${BUILD_REFERENCE}" \
-    --arg BUILD_NUMBER "${BUILD_NUMBER}" --arg REVISION_ID "${SENTRY_RELEASE_NAME}"\
-    '.expo.releaseChannel=$RELEASE_CHANNEL | .expo.extra.build_reference=$BUILD_REFERENCE | .revisionId=$REVISION_ID | .expo.ios.buildNumber=$BUILD_NUMBER | .expo.extra=.expo.extra + $envConfig[]["AppConfig"]' <  "./app.json" > "${tmpdir}/environment-app.json"
+  jq --slurpfile envConfig "${CONFIG_FILE}" \
+    --arg RELEASE_CHANNEL "${RELEASE_CHANNEL}" \
+    --arg BUILD_REFERENCE "${BUILD_REFERENCE}" \
+    --arg BUILD_NUMBER "${BUILD_NUMBER}" \
+    '.expo.releaseChannel=$RELEASE_CHANNEL | .expo.extra.build_reference=$BUILD_REFERENCE | .expo.ios.buildNumber=$BUILD_NUMBER | .expo.extra=.expo.extra + $envConfig[]["AppConfig"]' <  "./app.json" > "${tmpdir}/environment-app.json"
   mv "${tmpdir}/environment-app.json" "./app.json"
 
   ## Optional app.json overrides 
@@ -310,6 +312,17 @@ function main() {
   fi
 
   if [[ "${DISABLE_OTA}" == "false" ]]; then
+
+    if [[ -n "${SENTRY_RELEASE_NAME}" ]]; then
+      info "Override revisionId to match the corresponding sentry release name ${SENTRY_RELEASE_NAME}"
+      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" > "${tmpdir}/ios-expo-override.json"
+      mv "${tmpdir}/ios-expo-override.json" "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json"
+
+      jq -c --arg REVISION_ID "${SENTRY_RELEASE_NAME}" '.revisionId=$REVISION_ID' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json" > "${tmpdir}/android-expo-override.json"
+      mv "${tmpdir}/android-expo-override.json" "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json"
+
+    fi
+
     info "Copying OTA to CDN"
     aws --region "${AWS_REGION}" s3 sync --delete "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}" "s3://${PUBLIC_BUCKET}/${PUBLIC_PREFIX}/packages/${EXPO_SDK_VERSION}" || return $?
 
