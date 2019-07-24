@@ -586,7 +586,6 @@
 
                 [#switch publisherLinkTargetCore.Type ]
                     [#case CONTENTHUB_HUB_COMPONENT_TYPE ]
-                    [#case "external"]
                         [#if deploymentSubsetRequired("epilogue", false ) ]
                             [@addToDefaultBashScriptOutput
                                 content=
