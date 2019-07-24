@@ -292,13 +292,13 @@ function main() {
   info "Creating an OTA for this version of the SDK"
   expo export --dump-sourcemap --public-url "${PUBLIC_URL}" --output-dir "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}"  || return $?
 
-  EXPO_ID_OVERRIDE="$( jq -r '.BuildConfig.EXPO_ID_OVERRIDE' )"
+  EXPO_ID_OVERRIDE="$( jq -r '.BuildConfig.EXPO_ID_OVERRIDE' < "${CONFIG_FILE}" )"
   if [[ "${EXPO_ID_OVERRIDE}" != "null" && -n "${EXPO_ID_OVERRIDE}" ]]; then
 
-    jq --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '.id=$EXPO_ID_OVERRIDE' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" > "${tmpdir}/ios-expo-override.json"
+    jq -c --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '.id=$EXPO_ID_OVERRIDE' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json" > "${tmpdir}/ios-expo-override.json"
     mv "${tmpdir}/ios-expo-override.json" "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/ios-index.json"
 
-    jq --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '.id=$EXPO_ID_OVERRIDE' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json" > "${tmpdir}/android-expo-override.json"
+    jq -c --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '.id=$EXPO_ID_OVERRIDE' < "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json" > "${tmpdir}/android-expo-override.json"
     mv "${tmpdir}/android-expo-override.json" "${SRC_PATH}/app/dist/build/${EXPO_SDK_VERSION}/android-index.json"
 
   fi
@@ -320,10 +320,10 @@ function main() {
 
     if [[ "${EXPO_ID_OVERRIDE}" != "null" && -n "${EXPO_ID_OVERRIDE}" ]]; then
 
-        jq --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '[ .[] | .id=$EXPO_ID_OVERRIDE ]' < "${SRC_PATH}/app/dist/master/ios-index.json" > "${tmpdir}/ios-master-expo-override.json"
+        jq -c --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '[ .[] | .id=$EXPO_ID_OVERRIDE ]' < "${SRC_PATH}/app/dist/master/ios-index.json" > "${tmpdir}/ios-master-expo-override.json"
         mv "${tmpdir}/ios-master-expo-override.json" "${SRC_PATH}/app/dist/master/ios-index.json"
 
-        jq --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '[ .[] | .id=$EXPO_ID_OVERRIDE ]' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-master-expo-override.json"
+        jq -c --arg EXPO_ID_OVERRIDE "${EXPO_ID_OVERRIDE}" '[ .[] | .id=$EXPO_ID_OVERRIDE ]' < "${SRC_PATH}/app/dist/master/android-index.json" > "${tmpdir}/android-master-expo-override.json"
         mv "${tmpdir}/android-master-expo-override.json" "${SRC_PATH}/app/dist/master/android-index.json"
 
     fi
