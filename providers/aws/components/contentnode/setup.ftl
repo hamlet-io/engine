@@ -20,7 +20,6 @@
             context=occurrence
             detail="No content hub link configured"
         /]
-        [#break]
     [/#if]
 
     [#list solution.Links?values as link]
