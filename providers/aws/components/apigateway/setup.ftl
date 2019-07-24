@@ -605,8 +605,9 @@
                                     "\"" +    publisherLinkTargetAttributes.ENGINE + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.REPOSITORY + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.PREFIX + "\" " +
-                                    "\""  +    publisherPath + "\" " +
-                                    "\"" +    publisherLinkTargetAttributes.BRANCH + "\" || return $? ",
+                                    "\"" +    publisherPath + "\" " +
+                                    "\"" +    publisherLinkTargetAttributes.BRANCH + "\" " +
+                                    "\"update\" || return $? ",
                                     "       ;;",
                                     " esac"
                                 ]

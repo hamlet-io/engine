@@ -871,7 +871,8 @@ function copy_contentnode_file() {
   local path="$1"; shift
   local prefix="$1"; shift
   local nodepath="$1"; shift
-  local branch="$1"; 
+  local branch="$1"; shift
+  local copymode="$1"; shift
 
   local contentnodedir="${tmp_dir}/contentnode"
   local contenthubdir="${tmp_dir}/contenthub"
@@ -917,7 +918,7 @@ function copy_contentnode_file() {
           
           create|update)
             if [[ -n "${hubpath}" ]]; then
-              if [[ -d "${hubpath}" ]]; then 
+              if [[ -d "${hubpath}" && "${copymode}" == "replace" ]]; then 
                 rm -rf "${hubpath}" || return $?
               fi 
               mkdir -p "${hubpath}"

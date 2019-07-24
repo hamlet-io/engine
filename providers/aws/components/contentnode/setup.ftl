@@ -63,7 +63,8 @@
                                         "\"" +    linkTargetAttributes.REPOSITORY + "\" " +
                                         "\"" +    linkTargetAttributes.PREFIX + "\" " +
                                         "\"" +    pathObject + "\" " +
-                                        "\"" +    linkTargetAttributes.BRANCH + "\" ",
+                                        "\"" +    linkTargetAttributes.BRANCH + "\" " + 
+                                        "\"replace\" || return $? ",
                                 "}",
                                 "#",
                                 "get_contentnode_file"
