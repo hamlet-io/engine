@@ -677,47 +677,6 @@ function addJSONAncestorObjects() {
   runJQ "${pattern}" < "${file}"
 }
 
-# -- API Gateway --
-function add_host_to_apidoc() { 
-  # adds the API Host endpoint to the swagger spec
-  local apiHost="$1"; shift
-  local scheme="$1"; shift
-  local basePath="$1"; shift
-  local version="$1"; shift
-  local description="$1"; shift
-  local swaggerJson="$1"; shift
-  local tempSwaggerJson="${tmp_dir}/swagger-temp.json"
-
-  if [[ -f "${swaggerJson}" ]]; then  
-
-    if [[ -n "${basePath}" ]]; then 
-        jq -r --arg basePath "${basePath}" '.basePath = $basePath' < "${swaggerJson}" > "${tempSwaggerJson}"
-        mv "${tempSwaggerJson}" "${swaggerJson}"
-    fi
-
-    if [[ -n "${scheme}" ]]; then 
-        jq -r --arg scheme "${scheme}" '.schemes = ( $scheme / "," )' < "${swaggerJson}" > "${tempSwaggerJson}"
-        mv "${tempSwaggerJson}" "${swaggerJson}"
-    fi
-
-    if [[ -n "${apiHost}" ]]; then 
-        jq -r --arg apiHost "${apiHost}" '.host = $apiHost' < "${swaggerJson}" > "${tempSwaggerJson}"
-        mv "${tempSwaggerJson}" "${swaggerJson}"
-    fi
-
-    if [[ -n "${version}" ]]; then 
-        jq -r --arg version "${version}" '.info.version = $version' < "${swaggerJson}" > "${tempSwaggerJson}"
-        mv "${tempSwaggerJson}" "${swaggerJson}"
-    fi
-
-    if [[ -n "${description}" ]]; then
-        jq -r --arg description "${description}" '.info.description = .info.description + " \n" + $description' < "${swaggerJson}" > "${tempSwaggerJson}"
-        mv "${tempSwaggerJson}" "${swaggerJson}"
-    fi
-  fi
-
-  return 0
-}
 # -- KMS --
 function decrypt_kms_string() {
   local region="$1"; shift

@@ -178,6 +178,37 @@
     [#return "" ]
 [/#function]
 
+[#function getSwaggerDeploymentDetails definitionVersion context description version ]
+    [#local version = formatName(version, context["BuildReference"])]
+    [#if definitionVersion gte 3 ]
+        [#return 
+            {
+                "servers" : [
+                    {
+                        "url" : context["Scheme"] + "://" + context["FQDN"] + formatAbsolutePath( context["BasePath"] ),
+                        "description" : context["Name"]
+                    }
+                ],
+                "info" : {
+                    "version" : version
+                }
+            }
+        ]
+    [#else]
+        [#return 
+            {
+                "basePath" : formatAbsolutePath(context["BasePath"]),
+                "schemes" : context["Scheme"],
+                "host" : context["FQDN"],
+                "info" : {
+                    "version" : version,
+                    "description" : "**COT Deployment** " + context["Name"] + "/n" + description
+                }
+            }
+        ]
+    [/#if]
+[/#function]
+
 [#function getSwaggerGlobalSecurity definitionVersion context  ]
     [#local result =
         {
@@ -529,6 +560,16 @@
     [#local globalConfiguration = mergeObjects(
                                         globalConfiguration, 
                                         getSwaggerGlobalSecurity(definitionMajorVersion, context) )]
+    
+    [#local globalConfiguration = mergeObjects(
+                                        globalConfiguration,
+                                        getSwaggerDeploymentDetails(
+                                            definitionMajorVersion, 
+                                            context, 
+                                            (definition.info.description)!"",
+                                            definition.info.version
+                                        )
+    )]
 
     [#local paths = {} ]
     [#list (definition.paths!{}) + getSwaggerProxyPaths(proxyRequired) as path, pathObject]

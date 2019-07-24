@@ -11,6 +11,7 @@
     [#local solution = occurrence.Configuration.Solution ]
     [#local resources = occurrence.State.Resources ]
     [#local attributes = occurrence.State.Attributes ]
+    [#local buildSettings = occurrence.Configuration.Settings.Build ]
     [#local roles = occurrence.State.Roles]
 
     [#local apiId      = resources["apigateway"].Id]
@@ -546,6 +547,7 @@
     [/#list]
 
     [#-- Send API Specification to an external publisher --]
+     
     [#if solution.Publishers?has_content ]
         [#if deploymentSubsetRequired("epilogue", false ) ]
             [@addToDefaultBashScriptOutput
@@ -555,20 +557,12 @@
                     "  create|update)",
                     "   # Fetch the apidoc file",
                     "   info \"Building API Specification Document\"",
+                    "   mkdir -p \"$\{tmpdir}/dist\"",
                     "   copyFilesFromBucket" + " " +
                         regionId + " " +
                         operationsBucket + " " +
                         swaggerFileLocation + " " +
-                    "   \"$\{tmpdir}\" || return $?"
-                    "   # Insert host in Doc File ",
-                    "   add_host_to_apidoc" + " " +
-                    "   \"" + attributes.FQDN + "\" " +
-                    "   \"" +  attributes.SCHEME + "\" " +
-                    "   \"" +  attributes.BASE_PATH + "\" " +
-                    "   \"" +  getOccurrenceBuildReference(occurrence) + "\" " +
-                    "   \"**COT Deployment:** " + core.TypedFullName + "\" " +
-                    "   \"$\{tmpdir}/" + swaggerFileName + "\"  || return $?",
-                    "   mkdir \"$\{tmpdir}/dist\" && mv \"$\{tmpdir}/" + swaggerFileName + "\" \"$\{tmpdir}/dist/swagger.json\" || return $?",
+                    "   \"$\{tmpdir}/dist/swagger.json\" || return $?"
                     "   ;;",
                     " esac"
                 ]
@@ -687,7 +681,12 @@
                     {
                         "Account" : accountObject.AWSId,
                         "Region" : region,
-                        "CognitoPools" : cognitoPools
+                        "CognitoPools" : cognitoPools,
+                        "FQDN" : attributes["FQDN"],
+                        "Scheme" : attributes["SCHEME"],
+                        "BasePath" : attributes["BASE_PATH"],
+                        "BuildReference" : (buildSettings["APP_REFERENCE"].Value)!buildSettings["BUILD_REFERENCE"].Value,
+                        "Name" : apiName
                     } ]
 
                 [#-- Determine if there are any roles required by specific methods --]
