@@ -61,18 +61,26 @@
     [#local internalFqdn = parentState.Attributes["INTERNAL_FQDN"] ]
     [#local lbId = parentState.Resources["lb"].Id]
 
-    [#local sourcePort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Source])!{} ]
-    [#local destinationPort = (ports[portMappings[solution.Mapping!core.SubComponent.Name].Destination])!{} ]
+    [#-- Check source and destination ports --]
+    [#local mapping = solution.Mapping!core.SubComponent.Name ]
+    [#local source = (portMappings[mapping].Source)!"" ]
+    [#local destination = (portMappings[mapping].Destination)!"" ]
+    [#local sourcePort = (ports[source])!{} ]
+    [#local destinationPort = (ports[destination])!{} ]
 
-    [#local listenerId = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, parentCore.Id, sourcePort) ]
+    [#local sourcePortId = sourcePort.Id!source ]
+    [#local sourcePortName = sourcePort.Name!source ]
+
+    [#local listenerId = formatResourceId(AWS_ALB_LISTENER_RESOURCE_TYPE, parentCore.Id, source) ]
 
     [#local targetGroupId = formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, core.Id) ]
-    [#local defaultTargetGroupId = formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, "default", parentCore.Id, sourcePort ) ]
-    [#local defaultTargetGroupName = formatName("default", parentCore.FullName, sourcePort )]
+    [#local defaultTargetGroupId = formatResourceId(AWS_ALB_TARGET_GROUP_RESOURCE_TYPE, "default", parentCore.Id, sourcePortId ) ]
+    [#local defaultTargetGroupName = formatName("default", parentCore.FullName, sourcePortId )]
 
     [#local domainRedirectRules = {} ]
     [#if (sourcePort.Certificate)!false ]
-        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id, sourcePort.Name) ]
+        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePortId, sourcePortName ) ]
+
         [#local hostName = getHostName(certificateObject, occurrence) ]
         [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
 
@@ -81,7 +89,7 @@
 
         [#-- Redirect any secondary domains --]
         [#list getCertificateSecondaryDomains(certificateObject) as secondaryDomainObject ]
-            [#local id = formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, parentCore.Id, sourcePort, solution.Priority + secondaryDomainObject?counter) ]
+            [#local id = formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, parentCore.Id, sourcePortId, solution.Priority + secondaryDomainObject?counter) ]
             [#local domainRedirectRules +=
                 {
                     id : {
@@ -130,11 +138,11 @@
                 },
                 "sg" : {
                     "Id" : formatDependentSecurityGroupId(listenerId),
-                    "Name" : formatName(parentCore.FullName, sourcePort),
+                    "Name" : formatName(parentCore.FullName, sourcePortId),
                     "Type" : AWS_VPC_SECURITY_GROUP_RESOURCE_TYPE
                 },
                 "listenerRule" : {
-                    "Id" : formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, parentCore.Id, sourcePort, solution.Priority),
+                    "Id" : formatResourceId(AWS_ALB_LISTENER_RULE_RESOURCE_TYPE, parentCore.Id, sourcePortId, solution.Priority),
                     "Priority" : solution.Priority,
                     "Type" : AWS_ALB_LISTENER_RULE_RESOURCE_TYPE
                 },

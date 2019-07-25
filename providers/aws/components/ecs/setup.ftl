@@ -361,8 +361,7 @@
 
     [#local vpcId = networkResources["vpc"].Id ]
 
-    [#local hibernate = parentSolution.Hibernate.Enabled &&
-                            getExistingReference(ecsId)?has_content ]
+    [#local hibernate = parentSolution.Hibernate.Enabled && isOccurrenceDeployed(occurrence) ]
 
     [#list requiredOccurrences(
             occurrence.Occurrences![],

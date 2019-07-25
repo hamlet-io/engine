@@ -200,6 +200,9 @@
         [#local sourcePort = (ports[source])!{} ]
         [#local destinationPort = (ports[destination])!{} ]
 
+        [#local sourcePortId = sourcePort.Id!source ]
+        [#local sourcePortName = sourcePort.Name!source ]
+
         [#if !(sourcePort?has_content && destinationPort?has_content)]
             [#continue ]
         [/#if]
@@ -243,7 +246,7 @@
         [#local listenerRuleConditions = getListenerRulePathCondition(path) ]
 
         [#-- Certificate details if required --]
-        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id, sourcePort.Name) ]
+        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePortId, sourcePortName) ]
         [#local hostName = getHostName(certificateObject, subOccurrence) ]
         [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
         [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
