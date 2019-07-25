@@ -243,7 +243,7 @@
         [#local listenerRuleConditions = getListenerRulePathCondition(path) ]
 
         [#-- Certificate details if required --]
-        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id, sourcePort.Name) ]
+        [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers, sourcePort.Id!source, sourcePort.Name!source) ]
         [#local hostName = getHostName(certificateObject, subOccurrence) ]
         [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
         [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
