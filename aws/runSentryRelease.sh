@@ -102,8 +102,8 @@ function main() {
   info "Getting source code from from ${SENTRY_SOURCE_MAP_S3_URL}"
   aws --region "${AWS_REGION}" s3 cp --recursive "${SENTRY_SOURCE_MAP_S3_URL}" "${SOURCE_MAP_PATH}" || return $?
 
-  # TODO: Check if a release with a specified name exists. Create one if needed.
   sentry-cli releases files "${SENTRY_RELEASE_NAME}" upload-sourcemaps "${SOURCE_MAP_PATH}" --rewrite --url-prefix "${SENTRY_URL_PREFIX}"
+  info "exit code form sentry-cli releases files $?"
 
   DETAIL_MESSAGE="${DETAIL_MESSAGE} Source map files uploaded for the release ${SENTRY_RELEASE_NAME}."
 
