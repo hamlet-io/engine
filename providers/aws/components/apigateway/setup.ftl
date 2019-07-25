@@ -562,7 +562,7 @@
                         regionId + " " +
                         operationsBucket + " " +
                         swaggerFileLocation + " " +
-                    "   \"$\{tmpdir}/dist/swagger.json\" || return $?"
+                    "   \"$\{tmpdir}/dist\" || return $?"
                     "   ;;",
                     " esac"
                 ]
@@ -594,7 +594,7 @@
                                     "case $\{STACK_OPERATION} in",
                                     "  create|update)",
                                     "info \"Sending API Specification to " + id + "-" + publisherLinkTargetCore.FullName + "\"",
-                                    " cp \"$\{tmpdir}/dist/swagger.json\" \"$\{tmpdir}/dist/" + fileName + "\" ",
+                                    " cp \"$\{tmpdir}/dist/" + swaggerFileName + "\" \"$\{tmpdir}/dist/" + fileName + "\" ",
                                     "  copy_contentnode_file \"$\{tmpdir}/dist/" + fileName + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.ENGINE + "\" " +
                                     "\"" +    publisherLinkTargetAttributes.REPOSITORY + "\" " +
