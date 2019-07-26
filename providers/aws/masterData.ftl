@@ -1699,7 +1699,7 @@
       ],
       "maxuri": 1024,
       "maxquery": 1024,
-      "maxbody": 10240,
+      "maxbody": 4096,
       "maxcookie": 4093,
       "csrfsize": 36,
       "uristartswith": [
