@@ -9,15 +9,11 @@
       "Locality": "Tokyo",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "ap-northeast-1a"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "ap-northeast-1c"
@@ -39,15 +35,11 @@
       "Locality": "Seoul",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "ap-northeast-2a"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "ap-northeast-2c"
@@ -69,15 +61,11 @@
       "Locality": "Mumbai",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "ap-south-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "ap-south-1b"
@@ -99,16 +87,12 @@
       "Locality": "Singapore",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "Index": 0,
           "AWSZone": "ap-southeast-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Singapore Zone B",
           "Index": 1,
@@ -131,8 +115,6 @@
       "Locality": "Sydney",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "ap-southeast-2a",
@@ -260,8 +242,6 @@
           ]
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "ap-southeast-2b",
@@ -389,8 +369,6 @@
           ]
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "ap-southeast-2c",
@@ -534,15 +512,11 @@
       "Locality": "Central",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "ca-central-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "ca-central-1b"
@@ -564,15 +538,11 @@
       "Locality": "Beijing",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "cn-north-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "cn-north-1b"
@@ -593,15 +563,11 @@
       "Locality": "Frankfurt",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "eu-central-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "eu-central-1b"
@@ -623,22 +589,16 @@
       "Locality": "Ireland",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "eu-west-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "eu-west-1b"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "eu-west-1c"
@@ -660,15 +620,11 @@
       "Locality": "London",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "eu-west-2a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "eu-west-2b"
@@ -690,15 +646,11 @@
       "Locality": "Paris",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "eu-west-3a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "eu-west-3b"
@@ -720,22 +672,16 @@
       "Locality": "Sao Paulo",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "sa-east-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "sa-east-1b"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "sa-east-1c"
@@ -757,29 +703,21 @@
       "Locality": "North Virginia",
       "Zones": {
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "us-east-1b"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "us-east-1c"
         },
         "d": {
-          "Id": "d",
-          "Name": "d",
           "Title": "Zone D",
           "Description": "Zone D",
           "AWSZone": "us-east-1d"
         },
         "e": {
-          "Id": "e",
-          "Name": "e",
           "Title": "Zone E",
           "Description": "Zone E",
           "AWSZone": "us-east-1e"
@@ -801,22 +739,16 @@
       "Locality": "Ohio",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "us-east-2a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "us-east-2b"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "us-east-2c"
@@ -838,15 +770,11 @@
       "Locality": "US",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "us-gov-west-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "us-gov-west-1b"
@@ -867,15 +795,11 @@
       "Locality": "North California",
       "Zones": {
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "us-west-1b"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "us-west-1c"
@@ -897,22 +821,16 @@
       "Locality": "Oregon",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "us-west-2a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "us-west-2b"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "us-west-2c"
@@ -934,22 +852,16 @@
       "Locality": "Stockholm",
       "Zones": {
         "a": {
-          "Id": "a",
-          "Name": "a",
           "Title": "Zone A",
           "Description": "Zone A",
           "AWSZone": "eu-north-1a"
         },
         "b": {
-          "Id": "b",
-          "Name": "b",
           "Title": "Zone B",
           "Description": "Zone B",
           "AWSZone": "eu-north-1b"
         },
         "c": {
-          "Id": "c",
-          "Name": "c",
           "Title": "Zone C",
           "Description": "Zone C",
           "AWSZone": "eu-north-1c"
@@ -1073,31 +985,23 @@
     "mgmt": {
       "Components": {
         "seg-cert": {
-          "Id": "seg-cert",
-          "Name": "seg-cert",
           "DeploymentUnits": [
             "cert"
           ]
         },
         "seg-dns": {
-          "Id": "seg-dns",
-          "Name": "seg-dns",
           "DeploymentUnits": [
             "dns"
           ],
           "Enabled": false
         },
         "seg-dashboard": {
-          "Id": "seg-dashboard",
-          "Name": "seg-dashboard",
           "DeploymentUnits": [
             "dashboard"
           ],
           "Enabled": false
         },
         "baseline": {
-          "Id": "baseline",
-          "Name": "baseline",
           "DeploymentUnits": [
             "baseline"
           ],
@@ -1156,8 +1060,6 @@
           }
         },
         "ssh": {
-          "Id": "ssh",
-          "Name": "ssh",
           "DeploymentUnits": [
             "ssh"
           ],
@@ -1172,8 +1074,6 @@
           }
         },
         "vpc": {
-          "Id": "vpc",
-          "Name": "vpc",
           "DeploymentUnits": [
             "vpc"
           ],
@@ -1181,23 +1081,15 @@
           "network": {
             "RouteTables": {
               "internal": {
-                "Id": "internal",
-                "Name": "internal"
               },
               "external": {
-                "Id": "external",
-                "Name": "external",
                 "Public": true
               }
             },
             "NetworkACLs": {
               "open": {
-                "Id": "open",
-                "Name": "open",
                 "Rules": {
                   "in": {
-                    "Id": "in",
-                    "Name": "in",
                     "Priority": 200,
                     "Action": "allow",
                     "Source": {
@@ -1214,8 +1106,6 @@
                     "ReturnTraffic": false
                   },
                   "out": {
-                    "Id": "out",
-                    "Name": "out",
                     "Priority": 200,
                     "Action": "allow",
                     "Source": {
@@ -1237,8 +1127,6 @@
           }
         },
         "igw": {
-          "Id": "igw",
-          "Name": "igw",
           "DeploymentUnits": [
             "igw"
           ],
@@ -1246,8 +1134,6 @@
             "Engine": "igw",
             "Destinations": {
               "default": {
-                "Id": "default",
-                "Name": "default",
                 "IPAddressGroups": "_global",
                 "Links": {
                   "external": {
@@ -1263,8 +1149,6 @@
           }
         },
         "nat": {
-          "Id": "nat",
-          "Name": "nat",
           "DeploymentUnits": [
             "nat"
           ],
@@ -1272,8 +1156,6 @@
             "Engine": "natgw",
             "Destinations": {
               "default": {
-                "Id": "default",
-                "Name": "default",
                 "IPAddressGroups": "_global",
                 "Links": {
                   "internal": {
@@ -1289,8 +1171,6 @@
           }
         },
         "vpcendpoint": {
-          "Id": "vpcendpoint",
-          "Name": "vpcendpoint",
           "DeploymentUnits": [
             "vpcendpoint"
           ],
@@ -1298,8 +1178,6 @@
             "Engine": "vpcendpoint",
             "Destinations": {
               "default": {
-                "Id": "default",
-                "Name": "default",
                 "NetworkEndpointGroups": [
                   "storage",
                   "logs"
@@ -1329,17 +1207,11 @@
     "gbl": {
       "Components": {
         "cfredirect": {
-          "Id": "cfredirect",
-          "Name": "cfredirect",
           "Lambda": {
             "Instances": {
               "default": {
-                "Id": "default",
-                "Name": "default",
                 "Versions": {
                   "v1": {
-                    "Id": "v1",
-                    "Name": "v1",
                     "DeploymentUnits": [
                       "cfredirect-v1"
                     ],
@@ -1356,8 +1228,6 @@
             "FixedCodeVersion": {},
             "Functions": {
               "cfredirect": {
-                "Id": "cfredirect",
-                "Name": "cfredirect",
                 "Handler": "index.handler",
                 "VPCAccess": false,
                 "Permissions": {

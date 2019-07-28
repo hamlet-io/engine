@@ -148,7 +148,8 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
             instanceContext =
                 createInstanceContext(
                     {
-                        "Id" : instanceId
+                        "Id" : instanceId,
+                        "Name" : instanceId
                     } +
                     removeObjectAttributes(instance, ["Versions", componentChildrenAttributes]),
                     parent
@@ -205,7 +206,8 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
             versionContext =
                 createVersionContext(
                     {
-                        "Id" : versionId
+                        "Id" : versionId,
+                        "Name" : versionId
                     } +
                     removeObjectAttributes(version, ["Instances", componentChildrenAttributes]),
                     parent
@@ -319,6 +321,7 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
                                     constructComponentContext(
                                         {
                                             "Id" : childComponentId,
+                                            "Name" : childComponentId,
                                             "Type" : getComponentChildType(child)
                                         } + childComponent,
                                         componentContext,
@@ -368,13 +371,20 @@ Solution     - Solutions -> Tiers -> Components -> SubComponents
         [#local
             tierContext =
                 createTierContext(
-                    {"Id" : tierId} + removeObjectAttributes(tier, ["Components"]),
+                    {
+                        "Id" : tierId,
+                        "Name" : tierId
+                    } + removeObjectAttributes(tier, ["Components"]),
                     parent
                 ) ]
         [#local componentContexts = [] ]
         [#list tier.Components!{} as componentId, component]
             [#if component?is_hash]
-                [#local componentObject = { "Id" : "componentId" } + component ]
+                [#local componentObject =
+                    {
+                        "Id" : componentId,
+                        "Name" : componentId
+                    } + component ]
                 [#-- Determine the type specific attribute, if any --]
                 [#local componentTypeAttribute = getComponentTypeObjectAttribute(componentObject) ]
                 [#if componentTypeAttribute?has_content]

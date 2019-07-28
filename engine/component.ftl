@@ -373,23 +373,29 @@
 
 [#-- Get a component within a tier --]
 [#function getComponent tierId componentId type=""]
-    [#list ((getTier(tierId).Components)!{})?values as component]
-        [#if
-            component?is_hash &&
-            (
-                (component.Id == componentId) ||
-                (
-                  type?has_content &&
-                  (getComponentId(component) == componentId) &&
-                  (getComponentType(component) == type)
-                )
-            ) ]
-            [#return
-                component +
+    [#list (getTier(tierId).Components)!{} as key, value]
+        [#if value?is_hash]
+            [#local component =
                 {
-                    "Type" : getComponentType(component),
-                    "Tier" : tierId
-                }]
+                    "Id" : key,
+                    "Name" : key
+                } + value ]
+            [#if
+                (
+                    (component.Id == componentId) ||
+                    (
+                    type?has_content &&
+                    (getComponentId(component) == componentId) &&
+                    (getComponentType(component) == type)
+                    )
+                ) ]
+                [#return
+                    component +
+                    {
+                        "Type" : getComponentType(component),
+                        "Tier" : tierId
+                    }]
+            [/#if]
         [/#if]
     [/#list]
     [#return {} ]

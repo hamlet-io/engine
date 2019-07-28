@@ -602,26 +602,6 @@ behaviour.
     [#return result ]
 [/#function]
 
-[#-- treat the value "default" for version/instance as the same as blank --]
-[#function getContextId context]
-    [#return
-        (context.Id == "default")?then(
-            "",
-            context.Id
-        )
-    ]
-[/#function]
-
-[#function getContextName context]
-    [#return
-        getContextId(context)?has_content?then(
-            context.Name,
-            ""
-        )
-    ]
-[/#function]
-
-
 [#function getOccurrenceCoreTags occurrence={} name="" zone="" propagate=false flatten=false maxTagCount=-1]
     [#return getCfTemplateCoreTags(name, (occurrence.Core.Tier)!"", (occurrence.Core.Component)!"", zone, propagate, flatten, maxTagCount)]
 [/#function]

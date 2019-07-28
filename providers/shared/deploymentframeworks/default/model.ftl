@@ -37,12 +37,25 @@
 
     [#local tenantContexts = [] ]
     [#list tenants as tenantId, tenant]
-        [#local tenantContext = createTenantContext(tenantObject, rootContext)]
+        [#local tenantContext =
+            createTenantContext(
+                {
+                    "Id" : tenantId,
+                    "Name" : tenantId
+                } + tenant,
+                rootContext)]
 
         [#local podContexts = [] ]
         [#list pods.PodOrder as podId]
             [#local pod = pods.Pods[podId] ]
-            [#local podContext = createPodContext({"Id" : podId} + removeObjectAttributes(pod, "Solution"), tenantContext) ]
+            [#local podContext =
+                createPodContext(
+                    {
+                        "Id" : podId,
+                        "Name" : podId
+                    } + removeObjectAttributes(pod, "Solution"),
+                    tenantContext
+                ) ]
             [#local solutionContext = createSolutionContext({}, podContext) ]
             [#local solutionContext =
                 addChildContexts(

@@ -69,9 +69,17 @@
 [#assign tenants = (blueprintObject.Tenants)!{} ]
 [#assign tenantObject = (blueprintObject.Tenant)!(tenants[tenant])!{} ]
 [#if tenantObject?has_content]
-    [#assign tenantId = tenantObject.Id]
-    [#assign tenantName = tenantObject.Name]
-    [#assign tenants += {tenantId : tenantObject} ]
+    [#assign tenantId = tenantObject.Id!tenant]
+    [#assign tenantName = tenantObject.Name!tenantId]
+    [#assign tenants +=
+        {
+            tenantId :
+                {
+                    "Id" : tenantId,
+                    "Name" : tenantName
+                } +
+                tenantObject
+        } ]
 [/#if]
 
 [#-- Domains --]
@@ -84,9 +92,17 @@
 [#assign accounts = (blueprintObject.Accounts)!{} ]
 [#assign accountObject = (blueprintObject.Account)!(accounts[account])!{} ]
 [#if accountObject?has_content]
-    [#assign accountId = accountObject.Id]
-    [#assign accountName = accountObject.Name]
-    [#assign accounts += {accountId : accountObject} ]
+    [#assign accountId = accountObject.Id!account]
+    [#assign accountName = accountObject.Name!accountId]
+    [#assign accounts +=
+        {
+            accountId :
+                {
+                    "Id" : accountId,
+                    "Name" : accountName
+                } +
+                accountObject
+        } ]
 
     [#assign credentialsBucket = getExistingReference(formatAccountS3Id("credentials")) ]
     [#assign codeBucket = getExistingReference(formatAccountS3Id("code")) ]
@@ -161,9 +177,17 @@
 [#assign products = (blueprintObject.Products)!{} ]
 [#assign productObject = (blueprintObject.Product)!(products[product])!{} ]
 [#if productObject?has_content]
-    [#assign productId = productObject.Id]
-    [#assign productName = productObject.Name]
-    [#assign products += {productId : productObject} ]
+    [#assign productId = productObject.Id!product]
+    [#assign productName = productObject.Name!productId]
+    [#assign products +=
+        {
+            productId :
+                {
+                    "Id" : productId,
+                    "Name" : productName
+                } +
+                productObject
+        } ]
 
     [#assign productDomain = productObject.Domain!""]
 
@@ -181,17 +205,35 @@
 [#assign segments = (blueprintObject.Segments)!{} ]
 [#assign segmentObject = (blueprintObject.Segment)!(segments[segment])!{} ]
 [#if segmentObject?has_content]
-    [#assign segmentId = segmentObject.Id]
-    [#assign segmentName = segmentObject.Name]
-    [#assign segments += {segmentId : segmentObject} ]
+    [#assign segmentId = segmentObject.Id!segment]
+    [#assign segmentName = segmentObject.Name!segmentId]
+    [#assign segments +=
+        {
+            segmentId :
+                {
+                    "Id" : segmentId,
+                    "Name" : segmentName
+                } +
+                segmentObject
+        } ]
 
     [#if blueprintObject.Environment?? ]
         [#assign environmentId = blueprintObject.Environment.Id ]
-        [#assign environmentObject = environments[environmentId]]
-        [#assign environmentName = environmentObject.Name]
-        [#assign categoryId = segmentObject.Category!environmentObject.Category]
-        [#assign categoryName = segmentObject.Category!environmentObject.Category]
-        [#assign categoryObject = categories[categoryId]]
+        [#assign environmentObject =
+            {
+                "Id" : environmentId,
+                "Name" : environmentId
+            } +
+            environments[environmentId] ]
+        [#assign environmentName = environmentObject.Name ]
+        [#assign categoryId = segmentObject.Category!environmentObject.Category ]
+        [#assign categoryName = categoryId ]
+        [#assign categoryObject =
+            {
+                "Id" : categoryId,
+                "Name" : categoryName
+            } +
+            categories[categoryId] ]
 
         [#assign shortNamePrefixes += [environmentId] ]
         [#assign fullNamePrefixes += [environmentName] ]
@@ -303,7 +345,15 @@
                 [/#if]
             [/#list]
         [/#if]
-        [#assign tiers += [ blueprintTier +  { "Network" : tierNetwork } ] ]
+        [#assign tiers +=
+            [
+                {
+                    "Id" : tierId,
+                    "Name" : tierId
+                } +
+                blueprintTier +
+                { "Network" : tierNetwork }
+            ] ]
     [/#if]
 [/#list]
 
@@ -314,6 +364,10 @@
         [#assign zone = regions[region].Zones[zoneId] ]
         [#assign zones +=
             [
+                {
+                    "Id" : zoneId,
+                    "Name" : zoneId
+                } +
                 zone +
                 {
                     "Index" : zoneId?index
@@ -388,7 +442,12 @@
         [#if value?is_hash]
             [#local result +=
                 {
-                    key : getEffectiveIPAddressGroup(value)
+                    key :
+                        getEffectiveIPAddressGroup(
+                            {
+                                "Id" : key,
+                                "Name" : key
+                            } + value)
                 } ]
         [/#if]
     [/#list]

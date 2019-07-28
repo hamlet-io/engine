@@ -5,8 +5,6 @@
     {
       "Environments": {
         "alm": {
-          "Id" : "alm",
-          "Name" : "alm",
           "Title": "Application Lifecycle Management Environment",
           "Description": "Normally only one environment for the alm. Entry mainly here for naming consistency",
           "Category": "alm",
@@ -18,8 +16,6 @@
           }
         },
         "shared": {
-          "Id" : "shared",
-          "Name" : "shared",
           "Title": "Shared Services Environment",
           "Description": "One shared environment per account. Entry mainly here for naming consistency",
           "Category": "alm",
@@ -28,8 +24,6 @@
           }
         },
         "dev": {
-          "Id" : "dev",
-          "Name": "development",
           "Title": "Development Environment",
           "Description": "Potentially holds individual dev servers for multiple devs",
           "Category": "dev",
@@ -41,8 +35,6 @@
           }
         },
         "alpha": {
-          "Id" : "alpha",
-          "Name" : "alpha",
           "Title": "Alpha Environment",
           "Description": "Prototyping environment according to DTO classification",
           "Category": "test",
@@ -54,8 +46,6 @@
           }
         },
         "beta": {
-          "Id" : "beta",
-          "Name" : "beta",
           "Title": "Beta Environment",
           "Description": "Preproduction environment according to DTO classification",
           "Category": "stg",
@@ -68,7 +58,6 @@
           }
         },
         "int": {
-          "Id" : "int",
           "Name": "integration",
           "Title": "Integration Environment",
           "Description": "Mainly for devs to confirm components work together",
@@ -81,7 +70,6 @@
           }
         },
         "aat": {
-          "Id" : "aat",
           "Name": "automatedacceptance",
           "Title": "Automated Acceptance Environment",
           "Description": "Execution of automated tests",
@@ -94,7 +82,6 @@
           }
         },
         "uat": {
-          "Id" : "uat",
           "Name": "useracceptance",
           "Title": "User Acceptance Environment",
           "Description": "Manual customer testing",
@@ -107,7 +94,6 @@
           }
         },
         "system": {
-          "Id" : "system",
           "Name" : "system",
           "Title": "System Test Environment",
           "Description": "Same as UAT",
@@ -121,7 +107,6 @@
           }
         },
         "preprod": {
-          "Id" : "preprod",
           "Name": "preproduction",
           "Title": "Preproduction Environment",
           "Description": "Deployment, performance, volume testing",
@@ -135,7 +120,6 @@
           }
         },
         "stg": {
-          "Id" : "stg",
           "Name": "staging",
           "Title": "Staging Environment",
           "Description": "Deployment, performance, volume testing. Staging is used both as a specific environment and as a category of environments.",
@@ -149,7 +133,6 @@
           }
         },
         "prod": {
-          "Id" : "prod",
           "Name": "production",
           "Title": "Production Environment",
           "Description": "Kind of obvious...",
@@ -163,7 +146,6 @@
           }
         },
         "trn": {
-          "Id" : "trn",
           "Name": "training",
           "Title": "Training Environment",
           "Description": "",
@@ -178,39 +160,30 @@
       },
       "Categories": {
         "alm": {
-          "Id" : "alm",
-          "Name" : "alm",
           "Title": "Application Lifecycle Management Environments"
         },
         "account": {
-          "Id" : "account",
-          "Name" : "account",
           "Title": "Account Resources"
         },
         "dev": {
-          "Id" : "dev",
           "Name": "development",
           "Title": "Development Environments"
         },
         "test": {
-          "Id" : "test",
           "Name": "testing",
           "Title": "Testing Environments"
         },
         "stg": {
-          "Id" : "stg",
           "Name": "staging",
           "Title": "Staging Environments"
         },
         "prod": {
-          "Id" : "prod",
           "Name": "production",
           "Title": "Production Environments"
         }
       },
       "Tiers": {
         "web": {
-          "Id" : "web",
           "Name" : "web",
           "Title": "Web Tier",
           "Description": "Supports HMI",
@@ -227,7 +200,6 @@
           }
         },
         "api": {
-          "Id" : "api",
           "Name" : "api",
           "Title": "API Tier",
           "Description": "Supports externally exposed APIs",
@@ -244,7 +216,6 @@
           }
         },
         "msg": {
-          "Id" : "msg",
           "Name": "messaging",
           "Title": "Messaging Tier",
 
@@ -262,7 +233,6 @@
           }
         },
         "app": {
-          "Id" : "app",
           "Name": "application",
           "Title": "Applications Tier",
           "Description": "Supports application logic execution",
@@ -279,7 +249,6 @@
           }
         },
         "db": {
-          "Id" : "db",
           "Name": "database",
           "Title": "Database Tier",
           "Description": "Supports long term storage of content and customer data",
@@ -296,7 +265,6 @@
           }
         },
         "dir": {
-          "Id" : "dir",
           "Name": "directories",
           "Title": "Directories Tier",
           "Description": "Supports directories or domain controllers",
@@ -313,7 +281,6 @@
           }
         },
         "ana": {
-          "Id" : "ana",
           "Name": "analytics",
           "Title": "Analytics Tier",
           "Description": "Suports things like search engines",
@@ -330,7 +297,6 @@
           }
         },
         "elb": {
-          "Id" : "elb",
           "Name" : "elb",
           "Title": "External Load Balancer Tier",
           "Description": "Publically accessible application load balancers",
@@ -347,7 +313,6 @@
           }
         },
         "ilb": {
-          "Id" : "ilb",
           "Name" : "ilb",
           "Title": "Internal Load Balancer Tier",
           "Description": "Internally accessible application load balancers",
@@ -364,7 +329,6 @@
           }
         },
         "mgmt": {
-          "Id" : "mgmt",
           "Name": "management",
           "Title": "Management Tier",
           "Description": "Supports ssh based host access and internet access for internal hosts",
@@ -381,7 +345,6 @@
           }
         },
         "shared": {
-          "Id" : "shared",
           "Name" : "shared",
           "Title": "Shared Tier",
           "Description": "Shared Tier",
@@ -398,7 +361,6 @@
           }
         },
         "docs": {
-          "Id" : "docs",
           "Name": "documentation",
           "Title": "Docs Tier",
           "Description": "Non-network Tier For documentation generation",
@@ -407,7 +369,6 @@
           }
         },
         "gbl": {
-          "Id" : "global",
           "Name": "global",
           "Title": "Global Tier",
           "Description": "Components which are used for Global Services",
