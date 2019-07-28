@@ -84,7 +84,7 @@
 
         [#default]
             @fatal
-                message="Unkown Engine Type"
+                message="Unknown Engine Type"
                 context=occurrence.Configuration.Solution
             /]
     [/#switch]
@@ -154,7 +154,7 @@
 
         [#default]
             [@fatal
-                message="Unkown Engine Type"
+                message="Unknown Engine Type"
                 context=occurrence.Configuration.Solution
             /]
     [/#switch]

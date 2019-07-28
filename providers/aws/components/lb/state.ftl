@@ -24,7 +24,7 @@
             [#break]
 
         [#default]
-            [#local resourceType = "COTFatal: Unkown LB Engine" ]
+            [#local resourceType = "COTFatal: Unknown LB Engine" ]
     [/#switch]
 
     [#assign componentState =

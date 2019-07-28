@@ -78,7 +78,7 @@
 
             [#default]
                 [@fatal
-                    message="Unkown Engine"
+                    message="Unknown Engine"
                     context=component
                     detail=engine /]
         [/#switch]

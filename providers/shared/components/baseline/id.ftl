@@ -42,7 +42,7 @@
 
             [#default]
                 [@fatal
-                    message="Unkown baseline subcomponent"
+                    message="Unknown baseline subcomponent when looking up component id"
                     context=linkTarget
                 /]
         [/#switch]
@@ -71,9 +71,8 @@
 
                 [#default]
                     [@fatal
-                        message="Unkown baseline subcomponent"
+                        message="Unknown baseline subcomponent"
                         context=key
-                        detail=subComponent
                     /]
             [/#switch]
 
