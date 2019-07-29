@@ -181,7 +181,7 @@ if [[ (("${GENERATION_USE_CACHE}" != "true") &&
 
     debug "BLUEPRINT=${blueprint_array[*]}"
     if [[ ! $(arrayIsEmpty "blueprint_array") ]]; then
-        ${GENERATION_DIR}/manageJSON.sh -d -o "${COMPOSITE_BLUEPRINT}" "${blueprint_array[@]}"
+        ${GENERATION_DIR}/manageJSON.sh -o "${COMPOSITE_BLUEPRINT}" "${blueprint_array[@]}"
     else
         echo "{}" > "${COMPOSITE_BLUEPRINT}"
     fi
@@ -206,8 +206,11 @@ export REGION="${REGION:-$COMPONENT_REGION}"
 [[ -z "${REGION}" ]] && fatalCantProceed "The region must be defined in the Product blueprint section." && exit 1
 
 BLUEPRINT_ACCOUNT=$(runJQ -r '.Account.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
+[[ -z "${BLUEPRINT_ACCOUNT}" ]] && BLUEPRINT_ACCOUNT=$(runJQ -r '.Account.Id | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
 BLUEPRINT_PRODUCT=$(runJQ -r '.Product.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
+[[ -z "${BLUEPRINT_PRODUCT}" ]] && BLUEPRINT_PRODUCT=$(runJQ -r '.Product.Id | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
 BLUEPRINT_SEGMENT=$(runJQ -r '.Segment.Name | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
+[[ -z "${BLUEPRINT_SEGMENT}" ]] && BLUEPRINT_SEGMENT=$(runJQ -r '.Segment.Id | select(.!=null)' < ${COMPOSITE_BLUEPRINT})
 [[ (-n "${ACCOUNT}") &&
     ("${BLUEPRINT_ACCOUNT}" != "Account") &&
     ("${ACCOUNT}" != "${BLUEPRINT_ACCOUNT}") ]] &&

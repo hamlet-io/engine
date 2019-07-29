@@ -478,6 +478,24 @@
         getSettingsAsEnvironment(occurrence.Configuration.Settings.Product, format) ]
 [/#function]
 
+[#-- treat the value "default" for version/instance as the same as blank --]
+[#function getContextId context]
+    [#return
+        (context.Id == "default")?then(
+            "",
+            context.Id
+        )
+    ]
+[/#function]
+
+[#function getContextName context]
+    [#return
+        getContextId(context)?has_content?then(
+            context.Name,
+            ""
+        )
+    ]
+[/#function]
 
 [#-- Get the occurrences of versions/instances of a component           --]
 [#-- This function should NOT be called directly - it is for the use of --]
@@ -521,13 +539,15 @@
 
     [#local occurrences=[] ]
 
-    [#list (typeObject.Instances!{"default" : {"Id" : "default"}})?values as instance]
-        [#if instance?is_hash ]
+    [#list typeObject.Instances!{"default" : {}} as instanceKey, instanceValue]
+        [#if instanceValue?is_hash ]
+            [#local instance = {"Id" : instanceKey, "Name" : instanceKey} + instanceValue]
             [#local instanceId = getContextId(instance) ]
             [#local instanceName = getContextName(instance) ]
 
-            [#list (instance.Versions!{"default" : {"Id" : "default"}})?values as version]
-                [#if version?is_hash ]
+            [#list instance.Versions!{"default" : {}} as versionKey, versionValue]
+                [#if versionValue?is_hash ]
+                    [#local version = {"Id" : versionKey, "Name" : versionKey} + versionValue]
                     [#local versionId = getContextId(version) ]
                     [#local versionName = getContextName(version) ]
                     [#local occurrenceContexts = componentContexts + [instance, version] ]

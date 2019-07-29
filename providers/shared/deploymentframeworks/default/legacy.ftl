@@ -7,7 +7,12 @@
     [#local start = .now]
     [@timing message="Starting component processing ..." /]
     [#list tiers as tier]
-        [#list (tier.Components!{})?values as component]
+        [#list (tier.Components!{}) as key, value]
+            [#local component =
+                {
+                    "Id" : key,
+                    "Name" : key
+                } + value ]
             [#if deploymentRequired(component, deploymentUnit)]
                 [#assign multiAZ = component.MultiAZ!solnMultiAZ]
                 [#local occurrenceStart = .now]
