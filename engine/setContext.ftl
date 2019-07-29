@@ -83,10 +83,12 @@
 [/#if]
 
 [#-- Domains --]
-[#assign domains = (blueprintObject.Domains)!{} ]
+[#assign domains =
+    addIdNameToObjectAttributes(blueprintObject.Domains!{}) ]
 
 [#-- Certificates --]
-[#assign certificates = (blueprintObject.Certificates)!{} ]
+[#assign certificates =
+    addIdNameToObjectAttributes(blueprintObject.Certificates!{}) ]
 
 [#-- Accounts --]
 [#assign accounts = (blueprintObject.Accounts)!{} ]
@@ -220,11 +222,7 @@
     [#if blueprintObject.Environment?? ]
         [#assign environmentId = blueprintObject.Environment.Id ]
         [#assign environmentObject =
-            {
-                "Id" : environmentId,
-                "Name" : environmentId
-            } +
-            environments[environmentId] ]
+            addIdNameToObject(environments[environmentId], environmentId) ]
         [#assign environmentName = environmentObject.Name ]
         [#assign categoryId = segmentObject.Category!environmentObject.Category ]
         [#assign categoryName = categoryId ]
@@ -347,11 +345,7 @@
         [/#if]
         [#assign tiers +=
             [
-                {
-                    "Id" : tierId,
-                    "Name" : tierId
-                } +
-                blueprintTier +
+                addIdNameToObject(blueprintTier, tierId) +
                 { "Network" : tierNetwork }
             ] ]
     [/#if]
@@ -364,11 +358,7 @@
         [#assign zone = regions[region].Zones[zoneId] ]
         [#assign zones +=
             [
-                {
-                    "Id" : zoneId,
-                    "Name" : zoneId
-                } +
-                zone +
+                addIdNameToObject(zone, zoneId) +
                 {
                     "Index" : zoneId?index
                 }
@@ -444,10 +434,8 @@
                 {
                     key :
                         getEffectiveIPAddressGroup(
-                            {
-                                "Id" : key,
-                                "Name" : key
-                            } + value)
+                            addIdNameToObject(value, key)
+                        )
                 } ]
         [/#if]
     [/#list]

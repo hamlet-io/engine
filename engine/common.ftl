@@ -1402,3 +1402,24 @@ behaviour.
     [/#list]
     [#return monitoredResources ]
 [/#function]
+
+[#function addIdNameToObject entity default=""]
+    [#if entity?is_hash && default?has_content]
+        [#return
+            {
+                "Id" : default,
+                "Name" : default
+            } + entity ]
+    [/#if]
+    [#return entity]
+[/#function]
+
+[#function addIdNameToObjectAttributes entity default=""]
+    [#local result = entity]
+    [#if entity?is_hash]
+        [#list entity as key,value]
+            [#local result += {key : addIdNameToObject(value, key)} ]
+        [/#list]
+    [/#if]
+    [#return addIdNameToObject(result, default) ]
+[/#function]
