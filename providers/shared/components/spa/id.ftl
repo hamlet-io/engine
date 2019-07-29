@@ -26,8 +26,8 @@
             },
             {
                 "Names" : "Links",
-                "Type" : OBJECT_TYPE,
-                "Default" : {}
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             },
             {
                 "Names" : "WAF",
