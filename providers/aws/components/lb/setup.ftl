@@ -236,7 +236,7 @@
                 [#if solution.Path == "default" ]
                     [#local path = "*"]
                 [#else]
-                    [#if solution.Path?ends_with("/")]
+                    [#if solution.Path?ends_with("/") && solution.Path != "/" ]
                         [#local path = solution.Path?ensure_ends_with("*")]
                     [#else]
                         [#local path = solution.Path ]
