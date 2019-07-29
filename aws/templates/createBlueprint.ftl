@@ -95,7 +95,12 @@
 
 [#function getComponentBlueprint tier]
   [#local result=[] ]
-  [#list tier.Components!{} as id,component]
+  [#list tier.Components!{} as id, value]
+    [#local component =
+      {
+          "Id" : id,
+          "Name" : id
+      } + value ]
 
     [#if component?is_hash]
 
