@@ -89,7 +89,8 @@
     dependencies=""]
 
     [#local definitions = [] ]
-    [#local volumes = [] ]
+    [#local volumes = []]
+    [#local volumeNames = [] ]
 
     [#local memoryTotal = 0]
     [#local cpuTotal = 0]
@@ -106,44 +107,48 @@
                 ]
             ]
 
-            [#local dockerVolumeConfiguration = {} +
-                volume.PersistVolume?then(
-                    {
-                        "Scope" : "shared",
-                        "Autoprovision", volume.AutoProvision
-                    },
-                    {}
-                ) +
-                (volume.Driver != "local")?then(
-                    {
-                        "Driver" : volume.Driver
-                    },
-                    {}
-                ) +
-                (volume.DriverOpts?has_content)?then(
-                    {
-                        "DriverOpts" : volume.DriverOpts
-                    },
-                    {}
-                )
-            ]
+            [#if ! volumeNames?seq_contains(name) ]
 
-            [#local volumes +=
-                [
-                    {
-                        "Name" : name
-                    } +
-                    attributeIfTrue(
-                        "Host",
-                        volume.HostPath?has_content,
-                        {"SourcePath" : volume.HostPath!""}) +
-                    attributeIfTrue(
-                        "DockerVolumeConfiguration",
-                        dockerVolumeConfiguration?has_content,
-                        dockerVolumeConfiguration
+                [#local dockerVolumeConfiguration = {} +
+                    volume.PersistVolume?then(
+                        {
+                            "Scope" : "shared",
+                            "Autoprovision", volume.AutoProvision
+                        },
+                        {}
+                    ) +
+                    (volume.Driver != "local")?then(
+                        {
+                            "Driver" : volume.Driver
+                        },
+                        {}
+                    ) +
+                    (volume.DriverOpts?has_content)?then(
+                        {
+                            "DriverOpts" : volume.DriverOpts
+                        },
+                        {}
                     )
                 ]
-            ]
+
+                [#local volumes +=
+                    [
+                        {
+                            "Name" : name
+                        } +
+                        attributeIfTrue(
+                            "Host",
+                            volume.HostPath?has_content,
+                            {"SourcePath" : volume.HostPath!""}) +
+                        attributeIfTrue(
+                            "DockerVolumeConfiguration",
+                            dockerVolumeConfiguration?has_content,
+                            dockerVolumeConfiguration
+                        )
+                    ]
+                ]
+            [/#if]
+            [#local volumeNames += [ name ] ]
         [/#list]
         [#local portMappings = [] ]
         [#list (container.PortMappings![]) as portMapping]
