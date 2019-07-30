@@ -48,7 +48,7 @@
             [#switch linkTargetCore.Type]
                 [#case USERPOOL_CLIENT_COMPONENT_TYPE ]
                 [#case USERPOOL_COMPONENT_TYPE ]
-
+                    
                     [#local userPoolName = linkTargetAttributes["USER_POOL_NAME"] ]
                     [#local userPoolClient = linkTargetAttributes["CLIENT"] ]
 
@@ -229,21 +229,6 @@
         [/#if]
     [/#list]
 
-    [#if solution.AllowUnauthenticatedUsers && ! unauthenticatedRole?has_content ]
-        [@fatal
-            message="No unauthenicated assignments found"
-            context=solution
-        /]
-    [/#if]
-
-    [#if ! authenticatedRole?has_content && ! ruleAssignments?has_content ]
-        [@fatal
-            message="No authenticated assignments found"
-            context=solution
-        /]
-    [/#if]
-
-
     [#list federationProviders as id,federationProvider ]
         [#if federationProvider?is_hash ]
             [#if (federationProvider["Rules"]![])?has_content ]
@@ -256,13 +241,28 @@
                 [#local ruleAssignments +=
                         getIdentityPoolRoleMapping(
                             federationProvider["Provider"],
-                            subSolution.Type,
+                            "Rules",
                             providerRules,
                             solution.NoMatchBehaviour
                         )]
             [/#if]
         [/#if]
     [/#list]
+
+    [#-- Validate default auth/unauth role assignments --]
+    [#if solution.AllowUnauthenticatedUsers && ! unauthenticatedRole?has_content ]
+        [@fatal
+            message="No unauthenicated assignments found"
+            context=solution
+        /]
+    [/#if]
+
+    [#if ! authenticatedRole?has_content ]
+        [@fatal 
+            message="A default Authenticated Rule Assigment must be provided"
+            context=solution
+        /]
+    [/#if]
 
     [#if deploymentSubsetRequired(USERPOOL_COMPONENT_TYPE, true) ]
         [@createIdentityPoolRoleMapping
