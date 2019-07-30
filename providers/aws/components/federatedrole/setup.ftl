@@ -156,7 +156,7 @@
                                     )]
 
                 [#list subSolution.Rule.Providers as provider ]
-                    [#local federationProvider = federationProviders[ provider ]]
+                    [#local federationProvider = (federationProviders[ provider ])!{} ]
                     [#if federationProvider?has_content]
 
                         [#local federationProviderRules = federationProvider["Rules"] + mappingRule ]
@@ -236,7 +236,7 @@
         /]
     [/#if]
 
-    [#if ! authenticatedRole?has_content && ! ruleAssignments ]
+    [#if ! authenticatedRole?has_content && ! ruleAssignments?has_content ]
         [@fatal
             message="No authenticated assignments found"
             context=solution
