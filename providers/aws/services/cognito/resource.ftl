@@ -162,6 +162,15 @@
 [/#function]
 
 [#function getIdentityPoolRoleMapping provider mappingType mappingRules matchBehaviour ]
+
+    [#switch matchBehaviour ]
+        [#case "UseAuthenticatedRule" ]
+            [#local matchBehaviour = "AuthenticatedRole"]
+            [#break]
+        [#default]
+            [#local matchBehaviour = "Deny" ]
+    [/#switch]
+
     [#return
         {
             provider : {
