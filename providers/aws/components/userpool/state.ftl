@@ -151,7 +151,7 @@
     [#local parentAttributes = parent.State.Attributes ]
     [#local parentResources = parent.State.Resources ]
 
-    [#if core.SubComponent.Id = "default" && (parentResources["client"]!{})?has_content ]
+    [#if core.SubComponent.Id == "default" && (parentResources["client"]!{})?has_content ]
         [#local userPoolClientId    = parentResources["client"].Id ]
         [#local userPoolClientName  = parentResources["client"].Name ]
     [/#if]
@@ -165,11 +165,11 @@
                     "Type" : AWS_COGNITO_USERPOOL_CLIENT_RESOURCE_TYPE
                 }
             },
-            "Attributes" : {
+            "Attributes" : parentAttributes + 
+            {
                 "CLIENT" : getReference(userPoolClientId),
                 "LB_OAUTH_SCOPE" : (solution.OAuth.Scopes)?join(", ")
-            } +
-            parentAttributes,
+            },
             "Roles" : {
                 "Inbound" : {},
                 "Outbound" : {}
