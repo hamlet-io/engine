@@ -32,7 +32,7 @@
             {
                 "Names" : "NoMatchBehaviour",
                 "Description" : "When using rule assignements how to behave on no match",
-                "Values" : [ "UseAuthenticated", "Deny" ],
+                "Values" : [ "UseAuthenticatedRule", "Deny" ],
                 "Default" : "Deny",
                 "Type" : STRING_TYPE
             },

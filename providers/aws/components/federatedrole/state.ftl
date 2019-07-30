@@ -3,12 +3,15 @@
 [#macro aws_federatedrole_cf_state occurrence parent={} baseState={}  ]
     [#local core = occurrence.Core]
 
+    [#local identityPoolId = formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id)]
+    [#local identityPoolName = replaceAlphaNumericOnly(core.FullName, "X") ]
+
     [#assign componentState = 
         {
             "Resources" : {
                 "identitypool" : {
-                    "Id" : formatResourceId(AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE, core.Id),
-                    "Name" : replaceAlphaNumericOnly(core.FullName, "X"),
+                    "Id" : identityPoolId,
+                    "Name" : identityPoolName,
                     "Type" : AWS_COGNITO_IDENTITYPOOL_RESOURCE_TYPE
                 },
                 "rolemapping" : {
@@ -17,6 +20,8 @@
                 }
             },
             "Attributes" : {
+                "ID" : getExistingReference(identityPoolId),
+                "NAME" : identityPoolName
             },
             "Roles" : {
                 "Inbound" : {},
