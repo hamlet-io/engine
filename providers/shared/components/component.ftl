@@ -14,6 +14,9 @@
 
 [#assign CACHE_COMPONENT_TYPE = "cache" ]
 
+[#assign CDN_COMPONENT_TYPE = "cdn"]
+[#assign CDN_ROUTE_COMPONENT_TYPE = "cdnroute" ]
+
 [#assign COMPUTECLUSTER_COMPONENT_TYPE = "computecluster"]
 
 [#assign CONFIGSTORE_COMPONENT_TYPE = "configstore" ]

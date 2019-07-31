@@ -38,6 +38,20 @@
     ]
 [/#function]
 
+[#function getCFOriginPath path ]
+    [#return path?ensure_starts_with("/")?remove_ending("/") ]
+[/#function]
+
+[#function getCFBehaviourPath path ]
+    [#if path?has_content ]
+        [#local path = path?ensure_starts_with("/") ]
+        [#if path?ends_with("/") && path != "/" ]
+            [#local path += "*" ]
+        [/#if]
+    [/#if]
+    [#return path ]
+[/#function]
+
 [#function getCFS3Origin id bucket
             accessId
             path=""
@@ -52,7 +66,7 @@
                 }
             } +
             attributeIfContent("OriginCustomHeaders", asArray(headers)) +
-            attributeIfContent("OriginPath", path)
+            attributeIfContent("OriginPath", getCFOriginPath(path) )
         ]
     ]
 [/#function]
@@ -73,7 +87,7 @@
                 "CustomOriginConfig" : httpConfig
             } +
             attributeIfContent("OriginCustomHeaders", asArray(headers)) +
-            attributeIfContent("OriginPath", path)
+            attributeIfContent("OriginPath", getCFOriginPath(path))
         ]
     ]
 [/#function]
@@ -118,7 +132,7 @@
                 "TargetOriginId" : asString(origin, "Id"),
                 "ViewerProtocolPolicy" : viewerProtocolPolicy
             } +
-            attributeIfContent("PathPattern", path) +
+            attributeIfContent("PathPattern", getCFBehaviourPath(path)) +
             attributeIfContent("AllowedMethods", methods.Allowed![], asArray(methods.Allowed![])) +
             attributeIfContent("CachedMethods", methods.Cached![], asArray(methods.Cached![])) +
             attributeIfContent("DefaultTTL", (ttl.Default)!"") +

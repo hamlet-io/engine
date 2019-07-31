@@ -26,8 +26,8 @@
             },
             {
                 "Names" : "Links",
-                "Type" : OBJECT_TYPE,
-                "Default" : {}
+                "Subobjects" : true,
+                "Children" : linkChildrenConfiguration
             },
             {
                 "Names" : "WAF",
@@ -69,53 +69,6 @@
                 "Default" : []
             },
             {
-                "Names" : "RedirectAliases",
-                "Description" : "Redirect secondary domains to the primary domain name",
-                "Children" : [
-                    {
-                        "Names" : "RedirectVersion",
-                        "Type" : STRING_TYPE,
-                        "Default" : "v1"
-                    }
-                ]
-            },
-            {
-                "Names" : "EventHandlers",
-                "Description" : "Attach a function to a stage in the Cloudfront Processing",
-                "Subobjects" : true,
-                "Children" : [
-                    {
-                        "Names" : "Tier",
-                        "Type" : STRING_TYPE,
-                        "Mandatory" : true
-                    },
-                    {
-                        "Names" : "Component",
-                        "Type" : STRING_TYPE,
-                        "Mandatory" : true
-                    },
-                    {
-                        "Names" : "Function",
-                        "Type" : STRING_TYPE,
-                        "Mandatory" : true
-                    },
-                    {
-                        "Names" : "Instance",
-                        "Type" : STRING_TYPE
-                    },
-                    {
-                        "Names" : "Version",
-                        "Type" : STRING_TYPE
-                    },
-                    {
-                        "Names" : "Action",
-                        "Type" : STRING_TYPE,
-                        "Values" : [ "viewer-request", "viewer-response", "origin-request", "origin-response" ],
-                        "Mandatory" : true
-                    }
-                ]
-            },
-            {
                 "Names" : "Certificate",
                 "Children" : certificateChildConfiguration
             },
@@ -138,45 +91,130 @@
 /]
 
 
-                    {
-                        "Names" : "Paths",
-                        "Subobjects" : true,
-                        "Description" : "Additional path based routes to other components",
-                        "Children" : [
-                            {
-                                "Names" : "PathPattern",
-                                "Type" : STRING_TYPE,
-                                "Mandatory" : true
-                            },
-                            {
-                                "Names" : "Link",
-                                "Children" : linkChildrenConfiguration,
-                                "Mandatory" : true
-                            },
-                            {
-                                "Names" : "CachingTTL",
-                                "Children" : [
-                                    {
-                                        "Names" : "Default",
-                                        "Type" : NUMBER_TYPE,
-                                        "Default" : 600
-                                    },
-                                    {
-                                        "Names" : "Maximum",
-                                        "Type" : NUMBER_TYPE,
-                                        "Default" : 31536000
-                                    },
-                                    {
-                                        "Names" : "Minimum",
-                                        "Type" : NUMBER_TYPE,
-                                        "Default" : 0
-                                    }
-                                ]
-                            },
-                            {
-                                "Names" : "Compress",
-                                "Type" : BOOLEAN_TYPE,
-                                "Default" : false
-                            }
-                        ]
-                    }
+[@addChildComponent
+    type=CDN_ROUTE_COMPONENT_TYPE
+    parent=CDN_COMPONENT_TYPE
+    childAttribute="Routes"
+    linkAttributes="Route"
+    properties=
+        [
+            {
+                "Type"  : "Description",
+                "Value" : "A path based route on the CDN instance"
+            },
+            {
+                "Type" : "Providers",
+                "Value" : [ "aws" ]
+            },
+            {
+                "Type" : "ComponentLevel",
+                "Value" : "solution"
+            }
+        ]
+    attributes=[
+        {
+            "Names" : "PathPattern",
+            "Description" : "The path based pattern to match for this route to apply",
+            "Type" : STRING_TYPE,
+            "Mandatory" : true
+        },
+        {
+            "Names" : "Origin",
+            "Children" : [
+                {
+                    "Names" : "BasePath",
+                    "Description" : "The base path at the origin destination",
+                    "Type" : STRING_TYPE,
+                    "Default" : ""
+                },
+                {
+                    "Names" : "Link",
+                    "Children" : linkChildrenConfiguration,
+                    "Mandatory" : true
+                }
+            ]
+        },
+        {
+            "Names" : "CachingTTL",
+            "Children" : [
+                {
+                    "Names" : "Default",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 600
+                },
+                {
+                    "Names" : "Maximum",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 31536000
+                },
+                {
+                    "Names" : "Minimum",
+                    "Type" : NUMBER_TYPE,
+                    "Default" : 0
+                }
+            ]
+        },
+        {
+            "Names" : "Compress",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : false
+        },
+        {
+            "Names" : "InvalidateOnUpdate",
+            "Type" : BOOLEAN_TYPE,
+            "Default" : true
+        }
+        {
+            "Names" : "RedirectAliases",
+            "Description" : "Redirect secondary domains to the primary domain name",
+            "Children" : [
+                {
+                    "Names" : "Enabled",
+                    "Type" : BOOLEAN_TYPE,
+                    "Default" : true
+                }
+                {
+                    "Names" : "RedirectVersion",
+                    "Type" : STRING_TYPE,
+                    "Default" : "v1"
+                }
+            ]
+        },
+        {
+            "Names" : "EventHandlers",
+            "Description" : "Attach a function to a stage in the Cloudfront Processing",
+            "Subobjects" : true,
+            "Children" : [
+                {
+                    "Names" : "Tier",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Component",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Function",
+                    "Type" : STRING_TYPE,
+                    "Mandatory" : true
+                },
+                {
+                    "Names" : "Instance",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "Version",
+                    "Type" : STRING_TYPE
+                },
+                {
+                    "Names" : "Action",
+                    "Type" : STRING_TYPE,
+                    "Values" : [ "viewer-request", "viewer-response", "origin-request", "origin-response" ],
+                    "Mandatory" : true
+                }
+            ]
+        }
+    ]
+/]

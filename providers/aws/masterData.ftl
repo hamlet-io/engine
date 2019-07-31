@@ -1080,8 +1080,7 @@
           "MultiAZ": true,
           "network": {
             "RouteTables": {
-              "internal": {
-              },
+              "internal": {},
               "external": {
                 "Public": true
               }
@@ -2112,6 +2111,11 @@
         "WAFValueSet": "default"
       },
       "spa": {
+        "HTTPSProfile": "TLSv1",
+        "WAFProfile": "OWASP2017",
+        "WAFValueSet": "default"
+      },
+      "cdn": {
         "HTTPSProfile": "TLSv1",
         "WAFProfile": "OWASP2017",
         "WAFValueSet": "default"
