@@ -132,7 +132,7 @@
                 "TargetOriginId" : asString(origin, "Id"),
                 "ViewerProtocolPolicy" : viewerProtocolPolicy
             } +
-            attributeIfContent("PathPattern", getCFBehaviourPath(path)) +
+            attributeIfContent("PathPattern", path ) +
             attributeIfContent("AllowedMethods", methods.Allowed![], asArray(methods.Allowed![])) +
             attributeIfContent("CachedMethods", methods.Cached![], asArray(methods.Cached![])) +
             attributeIfContent("DefaultTTL", (ttl.Default)!"") +

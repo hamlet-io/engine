@@ -19,10 +19,9 @@
     [#local wafAclName          = resources["wafacl"].Name]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData" ])]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData" ])]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]!"") ]
-    [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]!"") ]
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
@@ -50,18 +49,10 @@
         [#local aliases += [ formatDomainName(hostName, domain.Name) ] ]
     [/#list]
 
-    [#if !cfAccess?has_content]
-        [@precondition
-            function="solution_spa"
-            context=occurrence
-            detail="No CF Access Id found"
-        /]
-        [#return]
-    [/#if]
-
     [#local origins = []]
     [#local cacheBehaviours = []]
     [#local defaultCacheBehaviour = []]
+    [#local invalidationPaths = []]
 
     [#list occurrence.Occurrences![] as subOccurrence]
         [#local subCore = subOccurrence.Core ]
@@ -71,7 +62,14 @@
         [#local routeBehaviours = []]
 
         [#local originId = subResources["origin"].Id ]
+        [#local originPathPattern = subResources["origin"].PathPattern ]
+        [#local originDefaultPath = subResources["origin"].DefaultPath ]
 
+        [#local behaviourPattern = originDefaultPath?then(
+                                        "",
+                                        originPathPattern
+        )]
+        
         [#if !subSolution.Enabled]
             [#continue]
         [/#if]
@@ -195,6 +193,11 @@
 
             [#case S3_COMPONENT_TYPE ]
 
+                [#local spaBaslineProfile = originLinkTargetConfiguration.Solution.Profiles.Baseline ]
+                [#local spaBaselineLinks = getBaselineLinks(spaBaslineProfile, [ "CDNOriginKey" ])]
+                [#local spaBaselineComponentIds = getBaselineComponentIds(spaBaselineLinks)]
+                [#local cfAccess = getExistingReference(spaBaselineComponentIds["CDNOriginKey"]!"")]
+
                 [#if isPresent(originLinkTargetConfiguration.Solution.Website) ]
                     [#local originBucket = (originLinkTargetAttributes["WEBSITE_URL"])?remove_beginning("http://") ]
                 [#else]
@@ -212,7 +215,7 @@
 
                 [#local behaviour = getCFSPACacheBehaviour(
                     origin,
-                    subSolution.PathPattern,
+                    behaviourPattern,
                     {
                         "Default" : subSolution.CachingTTL.Default,
                         "Max" : subSolution.CachingTTL.Maximum,
@@ -226,13 +229,18 @@
 
             [#case SPA_COMPONENT_TYPE ]
 
-                [#local originBucket = "" ]
+                [#local spaBaslineProfile = originLinkTargetConfiguration.Solution.Profiles.Baseline ]
+                [#local spaBaselineLinks = getBaselineLinks(spaBaslineProfile, [ "OpsData", "CDNOriginKey" ])]
+                [#local spaBaselineComponentIds = getBaselineComponentIds(spaBaselineLinks)]
+                [#local originBucket = getExistingReference(spaBaselineComponentIds["OpsData"]!"") ]
+                [#local cfAccess = getExistingReference(spaBaselineComponentIds["CDNOriginKey"]!"")]
+
                 [#local spaOrigin =
                     getCFS3Origin(
                         originId,
                         originBucket,
                         cfAccess,
-                        formatAbsolutePath(getSettingsFilePrefix(occurrence), "spa"),
+                        formatAbsolutePath(getSettingsFilePrefix(originLink), "spa"),
                         _context.CustomOriginHeaders)]
                 [#local origins += spaOrigin ]
 
@@ -241,13 +249,13 @@
                         formatId(originId, "config"),
                         originBucket,
                         cfAccess,
-                        formatAbsolutePath(getSettingsFilePrefix(occurrence)),
+                        formatAbsolutePath(getSettingsFilePrefix(originLink)),
                         _context.CustomOriginHeaders)]
                 [#local origins += configOrigin ]
 
                 [#local spaCacheBehaviour = getCFSPACacheBehaviour(
                     spaOrigin,
-                    subSolution.PathPattern,
+                    behaviourPattern,
                     {
                         "Default" : subSolution.CachingTTL.Default,
                         "Max" : subSolution.CachingTTL.Maximum,
@@ -260,7 +268,7 @@
 
                 [#local configCacheBehaviour = getCFSPACacheBehaviour(
                     configOrigin,
-                    formatAbsolutePath( subSolution.PathPattern, "config/*"),
+                    formatAbsolutePath( behaviourPattern, "config/*"),
                     { "Default" : 60 },
                     subSolution.Compress,
                     eventHandlers,
@@ -283,7 +291,7 @@
                 [#local behaviour = 
                             getCFLBCacheBehaviour(
                                 origin,
-                                subSolution.PathPattern,
+                                behaviourPattern,
                                 subSolution.CachingTTL,
                                 subSolution.Compress,
                                 _context.ForwardHeaders,
@@ -293,7 +301,7 @@
         [/#switch]
 
         [#list routeBehaviours as behaviour ]
-            [#if (behaviour.PathPattern!"")?has_content ]
+            [#if (behaviour.PathPattern!"")?has_content && originDefaultPath ]
                 [#local cacheBehaviours += routeBehaviours ]
             [#else]
                 [#local defaultCacheBehaviour = behaviour ]
@@ -301,28 +309,8 @@
         [/#list]
 
         [#if subSolution.InvalidateOnUpdate ]
-            [#if deploymentSubsetRequired("epilogue", false)]
-                [@addToDefaultBashScriptOutput
-                    content=(getExistingReference(cfId)?has_content)?then(
-                        [
-                            "case $\{STACK_OPERATION} in",
-                            "  create|update)"
-                        ] +
-                        [
-                            "# Invalidate distribution",
-                            "info \"Invalidating cloudfront distribution ... \"",
-                            "invalidate_distribution" +
-                            " \"" + region + "\" " +
-                            " \"" + getExistingReference(cfId) + "\" || return $?"
-
-                        ] +
-                        [
-                            "       ;;",
-                            "       esac"
-                        ],
-                        []
-                    )
-                /]
+            [#if ! invalidationPaths?seq_contains("/*") ]
+                [#local invalidationPaths += [ originPathPattern ]]
             [/#if]
         [/#if]
     [/#list]
@@ -401,4 +389,22 @@
         [/#if]
     [/#if]
 
+    [#if deploymentSubsetRequired("epilogue", false)]
+        [#if invalidationPaths?has_content && getExistingReference(cfId)?has_content ]
+            [@addToDefaultBashScriptOutput
+                [
+                    "case $\{STACK_OPERATION} in",
+                    "  create|update)"
+                    "       # Invalidate distribution",
+                    "       info \"Invalidating cloudfront distribution ... \"",
+                    "       invalidate_distribution" +
+                    "       \"" + region + "\" " +
+                    "       \"" + getExistingReference(cfId) + "\" " +
+                    "       \"" + invalidationPaths?join(" ") + "\" || return $?"
+                    " ;;",
+                    " esac"
+                ]
+            /]
+        [/#if]
+    [/#if]
 [/#macro]

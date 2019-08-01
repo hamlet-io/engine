@@ -29,17 +29,12 @@
                     "Id" : formatResourceId( AWS_IAM_ROLE_RESOURCE_TYPE, core.Id ),
                     "Type" : AWS_IAM_ROLE_RESOURCE_TYPE,
                     "IncludeInDeploymentState" : false
-                }
-            } +
-            publicAccessEnabled?then(
-                {
-                    "bucketpolicy" : {
+                },
+                "bucketpolicy" : {
                         "Id" : formatResourceId(AWS_S3_BUCKET_POLICY_RESOURCE_TYPE, core.Id),
                         "Type" : AWS_S3_BUCKET_POLICY_RESOURCE_TYPE
-                    }
-                },
-                {}
-            ),
+                }
+            },
             "Attributes" : {
                 "NAME" : getExistingReference(id, NAME_ATTRIBUTE_TYPE),
                 "FQDN" : getExistingReference(id, DNS_ATTRIBUTE_TYPE),

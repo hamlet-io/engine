@@ -1,340 +1,4 @@
 [#ftl]
-[#macro aws_spa_cf_solution occurrence ]
-    [@debug message="Entering" context=occurrence enabled=false /]
-
-    [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["template", "epilogue"] /]
-        [#return]
-    [/#if]
-
-    [#local core = occurrence.Core ]
-    [#local resources = occurrence.State.Resources]
-    [#local solution = occurrence.Configuration.Solution ]
-
-    [#local fragment = getOccurrenceFragmentBase(occurrence) ]
-
-    [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(occurrence, [ "CDNOriginKey", "OpsData", "AppData" ])]
-    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
-    [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]!"") ]
-    [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]!"") ]
-    [#local dataBucket       = getExistingReference(baselineComponentIds["AppData"]!"") ]
-
-    [#local contextLinks = getLinkTargets(occurrence) ]
-    [#assign _context =
-        {
-            "Id" : fragment,
-            "Name" : fragment,
-            "Instance" : core.Instance.Id,
-            "Version" : core.Version.Id,
-            "DefaultEnvironment" : defaultEnvironment(occurrence, contextLinks, baselineLinks),
-            "Environment" : {},
-            "Links" : contextLinks,
-            "DefaultCoreVariables" : false,
-            "DefaultEnvironmentVariables" : false,
-            "DefaultLinkVariables" : false,
-            "CustomOriginHeaders" : [],
-            "ForwardHeaders" : []
-        }
-    ]
-
-    [#-- Add in container specifics including override of defaults --]
-    [#local fragmentId = formatFragmentId(_context)]
-    [#include fragmentList?ensure_starts_with("/")]
-
-    [#local securityProfile    = getSecurityProfile(solution.Profiles.Security, SPA_COMPONENT_TYPE)]
-
-    [#local certificateObject = getCertificateObject(solution.Certificate, segmentQualifiers) ]
-    [#local hostName = getHostName(certificateObject, occurrence) ]
-    [#local certificateId = formatDomainCertificateId(certificateObject, hostName) ]
-    [#local primaryDomainObject = getCertificatePrimaryDomain(certificateObject) ]
-    [#local primaryFQDN = formatDomainName(hostName, primaryDomainObject)]
-
-    [#-- Get alias list --]
-    [#local aliases = [] ]
-    [#list certificateObject.Domains as domain]
-        [#local aliases += [ formatDomainName(hostName, domain.Name) ] ]
-    [/#list]
-
-    [#-- Get any event handlers --]
-    [#local eventHandlerLinks = {} ]
-    [#local eventHandlers = []]
-
-    [#if solution.CloudFront.RedirectAliases.Enabled
-                && ( aliases?size > 1) ]
-
-        [#local cfRedirectLink = {
-            "cfredirect" : {
-                "Tier" : "gbl",
-                "Component" : "cfredirect",
-                "Version" : solution.CloudFront.RedirectAliases.RedirectVersion,
-                "Instance" : "",
-                "Function" : "cfredirect",
-                "Action" : "origin-request"
-            }
-        }]
-
-        [#if getLinkTarget(occurrence, cfRedirectLink.cfredirect )?has_content ]
-            [#local eventHandlerLinks += cfRedirectLink]
-
-            [#assign _context +=
-                {
-                    "ForwardHeaders" : (_context.ForwardHeaders![]) + [
-                        "Host"
-                    ]
-                }]
-
-            [#assign _context +=
-                {
-                    "CustomOriginHeaders" : (_context.CustomOriginHeaders![]) + [
-                        getCFHTTPHeader(
-                            "X-Redirect-Primary-Domain-Name",
-                            primaryFQDN ),
-                        getCFHTTPHeader(
-                            "X-Redirect-Response-Code",
-                            "301"
-                        )
-                    ]
-                }]
-        [#else]
-            [@fatal
-                message="Could not find cfredirect component"
-                context=cfRedirectLink
-            /]
-        [/#if]
-    [/#if]
-
-    [#local eventHandlerLinks += solution.CloudFront.EventHandlers ]
-    [#list eventHandlerLinks?values as eventHandler]
-
-        [#local eventHandlerTarget = getLinkTarget(occurrence, eventHandler) ]
-
-        [@debug message="Event message handler" context=eventHandlerTarget enabled=false /]
-
-        [#if !eventHandlerTarget?has_content]
-            [#continue]
-        [/#if]
-
-        [#local eventHandlerCore = eventHandlerTarget.Core ]
-        [#local eventHandlerResources = eventHandlerTarget.State.Resources ]
-        [#local eventHandlerAttributes = eventHandlerTarget.State.Attributes ]
-        [#local eventHandlerConfiguration = eventHandlerTarget.Configuration ]
-
-        [#if (eventHandlerCore.Type) == LAMBDA_FUNCTION_COMPONENT_TYPE &&
-                eventHandlerAttributes["DEPLOYMENT_TYPE"] == "EDGE" ]
-
-                [#local eventHandlers += getCFEventHandler(
-                                            eventHandler.Action,
-                                            eventHandlerResources["version"].Id) ]
-        [#else]
-            [@fatal
-                description="Invalid Event Handler Component - Must be Lambda - EDGE"
-                context=occurrence
-            /]
-        [/#if]
-    [/#list]
-
-    [#local cfId               = resources["cf"].Id]
-    [#local cfName             = resources["cf"].Name]
-    [#local cfSPAOriginId      = resources["cforiginspa"].Id]
-    [#local cfConfigOriginId   = resources["cforiginconfig"].Id]
-
-    [#local bucketId = formatSegmentResourceId(AWS_S3_RESOURCE_TYPE, "opsdata" ) ]
-    [#if !getExistingReference(bucketId)?has_content ]
-        [#local bucketId = formatS3OperationsId() ]
-    [/#if]
-
-    [#if !cfAccess?has_content]
-        [@precondition
-            function="solution_spa"
-            context=occurrence
-            detail="No CF Access Id found"
-        /]
-        [#return]
-    [/#if]
-
-    [#local wafPresent     = isPresent(solution.WAF) ]
-    [#local wafAclId       = resources["wafacl"].Id]
-    [#local wafAclName     = resources["wafacl"].Name]
-
-    [#if deploymentSubsetRequired("spa", true)]
-        [#local origins = []]
-        [#local cacheBehaviours = []]
-
-        [#local spaOrigin =
-            getCFS3Origin(
-                cfSPAOriginId,
-                operationsBucket,
-                cfAccess,
-                formatAbsolutePath(getSettingsFilePrefix(occurrence), "spa"),
-                _context.CustomOriginHeaders)]
-        [#local origins += spaOrigin ]
-
-        [#local configOrigin =
-            getCFS3Origin(
-                cfConfigOriginId,
-                operationsBucket,
-                cfAccess,
-                formatAbsolutePath(getSettingsFilePrefix(occurrence)),
-                _context.CustomOriginHeaders)]
-        [#local origins += configOrigin ]
-
-        [#local spaCacheBehaviour = getCFSPACacheBehaviour(
-            spaOrigin,
-            "",
-            {
-                "Default" : solution.CloudFront.CachingTTL.Default,
-                "Max" : solution.CloudFront.CachingTTL.Maximum,
-                "Min" : solution.CloudFront.CachingTTL.Minimum
-            },
-            solution.CloudFront.Compress,
-            eventHandlers,
-            _context.ForwardHeaders)]
-
-        [#local configCacheBehaviour = getCFSPACacheBehaviour(
-            configOrigin,
-            "/config/*",
-            {"Default" : 60},
-            solution.CloudFront.Compress,
-            eventHandlers,
-            _context.ForwardHeaders) ]
-        [#local cacheBehaviours += configCacheBehaviour ]
-
-        [#list resources["paths"]!{} as id, path ]
-            [#local pathOriginIdId = path["cforigin"]["Id"] ]
-            [#local pathSolution = solution.CloudFront.Paths[id] ]
-
-            [#local pathLink = getLinkTarget(occurrence, pathSolution.Link) ]
-
-            [#if !pathLink?has_content]
-                [#continue]
-            [/#if]
-
-            [#local pathLinkTargetCore = pathLink.Core ]
-            [#local pathLinkTargetConfiguration = pathLink.Configuration ]
-            [#local pathLinkTargetResources = pathLink.State.Resources ]
-            [#local pathLinkTargetAttributes = pathLink.State.Attributes ]
-
-            [#switch pathLinkTargetCore.Type]
-                [#case LB_PORT_COMPONENT_TYPE ]
-                    [#local pathOrigin = getCFHTTPOrigin(
-                                                pathOriginIdId,
-                                                pathLinkTargetAttributes["FQDN"],
-                                                _context.CustomOriginHeaders,
-                                                pathLinkTargetAttributes["PATH"]
-                    )]
-                    [#local origins += pathOrigin ]
-                    [#break]
-            [/#switch]
-
-            [#local pathBehaviour = getCFLBCacheBehaviour(
-                                        pathOrigin,
-                                        pathSolution.PathPattern,
-                                        pathSolution.CachingTTL,
-                                        pathSolution.Compress,
-                                        _context.ForwardHeaders,
-                                        eventHandlers
-
-            )]
-            [#local cacheBehaviours += pathBehaviour ]
-        [/#list]
-
-        [#local restrictions = {} ]
-        [#if solution.CloudFront.CountryGroups?has_content]
-            [#list asArray(solution.CloudFront.CountryGroups) as countryGroup]
-                [#local group = (countryGroups[countryGroup])!{}]
-                [#if group.Locations?has_content]
-                    [#local restrictions +=
-                        getCFGeoRestriction(group.Locations, group.Blacklist!false) ]
-                    [#break]
-                [/#if]
-            [/#list]
-        [/#if]
-
-        [@createCFDistribution
-            id=cfId
-            aliases=
-                (isPresent(solution.Certificate))?then(
-                    aliases,
-                    []
-                )
-            cacheBehaviours=cacheBehaviours
-            certificate=valueIfTrue(
-                getCFCertificate(
-                    certificateId,
-                    securityProfile.HTTPSProfile,
-                    solution.CloudFront.AssumeSNI),
-                    isPresent(solution.Certificate)
-                )
-            comment=cfName
-            customErrorResponses=getErrorResponse(
-                                        404,
-                                        200,
-                                        (solution.CloudFront.NotFoundPage)?has_content?then(
-                                            solution.CloudFront.NotFoundPage,
-                                            solution.CloudFront.ErrorPage
-                                        )) +
-                                getErrorResponse(
-                                        403,
-                                        200,
-                                        (solution.CloudFront.DeniedPage)?has_content?then(
-                                            solution.CloudFront.DeniedPage,
-                                            solution.CloudFront.ErrorPage
-                                        ))
-            defaultCacheBehaviour=spaCacheBehaviour
-            defaultRootObject="index.html"
-            logging=valueIfTrue(
-                getCFLogging(
-                    operationsBucket,
-                    formatComponentAbsoluteFullPath(
-                        core.Tier,
-                        core.Component,
-                        occurrence
-                    )
-                ),
-                solution.CloudFront.EnableLogging)
-            origins=origins
-            restrictions=valueIfContent(
-                restrictions,
-                restrictions)
-            wafAclId=valueIfTrue(wafAclId, wafPresent)
-        /]
-
-        [#if wafPresent ]
-            [@createWAFAclFromSecurityProfile
-                id=wafAclId
-                name=wafAclName
-                metric=wafAclName
-                wafSolution=solution.WAF
-                securityProfile=securityProfile
-                occurrence=occurrence /]
-        [/#if]
-    [/#if]
-    [#if deploymentSubsetRequired("epilogue", false)]
-        [@addToDefaultBashScriptOutput
-            content=(getExistingReference(cfId)?has_content)?then(
-                [
-                    "case $\{STACK_OPERATION} in",
-                    "  create|update)"
-                ] +
-                [
-                    "# Invalidate distribution",
-                    "info \"Invalidating cloudfront distribution ... \"",
-                    "invalidate_distribution" +
-                    " \"" + region + "\" " +
-                    " \"" + getExistingReference(cfId) + "\" || return $?"
-
-                ] +
-                [
-                    "       ;;",
-                    "       esac"
-                ],
-                []
-            )
-        /]
-    [/#if]
-[/#macro]
-
 [#macro aws_spa_cf_application occurrence  ]
     [@debug message="Entering" context=occurrence enabled=false /]
 
@@ -348,12 +12,22 @@
     [#local settings = occurrence.Configuration.Settings ]
     [#local resources = occurrence.State.Resources]
 
+    [#if (resources["legacyCF"]!{})?has_content ]
+        [@fatal
+            message="SPA Cloudfront distributions have been deprecated"
+            detail="Please delete the solution SPA stack and add a CDN inbound link on the SPA"
+            context=resources["legacyCF"]
+        /] 
+    [/#if]
+
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData"] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
+
+    [#local distributions = [] ]
 
     [#local contextLinks = getLinkTargets(occurrence) ]
     [#assign _context =
@@ -378,6 +52,35 @@
     [#include fragmentList?ensure_starts_with("/")]
 
     [#assign _context += getFinalEnvironment(occurrence, _context) ]
+
+    [#list _context.Links as id,link ]
+
+        [#local linkTargetCore = linkTarget.Core ]
+        [#local linkTargetConfiguration = linkTarget.Configuration ]
+        [#local linkTargetResources = linkTarget.State.Resources ]
+        [#local linkTargetAttributes = linkTarget.State.Attributes ]
+        [#local linkDirection = linkTarget.Direction ]
+
+        [#switch linkTargetCore.Type]
+            [#case CDN_ROUTE_COMPONENT_TYPE ]
+                [#if linkDirection == "inbound" ]  
+                    [#local distributions += [ { 
+                        "DistributionId" : linkTargetAttributes["DISTRIBUTION_ID"],
+                        "PathPattern" : linkTargetResources["origin"].PathPattern
+                    }] ]         
+                [/#if]
+                [#break]
+        [/#switch]
+    [/#list]
+
+    [#if ! distributions?has_content ]
+        [@fatal 
+            message="An SPA must have at least 1 CDN component link"
+            detail="Please add an inbound CDN link to your SPA"
+            context=solution
+            enabled=true
+        /]
+    [/#if]
 
     [#if deploymentSubsetRequired("config", false)]
         [@addToDefaultJsonOutput
@@ -418,30 +121,36 @@
                         getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
                         "config"
                     )
-                ) /]
+                ) /] 
+    [/#if]
 
-        [#local cfId = resources["cf"].Id]
+    [#if solution.InvalidateOnUpdate && cdnDistributions?has_content ]
+        [#list distributions as distribution ]
+            [#local distributionId = distribution.DistributionId ]
+            [#local pathPattern = distribution.PathPattern]
 
-        [@addToDefaultBashScriptOutput
-            content=(getExistingReference(cfId)?has_content)?then(
+            [#local invalidationScript += [
+                "       # Invalidate distribution",
+                "       info \"Invalidating cloudfront distribution " + distributionId + " " + pathPattern + "\"",
+                "       invalidate_distribution" +
+                "       \"" + region + "\" " +
+                "       \"" + distributionId + "\" " +
+                "       \"" + pathPattern + "\" || return $?"
+            ]]
+        [/#list]
+
+        [#if deploymentSubsetRequired("epilogue", false)]
+            [@addToDefaultBashScriptOutput
                 [
                     "case $\{STACK_OPERATION} in",
                     "  create|update)"
-                ] +
+                ] + 
+                invalidationScript +
                 [
-                    "# Invalidate distribution",
-                    "info \"Invalidating cloudfront distribution ... \"",
-                    "invalidate_distribution" +
-                    " \"" + region + "\" " +
-                    " \"" + getExistingReference(cfId) + "\" || return $?"
-
-                ] +
-                [
-                    "       ;;",
-                    "       esac"
-                ],
-                []
-            )
-        /]
+                    " ;;",
+                    " esac"
+                ]
+            /]
+        [/#if]
     [/#if]
 [/#macro]

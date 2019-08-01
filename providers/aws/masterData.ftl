@@ -1291,7 +1291,7 @@
         "Processor": "cache.t2.micro",
         "CountPerZone": 1
       },
-      "RDS": {
+      "db": {
         "Processor": "db.t2.small"
       },
       "ElasticSearch": {

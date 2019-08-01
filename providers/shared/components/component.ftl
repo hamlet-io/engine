@@ -182,7 +182,11 @@
         {
             "Names" : [ "Assignment" ],
             "Type" : STRING_TYPE
-        }
+        },
+        {
+            "Names" : [ "Route" ],
+            "Type"  : STRING_TYPE
+        },
         {
             "Names" : "Instance",
             "Type" : STRING_TYPE
