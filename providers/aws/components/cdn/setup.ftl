@@ -19,7 +19,7 @@
     [#local wafAclName          = resources["wafacl"].Name]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData" ])]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData" ])]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]!"") ]
 
@@ -194,7 +194,7 @@
             [#case S3_COMPONENT_TYPE ]
 
                 [#local spaBaslineProfile = originLinkTargetConfiguration.Solution.Profiles.Baseline ]
-                [#local spaBaselineLinks = getBaselineLinks(spaBaslineProfile, [ "CDNOriginKey" ])]
+                [#local spaBaselineLinks = getBaselineLinks(originLink, [ "CDNOriginKey" ])]
                 [#local spaBaselineComponentIds = getBaselineComponentIds(spaBaselineLinks)]
                 [#local cfAccess = getExistingReference(spaBaselineComponentIds["CDNOriginKey"]!"")]
 
@@ -230,7 +230,7 @@
             [#case SPA_COMPONENT_TYPE ]
 
                 [#local spaBaslineProfile = originLinkTargetConfiguration.Solution.Profiles.Baseline ]
-                [#local spaBaselineLinks = getBaselineLinks(spaBaslineProfile, [ "OpsData", "CDNOriginKey" ])]
+                [#local spaBaselineLinks = getBaselineLinks(originLink, [ "OpsData", "CDNOriginKey" ])]
                 [#local spaBaselineComponentIds = getBaselineComponentIds(spaBaselineLinks)]
                 [#local originBucket = getExistingReference(spaBaselineComponentIds["OpsData"]!"") ]
                 [#local cfAccess = getExistingReference(spaBaselineComponentIds["CDNOriginKey"]!"")]
