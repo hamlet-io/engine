@@ -53,7 +53,7 @@
 
     [#assign _context += getFinalEnvironment(occurrence, _context) ]
 
-    [#list _context.Links as id,link ]
+    [#list _context.Links as id,linkTarget ]
 
         [#local linkTargetCore = linkTarget.Core ]
         [#local linkTargetConfiguration = linkTarget.Configuration ]

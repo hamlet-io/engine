@@ -264,7 +264,7 @@
                     subSolution.Compress,
                     eventHandlers,
                     _context.ForwardHeaders)]
-                [#local routeBehaviours += configCacheBehaviour ]
+                [#local routeBehaviours += spaCacheBehaviour ]
 
                 [#local configCacheBehaviour = getCFSPACacheBehaviour(
                     configOrigin,
@@ -300,11 +300,21 @@
                 [#break]
         [/#switch]
 
+        
         [#list routeBehaviours as behaviour ]
             [#if (behaviour.PathPattern!"")?has_content && originDefaultPath ]
-                [#local cacheBehaviours += routeBehaviours ]
+                [#local cacheBehaviours += [ behaviour ] ]
             [#else]
-                [#local defaultCacheBehaviour = behaviour ]
+                [#if ! defaultCacheBehaviour?has_content ]
+                    [#local defaultCacheBehaviour = behaviour ]
+                [#else]
+                    [@fatal 
+                        message="Multiple default routes have been defined"
+                        context=solution 
+                        defailt="Check your routes to make sure PathPattern is different" 
+                        enabled=true
+                    /]
+                [/#if]
             [/#if]
         [/#list]
 
