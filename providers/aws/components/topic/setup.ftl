@@ -15,14 +15,14 @@
     [#local topicName = resources["topic"].Name ]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption" ] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "Encryption" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local cmkKeyId = baselineComponentIds["Encryption"] ]
 
     [#if deploymentSubsetRequired(TOPIC_COMPONENT_TYPE, true)]
-        [@createSNSTopic 
-            id=topicId 
-            name=topicName 
+        [@createSNSTopic
+            id=topicId
+            name=topicName
             encrypted=solution.Encrypted
             kmsKeyId=cmkKeyId
             fixedName=solution.FixedName
@@ -70,7 +70,7 @@
         [#local core = subOccurrence.Core ]
         [#local solution = subOccurrence.Configuration.Solution ]
         [#local resources = subOccurrence.State.Resources ]
-        
+
         [#switch core.Type]
 
             [#case TOPIC_SUBSCRIPTION_COMPONENT_TYPE  ]
@@ -79,7 +79,7 @@
                 [#local links = solution.Links ]
 
                 [#list links as linkId,link]
-                
+
                     [#local linkTarget = getLinkTarget(occurrence, link) ]
 
                     [@debug message="Link Target" context=linkTarget enabled=false /]
@@ -95,7 +95,7 @@
 
                     [#local endpoint = ""]
                     [#local deliveryPolicy = {}]
-                    
+
                     [#switch linkTargetCore.Type ]
                         [#case "external" ]
                             [#local endpoint = linkTargetAttributes["SUBSCRIPTION_ENDPOINT"] ]
@@ -118,7 +118,7 @@
                             detail="Could not determine protocol and endpoint for link"
                         /]
                     [/#if]
-                    
+
 
                     [#switch protocol ]
                         [#case "http"]
@@ -128,15 +128,15 @@
                     [/#switch]
 
                     [#if deploymentSubsetRequired(TOPIC_COMPONENT_TYPE, true)]
-                        [@createSNSSubscription 
+                        [@createSNSSubscription
                             id=formatId(subscriptionId, link.Id)
-                            topicId=topicId 
+                            topicId=topicId
                             endpoint=endpoint
                             protocol=protocol
-                            rawMessageDelivery=solution.RawMessageDelivery 
+                            rawMessageDelivery=solution.RawMessageDelivery
                             deliveryPolicy=deliveryPolicy
                         /]
-                    [/#if]                    
+                    [/#if]
                 [/#list]
                 [#break]
         [/#switch]

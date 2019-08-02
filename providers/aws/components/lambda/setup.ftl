@@ -24,7 +24,7 @@
         [#local fnLgName = resources["lg"].Name ]
 
         [#-- Baseline component lookup --]
-        [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+        [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData", "Encryption" ] )]
         [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
         [#local cmkKeyId = baselineComponentIds["Encryption" ]]

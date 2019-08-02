@@ -51,10 +51,10 @@
     [/#if]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "Encryption" ], false, false )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "Encryption" ], false, false )]
 
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
-    
+
     [#local cmkKeyId = baselineComponentIds["Encryption" ]]
 
     [@debug message={ "KeyId" : cmkKeyId } enabled=true /]
@@ -90,7 +90,7 @@
                 [#local legacyOAIId = formatDependentCFAccessId(bucketId)]
                 [#local legacyOAI =  getExistingReference(legacyOAIId, CANONICAL_ID_ATTRIBUTE_TYPE) ]
 
-                [#if legacyOAI?has_content] 
+                [#if legacyOAI?has_content]
                     [#local cfAccessCanonicalIds += [ legacyOAI ]]
                 [/#if]
 
@@ -141,7 +141,7 @@
                                                 formatS3NotificationPolicyId(
                                                     bucketId,
                                                     resourceId) ]
-                                            
+
                                             [#local bucketDependencies += [policyId] ]
 
                                             [#if deploymentSubsetRequired("s3", true)]
@@ -162,7 +162,7 @@
                                                 formatS3NotificationPolicyId(
                                                     bucketId,
                                                     resourceId) ]
-                                                    
+
                                             [#local bucketDependencies += [ policyId ]]
 
                                             [#if deploymentSubsetRequired("s3", true )]
@@ -175,8 +175,8 @@
                                     [/#switch]
 
                                     [#list notification.Events as event ]
-                                        [#local notifications += 
-                                                getS3Notification(resourceId, resourceType, event, notification.Prefix, notification.Suffix) ]     
+                                        [#local notifications +=
+                                                getS3Notification(resourceId, resourceType, event, notification.Prefix, notification.Suffix) ]
                                     [/#list]
                                 [/#if]
                             [/#if]
@@ -371,11 +371,11 @@
                                 "  #"
                             ] +
                             pseudoStackOutputScript(
-                                "SSH Key Pair", 
-                                { 
-                                    ec2KeyPairId : "$\{key_pair_name}", 
+                                "SSH Key Pair",
+                                {
+                                    ec2KeyPairId : "$\{key_pair_name}",
                                     formatId(ec2KeyPairId, "name") : "$\{key_pair_name}"
-                                }, 
+                                },
                                 "keypair"
                             ) +
                             valueIfTrue(

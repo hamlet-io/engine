@@ -14,7 +14,7 @@
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey", "OpsData", "AppData" ])]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "CDNOriginKey", "OpsData", "AppData" ])]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local cfAccess         = getExistingReference(baselineComponentIds["CDNOriginKey"]!"") ]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]!"") ]
@@ -350,7 +350,7 @@
 
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData"] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData"] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]

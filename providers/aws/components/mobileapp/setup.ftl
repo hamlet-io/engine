@@ -13,7 +13,7 @@
     [#local attributes = occurrence.State.Attributes ]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
@@ -29,18 +29,18 @@
                                     getOccurrenceBuildUnit(occurrence),
                                     getOccurrenceBuildReference(occurrence))]
 
-    [#local buildConfig = 
+    [#local buildConfig =
         {
-            "RUN_ID"            : runId, 
+            "RUN_ID"            : runId,
             "CODE_SRC_BUCKET"   : codeSrcBucket,
             "CODE_SRC_PREFIX"   : codeSrcPrefix,
             "APP_BUILD_FORMATS" : solution.BuildFormats?join(","),
             "BUILD_REFERENCE"   : getOccurrenceBuildReference(occurrence)
-        } + 
+        } +
         attributes +
         defaultEnvironment(occurrence, {}, baselineLinks)
     ]
-    
+
     [#local fragment = getOccurrenceFragmentBase(occurrence) ]
 
     [#local contextLinks = getLinkTargets(occurrence) ]
@@ -66,22 +66,22 @@
     [#include fragmentList?ensure_starts_with("/")]
 
     [#local finalEnvironment = getFinalEnvironment(
-            occurrence, 
+            occurrence,
             _context,
-            { 
-                "Json" : { 
-                    "Include" : { 
-                        "Sensitive" : false 
+            {
+                "Json" : {
+                    "Include" : {
+                        "Sensitive" : false
                     }
                 }
             }
     )]
-    
+
     [#if deploymentSubsetRequired("config", false)]
-        [@addToDefaultJsonOutput 
+        [@addToDefaultJsonOutput
             content={
                 "BuildConfig" : buildConfig,
-                "AppConfig" : finalEnvironment.Environment 
+                "AppConfig" : finalEnvironment.Environment
             }
         /]
     [/#if]

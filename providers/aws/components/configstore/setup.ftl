@@ -16,7 +16,7 @@
     [#local tableSortKey = parentResources["table"].SortKey!"" ]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
