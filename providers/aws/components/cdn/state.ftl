@@ -4,8 +4,8 @@
     [#local core = occurrence.Core]
     [#local solution = occurrence.Configuration.Solution]
 
-    [#local cfId  = formatComponentCFDistributionId(core.Tier, core.Component, occurrence)]
-    [#local cfName = formatComponentCFDistributionName(core.Tier, core.Component, occurrence)]
+    [#local cfId  = formatResourceId(AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE, core.Id)]
+    [#local cfName = core.FullName]
 
     [#if isPresent(solution.Certificate) ]
         [#local certificateObject = getCertificateObject(solution.Certificate!"", segmentQualifiers) ]

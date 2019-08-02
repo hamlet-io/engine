@@ -3,7 +3,7 @@
     [@debug message="Entering" context=occurrence enabled=false /]
 
     [#if deploymentSubsetRequired("genplan", false)]
-        [@addDefaultGenerationPlan subsets=["prologue", "config"] /]
+        [@addDefaultGenerationPlan subsets=["prologue", "config", "epilogue" ] /]
         [#return]
     [/#if]
 
@@ -62,13 +62,19 @@
         [#local linkDirection = linkTarget.Direction ]
 
         [#switch linkTargetCore.Type]
-            [#case CDN_ROUTE_COMPONENT_TYPE ]
-                [#if linkDirection == "inbound" ]  
-                    [#local distributions += [ { 
-                        "DistributionId" : linkTargetAttributes["DISTRIBUTION_ID"],
-                        "PathPattern" : linkTargetResources["origin"].PathPattern
-                    }] ]         
-                [/#if]
+            [#case CDN_COMPONENT_TYPE ]
+                [#list linkTarget.Occurrences as subLinkTarget ]
+                    [#local subLinkAttributes = subLinkTarget.State.Attributes ]
+                    [#local subLinkResources = subLinkTarget.State.Resources]
+                    [#if subLinkTarget.Core.Type == CDN_ROUTE_COMPONENT_TYPE]
+                        [#if linkDirection == "inbound" ]  
+                            [#local distributions += [ { 
+                                "DistributionId" : subLinkAttributes["DISTRIBUTION_ID"],
+                                "PathPattern" :     subLinkResources["origin"].PathPattern
+                            }]]   
+                        [/#if]
+                    [/#if]      
+                [/#list]
                 [#break]
         [/#switch]
     [/#list]
@@ -124,7 +130,8 @@
                 ) /] 
     [/#if]
 
-    [#if solution.InvalidateOnUpdate && cdnDistributions?has_content ]
+    [#if solution.InvalidateOnUpdate && distributions?has_content ]
+        [#local invalidationScript = []]
         [#list distributions as distribution ]
             [#local distributionId = distribution.DistributionId ]
             [#local pathPattern = distribution.PathPattern]

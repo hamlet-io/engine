@@ -8,15 +8,21 @@
 
     [#assign componentState =
         {
-            "Resources" : {} + 
-                getExistingReference(cfId)?has_content?then(
-                    {
-                        "legacyCF" : {
-                            "Id" : cfId,
-                            "Type" : AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
-                        }
-                    },
-                    {}
+            "Resources" : {
+                "site" :{
+                    "Id" : formatResourceId( SPA_COMPONENT_TYPE, core.Id ),
+                    "Deployed" : true,
+                    "Type" : SPA_COMPONENT_TYPE
+                }
+            } + 
+            getExistingReference(cfId, "", "", deploymentUnit)?has_content?then(
+                {
+                    "legacyCF" : {
+                        "Id" : cfId,
+                        "Type" : AWS_CLOUDFRONT_DISTRIBUTION_RESOURCE_TYPE
+                    }
+                },
+                {}
             ),
             "Attributes" : {
             },
