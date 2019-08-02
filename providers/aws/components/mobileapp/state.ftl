@@ -13,18 +13,18 @@
     [#local otaPrefix = ""]
     [#local otaURL = ""]
 
-    [#local releaseChannel = 
+    [#local releaseChannel =
         getOccurrenceSettingValue(occurrence, "RELEASE_CHANNEL", true)?has_content?then(
                 getOccurrenceSettingValue(occurrence, "RELEASE_CHANNEL", true),
                 environmentName
             )
     ]
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData" ] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
-    
+
     [#local configFilePath = formatRelativePath(
                                 getOccurrenceSettingValue(occurrence, "SETTINGS_PREFIX"),
                                 "config" )]

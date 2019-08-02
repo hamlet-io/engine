@@ -34,7 +34,7 @@
                                                 swaggerFileName)]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData" ] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
     [#local dataBucket = getExistingReference(baselineComponentIds["AppData"])]
@@ -547,7 +547,7 @@
     [/#list]
 
     [#-- Send API Specification to an external publisher --]
-     
+
     [#if solution.Publishers?has_content ]
         [#if deploymentSubsetRequired("epilogue", false ) ]
             [@addToDefaultBashScriptOutput
@@ -579,7 +579,7 @@
             [#else]
                 [#local fileName = "swagger.json" ]
             [/#if]
-            
+
             [#list publisherLinks as publisherLinkId, publisherLinkTarget ]
                 [#local publisherLinkTargetCore = publisherLinkTarget.Core ]
                 [#local publisherLinkTargetAttributes = publisherLinkTarget.State.Attributes ]

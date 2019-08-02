@@ -395,7 +395,7 @@
         occurrence.Configuration.Environment.General +
         occurrence.Configuration.Environment.Build +
         occurrence.Configuration.Environment.Sensitive +
-        getDefaultLinkVariables(links, true) + 
+        getDefaultLinkVariables(links, true) +
         getDefaultBaselineVariables(baselineLinks)
     ]
 [/#function]
@@ -479,7 +479,7 @@
     [#local solution = task.Configuration.Solution ]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption" ] )]
+    [#local baselineLinks = getBaselineLinks(task, [ "OpsData", "AppData", "Encryption" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]

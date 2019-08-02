@@ -33,7 +33,7 @@
     [#local streamProcessors = []]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "AppData", "Encryption"] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "AppData", "Encryption"] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#local dataBucketId        = baselineComponentIds["AppData"]]

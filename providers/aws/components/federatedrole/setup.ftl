@@ -48,7 +48,7 @@
             [#switch linkTargetCore.Type]
                 [#case USERPOOL_CLIENT_COMPONENT_TYPE ]
                 [#case USERPOOL_COMPONENT_TYPE ]
-                    
+
                     [#local userPoolName = linkTargetAttributes["USER_POOL_NAME"] ]
                     [#local userPoolClient = linkTargetAttributes["CLIENT"] ]
 
@@ -84,7 +84,7 @@
     [#local unauthenticatedRole = ""]
     [#local ruleAssignments = {} ]
 
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData", "AppData", "Encryption", "SSHKey" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
 
     [#list occurrence.Occurrences![] as subOccurrence]
@@ -258,7 +258,7 @@
     [/#if]
 
     [#if ! authenticatedRole?has_content ]
-        [@fatal 
+        [@fatal
             message="A default Authenticated Rule Assigment must be provided"
             context=solution
         /]

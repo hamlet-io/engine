@@ -18,7 +18,7 @@
     [#local lbSecurityGroupIds = [] ]
 
     [#-- Baseline component lookup --]
-    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "OpsData" ] )]
+    [#local baselineLinks = getBaselineLinks(occurrence, [ "OpsData" ] )]
     [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
     [#local operationsBucket = getExistingReference(baselineComponentIds["OpsData"]) ]
 

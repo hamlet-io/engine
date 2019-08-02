@@ -50,8 +50,8 @@
     [#return ids ]
 [/#function]
 
-[#function getBaselineLinks baselineProfileName baselineComponentNames activeOnly=true activeRequired=true  ]
-    [#local baselineProfile = baselineProfiles[baselineProfileName] ]
+[#function getBaselineLinks occurrence baselineComponentNames activeOnly=true activeRequired=true  ]
+    [#local baselineProfile = baselineProfiles[occurrence.Configuration.Solution.Profiles.Baseline] ]
 
     [#local baselineLinkTargets = {} ]
 
