@@ -181,7 +181,10 @@
         [/#if]
     [/#list]
 
-    [#local processorProfile = getProcessor(occurrence, "RDS")]
+    [#local processorProfile = (getProcessor(occurrence, "RDS")?has_content)?then(
+                                getProcessor(occurrence, "RDS"),
+                                getProcessor(occurrence, DB_COMPONENT_TYPE )
+                            )]
 
     [#if deploymentSubsetRequired("prologue", false)]
         [@addToDefaultBashScriptOutput
