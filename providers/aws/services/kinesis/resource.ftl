@@ -86,7 +86,7 @@
     ]
 [/#function]
 
-[#function getFirehoseStreamS3Destination
+[#function getFirehoseStreamBackupS3Destination
         bucketId
         bucketPrefix
         bufferInterval
@@ -118,8 +118,68 @@
                 }
             }
         )
-
     ]
+[/#function]
+
+[#function getFirehoseStreamS3Destination 
+        bucketId
+        bucketPrefix
+        errorPrefix
+        bufferInterval
+        bufferSize
+        roleId
+        encrypted
+        kmsKeyId
+        loggingConfiguration
+        backupEnabled
+        backupS3Destination
+        lambdaProcessor
+]
+
+[#return 
+ {
+     "ExtendedS3DestinationConfiguration" : {
+        "BucketARN" : getArn(bucketId),
+        "BufferingHints" : {
+                "IntervalInSeconds" : bufferInterval,
+                "SizeInMBs" : bufferSize
+            },
+        "CloudWatchLoggingOptions" : loggingConfiguration,
+        "CompressionFormat" : "GZIP",
+        "RoleARN" : getReference(roleId, ARN_ATTRIBUTE_TYPE),
+        "S3BackupMode" : backupEnabled?then("Enabled", "Disabled"),
+        
+        "ProcessingConfiguration" : {
+            "Enabled" : true,
+            "Processors" : asArray(lambdaProcessor)
+        }
+    } + 
+    attributeIfContent(
+        "Prefix",
+        bucketPrefix,
+        bucketPrefix?ensure_ends_with("/")
+    ) + 
+    attributeIfContent(
+        "ErrorOutputPrefix",
+        errorPrefix,
+        errorPrefix?ensure_ends_with("/")
+    ) + 
+    attributeIfTrue(
+        "EncryptionConfiguration",
+        encrypted,
+        {
+            "KMSEncryptionConfig" : {
+                "AWSKMSKeyARN" : getReference(kmsKeyId, ARN_ATTRIBUTE_TYPE)
+            }
+        }
+    ) +
+    attributeIfTrue( 
+        "S3BackupConfiguration" 
+        backupEnabled,
+        backupS3Destination
+    )
+ }
+]
 [/#function]
 
 [#function getFirehoseStreamLoggingConfiguration
