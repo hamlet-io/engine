@@ -198,7 +198,7 @@
         [#return 
             {
                 "basePath" : formatAbsolutePath(context["BasePath"]),
-                "schemes" : context["Scheme"],
+                "schemes" : [ context["Scheme"] ],
                 "host" : context["FQDN"],
                 "info" : {
                     "version" : version,
@@ -286,10 +286,8 @@
     [#return
         valueIfTrue(
             {
-                "paths" : {
-                    "{proxy+}" : { "x-amazon-apigateway-any-method" : {} },
-                    "/" : { "x-amazon-apigateway-any-method": {} }
-                }
+                "{proxy+}" : { "x-amazon-apigateway-any-method" : {} },
+                "/" : { "x-amazon-apigateway-any-method": {} }
             },
             required
         )

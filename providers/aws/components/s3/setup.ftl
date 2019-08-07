@@ -15,6 +15,8 @@
     [#local s3Id = resources["bucket"].Id ]
     [#local s3Name = resources["bucket"].Name ]
 
+    [#local bucketPolicyId = resources["bucketpolicy"].Id ]
+
     [#local roleId = resources["role"].Id ]
 
     [#local versioningEnabled = solution.Lifecycle.Versioning ]
@@ -22,6 +24,11 @@
     [#local replicationEnabled = false]
     [#local replicationConfiguration = {} ]
     [#local replicationBucket = ""]
+
+    [#-- Baseline component lookup --]
+    [#local baselineLinks = getBaselineLinks(solution.Profiles.Baseline, [ "CDNOriginKey" ])]
+    [#local baselineComponentIds = getBaselineComponentIds(baselineLinks)]
+    [#local cfAccessId  = getExistingReference(baselineComponentIds["CDNOriginKey"]!"", CANONICAL_ID_ATTRIBUTE_TYPE) ]
 
     [#local dependencies = [] ]
 
@@ -170,8 +177,26 @@
             [#local linkTargetConfiguration = linkTarget.Configuration ]
             [#local linkTargetResources = linkTarget.State.Resources ]
             [#local linkTargetAttributes = linkTarget.State.Attributes ]
+            [#local linkDirection = linkTarget.Direction ]
 
             [#switch linkTargetCore.Type]
+                [#case CDN_ROUTE_COMPONENT_TYPE ]
+
+                    [#local originPath = (linkTargetConfiguration.Solution.Origin.BasePath)?remove_ending("/") ]
+                    [#if linkDirection == "inbound" ]
+                        [#local policyStatements += 
+                                s3ReadPermission(
+                                    s3Name,
+                                    originPath,
+                                    "*",
+                                    {
+                                        "CanonicalUser": cfAccessId
+                                    }
+                                )
+                        ]
+                    [/#if]
+                    [#break]
+
                 [#case S3_COMPONENT_TYPE ]
                     [#switch linkTarget.Role ]
                         [#case  "replicadestination" ]
@@ -262,7 +287,6 @@
     [#if deploymentSubsetRequired("s3", true)]
 
         [#if policyStatements?has_content ]
-            [#local bucketPolicyId = resources["bucketpolicy"].Id ]
             [@createBucketPolicy
                 id=bucketPolicyId
                 bucket=s3Name

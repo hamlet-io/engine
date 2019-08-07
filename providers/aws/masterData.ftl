@@ -1080,8 +1080,7 @@
           "MultiAZ": true,
           "network": {
             "RouteTables": {
-              "internal": {
-              },
+              "internal": {},
               "external": {
                 "Public": true
               }
@@ -1292,7 +1291,7 @@
         "Processor": "cache.t2.micro",
         "CountPerZone": 1
       },
-      "RDS": {
+      "db": {
         "Processor": "db.t2.small"
       },
       "ElasticSearch": {
@@ -2112,6 +2111,11 @@
         "WAFValueSet": "default"
       },
       "spa": {
+        "HTTPSProfile": "TLSv1",
+        "WAFProfile": "OWASP2017",
+        "WAFValueSet": "default"
+      },
+      "cdn": {
         "HTTPSProfile": "TLSv1",
         "WAFProfile": "OWASP2017",
         "WAFValueSet": "default"
