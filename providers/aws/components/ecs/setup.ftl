@@ -808,16 +808,6 @@
 
                         [#if deploymentSubsetRequired("epilogue", false)]
 
-                            [#local targetParameters = {
-                                "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
-                                "Id" : taskId,
-                                "EcsParameters" : {
-                                    "TaskCount" : schedule.TaskCount,
-                                    "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
-                                },
-                                "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
-                            }]
-
                             [@addToDefaultBashScriptOutput
                                 content=
                                     [
@@ -865,6 +855,16 @@
 
                     [#else]
                         [#if deploymentSubsetRequired("ecs", true) ]
+                            [#local targetParameters = {
+                                "Arn" : getExistingReference(ecsId, ARN_ATTRIBUTE_TYPE),
+                                "Id" : taskId,
+                                "EcsParameters" : {
+                                    "TaskCount" : schedule.TaskCount,
+                                    "TaskDefinitionArn" : getReference(taskId, ARN_ATTRIBUTE_TYPE)
+                                },
+                                "RoleArn" : getReference(scheduleTaskRoleId, ARN_ATTRIBUTE_TYPE)
+                            }]
+
                             [@createScheduleEventRule
                                 id=scheduleRuleId
                                 enabled=scheduleEnabled
