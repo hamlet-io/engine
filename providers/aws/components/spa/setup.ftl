@@ -1,4 +1,19 @@
 [#ftl]
+[#macro aws_spa_cf_solution occurrence ]
+    [#if deploymentSubsetRequired("genplan", false)]
+        [@addDefaultGenerationPlan subsets=["prologue" ] /]
+        [#return]
+    [/#if]
+
+    [#if deploymentSubsetRequired("prologue", false)]
+        [@addToDefaultBashScriptOutput
+            [
+                "warning \"solution level spa components have been deprecated. Please remove this component\""
+            ]
+        /]
+    [/#if]
+[/#macro]
+
 [#macro aws_spa_cf_application occurrence  ]
     [@debug message="Entering" context=occurrence enabled=false /]
 
