@@ -405,6 +405,13 @@ function assemble_composite_stack_outputs() {
     done
     debug "MODIFIED_STACK_OUTPUTS=${modified_stack_array[*]}"
     ${GENERATION_DIR}/manageJSON.sh -f "[.[].Stacks | select(.!=null) | .[].Outputs | select(.!=null) ]" -o "${COMPOSITE_STACK_OUTPUTS}" "${modified_stack_array[@]}"
+  
+    # TODO(rossmurr4y): Make this logic provider independant - based on details specified elsewhere in the plugin.
+    # if composite outputs is found empty, re-filter with Azure formatted outputs
+    if [[ $( jq -r '.|tostring == "[]"' < "${COMPOSITE_STACK_OUTPUTS}" ) == "true" ]]; then
+      ${GENERATION_DIR}/manageJSON.sh -f ".[].properties.outputs | select(.!=null)" -o "${COMPOSITE_STACK_OUTPUTS}" "${modified_stack_array[@]}"
+    fi
+
   else
     echo "[]" > "${COMPOSITE_STACK_OUTPUTS}"
   fi
