@@ -55,7 +55,8 @@
                     "produce" : s3ProducePermission(id),
                     "consume" : s3ConsumePermission(id),
                     "replicadestination" : s3ReplicaDestinationPermission(id),
-                    "replicasource" : {}
+                    "replicasource" : {},
+                    "datafeed" : s3KinesesStreamPermission(id)
                }
             }
         }

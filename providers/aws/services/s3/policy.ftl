@@ -245,3 +245,26 @@
         )
     ]
 [/#function]
+
+
+[#function s3KinesesStreamPermission bucket prefix="" object="*" ]
+    [#return
+        getS3Statement(
+            [
+                "s3:AbortMultipartUpload",
+                "s3:PutObject"
+            ],
+            bucket,
+            prefix,
+            object
+        ) + 
+        getS3BucketStatement(
+            [
+                "s3:ListBucket",
+                "s3:GetBucketLocation",
+                "s3:ListBucketMultipartUploads"
+            ],
+            bucket
+        )
+    ]   
+[/#function]
