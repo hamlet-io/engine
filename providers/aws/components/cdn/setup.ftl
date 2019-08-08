@@ -298,8 +298,28 @@
                                 eventHandlers )]
                 [#local routeBehaviours += behaviour ]
                 [#break]
-        [/#switch]
 
+            [#case APIGATEWAY_COMPONENT_TYPE ]
+                [#local origin = 
+                            getCFHTTPOrigin(
+                                originId,
+                                originLinkTargetAttributes["FQDN"],
+                                _context.CustomOriginHeaders,
+                                formatAbsolutePath( originLinkTargetAttributes["BASE_PATH"], subSolution.Origin.BasePath )
+                            )]
+                [#local origins += origin ]
+
+                [#local behaviour = 
+                            getCFLBCacheBehaviour(
+                                origin,
+                                behaviourPattern,
+                                subSolution.CachingTTL,
+                                subSolution.Compress,
+                                _context.ForwardHeaders,
+                                eventHandlers )]
+                [#local routeBehaviours += behaviour ]
+                [#break]
+        [/#switch]
         
         [#list routeBehaviours as behaviour ]
             [#if (behaviour.PathPattern!"")?has_content && originDefaultPath ]
